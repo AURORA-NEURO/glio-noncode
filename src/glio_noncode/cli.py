@@ -153,6 +153,16 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_audit_model
 from . import downloaded_data_catalog as downloaded_data_catalog_model
 from . import downloaded_data_catalog_audit as downloaded_data_catalog_audit_model
+from . import downloaded_data_ingestion as downloaded_data_ingestion_model
+from . import downloaded_data_ingestion_audit as downloaded_data_ingestion_audit_model
+from . import downloaded_data_ingestion_diff as downloaded_data_ingestion_diff_model
+from . import downloaded_data_ingestion_diff_audit as downloaded_data_ingestion_diff_audit_model
+from . import downloaded_data_ingestion_diff_query as downloaded_data_ingestion_diff_query_model
+from . import downloaded_data_ingestion_diff_query_audit as downloaded_data_ingestion_diff_query_audit_model
+from . import downloaded_data_ingestion_query as downloaded_data_ingestion_query_model
+from . import downloaded_data_ingestion_query_audit as downloaded_data_ingestion_query_audit_model
+from . import downloaded_data_ingestion_runtime as downloaded_data_ingestion_runtime_model
+from . import downloaded_data_ingestion_runtime_audit as downloaded_data_ingestion_runtime_audit_model
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
@@ -3340,6 +3350,34 @@ def _decision_mapping(values: list[str]) -> dict[str, str]:
             raise ValidationError("decision entries must use unique OPERATION_ADDRESS=DISPOSITION values")
         decisions[operation_address] = disposition
     return decisions
+
+
+def _downloaded_ingest_batch_from_document(raw: Mapping[str, Any]):
+    """Resolve a downloaded-data batch from a runtime or a bare batch document."""
+
+    return downloaded_data_ingestion_model.ingest_from_mapping(raw.get("batch", raw))
+
+
+def _downloaded_ingest_batch_from_input(input_path: str):
+    """Resolve a downloaded-data batch from a runtime directory or JSON file."""
+
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_ingestion_runtime_model.load_runtime(source).batch
+    return _downloaded_ingest_batch_from_document(_read_json(input_path))
+
+
+def _downloaded_ingest_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_ingestion_runtime_model.load_runtime(source)
+    return downloaded_data_ingestion_runtime_model.runtime_from_mapping(_read_json(input_path))
+
+
+def _downloaded_ingest_diff_from_document(raw: Mapping[str, Any]):
+    """Resolve a downloaded-data diff from a wrapped or bare document."""
+
+    return downloaded_data_ingestion_diff_model.diff_from_mapping(raw.get("diff", raw))
 
 
 def _write_json(payload: Any, output: str | None) -> None:
@@ -18298,6 +18336,74 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_catalog_audit.add_argument("input", type=str)
     downloaded_data_catalog_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_catalog_audit.add_argument("--output", default=None)
+    downloaded_data_ingest = subparsers.add_parser("downloaded-data-ingest", help="ingest selected structured members from a downloaded ZIP")
+    downloaded_data_ingest.add_argument("input", type=str)
+    downloaded_data_ingest.add_argument("--member", action="append", default=[], dest="member_names")
+    downloaded_data_ingest.add_argument("--suffix", action="append", default=[], dest="suffixes", choices=downloaded_data_ingestion_model.SUFFIXES)
+    downloaded_data_ingest.add_argument("--data-kind", action="append", default=[], dest="data_kinds", choices=downloaded_data_ingestion_model.DATA_KINDS)
+    downloaded_data_ingest.add_argument("--selection-id", default="glio-noncode-downloaded-data-selection")
+    downloaded_data_ingest.add_argument("--batch-id", default="glio-noncode-downloaded-data-ingest")
+    downloaded_data_ingest.add_argument("--runtime-id", default=downloaded_data_ingestion_runtime_model.DEFAULT_RUNTIME_ID)
+    downloaded_data_ingest.add_argument("--record-limit", type=int, default=downloaded_data_ingestion_model.MAX_RECORDS)
+    downloaded_data_ingest.add_argument("--overflow-policy", choices=downloaded_data_ingestion_model.OVERFLOW_POLICIES, default="reject")
+    downloaded_data_ingest.add_argument("--resource", action="append", choices=downloaded_data_ingestion_query_model.RESOURCES)
+    downloaded_data_ingest.add_argument("--offset", type=int, default=0)
+    downloaded_data_ingest.add_argument("--limit", type=int, default=downloaded_data_ingestion_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_ingest.add_argument("--destination", default=None)
+    downloaded_data_ingest.add_argument("--overwrite", action="store_true")
+    downloaded_data_ingest.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_ingest.add_argument("--output", default=None)
+    downloaded_data_ingest_audit = subparsers.add_parser("downloaded-data-ingest-audit", help="audit a downloaded-data ingestion batch")
+    downloaded_data_ingest_audit.add_argument("input", type=str)
+    downloaded_data_ingest_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_ingest_audit.add_argument("--output", default=None)
+    downloaded_data_ingest_query = subparsers.add_parser("downloaded-data-ingest-query", help="query a downloaded-data ingestion batch")
+    downloaded_data_ingest_query.add_argument("input", type=str)
+    downloaded_data_ingest_query.add_argument("--resource", action="append", choices=downloaded_data_ingestion_query_model.RESOURCES)
+    downloaded_data_ingest_query.add_argument("--record-id", default="")
+    downloaded_data_ingest_query.add_argument("--member-name", default="")
+    downloaded_data_ingest_query.add_argument("--data-kind", default="")
+    downloaded_data_ingest_query.add_argument("--shape", default="")
+    downloaded_data_ingest_query.add_argument("--field", default="")
+    downloaded_data_ingest_query.add_argument("--text", default="")
+    downloaded_data_ingest_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_ingest_query.add_argument("--limit", type=int, default=downloaded_data_ingestion_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_ingest_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_ingest_query.add_argument("--output", default=None)
+    downloaded_data_ingest_query_audit = subparsers.add_parser("downloaded-data-ingest-query-audit", help="audit a downloaded-data ingestion query")
+    downloaded_data_ingest_query_audit.add_argument("input", type=str)
+    downloaded_data_ingest_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_ingest_query_audit.add_argument("--output", default=None)
+    downloaded_data_ingest_diff = subparsers.add_parser("downloaded-data-ingest-diff", help="diff two downloaded-data ingestion batches")
+    downloaded_data_ingest_diff.add_argument("--left", required=True)
+    downloaded_data_ingest_diff.add_argument("--right", required=True)
+    downloaded_data_ingest_diff.add_argument("--diff-id", default="glio-noncode-downloaded-data-diff")
+    downloaded_data_ingest_diff.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_ingest_diff.add_argument("--output", default=None)
+    downloaded_data_ingest_diff_audit = subparsers.add_parser("downloaded-data-ingest-diff-audit", help="audit a downloaded-data ingestion diff")
+    downloaded_data_ingest_diff_audit.add_argument("input", type=str)
+    downloaded_data_ingest_diff_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_ingest_diff_audit.add_argument("--output", default=None)
+    downloaded_data_ingest_diff_query = subparsers.add_parser("downloaded-data-ingest-diff-query", help="query a downloaded-data ingestion diff")
+    downloaded_data_ingest_diff_query.add_argument("input", type=str)
+    downloaded_data_ingest_diff_query.add_argument("--resource", action="append", choices=downloaded_data_ingestion_diff_query_model.RESOURCES)
+    downloaded_data_ingest_diff_query.add_argument("--record-key", default="")
+    downloaded_data_ingest_diff_query.add_argument("--member-name", default="")
+    downloaded_data_ingest_diff_query.add_argument("--change", default="")
+    downloaded_data_ingest_diff_query.add_argument("--changed-field", default="")
+    downloaded_data_ingest_diff_query.add_argument("--text", default="")
+    downloaded_data_ingest_diff_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_ingest_diff_query.add_argument("--limit", type=int, default=downloaded_data_ingestion_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_ingest_diff_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_ingest_diff_query.add_argument("--output", default=None)
+    downloaded_data_ingest_diff_query_audit = subparsers.add_parser("downloaded-data-ingest-diff-query-audit", help="audit a downloaded-data diff query")
+    downloaded_data_ingest_diff_query_audit.add_argument("input", type=str)
+    downloaded_data_ingest_diff_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_ingest_diff_query_audit.add_argument("--output", default=None)
+    downloaded_data_ingest_runtime_audit = subparsers.add_parser("downloaded-data-ingest-runtime-audit", help="audit a downloaded-data ingestion runtime")
+    downloaded_data_ingest_runtime_audit.add_argument("input", type=str)
+    downloaded_data_ingest_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_ingest_runtime_audit.add_argument("--output", default=None)
     for command, help_text in (
         ("downloaded-data-catalog-member-schema", "print downloaded data member schema"),
         ("downloaded-data-catalog-schema", "print downloaded data catalog schema"),
@@ -18305,6 +18411,38 @@ def build_parser() -> argparse.ArgumentParser:
         ("downloaded-data-catalog-audit-check-schema", "print downloaded data catalog audit check schema"),
         ("downloaded-data-catalog-audit-schema", "print downloaded data catalog audit schema"),
         ("downloaded-data-catalog-audit-capabilities", "print downloaded data catalog audit capabilities"),
+        ("downloaded-data-ingestion-lineage-schema", "print downloaded-data ingestion lineage schema"),
+        ("downloaded-data-ingestion-record-schema", "print downloaded-data ingestion record schema"),
+        ("downloaded-data-ingestion-selection-schema", "print downloaded-data ingestion selection schema"),
+        ("downloaded-data-ingestion-schema", "print downloaded-data ingestion batch schema"),
+        ("downloaded-data-ingestion-capabilities", "print downloaded-data ingestion capabilities"),
+        ("downloaded-data-ingestion-audit-check-schema", "print downloaded-data ingestion audit check schema"),
+        ("downloaded-data-ingestion-audit-schema", "print downloaded-data ingestion audit schema"),
+        ("downloaded-data-ingestion-audit-capabilities", "print downloaded-data ingestion audit capabilities"),
+        ("downloaded-data-ingestion-query-row-schema", "print downloaded-data ingestion query row schema"),
+        ("downloaded-data-ingestion-query-schema", "print downloaded-data ingestion query schema"),
+        ("downloaded-data-ingestion-query-capabilities", "print downloaded-data ingestion query capabilities"),
+        ("downloaded-data-ingestion-query-audit-check-schema", "print downloaded-data ingestion query audit check schema"),
+        ("downloaded-data-ingestion-query-audit-schema", "print downloaded-data ingestion query audit schema"),
+        ("downloaded-data-ingestion-query-audit-capabilities", "print downloaded-data ingestion query audit capabilities"),
+        ("downloaded-data-ingestion-diff-item-schema", "print downloaded-data ingestion diff item schema"),
+        ("downloaded-data-ingestion-diff-schema", "print downloaded-data ingestion diff schema"),
+        ("downloaded-data-ingestion-diff-capabilities", "print downloaded-data ingestion diff capabilities"),
+        ("downloaded-data-ingestion-diff-audit-check-schema", "print downloaded-data ingestion diff audit check schema"),
+        ("downloaded-data-ingestion-diff-audit-schema", "print downloaded-data ingestion diff audit schema"),
+        ("downloaded-data-ingestion-diff-audit-capabilities", "print downloaded-data ingestion diff audit capabilities"),
+        ("downloaded-data-ingestion-diff-query-row-schema", "print downloaded-data ingestion diff query row schema"),
+        ("downloaded-data-ingestion-diff-query-schema", "print downloaded-data ingestion diff query schema"),
+        ("downloaded-data-ingestion-diff-query-capabilities", "print downloaded-data ingestion diff query capabilities"),
+        ("downloaded-data-ingestion-diff-query-audit-check-schema", "print downloaded-data ingestion diff query audit check schema"),
+        ("downloaded-data-ingestion-diff-query-audit-schema", "print downloaded-data ingestion diff query audit schema"),
+        ("downloaded-data-ingestion-diff-query-audit-capabilities", "print downloaded-data ingestion diff query audit capabilities"),
+        ("downloaded-data-ingestion-runtime-manifest-schema", "print downloaded-data ingestion runtime manifest schema"),
+        ("downloaded-data-ingestion-runtime-schema", "print downloaded-data ingestion runtime schema"),
+        ("downloaded-data-ingestion-runtime-capabilities", "print downloaded-data ingestion runtime capabilities"),
+        ("downloaded-data-ingestion-runtime-audit-check-schema", "print downloaded-data ingestion runtime audit check schema"),
+        ("downloaded-data-ingestion-runtime-audit-schema", "print downloaded-data ingestion runtime audit schema"),
+        ("downloaded-data-ingestion-runtime-audit-capabilities", "print downloaded-data ingestion runtime audit capabilities"),
     ):
         subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
     for command, help_text in (
@@ -19485,6 +19623,60 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_catalog_audit_model.audit_catalog(downloaded_data_catalog_model.catalog_from_mapping(raw.get("catalog", raw)))
             _emit_contract(value, args, downloaded_data_catalog_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-ingest":
+            value = downloaded_data_ingestion_runtime_model.run_runtime(
+                args.input,
+                member_names=tuple(args.member_names),
+                suffixes=tuple(args.suffixes),
+                data_kinds=tuple(args.data_kinds),
+                selection_id=args.selection_id,
+                batch_id=args.batch_id,
+                runtime_id=args.runtime_id,
+                record_limit=args.record_limit,
+                overflow_policy=args.overflow_policy,
+                resources=tuple(args.resource or ("summary", "records")),
+                offset=args.offset,
+                limit=args.limit,
+                destination=args.destination,
+                overwrite=args.overwrite,
+            )
+            _emit_contract(value, args, downloaded_data_ingestion_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-ingest-audit":
+            value = downloaded_data_ingestion_audit_model.audit_ingest(_downloaded_ingest_batch_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_ingestion_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-ingest-query":
+            batch = _downloaded_ingest_batch_from_input(args.input)
+            value = downloaded_data_ingestion_query_model.query_batch(batch, resources=tuple(args.resource or ("summary", "records")), record_id=args.record_id, member_name=args.member_name, data_kind=args.data_kind, shape=args.shape, field=args.field, text=args.text, offset=args.offset, limit=args.limit)
+            _emit_contract(value, args, downloaded_data_ingestion_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-ingest-query-audit":
+            value = downloaded_data_ingestion_query_audit_model.audit_query(downloaded_data_ingestion_query_model.query_from_mapping(_read_json(args.input)))
+            _emit_contract(value, args, downloaded_data_ingestion_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-ingest-diff":
+            left = _downloaded_ingest_batch_from_input(args.left)
+            right = _downloaded_ingest_batch_from_input(args.right)
+            value = downloaded_data_ingestion_diff_model.build_diff(left, right, diff_id=args.diff_id)
+            _emit_contract(value, args, downloaded_data_ingestion_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
+            return 0
+        if args.command == "downloaded-data-ingest-diff-audit":
+            value = downloaded_data_ingestion_diff_audit_model.audit_diff(downloaded_data_ingestion_diff_model.diff_from_mapping(_read_json(args.input)))
+            _emit_contract(value, args, downloaded_data_ingestion_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-ingest-diff-query":
+            value = downloaded_data_ingestion_diff_query_model.query_diff(_downloaded_ingest_diff_from_document(_read_json(args.input)), resources=tuple(args.resource or ("summary", "items")), record_key=args.record_key, member_name=args.member_name, change=args.change, changed_field=args.changed_field, text=args.text, offset=args.offset, limit=args.limit)
+            _emit_contract(value, args, downloaded_data_ingestion_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-ingest-diff-query-audit":
+            value = downloaded_data_ingestion_diff_query_audit_model.audit_query(downloaded_data_ingestion_diff_query_model.query_from_mapping(_read_json(args.input)))
+            _emit_contract(value, args, downloaded_data_ingestion_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-ingest-runtime-audit":
+            value = downloaded_data_ingestion_runtime_audit_model.audit_runtime(_downloaded_ingest_runtime_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_ingestion_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry":
             if args.archive_id is not None and len(args.archive_id) != len(args.input):
                 raise ValueError("--archive-id count must match --input count")
@@ -19837,6 +20029,38 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-catalog-audit-check-schema": downloaded_data_catalog_audit_model.check_schema,
             "downloaded-data-catalog-audit-schema": downloaded_data_catalog_audit_model.audit_schema,
             "downloaded-data-catalog-audit-capabilities": downloaded_data_catalog_audit_model.capabilities,
+            "downloaded-data-ingestion-lineage-schema": downloaded_data_ingestion_model.lineage_schema,
+            "downloaded-data-ingestion-record-schema": downloaded_data_ingestion_model.record_schema,
+            "downloaded-data-ingestion-selection-schema": downloaded_data_ingestion_model.selection_schema,
+            "downloaded-data-ingestion-schema": downloaded_data_ingestion_model.ingest_schema,
+            "downloaded-data-ingestion-capabilities": downloaded_data_ingestion_model.capabilities,
+            "downloaded-data-ingestion-audit-check-schema": downloaded_data_ingestion_audit_model.check_schema,
+            "downloaded-data-ingestion-audit-schema": downloaded_data_ingestion_audit_model.audit_schema,
+            "downloaded-data-ingestion-audit-capabilities": downloaded_data_ingestion_audit_model.capabilities,
+            "downloaded-data-ingestion-query-row-schema": downloaded_data_ingestion_query_model.row_schema,
+            "downloaded-data-ingestion-query-schema": downloaded_data_ingestion_query_model.query_schema,
+            "downloaded-data-ingestion-query-capabilities": downloaded_data_ingestion_query_model.capabilities,
+            "downloaded-data-ingestion-query-audit-check-schema": downloaded_data_ingestion_query_audit_model.check_schema,
+            "downloaded-data-ingestion-query-audit-schema": downloaded_data_ingestion_query_audit_model.audit_schema,
+            "downloaded-data-ingestion-query-audit-capabilities": downloaded_data_ingestion_query_audit_model.capabilities,
+            "downloaded-data-ingestion-diff-item-schema": downloaded_data_ingestion_diff_model.item_schema,
+            "downloaded-data-ingestion-diff-schema": downloaded_data_ingestion_diff_model.diff_schema,
+            "downloaded-data-ingestion-diff-capabilities": downloaded_data_ingestion_diff_model.capabilities,
+            "downloaded-data-ingestion-diff-audit-check-schema": downloaded_data_ingestion_diff_audit_model.check_schema,
+            "downloaded-data-ingestion-diff-audit-schema": downloaded_data_ingestion_diff_audit_model.audit_schema,
+            "downloaded-data-ingestion-diff-audit-capabilities": downloaded_data_ingestion_diff_audit_model.capabilities,
+            "downloaded-data-ingestion-diff-query-row-schema": downloaded_data_ingestion_diff_query_model.row_schema,
+            "downloaded-data-ingestion-diff-query-schema": downloaded_data_ingestion_diff_query_model.query_schema,
+            "downloaded-data-ingestion-diff-query-capabilities": downloaded_data_ingestion_diff_query_model.capabilities,
+            "downloaded-data-ingestion-diff-query-audit-check-schema": downloaded_data_ingestion_diff_query_audit_model.check_schema,
+            "downloaded-data-ingestion-diff-query-audit-schema": downloaded_data_ingestion_diff_query_audit_model.audit_schema,
+            "downloaded-data-ingestion-diff-query-audit-capabilities": downloaded_data_ingestion_diff_query_audit_model.capabilities,
+            "downloaded-data-ingestion-runtime-manifest-schema": downloaded_data_ingestion_runtime_model.manifest_schema,
+            "downloaded-data-ingestion-runtime-schema": downloaded_data_ingestion_runtime_model.runtime_schema,
+            "downloaded-data-ingestion-runtime-capabilities": downloaded_data_ingestion_runtime_model.capabilities,
+            "downloaded-data-ingestion-runtime-audit-check-schema": downloaded_data_ingestion_runtime_audit_model.check_schema,
+            "downloaded-data-ingestion-runtime-audit-schema": downloaded_data_ingestion_runtime_audit_model.audit_schema,
+            "downloaded-data-ingestion-runtime-audit-capabilities": downloaded_data_ingestion_runtime_audit_model.capabilities,
         }
         if args.command in certificate_schema_commands:
             _write_json(certificate_schema_commands[args.command](), args.output)

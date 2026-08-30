@@ -151,6 +151,16 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_audit_model
 from . import downloaded_data_catalog as downloaded_data_catalog_model
 from . import downloaded_data_catalog_audit as downloaded_data_catalog_audit_model
+from . import downloaded_data_ingestion as downloaded_data_ingestion_model
+from . import downloaded_data_ingestion_audit as downloaded_data_ingestion_audit_model
+from . import downloaded_data_ingestion_diff as downloaded_data_ingestion_diff_model
+from . import downloaded_data_ingestion_diff_audit as downloaded_data_ingestion_diff_audit_model
+from . import downloaded_data_ingestion_diff_query as downloaded_data_ingestion_diff_query_model
+from . import downloaded_data_ingestion_diff_query_audit as downloaded_data_ingestion_diff_query_audit_model
+from . import downloaded_data_ingestion_query as downloaded_data_ingestion_query_model
+from . import downloaded_data_ingestion_query_audit as downloaded_data_ingestion_query_audit_model
+from . import downloaded_data_ingestion_runtime as downloaded_data_ingestion_runtime_model
+from . import downloaded_data_ingestion_runtime_audit as downloaded_data_ingestion_runtime_audit_model
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory import (
     build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_from_directories,
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory,
@@ -1738,6 +1748,37 @@ class ApiHandler(BaseHTTPRequestHandler):
         return decisions
 
     @staticmethod
+    def _downloaded_ingest_batch_from_input(input_path: str):
+        """Resolve a downloaded-data batch from a runtime or batch JSON document."""
+
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_ingestion_runtime_model.load_runtime(source).batch
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data ingestion input must be an object")
+        nested = raw.get("batch")
+        return downloaded_data_ingestion_model.ingest_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_ingest_runtime_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_ingestion_runtime_model.load_runtime(source)
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data runtime input must be an object")
+        return downloaded_data_ingestion_runtime_model.runtime_from_mapping(raw)
+
+    @staticmethod
+    def _downloaded_ingest_diff_from_input(input_path: str):
+        raw = json.loads(Path(input_path).read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data diff input must be an object")
+        nested = raw.get("diff")
+        return downloaded_data_ingestion_diff_model.diff_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
     def _certificate_observatory_archive_registry_history_from_input(input_path: str):
         """Resolve a persisted archive registry history directory or public JSON document."""
 
@@ -1852,6 +1893,63 @@ class ApiHandler(BaseHTTPRequestHandler):
                     value = downloaded_data_catalog_audit_model.audit_catalog(downloaded_data_catalog_model.catalog_from_mapping(raw.get("catalog", raw)))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_catalog_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
+                ingest_prefix = downloaded_data_prefix + "/ingest"
+                if path == ingest_prefix:
+                    value = downloaded_data_ingestion_runtime_model.run_runtime(
+                        self._query_value(query, "input") or "",
+                        member_names=self._query_values(query, "member"),
+                        suffixes=self._query_values(query, "suffix"),
+                        data_kinds=self._query_values(query, "data_kind"),
+                        selection_id=self._query_value(query, "selection_id") or "glio-noncode-downloaded-data-selection",
+                        batch_id=self._query_value(query, "batch_id") or "glio-noncode-downloaded-data-ingest",
+                        runtime_id=self._query_value(query, "runtime_id") or downloaded_data_ingestion_runtime_model.DEFAULT_RUNTIME_ID,
+                        record_limit=self._query_int(query, "record_limit", downloaded_data_ingestion_model.MAX_RECORDS),
+                        overflow_policy=self._query_value(query, "overflow_policy") or "reject",
+                        resources=self._query_values(query, "resource") or ("summary", "records"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_ingestion_runtime_model.DEFAULT_LIMIT),
+                        destination=self._query_value(query, "destination"),
+                        overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == ingest_prefix + "/audit":
+                    value = downloaded_data_ingestion_audit_model.audit_ingest(self._downloaded_ingest_batch_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == ingest_prefix + "/query":
+                    batch = self._downloaded_ingest_batch_from_input(self._query_value(query, "input") or "")
+                    value = downloaded_data_ingestion_query_model.query_batch(batch, resources=self._query_values(query, "resource") or ("summary", "records"), record_id=self._query_value(query, "record_id") or "", member_name=self._query_value(query, "member_name") or "", data_kind=self._query_value(query, "data_kind") or "", shape=self._query_value(query, "shape") or "", field=self._query_value(query, "field") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", downloaded_data_ingestion_runtime_model.DEFAULT_LIMIT))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == ingest_prefix + "/query-audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = downloaded_data_ingestion_query_audit_model.audit_query(downloaded_data_ingestion_query_model.query_from_mapping(raw))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == ingest_prefix + "/diff":
+                    left = self._downloaded_ingest_batch_from_input(self._query_value(query, "left") or "")
+                    right = self._downloaded_ingest_batch_from_input(self._query_value(query, "right") or "")
+                    value = downloaded_data_ingestion_diff_model.build_diff(left, right, diff_id=self._query_value(query, "diff_id") or "glio-noncode-downloaded-data-diff")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
+                    return
+                if path == ingest_prefix + "/diff/audit":
+                    value = downloaded_data_ingestion_diff_audit_model.audit_diff(self._downloaded_ingest_diff_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == ingest_prefix + "/diff/query":
+                    value = downloaded_data_ingestion_diff_query_model.query_diff(self._downloaded_ingest_diff_from_input(self._query_value(query, "input") or ""), resources=self._query_values(query, "resource") or ("summary", "items"), record_key=self._query_value(query, "record_key") or "", member_name=self._query_value(query, "member_name") or "", change=self._query_value(query, "change") or "", changed_field=self._query_value(query, "changed_field") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", downloaded_data_ingestion_runtime_model.DEFAULT_LIMIT))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == ingest_prefix + "/diff/query-audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = downloaded_data_ingestion_diff_query_audit_model.audit_query(downloaded_data_ingestion_diff_query_model.query_from_mapping(raw))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == ingest_prefix + "/runtime/audit":
+                    value = downloaded_data_ingestion_runtime_audit_model.audit_runtime(self._downloaded_ingest_runtime_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
                 schema_routes = {
                     "/catalog/member-schema": downloaded_data_catalog_model.member_schema,
                     "/catalog/schema": downloaded_data_catalog_model.catalog_schema,
@@ -1859,6 +1957,38 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/catalog/audit/check-schema": downloaded_data_catalog_audit_model.check_schema,
                     "/catalog/audit/schema": downloaded_data_catalog_audit_model.audit_schema,
                     "/catalog/audit/capabilities": downloaded_data_catalog_audit_model.capabilities,
+                    "/ingest/lineage-schema": downloaded_data_ingestion_model.lineage_schema,
+                    "/ingest/record-schema": downloaded_data_ingestion_model.record_schema,
+                    "/ingest/selection-schema": downloaded_data_ingestion_model.selection_schema,
+                    "/ingest/schema": downloaded_data_ingestion_model.ingest_schema,
+                    "/ingest/capabilities": downloaded_data_ingestion_model.capabilities,
+                    "/ingest/audit/check-schema": downloaded_data_ingestion_audit_model.check_schema,
+                    "/ingest/audit/schema": downloaded_data_ingestion_audit_model.audit_schema,
+                    "/ingest/audit/capabilities": downloaded_data_ingestion_audit_model.capabilities,
+                    "/ingest/query/row-schema": downloaded_data_ingestion_query_model.row_schema,
+                    "/ingest/query/schema": downloaded_data_ingestion_query_model.query_schema,
+                    "/ingest/query/capabilities": downloaded_data_ingestion_query_model.capabilities,
+                    "/ingest/query-audit/check-schema": downloaded_data_ingestion_query_audit_model.check_schema,
+                    "/ingest/query-audit/schema": downloaded_data_ingestion_query_audit_model.audit_schema,
+                    "/ingest/query-audit/capabilities": downloaded_data_ingestion_query_audit_model.capabilities,
+                    "/ingest/diff/item-schema": downloaded_data_ingestion_diff_model.item_schema,
+                    "/ingest/diff/schema": downloaded_data_ingestion_diff_model.diff_schema,
+                    "/ingest/diff/capabilities": downloaded_data_ingestion_diff_model.capabilities,
+                    "/ingest/diff/audit/check-schema": downloaded_data_ingestion_diff_audit_model.check_schema,
+                    "/ingest/diff/audit/schema": downloaded_data_ingestion_diff_audit_model.audit_schema,
+                    "/ingest/diff/audit/capabilities": downloaded_data_ingestion_diff_audit_model.capabilities,
+                    "/ingest/diff/query/row-schema": downloaded_data_ingestion_diff_query_model.row_schema,
+                    "/ingest/diff/query/schema": downloaded_data_ingestion_diff_query_model.query_schema,
+                    "/ingest/diff/query/capabilities": downloaded_data_ingestion_diff_query_model.capabilities,
+                    "/ingest/diff/query-audit/check-schema": downloaded_data_ingestion_diff_query_audit_model.check_schema,
+                    "/ingest/diff/query-audit/schema": downloaded_data_ingestion_diff_query_audit_model.audit_schema,
+                    "/ingest/diff/query-audit/capabilities": downloaded_data_ingestion_diff_query_audit_model.capabilities,
+                    "/ingest/runtime/manifest-schema": downloaded_data_ingestion_runtime_model.manifest_schema,
+                    "/ingest/runtime/schema": downloaded_data_ingestion_runtime_model.runtime_schema,
+                    "/ingest/runtime/capabilities": downloaded_data_ingestion_runtime_model.capabilities,
+                    "/ingest/runtime/audit/check-schema": downloaded_data_ingestion_runtime_audit_model.check_schema,
+                    "/ingest/runtime/audit/schema": downloaded_data_ingestion_runtime_audit_model.audit_schema,
+                    "/ingest/runtime/audit/capabilities": downloaded_data_ingestion_runtime_audit_model.capabilities,
                 }
                 schema = schema_routes.get(path.removeprefix(downloaded_data_prefix))
                 if schema is not None:

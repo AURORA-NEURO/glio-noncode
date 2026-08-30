@@ -28,6 +28,12 @@ glio-noncode references
 glio-noncode capabilities
 ```
 
+To inspect a downloaded ZIP as bounded data, with explicit member selection,
+lineage, replay, audits, queries, and snapshot diffs, run
+`python examples/downloaded_data_ingestion_demo.py` against the downloaded
+archive. The complete workflow and HTTP surface are documented in
+[docs/DOWNLOADED_DATA_INGESTION.md](docs/DOWNLOADED_DATA_INGESTION.md).
+
 The same runtime can be served locally:
 
 ```powershell
