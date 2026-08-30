@@ -343,7 +343,7 @@ from .assurance_history_series_release_registry_federation_gate import assurance
 from .assurance_history_series_release_registry_federation_gate_review import decision_diff_item_schema as assurance_history_series_release_registry_federation_gate_review_decision_diff_item_schema, decision_diff_schema as assurance_history_series_release_registry_federation_gate_review_decision_diff_schema, decision_query_schema as assurance_history_series_release_registry_federation_gate_review_decision_query_schema, decision_schema as assurance_history_series_release_registry_federation_gate_review_decision_schema, diff_capabilities as assurance_history_series_release_registry_federation_gate_review_diff_capabilities, item_schema as assurance_history_series_release_registry_federation_gate_review_item_schema, ledger_schema as assurance_history_series_release_registry_federation_gate_review_ledger_schema, manifest_schema as assurance_history_series_release_registry_federation_gate_review_manifest_schema, queue_schema as assurance_history_series_release_registry_federation_gate_review_queue_schema, query_schema as assurance_history_series_release_registry_federation_gate_review_query_schema, replay_schema as assurance_history_series_release_registry_federation_gate_review_replay_schema, review_capabilities as assurance_history_series_release_registry_federation_gate_review_capabilities, review_schema as assurance_history_series_release_registry_federation_gate_review_schema, verification_finding_schema as assurance_history_series_release_registry_federation_gate_review_verification_finding_schema, verification_schema as assurance_history_series_release_registry_federation_gate_review_verification_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 1195
+PUBLIC_SURFACE_EXPECTED_COUNT = 1216
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -635,6 +635,12 @@ def default_public_surface_inventory(
     from . import downloaded_data_ingestion_diff_query_audit as downloaded_data_ingestion_diff_query_audit_surface
     from . import downloaded_data_ingestion_runtime as downloaded_data_ingestion_runtime_surface
     from . import downloaded_data_ingestion_runtime_audit as downloaded_data_ingestion_runtime_audit_surface
+    from . import downloaded_data_profile as downloaded_data_profile_surface
+    from . import downloaded_data_profile_audit as downloaded_data_profile_audit_surface
+    from . import downloaded_data_profile_query as downloaded_data_profile_query_surface
+    from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit_surface
+    from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime_surface
+    from . import downloaded_data_profile_runtime_audit as downloaded_data_profile_runtime_audit_surface
     from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_surface
     from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_audit_surface
     from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_query as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_query_surface
@@ -861,6 +867,27 @@ def default_public_surface_inventory(
         "downloaded-data-ingestion-runtime-audit-check-schema": downloaded_data_ingestion_runtime_audit_surface.check_schema(),
         "downloaded-data-ingestion-runtime-audit-schema": downloaded_data_ingestion_runtime_audit_surface.audit_schema(),
         "downloaded-data-ingestion-runtime-audit-capabilities": downloaded_data_ingestion_runtime_audit_surface.capabilities(),
+        "downloaded-data-profile-type-schema": downloaded_data_profile_surface.type_count_schema(),
+        "downloaded-data-profile-shape-schema": downloaded_data_profile_surface.shape_count_schema(),
+        "downloaded-data-profile-field-schema": downloaded_data_profile_surface.field_schema(),
+        "downloaded-data-profile-member-schema": downloaded_data_profile_surface.member_schema(),
+        "downloaded-data-profile-schema": downloaded_data_profile_surface.profile_schema(),
+        "downloaded-data-profile-capabilities": downloaded_data_profile_surface.capabilities(),
+        "downloaded-data-profile-audit-check-schema": downloaded_data_profile_audit_surface.check_schema(),
+        "downloaded-data-profile-audit-schema": downloaded_data_profile_audit_surface.audit_schema(),
+        "downloaded-data-profile-audit-capabilities": downloaded_data_profile_audit_surface.capabilities(),
+        "downloaded-data-profile-query-row-schema": downloaded_data_profile_query_surface.row_schema(),
+        "downloaded-data-profile-query-schema": downloaded_data_profile_query_surface.query_schema(),
+        "downloaded-data-profile-query-capabilities": downloaded_data_profile_query_surface.capabilities(),
+        "downloaded-data-profile-query-audit-check-schema": downloaded_data_profile_query_audit_surface.check_schema(),
+        "downloaded-data-profile-query-audit-schema": downloaded_data_profile_query_audit_surface.audit_schema(),
+        "downloaded-data-profile-query-audit-capabilities": downloaded_data_profile_query_audit_surface.capabilities(),
+        "downloaded-data-profile-runtime-manifest-schema": downloaded_data_profile_runtime_surface.manifest_schema(),
+        "downloaded-data-profile-runtime-schema": downloaded_data_profile_runtime_surface.runtime_schema(),
+        "downloaded-data-profile-runtime-capabilities": downloaded_data_profile_runtime_surface.capabilities(),
+        "downloaded-data-profile-runtime-audit-check-schema": downloaded_data_profile_runtime_audit_surface.check_schema(),
+        "downloaded-data-profile-runtime-audit-schema": downloaded_data_profile_runtime_audit_surface.audit_schema(),
+        "downloaded-data-profile-runtime-audit-capabilities": downloaded_data_profile_runtime_audit_surface.capabilities(),
         "registry-federation-gate-policy-schema": registry_federation_gate_surface.policy_schema(),
         "registry-federation-gate-check-schema": registry_federation_gate_surface.check_schema(),
         "registry-federation-gate-schema": registry_federation_gate_surface.gate_schema(),

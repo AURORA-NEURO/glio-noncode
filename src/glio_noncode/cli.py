@@ -163,6 +163,12 @@ from . import downloaded_data_ingestion_query as downloaded_data_ingestion_query
 from . import downloaded_data_ingestion_query_audit as downloaded_data_ingestion_query_audit_model
 from . import downloaded_data_ingestion_runtime as downloaded_data_ingestion_runtime_model
 from . import downloaded_data_ingestion_runtime_audit as downloaded_data_ingestion_runtime_audit_model
+from . import downloaded_data_profile as downloaded_data_profile_model
+from . import downloaded_data_profile_audit as downloaded_data_profile_audit_model
+from . import downloaded_data_profile_query as downloaded_data_profile_query_model
+from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit_model
+from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime_model
+from . import downloaded_data_profile_runtime_audit as downloaded_data_profile_runtime_audit_model
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
@@ -3372,6 +3378,33 @@ def _downloaded_ingest_runtime_from_input(input_path: str):
     if source.is_dir():
         return downloaded_data_ingestion_runtime_model.load_runtime(source)
     return downloaded_data_ingestion_runtime_model.runtime_from_mapping(_read_json(input_path))
+
+
+def _downloaded_profile_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_runtime_model.load_runtime(source)
+    return downloaded_data_profile_runtime_model.runtime_from_mapping(_read_json(input_path))
+
+
+def _downloaded_profile_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_runtime_model.load_runtime(source).profile
+    raw = _read_json(input_path)
+    if "profile" in raw and isinstance(raw["profile"], Mapping):
+        raw = raw["profile"]
+    return downloaded_data_profile_model.profile_from_mapping(raw)
+
+
+def _downloaded_profile_query_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_runtime_model.load_runtime(source).query
+    raw = _read_json(input_path)
+    if "query" in raw and isinstance(raw["query"], Mapping):
+        raw = raw["query"]
+    return downloaded_data_profile_query_model.query_from_mapping(raw)
 
 
 def _downloaded_ingest_diff_from_document(raw: Mapping[str, Any]):
@@ -18404,6 +18437,51 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_ingest_runtime_audit.add_argument("input", type=str)
     downloaded_data_ingest_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_ingest_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_profile = subparsers.add_parser("downloaded-data-profile", help="profile selected downloaded-data records without exporting values")
+    downloaded_data_profile.add_argument("input", type=str)
+    downloaded_data_profile.add_argument("--profile-id", default="glio-noncode-downloaded-data-profile")
+    downloaded_data_profile.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile.add_argument("--output", default=None)
+    downloaded_data_profile_audit = subparsers.add_parser("downloaded-data-profile-audit", help="audit a downloaded-data profile")
+    downloaded_data_profile_audit.add_argument("input", type=str)
+    downloaded_data_profile_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_audit.add_argument("--output", default=None)
+    downloaded_data_profile_query = subparsers.add_parser("downloaded-data-profile-query", help="query value-free downloaded-data profile facts")
+    downloaded_data_profile_query.add_argument("input", type=str)
+    downloaded_data_profile_query.add_argument("--resource", action="append", choices=downloaded_data_profile_query_model.RESOURCES)
+    downloaded_data_profile_query.add_argument("--member-name", default="")
+    downloaded_data_profile_query.add_argument("--data-kind", default="")
+    downloaded_data_profile_query.add_argument("--field-name", default="")
+    downloaded_data_profile_query.add_argument("--value-type", default="")
+    downloaded_data_profile_query.add_argument("--text", default="")
+    downloaded_data_profile_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_query.add_argument("--limit", type=int, default=downloaded_data_profile_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_profile_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_query.add_argument("--output", default=None)
+    downloaded_data_profile_query_audit = subparsers.add_parser("downloaded-data-profile-query-audit", help="audit a downloaded-data profile query")
+    downloaded_data_profile_query_audit.add_argument("input", type=str)
+    downloaded_data_profile_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_query_audit.add_argument("--output", default=None)
+    downloaded_data_profile_runtime = subparsers.add_parser("downloaded-data-profile-runtime", help="build and optionally persist a downloaded-data profile runtime")
+    downloaded_data_profile_runtime.add_argument("input", type=str)
+    downloaded_data_profile_runtime.add_argument("--profile-id", default="glio-noncode-downloaded-data-profile")
+    downloaded_data_profile_runtime.add_argument("--runtime-id", default=downloaded_data_profile_runtime_model.DEFAULT_RUNTIME_ID)
+    downloaded_data_profile_runtime.add_argument("--resource", action="append", choices=downloaded_data_profile_query_model.RESOURCES)
+    downloaded_data_profile_runtime.add_argument("--member-name", default="")
+    downloaded_data_profile_runtime.add_argument("--data-kind", default="")
+    downloaded_data_profile_runtime.add_argument("--field-name", default="")
+    downloaded_data_profile_runtime.add_argument("--value-type", default="")
+    downloaded_data_profile_runtime.add_argument("--text", default="")
+    downloaded_data_profile_runtime.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_runtime.add_argument("--limit", type=int, default=downloaded_data_profile_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_profile_runtime.add_argument("--destination", default=None)
+    downloaded_data_profile_runtime.add_argument("--overwrite", action="store_true")
+    downloaded_data_profile_runtime.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_runtime.add_argument("--output", default=None)
+    downloaded_data_profile_runtime_audit = subparsers.add_parser("downloaded-data-profile-runtime-audit", help="audit a downloaded-data profile runtime closure")
+    downloaded_data_profile_runtime_audit.add_argument("input", type=str)
+    downloaded_data_profile_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_runtime_audit.add_argument("--output", default=None)
     for command, help_text in (
         ("downloaded-data-catalog-member-schema", "print downloaded data member schema"),
         ("downloaded-data-catalog-schema", "print downloaded data catalog schema"),
@@ -18443,6 +18521,27 @@ def build_parser() -> argparse.ArgumentParser:
         ("downloaded-data-ingestion-runtime-audit-check-schema", "print downloaded-data ingestion runtime audit check schema"),
         ("downloaded-data-ingestion-runtime-audit-schema", "print downloaded-data ingestion runtime audit schema"),
         ("downloaded-data-ingestion-runtime-audit-capabilities", "print downloaded-data ingestion runtime audit capabilities"),
+        ("downloaded-data-profile-type-schema", "print downloaded-data profile type schema"),
+        ("downloaded-data-profile-shape-schema", "print downloaded-data profile shape schema"),
+        ("downloaded-data-profile-field-schema", "print downloaded-data profile field schema"),
+        ("downloaded-data-profile-member-schema", "print downloaded-data profile member schema"),
+        ("downloaded-data-profile-schema", "print downloaded-data profile schema"),
+        ("downloaded-data-profile-capabilities", "print downloaded-data profile capabilities"),
+        ("downloaded-data-profile-audit-check-schema", "print downloaded-data profile audit check schema"),
+        ("downloaded-data-profile-audit-schema", "print downloaded-data profile audit schema"),
+        ("downloaded-data-profile-audit-capabilities", "print downloaded-data profile audit capabilities"),
+        ("downloaded-data-profile-query-row-schema", "print downloaded-data profile query row schema"),
+        ("downloaded-data-profile-query-schema", "print downloaded-data profile query schema"),
+        ("downloaded-data-profile-query-capabilities", "print downloaded-data profile query capabilities"),
+        ("downloaded-data-profile-query-audit-check-schema", "print downloaded-data profile query audit check schema"),
+        ("downloaded-data-profile-query-audit-schema", "print downloaded-data profile query audit schema"),
+        ("downloaded-data-profile-query-audit-capabilities", "print downloaded-data profile query audit capabilities"),
+        ("downloaded-data-profile-runtime-manifest-schema", "print downloaded-data profile runtime manifest schema"),
+        ("downloaded-data-profile-runtime-schema", "print downloaded-data profile runtime schema"),
+        ("downloaded-data-profile-runtime-capabilities", "print downloaded-data profile runtime capabilities"),
+        ("downloaded-data-profile-runtime-audit-check-schema", "print downloaded-data profile runtime audit check schema"),
+        ("downloaded-data-profile-runtime-audit-schema", "print downloaded-data profile runtime audit schema"),
+        ("downloaded-data-profile-runtime-audit-capabilities", "print downloaded-data profile runtime audit capabilities"),
     ):
         subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
     for command, help_text in (
@@ -19677,6 +19776,54 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_ingestion_runtime_audit_model.audit_runtime(_downloaded_ingest_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_ingestion_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile":
+            value = downloaded_data_profile_model.build_profile(_downloaded_ingest_batch_from_input(args.input), profile_id=args.profile_id)
+            _emit_contract(value, args, downloaded_data_profile_model, json_name="profile_json", csv_name="profile_csv", markdown_name="render_profile_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-audit":
+            value = downloaded_data_profile_audit_model.audit_profile(_downloaded_profile_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-query":
+            value = downloaded_data_profile_query_model.query_profile(
+                _downloaded_profile_from_input(args.input),
+                resources=tuple(args.resource or downloaded_data_profile_query_model.RESOURCES),
+                member_name=args.member_name,
+                data_kind=args.data_kind,
+                field_name=args.field_name,
+                value_type=args.value_type,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, downloaded_data_profile_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-query-audit":
+            value = downloaded_data_profile_query_audit_model.audit_query(_downloaded_profile_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-runtime":
+            value = downloaded_data_profile_runtime_model.run_runtime(
+                _downloaded_ingest_batch_from_input(args.input),
+                runtime_id=args.runtime_id,
+                profile_id=args.profile_id,
+                resources=tuple(args.resource or downloaded_data_profile_query_model.RESOURCES),
+                member_name=args.member_name,
+                data_kind=args.data_kind,
+                field_name=args.field_name,
+                value_type=args.value_type,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                destination=args.destination,
+                overwrite=args.overwrite,
+            )
+            _emit_contract(value, args, downloaded_data_profile_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-runtime-audit":
+            value = downloaded_data_profile_runtime_audit_model.audit_runtime(_downloaded_profile_runtime_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry":
             if args.archive_id is not None and len(args.archive_id) != len(args.input):
                 raise ValueError("--archive-id count must match --input count")
@@ -20061,6 +20208,27 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-ingestion-runtime-audit-check-schema": downloaded_data_ingestion_runtime_audit_model.check_schema,
             "downloaded-data-ingestion-runtime-audit-schema": downloaded_data_ingestion_runtime_audit_model.audit_schema,
             "downloaded-data-ingestion-runtime-audit-capabilities": downloaded_data_ingestion_runtime_audit_model.capabilities,
+            "downloaded-data-profile-type-schema": downloaded_data_profile_model.type_count_schema,
+            "downloaded-data-profile-shape-schema": downloaded_data_profile_model.shape_count_schema,
+            "downloaded-data-profile-field-schema": downloaded_data_profile_model.field_schema,
+            "downloaded-data-profile-member-schema": downloaded_data_profile_model.member_schema,
+            "downloaded-data-profile-schema": downloaded_data_profile_model.profile_schema,
+            "downloaded-data-profile-capabilities": downloaded_data_profile_model.capabilities,
+            "downloaded-data-profile-audit-check-schema": downloaded_data_profile_audit_model.check_schema,
+            "downloaded-data-profile-audit-schema": downloaded_data_profile_audit_model.audit_schema,
+            "downloaded-data-profile-audit-capabilities": downloaded_data_profile_audit_model.capabilities,
+            "downloaded-data-profile-query-row-schema": downloaded_data_profile_query_model.row_schema,
+            "downloaded-data-profile-query-schema": downloaded_data_profile_query_model.query_schema,
+            "downloaded-data-profile-query-capabilities": downloaded_data_profile_query_model.capabilities,
+            "downloaded-data-profile-query-audit-check-schema": downloaded_data_profile_query_audit_model.check_schema,
+            "downloaded-data-profile-query-audit-schema": downloaded_data_profile_query_audit_model.audit_schema,
+            "downloaded-data-profile-query-audit-capabilities": downloaded_data_profile_query_audit_model.capabilities,
+            "downloaded-data-profile-runtime-manifest-schema": downloaded_data_profile_runtime_model.manifest_schema,
+            "downloaded-data-profile-runtime-schema": downloaded_data_profile_runtime_model.runtime_schema,
+            "downloaded-data-profile-runtime-capabilities": downloaded_data_profile_runtime_model.capabilities,
+            "downloaded-data-profile-runtime-audit-check-schema": downloaded_data_profile_runtime_audit_model.check_schema,
+            "downloaded-data-profile-runtime-audit-schema": downloaded_data_profile_runtime_audit_model.audit_schema,
+            "downloaded-data-profile-runtime-audit-capabilities": downloaded_data_profile_runtime_audit_model.capabilities,
         }
         if args.command in certificate_schema_commands:
             _write_json(certificate_schema_commands[args.command](), args.output)

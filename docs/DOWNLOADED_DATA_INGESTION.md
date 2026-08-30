@@ -53,6 +53,67 @@ is content-addressed, and the manifest links the component addresses. The
 runtime audit recomputes the component relationships and checks that the
 replayed runtime is release-ready.
 
+## Value-free structural profiling
+
+After ingestion, the profile plane derives a second public projection from
+the typed batch. It reports member and field counts, object/array/scalar
+shapes, all seven JSON value-type counts, field presence and missingness,
+serialized size ranges, and bounded distinct-value counts. It intentionally
+does not copy source values into the profile, query, audit, or persisted
+profile runtime.
+
+Run the real downloaded ZIP through both replay planes:
+
+```powershell
+python examples/downloaded_data_profile_demo.py `
+  C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip `
+  artifacts/downloaded-data-profile-demo
+```
+
+The profile demo repeats the explicit 17-member data selection, retains all
+4,030 records in the ingestion runtime, and emits a value-free structural
+summary. The profile runtime is an exact six-file bundle:
+
+```text
+artifacts/downloaded-data-profile-demo/
+  summary.json
+  profile-runtime-audit.json
+  profile-runtime-audit.md
+  ingestion-runtime/
+    manifest.json ... runtime.json
+  profile-runtime/
+    manifest.json
+    profile.json
+    audit.json
+    query.json
+    query-audit.json
+    runtime.json
+```
+
+The profile runtime can be inspected and queried directly:
+
+```powershell
+glio-noncode downloaded-data-profile `
+  artifacts/downloaded-data-profile-demo/ingestion-runtime `
+  --format markdown --output profile.md
+
+glio-noncode downloaded-data-profile-query `
+  artifacts/downloaded-data-profile-demo/profile-runtime `
+  --resource fields --field-name status --format csv --output fields.csv
+
+glio-noncode downloaded-data-profile-audit `
+  artifacts/downloaded-data-profile-demo/profile-runtime --format summary
+
+glio-noncode downloaded-data-profile-runtime-audit `
+  artifacts/downloaded-data-profile-demo/profile-runtime --format summary
+```
+
+Profile query resources are `summary`, `members`, `fields`, and `types`.
+Filters support member name, data kind, field name, value type, text, offset,
+and limit. A zero-count type row is retained as a canonical fact, so the
+seven-type inventory remains stable even when a type is absent from the
+download.
+
 ## CLI workflow
 
 Catalog the ZIP first when you want to inspect available members:
@@ -184,6 +245,12 @@ GET /v1/downloaded-data/ingest/diff?left=<runtime-or-batch-json>&right=<runtime-
 GET /v1/downloaded-data/ingest/runtime/audit?input=<runtime-directory>
 GET /v1/downloaded-data/ingest/schema
 GET /v1/downloaded-data/ingest/capabilities
+GET /v1/downloaded-data/profile?input=<runtime-or-batch-json>
+GET /v1/downloaded-data/profile/runtime?input=<runtime-or-batch-json>
+GET /v1/downloaded-data/profile/query?input=<profile-json-or-runtime-directory>&resource=fields
+GET /v1/downloaded-data/profile/audit?input=<profile-json-or-runtime-directory>
+GET /v1/downloaded-data/profile/schema
+GET /v1/downloaded-data/profile/runtime/schema
 ```
 
 Paths and query values must be URL-encoded by clients. The HTTP surface uses
@@ -195,8 +262,10 @@ execute archive content.
 
 The public surface includes schemas and capabilities for selection, lineage,
 records, batches, audits, queries, diff items, diff queries, runtime manifests,
-and runtime audits. The repository-wide surface audit counts these contracts
-and fails if one is omitted. Focused coverage is in
-`tests/test_downloaded_data_ingestion.py`, including all supported fixture
-formats, truncation, empty queries, exact-file replay, diff classification,
-tamper rejection, and public-schema checks.
+runtime audits, structural profiles, profile audits, profile queries, profile
+query audits, and profile runtimes. The repository-wide surface audit counts
+these contracts and fails if one is omitted. Focused coverage is in
+`tests/test_downloaded_data_ingestion.py` and
+`tests/test_downloaded_data_profile.py`, including all supported fixture
+formats, truncation, empty queries, zero-count type facts, exact-file replay,
+diff classification, tamper rejection, and public-schema checks.
