@@ -1377,6 +1377,14 @@ pagination, addressed rows, and an independent 12-check query audit. The
 downloaded-data demo emits the query and audit projections from its real ZIP
 comparison.
 
+Filtered diff-query pages can also be sealed into exact five-file snapshots.
+These handoffs retain the source diff address, query and audit receipts, source
+snapshot identities, deterministic counts, and per-file byte receipts without
+copying source values or paths. Reloading is canonical and fail-closed, and a
+separate 15-check audit recomputes the linkage, state, summary, manifest, byte
+receipts, and public boundary. See
+[docs/DOWNLOADED_DATA_DIFF_QUERY_SNAPSHOTS.md](docs/DOWNLOADED_DATA_DIFF_QUERY_SNAPSHOTS.md).
+
 The archive and transfer boundaries preserve public content addresses, reject
 path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)

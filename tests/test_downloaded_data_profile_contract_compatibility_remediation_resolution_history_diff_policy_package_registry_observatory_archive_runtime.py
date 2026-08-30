@@ -23,6 +23,8 @@ from glio_noncode import downloaded_data_profile_contract_compatibility_remediat
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_audit as runtime_query_snapshot_diff_audit_model
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query as runtime_query_snapshot_diff_query_model
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_audit as runtime_query_snapshot_diff_query_audit_model
+from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot as runtime_query_snapshot_diff_query_snapshot_model
+from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_audit as runtime_query_snapshot_diff_query_snapshot_audit_model
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
@@ -82,10 +84,16 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
                 snapshot_diff_query_json = root / "runtime-query-snapshot-diff-query.json"
                 self.assertEqual(main([snapshot_diff_query_command, str(snapshot_diff_path), "--resource", "changed", "--format", "json", "--output", str(snapshot_diff_query_json)]), 0)
                 self.assertEqual(main([snapshot_diff_query_command + "-audit", str(snapshot_diff_query_json), "--format", "summary"]), 0)
+                snapshot_diff_query_snapshot_command = snapshot_diff_query_command + "-snapshot"
+                snapshot_diff_query_snapshot_path = root / "runtime-query-snapshot-diff-query-snapshot"
+                snapshot_diff_query_snapshot_json = root / "runtime-query-snapshot-diff-query-snapshot.json"
+                self.assertEqual(main([snapshot_diff_query_snapshot_command, str(snapshot_diff_path), "--snapshot-id", "query-snapshot-cli", "--resource", "changed", "--change", "changed", "--destination", str(snapshot_diff_query_snapshot_path), "--format", "json", "--output", str(snapshot_diff_query_snapshot_json)]), 0)
+                self.assertEqual(main([snapshot_diff_query_snapshot_command + "-audit", str(snapshot_diff_query_snapshot_path), "--format", "summary"]), 0)
             self.assertEqual(json.loads(runtime_json.read_text(encoding="utf-8"))["state"], "ready")
             self.assertEqual((json.loads(snapshot_json.read_text(encoding="utf-8"))["query_returned_count"], json.loads(snapshot_json.read_text(encoding="utf-8"))["accepted"]), (21, True))
             self.assertEqual((json.loads(snapshot_diff_json.read_text(encoding="utf-8"))["removed_count"], json.loads(snapshot_diff_json.read_text(encoding="utf-8"))["changed_count"]), (20, 1))
             self.assertEqual((json.loads(snapshot_diff_query_json.read_text(encoding="utf-8"))["matched_count"], json.loads(snapshot_diff_query_json.read_text(encoding="utf-8"))["rows"][0]["change"]), (1, "changed"))
+            self.assertEqual((json.loads(snapshot_diff_query_snapshot_json.read_text(encoding="utf-8"))["query_returned_count"], json.loads(snapshot_diff_query_snapshot_json.read_text(encoding="utf-8"))["accepted"]), (1, True))
             server = create_server("127.0.0.1", 0, root)
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -133,7 +141,15 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
                 params = urlencode({"input": str(query_path), "format": "json"})
                 with urlopen(f"{snapshot_diff_endpoint}/query-audit?{params}", timeout=30) as response:
                     self.assertTrue(json.loads(response.read())["accepted"])
-                for suffix in ("/stage-schema", "/manifest-schema", "/schema", "/capabilities", "/audit/check-schema", "/audit/schema", "/audit/capabilities", "/query/row-schema", "/query/schema", "/query/capabilities", "/query-audit/check-schema", "/query-audit/schema", "/query-audit/capabilities", "/query-snapshot/manifest-schema", "/query-snapshot/summary-schema", "/query-snapshot/schema", "/query-snapshot/capabilities", "/query-snapshot/audit/check-schema", "/query-snapshot/audit/schema", "/query-snapshot/audit/capabilities", "/query-snapshot/diff/item-schema", "/query-snapshot/diff/items-schema", "/query-snapshot/diff/manifest-schema", "/query-snapshot/diff/summary-schema", "/query-snapshot/diff/schema", "/query-snapshot/diff/capabilities", "/query-snapshot/diff/audit/check-schema", "/query-snapshot/diff/audit/schema", "/query-snapshot/diff/audit/capabilities", "/query-snapshot/diff/query/row-schema", "/query-snapshot/diff/query/schema", "/query-snapshot/diff/query/capabilities", "/query-snapshot/diff/query-audit/check-schema", "/query-snapshot/diff/query-audit/schema", "/query-snapshot/diff/query-audit/capabilities"):
+                query_snapshot_endpoint = snapshot_diff_endpoint + "/query-snapshot"
+                params = urlencode({"input": str(root / "api-snapshot-diff"), "snapshot_id": "query-snapshot-api", "resource": "changed", "change": "changed", "destination": str(root / "api-query-snapshot"), "format": "json"})
+                with urlopen(f"{query_snapshot_endpoint}?{params}", timeout=30) as response:
+                    query_snapshot_payload = json.loads(response.read())
+                    self.assertEqual((query_snapshot_payload["query_returned_count"], query_snapshot_payload["accepted"]), (1, True))
+                params = urlencode({"input": str(root / "api-query-snapshot"), "format": "json"})
+                with urlopen(f"{query_snapshot_endpoint}/audit?{params}", timeout=30) as response:
+                    self.assertTrue(json.loads(response.read())["accepted"])
+                for suffix in ("/stage-schema", "/manifest-schema", "/schema", "/capabilities", "/audit/check-schema", "/audit/schema", "/audit/capabilities", "/query/row-schema", "/query/schema", "/query/capabilities", "/query-audit/check-schema", "/query-audit/schema", "/query-audit/capabilities", "/query-snapshot/manifest-schema", "/query-snapshot/summary-schema", "/query-snapshot/schema", "/query-snapshot/capabilities", "/query-snapshot/audit/check-schema", "/query-snapshot/audit/schema", "/query-snapshot/audit/capabilities", "/query-snapshot/diff/item-schema", "/query-snapshot/diff/items-schema", "/query-snapshot/diff/manifest-schema", "/query-snapshot/diff/summary-schema", "/query-snapshot/diff/schema", "/query-snapshot/diff/capabilities", "/query-snapshot/diff/audit/check-schema", "/query-snapshot/diff/audit/schema", "/query-snapshot/diff/audit/capabilities", "/query-snapshot/diff/query/row-schema", "/query-snapshot/diff/query/schema", "/query-snapshot/diff/query/capabilities", "/query-snapshot/diff/query-audit/check-schema", "/query-snapshot/diff/query-audit/schema", "/query-snapshot/diff/query-audit/capabilities", "/query-snapshot/diff/query-snapshot/manifest-schema", "/query-snapshot/diff/query-snapshot/summary-schema", "/query-snapshot/diff/query-snapshot/schema", "/query-snapshot/diff/query-snapshot/capabilities", "/query-snapshot/diff/query-snapshot/audit/check-schema", "/query-snapshot/diff/query-snapshot/audit/schema", "/query-snapshot/diff/query-snapshot/audit/capabilities"):
                     with urlopen(f"{endpoint}{suffix}", timeout=30) as response:
                         payload = json.loads(response.read())
                         if suffix == "/capabilities":
@@ -156,6 +172,10 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
                             self.assertEqual(payload["version"], runtime_query_snapshot_diff_query_model.VERSION)
                         elif suffix == "/query-snapshot/diff/query-audit/capabilities":
                             self.assertEqual(payload["version"], runtime_query_snapshot_diff_query_audit_model.VERSION)
+                        elif suffix == "/query-snapshot/diff/query-snapshot/capabilities":
+                            self.assertEqual(payload["version"], runtime_query_snapshot_diff_query_snapshot_model.VERSION)
+                        elif suffix == "/query-snapshot/diff/query-snapshot/audit/capabilities":
+                            self.assertEqual(payload["version"], runtime_query_snapshot_diff_query_snapshot_audit_model.VERSION)
                         else:
                             self.assertEqual(payload["$schema"], "https://json-schema.org/draft/2020-12/schema")
             finally:
@@ -169,8 +189,8 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
 
         inventory = build_default_public_surface_audit()
         self.assertTrue(inventory.accepted)
-        self.assertEqual(len(inventory.checks), 1486)
-        for schema in (runtime_model.stage_schema(), runtime_model.manifest_schema(), runtime_model.runtime_schema(), runtime_audit_model.check_schema(), runtime_audit_model.audit_schema(), runtime_query_snapshot_model.manifest_schema(), runtime_query_snapshot_model.summary_schema(), runtime_query_snapshot_model.snapshot_schema(), runtime_query_snapshot_audit_model.check_schema(), runtime_query_snapshot_audit_model.audit_schema(), runtime_query_snapshot_diff_model.item_schema(), runtime_query_snapshot_diff_model.items_schema(), runtime_query_snapshot_diff_model.manifest_schema(), runtime_query_snapshot_diff_model.summary_schema(), runtime_query_snapshot_diff_model.diff_schema(), runtime_query_snapshot_diff_audit_model.check_schema(), runtime_query_snapshot_diff_audit_model.audit_schema(), runtime_query_snapshot_diff_query_model.row_schema(), runtime_query_snapshot_diff_query_model.query_schema(), runtime_query_snapshot_diff_query_audit_model.check_schema(), runtime_query_snapshot_diff_query_audit_model.audit_schema()):
+        self.assertEqual(len(inventory.checks), 1493)
+        for schema in (runtime_model.stage_schema(), runtime_model.manifest_schema(), runtime_model.runtime_schema(), runtime_audit_model.check_schema(), runtime_audit_model.audit_schema(), runtime_query_snapshot_model.manifest_schema(), runtime_query_snapshot_model.summary_schema(), runtime_query_snapshot_model.snapshot_schema(), runtime_query_snapshot_audit_model.check_schema(), runtime_query_snapshot_audit_model.audit_schema(), runtime_query_snapshot_diff_model.item_schema(), runtime_query_snapshot_diff_model.items_schema(), runtime_query_snapshot_diff_model.manifest_schema(), runtime_query_snapshot_diff_model.summary_schema(), runtime_query_snapshot_diff_model.diff_schema(), runtime_query_snapshot_diff_audit_model.check_schema(), runtime_query_snapshot_diff_audit_model.audit_schema(), runtime_query_snapshot_diff_query_model.row_schema(), runtime_query_snapshot_diff_query_model.query_schema(), runtime_query_snapshot_diff_query_audit_model.check_schema(), runtime_query_snapshot_diff_query_audit_model.audit_schema(), runtime_query_snapshot_diff_query_snapshot_model.manifest_schema(), runtime_query_snapshot_diff_query_snapshot_model.summary_schema(), runtime_query_snapshot_diff_query_snapshot_model.snapshot_schema(), runtime_query_snapshot_diff_query_snapshot_audit_model.check_schema(), runtime_query_snapshot_diff_query_snapshot_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
 
     def test_runtime_boundaries_fail_closed(self):
@@ -269,6 +289,32 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
         self.assertIn("Snapshot Diff Query Audit", runtime_query_snapshot_diff_query_audit_model.render_audit_markdown(audit))
         with self.assertRaises(ValidationError):
             runtime_query_snapshot_diff_query_model.query_from_mapping(changed.to_dict() | {"matched_count": changed.matched_count + 1})
+
+    def test_runtime_query_snapshot_diff_query_snapshot_persists_and_audits_the_handoff(self):
+        archive = archive_model.build_archive(self.observatory, archive_id="runtime-query-snapshot-diff-query-snapshot-fixture")
+        value = runtime_model.build_runtime(archive, runtime_id="runtime-query-snapshot-diff-query-snapshot-fixture")
+        left = runtime_query_snapshot_model.build_snapshot(value, snapshot_id="runtime-query-snapshot-diff-query-snapshot-left")
+        right = runtime_query_snapshot_model.build_snapshot(value, snapshot_id="runtime-query-snapshot-diff-query-snapshot-right", resources=("components",), component="query")
+        diff = runtime_query_snapshot_diff_model.build_diff(left, right, diff_id="runtime-query-snapshot-diff-query-snapshot-fixture")
+        snapshot = runtime_query_snapshot_diff_query_snapshot_model.build_snapshot(diff, snapshot_id="runtime-query-snapshot-diff-query-snapshot-fixture", resources=("changed",), change="changed")
+        audit = runtime_query_snapshot_diff_query_snapshot_audit_model.audit_snapshot(snapshot)
+        self.assertEqual((snapshot.query_total_count, snapshot.query_matched_count, snapshot.query_returned_count, snapshot.state, snapshot.accepted), (1, 1, 1, "ready", True))
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (15, 15, True))
+        self.assertEqual(runtime_query_snapshot_diff_query_snapshot_model.snapshot_from_mapping(json.loads(runtime_query_snapshot_diff_query_snapshot_model.snapshot_json(snapshot))).content_address, snapshot.content_address)
+        self.assertIn("snapshot_id", runtime_query_snapshot_diff_query_snapshot_model.snapshot_csv(snapshot).splitlines()[0])
+        self.assertIn("Runtime Query Snapshot Diff Query Snapshot", runtime_query_snapshot_diff_query_snapshot_model.render_snapshot_markdown(snapshot))
+        self.assertIn("Runtime Query Snapshot Diff Query Snapshot Audit", runtime_query_snapshot_diff_query_snapshot_audit_model.render_audit_markdown(audit))
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "diff-query-snapshot"
+            runtime_query_snapshot_diff_query_snapshot_model.persist_snapshot(snapshot, destination)
+            loaded = runtime_query_snapshot_diff_query_snapshot_model.load_snapshot(destination)
+            self.assertEqual(loaded.content_address, snapshot.content_address)
+            self.assertTrue(runtime_query_snapshot_diff_query_snapshot_audit_model.audit_snapshot(loaded).accepted)
+            self.assertEqual(tuple(sorted(item.name for item in destination.iterdir())), tuple(sorted(runtime_query_snapshot_diff_query_snapshot_model.FILES)))
+            tampered = destination / "summary.json"
+            tampered.write_text(tampered.read_text(encoding="utf-8") + " ", encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                runtime_query_snapshot_diff_query_snapshot_model.load_snapshot(destination)
 
 
 if __name__ == "__main__":
