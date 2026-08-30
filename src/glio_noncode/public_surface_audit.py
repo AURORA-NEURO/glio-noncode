@@ -343,7 +343,7 @@ from .assurance_history_series_release_registry_federation_gate import assurance
 from .assurance_history_series_release_registry_federation_gate_review import decision_diff_item_schema as assurance_history_series_release_registry_federation_gate_review_decision_diff_item_schema, decision_diff_schema as assurance_history_series_release_registry_federation_gate_review_decision_diff_schema, decision_query_schema as assurance_history_series_release_registry_federation_gate_review_decision_query_schema, decision_schema as assurance_history_series_release_registry_federation_gate_review_decision_schema, diff_capabilities as assurance_history_series_release_registry_federation_gate_review_diff_capabilities, item_schema as assurance_history_series_release_registry_federation_gate_review_item_schema, ledger_schema as assurance_history_series_release_registry_federation_gate_review_ledger_schema, manifest_schema as assurance_history_series_release_registry_federation_gate_review_manifest_schema, queue_schema as assurance_history_series_release_registry_federation_gate_review_queue_schema, query_schema as assurance_history_series_release_registry_federation_gate_review_query_schema, replay_schema as assurance_history_series_release_registry_federation_gate_review_replay_schema, review_capabilities as assurance_history_series_release_registry_federation_gate_review_capabilities, review_schema as assurance_history_series_release_registry_federation_gate_review_schema, verification_finding_schema as assurance_history_series_release_registry_federation_gate_review_verification_finding_schema, verification_schema as assurance_history_series_release_registry_federation_gate_review_verification_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 962
+PUBLIC_SURFACE_EXPECTED_COUNT = 999
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -598,6 +598,17 @@ def default_public_surface_inventory(
     from . import registry_federation_consensus_gate_certificate_observatory_runtime_audit as registry_federation_consensus_gate_certificate_observatory_runtime_audit_surface
     from . import registry_federation_consensus_gate_certificate_observatory_replay as registry_federation_consensus_gate_certificate_observatory_replay_surface
     from . import registry_federation_consensus_gate_certificate_observatory_replay_audit as registry_federation_consensus_gate_certificate_observatory_replay_audit_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive as registry_federation_consensus_gate_certificate_observatory_archive_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive_audit as registry_federation_consensus_gate_certificate_observatory_archive_audit_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive_query as registry_federation_consensus_gate_certificate_observatory_archive_query_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive_query_audit as registry_federation_consensus_gate_certificate_observatory_archive_query_audit_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive_transfer as registry_federation_consensus_gate_certificate_observatory_archive_transfer_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive_transfer_audit as registry_federation_consensus_gate_certificate_observatory_archive_transfer_audit_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive_runtime as registry_federation_consensus_gate_certificate_observatory_archive_runtime_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive_runtime_audit as registry_federation_consensus_gate_certificate_observatory_archive_runtime_audit_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery as registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_audit as registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_audit_surface
+    from . import registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query as registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query_surface
     from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_federation as registry_federation_surface
 
     selected = snapshot or build_service_surface_snapshot()
@@ -811,6 +822,43 @@ def default_public_surface_inventory(
         "registry-federation-consensus-gate-certificate-observatory-replay-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_replay_audit_surface.check_schema(),
         "registry-federation-consensus-gate-certificate-observatory-replay-audit-schema": registry_federation_consensus_gate_certificate_observatory_replay_audit_surface.audit_schema(),
         "registry-federation-consensus-gate-certificate-observatory-replay-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_replay_audit_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-artifact-schema": registry_federation_consensus_gate_certificate_observatory_archive_surface.artifact_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-manifest-schema": registry_federation_consensus_gate_certificate_observatory_archive_surface.manifest_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-schema": registry_federation_consensus_gate_certificate_observatory_archive_surface.archive_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_audit_surface.check_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_audit_surface.audit_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_audit_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-query-schema": registry_federation_consensus_gate_certificate_observatory_archive_query_surface.query_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-query-row-schema": registry_federation_consensus_gate_certificate_observatory_archive_query_surface.row_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-query-result-schema": registry_federation_consensus_gate_certificate_observatory_archive_query_surface.result_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-query-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_query_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-query-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_query_audit_surface.check_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-query-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_query_audit_surface.audit_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-query-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_query_audit_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-chunk-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_surface.chunk_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_surface.transfer_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-progress-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_surface.progress_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-query-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_surface.query_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-query-result-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_surface.query_result_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_transfer_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_audit_surface.check_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_audit_surface.audit_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_transfer_audit_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-runtime-schema": registry_federation_consensus_gate_certificate_observatory_archive_runtime_surface.runtime_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-runtime-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_runtime_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-runtime-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_runtime_audit_surface.check_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-runtime-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_runtime_audit_surface.audit_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-runtime-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_runtime_audit_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-action-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_surface.action_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_surface.recovery_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_audit_surface.check_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_audit_surface.audit_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_audit_surface.capabilities(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-query-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query_surface.query_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-query-result-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query_surface.result_schema(),
+        "registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-query-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query_surface.capabilities(),
         "registry-federation-consensus-remediation-step-schema": registry_federation_consensus_remediation_surface.step_schema(),
         "registry-federation-consensus-remediation-schema": registry_federation_consensus_remediation_surface.remediation_schema(),
         "registry-federation-consensus-remediation-capabilities": registry_federation_consensus_remediation_surface.capabilities(),

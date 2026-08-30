@@ -684,6 +684,90 @@ Replay acceptance checklist:
 8. Compare the receipt address when the same package crosses another process
    boundary; a changed address means the receipt itself changed.
 
+## Certificate observatory ZIP archive and resumable transfer
+
+The certificate-observatory package is a structured JSON directory. When a
+handoff must cross a file or service boundary, the archive layer turns that
+package into one deterministic ZIP with an exact, ordered member set:
+
+| member | role |
+| --- | --- |
+| `manifest.json` | archive identity, package link, and artifact receipts |
+| `certificate-observatory/package.json` | addressed package projection |
+| `certificate-observatory/observatory.json` | addressed observatory projection |
+| `certificate-observatory/query.json` | bounded inspection projection |
+| `certificate-observatory/report.json` | health report projection |
+| `certificate-observatory/observatory-audit.json` | independent observatory audit |
+| `certificate-observatory/query-audit.json` | independent query audit |
+| `certificate-observatory/report-audit.json` | independent report audit |
+
+The ZIP timestamp, compression mode, member order, permissions, and canonical
+JSON bytes are fixed. Loading the archive rejects duplicate members, path
+traversal, non-canonical JSON, extra metadata, manifest drift, artifact receipt
+drift, package-projection drift, and physical-size mismatches. The independent
+archive audit recomputes sixteen checks, including canonical-byte replay,
+nested package audit acceptance, and path-free public output.
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive \
+  --input C:\data\certificate-observatory-package \
+  --destination C:\data\certificate-observatory.zip --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-audit \
+  --input C:\data\certificate-observatory.zip --format markdown
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-query \
+  --input C:\data\certificate-observatory.zip --resource artifacts --limit 25 --format csv
+```
+
+`registry_federation_consensus_gate_certificate_observatory_archive_transfer.py`
+provides deterministic fixed-size chunk receipts for a resumable receiver. A
+complete transfer persists `manifest.json` plus every ordered chunk beneath
+`chunks/`. A partial transfer persists only received chunks; its progress
+receipt distinguishes received indices, missing indices, byte conservation,
+and completion. Each received chunk is validated before retention, duplicate
+receipts are rejected, and finalization reloads the assembled ZIP before
+accepting it. The transfer audit exposes fourteen checks and deliberately
+keeps incomplete transfers non-accepted until all chunks are present.
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-transfer \
+  --input C:\data\certificate-observatory.zip \
+  --destination C:\data\certificate-observatory-transfer --chunk-size 4096 --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-transfer-audit \
+  --input C:\data\certificate-observatory-transfer --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-transfer-query \
+  --input C:\data\certificate-observatory-transfer --resource progress --format json
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery \
+  --input C:\data\certificate-observatory-partial-transfer \
+  --archive-input C:\data\certificate-observatory.zip \
+  --destination C:\data\certificate-observatory-recovered-transfer --format json
+```
+
+The archive runtime composes package loading, archive writing, archive audit,
+bounded query, transfer writing, transfer audit, and a path-free runtime
+receipt. It accepts one or more inputs only when they resolve to the same
+package content address. The archive, query, transfer, and runtime resources
+are exposed through the CLI and under
+`/consensus/gate/certificate/observatory/archive`; every route has adjacent
+schema and capability resources. The downloaded-data demo runs this complete
+ZIP-and-chunk chain against the registry directories supplied by the operator.
+For an interrupted receiver, use the recovery command with the original
+addressed ZIP. It emits a path-free recovery receipt, validates the partial
+manifest and every missing chunk, writes a complete transfer directory, and
+can then be inspected with the recovery audit and recovery query routes:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-audit \
+  --input C:\data\certificate-observatory-recovery.json --format markdown
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-transfer-recovery-query \
+  --input C:\data\certificate-observatory-recovery.json --resource missing --format csv
+```
+
+The recovery audit has twelve checks. A pre-resume receipt is accepted as a
+valid incomplete plan, while a resumed receipt is accepted only when it is
+complete, has no missing actions, links to the same transfer and archive, and
+records a persisted destination. Recovery never embeds the partial directory,
+archive path, or source filename in its public receipt.
+
 ## Remediation plan and operator query
 
 `registry_federation_consensus_remediation.py` converts every consensus action into a required or recommended non-mutating step. Each step retains its action ID, package, peer scope, instruction, and evidence addresses. `ready` is true only when there are no blocking steps; it does not authorize an edit. The independent remediation audit recomputes step identity, severity counters, readiness, and nested addresses. The query projection provides `summary`, `steps`, `required`, `recommended`, and `evidence` resources with bounded package, kind, severity, status, and pagination filters:

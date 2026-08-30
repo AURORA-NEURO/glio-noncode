@@ -1308,6 +1308,31 @@ path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)
 and [the runnable transfer demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_transfer_demo.py).
 
+The certificate-observatory handoff has a focused ZIP boundary as well. The
+exact eight-member archive, sixteen-check archive audit, bounded archive query,
+fourteen-check resumable transfer, and archive runtime are available with
+explicit commands such as:
+
+```powershell
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive --input C:\data\certificate-observatory-package --destination C:\data\certificate-observatory.zip --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-audit --input C:\data\certificate-observatory.zip --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-transfer --input C:\data\certificate-observatory.zip --destination C:\data\certificate-observatory-transfer --chunk-size 4096 --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-runtime --input C:\data\certificate-observatory-package --destination C:\data\certificate-observatory-runtime.zip --transfer-destination C:\data\certificate-observatory-runtime-transfer --format summary
+```
+
+The implementation is covered by the downloaded-data observatory example and
+the archive boundary contract tests, including exact ZIP replay, tamper
+rejection, pagination, partial receiving, CLI, HTTP, and closed-schema checks.
+See [the registry federation contract](docs/registry-federation.md#certificate-observatory-zip-archive-and-resumable-transfer).
+
+Interrupted chunk receivers can resume from the addressed ZIP with the
+recovery boundary. It reports missing ranges first, verifies the source archive
+and transfer manifest match, fills only validated chunks, and emits a twelve-
+check path-free recovery audit. The downloaded-data example exercises this
+repair path as well as the complete transfer path. For a package directory,
+the standalone [recovery demo](examples/registry_federation_certificate_observatory_archive_recovery_demo.py)
+can simulate an interrupted receiver and produce the same public receipts.
+
 The next coordination layer is the [observatory archive registry contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY.md),
 which registers multiple independently verified downloaded observatory
 archives without merging their source histories. It provides conserved
