@@ -1363,6 +1363,13 @@ and per-file byte receipts, with strict reload-time tamper and cross-link
 rejection plus a separate 15-check snapshot audit. The downloaded-data demo
 builds and verifies this snapshot against the generated observatory ZIP.
 
+Persisted runtime-query snapshots can also be compared as value-free revisions.
+The deterministic diff preserves stable row identities, classifies added,
+removed, changed, and unchanged rows, emits changed-field evidence and receipt
+address deltas, and is sealed as an exact four-file handoff with an independent
+15-check audit. The downloaded-data demo builds this diff from full and filtered
+snapshots of the generated observatory ZIP.
+
 The archive and transfer boundaries preserve public content addresses, reject
 path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)

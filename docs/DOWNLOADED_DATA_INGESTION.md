@@ -655,6 +655,31 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query-snapshot/audit?input=<snapshot-directory>
 ```
 
+Two persisted query snapshots can be compared without reopening the source
+archive. The diff uses the stable `resource|stage|component|name` row identity,
+retains only value-free changed-field names and before/after content addresses,
+and classifies each identity as `added`, `removed`, `changed`, or `unchanged`.
+It also reports conserved row counts, receipt-address deltas, and an
+`improved`/`regressed`/`mixed`/`unchanged` direction. The result is an exact
+four-file handoff (`manifest.json`, `diff.json`, `items.json`, and
+`summary.json`) with a separate 15-check audit.
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff `
+  baseline-query-snapshot candidate-query-snapshot `
+  --diff-id runtime-query-revision --destination runtime-query-snapshot-diff --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-audit `
+  runtime-query-snapshot-diff --format markdown
+```
+
+The HTTP equivalents are:
+
+```text
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query-snapshot/diff?left=<baseline-snapshot>&right=<candidate-snapshot>&destination=<diff-directory>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query-snapshot/diff/audit?input=<diff-directory>
+```
+
 The runtime is intentionally scoped to an observatory archive handoff. A raw
 downloaded ZIP is first transformed by the documented ingestion-to-observatory
 demo; the runtime then verifies that generated archive without retaining the
