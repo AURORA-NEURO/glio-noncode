@@ -462,6 +462,40 @@ The local API mirrors this plane at
 query-row, runtime, audit, and capability schemas under the matching
 `/profile/contract/compatibility/remediation/...` paths.
 
+### Remediation resolution and closure
+
+After a remediation plan is reviewed, the resolution plane records only
+addressed action references, bounded statuses, evidence addresses, and a
+rationale. It never records source values or operator identity. By default,
+required actions are `pending` and safe `none` actions are `not_applicable`:
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution `
+  remediation-plan.json --status-update <action-address>=resolved `
+  --format markdown --output resolution.md
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-query `
+  resolution.json --resource entries --status pending --required --limit 25
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-runtime `
+  remediation-plan.json --status-update <action-address>=resolved `
+  --destination resolution-runtime --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-runtime-audit `
+  resolution-runtime --format summary
+```
+
+The ledger derives `clear/promote` only when every required action is resolved;
+pending or waived actions produce `review/hold`, and any rejected action
+produces `blocked/block`. The resolution runtime is an exact seven-file
+handoff: `manifest.json`, `plan.json`, `resolution.json`, `audit.json`,
+`query.json`, `query-audit.json`, and `runtime.json`. The runnable
+[`downloaded_data_contract_resolution_demo.py`](../examples/downloaded_data_contract_resolution_demo.py)
+shows the default pending state on the supplied ZIP. The API exposes the same
+behavior at `/v1/downloaded-data/profile/contract/compatibility/remediation/resolution`
+and its `/audit`, `/query`, `/query-audit`, `/runtime`, and `/runtime/audit`
+children.
+
 ## Boundary and safety behavior
 
 The ingestion boundary is deliberately strict:

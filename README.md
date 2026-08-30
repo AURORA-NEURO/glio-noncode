@@ -48,6 +48,11 @@ For deterministic remediation actions over those compatibility findings, run
 same archive; it reports required none/review/repair/migrate/restore/investigate
 actions, bounded queries, independent audits, and the exact seven-file plan
 runtime.
+For value-free resolution and closure tracking after review, run
+`python examples/downloaded_data_contract_resolution_demo.py` against the
+same archive; it reports pending/resolved/waived/rejected dispositions,
+required open actions, release state, independent audits, and the exact
+seven-file resolution runtime.
 
 The same runtime can be served locally:
 

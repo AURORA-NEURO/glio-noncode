@@ -191,6 +191,12 @@ from . import downloaded_data_profile_contract_compatibility_remediation_query a
 from . import downloaded_data_profile_contract_compatibility_remediation_query_audit as downloaded_data_profile_contract_compatibility_remediation_query_audit_model
 from . import downloaded_data_profile_contract_compatibility_remediation_runtime as downloaded_data_profile_contract_compatibility_remediation_runtime_model
 from . import downloaded_data_profile_contract_compatibility_remediation_runtime_audit as downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution as downloaded_data_profile_contract_compatibility_remediation_resolution_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_audit_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_query as downloaded_data_profile_contract_compatibility_remediation_resolution_query_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_query_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_query_audit_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_runtime as downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_audit_model
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory import (
     build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_from_directories,
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory,
@@ -1984,6 +1990,33 @@ class ApiHandler(BaseHTTPRequestHandler):
         return downloaded_data_profile_contract_compatibility_remediation_runtime_model.runtime_from_mapping(raw)
 
     @staticmethod
+    def _downloaded_contract_compatibility_remediation_resolution_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model.load_runtime(source).resolution
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data compatibility remediation resolution input must be an object")
+        nested = raw.get("resolution")
+        if isinstance(nested, dict):
+            return downloaded_data_profile_contract_compatibility_remediation_resolution_model.resolution_from_mapping(nested)
+        if "resolution_id" in raw and "entries" in raw and "content_address" in raw:
+            return downloaded_data_profile_contract_compatibility_remediation_resolution_model.resolution_from_mapping(raw)
+        return downloaded_data_profile_contract_compatibility_remediation_resolution_model.build_resolution(ApiHandler._downloaded_contract_compatibility_remediation_plan_from_input(input_path))
+
+    @staticmethod
+    def _downloaded_contract_compatibility_remediation_statuses_from_query(query: Mapping[str, list[str]]) -> dict[str, str]:
+        statuses: dict[str, str] = {}
+        for value in query.get("status_update", []):
+            if "=" not in value:
+                raise ValueError("remediation status updates must use ACTION_ADDRESS=STATUS")
+            address, status = value.split("=", 1)
+            if not address or not status:
+                raise ValueError("remediation status updates must use ACTION_ADDRESS=STATUS")
+            statuses[address] = status
+        return statuses
+
+    @staticmethod
     def _downloaded_ingest_diff_from_input(input_path: str):
         raw = json.loads(Path(input_path).read_text(encoding="utf-8"))
         if not isinstance(raw, dict):
@@ -2430,6 +2463,61 @@ class ApiHandler(BaseHTTPRequestHandler):
                     value = downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model.audit_runtime(self._downloaded_contract_compatibility_remediation_runtime_from_input(self._query_value(query, "input") or ""))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
+                if path == contract_prefix + "/compatibility/remediation/resolution":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_model.build_resolution(
+                        self._downloaded_contract_compatibility_remediation_plan_from_input(self._query_value(query, "input") or ""),
+                        resolution_id=self._query_value(query, "resolution_id") or downloaded_data_profile_contract_compatibility_remediation_resolution_model.DEFAULT_RESOLUTION_ID,
+                        statuses=self._downloaded_contract_compatibility_remediation_statuses_from_query(query),
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_model, json_name="resolution_json", csv_name="resolution_csv", markdown_name="render_resolution_markdown")
+                    return
+                if path == contract_prefix + "/compatibility/remediation/resolution/audit":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_audit_model.audit_resolution(self._downloaded_contract_compatibility_remediation_resolution_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == contract_prefix + "/compatibility/remediation/resolution/query":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_query_model.query_resolution(
+                        self._downloaded_contract_compatibility_remediation_resolution_from_input(self._query_value(query, "input") or ""),
+                        resources=self._query_values(query, "resource") or downloaded_data_profile_contract_compatibility_remediation_resolution_query_model.RESOURCES,
+                        status=self._query_value(query, "status") or "",
+                        action=self._query_value(query, "action") or "",
+                        priority=self._query_value(query, "priority") or "",
+                        required=self._query_bool(query, "required") if "required" in query else False,
+                        identity=self._query_value(query, "identity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_profile_contract_compatibility_remediation_resolution_query_model.MAX_LIMIT),
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == contract_prefix + "/compatibility/remediation/resolution/query-audit":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_query_audit_model.audit_query(self._downloaded_contract_compatibility_remediation_resolution_query_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == contract_prefix + "/compatibility/remediation/resolution/runtime":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model.run_runtime(
+                        self._downloaded_contract_compatibility_remediation_plan_from_input(self._query_value(query, "input") or ""),
+                        runtime_id=self._query_value(query, "runtime_id") or downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model.DEFAULT_RUNTIME_ID,
+                        resolution_id=self._query_value(query, "resolution_id") or downloaded_data_profile_contract_compatibility_remediation_resolution_model.DEFAULT_RESOLUTION_ID,
+                        statuses=self._downloaded_contract_compatibility_remediation_statuses_from_query(query),
+                        resources=self._query_values(query, "resource") or downloaded_data_profile_contract_compatibility_remediation_resolution_query_model.RESOURCES,
+                        status=self._query_value(query, "status") or "",
+                        action=self._query_value(query, "action") or "",
+                        priority=self._query_value(query, "priority") or "",
+                        required=self._query_bool(query, "required") if "required" in query else False,
+                        identity=self._query_value(query, "identity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_profile_contract_compatibility_remediation_resolution_query_model.MAX_LIMIT),
+                        destination=self._query_value(query, "destination"),
+                        overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == contract_prefix + "/compatibility/remediation/resolution/runtime/audit":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_audit_model.audit_runtime(self._downloaded_contract_compatibility_remediation_resolution_runtime_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
                 schema_routes = {
                     "/catalog/member-schema": downloaded_data_catalog_model.member_schema,
                     "/catalog/schema": downloaded_data_catalog_model.catalog_schema,
@@ -2565,6 +2653,24 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/profile/contract/compatibility/remediation/runtime/audit/check-schema": downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model.check_schema,
                     "/profile/contract/compatibility/remediation/runtime/audit/schema": downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model.audit_schema,
                     "/profile/contract/compatibility/remediation/runtime/audit/capabilities": downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/entry-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_model.entry_schema,
+                    "/profile/contract/compatibility/remediation/resolution/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_model.resolution_schema,
+                    "/profile/contract/compatibility/remediation/resolution/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/audit/check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_audit_model.check_schema,
+                    "/profile/contract/compatibility/remediation/resolution/audit/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_audit_model.audit_schema,
+                    "/profile/contract/compatibility/remediation/resolution/audit/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_audit_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/query/row-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_query_model.row_schema,
+                    "/profile/contract/compatibility/remediation/resolution/query/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_query_model.query_schema,
+                    "/profile/contract/compatibility/remediation/resolution/query/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_query_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/query-audit/check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_query_audit_model.check_schema,
+                    "/profile/contract/compatibility/remediation/resolution/query-audit/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_query_audit_model.audit_schema,
+                    "/profile/contract/compatibility/remediation/resolution/query-audit/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_query_audit_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/runtime/manifest-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model.manifest_schema,
+                    "/profile/contract/compatibility/remediation/resolution/runtime/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model.runtime_schema,
+                    "/profile/contract/compatibility/remediation/resolution/runtime/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/runtime/audit/check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_audit_model.check_schema,
+                    "/profile/contract/compatibility/remediation/resolution/runtime/audit/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_audit_model.audit_schema,
+                    "/profile/contract/compatibility/remediation/resolution/runtime/audit/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_audit_model.capabilities,
                 }
                 schema = schema_routes.get(path.removeprefix(downloaded_data_prefix))
                 if schema is not None:
