@@ -582,6 +582,35 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/query-audit?input=<archive-query>
 ```
 
+The archive inspection can be materialized as a reloadable seven-file runtime
+handoff. Runtime construction runs the load, verify, archive-audit, bounded
+query, and query-audit stages in order. The persisted manifest records exact
+canonical bytes and content addresses for the runtime, archive, both audits,
+query, query audit, and summary. Reload rejects missing, extra, symlinked,
+non-canonical, tampered, or cross-linked members before returning the receipt.
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime `
+  policy-package-registry-observatory.zip `
+  --runtime-id policy-package-registry-observatory-archive-runtime `
+  --destination policy-package-registry-observatory-archive-runtime --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-audit `
+  policy-package-registry-observatory-archive-runtime --format summary
+```
+
+The HTTP equivalents are:
+
+```text
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime?input=<archive-or-observatory>&destination=<runtime-directory>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/audit?input=<runtime-directory>
+```
+
+The runtime is intentionally scoped to an observatory archive handoff. A raw
+downloaded ZIP is first transformed by the documented ingestion-to-observatory
+demo; the runtime then verifies that generated archive without retaining the
+local source path.
+
 ## CLI workflow
 
 Catalog the ZIP first when you want to inspect available members:

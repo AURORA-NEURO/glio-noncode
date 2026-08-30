@@ -1344,6 +1344,13 @@ python -m glio_noncode <observatory-command>-archive-transfer-verify --input rev
 python -m glio_noncode <observatory-command>-archive-transfer-query --input review-output/transfer --resource chunks --limit 50
 ```
 
+The policy package registry observatory now adds a persisted inspection
+runtime over its archive, archive audit, bounded query, and query audit. It
+emits six ordered stage receipts, a path-free acceptance state, and an exact
+seven-file reloadable directory with canonical byte receipts. The supplied
+downloaded-data demo exercises this runtime on the generated observatory ZIP;
+reload rejects missing, extra, non-canonical, tampered, or cross-linked files.
+
 The archive and transfer boundaries preserve public content addresses, reject
 path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)
