@@ -631,6 +631,30 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query-audit?input=<runtime-query>
 ```
 
+A filtered runtime query can also be sealed as a durable five-file snapshot.
+The snapshot contains the query and its independent audit alongside a summary,
+manifest, and exact byte receipts. It can be reloaded without the source
+archive, and reload fails closed on missing, extra, non-canonical, tampered, or
+cross-linked members. A separate snapshot audit replays the query, query audit,
+runtime linkage, manifest receipts, and public boundary.
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot `
+  policy-package-registry-observatory-archive-runtime `
+  --snapshot-id runtime-components --resource components --component query `
+  --destination policy-package-registry-observatory-archive-runtime-query-snapshot --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-audit `
+  policy-package-registry-observatory-archive-runtime-query-snapshot --format markdown
+```
+
+The HTTP equivalents are:
+
+```text
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query-snapshot?input=<runtime-directory>&snapshot_id=runtime-components&resource=components&component=query&destination=<snapshot-directory>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query-snapshot/audit?input=<snapshot-directory>
+```
+
 The runtime is intentionally scoped to an observatory archive handoff. A raw
 downloaded ZIP is first transformed by the documented ingestion-to-observatory
 demo; the runtime then verifies that generated archive without retaining the

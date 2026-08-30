@@ -17,6 +17,8 @@ from glio_noncode import downloaded_data_profile_contract_compatibility_remediat
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_audit as runtime_audit_model
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query as runtime_query_model
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_audit as runtime_query_audit_model
+from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot as runtime_query_snapshot_model
+from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_audit as runtime_query_snapshot_audit_model
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
@@ -60,7 +62,13 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(main([command, str(archive_path), "--runtime-id", "runtime-cli", "--destination", str(runtime_path), "--format", "json", "--output", str(runtime_json)]), 0)
                 self.assertEqual(main([command + "-audit", str(runtime_path), "--format", "summary"]), 0)
+                snapshot_command = command + "-query-snapshot"
+                snapshot_path = root / "runtime-query-snapshot"
+                snapshot_json = root / "runtime-query-snapshot.json"
+                self.assertEqual(main([snapshot_command, str(runtime_path), "--snapshot-id", "snapshot-cli", "--resource", "components", "--component", "query", "--destination", str(snapshot_path), "--format", "json", "--output", str(snapshot_json)]), 0)
+                self.assertEqual(main([snapshot_command + "-audit", str(snapshot_path), "--format", "summary"]), 0)
             self.assertEqual(json.loads(runtime_json.read_text(encoding="utf-8"))["state"], "ready")
+            self.assertEqual((json.loads(snapshot_json.read_text(encoding="utf-8"))["query_returned_count"], json.loads(snapshot_json.read_text(encoding="utf-8"))["accepted"]), (1, True))
             server = create_server("127.0.0.1", 0, root)
             thread = threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -82,7 +90,15 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
                 params = urlencode({"input": str(query_path), "format": "json"})
                 with urlopen(f"{endpoint}/query-audit?{params}", timeout=30) as response:
                     self.assertTrue(json.loads(response.read())["accepted"])
-                for suffix in ("/stage-schema", "/manifest-schema", "/schema", "/capabilities", "/audit/check-schema", "/audit/schema", "/audit/capabilities", "/query/row-schema", "/query/schema", "/query/capabilities", "/query-audit/check-schema", "/query-audit/schema", "/query-audit/capabilities"):
+                snapshot_endpoint = endpoint + "/query-snapshot"
+                params = urlencode({"input": str(root / "api-runtime"), "snapshot_id": "snapshot-api", "resource": "components", "component": "query", "destination": str(root / "api-snapshot"), "format": "json"})
+                with urlopen(f"{snapshot_endpoint}?{params}", timeout=30) as response:
+                    snapshot_payload = json.loads(response.read())
+                    self.assertEqual((snapshot_payload["query_returned_count"], snapshot_payload["accepted"]), (1, True))
+                params = urlencode({"input": str(root / "api-snapshot"), "format": "json"})
+                with urlopen(f"{snapshot_endpoint}/audit?{params}", timeout=30) as response:
+                    self.assertTrue(json.loads(response.read())["accepted"])
+                for suffix in ("/stage-schema", "/manifest-schema", "/schema", "/capabilities", "/audit/check-schema", "/audit/schema", "/audit/capabilities", "/query/row-schema", "/query/schema", "/query/capabilities", "/query-audit/check-schema", "/query-audit/schema", "/query-audit/capabilities", "/query-snapshot/manifest-schema", "/query-snapshot/summary-schema", "/query-snapshot/schema", "/query-snapshot/capabilities", "/query-snapshot/audit/check-schema", "/query-snapshot/audit/schema", "/query-snapshot/audit/capabilities"):
                     with urlopen(f"{endpoint}{suffix}", timeout=30) as response:
                         payload = json.loads(response.read())
                         if suffix == "/capabilities":
@@ -93,6 +109,10 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
                             self.assertEqual(payload["version"], runtime_query_model.VERSION)
                         elif suffix == "/query-audit/capabilities":
                             self.assertEqual(payload["version"], runtime_query_audit_model.VERSION)
+                        elif suffix == "/query-snapshot/capabilities":
+                            self.assertEqual(payload["version"], runtime_query_snapshot_model.VERSION)
+                        elif suffix == "/query-snapshot/audit/capabilities":
+                            self.assertEqual(payload["version"], runtime_query_snapshot_audit_model.VERSION)
                         else:
                             self.assertEqual(payload["$schema"], "https://json-schema.org/draft/2020-12/schema")
             finally:
@@ -106,8 +126,8 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
 
         inventory = build_default_public_surface_audit()
         self.assertTrue(inventory.accepted)
-        self.assertEqual(len(inventory.checks), 1464)
-        for schema in (runtime_model.stage_schema(), runtime_model.manifest_schema(), runtime_model.runtime_schema(), runtime_audit_model.check_schema(), runtime_audit_model.audit_schema()):
+        self.assertEqual(len(inventory.checks), 1471)
+        for schema in (runtime_model.stage_schema(), runtime_model.manifest_schema(), runtime_model.runtime_schema(), runtime_audit_model.check_schema(), runtime_audit_model.audit_schema(), runtime_query_snapshot_model.manifest_schema(), runtime_query_snapshot_model.summary_schema(), runtime_query_snapshot_model.snapshot_schema(), runtime_query_snapshot_audit_model.check_schema(), runtime_query_snapshot_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
 
     def test_runtime_boundaries_fail_closed(self):
@@ -137,6 +157,28 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
         self.assertIn("Archive Runtime Query", runtime_query_model.render_query_markdown(query))
         with self.assertRaises(ValidationError):
             runtime_query_model.query_from_mapping(query.to_dict() | {"matched_count": query.matched_count + 1})
+
+    def test_runtime_query_snapshot_reloads_and_rejects_tampering(self):
+        archive = archive_model.build_archive(self.observatory, archive_id="runtime-query-snapshot-fixture")
+        value = runtime_model.build_runtime(archive, runtime_id="runtime-query-snapshot-fixture")
+        snapshot = runtime_query_snapshot_model.build_snapshot(value, snapshot_id="runtime-query-snapshot-fixture", resources=("components",), component="query")
+        audit = runtime_query_snapshot_audit_model.audit_snapshot(snapshot)
+        self.assertEqual((snapshot.query_total_count, snapshot.query_matched_count, snapshot.query_returned_count), (4, 1, 1))
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (15, 15, True))
+        self.assertEqual(runtime_query_snapshot_model.snapshot_from_mapping(json.loads(runtime_query_snapshot_model.snapshot_json(snapshot))).content_address, snapshot.content_address)
+        self.assertIn("snapshot_id", runtime_query_snapshot_model.snapshot_csv(snapshot).splitlines()[0])
+        self.assertIn("Runtime Query Snapshot", runtime_query_snapshot_model.render_snapshot_markdown(snapshot))
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "snapshot"
+            runtime_query_snapshot_model.persist_snapshot(snapshot, destination)
+            loaded = runtime_query_snapshot_model.load_snapshot(destination)
+            self.assertEqual(loaded.content_address, snapshot.content_address)
+            self.assertTrue(runtime_query_snapshot_audit_model.audit_snapshot(loaded).accepted)
+            self.assertEqual(tuple(sorted(item.name for item in destination.iterdir())), tuple(sorted(runtime_query_snapshot_model.FILES)))
+            tampered = destination / "snapshot.json"
+            tampered.write_text(tampered.read_text(encoding="utf-8") + " ", encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                runtime_query_snapshot_model.load_snapshot(destination)
 
 
 if __name__ == "__main__":

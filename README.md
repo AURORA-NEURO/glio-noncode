@@ -1357,6 +1357,12 @@ component counters, and seven materialized runtime documents. Exact filters,
 deterministic pagination, row addresses, and an independent 15-check query
 audit make the handoff reviewable without reopening the downloaded source.
 
+Filtered runtime queries can also be sealed into exact five-file snapshots.
+Snapshots retain the filtered query, independent query audit, summary, manifest,
+and per-file byte receipts, with strict reload-time tamper and cross-link
+rejection plus a separate 15-check snapshot audit. The downloaded-data demo
+builds and verifies this snapshot against the generated observatory ZIP.
+
 The archive and transfer boundaries preserve public content addresses, reject
 path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)
