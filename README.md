@@ -1391,6 +1391,11 @@ comparison requires the same query shape, pairs public rows by
 retains both endpoint receipts, and emits an exact four-file handoff with a
 separate 15-check audit. See
 [docs/DOWNLOADED_DATA_QUERY_SNAPSHOT_COMPARISONS.md](docs/DOWNLOADED_DATA_QUERY_SNAPSHOT_COMPARISONS.md).
+Those persisted comparisons can then be inspected without reopening the source
+snapshots: query summary, action classes, changed fields, source resources,
+stable keys, identities, directions, transitions, addresses, or bounded text,
+with an independent twelve-check query audit. The same result is available as
+JSON, CSV, Markdown, a CLI command, and a loopback HTTP route.
 
 The archive and transfer boundaries preserve public content addresses, reject
 path and attribution metadata, and re-verify nested bytes before reassembly.
