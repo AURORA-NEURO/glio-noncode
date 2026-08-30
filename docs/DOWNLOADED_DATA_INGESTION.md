@@ -533,6 +533,51 @@ retaining source record values or operator metadata. The API exposes the same
 surfaces below
 `/v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history`.
 
+### Resolution-history diffs
+
+Two value-free resolution histories can be compared without exposing source
+record values or operator metadata. The diff matches entries by stable ordinal,
+retains only baseline/candidate addresses and bounded snapshot facts, and
+classifies each item as `added`, `removed`, `changed`, or `unchanged`. It also
+reports transition-counter deltas and an `improved`, `regressed`, `mixed`, or
+`unchanged` direction based on required-open counts and release readiness.
+
+The diff input is a JSON object with `left` and `right` history objects:
+
+```json
+{
+  "left": {"history_id": "baseline", "entries": []},
+  "right": {"history_id": "candidate", "entries": []}
+}
+```
+
+The CLI exposes the complete diff lifecycle:
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff `
+  left-right.json --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-query `
+  diff.json --change added --limit 25
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-runtime `
+  diff.json --destination diff-runtime --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-runtime-audit `
+  diff-runtime --format summary
+```
+
+The diff runtime is an exact six-file handoff: `manifest.json`, `diff.json`,
+`audit.json`, `query.json`, `query-audit.json`, and `runtime.json`. Loading
+requires exactly those files and replays every nested content address. The
+independent diff, query, and runtime audits fail closed on changed addresses,
+missing rows, reordered items, malformed counts, extra files, and forbidden
+public metadata. The runnable
+[`downloaded_data_contract_resolution_history_diff_demo.py`](../examples/downloaded_data_contract_resolution_history_diff_demo.py)
+demonstrates the baseline-to-candidate improvement on the supplied ZIP.
+The API mirrors these surfaces under
+`/v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff`.
+
 ## Boundary and safety behavior
 
 The ingestion boundary is deliberately strict:

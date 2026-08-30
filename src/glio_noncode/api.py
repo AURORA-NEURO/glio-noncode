@@ -203,6 +203,12 @@ from . import downloaded_data_profile_contract_compatibility_remediation_resolut
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_query_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_query_audit_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime as downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_audit_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_audit_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_audit_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model
+from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory import (
     build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_from_directories,
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory,
@@ -2060,6 +2066,46 @@ class ApiHandler(BaseHTTPRequestHandler):
         return downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_model.runtime_from_mapping(raw)
 
     @staticmethod
+    def _downloaded_contract_compatibility_remediation_resolution_history_from_document_value(value: Any, field: str):
+        if not isinstance(value, Mapping):
+            raise ValueError(f"{field} must contain a history object")
+        nested = value.get("history")
+        if isinstance(nested, Mapping):
+            value = nested
+        if "history_id" not in value or "entries" not in value:
+            raise ValueError(f"{field} must contain a history object")
+        return downloaded_data_profile_contract_compatibility_remediation_resolution_history_model.history_from_mapping(value)
+
+    @staticmethod
+    def _downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.load_runtime(source).diff
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data compatibility remediation resolution history diff input must be an object")
+        nested = raw.get("diff")
+        return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_model.diff_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+    @staticmethod
+    def _downloaded_contract_compatibility_remediation_resolution_history_diff_query_from_input(input_path: str):
+        raw = json.loads(Path(input_path).read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data compatibility remediation resolution history diff query input must be an object")
+        nested = raw.get("query")
+        return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+    @staticmethod
+    def _downloaded_contract_compatibility_remediation_resolution_history_diff_runtime_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.load_runtime(source)
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data compatibility remediation resolution history diff runtime input must be an object")
+        return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.runtime_from_mapping(raw)
+
+    @staticmethod
     def _downloaded_contract_compatibility_remediation_statuses_from_query(query: Mapping[str, list[str]]) -> dict[str, str]:
         statuses: dict[str, str] = {}
         for value in query.get("status_update", []):
@@ -2625,6 +2671,58 @@ class ApiHandler(BaseHTTPRequestHandler):
                     value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_audit_model.audit_runtime(self._downloaded_contract_compatibility_remediation_resolution_history_runtime_from_input(self._query_value(query, "input") or ""))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
+                if path == contract_prefix + "/compatibility/remediation/resolution/history/diff":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    if not isinstance(raw, Mapping):
+                        raise ValueError("downloaded-data compatibility remediation resolution history diff input must contain left and right histories")
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_model.build_diff(
+                        self._downloaded_contract_compatibility_remediation_resolution_history_from_document_value(raw.get("left"), "left"),
+                        self._downloaded_contract_compatibility_remediation_resolution_history_from_document_value(raw.get("right"), "right"),
+                        diff_id=self._query_value(query, "diff_id") or downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_model.DEFAULT_DIFF_ID,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
+                    return
+                if path == contract_prefix + "/compatibility/remediation/resolution/history/diff/audit":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_audit_model.audit_diff(self._downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == contract_prefix + "/compatibility/remediation/resolution/history/diff/query":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model.query_diff(
+                        self._downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(self._query_value(query, "input") or ""),
+                        resources=self._query_values(query, "resource") or downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model.RESOURCES,
+                        change=self._query_value(query, "change") or "",
+                        direction=self._query_value(query, "direction") or "",
+                        identity=self._query_value(query, "identity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model.MAX_LIMIT),
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == contract_prefix + "/compatibility/remediation/resolution/history/diff/query-audit":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_audit_model.audit_query(self._downloaded_contract_compatibility_remediation_resolution_history_diff_query_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == contract_prefix + "/compatibility/remediation/resolution/history/diff/runtime":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.run_runtime(
+                        self._downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(self._query_value(query, "input") or ""),
+                        runtime_id=self._query_value(query, "runtime_id") or downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.DEFAULT_RUNTIME_ID,
+                        resources=self._query_values(query, "resource") or downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model.RESOURCES,
+                        change=self._query_value(query, "change") or "",
+                        direction=self._query_value(query, "direction") or "",
+                        identity=self._query_value(query, "identity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model.MAX_LIMIT),
+                        destination=self._query_value(query, "destination"),
+                        overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == contract_prefix + "/compatibility/remediation/resolution/history/diff/runtime/audit":
+                    value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model.audit_runtime(self._downloaded_contract_compatibility_remediation_resolution_history_diff_runtime_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
                 schema_routes = {
                     "/catalog/member-schema": downloaded_data_catalog_model.member_schema,
                     "/catalog/schema": downloaded_data_catalog_model.catalog_schema,
@@ -2796,6 +2894,24 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/profile/contract/compatibility/remediation/resolution/history/runtime/audit/check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_audit_model.check_schema,
                     "/profile/contract/compatibility/remediation/resolution/history/runtime/audit/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_audit_model.audit_schema,
                     "/profile/contract/compatibility/remediation/resolution/history/runtime/audit/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_audit_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/item-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_model.item_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_model.diff_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/audit/check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_audit_model.check_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/audit/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_audit_model.audit_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/audit/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_audit_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/query/row-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model.row_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/query/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model.query_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/query/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/query-audit/check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_audit_model.check_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/query-audit/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_audit_model.audit_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/query-audit/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_audit_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/runtime/manifest-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.manifest_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/runtime/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.runtime_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/runtime/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.capabilities,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/runtime/audit/check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model.check_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/runtime/audit/schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model.audit_schema,
+                    "/profile/contract/compatibility/remediation/resolution/history/diff/runtime/audit/capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model.capabilities,
                 }
                 schema = schema_routes.get(path.removeprefix(downloaded_data_prefix))
                 if schema is not None:

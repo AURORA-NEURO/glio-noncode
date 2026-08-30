@@ -57,6 +57,10 @@ For longitudinal value-free resolution history over real downloaded data, run
 `python examples/downloaded_data_contract_resolution_history_demo.py` against
 the same archive; it records addressed initial/improved/regressed/unchanged
 snapshots and emits an exact six-file history runtime.
+To compare two history handoffs deeply, run
+`python examples/downloaded_data_contract_resolution_history_diff_demo.py`;
+it reports added/removed/changed/unchanged entries, transition deltas,
+independent audits, bounded queries, and an exact six-file diff runtime.
 
 The same runtime can be served locally:
 
