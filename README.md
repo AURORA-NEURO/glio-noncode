@@ -1370,6 +1370,13 @@ address deltas, and is sealed as an exact four-file handoff with an independent
 15-check audit. The downloaded-data demo builds this diff from full and filtered
 snapshots of the generated observatory ZIP.
 
+Snapshot diffs have a bounded inspection query as well. It exposes summary,
+item, change-class, and changed-field resources with exact identity, component,
+field, direction, state-transition, address, and text filters, deterministic
+pagination, addressed rows, and an independent 12-check query audit. The
+downloaded-data demo emits the query and audit projections from its real ZIP
+comparison.
+
 The archive and transfer boundaries preserve public content addresses, reject
 path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)

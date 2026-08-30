@@ -680,6 +680,30 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query-snapshot/diff/audit?input=<diff-directory>
 ```
 
+Persisted snapshot diffs are also queryable as bounded review resources. The
+query exposes a summary, all diff items, each of the four change classes, and
+field-change evidence. Exact filters cover change class, source resource,
+stable identity, component, changed field, direction, state transition, row or
+item address, and free-text metadata. Results are deterministically paginated
+and carry their own row addresses; a separate 12-check query audit replays the
+filters, counts, ordering, linkage, change semantics, field semantics, public
+boundary, and canonical mapping.
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query `
+  runtime-query-snapshot-diff --resource changed --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-audit `
+  runtime-query-snapshot-diff-query.json --format markdown
+```
+
+The HTTP equivalents are:
+
+```text
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query-snapshot/diff/query?input=<diff-directory>&resource=changed
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query-snapshot/diff/query-audit?input=<query-json>
+```
+
 The runtime is intentionally scoped to an observatory archive handoff. A raw
 downloaded ZIP is first transformed by the documented ingestion-to-observatory
 demo; the runtime then verifies that generated archive without retaining the
