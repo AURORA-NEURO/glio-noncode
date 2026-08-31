@@ -94,7 +94,7 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
                 thread.join(timeout=5)
         inventory = build_default_public_surface_audit()
         self.assertTrue(inventory.accepted)
-        self.assertEqual(len(inventory.checks), 1817)
+        self.assertEqual(len(inventory.checks), 1830)
         schemas = (observatory_model.member_schema(), observatory_model.members_schema(), observatory_model.transition_schema(), observatory_model.transitions_schema(), observatory_model.manifest_schema(), observatory_model.summary_schema(), observatory_model.observatory_schema(), observatory_audit_model.check_schema(), observatory_audit_model.audit_schema(), observatory_query_model.row_schema(), observatory_query_model.query_schema(), observatory_query_audit_model.check_schema(), observatory_query_audit_model.audit_schema())
         for schema in schemas:
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
