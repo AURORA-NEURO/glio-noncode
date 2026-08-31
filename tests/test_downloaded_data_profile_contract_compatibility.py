@@ -182,7 +182,7 @@ class DownloadedDataProfileContractCompatibilityTests(unittest.TestCase):
     def test_public_inventory_registers_the_compatibility_plane(self):
         audit = build_default_public_surface_audit()
         self.assertTrue(audit.accepted)
-        self.assertEqual(len(audit.checks), 1751)
+        self.assertEqual(len(audit.checks), 1766)
         for schema in (
             compatibility_model.policy_schema(), compatibility_model.finding_schema(), compatibility_model.compatibility_schema(),
             compatibility_audit_model.check_schema(), compatibility_audit_model.audit_schema(),
