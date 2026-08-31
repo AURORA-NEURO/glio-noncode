@@ -122,6 +122,18 @@ from glio_noncode import (
     history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit as history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model,
 )
 from glio_noncode import (
+    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff as exact_history_diff_model,
+)
+from glio_noncode import (
+    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_audit as exact_history_diff_audit_model,
+)
+from glio_noncode import (
+    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query as exact_history_diff_query_model,
+)
+from glio_noncode import (
+    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_audit as exact_history_diff_query_audit_model,
+)
+from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy as policy_model,
 )
 from glio_noncode import (
@@ -1031,6 +1043,22 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         history_diff_archive_transfer_recovery_execution_runtime_registry_history_query,
         history_diff_archive_transfer_recovery_execution_runtime_registry_history,
     )
+    exact_history_diff_baseline = history_diff_archive_transfer_recovery_execution_runtime_registry_history_model.build_history(
+        (history_diff_archive_transfer_recovery_execution_runtime_registry_history_empty,),
+        history_id="comparison-history-diff-archive-transfer-recovery-execution-runtime-registry-history-baseline",
+    )
+    exact_history_diff = exact_history_diff_model.build_diff(
+        exact_history_diff_baseline,
+        history_diff_archive_transfer_recovery_execution_runtime_registry_history,
+        diff_id="comparison-history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff",
+    )
+    exact_history_diff_audit = exact_history_diff_audit_model.audit_diff(exact_history_diff)
+    exact_history_diff_query = exact_history_diff_query_model.query_history_diff(
+        exact_history_diff,
+        resources=exact_history_diff_query_model.RESOURCES,
+        limit=exact_history_diff_query_model.MAX_LIMIT,
+    )
+    exact_history_diff_query_audit = exact_history_diff_query_audit_model.audit_query(exact_history_diff_query, exact_history_diff)
     history_diff_archive_transfer_assembled = history_diff_archive_transfer_assembler.finalize()
     comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_assembled = comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_model.assemble_archive_bytes(
         comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer,
@@ -2176,6 +2204,28 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-query-audit.json").write_text(history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model.audit_json(reloaded_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit), encoding="utf-8")
         (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-query-audit.csv").write_text(history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model.audit_csv(reloaded_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit), encoding="utf-8")
         (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-query-audit.md").write_text(history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model.render_audit_markdown(reloaded_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit), encoding="utf-8")
+        exact_history_diff_root = root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff"
+        exact_history_diff_model.persist_diff(exact_history_diff, exact_history_diff_root, overwrite=True)
+        reloaded_exact_history_diff = exact_history_diff_model.load_diff(exact_history_diff_root)
+        reloaded_exact_history_diff_audit = exact_history_diff_audit_model.audit_diff(reloaded_exact_history_diff)
+        reloaded_exact_history_diff_query = exact_history_diff_query_model.query_history_diff(
+            reloaded_exact_history_diff,
+            resources=exact_history_diff_query_model.RESOURCES,
+            limit=exact_history_diff_query_model.MAX_LIMIT,
+        )
+        reloaded_exact_history_diff_query_audit = exact_history_diff_query_audit_model.audit_query(reloaded_exact_history_diff_query, reloaded_exact_history_diff)
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff.json").write_text(exact_history_diff_model.diff_json(reloaded_exact_history_diff), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff.csv").write_text(exact_history_diff_model.diff_csv(reloaded_exact_history_diff), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff.md").write_text(exact_history_diff_model.render_diff_markdown(reloaded_exact_history_diff), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-audit.json").write_text(exact_history_diff_audit_model.audit_json(reloaded_exact_history_diff_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-audit.csv").write_text(exact_history_diff_audit_model.audit_csv(reloaded_exact_history_diff_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-audit.md").write_text(exact_history_diff_audit_model.render_audit_markdown(reloaded_exact_history_diff_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query.json").write_text(exact_history_diff_query_model.query_json(reloaded_exact_history_diff_query), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query.csv").write_text(exact_history_diff_query_model.query_csv(reloaded_exact_history_diff_query), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query.md").write_text(exact_history_diff_query_model.render_query_markdown(reloaded_exact_history_diff_query), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query-audit.json").write_text(exact_history_diff_query_audit_model.audit_json(reloaded_exact_history_diff_query_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query-audit.csv").write_text(exact_history_diff_query_audit_model.audit_csv(reloaded_exact_history_diff_query_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query-audit.md").write_text(exact_history_diff_query_audit_model.render_audit_markdown(reloaded_exact_history_diff_query_audit), encoding="utf-8")
         summary["comparison_history_diff_archive_transfer_directory"] = str(history_diff_archive_transfer_root.resolve())
         summary["comparison_history_diff_archive_transfer_partial_directory"] = str(history_diff_archive_transfer_partial_root.resolve())
         summary["comparison_history_diff_archive_transfer_reloaded"] = reloaded_history_diff_archive_transfer.content_address == history_diff_archive_transfer.content_address
@@ -2239,6 +2289,22 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_returned_count"] = reloaded_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query.returned_count
         summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit_checks"] = reloaded_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit.check_count
         summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit_accepted"] = reloaded_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit.accepted
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_directory"] = str(exact_history_diff_root.resolve())
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_files"] = list(exact_history_diff_model.FILES)
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_reloaded"] = reloaded_exact_history_diff.content_address == exact_history_diff.content_address
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_direction"] = reloaded_exact_history_diff.direction
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_accepted"] = reloaded_exact_history_diff.accepted
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_item_count"] = reloaded_exact_history_diff.item_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_added_count"] = reloaded_exact_history_diff.added_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_removed_count"] = reloaded_exact_history_diff.removed_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_changed_count"] = reloaded_exact_history_diff.changed_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_unchanged_count"] = reloaded_exact_history_diff.unchanged_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_audit_checks"] = reloaded_exact_history_diff_audit.check_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_audit_accepted"] = reloaded_exact_history_diff_audit.accepted
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_total_count"] = reloaded_exact_history_diff_query.total_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_returned_count"] = reloaded_exact_history_diff_query.returned_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_audit_checks"] = reloaded_exact_history_diff_query_audit.check_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_audit_accepted"] = reloaded_exact_history_diff_query_audit.accepted
         summary["comparison_history_diff_archive_transfer_assembled_archive_path"] = str(reassembled_history_diff_archive_path.resolve())
         summary["comparison_history_diff_archive_transfer_assembled_archive_address"] = reassembled_history_diff_archive.content_address
         summary["comparison_history_diff_archive_transfer_assembled_archive_matches"] = reassembled_history_diff_archive.content_address == comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_target_diff_archive.content_address
@@ -2246,6 +2312,7 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         summary["comparison_history_diff_archive_transfer_artifact_files"] += ["history-diff-archive-transfer-recovery-execution.json", "history-diff-archive-transfer-recovery-execution.csv", "history-diff-archive-transfer-recovery-execution.md", "history-diff-archive-transfer-recovery-execution-planned.json", "history-diff-archive-transfer-recovery-execution-complete.json", "history-diff-archive-transfer-recovery-execution-blocked.json", "history-diff-archive-transfer-recovery-execution-audit.json", "history-diff-archive-transfer-recovery-execution-audit.csv", "history-diff-archive-transfer-recovery-execution-audit.md", "history-diff-archive-transfer-recovery-execution-query.json", "history-diff-archive-transfer-recovery-execution-query.csv", "history-diff-archive-transfer-recovery-execution-query.md", "history-diff-archive-transfer-recovery-execution-query-audit.json", "history-diff-archive-transfer-recovery-execution-query-audit.csv", "history-diff-archive-transfer-recovery-execution-query-audit.md"]
         summary["comparison_history_diff_archive_transfer_artifact_files"] += ["history-diff-archive-transfer-recovery-execution-runtime.json", "history-diff-archive-transfer-recovery-execution-runtime.csv", "history-diff-archive-transfer-recovery-execution-runtime.md", "history-diff-archive-transfer-recovery-execution-runtime-audit.json", "history-diff-archive-transfer-recovery-execution-runtime-audit.csv", "history-diff-archive-transfer-recovery-execution-runtime-audit.md", "history-diff-archive-transfer-recovery-execution-runtime-query.json", "history-diff-archive-transfer-recovery-execution-runtime-query.csv", "history-diff-archive-transfer-recovery-execution-runtime-query.md", "history-diff-archive-transfer-recovery-execution-runtime-query-audit.json", "history-diff-archive-transfer-recovery-execution-runtime-query-audit.csv", "history-diff-archive-transfer-recovery-execution-runtime-query-audit.md", "history-diff-archive-transfer-recovery-execution-runtime/manifest.json", "history-diff-archive-transfer-recovery-execution-runtime/runtime.json", "history-diff-archive-transfer-recovery-execution-runtime/execution.json", "history-diff-archive-transfer-recovery-execution-runtime/execution-audit.json", "history-diff-archive-transfer-recovery-execution-runtime/execution-query.json", "history-diff-archive-transfer-recovery-execution-runtime/execution-query-audit.json", "history-diff-archive-transfer-recovery-execution-runtime/summary.json", "history-diff-archive-transfer-recovery-execution-runtime-registry.json", "history-diff-archive-transfer-recovery-execution-runtime-registry.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-audit.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-audit.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-audit.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-query.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-query.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-query.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-query-audit.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-query-audit.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-query-audit.md", "history-diff-archive-transfer-recovery-execution-runtime-registry/manifest.json", "history-diff-archive-transfer-recovery-execution-runtime-registry/registry.json", "history-diff-archive-transfer-recovery-execution-runtime-registry/entries.json", "history-diff-archive-transfer-recovery-execution-runtime-registry/summary.json"]
         summary["comparison_history_diff_archive_transfer_artifact_files"] += ["history-diff-archive-transfer-recovery-execution-runtime-registry-history.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-history.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-audit.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-audit.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-audit.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-query.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-query.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-query.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-query-audit.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-query-audit.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-query-audit.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-history/manifest.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history/history.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history/entries.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history/summary.json"]
+        summary["comparison_history_diff_archive_transfer_artifact_files"] += ["history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-audit.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-audit.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-audit.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query-audit.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query-audit.csv", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-query-audit.md", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff/manifest.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff/diff.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff/items.json", "history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff/summary.json"]
         (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
 
@@ -2343,6 +2410,10 @@ def main() -> int:
         "comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_reloaded",
         "comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_audit_accepted",
         "comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit_accepted",
+        "comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_reloaded",
+        "comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_accepted",
+        "comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_audit_accepted",
+        "comparison_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_audit_accepted",
         "comparison_history_diff_archive_transfer_recovery_execution_complete_safe_to_assemble",
         "comparison_history_diff_archive_transfer_recovery_execution_complete_audit_accepted",
         "comparison_history_diff_archive_transfer_recovery_execution_blocked_state",

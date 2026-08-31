@@ -1,4 +1,4 @@
-"""Regression coverage for federation runtime-registry history comparison."""
+"""Regression coverage for exact history-diff archive-transfer recovery-execution runtime-registry history comparison."""
 
 from __future__ import annotations
 
@@ -14,42 +14,34 @@ from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry as registry_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime as runtime_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history as history_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff as diff_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_audit as diff_audit_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_query as diff_query_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_query_audit as diff_query_audit_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff as diff_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_audit as diff_audit_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query as diff_query_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_audit as diff_query_audit_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history as history_model
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
 from glio_noncode.public_surface_audit import build_default_public_surface_audit
 
-import tests.test_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry as registry_module
+import tests.test_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history as history_module
 
 
-COMMAND = registry_module.COMMAND + "-history-diff"
-API_PATH = registry_module.API_PATH + "/history/diff"
+COMMAND = history_module.COMMAND + "-diff"
+API_PATH = history_module.API_PATH + "/diff"
 
 
-class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffTests(unittest.TestCase):
+class HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        registry_module.HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryTests.setUpClass()
+        history_module.HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryHistoryTests.setUpClass()
 
     @classmethod
     def _histories(cls, root: Path):
-        execution = registry_module.HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryTests._execution(root)
-        runtime = runtime_model.build_runtime(execution, runtime_id="downloaded-real-history-diff-runtime")
-        candidate_runtime = runtime_model.build_runtime(execution, runtime_id="downloaded-real-history-diff-candidate-runtime")
-        registry_id = "downloaded-real-history-diff-registry"
-        empty = registry_model.build_registry((), registry_id=registry_id)
-        ready = registry_model.build_registry((runtime,), registry_id=registry_id)
-        candidate = registry_model.build_registry((candidate_runtime,), registry_id=registry_id)
+        empty, ready = history_module.HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryHistoryTests._registries(root)
         return (
-            history_model.build_history((empty, ready), history_id="downloaded-diff-left"),
-            history_model.build_history((empty, candidate), history_id="downloaded-diff-right"),
+            history_model.build_history((empty,), history_id="downloaded-diff-left"),
+            history_model.build_history((empty, ready), history_id="downloaded-diff-right"),
         )
 
     def test_diff_replays_changes_audits_queries_and_persistence(self):
@@ -64,8 +56,8 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
             diff_model.persist_diff(diff, destination)
             loaded = diff_model.load_diff(destination)
 
-            self.assertEqual((diff.item_count, diff.added_count, diff.removed_count, diff.changed_count, diff.unchanged_count), (2, 0, 0, 1, 1))
-            self.assertEqual(tuple(item.change for item in diff.items), ("unchanged", "changed"))
+            self.assertEqual((diff.item_count, diff.added_count, diff.removed_count, diff.changed_count, diff.unchanged_count), (2, 1, 0, 0, 1))
+            self.assertEqual(tuple(item.change for item in diff.items), ("unchanged", "added"))
             self.assertEqual((audit.check_count, audit.passed, query.total_count, query.returned_count, query_audit.check_count, query_audit.passed), (16, True, 30, 30, 13, True))
             self.assertEqual(loaded.to_dict(), diff.to_dict())
             self.assertEqual(tuple(sorted(item.name for item in destination.iterdir())), tuple(sorted(diff_model.FILES)))
@@ -83,9 +75,8 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
             left, right = self._histories(root)
             left_directory = root / "left-history"
             right_directory = root / "right-history"
-            left_model = history_model
-            left_model.persist_history(left, left_directory)
-            left_model.persist_history(right, right_directory)
+            history_model.persist_history(left, left_directory)
+            history_model.persist_history(right, right_directory)
             diff_directory = root / "diff"
             diff_json = root / "diff.json"
             query_json = root / "query.json"
@@ -93,13 +84,13 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
                 self.assertEqual(main([COMMAND, str(left_directory), str(right_directory), "--diff-id", "downloaded-cli-history-diff", "--destination", str(diff_directory), "--overwrite", "--format", "json", "--output", str(diff_json)]), 0)
                 self.assertEqual(main([COMMAND + "-verify", str(diff_directory), "--format", "summary"]), 0)
                 self.assertEqual(main([COMMAND + "-audit", str(diff_directory), "--format", "summary"]), 0)
-                self.assertEqual(main([COMMAND + "-query", str(diff_directory), "--change", "changed", "--format", "json", "--output", str(query_json)]), 0)
+                self.assertEqual(main([COMMAND + "-query", str(diff_directory), "--change", "added", "--format", "json", "--output", str(query_json)]), 0)
                 self.assertEqual(main([COMMAND + "-query-audit", str(query_json), "--diff-input", str(diff_directory), "--format", "summary"]), 0)
                 self.assertEqual(main([COMMAND + "-schema"]), 0)
             emitted_diff = json.loads(diff_json.read_text(encoding="utf-8"))
             emitted_query = json.loads(query_json.read_text(encoding="utf-8"))
-            self.assertEqual((emitted_diff["item_count"], emitted_diff["changed_count"], emitted_diff["accepted"]), (2, 1, True))
-            self.assertEqual((emitted_query["change_filter"], emitted_query["returned_count"]), ("changed", 2))
+            self.assertEqual((emitted_diff["item_count"], emitted_diff["added_count"], emitted_diff["accepted"]), (2, 1, True))
+            self.assertEqual((emitted_query["change_filter"], emitted_query["returned_count"]), ("added", 2))
 
             server = create_server("127.0.0.1", 0, root)
             thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -109,11 +100,11 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
                 base = {"left_input": str(left_directory), "right_input": str(right_directory), "diff_id": "downloaded-api-history-diff", "format": "json"}
                 with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}?{urlencode(base)}", timeout=30) as response:
                     api_diff = json.loads(response.read().decode("utf-8"))
-                self.assertEqual((api_diff["item_count"], api_diff["changed_count"], api_diff["accepted"]), (2, 1, True))
+                self.assertEqual((api_diff["item_count"], api_diff["added_count"], api_diff["accepted"]), (2, 1, True))
                 diff_input = str(diff_directory)
-                with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}/audit?{urlencode({'input': diff_input, 'format': 'json'})}", timeout=30) as response:
+                with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}/audit?{urlencode({"input": diff_input, "format": "json"})}", timeout=30) as response:
                     self.assertTrue(json.loads(response.read().decode("utf-8"))["accepted"])
-                query_params = {"input": diff_input, "change": "changed", "format": "json"}
+                query_params = {"input": diff_input, "change": "added", "format": "json"}
                 with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}/query?{urlencode(query_params)}", timeout=30) as response:
                     self.assertEqual(json.loads(response.read().decode("utf-8"))["returned_count"], 2)
                 query_audit_params = {"input": str(query_json), "diff_input": diff_input, "format": "json"}
