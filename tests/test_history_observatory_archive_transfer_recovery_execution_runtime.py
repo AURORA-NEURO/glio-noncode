@@ -149,7 +149,7 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeTests(unittest.Te
                 server.server_close()
 
         inventory = build_default_public_surface_audit()
-        self.assertEqual((inventory.surface_count, inventory.passed_surface_count, inventory.failed_surface_count, inventory.accepted), (1902, 1902, 0, True))
+        self.assertEqual((inventory.surface_count, inventory.passed_surface_count, inventory.failed_surface_count, inventory.accepted), (1914, 1914, 0, True))
         for schema in (runtime_model.stage_schema(), runtime_model.manifest_schema(), runtime_model.runtime_schema(), runtime_audit_model.check_schema(), runtime_audit_model.audit_schema(), runtime_query_model.row_schema(), runtime_query_model.query_schema(), runtime_query_audit_model.check_schema(), runtime_query_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
 

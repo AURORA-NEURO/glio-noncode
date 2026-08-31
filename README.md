@@ -1424,6 +1424,16 @@ path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)
 and [the runnable transfer demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_transfer_demo.py).
 
+The exact history-diff archive transfer also exposes a durable recovery plan.
+It rebuilds partial receiver state into addressed missing-chunk actions,
+conserves received and remaining bytes, supports bounded recovery queries, and
+independently audits both the recovery plan and its query. The attached-ZIP
+demo currently reports chunk indexes 0 and 4 received, indexes 1/2/3 missing,
+three resume actions, 17/17 recovery checks, and 12/12 query-audit checks.
+See [the exact recovery contract](docs/HISTORY_DIFF_RUNTIME_REGISTRY_HISTORY_DIFF_ARCHIVE_TRANSFER_RECOVERY.md);
+the demo writes the full summary and projections into its selected artifact
+directory.
+
 The certificate-observatory handoff has a focused ZIP boundary as well. The
 exact eight-member archive, sixteen-check archive audit, bounded archive query,
 fourteen-check resumable transfer, and archive runtime are available with
