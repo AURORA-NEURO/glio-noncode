@@ -8,10 +8,12 @@ the transfer.
 
 ## Contract
 
-The importable implementation uses the short Windows-safe modules
-`glio_noncode.exact_history_diff_archive_transfer_recovery` and its
-`_audit`, `_query`, and `_query_audit` companions. The public command and HTTP
-names remain fully explicit under the exact archive transfer boundary.
+The importable implementation uses the exact-prefixed modules
+`glio_noncode.exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery`
+and its `_audit`, `_query`, and `_query_audit` companions. The shorter recovery
+modules remain available for the earlier compatibility boundary; the public
+command and HTTP names remain fully explicit under the exact archive transfer
+boundary.
 
 A recovery snapshot contains the transfer and archive addresses, archive and
 chunk bounds, received and missing indexes, received and remaining byte
@@ -61,12 +63,12 @@ Run the demo against the supplied ZIP:
 
     python examples/downloaded_data_contract_resolution_history_diff_policy_demo.py \
         C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip \
-        artifacts/exact-history-diff-archive-transfer-recovery-real-downloaded-data-demo
+        artifacts/exact-history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-archive-transfer-recovery-real-downloaded-data-demo
 
-The verified run reads 25 catalog members and produces the exact 4,783-byte
+The verified run reads 25 catalog members and produces the exact 5,077-byte
 archive and five 1,024-byte transfer chunks. The persisted partial receiver
 contains chunk indexes 0 and 4, so recovery reports missing indexes 1, 2, and
-3, three addressed actions, 1,711 received bytes, 3,072 remaining bytes, and
+3, three addressed actions, 2,005 received bytes, 3,072 remaining bytes, and
 `next_index: 1`. All 17 recovery checks and all 12 recovery-query audit
 checks pass. A complete recovery replay reports `complete` and `assemble`,
 and all recovery artifacts reload with the same content addresses.

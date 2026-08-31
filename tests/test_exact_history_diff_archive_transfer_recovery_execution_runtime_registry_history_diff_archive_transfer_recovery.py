@@ -12,31 +12,31 @@ from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery as recovery_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_audit as recovery_audit_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_query as recovery_query_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_query_audit as recovery_query_audit_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer as transfer_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery as recovery_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_audit as recovery_audit_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_query as recovery_query_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_query_audit as recovery_query_audit_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer as transfer_model
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
 from glio_noncode.public_surface_audit import build_default_public_surface_audit
 
-import tests.test_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer as transfer_test_module
+import tests.test_exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer as transfer_test_module
 
 
 COMMAND = transfer_test_module.COMMAND + "-recovery"
 API_PATH = transfer_test_module.API_PATH + "/recovery"
 
 
-class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferRecoveryTests(unittest.TestCase):
+class ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferRecoveryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        transfer_test_module.HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferTests.setUpClass()
+        transfer_test_module.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferTests.setUpClass()
 
     @staticmethod
     def _archive(root: Path):
-        return transfer_test_module.HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferTests._archive(root)
+        return transfer_test_module.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferTests._archive(root)
 
     def test_recovery_conserves_partial_and_complete_transfer_state(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -44,7 +44,7 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
             archive = self._archive(root)
             transfer = transfer_model.build_transfer(archive, transfer_id="real-history-diff-recovery-transfer", chunk_size=1024)
             payload = transfer.payload_bytes()
-            partial = transfer_model.HistoryDiffArchiveTransferAssembler(transfer)
+            partial = transfer_model.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferAssembler(transfer)
             partial.add_chunk(transfer.chunk_count - 1, payload[transfer.chunk_count - 1])
             partial.add_chunk(0, payload[0])
             partial.add_chunk(0, payload[0])
@@ -76,7 +76,7 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
             archive = self._archive(root)
             transfer = transfer_model.build_transfer(archive, transfer_id="cli-real-history-diff-recovery-transfer", chunk_size=1024)
             payload = transfer.payload_bytes()
-            partial = transfer_model.HistoryDiffArchiveTransferAssembler(transfer)
+            partial = transfer_model.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferAssembler(transfer)
             partial.add_chunk(0, payload[0])
             partial.add_chunk(transfer.chunk_count - 1, payload[transfer.chunk_count - 1])
             partial_directory = root / "partial-transfer"
@@ -122,7 +122,7 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
                     self.assertTrue(json.loads(response.read().decode("utf-8"))["accepted"])
                 with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}/schema", timeout=30) as response:
                     self.assertEqual(json.loads(response.read().decode("utf-8"))["$schema"], "https://json-schema.org/draft/2020-12/schema")
-                with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}/query-audit-schema", timeout=30) as response:
+                with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}/query-audit/schema", timeout=30) as response:
                     self.assertEqual(json.loads(response.read().decode("utf-8"))["$schema"], "https://json-schema.org/draft/2020-12/schema")
             finally:
                 server.shutdown()
