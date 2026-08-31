@@ -524,6 +524,10 @@ from . import history_observatory_archive_transfer_recovery_execution_runtime_re
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_query as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_query_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_query_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_query_audit_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model
 from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_audit_model,
 )
@@ -4333,6 +4337,41 @@ class ApiHandler(BaseHTTPRequestHandler):
         return model.build_registry((runtime_model.runtime_from_mapping(raw),), registry_id=cls._query_value(query, "registry_id") or model.DEFAULT_REGISTRY_ID)
 
     @classmethod
+    def _downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_from_query(cls, query: Mapping[str, list[str]]):
+        model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model
+        registry_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_model
+
+        def read_json(source_path: str) -> Mapping[str, Any]:
+            value = json.loads(Path(source_path).read_text(encoding="utf-8"))
+            if not isinstance(value, Mapping):
+                raise ValueError("runtime registry history input must be an object")
+            return value
+
+        def load_registry(source_path: str):
+            source = Path(source_path)
+            if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(registry_model.FILES)):
+                return registry_model.load_registry(source)
+            if source.is_file() and source.name == "registry.json" and source.parent.is_dir() and tuple(sorted(item.name for item in source.parent.iterdir())) == tuple(sorted(registry_model.FILES)):
+                return registry_model.load_registry(source.parent)
+            return registry_model.registry_from_mapping(read_json(source_path))
+
+        registry_inputs = tuple(cls._query_values(query, "registry_input"))
+        if registry_inputs:
+            return model.build_history(tuple(load_registry(source_path) for source_path in registry_inputs), history_id=cls._query_value(query, "history_id") or model.DEFAULT_HISTORY_ID)
+        input_path = cls._query_value(query, "input") or cls._query_value(query, "history") or cls._query_value(query, "registry")
+        if not input_path:
+            raise ValueError("input, history, registry, or registry_input is required")
+        source = Path(input_path)
+        if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(model.FILES)):
+            return model.load_history(source)
+        if source.is_file() and source.name == "history.json" and source.parent.is_dir() and tuple(sorted(item.name for item in source.parent.iterdir())) == tuple(sorted(model.FILES)):
+            return model.load_history(source.parent)
+        raw = read_json(input_path)
+        if "history_id" in raw and "entries" in raw and "manifest" in raw:
+            return model.history_from_mapping(raw)
+        return model.build_history((registry_model.registry_from_mapping(raw),), history_id=cls._query_value(query, "history_id") or model.DEFAULT_HISTORY_ID)
+
+    @classmethod
     def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_from_query(cls, query: dict[str, list[str]]):
         baseline = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.default_policy()
         def optional_int(name: str, default: int) -> int:
@@ -6219,6 +6258,65 @@ class ApiHandler(BaseHTTPRequestHandler):
                     history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/query-audit/capabilities": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_query_audit_model.capabilities,
                 }
                 schema = registry_schema_routes.get(path.removeprefix(downloaded_data_prefix))
+                if schema is not None:
+                    self._write(HTTPStatus.OK, schema())
+                    return
+                history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path = history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_path + "/history"
+                if path == history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path:
+                    model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model
+                    value = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_from_query(query)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        model.persist_history(value, destination, overwrite=self._query_bool(query, "overwrite", False))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", model, json_name="history_json", csv_name="history_csv", markdown_name="render_history_markdown")
+                    return
+                if path == history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path + "/verify":
+                    model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model
+                    value = model.verify_history(self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_from_query(query))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", model, json_name="history_json", csv_name="history_csv", markdown_name="render_history_markdown")
+                    return
+                if path == history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path + "/audit":
+                    history = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_from_query(query)
+                    model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit_model
+                    value = model.audit_history(history)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path + "/query":
+                    history = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_from_query(query)
+                    model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_model
+                    value = model.query_history(history, resources=self._query_values(query, "resource") or model.RESOURCES, state=self._query_value(query, "state") or "", key=self._query_value(query, "key") or "", transition=self._query_value(query, "transition") or "", text=self._query_value(query, "q") or self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", model.MAX_LIMIT))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path + "/query/audit":
+                    query_input = self._query_value(query, "input") or self._query_value(query, "query")
+                    history_input = self._query_value(query, "history_input") or self._query_value(query, "history")
+                    if not query_input or not history_input:
+                        raise ValueError("input/query and history_input/history are required")
+                    query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_model
+                    query_value = query_model.query_from_mapping(json.loads(Path(query_input).read_text(encoding="utf-8")))
+                    history = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_from_query({"input": [history_input]})
+                    model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model
+                    value = model.audit_query(query_value, history)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                history_schema_routes = {
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/entry-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model.entry_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/entries-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model.entries_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/manifest-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model.manifest_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/summary-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model.summary_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model.history_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/capabilities": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model.capabilities,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/audit/check-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit_model.check_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/audit/schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit_model.audit_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/audit/capabilities": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit_model.capabilities,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/query/row-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_model.row_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/query/schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_model.query_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/query/capabilities": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_model.capabilities,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/query-audit/check-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model.check_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/query-audit/schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model.audit_schema,
+                    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_path.removeprefix(downloaded_data_prefix) + "/query-audit/capabilities": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model.capabilities,
+                }
+                schema = history_schema_routes.get(path.removeprefix(downloaded_data_prefix))
                 if schema is not None:
                     self._write(HTTPStatus.OK, schema())
                     return
