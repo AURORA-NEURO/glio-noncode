@@ -74,6 +74,18 @@ from glio_noncode import (
     history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_query_audit as history_diff_archive_transfer_recovery_query_audit_model,
 )
 from glio_noncode import (
+    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution as history_diff_archive_transfer_recovery_execution_model,
+)
+from glio_noncode import (
+    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_audit as history_diff_archive_transfer_recovery_execution_audit_model,
+)
+from glio_noncode import (
+    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query as history_diff_archive_transfer_recovery_execution_query_model,
+)
+from glio_noncode import (
+    history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit as history_diff_archive_transfer_recovery_execution_query_audit_model,
+)
+from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy as policy_model,
 )
 from glio_noncode import (
@@ -886,6 +898,47 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         checkpointed=True,
     )
     history_diff_archive_transfer_complete_recovery_audit = history_diff_archive_transfer_recovery_audit_model.audit_recovery(history_diff_archive_transfer_complete_recovery)
+    history_diff_archive_transfer_recovery_execution_planned = history_diff_archive_transfer_recovery_execution_model.build_execution(
+        history_diff_archive_transfer_recovery,
+        execution_id="comparison-history-diff-archive-transfer-recovery-execution-planned",
+        checkpointed=True,
+    )
+    history_diff_archive_transfer_recovery_execution_in_progress_assembler = history_diff_archive_transfer_model.HistoryDiffArchiveTransferAssembler(history_diff_archive_transfer)
+    history_diff_archive_transfer_recovery_execution_in_progress_assembler.add_chunk(0, history_diff_archive_transfer_payload[0])
+    if history_diff_archive_transfer.chunk_count > 1:
+        history_diff_archive_transfer_recovery_execution_in_progress_assembler.add_chunk(history_diff_archive_transfer.chunk_count - 1, history_diff_archive_transfer_payload[history_diff_archive_transfer.chunk_count - 1])
+    if history_diff_archive_transfer.chunk_count > 2:
+        history_diff_archive_transfer_recovery_execution_in_progress_assembler.add_chunk(1, history_diff_archive_transfer_payload[1])
+    history_diff_archive_transfer_recovery_execution_in_progress = history_diff_archive_transfer_recovery_execution_model.build_execution_from_assembler(
+        history_diff_archive_transfer_recovery,
+        history_diff_archive_transfer_recovery_execution_in_progress_assembler,
+        execution_id="comparison-history-diff-archive-transfer-recovery-execution-in-progress",
+        checkpointed=True,
+    )
+    history_diff_archive_transfer_recovery_execution_complete = history_diff_archive_transfer_recovery_execution_model.build_execution(
+        history_diff_archive_transfer_complete_recovery,
+        applied_indices=history_diff_archive_transfer_complete_recovery.missing_indices,
+        execution_id="comparison-history-diff-archive-transfer-recovery-execution-complete",
+        checkpointed=True,
+    )
+    history_diff_archive_transfer_recovery_execution_blocked = history_diff_archive_transfer_recovery_execution_model.build_execution(
+        history_diff_archive_transfer_recovery,
+        rejected_indices=(history_diff_archive_transfer_recovery.missing_indices[0],),
+        execution_id="comparison-history-diff-archive-transfer-recovery-execution-blocked",
+        checkpointed=True,
+    )
+    history_diff_archive_transfer_recovery_execution_audit = history_diff_archive_transfer_recovery_execution_audit_model.audit_execution(history_diff_archive_transfer_recovery_execution_in_progress)
+    history_diff_archive_transfer_recovery_execution_complete_audit = history_diff_archive_transfer_recovery_execution_audit_model.audit_execution(history_diff_archive_transfer_recovery_execution_complete)
+    history_diff_archive_transfer_recovery_execution_blocked_audit = history_diff_archive_transfer_recovery_execution_audit_model.audit_execution(history_diff_archive_transfer_recovery_execution_blocked)
+    history_diff_archive_transfer_recovery_execution_query = history_diff_archive_transfer_recovery_execution_query_model.query_execution(
+        history_diff_archive_transfer_recovery_execution_in_progress,
+        resources=history_diff_archive_transfer_recovery_execution_query_model.RESOURCES,
+        limit=history_diff_archive_transfer_recovery_execution_query_model.MAX_LIMIT,
+    )
+    history_diff_archive_transfer_recovery_execution_query_audit = history_diff_archive_transfer_recovery_execution_query_audit_model.audit_query(
+        history_diff_archive_transfer_recovery_execution_query,
+        history_diff_archive_transfer_recovery_execution_in_progress,
+    )
     history_diff_archive_transfer_assembled = history_diff_archive_transfer_assembler.finalize()
     comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_assembled = comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_model.assemble_archive_bytes(
         comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer,
@@ -1217,6 +1270,37 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "comparison_history_diff_archive_transfer_recovery_query_returned_count": history_diff_archive_transfer_recovery_query.row_count,
         "comparison_history_diff_archive_transfer_recovery_query_audit_checks": history_diff_archive_transfer_recovery_query_audit.check_count,
         "comparison_history_diff_archive_transfer_recovery_query_audit_accepted": history_diff_archive_transfer_recovery_query_audit.accepted,
+        "comparison_history_diff_archive_transfer_recovery_execution_address": history_diff_archive_transfer_recovery_execution_in_progress.content_address,
+        "comparison_history_diff_archive_transfer_recovery_execution_state": history_diff_archive_transfer_recovery_execution_in_progress.state,
+        "comparison_history_diff_archive_transfer_recovery_execution_decision": history_diff_archive_transfer_recovery_execution_in_progress.decision,
+        "comparison_history_diff_archive_transfer_recovery_execution_applied_indices": list(history_diff_archive_transfer_recovery_execution_in_progress.applied_indices),
+        "comparison_history_diff_archive_transfer_recovery_execution_pending_indices": list(history_diff_archive_transfer_recovery_execution_in_progress.pending_indices),
+        "comparison_history_diff_archive_transfer_recovery_execution_rejected_indices": list(history_diff_archive_transfer_recovery_execution_in_progress.rejected_indices),
+        "comparison_history_diff_archive_transfer_recovery_execution_current_received_indices": list(history_diff_archive_transfer_recovery_execution_in_progress.current_received_indices),
+        "comparison_history_diff_archive_transfer_recovery_execution_action_count": history_diff_archive_transfer_recovery_execution_in_progress.action_count,
+        "comparison_history_diff_archive_transfer_recovery_execution_applied_count": history_diff_archive_transfer_recovery_execution_in_progress.applied_count,
+        "comparison_history_diff_archive_transfer_recovery_execution_pending_count": history_diff_archive_transfer_recovery_execution_in_progress.pending_count,
+        "comparison_history_diff_archive_transfer_recovery_execution_rejected_count": history_diff_archive_transfer_recovery_execution_in_progress.rejected_count,
+        "comparison_history_diff_archive_transfer_recovery_execution_safe_to_continue": history_diff_archive_transfer_recovery_execution_in_progress.safe_to_continue,
+        "comparison_history_diff_archive_transfer_recovery_execution_safe_to_assemble": history_diff_archive_transfer_recovery_execution_in_progress.safe_to_assemble,
+        "comparison_history_diff_archive_transfer_recovery_execution_checkpointed": history_diff_archive_transfer_recovery_execution_in_progress.checkpointed,
+        "comparison_history_diff_archive_transfer_recovery_execution_next_index": history_diff_archive_transfer_recovery_execution_in_progress.next_index,
+        "comparison_history_diff_archive_transfer_recovery_execution_audit_checks": history_diff_archive_transfer_recovery_execution_audit.check_count,
+        "comparison_history_diff_archive_transfer_recovery_execution_audit_accepted": history_diff_archive_transfer_recovery_execution_audit.passed,
+        "comparison_history_diff_archive_transfer_recovery_execution_query_total_count": history_diff_archive_transfer_recovery_execution_query.total_count,
+        "comparison_history_diff_archive_transfer_recovery_execution_query_returned_count": history_diff_archive_transfer_recovery_execution_query.returned_count,
+        "comparison_history_diff_archive_transfer_recovery_execution_query_audit_checks": history_diff_archive_transfer_recovery_execution_query_audit.check_count,
+        "comparison_history_diff_archive_transfer_recovery_execution_query_audit_accepted": history_diff_archive_transfer_recovery_execution_query_audit.passed,
+        "comparison_history_diff_archive_transfer_recovery_execution_complete_state": history_diff_archive_transfer_recovery_execution_complete.state,
+        "comparison_history_diff_archive_transfer_recovery_execution_complete_decision": history_diff_archive_transfer_recovery_execution_complete.decision,
+        "comparison_history_diff_archive_transfer_recovery_execution_complete_safe_to_assemble": history_diff_archive_transfer_recovery_execution_complete.safe_to_assemble,
+        "comparison_history_diff_archive_transfer_recovery_execution_complete_audit_checks": history_diff_archive_transfer_recovery_execution_complete_audit.check_count,
+        "comparison_history_diff_archive_transfer_recovery_execution_complete_audit_accepted": history_diff_archive_transfer_recovery_execution_complete_audit.passed,
+        "comparison_history_diff_archive_transfer_recovery_execution_blocked_state": history_diff_archive_transfer_recovery_execution_blocked.state,
+        "comparison_history_diff_archive_transfer_recovery_execution_blocked_decision": history_diff_archive_transfer_recovery_execution_blocked.decision,
+        "comparison_history_diff_archive_transfer_recovery_execution_blocked_safe_to_continue": history_diff_archive_transfer_recovery_execution_blocked.safe_to_continue,
+        "comparison_history_diff_archive_transfer_recovery_execution_blocked_audit_checks": history_diff_archive_transfer_recovery_execution_blocked_audit.check_count,
+        "comparison_history_diff_archive_transfer_recovery_execution_blocked_audit_accepted": history_diff_archive_transfer_recovery_execution_blocked_audit.passed,
         "comparison_history_diff_archive_transfer_complete_recovery_state": history_diff_archive_transfer_complete_recovery.state,
         "comparison_history_diff_archive_transfer_complete_recovery_decision": history_diff_archive_transfer_complete_recovery.decision,
         "comparison_history_diff_archive_transfer_complete_recovery_audit_checks": history_diff_archive_transfer_complete_recovery_audit.check_count,
@@ -1853,6 +1937,21 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
             reloaded_history_diff_archive_transfer_recovery_query,
             reloaded_history_diff_archive_transfer_recovery,
         )
+        reloaded_history_diff_archive_transfer_recovery_execution = history_diff_archive_transfer_recovery_execution_model.execution_from_mapping(
+            json.loads(history_diff_archive_transfer_recovery_execution_model.execution_json(history_diff_archive_transfer_recovery_execution_in_progress))
+        )
+        reloaded_history_diff_archive_transfer_recovery_execution_audit = history_diff_archive_transfer_recovery_execution_audit_model.audit_execution(
+            reloaded_history_diff_archive_transfer_recovery_execution
+        )
+        reloaded_history_diff_archive_transfer_recovery_execution_query = history_diff_archive_transfer_recovery_execution_query_model.query_execution(
+            reloaded_history_diff_archive_transfer_recovery_execution,
+            resources=history_diff_archive_transfer_recovery_execution_query_model.RESOURCES,
+            limit=history_diff_archive_transfer_recovery_execution_query_model.MAX_LIMIT,
+        )
+        reloaded_history_diff_archive_transfer_recovery_execution_query_audit = history_diff_archive_transfer_recovery_execution_query_audit_model.audit_query(
+            reloaded_history_diff_archive_transfer_recovery_execution_query,
+            reloaded_history_diff_archive_transfer_recovery_execution,
+        )
         reassembled_history_diff_archive_path = root / "reassembled-history-diff-archive.zip"
         reassembled_history_diff_archive = history_diff_archive_model.load_archive_bytes(history_diff_archive_transfer_model.assemble_transfer_directory(history_diff_archive_transfer_root))
         history_diff_archive_model.write_archive(reassembled_history_diff_archive, reassembled_history_diff_archive_path, overwrite=True)
@@ -1883,6 +1982,21 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         (root / "history-diff-archive-transfer-recovery-query-audit.json").write_text(history_diff_archive_transfer_recovery_query_audit_model.audit_json(reloaded_history_diff_archive_transfer_recovery_query_audit), encoding="utf-8")
         (root / "history-diff-archive-transfer-recovery-query-audit.csv").write_text(history_diff_archive_transfer_recovery_query_audit_model.audit_csv(reloaded_history_diff_archive_transfer_recovery_query_audit), encoding="utf-8")
         (root / "history-diff-archive-transfer-recovery-query-audit.md").write_text(history_diff_archive_transfer_recovery_query_audit_model.render_audit_markdown(reloaded_history_diff_archive_transfer_recovery_query_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution.json").write_text(history_diff_archive_transfer_recovery_execution_model.execution_json(reloaded_history_diff_archive_transfer_recovery_execution), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution.csv").write_text(history_diff_archive_transfer_recovery_execution_model.execution_csv(reloaded_history_diff_archive_transfer_recovery_execution), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution.md").write_text(history_diff_archive_transfer_recovery_execution_model.render_execution_markdown(reloaded_history_diff_archive_transfer_recovery_execution), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-planned.json").write_text(history_diff_archive_transfer_recovery_execution_model.execution_json(history_diff_archive_transfer_recovery_execution_planned), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-complete.json").write_text(history_diff_archive_transfer_recovery_execution_model.execution_json(history_diff_archive_transfer_recovery_execution_complete), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-blocked.json").write_text(history_diff_archive_transfer_recovery_execution_model.execution_json(history_diff_archive_transfer_recovery_execution_blocked), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-audit.json").write_text(history_diff_archive_transfer_recovery_execution_audit_model.audit_json(reloaded_history_diff_archive_transfer_recovery_execution_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-audit.csv").write_text(history_diff_archive_transfer_recovery_execution_audit_model.audit_csv(reloaded_history_diff_archive_transfer_recovery_execution_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-audit.md").write_text(history_diff_archive_transfer_recovery_execution_audit_model.render_audit_markdown(reloaded_history_diff_archive_transfer_recovery_execution_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-query.json").write_text(history_diff_archive_transfer_recovery_execution_query_model.query_json(reloaded_history_diff_archive_transfer_recovery_execution_query), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-query.csv").write_text(history_diff_archive_transfer_recovery_execution_query_model.query_csv(reloaded_history_diff_archive_transfer_recovery_execution_query), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-query.md").write_text(history_diff_archive_transfer_recovery_execution_query_model.render_query_markdown(reloaded_history_diff_archive_transfer_recovery_execution_query), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-query-audit.json").write_text(history_diff_archive_transfer_recovery_execution_query_audit_model.audit_json(reloaded_history_diff_archive_transfer_recovery_execution_query_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-query-audit.csv").write_text(history_diff_archive_transfer_recovery_execution_query_audit_model.audit_csv(reloaded_history_diff_archive_transfer_recovery_execution_query_audit), encoding="utf-8")
+        (root / "history-diff-archive-transfer-recovery-execution-query-audit.md").write_text(history_diff_archive_transfer_recovery_execution_query_audit_model.render_audit_markdown(reloaded_history_diff_archive_transfer_recovery_execution_query_audit), encoding="utf-8")
         summary["comparison_history_diff_archive_transfer_directory"] = str(history_diff_archive_transfer_root.resolve())
         summary["comparison_history_diff_archive_transfer_partial_directory"] = str(history_diff_archive_transfer_partial_root.resolve())
         summary["comparison_history_diff_archive_transfer_reloaded"] = reloaded_history_diff_archive_transfer.content_address == history_diff_archive_transfer.content_address
@@ -1902,10 +2016,19 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         summary["comparison_history_diff_archive_transfer_recovery_reloaded_query_total_count"] = reloaded_history_diff_archive_transfer_recovery_query.row_count
         summary["comparison_history_diff_archive_transfer_recovery_reloaded_query_audit_checks"] = reloaded_history_diff_archive_transfer_recovery_query_audit.check_count
         summary["comparison_history_diff_archive_transfer_recovery_reloaded_query_audit_accepted"] = reloaded_history_diff_archive_transfer_recovery_query_audit.accepted
+        summary["comparison_history_diff_archive_transfer_recovery_execution_reloaded"] = reloaded_history_diff_archive_transfer_recovery_execution.content_address == history_diff_archive_transfer_recovery_execution_in_progress.content_address
+        summary["comparison_history_diff_archive_transfer_recovery_execution_reloaded_state"] = reloaded_history_diff_archive_transfer_recovery_execution.state
+        summary["comparison_history_diff_archive_transfer_recovery_execution_reloaded_audit_checks"] = reloaded_history_diff_archive_transfer_recovery_execution_audit.check_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_reloaded_audit_accepted"] = reloaded_history_diff_archive_transfer_recovery_execution_audit.passed
+        summary["comparison_history_diff_archive_transfer_recovery_execution_reloaded_query_total_count"] = reloaded_history_diff_archive_transfer_recovery_execution_query.total_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_reloaded_query_returned_count"] = reloaded_history_diff_archive_transfer_recovery_execution_query.returned_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_reloaded_query_audit_checks"] = reloaded_history_diff_archive_transfer_recovery_execution_query_audit.check_count
+        summary["comparison_history_diff_archive_transfer_recovery_execution_reloaded_query_audit_accepted"] = reloaded_history_diff_archive_transfer_recovery_execution_query_audit.passed
         summary["comparison_history_diff_archive_transfer_assembled_archive_path"] = str(reassembled_history_diff_archive_path.resolve())
         summary["comparison_history_diff_archive_transfer_assembled_archive_address"] = reassembled_history_diff_archive.content_address
         summary["comparison_history_diff_archive_transfer_assembled_archive_matches"] = reassembled_history_diff_archive.content_address == comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_target_diff_archive.content_address
         summary["comparison_history_diff_archive_transfer_artifact_files"] = ["history-diff-archive-transfer.json", "history-diff-archive-transfer-manifest.json", "history-diff-archive-transfer.md", "history-diff-archive-transfer-progress.json", "history-diff-archive-transfer-progress.csv", "history-diff-archive-transfer-progress.md", "history-diff-archive-transfer-audit.json", "history-diff-archive-transfer-audit.csv", "history-diff-archive-transfer-audit.md", "history-diff-archive-transfer-query.json", "history-diff-archive-transfer-query.csv", "history-diff-archive-transfer-query.md", "history-diff-archive-transfer-query-audit.json", "history-diff-archive-transfer-query-audit.csv", "history-diff-archive-transfer-query-audit.md", "history-diff-archive-transfer-recovery.json", "history-diff-archive-transfer-recovery.csv", "history-diff-archive-transfer-recovery.md", "history-diff-archive-transfer-recovery-audit.json", "history-diff-archive-transfer-recovery-audit.csv", "history-diff-archive-transfer-recovery-audit.md", "history-diff-archive-transfer-recovery-query.json", "history-diff-archive-transfer-recovery-query.csv", "history-diff-archive-transfer-recovery-query.md", "history-diff-archive-transfer-recovery-query-audit.json", "history-diff-archive-transfer-recovery-query-audit.csv", "history-diff-archive-transfer-recovery-query-audit.md", reassembled_history_diff_archive_path.name]
+        summary["comparison_history_diff_archive_transfer_artifact_files"] += ["history-diff-archive-transfer-recovery-execution.json", "history-diff-archive-transfer-recovery-execution.csv", "history-diff-archive-transfer-recovery-execution.md", "history-diff-archive-transfer-recovery-execution-planned.json", "history-diff-archive-transfer-recovery-execution-complete.json", "history-diff-archive-transfer-recovery-execution-blocked.json", "history-diff-archive-transfer-recovery-execution-audit.json", "history-diff-archive-transfer-recovery-execution-audit.csv", "history-diff-archive-transfer-recovery-execution-audit.md", "history-diff-archive-transfer-recovery-execution-query.json", "history-diff-archive-transfer-recovery-execution-query.csv", "history-diff-archive-transfer-recovery-execution-query.md", "history-diff-archive-transfer-recovery-execution-query-audit.json", "history-diff-archive-transfer-recovery-execution-query-audit.csv", "history-diff-archive-transfer-recovery-execution-query-audit.md"]
         (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
 
@@ -1990,6 +2113,12 @@ def main() -> int:
         "comparison_history_diff_archive_transfer_assembled_archive_matches",
         "comparison_history_diff_archive_transfer_recovery_audit_accepted",
         "comparison_history_diff_archive_transfer_recovery_query_audit_accepted",
+        "comparison_history_diff_archive_transfer_recovery_execution_audit_accepted",
+        "comparison_history_diff_archive_transfer_recovery_execution_query_audit_accepted",
+        "comparison_history_diff_archive_transfer_recovery_execution_complete_safe_to_assemble",
+        "comparison_history_diff_archive_transfer_recovery_execution_complete_audit_accepted",
+        "comparison_history_diff_archive_transfer_recovery_execution_blocked_state",
+        "comparison_history_diff_archive_transfer_recovery_execution_blocked_audit_accepted",
         "comparison_history_diff_archive_transfer_complete_recovery_audit_accepted",
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_complete_safe_to_assemble",
         "policy_package_registry_observatory_archive_accepted",

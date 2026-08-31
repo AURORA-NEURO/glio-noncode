@@ -236,6 +236,8 @@ artifacts, invalid manifest counts, and prohibited private, attribution, or
 language metadata. `portfolio-release-query` and `portfolio-release-diff`
 operate on verified directories without reopening the source store.
 
+The history-diff recovery plan also has a verifiable [execution receipt](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_RUNTIME_REGISTRY_FEDERATION_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_RUNTIME_REGISTRY_HISTORY_DIFF_ARCHIVE_TRANSFER_RECOVERY_EXECUTION.md). It records applied, pending, and rejected chunk outcomes; derives planned, in-progress, complete, or blocked state; preserves byte/index conservation; supports assembler-backed progress; and exposes independent 18-check execution and 12-check query audits through CLI, local HTTP, schema, capability, and public inventory surfaces. The downloaded-ZIP demo persists canonical receipt, negative-control, audit, query, and query-audit artifacts without source paths, payload bytes, agent metadata, or language metadata.
+
 Live retrieval is optional. Each request is rate-limited, retried only with unchanged semantics, cached locally, and recorded with source/version/URL/response hashes. A source failure remains a warning or abstention; it is never converted to a negative measurement.
 
 To canonicalize an external variant file before constructing a case manifest:
