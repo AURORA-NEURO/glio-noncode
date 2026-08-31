@@ -1404,6 +1404,13 @@ byte receipts. Reloading is atomic and fail-closed, with an independent
 15-check snapshot audit. See
 [docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOTS.md](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOTS.md).
 
+Multiple persisted comparison-query snapshot handoffs can then be admitted into
+an exact four-file registry. The registry rejects duplicate snapshot identities,
+folds state and acceptance conservatively, preserves complete query shape and
+public addresses, and provides independent 16-check registry and 12-check query
+audits with bounded projections. See
+[docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY.md](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY.md).
+
 The archive and transfer boundaries preserve public content addresses, reject
 path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)
