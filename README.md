@@ -1652,3 +1652,10 @@ for that partial state: every missing chunk becomes an addressed action,
 resume-versus-assemble is explicit, checkpoint safety and the next chunk are
 recorded, and independent recovery/query audits can be run without exposing
 source paths, records, or payload bytes.
+The recovery plan can now be materialized as a verifiable [execution receipt](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_RECOVERY_EXECUTION.md):
+planned, in-progress, complete, and blocked states are derived from conserved
+chunk indices and byte ranges; assembler-backed receipts prove which actions
+are present; rejected actions fail closed; and independent execution and
+execution-query audits cover the persisted JSON/CSV/Markdown surfaces. The
+downloaded-ZIP demo writes all four progression states and their audit/query
+artifacts without source paths or payload bytes.
