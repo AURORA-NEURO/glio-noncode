@@ -68,6 +68,12 @@ audits, bounded rule queries, an exact eight-file review runtime, and a
 portable five-file policy-review package with independent package audits. Two
 or more package handoffs can then be admitted to a four-file registry for
 readiness and decision queries.
+For a transportable handoff of the cross-history observatory, run
+`python examples/downloaded_data_contract_resolution_history_diff_policy_demo.py`
+against the same archive; it emits a deterministic six-member ZIP archive,
+strict archive verification, a 17-check archive audit, bounded archive queries,
+and a 12-check query audit. See
+[docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY_ARCHIVE.md](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY_ARCHIVE.md).
 
 The same runtime can be served locally:
 

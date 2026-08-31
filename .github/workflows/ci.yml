@@ -1807,6 +1807,13 @@ jobs:
           for suffix in member-schema members-schema transition-schema transitions-schema manifest-schema summary-schema schema capabilities audit-check-schema audit-schema audit-capabilities query-row-schema query-schema query-capabilities query-audit-check-schema query-audit-schema query-audit-capabilities; do
             python -m glio_noncode "${base}-${suffix}" --output "/tmp/glio-history-observatory-${suffix}.json"
           done
+      - name: Downloaded-data comparison query snapshot registry history observatory archive CLI surface
+        run: |
+          set -euo pipefail
+          base="downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-archive"
+          for suffix in artifact-schema manifest-schema schema capabilities audit-check-schema audit-schema audit-capabilities query-row-schema query-schema query-capabilities query-audit-check-schema query-audit-schema query-audit-capabilities; do
+            python -m glio_noncode "${base}-${suffix}" --output "/tmp/glio-history-observatory-archive-${suffix}.json"
+          done
       - name: Whole-product release assurance history
         run: python -m glio_noncode release-assurance --plane history --format csv --output /tmp/glio-release-assurance-history.csv
       - name: Whole-product release assurance thresholds
