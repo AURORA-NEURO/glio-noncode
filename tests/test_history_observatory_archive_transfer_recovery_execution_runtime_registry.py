@@ -160,7 +160,7 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryTests(uni
                 server.server_close()
 
         inventory = build_default_public_surface_audit()
-        self.assertEqual((inventory.surface_count, inventory.passed_surface_count, inventory.failed_surface_count, inventory.accepted), (1984, 1984, 0, True))
+        self.assertEqual((inventory.surface_count, inventory.passed_surface_count, inventory.failed_surface_count, inventory.accepted), (1997, 1997, 0, True))
         for schema in (registry_model.entry_schema(), registry_model.entries_schema(), registry_model.manifest_schema(), registry_model.summary_schema(), registry_model.registry_schema(), registry_audit_model.check_schema(), registry_audit_model.audit_schema(), registry_query_model.row_schema(), registry_query_model.query_schema(), registry_query_audit_model.check_schema(), registry_query_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
 

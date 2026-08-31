@@ -1,4 +1,4 @@
-"""Regression coverage for the exact history-diff archive transfer contract."""
+"""Regression coverage for exact history-diff archive transport."""
 
 from __future__ import annotations
 
@@ -15,33 +15,34 @@ from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive as archive_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_audit as audit_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query as query_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit as query_audit_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff as diff_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive as archive_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_audit as audit_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query as query_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit as query_audit_model
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
 from glio_noncode.public_surface_audit import build_default_public_surface_audit
 from glio_noncode.serialization import canonical_bytes
 
-import tests.test_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff as diff_module
+import tests.test_exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff as diff_module
 
 
 COMMAND = diff_module.COMMAND + "-archive"
 API_PATH = diff_module.API_PATH + "/archive"
 
 
-class HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTests(unittest.TestCase):
+class ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        diff_module.HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffTests.setUpClass()
+        diff_module.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffTests.setUpClass()
 
     @classmethod
     def _diff(cls, root: Path):
-        left, right = diff_module.HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffTests._histories(root)
-        return diff_model.build_diff(left, right, diff_id="downloaded-real-history-diff-archive-transfer")
+        left, right = diff_module.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffTests._histories(root)
+        from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff as diff_model
+
+        return diff_model.build_diff(left, right, diff_id="downloaded-real-history-diff-archive")
 
     @staticmethod
     def _repack(raw: bytes, *, mutate=None, reverse=False) -> bytes:
@@ -61,7 +62,7 @@ class HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchi
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             diff = self._diff(root)
-            archive = archive_model.build_archive(diff, archive_id="downloaded-real-history-diff-archive-transfer")
+            archive = archive_model.build_archive(diff, archive_id="downloaded-real-history-diff-archive")
             raw = archive_model.archive_bytes(archive)
             loaded = archive_model.load_archive_bytes(raw)
             audit = audit_model.audit_archive(loaded)
@@ -96,10 +97,11 @@ class HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchi
             archive_path = root / "history-diff.zip"
             query_path = root / "query.json"
             audit_path = root / "audit.json"
+            from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff as diff_model
 
             diff_model.persist_diff(diff, diff_directory)
             with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(main([COMMAND, str(diff_directory), "--archive-id", "cli-history-diff-archive-transfer", "--destination", str(archive_path), "--format", "json"]), 0)
+                self.assertEqual(main([COMMAND, str(diff_directory), "--archive-id", "cli-history-diff-archive", "--destination", str(archive_path), "--format", "json"]), 0)
                 self.assertEqual(main([COMMAND + "-verify", str(archive_path), "--format", "summary"]), 0)
                 self.assertEqual(main([COMMAND + "-audit", str(archive_path), "--format", "summary"]), 0)
                 self.assertEqual(main([COMMAND + "-query", str(archive_path), "--resource", "changes", "--format", "json", "--output", str(query_path)]), 0)
@@ -113,7 +115,7 @@ class HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchi
             thread.start()
             try:
                 server.glio_deployment_guard._rate_windows.clear()
-                base = {"input": str(diff_directory), "archive_id": "api-history-diff-archive-transfer", "format": "json"}
+                base = {"input": str(diff_directory), "archive_id": "api-history-diff-archive", "format": "json"}
                 with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}?{urlencode(base)}", timeout=30) as response:
                     api_archive = json.loads(response.read().decode("utf-8"))
                 self.assertEqual((api_archive["artifact_count"], api_archive["archive_size"] > 0), (4, True))
