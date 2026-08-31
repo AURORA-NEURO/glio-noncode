@@ -1,4 +1,4 @@
-"""Regression coverage for federation recovery-execution runtime registry history."""
+"""Regression coverage for history-diff archive transfer recovery execution runtime registry history."""
 
 from __future__ import annotations
 
@@ -14,34 +14,33 @@ from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry as registry_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime as runtime_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history as history_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit as history_audit_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query as history_query_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_audit as history_query_audit_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry as registry_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history as history_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_audit as history_audit_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query as history_query_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit as history_query_audit_model
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
 from glio_noncode.public_surface_audit import build_default_public_surface_audit
 
 
-import tests.test_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry as registry_module
+import tests.test_exact_history_diff_archive_transfer_recovery_execution_runtime_registry as registry_module
 
 
 COMMAND = registry_module.COMMAND + "-history"
 API_PATH = registry_module.API_PATH + "/history"
 
 
-class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryHistoryTests(unittest.TestCase):
+class ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        registry_module.HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryTests.setUpClass()
+        registry_module.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryTests.setUpClass()
 
     @classmethod
     def _registries(cls, root: Path):
-        execution = registry_module.HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryTests._execution(root)
-        runtime = runtime_model.build_runtime(execution, runtime_id="downloaded-real-history-runtime")
+        registry_tests = registry_module.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryTests()
+        runtime = registry_tests._runtime("downloaded-real-history-runtime")
         registry_id = "downloaded-real-history-registry"
         return (
             registry_model.build_registry((), registry_id=registry_id),
