@@ -56,7 +56,7 @@ Run the reproducible demo with the supplied ZIP:
         artifacts/history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-archive-transfer-real-downloaded-data-demo
 
 The observed run reads 25 catalog members and produces 160 review actions.
-The exact 4,783-byte archive is split into five 1,024-byte chunks. The
+The exact 5,077-byte archive is split into five 1,024-byte chunks. The
 complete transfer reloads with the same address, the partial receiver retains
 chunk indices 0 and 4 while 1, 2, and 3 remain missing, all 18 transfer checks
 pass, all 14 transfer-query rows replay, all 12 query-audit checks pass, and

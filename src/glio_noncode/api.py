@@ -572,6 +572,10 @@ from . import exact_history_diff_archive_transfer_recovery_execution_runtime_reg
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_audit as exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query as exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit as exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit_model
+from . import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer as exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_model
+from . import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_audit as exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_audit_model
+from . import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query as exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_model
+from . import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_audit as exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_model
@@ -7801,6 +7805,118 @@ class ApiHandler(BaseHTTPRequestHandler):
                     exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_path.removeprefix(downloaded_data_prefix) + "/query-audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit_model.capabilities,
                 }
                 schema = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_schema_routes.get(path.removeprefix(downloaded_data_prefix))
+                if schema is not None:
+                    self._write(HTTPStatus.OK, schema())
+                    return
+                exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_path + "/transfer"
+                exact_transfer_model = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_model
+                exact_transfer_archive_model = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_model
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path:
+                    input_path = self._query_value(query, "input") or self._query_value(query, "archive")
+                    if not input_path:
+                        raise ValueError("input or archive is required")
+                    archive = _load_exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive(input_path)
+                    value = exact_transfer_model.build_transfer(archive, transfer_id=self._query_value(query, "transfer_id") or None, chunk_size=self._query_int(query, "chunk_size", exact_transfer_model.DEFAULT_CHUNK_SIZE))
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        exact_transfer_model.write_transfer(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", exact_transfer_model, json_name="transfer_json", csv_name="transfer_csv", markdown_name="render_transfer_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path + "/partial":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "archive")
+                    if not input_path:
+                        raise ValueError("input or archive is required")
+                    archive = _load_exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive(input_path)
+                    value = exact_transfer_model.build_transfer(archive, transfer_id=self._query_value(query, "transfer_id") or None, chunk_size=self._query_int(query, "chunk_size", exact_transfer_model.DEFAULT_CHUNK_SIZE))
+                    assembler = exact_transfer_model.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferAssembler(value)
+                    payload = value.payload_bytes()
+                    raw_indices = self._query_values(query, "received_index") + self._query_values(query, "received")
+                    for raw_index in raw_indices:
+                        try:
+                            index = int(raw_index)
+                        except ValueError as error:
+                            raise ValueError("received_index/received must be an integer") from error
+                        assembler.add_chunk(index, payload[index])
+                    destination = self._query_value(query, "destination")
+                    if not destination:
+                        raise ValueError("destination is required")
+                    exact_transfer_model.write_partial_transfer(assembler, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(assembler.progress(), self._query_value(query, "format") or "summary", exact_transfer_model, json_name="progress_json", csv_name="progress_csv", markdown_name="render_progress_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path + "/verify":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "transfer")
+                    if not input_path:
+                        raise ValueError("input or transfer is required")
+                    value = exact_transfer_model.verify_transfer_directory(input_path)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", exact_transfer_model, json_name="transfer_json", csv_name="transfer_csv", markdown_name="render_transfer_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path + "/manifest":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "transfer")
+                    if not input_path:
+                        raise ValueError("input or transfer is required")
+                    value = exact_transfer_model.load_partial_transfer(input_path).value
+                    self._write(HTTPStatus.OK, exact_transfer_model.manifest_document(value))
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path + "/progress":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "transfer")
+                    if not input_path:
+                        raise ValueError("input or transfer is required")
+                    source = Path(input_path)
+                    if not source.is_dir():
+                        raise ValueError("progress input must be a transfer directory")
+                    value = exact_transfer_model.verify_partial_transfer(source)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", exact_transfer_model, json_name="progress_json", csv_name="progress_csv", markdown_name="render_progress_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path + "/assemble":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "transfer")
+                    if not input_path:
+                        raise ValueError("input or transfer is required")
+                    exact_transfer_model.load_transfer(input_path)
+                    raw = exact_transfer_model.assemble_transfer_directory(input_path)
+                    archive = exact_transfer_archive_model.load_archive_bytes(raw)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        exact_transfer_archive_model.write_archive(archive, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(archive, self._query_value(query, "format") or "summary", exact_transfer_archive_model, json_name="archive_json", csv_name="archive_csv", markdown_name="render_archive_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path + "/audit":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "transfer")
+                    if not input_path:
+                        raise ValueError("input or transfer is required")
+                    value = exact_transfer_model.load_transfer(input_path)
+                    audit = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_audit_model.audit_transfer(value)
+                    self._write_contract(audit, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path + "/query" or path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path + "/query/audit":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "transfer")
+                    if not input_path:
+                        raise ValueError("input or transfer is required")
+                    assembler = exact_transfer_model.load_partial_transfer(input_path)
+                    query_surface = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_model
+                    value = query_surface.query_assembler(assembler, resources=self._query_values(query, "resource") or query_surface.RESOURCES, index=self._query_optional_int(query, "index"), chunk_offset=self._query_optional_int(query, "offset_filter"), size=self._query_optional_int(query, "size"), chunk_address=self._query_value(query, "chunk_address") or "", received=self._query_bool(query, "received") if "received" in query else None, text=self._query_value(query, "text") or self._query_value(query, "q") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", query_surface.MAX_LIMIT))
+                    if path.endswith("/query/audit"):
+                        audit = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_audit_model.audit_query(value, assembler.value)
+                        self._write_contract(audit, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    else:
+                        self._write_contract(value, self._query_value(query, "format") or "summary", query_surface, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_schema_routes = {
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/chunk-schema": exact_transfer_model.chunk_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/manifest-schema": exact_transfer_model.manifest_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/progress-schema": exact_transfer_model.progress_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/schema": exact_transfer_model.transfer_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/capabilities": exact_transfer_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/audit/check-schema": exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_audit_model.check_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/audit/schema": exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_audit_model.audit_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_audit_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/query/row-schema": exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_model.row_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/query/schema": exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_model.query_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/query/capabilities": exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/query-audit/check-schema": exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_audit_model.check_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/query-audit/schema": exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_audit_model.audit_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_path.removeprefix(downloaded_data_prefix) + "/query-audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_audit_model.capabilities,
+                }
+                schema = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_schema_routes.get(path.removeprefix(downloaded_data_prefix))
                 if schema is not None:
                     self._write(HTTPStatus.OK, schema())
                     return
