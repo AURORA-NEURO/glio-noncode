@@ -1647,3 +1647,8 @@ canonical manifest plus chunks, resumed out of order, inspected through
 manifest-only progress/query views, independently audited, and reassembled
 through the nested archive verifier. The real downloaded-ZIP demo writes both
 the complete transfer and a two-chunk partial receiver state.
+It also emits a path-free [recovery plan](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_RECOVERY.md)
+for that partial state: every missing chunk becomes an addressed action,
+resume-versus-assemble is explicit, checkpoint safety and the next chunk are
+recorded, and independent recovery/query audits can be run without exposing
+source paths, records, or payload bytes.
