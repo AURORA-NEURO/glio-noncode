@@ -251,6 +251,10 @@ from glio_noncode import history_observatory_archive_transfer_recovery_execution
 from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_audit as comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_audit_model
 from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_query as comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model
 from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit as comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation as comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit as comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query as comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit as comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit_model
 from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime as policy_runtime_model,
 )
@@ -539,6 +543,33 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query,
         comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry,
     )
+    comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_primary = comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.build_registry(
+        (comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime,),
+        registry_id="comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-primary",
+    )
+    comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_secondary = comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.build_registry(
+        (comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_secondary,),
+        registry_id="comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-secondary",
+    )
+    comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation = comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_model.build_federation(
+        (
+            comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_primary,
+            comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_secondary,
+        ),
+        federation_id="comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation",
+    )
+    comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit = comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit_model.audit_federation(
+        comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation,
+    )
+    comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query = comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_model.query_federation(
+        comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation,
+        resources=comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_model.RESOURCES,
+        limit=comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_model.MAX_LIMIT,
+    )
+    comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit = comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit_model.audit_query(
+        comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query,
+        comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation,
+    )
     comparison_registry_history_observatory_archive_transfer_assembled = comparison_registry_history_observatory_archive_transfer_model.assemble_archive_bytes(comparison_registry_history_observatory_archive_transfer)
     action_counts = Counter(item.action for item in plan.actions)
     summary = {
@@ -813,6 +844,22 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_truncated": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query.truncated,
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_checks": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit.check_count,
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_passed": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit.passed,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_state": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation.state,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_accepted": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation.accepted,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_member_count": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation.member_count,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_runtime_entry_count": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation.runtime_entry_count,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_accepted_member_count": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation.accepted_member_count,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_ready_member_count": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation.ready_member_count,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_empty_member_count": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation.empty_member_count,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_blocked_member_count": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation.blocked_member_count,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit_checks": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit.check_count,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit_passed": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit.passed,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_total_count": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query.total_count,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_returned_count": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query.returned_count,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_rows": len(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query.rows),
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_truncated": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query.truncated,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit_checks": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit.check_count,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit_passed": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit.passed,
         "release_ready": runtime.release_ready,
         "runtime_state": runtime.state,
         "diff_address": history_diff.content_address,
@@ -864,6 +911,10 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_audit_address": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_audit.content_address,
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_address": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query.content_address,
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_address": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit.content_address,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_address": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation.content_address,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit_address": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit.content_address,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_address": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query.content_address,
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit_address": comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit.content_address,
         "policy_package_registry_history_diff_address": registry_history_diff.content_address,
         "policy_package_registry_history_diff_audit_address": registry_history_diff_audit.content_address,
         "policy_package_registry_history_diff_query_address": registry_history_diff_query.content_address,
@@ -1105,6 +1156,24 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         summary["comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_directory"] = str(registry_root.resolve())
         summary["comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_files"] = list(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.FILES)
         summary["comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_artifact_files"] = ["runtime-registry-audit.json", "runtime-registry-audit.csv", "runtime-registry-audit.md", "runtime-registry-query.json", "runtime-registry-query.csv", "runtime-registry-query.md", "runtime-registry-query-audit.json", "runtime-registry-query-audit.csv", "runtime-registry-query-audit.md"]
+        federation_root = root / "comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation"
+        comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_model.persist_federation(
+            comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation,
+            federation_root,
+            overwrite=True,
+        )
+        (root / "comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation-audit.json").write_text(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit_model.audit_json(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit), encoding="utf-8")
+        (root / "comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation-audit.csv").write_text(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit_model.audit_csv(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit), encoding="utf-8")
+        (root / "comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation-audit.md").write_text(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit_model.render_audit_markdown(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit), encoding="utf-8")
+        (root / "comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation-query.json").write_text(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_model.query_json(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query), encoding="utf-8")
+        (root / "comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation-query.csv").write_text(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_model.query_csv(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query), encoding="utf-8")
+        (root / "comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation-query.md").write_text(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_model.render_query_markdown(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query), encoding="utf-8")
+        (root / "comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation-query-audit.json").write_text(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit_model.audit_json(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit), encoding="utf-8")
+        (root / "comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation-query-audit.csv").write_text(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit_model.audit_csv(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit), encoding="utf-8")
+        (root / "comparison-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation-query-audit.md").write_text(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit_model.render_audit_markdown(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit), encoding="utf-8")
+        summary["comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_directory"] = str(federation_root.resolve())
+        summary["comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_files"] = list(comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_model.FILES)
+        summary["comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_artifact_files"] = ["runtime-registry-federation-audit.json", "runtime-registry-federation-audit.csv", "runtime-registry-federation-audit.md", "runtime-registry-federation-query.json", "runtime-registry-federation-query.csv", "runtime-registry-federation-query.md", "runtime-registry-federation-query-audit.json", "runtime-registry-federation-query-audit.csv", "runtime-registry-federation-query-audit.md"]
         (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
 
@@ -1149,6 +1218,9 @@ def main() -> int:
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_accepted",
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_audit_passed",
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_passed",
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_accepted",
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_audit_passed",
+        "comparison_registry_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit_passed",
         "comparison_registry_history_observatory_archive_transfer_recovery_execution_complete_safe_to_assemble",
         "policy_package_registry_observatory_archive_accepted",
         "policy_package_registry_observatory_archive_audit_accepted",
