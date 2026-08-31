@@ -1623,3 +1623,10 @@ and persists an exact six-file runtime with byte-level replay receipts. The
 CLI and local HTTP API expose every typed operation, independent audit, schema,
 and capability contract. See the [archive-registry federation guide](docs/ARCHIVE_REGISTRY_FEDERATION.md)
 and the [downloaded-data federation demo](examples/registry_federation_certificate_observatory_archive_registry_federation_demo.py).
+
+Persisted comparison-query snapshot registries now have a longitudinal [history
+surface](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY.md)
+with deterministic initial/improved/regressed/unchanged/changed transitions,
+exact four-file handoffs, independent history and query audits, bounded
+transition filters, and a real downloaded-ZIP demonstration in
+`examples/downloaded_data_contract_resolution_history_diff_policy_demo.py`.

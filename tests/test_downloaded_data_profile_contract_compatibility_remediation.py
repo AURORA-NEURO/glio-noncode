@@ -137,7 +137,7 @@ class DownloadedDataProfileContractCompatibilityRemediationTests(unittest.TestCa
 
         audit = build_default_public_surface_audit()
         self.assertTrue(audit.accepted)
-        self.assertEqual(len(audit.checks), 1530)
+        self.assertEqual(len(audit.checks), 1545)
         for schema in (remediation_model.action_schema(), remediation_model.plan_schema(), remediation_audit_model.check_schema(), remediation_audit_model.audit_schema(), remediation_query_model.row_schema(), remediation_query_model.query_schema(), remediation_query_audit_model.check_schema(), remediation_query_audit_model.audit_schema(), remediation_runtime_model.manifest_schema(), remediation_runtime_model.runtime_schema(), remediation_runtime_audit_model.check_schema(), remediation_runtime_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
             self._assert_public(schema)

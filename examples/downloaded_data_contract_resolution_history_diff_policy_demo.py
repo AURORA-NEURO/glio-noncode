@@ -182,6 +182,18 @@ from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_audit as policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_audit_model,
 )
 from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history as policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_audit as policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_audit_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query as policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_audit as policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_audit_model,
+)
+from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime as policy_runtime_model,
 )
 from glio_noncode import (
@@ -306,6 +318,29 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         limit=policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_model.MAX_LIMIT,
     )
     policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_audit = policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_audit_model.audit_query(policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query)
+    comparison_registry_baseline = policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_model.build_registry(
+        (policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot,),
+        registry_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-comparison-history-registry",
+    )
+    comparison_registry_candidate = policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_model.build_registry(
+        (
+            policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot,
+            policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_secondary,
+        ),
+        registry_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-comparison-history-registry",
+    )
+    comparison_registry_history = policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_model.build_history(
+        (comparison_registry_baseline, comparison_registry_candidate),
+        history_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-comparison-history",
+    )
+    comparison_registry_history_audit = policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_audit_model.audit_history(comparison_registry_history)
+    comparison_registry_history_query = policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_model.query_history(
+        comparison_registry_history,
+        resources=("summary", "entries", "initial", "improved", "accepted", "ready", "transitions"),
+        accepted=True,
+        limit=policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_model.MAX_LIMIT,
+    )
+    comparison_registry_history_query_audit = policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_audit_model.audit_query(comparison_registry_history_query)
     action_counts = Counter(item.action for item in plan.actions)
     summary = {
         "source_name": Path(source).name,
@@ -469,6 +504,15 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_returned_count": policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query.returned_count,
         "policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_audit_checks": policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_audit.check_count,
         "policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_audit_accepted": policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_audit.accepted,
+        "comparison_registry_history_entry_count": comparison_registry_history.entry_count,
+        "comparison_registry_history_state": comparison_registry_history.state,
+        "comparison_registry_history_transition_counts": {"initial": comparison_registry_history.initial_count, "improved": comparison_registry_history.improved_count, "regressed": comparison_registry_history.regressed_count, "unchanged": comparison_registry_history.unchanged_count, "changed": comparison_registry_history.changed_count},
+        "comparison_registry_history_audit_checks": comparison_registry_history_audit.check_count,
+        "comparison_registry_history_audit_accepted": comparison_registry_history_audit.accepted,
+        "comparison_registry_history_query_total_count": comparison_registry_history_query.total_count,
+        "comparison_registry_history_query_returned_count": comparison_registry_history_query.returned_count,
+        "comparison_registry_history_query_audit_checks": comparison_registry_history_query_audit.check_count,
+        "comparison_registry_history_query_audit_accepted": comparison_registry_history_query_audit.accepted,
         "release_ready": runtime.release_ready,
         "runtime_state": runtime.state,
         "diff_address": history_diff.content_address,
@@ -484,6 +528,10 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "policy_package_registry_history_address": registry_history_candidate.content_address,
         "policy_package_registry_history_audit_address": registry_history_audit.content_address,
         "policy_package_registry_history_query_address": registry_history_query.content_address,
+        "comparison_registry_history_address": comparison_registry_history.content_address,
+        "comparison_registry_history_audit_address": comparison_registry_history_audit.content_address,
+        "comparison_registry_history_query_address": comparison_registry_history_query.content_address,
+        "comparison_registry_history_query_audit_address": comparison_registry_history_query_audit.content_address,
         "policy_package_registry_history_diff_address": registry_history_diff.content_address,
         "policy_package_registry_history_diff_audit_address": registry_history_diff_audit.content_address,
         "policy_package_registry_history_diff_query_address": registry_history_diff_query.content_address,
@@ -624,6 +672,16 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_secondary_directory"] = str(comparison_query_snapshot_secondary_root.resolve())
         summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_directory"] = str(comparison_registry_root.resolve())
         summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_files"] = list(policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_model.FILES)
+        comparison_history_root = root / "policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history"
+        policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_model.persist_history(comparison_registry_history, comparison_history_root, overwrite=True)
+        (root / "policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-audit.json").write_text(policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_audit_model.audit_json(comparison_registry_history_audit), encoding="utf-8")
+        (root / "policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-audit.md").write_text(policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_audit_model.render_audit_markdown(comparison_registry_history_audit), encoding="utf-8")
+        (root / "policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-query.json").write_text(policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_model.query_json(comparison_registry_history_query), encoding="utf-8")
+        (root / "policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-query.md").write_text(policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_model.render_query_markdown(comparison_registry_history_query), encoding="utf-8")
+        (root / "policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-query-audit.json").write_text(policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_audit_model.audit_json(comparison_registry_history_query_audit), encoding="utf-8")
+        (root / "policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-query-audit.md").write_text(policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_audit_model.render_audit_markdown(comparison_registry_history_query_audit), encoding="utf-8")
+        summary["comparison_registry_history_directory"] = str(comparison_history_root.resolve())
+        summary["comparison_registry_history_files"] = list(policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_model.FILES)
         (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
 
@@ -635,7 +693,7 @@ def main() -> int:
     args = parser.parse_args()
     summary = build_demo(args.source, args.destination)
     print(json.dumps(summary, indent=2, sort_keys=True))
-    return 0 if summary["release_ready"] and summary["policy_audit_accepted"] and summary["runtime_audit_accepted"] and summary["policy_package_accepted"] and summary["policy_package_audit_accepted"] and summary["policy_package_query_audit_accepted"] and summary["policy_package_registry_accepted"] and summary["policy_package_registry_audit_accepted"] and summary["policy_package_registry_query_audit_accepted"] and summary["policy_package_registry_history_audit_accepted"] and summary["policy_package_registry_history_query_audit_accepted"] and summary["policy_package_registry_history_diff_audit_accepted"] and summary["policy_package_registry_history_diff_query_audit_accepted"] and summary["policy_package_registry_observatory_accepted"] and summary["policy_package_registry_observatory_audit_accepted"] and summary["policy_package_registry_observatory_query_audit_accepted"] and summary["policy_package_registry_observatory_archive_accepted"] and summary["policy_package_registry_observatory_archive_audit_accepted"] and summary["policy_package_registry_observatory_archive_query_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_accepted"] and summary["policy_package_registry_observatory_archive_runtime_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_audit_accepted"] else 2
+    return 0 if summary["release_ready"] and summary["policy_audit_accepted"] and summary["runtime_audit_accepted"] and summary["policy_package_accepted"] and summary["policy_package_audit_accepted"] and summary["policy_package_query_audit_accepted"] and summary["policy_package_registry_accepted"] and summary["policy_package_registry_audit_accepted"] and summary["policy_package_registry_query_audit_accepted"] and summary["policy_package_registry_history_audit_accepted"] and summary["policy_package_registry_history_query_audit_accepted"] and summary["policy_package_registry_history_diff_audit_accepted"] and summary["policy_package_registry_history_diff_query_audit_accepted"] and summary["policy_package_registry_observatory_accepted"] and summary["policy_package_registry_observatory_audit_accepted"] and summary["policy_package_registry_observatory_query_audit_accepted"] and summary["policy_package_registry_observatory_archive_accepted"] and summary["policy_package_registry_observatory_archive_audit_accepted"] and summary["policy_package_registry_observatory_archive_query_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_accepted"] and summary["policy_package_registry_observatory_archive_runtime_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_audit_accepted"] and summary["policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_audit_accepted"] and summary["comparison_registry_history_audit_accepted"] and summary["comparison_registry_history_query_audit_accepted"] else 2
 
 
 if __name__ == "__main__":
