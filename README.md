@@ -1640,3 +1640,10 @@ Those histories can also be combined in a deterministic [cross-history
 observatory](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY.md)
 with exact five-file handoffs, folded member and transition summaries,
 independent aggregate and query audits, and bounded state/trend inspection.
+That observatory can now be handed off over a resumable [archive transfer
+boundary](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md):
+the deterministic ZIP is split into addressed byte ranges, persisted as a
+canonical manifest plus chunks, resumed out of order, inspected through
+manifest-only progress/query views, independently audited, and reassembled
+through the nested archive verifier. The real downloaded-ZIP demo writes both
+the complete transfer and a two-chunk partial receiver state.

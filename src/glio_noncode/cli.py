@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND = "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-archive"
+COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND = COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND + "-transfer"
 
 from . import (
     assurance_history_series_release_registry_federation as assurance_history_series_release_registry_federation_model,
@@ -384,6 +385,18 @@ from . import (
 )
 from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_query_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_query_audit_model,
+)
+from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model,
+)
+from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_audit_model,
+)
+from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_model,
+)
+from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_audit_model,
 )
 from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_model,
@@ -5769,6 +5782,53 @@ def _downloaded_contract_compatibility_remediation_resolution_history_diff_polic
         accepted=None if args.accepted is None else args.accepted == "true",
         transition=args.transition,
         trend=args.trend,
+        text=args.text,
+        offset=args.offset,
+        limit=args.limit,
+    )
+
+
+def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_from_input(input_path: str, *, transfer_id: str | None = None, chunk_size: int | None = None):
+    source = Path(input_path)
+    model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model
+    if source.is_dir() and (source / model.TRANSFER_DIRECTORY_MANIFEST).is_file():
+        return model.load_transfer(source)
+    if source.is_dir():
+        archive_model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_model
+        archive = archive_model.build_archive_from_directory(source)
+        return model.build_transfer(archive, transfer_id=transfer_id, chunk_size=chunk_size or model.DEFAULT_CHUNK_SIZE)
+    if source.suffix.casefold() == ".zip":
+        archive = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_model.load_archive(source)
+        return model.build_transfer(archive, transfer_id=transfer_id, chunk_size=chunk_size or model.DEFAULT_CHUNK_SIZE)
+    raw = _read_json(input_path)
+    nested_transfer = raw.get("transfer")
+    if isinstance(nested_transfer, Mapping) and "transfer_id" in nested_transfer and "chunks" in nested_transfer:
+        return model.transfer_from_mapping(nested_transfer)
+    if "transfer_id" in raw and "chunks" in raw and "archive_address" in raw:
+        return model.transfer_from_mapping(raw)
+    archive_model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_model
+    nested_archive = raw.get("archive")
+    if isinstance(nested_archive, Mapping):
+        archive = archive_model.archive_from_mapping(nested_archive)
+    elif "archive_id" in raw and "artifacts" in raw:
+        archive = archive_model.archive_from_mapping(raw)
+    else:
+        nested_observatory = raw.get("observatory")
+        observatory = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model.observatory_from_mapping(nested_observatory if isinstance(nested_observatory, Mapping) else raw)
+        archive = archive_model.build_archive(observatory)
+    return model.build_transfer(archive, transfer_id=transfer_id, chunk_size=chunk_size or model.DEFAULT_CHUNK_SIZE)
+
+
+def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_from_args(transfer: Any, args: Any):
+    model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_model
+    return model.query_transfer(
+        transfer,
+        resources=tuple(args.resource or model.RESOURCES),
+        index=args.index,
+        chunk_offset=args.chunk_offset,
+        size=args.size,
+        chunk_address=args.chunk_address,
+        received=None if args.received is None else args.received == "true",
         text=args.text,
         offset=args.offset,
         limit=args.limit,
@@ -21700,6 +21760,58 @@ def build_parser() -> argparse.ArgumentParser:
     comparison_history_observatory_archive_query_audit_parser.add_argument("--limit", type=int, default=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_query_model.MAX_LIMIT)
     comparison_history_observatory_archive_query_audit_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     comparison_history_observatory_archive_query_audit_parser.add_argument("--output", default=None)
+    comparison_history_observatory_archive_transfer_prefix = COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND
+    comparison_history_observatory_archive_transfer_parser = subparsers.add_parser(comparison_history_observatory_archive_transfer_prefix, help="create a resumable transfer for a comparison-query history observatory archive")
+    comparison_history_observatory_archive_transfer_parser.add_argument("input", type=str)
+    comparison_history_observatory_archive_transfer_parser.add_argument("--transfer-id", default=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model.DEFAULT_TRANSFER_ID)
+    comparison_history_observatory_archive_transfer_parser.add_argument("--chunk-size", type=int, default=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model.DEFAULT_CHUNK_SIZE)
+    comparison_history_observatory_archive_transfer_parser.add_argument("--destination", default=None)
+    comparison_history_observatory_archive_transfer_parser.add_argument("--overwrite", action="store_true")
+    comparison_history_observatory_archive_transfer_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    comparison_history_observatory_archive_transfer_parser.add_argument("--output", default=None)
+    for transfer_command, transfer_help in (
+        (comparison_history_observatory_archive_transfer_prefix + "-verify", "verify a comparison-query history observatory archive transfer"),
+        (comparison_history_observatory_archive_transfer_prefix + "-manifest", "print a comparison-query history observatory archive transfer manifest"),
+        (comparison_history_observatory_archive_transfer_prefix + "-progress", "print comparison-query history observatory archive transfer progress"),
+        (comparison_history_observatory_archive_transfer_prefix + "-assemble", "assemble a comparison-query history observatory archive transfer"),
+        (comparison_history_observatory_archive_transfer_prefix + "-audit", "audit a comparison-query history observatory archive transfer"),
+        (comparison_history_observatory_archive_transfer_prefix + "-query", "query a comparison-query history observatory archive transfer"),
+        (comparison_history_observatory_archive_transfer_prefix + "-query-audit", "audit a comparison-query history observatory archive transfer query"),
+    ):
+        transfer_parser = subparsers.add_parser(transfer_command, help=transfer_help)
+        transfer_parser.add_argument("input", type=str)
+        transfer_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+        transfer_parser.add_argument("--output", default=None)
+        if transfer_command.endswith("-assemble"):
+            transfer_parser.add_argument("--destination", required=True)
+            transfer_parser.add_argument("--overwrite", action="store_true")
+        if transfer_command.endswith("-query") or transfer_command.endswith("-query-audit"):
+            transfer_parser.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_model.RESOURCES)
+            transfer_parser.add_argument("--index", type=int, default=None)
+            transfer_parser.add_argument("--chunk-offset", type=int, default=None)
+            transfer_parser.add_argument("--size", type=int, default=None)
+            transfer_parser.add_argument("--chunk-address", default="")
+            transfer_parser.add_argument("--received", choices=("true", "false"), default=None)
+            transfer_parser.add_argument("--text", default="")
+            transfer_parser.add_argument("--offset", type=int, default=0)
+            transfer_parser.add_argument("--limit", type=int, default=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_model.MAX_LIMIT)
+    for command, help_text in (
+        (comparison_history_observatory_archive_transfer_prefix + "-chunk-schema", "print archive transfer chunk schema"),
+        (comparison_history_observatory_archive_transfer_prefix + "-schema", "print archive transfer schema"),
+        (comparison_history_observatory_archive_transfer_prefix + "-manifest-schema", "print archive transfer manifest schema"),
+        (comparison_history_observatory_archive_transfer_prefix + "-progress-schema", "print archive transfer progress schema"),
+        (comparison_history_observatory_archive_transfer_prefix + "-capabilities", "print archive transfer capabilities"),
+        (comparison_history_observatory_archive_transfer_prefix + "-audit-check-schema", "print archive transfer audit check schema"),
+        (comparison_history_observatory_archive_transfer_prefix + "-audit-schema", "print archive transfer audit schema"),
+        (comparison_history_observatory_archive_transfer_prefix + "-audit-capabilities", "print archive transfer audit capabilities"),
+        (comparison_history_observatory_archive_transfer_prefix + "-query-row-schema", "print archive transfer query row schema"),
+        (comparison_history_observatory_archive_transfer_prefix + "-query-schema", "print archive transfer query schema"),
+        (comparison_history_observatory_archive_transfer_prefix + "-query-capabilities", "print archive transfer query capabilities"),
+        (comparison_history_observatory_archive_transfer_prefix + "-query-audit-check-schema", "print archive transfer query audit check schema"),
+        (comparison_history_observatory_archive_transfer_prefix + "-query-audit-schema", "print archive transfer query audit schema"),
+        (comparison_history_observatory_archive_transfer_prefix + "-query-audit-capabilities", "print archive transfer query audit capabilities"),
+    ):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
     for command, help_text in (
         (comparison_history_observatory_archive_prefix + "-artifact-schema", "print comparison history observatory archive artifact schema"),
         (comparison_history_observatory_archive_prefix + "-manifest-schema", "print comparison history observatory archive manifest schema"),
@@ -24264,6 +24376,82 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_audit_model.audit_query(_downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_from_input(args.input))
             _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND:
+            model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model
+            value = _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_from_input(args.input, transfer_id=args.transfer_id, chunk_size=args.chunk_size)
+            if args.destination is not None:
+                model.write_transfer(value, args.destination, overwrite=args.overwrite)
+            _emit_contract(value, args, model, json_name="transfer_json", csv_name="transfer_csv", markdown_name="render_transfer_markdown")
+            return 0
+        if args.command == COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND + "-verify":
+            model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model
+            value = model.verify_transfer(_downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_from_input(args.input))
+            _emit_contract(value, args, model, json_name="transfer_json", csv_name="transfer_csv", markdown_name="render_transfer_markdown")
+            return 0
+        if args.command == COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND + "-manifest":
+            model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model
+            _write_json(model.manifest_document(_downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_from_input(args.input)), args.output)
+            return 0
+        if args.command == COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND + "-progress":
+            model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model
+            source = Path(args.input)
+            if source.is_dir() and (source / model.TRANSFER_DIRECTORY_MANIFEST).is_file():
+                progress = model.load_partial_transfer(source).progress()
+            else:
+                value = _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_from_input(args.input)
+                assembler = model.TransferAssembler(value)
+                assembler.add_chunks(value.payload_bytes())
+                progress = assembler.progress()
+            _write_json(progress.to_dict(), args.output)
+            return 0
+        if args.command == COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND + "-assemble":
+            model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model
+            value = _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_from_input(args.input)
+            archive_model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_model
+            archive = archive_model.load_archive_bytes(model.assemble_archive_bytes(value))
+            archive_model.write_archive(archive, args.destination, overwrite=args.overwrite)
+            _emit_contract(archive, args, archive_model, json_name="archive_json", csv_name="archive_csv", markdown_name="render_archive_markdown")
+            return 0
+        if args.command == COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND + "-audit":
+            model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_audit_model
+            value = model.audit_transfer(_downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_from_input(args.input))
+            _emit_contract(value, args, model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND + "-query":
+            transfer = _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_from_input(args.input)
+            model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_model
+            value = _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_from_args(transfer, args)
+            _emit_contract(value, args, model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND + "-query-audit":
+            transfer = _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_from_input(args.input)
+            query = _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_from_args(transfer, args)
+            model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_audit_model
+            value = model.audit_query(query, transfer)
+            _emit_contract(value, args, model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        comparison_history_observatory_archive_transfer_schema_commands = {
+            "chunk-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model.chunk_schema,
+            "schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model.transfer_schema,
+            "manifest-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model.manifest_schema,
+            "progress-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model.progress_schema,
+            "capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model.capabilities,
+            "audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_audit_model.check_schema,
+            "audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_audit_model.audit_schema,
+            "audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_audit_model.capabilities,
+            "query-row-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_model.row_schema,
+            "query-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_model.query_schema,
+            "query-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_model.capabilities,
+            "query-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_audit_model.check_schema,
+            "query-audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_audit_model.audit_schema,
+            "query-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_query_audit_model.capabilities,
+        }
+        comparison_history_observatory_archive_transfer_schema_prefix = COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND + "-"
+        if args.command.startswith(comparison_history_observatory_archive_transfer_schema_prefix):
+            schema_name = args.command.removeprefix(comparison_history_observatory_archive_transfer_schema_prefix)
+            if schema_name in comparison_history_observatory_archive_transfer_schema_commands:
+                _write_json(comparison_history_observatory_archive_transfer_schema_commands[schema_name](), args.output)
+                return 0
         if args.command == COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND:
             model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_model
             value = _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_from_input(args.input, archive_id=args.archive_id)
