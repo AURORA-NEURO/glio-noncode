@@ -1630,3 +1630,7 @@ with deterministic initial/improved/regressed/unchanged/changed transitions,
 exact four-file handoffs, independent history and query audits, bounded
 transition filters, and a real downloaded-ZIP demonstration in
 `examples/downloaded_data_contract_resolution_history_diff_policy_demo.py`.
+Those histories can also be combined in a deterministic [cross-history
+observatory](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY.md)
+with exact five-file handoffs, folded member and transition summaries,
+independent aggregate and query audits, and bounded state/trend inspection.

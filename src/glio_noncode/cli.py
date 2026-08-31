@@ -450,6 +450,18 @@ from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_audit_model,
 )
 from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model,
+)
+from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_audit_model,
+)
+from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_model,
+)
+from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_audit_model,
+)
+from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model,
 )
 from . import (
@@ -5677,6 +5689,37 @@ def _downloaded_contract_compatibility_remediation_resolution_history_diff_polic
     if "history_address" in raw and "rows" in raw:
         return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_model.query_from_mapping(raw)
     raise ValueError("registry history query audit input must be a query JSON document")
+
+
+def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_from_input(input_path: str):
+    source = Path(input_path)
+    model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model
+    if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(model.FILES)):
+        return model.load_observatory(source)
+    raw = _read_json(input_path)
+    nested = raw.get("observatory")
+    if isinstance(nested, Mapping):
+        return model.observatory_from_mapping(nested)
+    if "observatory_id" in raw and "members" in raw and "transitions" in raw and "summary" in raw:
+        return model.observatory_from_mapping(raw)
+    raise ValueError("history observatory input must be a persisted observatory directory or observatory JSON")
+
+
+def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_histories_from_inputs(input_paths: list[str]):
+    if not input_paths:
+        raise ValueError("history observatory requires at least one history input")
+    return tuple(_downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_from_input(path) for path in input_paths)
+
+
+def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_from_input(input_path: str):
+    raw = _read_json(input_path)
+    model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_model
+    nested = raw.get("query")
+    if isinstance(nested, Mapping) and "observatory_address" in nested and "rows" in nested:
+        return model.query_from_mapping(nested)
+    if "observatory_address" in raw and "rows" in raw:
+        return model.query_from_mapping(raw)
+    raise ValueError("history observatory query audit input must be a query JSON document")
 
 
 def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_from_args(args: Any):
@@ -21520,7 +21563,55 @@ def build_parser() -> argparse.ArgumentParser:
     history_query_audit_parser.add_argument("input", type=str)
     history_query_audit_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     history_query_audit_parser.add_argument("--output", default=None)
+    history_observatory_prefix = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_command = "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory"
+    history_observatory_parser = subparsers.add_parser(history_observatory_prefix, help="build and optionally persist the comparison-query history observatory")
+    history_observatory_parser.add_argument("inputs", nargs="+", type=str)
+    history_observatory_parser.add_argument("--observatory-id", default=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model.DEFAULT_OBSERVATORY_ID)
+    history_observatory_parser.add_argument("--destination", default=None)
+    history_observatory_parser.add_argument("--overwrite", action="store_true")
+    history_observatory_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    history_observatory_parser.add_argument("--output", default=None)
+    history_observatory_audit_parser = subparsers.add_parser(history_observatory_prefix + "-audit", help="audit the comparison-query history observatory")
+    history_observatory_audit_parser.add_argument("input", type=str)
+    history_observatory_audit_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    history_observatory_audit_parser.add_argument("--output", default=None)
+    history_observatory_query_parser = subparsers.add_parser(history_observatory_prefix + "-query", help="query the comparison-query history observatory")
+    history_observatory_query_parser.add_argument("input", type=str)
+    history_observatory_query_parser.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_model.RESOURCES)
+    history_observatory_query_parser.add_argument("--history-id", default="")
+    history_observatory_query_parser.add_argument("--registry-id", default="")
+    history_observatory_query_parser.add_argument("--state", default="")
+    history_observatory_query_parser.add_argument("--accepted", action="store_const", const=True, default=None)
+    history_observatory_query_parser.add_argument("--transition", default="")
+    history_observatory_query_parser.add_argument("--trend", default="")
+    history_observatory_query_parser.add_argument("--address", default="")
+    history_observatory_query_parser.add_argument("--text", default="")
+    history_observatory_query_parser.add_argument("--offset", type=int, default=0)
+    history_observatory_query_parser.add_argument("--limit", type=int, default=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_model.MAX_LIMIT)
+    history_observatory_query_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    history_observatory_query_parser.add_argument("--output", default=None)
+    history_observatory_query_audit_parser = subparsers.add_parser(history_observatory_prefix + "-query-audit", help="audit a comparison-query history observatory query")
+    history_observatory_query_audit_parser.add_argument("input", type=str)
+    history_observatory_query_audit_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    history_observatory_query_audit_parser.add_argument("--output", default=None)
     for command, help_text in (
+        (history_observatory_prefix + "-member-schema", "print history observatory member schema"),
+        (history_observatory_prefix + "-members-schema", "print history observatory members schema"),
+        (history_observatory_prefix + "-transition-schema", "print history observatory transition schema"),
+        (history_observatory_prefix + "-transitions-schema", "print history observatory transitions schema"),
+        (history_observatory_prefix + "-manifest-schema", "print history observatory manifest schema"),
+        (history_observatory_prefix + "-summary-schema", "print history observatory summary schema"),
+        (history_observatory_prefix + "-schema", "print history observatory schema"),
+        (history_observatory_prefix + "-capabilities", "print history observatory capabilities"),
+        (history_observatory_prefix + "-audit-check-schema", "print history observatory audit check schema"),
+        (history_observatory_prefix + "-audit-schema", "print history observatory audit schema"),
+        (history_observatory_prefix + "-audit-capabilities", "print history observatory audit capabilities"),
+        (history_observatory_prefix + "-query-row-schema", "print history observatory query row schema"),
+        (history_observatory_prefix + "-query-schema", "print history observatory query schema"),
+        (history_observatory_prefix + "-query-capabilities", "print history observatory query capabilities"),
+        (history_observatory_prefix + "-query-audit-check-schema", "print history observatory query audit check schema"),
+        (history_observatory_prefix + "-query-audit-schema", "print history observatory query audit schema"),
+        (history_observatory_prefix + "-query-audit-capabilities", "print history observatory query audit capabilities"),
         ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-stage-schema", "print archive inspection runtime stage schema"),
         ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-manifest-schema", "print archive inspection runtime manifest schema"),
         ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-schema", "print archive inspection runtime schema"),
@@ -24015,6 +24106,67 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-query-audit-capabilities":
             _write_json(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_audit_model.capabilities(), args.output)
             return 0
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory":
+            model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model
+            value = model.build_observatory(
+                _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_histories_from_inputs(args.inputs),
+                observatory_id=args.observatory_id,
+            )
+            if args.destination is not None:
+                model.persist_observatory(value, args.destination, overwrite=args.overwrite)
+            _emit_contract(value, args, model, json_name="observatory_json", csv_name="observatory_csv", markdown_name="render_observatory_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-audit":
+            value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_audit_model.audit_observatory(_downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-query":
+            model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_model
+            value = model.query_observatory(
+                _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_from_input(args.input),
+                resources=tuple(args.resource or model.RESOURCES),
+                history_id=args.history_id,
+                registry_id=args.registry_id,
+                state=args.state,
+                accepted=args.accepted,
+                transition=args.transition,
+                trend=args.trend,
+                address=args.address,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-query-audit":
+            value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_audit_model.audit_query(_downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        history_observatory_schema_commands = {
+            "member-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model.member_schema,
+            "members-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model.members_schema,
+            "transition-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model.transition_schema,
+            "transitions-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model.transitions_schema,
+            "manifest-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model.manifest_schema,
+            "summary-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model.summary_schema,
+            "schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model.observatory_schema,
+            "capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model.capabilities,
+            "audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_audit_model.check_schema,
+            "audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_audit_model.audit_schema,
+            "audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_audit_model.capabilities,
+            "query-row-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_model.row_schema,
+            "query-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_model.query_schema,
+            "query-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_model.capabilities,
+            "query-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_audit_model.check_schema,
+            "query-audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_audit_model.audit_schema,
+            "query-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_audit_model.capabilities,
+        }
+        history_observatory_schema_prefix = "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-"
+        if args.command.startswith(history_observatory_schema_prefix):
+            schema_name = args.command.removeprefix(history_observatory_schema_prefix)
+            if schema_name in history_observatory_schema_commands:
+                _write_json(history_observatory_schema_commands[schema_name](), args.output)
+                return 0
         if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-stage-schema":
             _write_json(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_model.stage_schema(), args.output)
             return 0
