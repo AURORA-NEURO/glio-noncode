@@ -98,7 +98,7 @@ class HistoryObservatoryArchiveTransferRecoveryTests(unittest.TestCase):
             self.assertGreater(json.loads(query_path.read_text(encoding="utf-8"))["row_count"], 0)
         inventory = build_default_public_surface_audit()
         self.assertTrue(inventory.accepted)
-        self.assertEqual(len(inventory.checks), 1914)
+        self.assertEqual(len(inventory.checks), 1926)
         for schema in (recovery_model.action_schema(), recovery_model.recovery_schema(), recovery_audit_model.check_schema(), recovery_audit_model.audit_schema(), recovery_query_model.row_schema(), recovery_query_model.query_schema(), recovery_query_audit_model.check_schema(), recovery_query_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
 
