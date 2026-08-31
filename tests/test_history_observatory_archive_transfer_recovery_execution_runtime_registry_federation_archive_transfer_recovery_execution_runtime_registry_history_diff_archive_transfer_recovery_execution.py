@@ -148,7 +148,7 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
                 server.server_close()
 
         inventory = build_default_public_surface_audit()
-        self.assertEqual((inventory.surface_count, inventory.passed_surface_count, inventory.failed_surface_count, inventory.accepted), (1939, 1939, 0, True))
+        self.assertEqual((inventory.surface_count, inventory.passed_surface_count, inventory.failed_surface_count, inventory.accepted), (1954, 1954, 0, True))
         for schema in (execution_model.outcome_schema(), execution_model.execution_schema(), execution_audit_model.check_schema(), execution_audit_model.audit_schema(), execution_query_model.row_schema(), execution_query_model.query_schema(), execution_query_audit_model.check_schema(), execution_query_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
 

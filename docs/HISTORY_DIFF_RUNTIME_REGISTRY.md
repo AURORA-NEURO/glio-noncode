@@ -36,3 +36,7 @@ python examples/downloaded_data_contract_resolution_history_diff_policy_demo.py 
 ```
 
 The artifact directory contains the exact four-member registry package under `history-diff-archive-transfer-recovery-execution-runtime-registry/` and root convenience projections for the registry, audit, query, and query-audit contracts.
+
+## Exact-prefixed implementation
+
+The exact-prefixed implementation is provided by `exact_history_diff_archive_transfer_recovery_execution_runtime_registry.py` and its audit, query, and query-audit companions. It consumes the durable runtime handoffs from the preceding boundary, admits them in deterministic `(runtime_id, runtime_address)` order, rejects duplicate identities, and preserves runtime, execution, audit, and query linkage in each addressed entry. The package is covered by `tests/test_exact_history_diff_archive_transfer_recovery_execution_runtime_registry.py`, including empty and ready folding, canonical four-file persistence, reload, tamper rejection, CLI, HTTP API, schema, and public inventory checks.
