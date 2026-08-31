@@ -96,7 +96,7 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
                 thread.join(timeout=5)
         inventory = build_default_public_surface_audit()
         self.assertTrue(inventory.accepted)
-        self.assertEqual(len(inventory.checks), 1613)
+        self.assertEqual(len(inventory.checks), 1626)
         for schema in (diff_model.item_schema(), diff_model.diff_schema(), diff_audit_model.check_schema(), diff_audit_model.audit_schema(), diff_query_model.row_schema(), diff_query_model.query_schema(), diff_query_audit_model.check_schema(), diff_query_audit_model.audit_schema(), diff_runtime_model.manifest_schema(), diff_runtime_model.runtime_schema(), diff_runtime_audit_model.check_schema(), diff_runtime_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
         self.assertEqual(value.content_address, diff_model.build_diff(self.left, self.right, diff_id="diff-fixture").content_address)

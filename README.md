@@ -1659,3 +1659,11 @@ are present; rejected actions fail closed; and independent execution and
 execution-query audits cover the persisted JSON/CSV/Markdown surfaces. The
 downloaded-ZIP demo writes all four progression states and their audit/query
 artifacts without source paths or payload bytes.
+
+Those execution receipts now have a durable [runtime handoff](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_RUNTIME.md):
+an atomic exact seven-file package with a canonical manifest, per-file byte
+receipts, strict reload verification, five-stage readiness replay, independent
+runtime and query audits, and bounded summary/stage/artifact/component/outcome
+inspection. The downloaded-ZIP demo persists and reloads the handoff so it can
+be transferred, reviewed, or queried offline without source paths, payload
+bytes, agent metadata, or language metadata.
