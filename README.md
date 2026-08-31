@@ -1667,3 +1667,5 @@ runtime and query audits, and bounded summary/stage/artifact/component/outcome
 inspection. The downloaded-ZIP demo persists and reloads the handoff so it can
 be transferred, reviewed, or queried offline without source paths, payload
 bytes, agent metadata, or language metadata.
+
+Those runtime handoffs can now be admitted into a deterministic [recovery execution runtime registry](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_RUNTIME_REGISTRY.md): duplicate identities are rejected, ready/blocked state and acceptance counters are conserved, and the exact four-file registry package reloads fail closed after tampering. Independent registry and registry-query audits expose bounded summary, entry, runtime, state, readiness, address, and bounds projections. The downloaded-ZIP demo builds two runtime entries, persists the registry, and emits JSON/CSV/Markdown review artifacts without source paths, payload bytes, agent metadata, or language metadata.

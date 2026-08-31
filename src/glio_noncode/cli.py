@@ -418,6 +418,10 @@ from . import history_observatory_archive_transfer_recovery_execution_runtime as
 from . import history_observatory_archive_transfer_recovery_execution_runtime_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_query as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_query_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_query_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_query_audit_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_audit_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_query as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_model
 from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_model,
 )
@@ -5939,6 +5943,34 @@ def _downloaded_history_observatory_archive_transfer_recovery_execution_runtime_
     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_query_model
     return model.query_runtime(
         runtime,
+        resources=tuple(args.resource or model.RESOURCES),
+        state=args.state,
+        key=args.key,
+        text=args.text,
+        offset=args.offset,
+        limit=args.limit,
+    )
+
+
+def _downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_runtime_from_input(input_path: str, args: Any):
+    return _downloaded_history_observatory_archive_transfer_recovery_execution_runtime_from_input(input_path, args)
+
+
+def _downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_from_args(args: Any):
+    model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model
+    inputs = tuple(args.input)
+    if len(inputs) == 1:
+        source = Path(inputs[0])
+        if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(model.FILES)):
+            return model.load_registry(source)
+    runtimes = tuple(_downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_runtime_from_input(input_path, args) for input_path in inputs)
+    return model.build_registry(runtimes, registry_id=args.registry_id)
+
+
+def _downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_from_args(registry: Any, args: Any):
+    model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model
+    return model.query_registry(
+        registry,
         resources=tuple(args.resource or model.RESOURCES),
         state=args.state,
         key=args.key,
@@ -22056,6 +22088,57 @@ def build_parser() -> argparse.ArgumentParser:
         (comparison_history_observatory_archive_transfer_recovery_execution_runtime_prefix + "-query-audit-capabilities", "print recovery execution runtime query audit capabilities"),
     ):
         subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix = comparison_history_observatory_archive_transfer_recovery_execution_runtime_prefix + "-registry"
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser = subparsers.add_parser(comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix, help="build a recovery execution runtime registry")
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("input", nargs="+", type=str)
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--registry-id", default=downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.DEFAULT_REGISTRY_ID)
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--runtime-id", default=downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_model.DEFAULT_RUNTIME_ID)
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--execution-id", default=downloaded_data_history_observatory_archive_transfer_recovery_execution_model.DEFAULT_EXECUTION_ID)
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--assembler-input", default=None)
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--applied-index", action="append", type=int, default=[])
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--rejected-index", action="append", type=int, default=[])
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--checkpointed", action="store_true")
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--destination", default=None)
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--overwrite", action="store_true")
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_parser.add_argument("--output", default=None)
+    for registry_command, registry_help in (
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-verify", "verify a recovery execution runtime registry"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-audit", "audit a recovery execution runtime registry"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-query", "query a recovery execution runtime registry"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-query-audit", "audit a recovery execution runtime registry query"),
+    ):
+        registry_action_parser = subparsers.add_parser(registry_command, help=registry_help)
+        registry_action_parser.add_argument("input", type=str)
+        registry_action_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+        registry_action_parser.add_argument("--output", default=None)
+        if registry_command.endswith("-query"):
+            registry_action_parser.add_argument("--resource", action="append", choices=downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model.RESOURCES)
+            registry_action_parser.add_argument("--state", choices=("",) + downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.STATES, default="")
+            registry_action_parser.add_argument("--key", default="")
+            registry_action_parser.add_argument("--text", default="")
+            registry_action_parser.add_argument("--offset", type=int, default=0)
+            registry_action_parser.add_argument("--limit", type=int, default=downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model.MAX_LIMIT)
+        if registry_command.endswith("-query-audit"):
+            registry_action_parser.add_argument("--registry-input", required=True)
+    for command, help_text in (
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-entry-schema", "print recovery execution runtime registry entry schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-entries-schema", "print recovery execution runtime registry entries schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-manifest-schema", "print recovery execution runtime registry manifest schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-summary-schema", "print recovery execution runtime registry summary schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-schema", "print recovery execution runtime registry schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-capabilities", "print recovery execution runtime registry capabilities"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-audit-check-schema", "print recovery execution runtime registry audit check schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-audit-schema", "print recovery execution runtime registry audit schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-audit-capabilities", "print recovery execution runtime registry audit capabilities"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-query-row-schema", "print recovery execution runtime registry query row schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-query-schema", "print recovery execution runtime registry query schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-query-capabilities", "print recovery execution runtime registry query capabilities"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-query-audit-check-schema", "print recovery execution runtime registry query audit check schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-query-audit-schema", "print recovery execution runtime registry query audit schema"),
+        (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_prefix + "-query-audit-capabilities", "print recovery execution runtime registry query audit capabilities"),
+    ):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
     for command, help_text in (
         (comparison_history_observatory_archive_prefix + "-artifact-schema", "print comparison history observatory archive artifact schema"),
         (comparison_history_observatory_archive_prefix + "-manifest-schema", "print comparison history observatory archive manifest schema"),
@@ -24826,6 +24909,62 @@ def main(argv: list[str] | None = None) -> int:
             schema_name = args.command.removeprefix(execution_runtime_schema_prefix)
             if schema_name in comparison_history_observatory_archive_transfer_recovery_execution_runtime_schema_commands:
                 _write_json(comparison_history_observatory_archive_transfer_recovery_execution_runtime_schema_commands[schema_name](), args.output)
+                return 0
+        comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_command = COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_COMMAND + "-runtime-registry"
+        if args.command == comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_command:
+            model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model
+            value = _downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_from_args(args)
+            if args.destination:
+                model.persist_registry(value, args.destination, overwrite=args.overwrite)
+            _emit_contract(value, args, model, json_name="registry_json", csv_name="registry_csv", markdown_name="render_registry_markdown")
+            return 0 if value.accepted else 2
+        if args.command == comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_command + "-verify":
+            model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model
+            value = model.load_registry(args.input)
+            _emit_contract(value, args, model, json_name="registry_json", csv_name="registry_csv", markdown_name="render_registry_markdown")
+            return 0
+        if args.command == comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_command + "-audit":
+            registry = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.load_registry(args.input)
+            model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_audit_model
+            value = model.audit_registry(registry)
+            _emit_contract(value, args, model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.passed else 2
+        if args.command == comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_command + "-query":
+            registry = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.load_registry(args.input)
+            model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model
+            value = _downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_from_args(registry, args)
+            _emit_contract(value, args, model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_command + "-query-audit":
+            query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model
+            query = query_model.query_from_mapping(_read_json(args.input))
+            registry = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.load_registry(args.registry_input)
+            model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_model
+            value = model.audit_query(query, registry)
+            _emit_contract(value, args, model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.passed else 2
+        comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_schema_commands = {
+            "entry-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.entry_schema,
+            "entries-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.entries_schema,
+            "manifest-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.manifest_schema,
+            "summary-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.summary_schema,
+            "schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.registry_schema,
+            "capabilities": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.capabilities,
+            "audit-check-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_audit_model.check_schema,
+            "audit-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_audit_model.audit_schema,
+            "audit-capabilities": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_audit_model.capabilities,
+            "query-row-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model.row_schema,
+            "query-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model.query_schema,
+            "query-capabilities": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model.capabilities,
+            "query-audit-check-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_model.check_schema,
+            "query-audit-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_model.audit_schema,
+            "query-audit-capabilities": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_model.capabilities,
+        }
+        runtime_registry_schema_prefix = comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_command + "-"
+        if args.command.startswith(runtime_registry_schema_prefix):
+            schema_name = args.command.removeprefix(runtime_registry_schema_prefix)
+            if schema_name in comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_schema_commands:
+                _write_json(comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_schema_commands[schema_name](), args.output)
                 return 0
         comparison_history_observatory_archive_transfer_schema_commands = {
             "chunk-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_model.chunk_schema,
