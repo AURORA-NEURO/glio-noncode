@@ -26,16 +26,18 @@ The downloaded-ZIP demo reads the supplied archive, builds the exact five-chunk 
 - `blocked`: chunk `1` is explicitly rejected and the decision is fail-closed `block`;
 - `complete`: the full receiver assembles and the decision becomes `assemble`.
 
-The attached ZIP run reports a 4,783-byte archive, current received indexes `0,1,4`, 2,735 current received bytes, and 2,048 current remaining bytes. The execution audit passes 18 checks; the seven-resource query returns nine rows and its independent query audit passes 12 checks. JSON, CSV, and Markdown receipts are persisted and reloaded through typed mappings.
+The attached ZIP run reports a 5,077-byte archive, current received indexes `0,1,4`, 3,029 current received bytes, and 2,048 current remaining bytes. The execution audit passes 18 checks; the seven-resource query returns nine rows and its independent query audit passes 12 checks. Planned, in-progress, complete, and blocked receipts are persisted as JSON, CSV, and Markdown projections and reloaded through typed mappings.
 
 ## Interfaces
 
-The four Windows-safe modules are:
+The exact-prefixed four-module public surface is:
 
-- `exact_history_diff_archive_transfer_recovery_execution.py` — receipt construction, verification, and projections;
-- `exact_history_diff_archive_transfer_recovery_execution_audit.py` — independent invariant replay;
-- `exact_history_diff_archive_transfer_recovery_execution_query.py` — bounded summary, outcome, status, and bounds resources;
-- `exact_history_diff_archive_transfer_recovery_execution_query_audit.py` — independent query replay.
+- `exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution.py` — receipt construction, verification, and projections;
+- `exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_audit.py` — independent invariant replay;
+- `exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query.py` — bounded summary, outcome, status, and bounds resources;
+- `exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit.py` — independent query replay.
+
+The shorter module names remain available as an earlier compatibility boundary; the exact-prefixed surface is the downloaded-data path exercised by the current build.
 
 The CLI exposes the base, `verify`, `audit`, `query`, and `query/audit` commands plus outcome, receipt, audit, query, and query-audit schemas, capabilities, and public projections. The local HTTP API exposes the same contract beneath the exact recovery execution route. The public inventory and Actions workflow exercise all twelve schema/capability projections and the focused regression suite.
 

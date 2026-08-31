@@ -14,20 +14,20 @@ from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-from glio_noncode import exact_history_diff_archive_transfer_recovery as recovery_model
-from glio_noncode import exact_history_diff_archive_transfer_recovery_audit as recovery_audit_model
-from glio_noncode import exact_history_diff_archive_transfer_recovery_query as recovery_query_model
-from glio_noncode import exact_history_diff_archive_transfer_recovery_query_audit as recovery_query_audit_model
-from glio_noncode import exact_history_diff_archive_transfer_recovery_execution as execution_model
-from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_audit as execution_audit_model
-from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_query as execution_query_model
-from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_query_audit as execution_query_audit_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery as recovery_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_audit as recovery_audit_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_query as recovery_query_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_query_audit as recovery_query_audit_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution as execution_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_audit as execution_audit_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query as execution_query_model
+from glio_noncode import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit as execution_query_audit_model
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
 from glio_noncode.public_surface_audit import build_default_public_surface_audit
 
-import tests.test_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer as transfer_test_module
+import tests.test_exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer as transfer_test_module
 
 
 COMMAND = transfer_test_module.COMMAND + "-recovery-execution"
@@ -37,18 +37,18 @@ API_PATH = transfer_test_module.API_PATH + "/recovery/execution"
 class ExactHistoryDiffArchiveTransferRecoveryExecutionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        transfer_test_module.HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferTests.setUpClass()
+        transfer_test_module.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferTests.setUpClass()
 
     @staticmethod
     def _archive(root: Path):
-        return transfer_test_module.HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferTests._archive(root)
+        return transfer_test_module.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferTests._archive(root)
 
     def _partial(self):
         with tempfile.TemporaryDirectory() as temporary:
             archive = self._archive(Path(temporary))
             transfer = transfer_test_module.transfer_model.build_transfer(archive, transfer_id="real-history-diff-execution-transfer", chunk_size=1024)
             payload = transfer.payload_bytes()
-            partial = transfer_test_module.transfer_model.HistoryDiffArchiveTransferAssembler(transfer)
+            partial = transfer_test_module.transfer_model.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferAssembler(transfer)
             partial.add_chunk(0, payload[0])
             partial.add_chunk(transfer.chunk_count - 1, payload[transfer.chunk_count - 1])
             recovery = recovery_model.build_recovery(partial, recovery_id="real-history-diff-execution-recovery", checkpointed=True)
