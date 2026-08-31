@@ -12,34 +12,34 @@ from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive as archive_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_audit as archive_audit_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query as archive_query_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit as archive_query_audit_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer as transfer_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_audit as transfer_audit_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query as transfer_query_model
-from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_audit as transfer_query_audit_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive as archive_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_audit as archive_audit_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query as archive_query_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit as archive_query_audit_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer as transfer_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_audit as transfer_audit_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query as transfer_query_model
+from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_audit as transfer_query_audit_model
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
 from glio_noncode.public_surface_audit import build_default_public_surface_audit
 
-import tests.test_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive as archive_test_module
+import tests.test_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive as archive_test_module
 
 
 COMMAND = archive_test_module.COMMAND + "-transfer"
 API_PATH = archive_test_module.API_PATH + "/transfer"
 
 
-class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferTests(unittest.TestCase):
+class HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        archive_test_module.HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTests.setUpClass()
+        archive_test_module.HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTests.setUpClass()
 
     @staticmethod
     def _archive(root: Path):
-        diff = archive_test_module.HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederationArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTests._diff(root)
+        diff = archive_test_module.HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTests._diff(root)
         return archive_model.build_archive(diff, archive_id="downloaded-real-history-diff-archive-transfer")
 
     def test_transfer_reassembles_out_of_order_and_preserves_partial_state(self):
@@ -90,17 +90,12 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             archive = self._archive(root)
-            diff = archive.diff
-            diff_directory = root / "diff"
             archive_path = root / "history-diff.zip"
             transfer_directory = root / "cli-transfer"
             partial_directory = root / "cli-partial"
             query_path = root / "transfer-query.json"
             audit_path = root / "transfer-query-audit.json"
             reassembled_path = root / "reassembled.zip"
-            from glio_noncode import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff as diff_model
-
-            diff_model.persist_diff(diff, diff_directory)
             archive_model.write_archive(archive, archive_path)
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(main([COMMAND, str(archive_path), "--transfer-id", "cli-real-history-diff-transfer", "--destination", str(transfer_directory), "--format", "json"]), 0)

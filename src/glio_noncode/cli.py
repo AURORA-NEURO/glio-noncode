@@ -462,6 +462,10 @@ from . import history_observatory_archive_transfer_recovery_execution_runtime_re
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_audit as exact_history_diff_archive_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query as exact_history_diff_archive_query_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit as exact_history_diff_archive_query_audit_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer as exact_history_diff_archive_transfer_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_audit as exact_history_diff_archive_transfer_audit_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query as exact_history_diff_archive_transfer_query_model
+from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_query_audit as exact_history_diff_archive_transfer_query_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_model
@@ -23403,6 +23407,68 @@ def build_parser() -> argparse.ArgumentParser:
         (exact_history_diff_archive_prefix + "-query-audit-capabilities", "print exact runtime-registry history diff archive query audit capabilities"),
     ):
         subparsers.add_parser(archive_command, help=archive_help).add_argument("--output", default=None)
+    exact_history_diff_archive_transfer_prefix = exact_history_diff_archive_prefix + "-transfer"
+    exact_history_diff_archive_transfer_parser = subparsers.add_parser(exact_history_diff_archive_transfer_prefix, help="build and persist a resumable exact runtime-registry history-diff archive transfer")
+    exact_history_diff_archive_transfer_parser.add_argument("input")
+    exact_history_diff_archive_transfer_parser.add_argument("--transfer-id", default=exact_history_diff_archive_transfer_model.DEFAULT_TRANSFER_ID)
+    exact_history_diff_archive_transfer_parser.add_argument("--chunk-size", type=int, default=exact_history_diff_archive_transfer_model.DEFAULT_CHUNK_SIZE)
+    exact_history_diff_archive_transfer_parser.add_argument("--destination", default=None)
+    exact_history_diff_archive_transfer_parser.add_argument("--overwrite", action="store_true")
+    exact_history_diff_archive_transfer_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    exact_history_diff_archive_transfer_parser.add_argument("--output", default=None)
+    exact_history_diff_archive_transfer_partial_parser = subparsers.add_parser(exact_history_diff_archive_transfer_prefix + "-partial", help="persist a selected partial exact runtime-registry history-diff archive transfer")
+    exact_history_diff_archive_transfer_partial_parser.add_argument("input")
+    exact_history_diff_archive_transfer_partial_parser.add_argument("--transfer-id", default=exact_history_diff_archive_transfer_model.DEFAULT_TRANSFER_ID)
+    exact_history_diff_archive_transfer_partial_parser.add_argument("--chunk-size", type=int, default=exact_history_diff_archive_transfer_model.DEFAULT_CHUNK_SIZE)
+    exact_history_diff_archive_transfer_partial_parser.add_argument("--received", action="append", type=int, default=[])
+    exact_history_diff_archive_transfer_partial_parser.add_argument("--destination", required=True)
+    exact_history_diff_archive_transfer_partial_parser.add_argument("--overwrite", action="store_true")
+    exact_history_diff_archive_transfer_partial_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    exact_history_diff_archive_transfer_partial_parser.add_argument("--output", default=None)
+    for transfer_command, transfer_help in (
+        (exact_history_diff_archive_transfer_prefix + "-verify", "verify an exact runtime-registry history-diff archive transfer"),
+        (exact_history_diff_archive_transfer_prefix + "-manifest", "show an exact runtime-registry history-diff archive transfer manifest"),
+        (exact_history_diff_archive_transfer_prefix + "-progress", "show exact runtime-registry history-diff archive transfer progress"),
+        (exact_history_diff_archive_transfer_prefix + "-assemble", "assemble and verify an exact runtime-registry history-diff archive transfer"),
+        (exact_history_diff_archive_transfer_prefix + "-audit", "audit an exact runtime-registry history-diff archive transfer"),
+        (exact_history_diff_archive_transfer_prefix + "-query", "query an exact runtime-registry history-diff archive transfer"),
+        (exact_history_diff_archive_transfer_prefix + "-query-audit", "audit an exact runtime-registry history-diff archive transfer query"),
+    ):
+        transfer_action_parser = subparsers.add_parser(transfer_command, help=transfer_help)
+        transfer_action_parser.add_argument("input")
+        transfer_action_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+        transfer_action_parser.add_argument("--output", default=None)
+        if transfer_command.endswith("-assemble"):
+            transfer_action_parser.add_argument("--archive-output", default=None)
+        if transfer_command.endswith("-query"):
+            transfer_action_parser.add_argument("--resource", action="append", choices=exact_history_diff_archive_transfer_query_model.RESOURCES)
+            transfer_action_parser.add_argument("--index", type=int, default=None)
+            transfer_action_parser.add_argument("--offset-filter", type=int, default=None)
+            transfer_action_parser.add_argument("--size", type=int, default=None)
+            transfer_action_parser.add_argument("--chunk-address", default="")
+            transfer_action_parser.add_argument("--received", type=lambda value: {"true": True, "false": False}[value.lower()], default=None)
+            transfer_action_parser.add_argument("--text", default="")
+            transfer_action_parser.add_argument("--offset", type=int, default=0)
+            transfer_action_parser.add_argument("--limit", type=int, default=exact_history_diff_archive_transfer_query_model.MAX_LIMIT)
+        if transfer_command.endswith("-query-audit"):
+            transfer_action_parser.add_argument("--transfer-input", required=True)
+    for command, help_text in (
+        (exact_history_diff_archive_transfer_prefix + "-chunk-schema", "print exact runtime-registry history-diff archive transfer chunk schema"),
+        (exact_history_diff_archive_transfer_prefix + "-manifest-schema", "print exact runtime-registry history-diff archive transfer manifest schema"),
+        (exact_history_diff_archive_transfer_prefix + "-progress-schema", "print exact runtime-registry history-diff archive transfer progress schema"),
+        (exact_history_diff_archive_transfer_prefix + "-schema", "print exact runtime-registry history-diff archive transfer schema"),
+        (exact_history_diff_archive_transfer_prefix + "-capabilities", "print exact runtime-registry history-diff archive transfer capabilities"),
+        (exact_history_diff_archive_transfer_prefix + "-audit-check-schema", "print exact runtime-registry history-diff archive transfer audit check schema"),
+        (exact_history_diff_archive_transfer_prefix + "-audit-schema", "print exact runtime-registry history-diff archive transfer audit schema"),
+        (exact_history_diff_archive_transfer_prefix + "-audit-capabilities", "print exact runtime-registry history-diff archive transfer audit capabilities"),
+        (exact_history_diff_archive_transfer_prefix + "-query-row-schema", "print exact runtime-registry history-diff archive transfer query row schema"),
+        (exact_history_diff_archive_transfer_prefix + "-query-schema", "print exact runtime-registry history-diff archive transfer query schema"),
+        (exact_history_diff_archive_transfer_prefix + "-query-capabilities", "print exact runtime-registry history-diff archive transfer query capabilities"),
+        (exact_history_diff_archive_transfer_prefix + "-query-audit-check-schema", "print exact runtime-registry history-diff archive transfer query audit check schema"),
+        (exact_history_diff_archive_transfer_prefix + "-query-audit-schema", "print exact runtime-registry history-diff archive transfer query audit schema"),
+        (exact_history_diff_archive_transfer_prefix + "-query-audit-capabilities", "print exact runtime-registry history-diff archive transfer query audit capabilities"),
+    ):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
     for command, help_text in (
         (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_prefix + "-entry-schema", "print federation recovery execution runtime registry history entry schema"),
         (comparison_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_prefix + "-entries-schema", "print federation recovery execution runtime registry history entries schema"),
@@ -27210,6 +27276,78 @@ def main(argv: list[str] | None = None) -> int:
             exact_history_diff_archive_schema_name = args.command.removeprefix(exact_history_diff_archive_prefix + "-")
             if exact_history_diff_archive_schema_name in exact_history_diff_archive_schema_commands:
                 _write_json(exact_history_diff_archive_schema_commands[exact_history_diff_archive_schema_name](), args.output)
+                return 0
+            exact_history_diff_archive_transfer_prefix = exact_history_diff_archive_prefix + "-transfer"
+            if args.command == exact_history_diff_archive_transfer_prefix:
+                archive = _exact_history_diff_archive_from_input(args.input)
+                value = exact_history_diff_archive_transfer_model.build_transfer(archive, transfer_id=args.transfer_id, chunk_size=args.chunk_size)
+                if args.destination:
+                    exact_history_diff_archive_transfer_model.write_transfer(value, args.destination, overwrite=args.overwrite)
+                _emit_contract(value, args, exact_history_diff_archive_transfer_model, json_name="transfer_json", csv_name="transfer_csv", markdown_name="render_transfer_markdown")
+                return 0
+            if args.command == exact_history_diff_archive_transfer_prefix + "-partial":
+                archive = _exact_history_diff_archive_from_input(args.input)
+                value = exact_history_diff_archive_transfer_model.build_transfer(archive, transfer_id=args.transfer_id, chunk_size=args.chunk_size)
+                assembler = exact_history_diff_archive_transfer_model.HistoryDiffArchiveTransferAssembler(value)
+                payload = value.payload_bytes()
+                assembler.add_chunks({index: payload[index] for index in args.received})
+                exact_history_diff_archive_transfer_model.write_partial_transfer(assembler, args.destination, overwrite=args.overwrite)
+                _emit_contract(assembler.progress(), args, exact_history_diff_archive_transfer_model, json_name="progress_json", csv_name="progress_csv", markdown_name="render_progress_markdown")
+                return 0
+            if args.command == exact_history_diff_archive_transfer_prefix + "-verify":
+                value = exact_history_diff_archive_transfer_model.verify_transfer_directory(args.input)
+                _emit_contract(value, args, exact_history_diff_archive_transfer_model, json_name="transfer_json", csv_name="transfer_csv", markdown_name="render_transfer_markdown")
+                return 0
+            if args.command == exact_history_diff_archive_transfer_prefix + "-manifest":
+                value = exact_history_diff_archive_transfer_model.load_partial_transfer(args.input).value
+                _write_json(exact_history_diff_archive_transfer_model.manifest_document(value), args.output)
+                return 0
+            if args.command == exact_history_diff_archive_transfer_prefix + "-progress":
+                value = exact_history_diff_archive_transfer_model.verify_partial_transfer(args.input)
+                _emit_contract(value, args, exact_history_diff_archive_transfer_model, json_name="progress_json", csv_name="progress_csv", markdown_name="render_progress_markdown")
+                return 0
+            if args.command == exact_history_diff_archive_transfer_prefix + "-assemble":
+                value = exact_history_diff_archive_transfer_model.load_transfer(args.input)
+                raw = exact_history_diff_archive_transfer_model.assemble_transfer_directory(args.input)
+                if args.archive_output:
+                    Path(args.archive_output).write_bytes(raw)
+                _emit_contract(value, args, exact_history_diff_archive_transfer_model, json_name="transfer_json", csv_name="transfer_csv", markdown_name="render_transfer_markdown")
+                return 0
+            if args.command == exact_history_diff_archive_transfer_prefix + "-audit":
+                value = exact_history_diff_archive_transfer_model.load_transfer(args.input)
+                audit = exact_history_diff_archive_transfer_audit_model.audit_transfer(value)
+                _emit_contract(audit, args, exact_history_diff_archive_transfer_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                return 0 if audit.passed else 2
+            if args.command == exact_history_diff_archive_transfer_prefix + "-query":
+                assembler = exact_history_diff_archive_transfer_model.load_partial_transfer(args.input)
+                value = exact_history_diff_archive_transfer_query_model.query_assembler(assembler, resources=tuple(args.resource or exact_history_diff_archive_transfer_query_model.RESOURCES), index=args.index, chunk_offset=args.offset_filter, size=args.size, chunk_address=args.chunk_address, received=args.received, text=args.text, offset=args.offset, limit=args.limit)
+                _emit_contract(value, args, exact_history_diff_archive_transfer_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                return 0
+            if args.command == exact_history_diff_archive_transfer_prefix + "-query-audit":
+                query = exact_history_diff_archive_transfer_query_model.query_from_mapping(_read_json(args.input))
+                transfer = exact_history_diff_archive_transfer_model.load_partial_transfer(args.transfer_input).value
+                audit = exact_history_diff_archive_transfer_query_audit_model.audit_query(query, transfer)
+                _emit_contract(audit, args, exact_history_diff_archive_transfer_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                return 0 if audit.passed else 2
+            exact_history_diff_archive_transfer_schema_commands = {
+                "chunk-schema": exact_history_diff_archive_transfer_model.chunk_schema,
+                "manifest-schema": exact_history_diff_archive_transfer_model.manifest_schema,
+                "progress-schema": exact_history_diff_archive_transfer_model.progress_schema,
+                "schema": exact_history_diff_archive_transfer_model.transfer_schema,
+                "capabilities": exact_history_diff_archive_transfer_model.capabilities,
+                "audit-check-schema": exact_history_diff_archive_transfer_audit_model.check_schema,
+                "audit-schema": exact_history_diff_archive_transfer_audit_model.audit_schema,
+                "audit-capabilities": exact_history_diff_archive_transfer_audit_model.capabilities,
+                "query-row-schema": exact_history_diff_archive_transfer_query_model.row_schema,
+                "query-schema": exact_history_diff_archive_transfer_query_model.query_schema,
+                "query-capabilities": exact_history_diff_archive_transfer_query_model.capabilities,
+                "query-audit-check-schema": exact_history_diff_archive_transfer_query_audit_model.check_schema,
+                "query-audit-schema": exact_history_diff_archive_transfer_query_audit_model.audit_schema,
+                "query-audit-capabilities": exact_history_diff_archive_transfer_query_audit_model.capabilities,
+            }
+            exact_history_diff_archive_transfer_schema_name = args.command.removeprefix(exact_history_diff_archive_transfer_prefix + "-")
+            if exact_history_diff_archive_transfer_schema_name in exact_history_diff_archive_transfer_schema_commands:
+                _write_json(exact_history_diff_archive_transfer_schema_commands[exact_history_diff_archive_transfer_schema_name](), args.output)
                 return 0
             history_diff_archive_transfer_recovery_execution_runtime_registry_history_prefix_diff_prefix_schema_commands = {
                 "item-schema": downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_model.item_schema,
