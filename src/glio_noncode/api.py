@@ -552,6 +552,10 @@ from . import exact_history_diff_archive_transfer_recovery_execution as exact_hi
 from . import exact_history_diff_archive_transfer_recovery_execution_audit as exact_history_diff_archive_transfer_recovery_execution_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_query as exact_history_diff_archive_transfer_recovery_execution_query_model
 from . import exact_history_diff_archive_transfer_recovery_execution_query_audit as exact_history_diff_archive_transfer_recovery_execution_query_audit_model
+from . import exact_history_diff_archive_transfer_recovery_execution_runtime as exact_history_diff_archive_transfer_recovery_execution_runtime_model
+from . import exact_history_diff_archive_transfer_recovery_execution_runtime_audit as exact_history_diff_archive_transfer_recovery_execution_runtime_audit_model
+from . import exact_history_diff_archive_transfer_recovery_execution_runtime_query as exact_history_diff_archive_transfer_recovery_execution_runtime_query_model
+from . import exact_history_diff_archive_transfer_recovery_execution_runtime_query_audit as exact_history_diff_archive_transfer_recovery_execution_runtime_query_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_model
@@ -7389,6 +7393,71 @@ class ApiHandler(BaseHTTPRequestHandler):
                     exact_history_diff_archive_transfer_recovery_execution_path.removeprefix(downloaded_data_prefix) + "/query-audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_query_audit_model.capabilities,
                 }
                 schema = exact_history_diff_archive_transfer_recovery_execution_schema_routes.get(path.removeprefix(downloaded_data_prefix))
+                if schema is not None:
+                    self._write(HTTPStatus.OK, schema())
+                    return
+                exact_history_diff_archive_transfer_recovery_execution_runtime_path = exact_history_diff_archive_transfer_recovery_execution_path + "/runtime"
+                runtime_model = exact_history_diff_archive_transfer_recovery_execution_runtime_model
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_path:
+                    input_path = self._query_value(query, "input") or self._query_value(query, "execution")
+                    if not input_path:
+                        raise ValueError("input or execution is required")
+                    value = runtime_model.run_runtime(
+                        input_path,
+                        runtime_id=self._query_value(query, "runtime_id") or runtime_model.DEFAULT_RUNTIME_ID,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_path + "/verify":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "runtime")
+                    if not input_path:
+                        raise ValueError("input or runtime is required")
+                    runtime = runtime_model.load_runtime(input_path) if Path(input_path).is_dir() else runtime_model.runtime_from_mapping(json.loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = runtime_model.verify_runtime(runtime)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_path + "/audit":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "runtime")
+                    if not input_path:
+                        raise ValueError("input or runtime is required")
+                    runtime = runtime_model.load_runtime(input_path)
+                    value = exact_history_diff_archive_transfer_recovery_execution_runtime_audit_model.audit_runtime(runtime)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_path + "/query":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "runtime")
+                    if not input_path:
+                        raise ValueError("input or runtime is required")
+                    runtime = runtime_model.load_runtime(input_path)
+                    value = exact_history_diff_archive_transfer_recovery_execution_runtime_query_model.query_runtime(runtime, resources=self._query_values(query, "resource") or exact_history_diff_archive_transfer_recovery_execution_runtime_query_model.RESOURCES, state=self._query_value(query, "state") or "", key=self._query_value(query, "key") or "", text=self._query_value(query, "text") or self._query_value(query, "q") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", exact_history_diff_archive_transfer_recovery_execution_runtime_query_model.MAX_LIMIT))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_runtime_path + "/query/audit":
+                    query_input = self._query_value(query, "input") or self._query_value(query, "query")
+                    runtime_input = self._query_value(query, "runtime_input") or self._query_value(query, "runtime")
+                    if not query_input or not runtime_input:
+                        raise ValueError("input/query and runtime_input/runtime are required")
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_query_model.query_from_mapping(json.loads(Path(query_input).read_text(encoding="utf-8")))
+                    runtime = runtime_model.load_runtime(runtime_input)
+                    value = exact_history_diff_archive_transfer_recovery_execution_runtime_query_audit_model.audit_query(query_value, runtime)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                exact_history_diff_archive_transfer_recovery_execution_runtime_schema_routes = {
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/stage-schema": runtime_model.stage_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/manifest-schema": runtime_model.manifest_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/schema": runtime_model.runtime_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/capabilities": runtime_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/audit/check-schema": exact_history_diff_archive_transfer_recovery_execution_runtime_audit_model.check_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/audit/schema": exact_history_diff_archive_transfer_recovery_execution_runtime_audit_model.audit_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_runtime_audit_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/query/row-schema": exact_history_diff_archive_transfer_recovery_execution_runtime_query_model.row_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/query/schema": exact_history_diff_archive_transfer_recovery_execution_runtime_query_model.query_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/query/capabilities": exact_history_diff_archive_transfer_recovery_execution_runtime_query_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/query-audit/check-schema": exact_history_diff_archive_transfer_recovery_execution_runtime_query_audit_model.check_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/query-audit/schema": exact_history_diff_archive_transfer_recovery_execution_runtime_query_audit_model.audit_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_runtime_path.removeprefix(downloaded_data_prefix) + "/query-audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_runtime_query_audit_model.capabilities,
+                }
+                schema = exact_history_diff_archive_transfer_recovery_execution_runtime_schema_routes.get(path.removeprefix(downloaded_data_prefix))
                 if schema is not None:
                     self._write(HTTPStatus.OK, schema())
                     return

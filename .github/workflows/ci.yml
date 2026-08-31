@@ -2035,6 +2035,15 @@ jobs:
           done
       - name: Downloaded-data exact history-diff archive transfer recovery execution focused tests
         run: python -m unittest tests.test_exact_history_diff_archive_transfer_recovery_execution -v
+      - name: Downloaded-data exact history-diff archive transfer recovery execution runtime CLI surface
+        run: |
+          set -euo pipefail
+          base="downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-archive-transfer-recovery-execution-runtime-registry-federation-archive-transfer-recovery-execution-runtime-registry-history-diff-archive-transfer-recovery-execution-runtime-registry-history-diff-archive-transfer-recovery-execution-runtime"
+          for suffix in stage-schema manifest-schema schema capabilities audit-check-schema audit-schema audit-capabilities query-row-schema query-schema query-capabilities query-audit-check-schema query-audit-schema query-audit-capabilities; do
+            python -m glio_noncode "${base}-${suffix}" --output "/tmp/glio-history-diff-archive-transfer-recovery-execution-runtime-${suffix}.json"
+          done
+      - name: Downloaded-data exact history-diff archive transfer recovery execution runtime focused tests
+        run: python -m unittest tests.test_exact_history_diff_archive_transfer_recovery_execution_runtime -v
       - name: Whole-product release assurance history
         run: python -m glio_noncode release-assurance --plane history --format csv --output /tmp/glio-release-assurance-history.csv
       - name: Whole-product release assurance thresholds
