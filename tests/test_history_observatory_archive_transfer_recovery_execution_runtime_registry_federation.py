@@ -159,7 +159,7 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
                 server.server_close()
 
         inventory = build_default_public_surface_audit()
-        self.assertEqual((inventory.surface_count, inventory.passed_surface_count, inventory.failed_surface_count, inventory.accepted), (2113, 2113, 0, True))
+        self.assertEqual((inventory.surface_count, inventory.passed_surface_count, inventory.failed_surface_count, inventory.accepted), (2126, 2126, 0, True))
         for schema in (federation_model.member_schema(), federation_model.members_schema(), federation_model.entry_schema(), federation_model.entries_schema(), federation_model.manifest_schema(), federation_model.summary_schema(), federation_model.federation_schema(), federation_audit_model.check_schema(), federation_audit_model.audit_schema(), federation_query_model.row_schema(), federation_query_model.query_schema(), federation_query_audit_model.check_schema(), federation_query_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
 
