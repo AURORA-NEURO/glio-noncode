@@ -1674,6 +1674,8 @@ artifacts without source paths or payload bytes.
 
 The execution receipts now have an append-only [execution ledger](docs/HISTORY_DIFF_RUNTIME_REGISTRY_HISTORY_DIFF_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_LEDGER.md). It chains planned, in-progress, complete, and blocked snapshots with ancestry-linked addresses, conserved state and byte counters, optimistic head guards, exact four-file persistence, strict reload verification, independent 18-check ledger and 12-check query audits, and bounded summary/entry/transition/state/decision/byte/latest queries. The downloaded-ZIP demo builds and reloads the ledger from real archive-derived receipts and publishes its audit and query evidence.
 
+That ledger now has a durable [execution-ledger runtime handoff](docs/HISTORY_DIFF_RUNTIME_REGISTRY_HISTORY_DIFF_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_LEDGER_RUNTIME.md). It composes the ledger, independent audit, bounded query, and query audit into five replayed stages, preserves blocked terminal state, persists an exact seven-file package, exposes 16 runtime checks and 12 query checks, and is exercised against the same real downloaded ZIP.
+
 Those execution receipts now have a durable [runtime handoff](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_RUNTIME.md):
 an atomic exact seven-file package with a canonical manifest, per-file byte
 receipts, strict reload verification, five-stage readiness replay, independent
