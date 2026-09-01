@@ -552,6 +552,10 @@ from . import exact_history_diff_archive_transfer_recovery_execution as exact_hi
 from . import exact_history_diff_archive_transfer_recovery_execution_audit as exact_history_diff_archive_transfer_recovery_execution_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_query as exact_history_diff_archive_transfer_recovery_execution_query_model
 from . import exact_history_diff_archive_transfer_recovery_execution_query_audit as exact_history_diff_archive_transfer_recovery_execution_query_audit_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger as exact_history_diff_archive_transfer_recovery_execution_ledger_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_audit_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_query as exact_history_diff_archive_transfer_recovery_execution_ledger_query_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_query_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_query_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime as exact_history_diff_archive_transfer_recovery_execution_runtime_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_audit as exact_history_diff_archive_transfer_recovery_execution_runtime_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_query as exact_history_diff_archive_transfer_recovery_execution_runtime_query_model
@@ -7421,6 +7425,74 @@ class ApiHandler(BaseHTTPRequestHandler):
                     exact_history_diff_archive_transfer_recovery_execution_path.removeprefix(downloaded_data_prefix) + "/query-audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_query_audit_model.capabilities,
                 }
                 schema = exact_history_diff_archive_transfer_recovery_execution_schema_routes.get(path.removeprefix(downloaded_data_prefix))
+                if schema is not None:
+                    self._write(HTTPStatus.OK, schema())
+                    return
+                exact_history_diff_archive_transfer_recovery_execution_ledger_path = exact_history_diff_archive_transfer_recovery_execution_path + "/ledger"
+                ledger_model = exact_history_diff_archive_transfer_recovery_execution_ledger_model
+                if path == exact_history_diff_archive_transfer_recovery_execution_ledger_path:
+                    inputs = self._query_values(query, "execution") or self._query_values(query, "execution_input")
+                    if not inputs:
+                        input_path = self._query_value(query, "input")
+                        if input_path:
+                            inputs = [input_path]
+                    if not inputs:
+                        raise ValueError("execution or input is required")
+                    executions = tuple(exact_history_diff_archive_transfer_recovery_execution_model.execution_from_mapping(json.loads(Path(input_path).read_text(encoding="utf-8"))) for input_path in inputs)
+                    value = ledger_model.build_ledger(executions, ledger_id=self._query_value(query, "ledger_id") or ledger_model.DEFAULT_LEDGER_ID)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", ledger_model, json_name="ledger_json", csv_name="ledger_csv", markdown_name="render_ledger_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_ledger_path + "/verify":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "ledger")
+                    if not input_path:
+                        raise ValueError("input or ledger is required")
+                    value = ledger_model.load_ledger(input_path) if Path(input_path).is_dir() else ledger_model.ledger_from_mapping(json.loads(Path(input_path).read_text(encoding="utf-8")))
+                    self._write_contract(ledger_model.verify_ledger(value), self._query_value(query, "format") or "summary", ledger_model, json_name="ledger_json", csv_name="ledger_csv", markdown_name="render_ledger_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_ledger_path + "/audit":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "ledger")
+                    if not input_path:
+                        raise ValueError("input or ledger is required")
+                    value = ledger_model.load_ledger(input_path) if Path(input_path).is_dir() else ledger_model.ledger_from_mapping(json.loads(Path(input_path).read_text(encoding="utf-8")))
+                    audit = exact_history_diff_archive_transfer_recovery_execution_ledger_audit_model.audit_ledger(value)
+                    self._write_contract(audit, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_ledger_path + "/query":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "ledger")
+                    if not input_path:
+                        raise ValueError("input or ledger is required")
+                    value = ledger_model.load_ledger(input_path) if Path(input_path).is_dir() else ledger_model.ledger_from_mapping(json.loads(Path(input_path).read_text(encoding="utf-8")))
+                    result = exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.query_ledger(value, resources=self._query_values(query, "resource") or exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.RESOURCES, transition=self._query_value(query, "transition") or "", state=self._query_value(query, "state") or "", decision=self._query_value(query, "decision") or "", text=self._query_value(query, "text") or self._query_value(query, "q") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.MAX_LIMIT))
+                    self._write_contract(result, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_ledger_path + "/query/audit":
+                    query_input = self._query_value(query, "input") or self._query_value(query, "query")
+                    ledger_input = self._query_value(query, "ledger_input") or self._query_value(query, "ledger")
+                    if not query_input or not ledger_input:
+                        raise ValueError("input/query and ledger_input/ledger are required")
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.query_from_mapping(json.loads(Path(query_input).read_text(encoding="utf-8")))
+                    ledger = ledger_model.load_ledger(ledger_input) if Path(ledger_input).is_dir() else ledger_model.ledger_from_mapping(json.loads(Path(ledger_input).read_text(encoding="utf-8")))
+                    audit = exact_history_diff_archive_transfer_recovery_execution_ledger_query_audit_model.audit_query(query_value, ledger)
+                    self._write_contract(audit, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                exact_history_diff_archive_transfer_recovery_execution_ledger_schema_routes = {
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/entry-schema": ledger_model.entry_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/entries-schema": ledger_model.entries_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/manifest-schema": ledger_model.manifest_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/summary-schema": ledger_model.summary_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/schema": ledger_model.ledger_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/capabilities": ledger_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/audit/check-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_audit_model.check_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/audit/schema": exact_history_diff_archive_transfer_recovery_execution_ledger_audit_model.audit_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_audit_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/query/row-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.row_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/query/schema": exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.query_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/query/capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/query-audit/check-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_query_audit_model.check_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/query-audit/schema": exact_history_diff_archive_transfer_recovery_execution_ledger_query_audit_model.audit_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_path.removeprefix(downloaded_data_prefix) + "/query-audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_query_audit_model.capabilities,
+                }
+                schema = exact_history_diff_archive_transfer_recovery_execution_ledger_schema_routes.get(path.removeprefix(downloaded_data_prefix))
                 if schema is not None:
                     self._write(HTTPStatus.OK, schema())
                     return
