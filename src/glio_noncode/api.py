@@ -560,6 +560,10 @@ from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runt
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_query as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_query_model
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_query_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_query_audit_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_audit_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime as exact_history_diff_archive_transfer_recovery_execution_runtime_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_audit as exact_history_diff_archive_transfer_recovery_execution_runtime_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_query as exact_history_diff_archive_transfer_recovery_execution_runtime_query_model
@@ -7568,6 +7572,86 @@ class ApiHandler(BaseHTTPRequestHandler):
                     exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_path.removeprefix(downloaded_data_prefix) + "/query-audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_query_audit_model.capabilities,
                 }
                 schema = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_schema_routes.get(path.removeprefix(downloaded_data_prefix))
+                if schema is not None:
+                    self._write(HTTPStatus.OK, schema())
+                    return
+                exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_path + "/registry"
+                registry_model = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_model
+                def _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_runtime(input_path: str):
+                    return _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime(input_path)
+                def _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry(input_path: str):
+                    source = Path(input_path)
+                    if source.is_dir():
+                        names = tuple(sorted(item.name for item in source.iterdir()))
+                        if names == tuple(sorted(registry_model.FILES)):
+                            return registry_model.load_registry(source)
+                    raw = json.loads(source.read_text(encoding="utf-8"))
+                    if set(raw) == set(registry_model.REGISTRY_FIELDS):
+                        return registry_model.registry_from_mapping(raw)
+                    return registry_model.build_registry((_load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_runtime(input_path),))
+                if path == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path:
+                    inputs = self._query_values(query, "runtime_input") or self._query_values(query, "runtime")
+                    input_path = self._query_value(query, "input")
+                    registry_id = self._query_value(query, "registry_id") or registry_model.DEFAULT_REGISTRY_ID
+                    if inputs:
+                        value = registry_model.build_registry(tuple(_load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_runtime(item) for item in inputs), registry_id=registry_id)
+                    elif input_path:
+                        value = _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry(input_path)
+                        if value.registry_id != registry_id:
+                            value = registry_model.build_registry(tuple(_load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_runtime(input_path) for _ in (input_path,)), registry_id=registry_id)
+                    else:
+                        raise ValueError("at least one runtime input is required")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_model, json_name="registry_json", csv_name="registry_csv", markdown_name="render_registry_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path + "/verify":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "registry")
+                    if not input_path:
+                        raise ValueError("input or registry is required")
+                    value = registry_model.verify_registry(_load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry(input_path))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_model, json_name="registry_json", csv_name="registry_csv", markdown_name="render_registry_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path + "/audit":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "registry")
+                    if not input_path:
+                        raise ValueError("input or registry is required")
+                    value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_audit_model.audit_registry(_load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry(input_path))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path + "/query":
+                    input_path = self._query_value(query, "input") or self._query_value(query, "registry")
+                    if not input_path:
+                        raise ValueError("input or registry is required")
+                    value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model.query_registry(_load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry(input_path), resources=self._query_values(query, "resource") or exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model.RESOURCES, state=self._query_value(query, "state") or "", key=self._query_value(query, "key") or "", text=self._query_value(query, "text") or self._query_value(query, "q") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model.MAX_LIMIT))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path + "/query/audit":
+                    query_input = self._query_value(query, "input") or self._query_value(query, "query")
+                    registry_input = self._query_value(query, "registry_input") or self._query_value(query, "registry")
+                    if not query_input or not registry_input:
+                        raise ValueError("input/query and registry_input/registry are required")
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model.query_from_mapping(json.loads(Path(query_input).read_text(encoding="utf-8")))
+                    value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry(registry_input))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_schema_routes = {
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/entry-schema": registry_model.entry_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/entries-schema": registry_model.entries_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/artifact-schema": registry_model.artifact_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/manifest-schema": registry_model.manifest_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/summary-schema": registry_model.summary_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/schema": registry_model.registry_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/capabilities": registry_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/audit/check-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_audit_model.check_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/audit/schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_audit_model.audit_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_audit_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/query/row-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model.row_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/query/schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model.query_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/query/capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model.capabilities,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/query-audit/check-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_audit_model.check_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/query-audit/schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_audit_model.audit_schema,
+                    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_path.removeprefix(downloaded_data_prefix) + "/query-audit/capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_audit_model.capabilities,
+                }
+                schema = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_schema_routes.get(path.removeprefix(downloaded_data_prefix))
                 if schema is not None:
                     self._write(HTTPStatus.OK, schema())
                     return

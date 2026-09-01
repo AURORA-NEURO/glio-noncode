@@ -1676,6 +1676,8 @@ The execution receipts now have an append-only [execution ledger](docs/HISTORY_D
 
 That ledger now has a durable [execution-ledger runtime handoff](docs/HISTORY_DIFF_RUNTIME_REGISTRY_HISTORY_DIFF_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_LEDGER_RUNTIME.md). It composes the ledger, independent audit, bounded query, and query audit into five replayed stages, preserves blocked terminal state, persists an exact seven-file package, exposes 16 runtime checks and 12 query checks, and is exercised against the same real downloaded ZIP.
 
+The handoff now has a deterministic [execution-ledger runtime registry](docs/HISTORY_DIFF_RUNTIME_REGISTRY_HISTORY_DIFF_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_LEDGER_RUNTIME_REGISTRY.md). It admits multiple runtime receipts copy-on-write with duplicate identity rejection, canonical ordering, empty/ready/blocked folding, exact four-file atomic persistence, independent 16-check registry audits, eight bounded registry query resources, independent 12-check query audits, and CLI/API/schema/capability/public inventory coverage. The downloaded-ZIP demo admits and reloads two real archive-derived runtime handoffs.
+
 Those execution receipts now have a durable [runtime handoff](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOT_REGISTRY_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_RUNTIME.md):
 an atomic exact seven-file package with a canonical manifest, per-file byte
 receipts, strict reload verification, five-stage readiness replay, independent
