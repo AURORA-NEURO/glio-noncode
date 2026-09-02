@@ -539,6 +539,8 @@ Machine-readable discovery is available without private inputs:
 
 ```console
 glio-noncode case schema --component workflow
+glio-noncode case schema --component prepare-request
+glio-noncode case schema --component run-request
 glio-noncode case capabilities
 glio-noncode expression schema
 glio-noncode expression capabilities

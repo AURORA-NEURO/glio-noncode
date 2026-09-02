@@ -96,6 +96,14 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
     "prepare_case": ("glio_noncode.case_workflow", "prepare_case"),
     "run_case": ("glio_noncode.case_workflow", "run_case"),
     "case_workflow_schema": ("glio_noncode.case_workflow", "case_workflow_schema"),
+    "prepare_request_schema": (
+        "glio_noncode.case_workflow",
+        "prepare_request_schema",
+    ),
+    "run_request_schema": (
+        "glio_noncode.case_workflow",
+        "run_request_schema",
+    ),
     "variant_source_schema": ("glio_noncode.case_workflow", "variant_source_schema"),
     "regulatory_track_source_schema": (
         "glio_noncode.case_workflow",

@@ -184,6 +184,32 @@ class CaseCliTests(unittest.TestCase):
                 json.loads(capabilities_path.read_text())["server_local_paths"]
             )
 
+    def test_request_schema_components_are_machine_readable(self) -> None:
+        expected_ids = {
+            "prepare-request": "urn:glio-noncode:case-workflow:prepare-request:v1",
+            "run-request": "urn:glio-noncode:case-workflow:run-request:v1",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for component, expected_id in expected_ids.items():
+                with self.subTest(component=component):
+                    output = root / f"{component}.json"
+                    self.assertEqual(
+                        main(
+                            [
+                                "schema",
+                                "--component",
+                                component,
+                                "--output",
+                                str(output),
+                            ]
+                        ),
+                        0,
+                    )
+                    payload = json.loads(output.read_text(encoding="utf-8"))
+                    self.assertEqual(payload["$id"], expected_id)
+                    self.assertFalse(payload["additionalProperties"])
+
 
 if __name__ == "__main__":
     unittest.main()

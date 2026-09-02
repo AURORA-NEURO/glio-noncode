@@ -7,6 +7,7 @@ from pathlib import Path
 
 from glio_noncode.case_workflow import (
     MAX_CASE_REGULATORY_TRACKS,
+    MAX_CASE_RNA_CONSEQUENCES,
     CaseRunResult,
     PreparedCase,
     RegulatoryTrackSource,
@@ -14,10 +15,16 @@ from glio_noncode.case_workflow import (
     capabilities,
     case_workflow_schema,
     prepare_case,
+    prepare_request_schema,
     run_case,
+    run_request_schema,
 )
 from glio_noncode.errors import ValidationError
 from glio_noncode.models import ReferenceContext
+from glio_noncode.regulatory_tracks import (
+    MAX_REGULATORY_TRACK_AUXILIARY_LINES,
+    MAX_REGULATORY_TRACK_RECORDS,
+)
 from glio_noncode.replay import ReplayVerifier
 from glio_noncode.runtime import CaseRuntime
 
@@ -301,6 +308,86 @@ class CaseWorkflowTests(unittest.TestCase):
         self.assertEqual(
             advertised["preparation_inputs"]["regulatory_tracks"]["max_items"],
             MAX_CASE_REGULATORY_TRACKS,
+        )
+
+    def test_request_schemas_compose_canonical_bounded_inputs(self) -> None:
+        prepare_schema = prepare_request_schema()
+        run_schema = run_request_schema()
+        workflow = case_workflow_schema()
+        advertised = capabilities()
+
+        self.assertFalse(prepare_schema["additionalProperties"])
+        self.assertEqual(
+            set(prepare_schema["required"]),
+            {"case_id", "subject_id", "context", "variant_source"},
+        )
+        prepare_properties = prepare_schema["properties"]
+        self.assertNotIn("tracks", prepare_properties)
+        self.assertNotIn("data_root", prepare_properties)
+        self.assertEqual(
+            prepare_properties["regulatory_tracks"]["maxItems"],
+            MAX_CASE_REGULATORY_TRACKS,
+        )
+        self.assertEqual(
+            prepare_properties["regulatory_tracks"]["x-parser-limits"],
+            {
+                "max_records_per_track": MAX_REGULATORY_TRACK_RECORDS,
+                "max_auxiliary_lines_per_track": MAX_REGULATORY_TRACK_AUXILIARY_LINES,
+            },
+        )
+        self.assertFalse(prepare_properties["variant_source"]["additionalProperties"])
+        self.assertNotIn("$id", prepare_properties["variant_source"])
+        self.assertFalse(
+            prepare_properties["regulatory_tracks"]["items"]["additionalProperties"]
+        )
+        self.assertNotIn("$id", prepare_properties["regulatory_tracks"]["items"])
+        self.assertEqual(
+            set(prepare_properties["context"]["required"]),
+            {"genome_build", "disease_class", "age_group", "cell_state"},
+        )
+
+        self.assertFalse(run_schema["additionalProperties"])
+        self.assertEqual(run_schema["required"], ["prepared"])
+        self.assertEqual(set(run_schema["properties"]), {"prepared", "rna_consequences"})
+        self.assertNotIn("$id", run_schema["properties"]["prepared"])
+        self.assertNotIn("$id", run_schema["properties"]["rna_consequences"])
+        self.assertEqual(
+            run_schema["properties"]["rna_consequences"]["maxItems"],
+            MAX_CASE_RNA_CONSEQUENCES,
+        )
+        self.assertTrue(run_schema["properties"]["rna_consequences"]["uniqueItems"])
+        self.assertNotIn("data_root", run_schema["properties"])
+
+        self.assertEqual(workflow["$defs"]["prepare_request"], prepare_schema)
+        self.assertEqual(workflow["$defs"]["run_request"], run_schema)
+        schema_ids: list[str] = []
+
+        def collect_schema_ids(value: object) -> None:
+            if isinstance(value, dict):
+                identifier = value.get("$id")
+                if isinstance(identifier, str):
+                    schema_ids.append(identifier)
+                for child in value.values():
+                    collect_schema_ids(child)
+            elif isinstance(value, list):
+                for child in value:
+                    collect_schema_ids(child)
+
+        collect_schema_ids(workflow)
+        self.assertEqual(len(schema_ids), len(set(schema_ids)))
+        self.assertEqual(advertised["schemas"]["prepare_request"], prepare_schema["$id"])
+        self.assertEqual(advertised["schemas"]["run_request"], run_schema["$id"])
+        self.assertEqual(
+            advertised["preparation_inputs"]["regulatory_tracks"][
+                "max_records_per_track"
+            ],
+            MAX_REGULATORY_TRACK_RECORDS,
+        )
+        self.assertEqual(
+            advertised["preparation_inputs"]["regulatory_tracks"][
+                "max_auxiliary_lines_per_track"
+            ],
+            MAX_REGULATORY_TRACK_AUXILIARY_LINES,
         )
 
 

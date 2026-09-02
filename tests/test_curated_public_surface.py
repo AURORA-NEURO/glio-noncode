@@ -54,7 +54,7 @@ class CuratedPublicSurfaceTests(unittest.TestCase):
         self.assertEqual(_public_surface.CURATED_EXPORTS, expected)
         self.assertEqual(_public_surface.CURATED_ALL, tuple(expected))
         self.assertEqual(_public_surface.ALL[-len(expected) :], tuple(expected))
-        self.assertEqual(len(expected), 66)
+        self.assertEqual(len(expected), 68)
         for name, descriptor in expected.items():
             self.assertEqual(_public_surface.ALL.count(name), 1, name)
             self.assertEqual(_public_surface.EXPORTS[name], descriptor)

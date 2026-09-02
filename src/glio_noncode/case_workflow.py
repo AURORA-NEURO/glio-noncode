@@ -32,6 +32,8 @@ from .expression_evidence import (
 from .intake import IntakeBatch, IntakeFormat, IntakeSeverity, VariantIntake
 from .models import CandidateElement, CaseManifest, Dossier, ReferenceContext
 from .regulatory_tracks import (
+    MAX_REGULATORY_TRACK_AUXILIARY_LINES,
+    MAX_REGULATORY_TRACK_RECORDS,
     RegulatoryTrackBatch,
     RegulatoryTrackFormat,
     RegulatoryTrackParser,
@@ -1970,6 +1972,12 @@ def run_case(
     )
 
 
+def _schema_fragment(schema: Mapping[str, Any]) -> dict[str, Any]:
+    """Embed a schema without creating a duplicate URI-identified resource."""
+
+    return {key: value for key, value in schema.items() if key not in {"$schema", "$id"}}
+
+
 def variant_source_schema() -> dict[str, Any]:
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -2028,6 +2036,46 @@ def regulatory_track_source_schema() -> dict[str, Any]:
                 "uniqueItems": True,
                 "items": {"type": "string", "minLength": 1},
             },
+        },
+    }
+
+
+def prepare_request_schema() -> dict[str, Any]:
+    """Return the canonical inline-source case preparation request schema."""
+
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:glio-noncode:case-workflow:prepare-request:v1",
+        "title": "Case preparation request",
+        "description": (
+            "Canonical transport request for prepare_case. The compatibility tracks alias is "
+            "intentionally excluded."
+        ),
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["case_id", "subject_id", "context", "variant_source"],
+        "properties": {
+            "case_id": {"type": "string", "minLength": 1},
+            "subject_id": {"type": "string", "minLength": 1},
+            "context": regulatory_track_source_schema()["properties"]["context"],
+            "variant_source": _schema_fragment(variant_source_schema()),
+            "regulatory_tracks": {
+                "type": "array",
+                "maxItems": MAX_CASE_REGULATORY_TRACKS,
+                "default": [],
+                "items": _schema_fragment(regulatory_track_source_schema()),
+                "x-parser-limits": {
+                    "max_records_per_track": MAX_REGULATORY_TRACK_RECORDS,
+                    "max_auxiliary_lines_per_track": MAX_REGULATORY_TRACK_AUXILIARY_LINES,
+                },
+            },
+            "metadata": {"type": ["object", "null"], "default": None},
+            "requested_by": {
+                "type": "string",
+                "minLength": 1,
+                "default": "unspecified",
+            },
+            "live_reference": {"type": "boolean", "default": False},
         },
     }
 
@@ -2091,7 +2139,7 @@ def run_result_schema() -> dict[str, Any]:
             "state": {"enum": [item.value for item in WorkflowState]},
             "accepted": {"type": "boolean"},
             "blocked": {"type": "boolean"},
-            "prepared": prepared_case_schema(),
+            "prepared": _schema_fragment(prepared_case_schema()),
             "dossier": {"type": ["object", "null"]},
             "run_record": {"type": ["object", "null"]},
             "replay_report": {"type": ["object", "null"]},
@@ -2164,6 +2212,29 @@ def _rna_consequence_execution_input_schema() -> dict[str, Any]:
     }
 
 
+def run_request_schema() -> dict[str, Any]:
+    """Return the canonical prepared-case execution request schema."""
+
+    rna_consequences = _schema_fragment(_rna_consequence_execution_input_schema())
+    rna_consequences["default"] = []
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:glio-noncode:case-workflow:run-request:v1",
+        "title": "Case execution request",
+        "description": (
+            "Canonical scientific request for run_case. Runtime and data-root selection are "
+            "host configuration and are intentionally excluded."
+        ),
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["prepared"],
+        "properties": {
+            "prepared": _schema_fragment(prepared_case_schema()),
+            "rna_consequences": rna_consequences,
+        },
+    }
+
+
 def case_workflow_schema() -> dict[str, Any]:
     """Return the complete inline-source facade contract."""
 
@@ -2174,6 +2245,8 @@ def case_workflow_schema() -> dict[str, Any]:
         "type": "object",
         "additionalProperties": False,
         "$defs": {
+            "prepare_request": prepare_request_schema(),
+            "run_request": run_request_schema(),
             "variant_source": variant_source_schema(),
             "regulatory_track_source": regulatory_track_source_schema(),
             "prepared_case": prepared_case_schema(),
@@ -2196,6 +2269,8 @@ def capabilities() -> dict[str, Any]:
         "preparation_inputs": {
             "regulatory_tracks": {
                 "max_items": MAX_CASE_REGULATORY_TRACKS,
+                "max_records_per_track": MAX_REGULATORY_TRACK_RECORDS,
+                "max_auxiliary_lines_per_track": MAX_REGULATORY_TRACK_AUXILIARY_LINES,
                 "canonical_order": "source identity and canonical content",
             }
         },
@@ -2241,6 +2316,8 @@ def capabilities() -> dict[str, Any]:
         "persistence": "CaseRuntime content-addressed dossier and event replay",
         "schemas": {
             "workflow": case_workflow_schema()["$id"],
+            "prepare_request": prepare_request_schema()["$id"],
+            "run_request": run_request_schema()["$id"],
             "variant_source": variant_source_schema()["$id"],
             "regulatory_track_source": regulatory_track_source_schema()["$id"],
             "prepared_case": prepared_case_schema()["$id"],
@@ -2277,9 +2354,11 @@ __all__ = [
     "case_workflow_capabilities",
     "case_workflow_schema",
     "prepare_case",
+    "prepare_request_schema",
     "prepared_case_schema",
     "regulatory_track_source_schema",
     "run_case",
+    "run_request_schema",
     "run_result_schema",
     "variant_source_schema",
     "workflow_schema",

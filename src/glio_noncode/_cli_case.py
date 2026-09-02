@@ -54,7 +54,15 @@ def build_parser() -> argparse.ArgumentParser:
     schema = commands.add_parser("schema", help="print one case-workflow schema")
     schema.add_argument(
         "--component",
-        choices=("workflow", "variant-source", "regulatory-track", "prepared", "run-result"),
+        choices=(
+            "workflow",
+            "prepare-request",
+            "run-request",
+            "variant-source",
+            "regulatory-track",
+            "prepared",
+            "run-result",
+        ),
         default="workflow",
     )
     schema.add_argument("--output", default="-")
@@ -87,9 +95,11 @@ def main(argv: list[str] | None = None) -> int:
             capabilities,
             case_workflow_schema,
             prepare_case,
+            prepare_request_schema,
             prepared_case_schema,
             regulatory_track_source_schema,
             run_case,
+            run_request_schema,
             run_result_schema,
             variant_source_schema,
         )
@@ -124,6 +134,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.case_command == "schema":
             factories = {
                 "workflow": case_workflow_schema,
+                "prepare-request": prepare_request_schema,
+                "run-request": run_request_schema,
                 "variant-source": variant_source_schema,
                 "regulatory-track": regulatory_track_source_schema,
                 "prepared": prepared_case_schema,
