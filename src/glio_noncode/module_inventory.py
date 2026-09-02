@@ -40,6 +40,14 @@ from .serialization import content_hash, jsonable
 _MODULE_FILE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*\.py$")
 _MODULE_REFERENCE = re.compile(r"\bglio_noncode(?:\.[A-Za-z_][A-Za-z0-9_]*)+")
 _PACKAGE_NAME = "glio_noncode"
+_PUBLIC_SURFACE_MODULE = f"{_PACKAGE_NAME}._public_surface"
+_PUBLIC_LAZY_MODULE = re.compile(
+    rf"^{_PACKAGE_NAME}(?:\.[A-Za-z][A-Za-z0-9_]*)+$"
+)
+_PUBLIC_SURFACE_DECLARATIONS = frozenset({"EXPORTS", "LAZY_MODULES"})
+_PUBLIC_SURFACE_LITERAL_DEPTH = 4
+_PUBLIC_SURFACE_LITERAL_NODE_LIMIT = MODULE_INVENTORY_MAX_DEPENDENCIES
+_PUBLIC_SURFACE_MODULE_NAME_LIMIT = 512
 _PUBLIC_DENY = frozenset(
     {"agent", "assistant", "author", "email", "language", "model", "patient", "subject"}
 )
@@ -194,6 +202,116 @@ def _relative_target(module_id: str, level: int, imported: str | None) -> str | 
     return ".".join(base) if base else None
 
 
+def _public_lazy_target(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    if len(value) > _PUBLIC_SURFACE_MODULE_NAME_LIMIT:
+        return None
+    return value if _PUBLIC_LAZY_MODULE.fullmatch(value) else None
+
+
+def _public_surface_declarations(tree: ast.AST) -> dict[str, ast.expr]:
+    if not isinstance(tree, ast.Module):
+        return {}
+    declarations: dict[str, ast.expr] = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            names = tuple(target.id for target in node.targets if isinstance(target, ast.Name))
+            value = node.value
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names = (node.target.id,)
+            value = node.value
+        else:
+            continue
+        if value is None:
+            continue
+        for name in names:
+            if name in _PUBLIC_SURFACE_DECLARATIONS:
+                # Honor normal assignment semantics if a declaration is repeated.
+                declarations[name] = value
+    return declarations
+
+
+def _public_surface_literal_rows(tree: ast.AST) -> set[tuple[str, str, bool]]:
+    """Read generated lazy dependency literals without evaluating the module."""
+
+    declarations = _public_surface_declarations(tree)
+    targets: set[str] = set()
+    visited = 0
+
+    def enter(depth: int) -> bool:
+        nonlocal visited
+        if depth > _PUBLIC_SURFACE_LITERAL_DEPTH:
+            return False
+        if visited >= _PUBLIC_SURFACE_LITERAL_NODE_LIMIT:
+            return False
+        visited += 1
+        return True
+
+    def add_constant(node: ast.AST) -> bool:
+        if not isinstance(node, ast.Constant):
+            return False
+        target = _public_lazy_target(node.value)
+        if target is not None:
+            targets.add(target)
+            return True
+        return False
+
+    def visit_lazy_modules(node: ast.AST, depth: int = 0) -> None:
+        if not enter(depth):
+            return
+        if add_constant(node):
+            return
+        if isinstance(node, (ast.Tuple, ast.List)):
+            for child in node.elts:
+                visit_lazy_modules(child, depth + 1)
+        elif isinstance(node, ast.Dict):
+            for key, value in zip(node.keys, node.values, strict=True):
+                if key is not None:
+                    visit_lazy_modules(key, depth + 1)
+                visit_lazy_modules(value, depth + 1)
+
+    def visit_export_descriptor(node: ast.AST, depth: int = 0) -> None:
+        if not enter(depth):
+            return
+        if add_constant(node):
+            return
+        if isinstance(node, (ast.Tuple, ast.List)):
+            if node.elts:
+                visit_export_descriptor(node.elts[0], depth + 1)
+            return
+        if not isinstance(node, ast.Dict):
+            return
+        for key, value in zip(node.keys, node.values, strict=True):
+            if not isinstance(key, ast.Constant) or key.value not in {
+                "module",
+                "module_name",
+                "target_module",
+            }:
+                continue
+            visit_export_descriptor(value, depth + 1)
+
+    lazy_modules = declarations.get("LAZY_MODULES")
+    if lazy_modules is not None:
+        visit_lazy_modules(lazy_modules)
+
+    exports = declarations.get("EXPORTS")
+    if isinstance(exports, ast.Dict) and enter(0):
+        for key, value in zip(exports.keys, exports.values, strict=True):
+            if (
+                not isinstance(key, ast.Constant)
+                or not isinstance(key.value, str)
+                or key.value.startswith("_")
+            ):
+                continue
+            visit_export_descriptor(value, 1)
+    elif isinstance(exports, (ast.Tuple, ast.List)) and enter(0):
+        for value in exports.elts:
+            visit_export_descriptor(value, 1)
+
+    return {(target, target, False) for target in targets}
+
+
 def _import_rows(module_id: str, tree: ast.AST) -> tuple[tuple[str, str, bool], ...]:
     rows: set[tuple[str, str, bool]] = set()
     for node in ast.walk(tree):
@@ -219,6 +337,8 @@ def _import_rows(module_id: str, tree: ast.AST) -> tuple[tuple[str, str, bool], 
                                 )
             elif raw == _PACKAGE_NAME or raw.startswith(f"{_PACKAGE_NAME}."):
                 rows.add((raw, raw, False))
+    if module_id == _PUBLIC_SURFACE_MODULE:
+        rows.update(_public_surface_literal_rows(tree))
     return tuple(sorted(rows, key=lambda item: (item[0], item[1], item[2])))
 
 
