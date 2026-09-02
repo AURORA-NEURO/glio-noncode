@@ -2709,8 +2709,30 @@ from .run_workspace import (
     build_persisted_run_workspace_closure,
     workspace_query_from_filters,
 )
+from .case_workflow import (
+    PreparedCase,
+    capabilities as case_workflow_capabilities,
+    case_workflow_schema,
+    prepare_case,
+    run_case,
+)
+from .expression_evidence import (
+    AllelicCountBatch,
+    AllelicCountObservation,
+    AllelicImbalanceAnalyzer,
+    AllelicImbalanceResult,
+    ExpressionBatch,
+    ExpressionObservation,
+    ExpressionOutlierResult,
+    PredictedRegulatoryEffect,
+    RNAConsequenceIntegrator,
+    RobustExpressionOutlierAnalyzer,
+    expression_evidence_capabilities,
+    expression_evidence_schema,
+)
 from .runtime import CaseRuntime
 from .schema import schema_document
+from .serialization import content_hash
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
 from .service_release_export import build_service_release_export
@@ -4883,6 +4905,18 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/case-workflow/schema":
+            self._write(HTTPStatus.OK, case_workflow_schema())
+            return
+        if path == "/v1/case-workflow/capabilities":
+            self._write(HTTPStatus.OK, case_workflow_capabilities())
+            return
+        if path == "/v1/expression-evidence/schema":
+            self._write(HTTPStatus.OK, expression_evidence_schema(public=True))
+            return
+        if path == "/v1/expression-evidence/capabilities":
+            self._write(HTTPStatus.OK, expression_evidence_capabilities())
             return
         downloaded_data_prefix = "/v1/downloaded-data"
         if path == downloaded_data_prefix or path.startswith(downloaded_data_prefix + "/"):
@@ -21750,6 +21784,176 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/case-workflow/prepare":
+            try:
+                payload = self._read_json()
+                request = payload.get("request", payload)
+                if not isinstance(request, Mapping):
+                    raise ValueError("case workflow preparation requires a request object")
+                result = prepare_case(**dict(request))
+                self._write(
+                    HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    result.to_dict(),
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_case_workflow_request", "message": str(exc)},
+                )
+            return
+        if path == "/v1/case-workflow/run":
+            try:
+                payload = self._read_json()
+                prepared_raw = payload.get("prepared")
+                if not isinstance(prepared_raw, Mapping):
+                    raise ValueError("case workflow execution requires a prepared object")
+                result = run_case(
+                    PreparedCase.from_mapping(prepared_raw), runtime=self._runtime()
+                )
+                self._write(
+                    HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    result.to_dict(),
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_case_workflow_execution", "message": str(exc)},
+                )
+            return
+        if path == "/v1/expression-evidence/outlier":
+            try:
+                payload = self._read_json()
+                target = payload.get("target")
+                references = payload.get("references")
+                if not isinstance(target, Mapping) or not isinstance(references, Mapping):
+                    raise ValueError("expression outlier requires target and references objects")
+                result = RobustExpressionOutlierAnalyzer().analyze(
+                    ExpressionObservation.from_mapping(target),
+                    ExpressionBatch.from_mapping(references),
+                    expected_direction=payload.get("expected_direction"),
+                    expected_context_key=payload.get("context_key"),
+                )
+                self._write(HTTPStatus.OK, result.public_projection())
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_expression_outlier", "message": str(exc)},
+                )
+            return
+        if path == "/v1/expression-evidence/allelic":
+            try:
+                payload = self._read_json()
+                observation = payload.get("observation", payload.get("input"))
+                if not isinstance(observation, Mapping):
+                    raise ValueError("allelic analysis requires an observation object")
+                result = AllelicImbalanceAnalyzer().analyze(
+                    AllelicCountObservation.from_mapping(observation),
+                    expected_direction=payload.get("expected_direction"),
+                    expected_context_key=payload.get("context_key"),
+                )
+                self._write(HTTPStatus.OK, result.public_projection())
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_allelic_observation", "message": str(exc)},
+                )
+            return
+        if path == "/v1/expression-evidence/allelic-batch":
+            try:
+                payload = self._read_json()
+                batch_raw = payload.get("batch", payload.get("input"))
+                directions = payload.get("expected_directions")
+                if not isinstance(batch_raw, Mapping):
+                    raise ValueError("allelic batch analysis requires a batch object")
+                if directions is not None and not isinstance(directions, Mapping):
+                    raise ValueError("expected_directions must be an object")
+                results = AllelicImbalanceAnalyzer().analyze_batch(
+                    AllelicCountBatch.from_mapping(batch_raw),
+                    expected_directions=directions,
+                    expected_context_key=payload.get("context_key"),
+                )
+                body: dict[str, Any] = {
+                    "schema_version": "1.0.0",
+                    "result_count": len(results),
+                    "results": [item.public_projection() for item in results],
+                }
+                self._write(
+                    HTTPStatus.OK,
+                    body
+                    | {
+                        "content_address": content_hash(
+                            body, prefix="allelic-imbalance-batch"
+                        )
+                    },
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_allelic_batch", "message": str(exc)},
+                )
+            return
+        if path == "/v1/expression-evidence/integrate":
+            try:
+                payload = self._read_json()
+                prediction = payload.get("prediction")
+                expression_raw = payload.get("expression_result")
+                allelic_raw = payload.get("allelic_result")
+                if not isinstance(prediction, Mapping):
+                    raise ValueError("RNA integration requires a prediction object")
+                if expression_raw is not None and not isinstance(expression_raw, Mapping):
+                    raise ValueError("expression_result must be an object or null")
+                if allelic_raw is not None and not isinstance(allelic_raw, Mapping):
+                    raise ValueError("allelic_result must be an object or null")
+                result = RNAConsequenceIntegrator().integrate(
+                    PredictedRegulatoryEffect.from_mapping(prediction),
+                    expression=(
+                        None
+                        if expression_raw is None
+                        else ExpressionOutlierResult.from_mapping(expression_raw)
+                    ),
+                    allelic=(
+                        None
+                        if allelic_raw is None
+                        else AllelicImbalanceResult.from_mapping(allelic_raw)
+                    ),
+                )
+                self._write(HTTPStatus.OK, result.public_projection())
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_rna_integration", "message": str(exc)},
+                )
             return
         if path == "/v1/storage/catalog/verify":
             try:
