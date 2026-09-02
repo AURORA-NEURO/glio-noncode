@@ -506,6 +506,10 @@ from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runt
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_query as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_query_model
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_query_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_query_audit_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_audit_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model
+from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime as exact_history_diff_archive_transfer_recovery_execution_runtime_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_audit as exact_history_diff_archive_transfer_recovery_execution_runtime_audit_model
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_query as exact_history_diff_archive_transfer_recovery_execution_runtime_query_model
@@ -23991,6 +23995,50 @@ def build_parser() -> argparse.ArgumentParser:
         (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_prefix + "-query-audit-capabilities", "print exact execution-ledger runtime registry history diff archive transfer recovery query audit capabilities"),
     ):
         subparsers.add_parser(ledger_runtime_registry_history_diff_archive_transfer_recovery_schema_command, help=ledger_runtime_registry_history_diff_archive_transfer_recovery_schema_help).add_argument("--output", default=None)
+    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_prefix + "-execution"
+    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_parser = subparsers.add_parser(exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix, help="record execution outcomes for an exact execution-ledger runtime registry history diff archive transfer recovery plan")
+    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_parser.add_argument("input")
+    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_parser.add_argument("--execution-id", default=exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model.DEFAULT_EXECUTION_ID)
+    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_parser.add_argument("--receiver", default=None)
+    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_parser.add_argument("--applied-index", action="append", type=int, default=[])
+    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_parser.add_argument("--rejected-index", action="append", type=int, default=[])
+    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_parser.add_argument("--checkpointed", action="store_true")
+    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_parser.add_argument("--output", default=None)
+    for ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_command, ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_help in (
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-verify", "verify an exact execution-ledger runtime registry history diff archive transfer recovery execution receipt"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-audit", "audit an exact execution-ledger runtime registry history diff archive transfer recovery execution receipt"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-query", "query an exact execution-ledger runtime registry history diff archive transfer recovery execution receipt"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-query-audit", "audit an exact execution-ledger runtime registry history diff archive transfer recovery execution query"),
+    ):
+        execution_action_parser = subparsers.add_parser(ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_command, help=ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_help)
+        execution_action_parser.add_argument("input")
+        execution_action_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+        execution_action_parser.add_argument("--output", default=None)
+        if ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_command.endswith("-query"):
+            execution_action_parser.add_argument("--resource", action="append", choices=exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.RESOURCES)
+            execution_action_parser.add_argument("--status", choices=("",) + exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model.STATUSES, default="")
+            execution_action_parser.add_argument("--index", type=int, default=-1)
+            execution_action_parser.add_argument("--text", default="")
+            execution_action_parser.add_argument("--offset", type=int, default=0)
+            execution_action_parser.add_argument("--limit", type=int, default=exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.MAX_LIMIT)
+        if ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_command.endswith("-query-audit"):
+            execution_action_parser.add_argument("--execution-input", required=True)
+    for ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_schema_command, ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_schema_help in (
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-outcome-schema", "print exact execution-ledger archive transfer recovery execution outcome schema"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-schema", "print exact execution-ledger archive transfer recovery execution schema"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-capabilities", "print exact execution-ledger archive transfer recovery execution capabilities"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-audit-check-schema", "print exact execution-ledger archive transfer recovery execution audit check schema"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-audit-schema", "print exact execution-ledger archive transfer recovery execution audit schema"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-audit-capabilities", "print exact execution-ledger archive transfer recovery execution audit capabilities"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-query-row-schema", "print exact execution-ledger archive transfer recovery execution query row schema"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-query-schema", "print exact execution-ledger archive transfer recovery execution query schema"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-query-capabilities", "print exact execution-ledger archive transfer recovery execution query capabilities"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-query-audit-check-schema", "print exact execution-ledger archive transfer recovery execution query audit check schema"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-query-audit-schema", "print exact execution-ledger archive transfer recovery execution query audit schema"),
+        (exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-query-audit-capabilities", "print exact execution-ledger archive transfer recovery execution query audit capabilities"),
+    ):
+        subparsers.add_parser(ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_schema_command, help=ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_schema_help).add_argument("--output", default=None)
     exact_history_diff_archive_transfer_recovery_execution_runtime_prefix = exact_history_diff_archive_transfer_recovery_execution_prefix + "-runtime"
     exact_history_diff_archive_transfer_recovery_execution_runtime_parser = subparsers.add_parser(exact_history_diff_archive_transfer_recovery_execution_runtime_prefix, help="persist an exact history-diff archive transfer recovery execution runtime handoff")
     exact_history_diff_archive_transfer_recovery_execution_runtime_parser.add_argument("input")
@@ -28851,6 +28899,56 @@ def main(argv: list[str] | None = None) -> int:
             exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_schema_name = args.command.removeprefix(exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_prefix + "-")
             if exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_schema_name in exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_schema_commands:
                 _write_json(exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_schema_commands[exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_schema_name](), args.output)
+                return 0
+            exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_prefix + "-execution"
+            def _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution(input_path: str):
+                return exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model.execution_from_mapping(_read_json(input_path))
+            if args.command == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix:
+                recovery_path = Path(args.input)
+                recovery = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_model.build_recovery_from_directory(recovery_path) if recovery_path.is_dir() else exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_model.recovery_from_mapping(_read_json(args.input))
+                if args.receiver:
+                    value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model.build_execution_from_directory(recovery, args.receiver, execution_id=args.execution_id)
+                else:
+                    value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model.build_execution(recovery, applied_indices=tuple(args.applied_index), rejected_indices=tuple(args.rejected_index), execution_id=args.execution_id, checkpointed=args.checkpointed)
+                _emit_contract(value, args, exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model, json_name="execution_json", csv_name="execution_csv", markdown_name="render_execution_markdown")
+                return 0
+            if args.command == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-verify":
+                value = _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution(args.input)
+                _emit_contract(value, args, exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model, json_name="execution_json", csv_name="execution_csv", markdown_name="render_execution_markdown")
+                return 0
+            if args.command == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-audit":
+                value = _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution(args.input)
+                audit = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_audit_model.audit_execution(value)
+                _emit_contract(audit, args, exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                return 0 if audit.passed else 2
+            if args.command == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-query":
+                value = _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution(args.input)
+                query = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.query_execution(value, resources=tuple(args.resource or exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.RESOURCES), status=args.status, index=args.index, text=args.text, offset=args.offset, limit=args.limit)
+                _emit_contract(query, args, exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                return 0
+            if args.command == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-query-audit":
+                query = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.query_from_mapping(_read_json(args.input))
+                execution = _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution(args.execution_input)
+                audit = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model.audit_query(query, execution)
+                _emit_contract(audit, args, exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                return 0 if audit.passed else 2
+            exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_schema_commands = {
+                "outcome-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model.outcome_schema,
+                "schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model.execution_schema,
+                "capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model.capabilities,
+                "audit-check-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_audit_model.check_schema,
+                "audit-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_audit_model.audit_schema,
+                "audit-capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_audit_model.capabilities,
+                "query-row-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.row_schema,
+                "query-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.query_schema,
+                "query-capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.capabilities,
+                "query-audit-check-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model.check_schema,
+                "query-audit-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model.audit_schema,
+                "query-audit-capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model.capabilities,
+            }
+            exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_schema_name = args.command.removeprefix(exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_prefix + "-")
+            if exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_schema_name in exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_schema_commands:
+                _write_json(exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_schema_commands[exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_schema_name](), args.output)
                 return 0
             exact_history_diff_archive_transfer_recovery_execution_runtime_prefix = exact_history_diff_archive_transfer_recovery_execution_prefix + "-runtime"
             if args.command == exact_history_diff_archive_transfer_recovery_execution_runtime_prefix:
