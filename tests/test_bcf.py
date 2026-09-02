@@ -3,9 +3,11 @@ from __future__ import annotations
 import struct
 import unittest
 import zlib
+from unittest.mock import patch
 
 from glio_noncode.bcf import BcfReader
 from glio_noncode.intake import IntakeFormat, VariantIntake
+from glio_noncode.serialization import content_hash
 
 
 def _typed_string(value: str) -> bytes:
@@ -21,7 +23,7 @@ def _typed_int_vector(values: list[int]) -> bytes:
     return bytes([(len(values) << 4) | 3]) + b"".join(struct.pack("<i", value) for value in values)
 
 
-def _raw_bcf() -> bytes:
+def _raw_bcf(record_count: int = 1) -> bytes:
     header = (
         b"##fileformat=VCFv4.3\n"
         b"##contig=<ID=7,length=1000000>\n"
@@ -46,14 +48,13 @@ def _raw_bcf() -> bytes:
         )
     )
     individual = _typed_int(0) + _typed_int_vector([2, 4])
+    record = struct.pack("<II", len(shared), len(individual)) + shared + individual
     return (
         b"BCF\x02\x02"
         + struct.pack("<I", len(header) + 1)
         + header
         + b"\x00"
-        + struct.pack("<II", len(shared), len(individual))
-        + shared
-        + individual
+        + (record * record_count)
     )
 
 
@@ -87,6 +88,66 @@ class BcfReaderTests(unittest.TestCase):
         self.assertEqual(len(batch.variants), 1)
         self.assertEqual(batch.variants[0].canonical_key, "GRCh38:chr7:100:100:A:T")
         self.assertEqual(batch.receipt.input_hash, BcfReader().read(_raw_bcf()).input_hash)
+
+    def test_bcf_record_bound_stops_normalization_and_preserves_full_input_hash(self) -> None:
+        raw = _raw_bcf(record_count=3)
+        document = BcfReader().read(raw)
+        parser = VariantIntake(max_records=2)
+        with patch.object(
+            parser,
+            "_add_record",
+            wraps=parser._add_record,
+        ) as add_record:
+            batch = parser.parse_bytes(raw, source_id="bounded-bcf")
+
+        self.assertEqual(add_record.call_count, 2)
+        self.assertEqual(batch.receipt.record_count, 3)
+        self.assertEqual(batch.receipt.input_hash, document.input_hash)
+        self.assertTrue(batch.has_errors)
+        overflow = [issue for issue in batch.issues if issue.code == "max_records_exceeded"]
+        self.assertEqual(len(overflow), 1)
+        self.assertEqual(overflow[0].severity.value, "error")
+        self.assertEqual(overflow[0].raw_hash, document.records[2].raw_hash)
+
+    def test_bcf_exact_record_bound_preserves_legacy_receipt(self) -> None:
+        raw = _raw_bcf(record_count=2)
+        legacy = VariantIntake().parse_bytes(raw, source_id="bounded-bcf")
+        bounded = VariantIntake(
+            max_records=2,
+            max_auxiliary_lines=5,
+        ).parse_bytes(raw, source_id="bounded-bcf")
+
+        self.assertEqual(bounded.variants, legacy.variants)
+        self.assertEqual(bounded.issues, legacy.issues)
+        self.assertEqual(
+            bounded.receipt.provenance_dict(),
+            legacy.receipt.provenance_dict(),
+        )
+        self.assertFalse(bounded.has_errors)
+
+    def test_bcf_auxiliary_header_limit_blocks_before_record_normalization(self) -> None:
+        raw = _raw_bcf(record_count=1)
+        document = BcfReader().read(raw)
+        parser = VariantIntake(max_auxiliary_lines=4)
+        with patch.object(
+            parser,
+            "_add_record",
+            wraps=parser._add_record,
+        ) as add_record:
+            batch = parser.parse_bytes(raw, source_id="bounded-bcf-header")
+
+        add_record.assert_not_called()
+        self.assertEqual(batch.receipt.input_hash, document.input_hash)
+        self.assertEqual(batch.receipt.record_count, 0)
+        self.assertTrue(batch.has_errors)
+        self.assertEqual(len(batch.issues), 1)
+        issue = batch.issues[0]
+        self.assertEqual(issue.code, "max_auxiliary_lines_exceeded")
+        self.assertEqual(issue.line_number, 5)
+        self.assertEqual(
+            issue.raw_hash,
+            content_hash("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSAMPLE"),
+        )
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from itertools import islice
+from math import isfinite
 from typing import Any
 
 from .bcf import BcfReader
@@ -24,9 +25,49 @@ from .identity import normalize_chromosome, normalize_variant
 from .models import CaseManifest, ReferenceContext, VariantIdentity
 from .serialization import content_hash, jsonable, utc_now
 
-# Keep the legacy in-memory index suitable for focused case-sized collections.
-# Larger cohorts should use the independently bounded streaming/index surfaces.
-MAX_VARIANT_INDEX_RECORDS = 100_000
+# Keep the legacy in-memory parsers and index suitable for focused case-sized
+# collections. Larger cohorts should use the independently bounded streaming
+# and reference-index surfaces.
+MAX_VARIANT_INTAKE_RECORDS = 100_000
+MAX_VARIANT_INTAKE_AUXILIARY_LINES = 10_000
+MAX_VARIANT_INDEX_RECORDS = MAX_VARIANT_INTAKE_RECORDS
+
+
+class _StrictJsonError(ValueError):
+    """Internal signal for JSON extensions that the scientific contract rejects."""
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+def _strict_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise _StrictJsonError(
+                "duplicate_json_key",
+                f"JSON object contains duplicate key {key!r}",
+            )
+        value[key] = item
+    return value
+
+
+def _reject_non_finite_json(value: str) -> Any:
+    raise _StrictJsonError(
+        "non_finite_json_number",
+        f"JSON number must be finite, received {value}",
+    )
+
+
+def _strict_json_float(value: str) -> float:
+    parsed = float(value)
+    if not isfinite(parsed):
+        raise _StrictJsonError(
+            "non_finite_json_number",
+            f"JSON number must be finite, received {value}",
+        )
+    return parsed
 
 
 class IntakeFormat(StrEnum):
@@ -168,18 +209,67 @@ class IntakeBatch:
 class _BatchBuilder:
     """Mutable parser accumulator kept private to one parse call."""
 
-    def __init__(self, source_id: str, input_format: IntakeFormat) -> None:
+    def __init__(
+        self,
+        source_id: str,
+        input_format: IntakeFormat,
+        max_records: int,
+        max_auxiliary_lines: int,
+    ) -> None:
         self.source_id = source_id
         self.input_format = input_format
+        self.max_records = max_records
+        self.max_auxiliary_lines = max_auxiliary_lines
         self.variants: list[VariantIdentity] = []
         self.records: list[RawVariantRecord] = []
         self.deferred_records: list[RawVariantRecord] = []
         self.issues: list[IntakeIssue] = []
         self._seen_keys: set[str] = set()
         self.record_count = 0
+        self.auxiliary_line_count = 0
+        self.auxiliary_limit_exceeded = False
 
-    def note_record(self) -> None:
+    def note_record(
+        self,
+        *,
+        line_number: int | None = None,
+        raw_hash: str | None = None,
+    ) -> bool:
         self.record_count += 1
+        if self.record_count <= self.max_records:
+            return True
+        self.issue(
+            "max_records_exceeded",
+            IntakeSeverity.ERROR,
+            f"variant intake record ceiling of {self.max_records} was exceeded",
+            line_number=line_number,
+            raw_hash=raw_hash,
+            remediation=(
+                "Split the source or use the bounded streaming intake surface after "
+                "reviewing resource capacity."
+            ),
+        )
+        return False
+
+    def note_auxiliary_line(
+        self,
+        *,
+        line_number: int,
+        raw_hash: str,
+    ) -> bool:
+        self.auxiliary_line_count += 1
+        if self.auxiliary_line_count <= self.max_auxiliary_lines:
+            return True
+        self.auxiliary_limit_exceeded = True
+        self.issue(
+            "max_auxiliary_lines_exceeded",
+            IntakeSeverity.ERROR,
+            f"variant intake auxiliary-line ceiling of {self.max_auxiliary_lines} was exceeded",
+            line_number=line_number,
+            raw_hash=raw_hash,
+            remediation="Remove excessive blank/header lines or split the source.",
+        )
+        return False
 
     def issue(
         self,
@@ -260,12 +350,43 @@ class _BatchBuilder:
 
 
 class VariantIntake:
-    """Parse bounded source encodings into canonical variant identities."""
+    """Parse bounded source encodings into canonical variant identities.
 
-    def __init__(self, *, default_build: str = "GRCh38") -> None:
-        if not default_build.strip():
+    ``max_records`` bounds source records, while ``max_auxiliary_lines`` bounds
+    VCF/gVCF, TSV, and decoded BCF header/blank-line traversal.
+    """
+
+    def __init__(
+        self,
+        *,
+        default_build: str = "GRCh38",
+        max_records: int = MAX_VARIANT_INTAKE_RECORDS,
+        max_auxiliary_lines: int = MAX_VARIANT_INTAKE_AUXILIARY_LINES,
+    ) -> None:
+        if not isinstance(default_build, str) or not default_build.strip():
             raise ValidationError("default_build must not be empty")
+        if (
+            isinstance(max_records, bool)
+            or not isinstance(max_records, int)
+            or not 1 <= max_records <= MAX_VARIANT_INTAKE_RECORDS
+        ):
+            raise ValidationError(
+                "max_records must be an integer between 1 and "
+                f"MAX_VARIANT_INTAKE_RECORDS ({MAX_VARIANT_INTAKE_RECORDS})"
+            )
+        if (
+            isinstance(max_auxiliary_lines, bool)
+            or not isinstance(max_auxiliary_lines, int)
+            or not 1 <= max_auxiliary_lines <= MAX_VARIANT_INTAKE_AUXILIARY_LINES
+        ):
+            raise ValidationError(
+                "max_auxiliary_lines must be an integer between 1 and "
+                "MAX_VARIANT_INTAKE_AUXILIARY_LINES "
+                f"({MAX_VARIANT_INTAKE_AUXILIARY_LINES})"
+            )
         self.default_build = default_build
+        self.max_records = max_records
+        self.max_auxiliary_lines = max_auxiliary_lines
 
     def parse_text(
         self,
@@ -277,14 +398,22 @@ class VariantIntake:
         sample_id: str | None = None,
         include_no_call: bool = False,
     ) -> IntakeBatch:
-        if not source_id.strip():
+        if not isinstance(source_id, str) or not source_id.strip():
             raise ValidationError("source_id must not be empty")
-        if not isinstance(text, str) or not text.strip():
+        if not isinstance(text, str) or not text or text.isspace():
             raise ValidationError("intake text must not be empty")
-        selected = self._select_format(text, input_format)
-        build = genome_build or self.default_build
-        if not build.strip():
+        if genome_build is not None and (
+            not isinstance(genome_build, str) or not genome_build.strip()
+        ):
             raise ValidationError("genome_build must not be empty")
+        if sample_id is not None and (
+            not isinstance(sample_id, str) or not sample_id.strip()
+        ):
+            raise ValidationError("sample_id must not be empty")
+        if type(include_no_call) is not bool:
+            raise ValidationError("include_no_call must be a boolean")
+        selected = self._select_format(text, input_format)
+        build = self.default_build if genome_build is None else genome_build
         if selected == IntakeFormat.VCF:
             return self._parse_vcf(text, source_id, build, sample_id, include_no_call)
         if selected == IntakeFormat.GVCF:
@@ -313,14 +442,49 @@ class VariantIntake:
     ) -> IntakeBatch:
         """Decode a BCF2 byte stream and preserve the same intake contract."""
 
-        if not source_id.strip():
+        if not isinstance(source_id, str) or not source_id.strip():
             raise ValidationError("source_id must not be empty")
-        build = genome_build or self.default_build
+        if genome_build is not None and (
+            not isinstance(genome_build, str) or not genome_build.strip()
+        ):
+            raise ValidationError("genome_build must not be empty")
+        if sample_id is not None and (
+            not isinstance(sample_id, str) or not sample_id.strip()
+        ):
+            raise ValidationError("sample_id must not be empty")
+        if type(include_no_call) is not bool:
+            raise ValidationError("include_no_call must be a boolean")
+        build = self.default_build if genome_build is None else genome_build
+        # BcfReader's legacy contract returns a fully materialized document.
+        # The checks below bound header retention and variant normalization;
+        # callers needing bounded decode should use StreamingVariantImporter.
         document = BcfReader().read(data)
-        builder = _BatchBuilder(source_id, IntakeFormat.BCF)
-        header_lines = tuple(document.header_text.splitlines())
+        builder = _BatchBuilder(
+            source_id,
+            IntakeFormat.BCF,
+            self.max_records,
+            self.max_auxiliary_lines,
+        )
+        header_lines: list[str] = []
+        for line_number, source_line in enumerate(
+            io.StringIO(document.header_text, newline=None),
+            start=1,
+        ):
+            line = source_line.rstrip("\r\n")
+            if not builder.note_auxiliary_line(
+                line_number=line_number,
+                raw_hash=content_hash(line),
+            ):
+                break
+            header_lines.append(line)
+        if builder.auxiliary_limit_exceeded:
+            return builder.finish("", header_lines, input_hash=document.input_hash)
         for record in document.records:
-            builder.note_record()
+            if not builder.note_record(
+                line_number=record.record_index + 1,
+                raw_hash=record.raw_hash,
+            ):
+                break
             sample: Mapping[str, Any] = {}
             if record.samples:
                 selected_name = (
@@ -364,16 +528,30 @@ class VariantIntake:
                     quality="." if record.quality is None else str(record.quality),
                 )
                 self._add_record(builder, raw_record, build, source_id)
-        return builder.finish(data.hex(), header_lines, input_hash=document.input_hash)
+        return builder.finish("", header_lines, input_hash=document.input_hash)
 
-    @staticmethod
-    def _select_format(text: str, input_format: IntakeFormat | str | None) -> IntakeFormat:
+    def _select_format(
+        self,
+        text: str,
+        input_format: IntakeFormat | str | None,
+    ) -> IntakeFormat:
         if input_format is not None:
             try:
                 return IntakeFormat(str(input_format))
             except ValueError as exc:
                 raise ValidationError(f"unsupported intake format: {input_format}") from exc
-        first = next((line.strip() for line in text.splitlines() if line.strip()), "")
+        first = ""
+        blank_lines = 0
+        for line in io.StringIO(text, newline=None):
+            first = line.strip()
+            if first:
+                break
+            blank_lines += 1
+            if blank_lines > self.max_auxiliary_lines:
+                raise ValidationError(
+                    "max_auxiliary_lines_exceeded: format detection exceeded the "
+                    f"auxiliary-line ceiling of {self.max_auxiliary_lines}"
+                )
         if first.startswith("##fileformat=VCF") or first.startswith("#CHROM"):
             return IntakeFormat.VCF
         if first.startswith("{") or first.startswith("["):
@@ -390,17 +568,38 @@ class VariantIntake:
         *,
         input_format: IntakeFormat = IntakeFormat.VCF,
     ) -> IntakeBatch:
-        builder = _BatchBuilder(source_id, input_format)
+        builder = _BatchBuilder(
+            source_id,
+            input_format,
+            self.max_records,
+            self.max_auxiliary_lines,
+        )
         header_lines: list[str] = []
         header_columns: list[str] | None = None
         selected_sample_index: int | None = None
-        for line_number, line in enumerate(text.splitlines(), start=1):
+        for line_number, source_line in enumerate(io.StringIO(text, newline=None), start=1):
+            line = source_line.rstrip("\r\n")
             if not line.strip():
+                if not builder.note_auxiliary_line(
+                    line_number=line_number,
+                    raw_hash=content_hash(line),
+                ):
+                    break
                 continue
             if line.startswith("##"):
+                if not builder.note_auxiliary_line(
+                    line_number=line_number,
+                    raw_hash=content_hash(line),
+                ):
+                    break
                 header_lines.append(line)
                 continue
             if line.startswith("#"):
+                if not builder.note_auxiliary_line(
+                    line_number=line_number,
+                    raw_hash=content_hash(line),
+                ):
+                    break
                 header_lines.append(line)
                 if line.lower().startswith("#chrom"):
                     header_columns = line.lstrip("#").split("\t")
@@ -411,7 +610,8 @@ class VariantIntake:
                         selected_sample_index = 0
                 continue
             raw_hash = content_hash(line)
-            builder.note_record()
+            if not builder.note_record(line_number=line_number, raw_hash=raw_hash):
+                break
             fields = line.split("\t")
             if len(fields) < 8:
                 builder.issue(
@@ -525,7 +725,7 @@ class VariantIntake:
                     info = dict(info) | {"selected_sample": selected_name}
                     record = RawVariantRecord(**(record.to_dict() | {"info": info}))
                 self._add_record(builder, record, build, source_id)
-        if header_columns is None:
+        if header_columns is None and not builder.auxiliary_limit_exceeded:
             builder.issue(
                 "missing_vcf_header",
                 IntakeSeverity.ERROR,
@@ -537,9 +737,43 @@ class VariantIntake:
     def _parse_tsv(
         self, text: str, source_id: str, build: str, sample_id: str | None
     ) -> IntakeBatch:
-        builder = _BatchBuilder(source_id, IntakeFormat.TSV)
-        reader = csv.DictReader(io.StringIO(text), delimiter="\t")
+        builder = _BatchBuilder(
+            source_id,
+            IntakeFormat.TSV,
+            self.max_records,
+            self.max_auxiliary_lines,
+        )
+        source_line_numbers: list[int] = []
+        first_content_line = True
+
+        def bounded_lines() -> Iterable[str]:
+            nonlocal first_content_line
+            for line_number, source_line in enumerate(
+                io.StringIO(text, newline=None),
+                start=1,
+            ):
+                line = source_line.rstrip("\r\n")
+                if not line.strip():
+                    if not builder.note_auxiliary_line(
+                        line_number=line_number,
+                        raw_hash=content_hash(line),
+                    ):
+                        return
+                    continue
+                if first_content_line:
+                    first_content_line = False
+                    if not builder.note_auxiliary_line(
+                        line_number=line_number,
+                        raw_hash=content_hash(line),
+                    ):
+                        return
+                source_line_numbers.append(line_number)
+                yield source_line
+
+        reader = csv.DictReader(bounded_lines(), delimiter="\t")
         if not reader.fieldnames:
+            if builder.auxiliary_limit_exceeded:
+                return builder.finish(text, ())
             builder.issue("missing_tsv_header", IntakeSeverity.ERROR, "TSV input has no header")
             return builder.finish(text, ())
         header_lines = ["\t".join(reader.fieldnames)]
@@ -554,10 +788,12 @@ class VariantIntake:
                 remediation="Provide chromosome, position, reference, and alternate columns.",
             )
             return builder.finish(text, header_lines)
-        for line_number, row in enumerate(reader, start=2):
-            builder.note_record()
+        for row in reader:
+            line_number = source_line_numbers[reader.line_num - 1]
             raw_line = "\t".join(str(row.get(key, "")) for key in reader.fieldnames)
             raw_hash = content_hash(raw_line)
+            if not builder.note_record(line_number=line_number, raw_hash=raw_hash):
+                break
             try:
                 chromosome = str(row[aliases["chromosome"]])
                 position = int(str(row[aliases["position"]]))
@@ -606,9 +842,27 @@ class VariantIntake:
     def _parse_json(
         self, text: str, source_id: str, build: str, sample_id: str | None
     ) -> IntakeBatch:
-        builder = _BatchBuilder(source_id, IntakeFormat.JSON)
+        builder = _BatchBuilder(
+            source_id,
+            IntakeFormat.JSON,
+            self.max_records,
+            self.max_auxiliary_lines,
+        )
         try:
-            payload = json.loads(text)
+            payload = json.loads(
+                text,
+                object_pairs_hook=_strict_json_object,
+                parse_constant=_reject_non_finite_json,
+                parse_float=_strict_json_float,
+            )
+        except _StrictJsonError as exc:
+            builder.issue(
+                exc.code,
+                IntakeSeverity.ERROR,
+                str(exc),
+                remediation="Provide strict JSON with unique keys and finite numbers.",
+            )
+            return builder.finish(text, ())
         except json.JSONDecodeError as exc:
             builder.issue("invalid_json", IntakeSeverity.ERROR, str(exc))
             return builder.finish(text, ())
@@ -625,8 +879,10 @@ class VariantIntake:
             )
             return builder.finish(text, ())
         assert isinstance(rows, list)
-        for index, raw in enumerate(rows, start=1):
-            builder.note_record()
+        for index, raw in enumerate(islice(rows, self.max_records + 1), start=1):
+            raw_hash = content_hash(raw)
+            if not builder.note_record(line_number=index, raw_hash=raw_hash):
+                break
             if not isinstance(raw, Mapping):
                 builder.issue(
                     "invalid_json_variant",
@@ -645,7 +901,7 @@ class VariantIntake:
                         reference=variant.reference,
                         alternate=variant.alternate,
                         source_line=index,
-                        raw_hash=content_hash(raw),
+                        raw_hash=raw_hash,
                         info=dict(raw.get("annotations", {})),
                         sample={"sample_id": variant.sample_id},
                     )
@@ -656,7 +912,7 @@ class VariantIntake:
                         IntakeSeverity.ERROR,
                         f"invalid JSON notation: {exc}",
                         line_number=index,
-                        raw_hash=content_hash(raw),
+                        raw_hash=raw_hash,
                     )
                 continue
             try:
@@ -671,7 +927,7 @@ class VariantIntake:
                     reference=reference,
                     alternate=alternate,
                     source_line=index,
-                    raw_hash=content_hash(raw),
+                    raw_hash=raw_hash,
                     info=dict(raw.get("annotations", {})),
                     sample={"sample_id": str(raw.get("sample_id", sample_id or "unspecified"))},
                 )
@@ -681,7 +937,7 @@ class VariantIntake:
                     IntakeSeverity.ERROR,
                     f"invalid JSON variant: {exc}",
                     line_number=index,
-                    raw_hash=content_hash(raw),
+                    raw_hash=raw_hash,
                 )
                 continue
             self._add_record(builder, record, str(raw.get("genome_build", build)), source_id)

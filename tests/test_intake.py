@@ -8,12 +8,15 @@ from unittest.mock import patch
 from glio_noncode.errors import ValidationError
 from glio_noncode.intake import (
     MAX_VARIANT_INDEX_RECORDS,
+    MAX_VARIANT_INTAKE_AUXILIARY_LINES,
+    MAX_VARIANT_INTAKE_RECORDS,
     IntakeFormat,
     IntakeSeverity,
     VariantIndex,
     VariantIntake,
 )
 from glio_noncode.models import ReferenceContext, VariantIdentity, VariantKind
+from glio_noncode.serialization import content_hash
 
 
 class IntakeTests(unittest.TestCase):
@@ -28,6 +31,44 @@ class IntakeTests(unittest.TestCase):
             reference="A",
             alternate="T",
             genome_build="GRCh38",
+        )
+
+    @staticmethod
+    def _text_source(input_format: IntakeFormat, record_count: int) -> str:
+        if input_format in {IntakeFormat.VCF, IntakeFormat.GVCF}:
+            return "\n".join(
+                (
+                    "##fileformat=VCFv4.3",
+                    "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO",
+                    *(
+                        f"7\t{index + 1}\tvariant-{index}\tA\tT\t.\tPASS\t."
+                        for index in range(record_count)
+                    ),
+                )
+            )
+        if input_format == IntakeFormat.TSV:
+            return "\n".join(
+                (
+                    "chrom\tpos\tref\talt\tvariant_id",
+                    *(
+                        f"7\t{index + 1}\tA\tT\tvariant-{index}"
+                        for index in range(record_count)
+                    ),
+                )
+            )
+        return json.dumps(
+            {
+                "variants": [
+                    {
+                        "variant_id": f"variant-{index}",
+                        "chromosome": "7",
+                        "position": index + 1,
+                        "reference": "A",
+                        "alternate": "T",
+                    }
+                    for index in range(record_count)
+                ]
+            }
         )
 
     def test_vcf_multiallelic_and_sample_metadata_are_canonicalized(self) -> None:
@@ -143,6 +184,305 @@ class IntakeTests(unittest.TestCase):
                 "MAX_VARIANT_INDEX_RECORDS",
             ):
                 VariantIndex((), max_records=value)  # type: ignore[arg-type]
+
+    def test_variant_intake_record_limit_is_strictly_bounded(self) -> None:
+        for value in (False, 0, 1.5, MAX_VARIANT_INTAKE_RECORDS + 1):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                ValidationError,
+                "MAX_VARIANT_INTAKE_RECORDS",
+            ):
+                VariantIntake(max_records=value)  # type: ignore[arg-type]
+
+    def test_variant_intake_auxiliary_limit_is_strictly_bounded(self) -> None:
+        for value in (False, 0, 1.5, MAX_VARIANT_INTAKE_AUXILIARY_LINES + 1):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                ValidationError,
+                "MAX_VARIANT_INTAKE_AUXILIARY_LINES",
+            ):
+                VariantIntake(max_auxiliary_lines=value)  # type: ignore[arg-type]
+
+    def test_variant_intake_string_identifiers_fail_with_typed_validation(self) -> None:
+        with self.assertRaisesRegex(ValidationError, "default_build"):
+            VariantIntake(default_build=None)  # type: ignore[arg-type]
+
+        parser = VariantIntake()
+        with self.assertRaisesRegex(ValidationError, "source_id"):
+            parser.parse_text(
+                "[]",
+                source_id=None,  # type: ignore[arg-type]
+                input_format=IntakeFormat.JSON,
+            )
+        with self.assertRaisesRegex(ValidationError, "genome_build"):
+            parser.parse_text(
+                "[]",
+                source_id="typed-validation",
+                input_format=IntakeFormat.JSON,
+                genome_build=1,  # type: ignore[arg-type]
+            )
+        with self.assertRaisesRegex(ValidationError, "genome_build"):
+            parser.parse_text(
+                "[]",
+                source_id="typed-validation",
+                input_format=IntakeFormat.JSON,
+                genome_build=0,  # type: ignore[arg-type]
+            )
+        with self.assertRaisesRegex(ValidationError, "sample_id"):
+            parser.parse_text(
+                "[]",
+                source_id="typed-validation",
+                input_format=IntakeFormat.JSON,
+                sample_id=0,  # type: ignore[arg-type]
+            )
+        with self.assertRaisesRegex(ValidationError, "include_no_call"):
+            parser.parse_text(
+                "[]",
+                source_id="typed-validation",
+                input_format=IntakeFormat.JSON,
+                include_no_call=1,  # type: ignore[arg-type]
+            )
+        with self.assertRaisesRegex(ValidationError, "source_id"):
+            parser.parse_bytes(b"not-bcf", source_id=1)  # type: ignore[arg-type]
+        with self.assertRaisesRegex(ValidationError, "genome_build"):
+            parser.parse_bytes(
+                b"not-bcf",
+                source_id="typed-validation",
+                genome_build=1,  # type: ignore[arg-type]
+            )
+        with self.assertRaisesRegex(ValidationError, "sample_id"):
+            parser.parse_bytes(
+                b"not-bcf",
+                source_id="typed-validation",
+                sample_id=0,  # type: ignore[arg-type]
+            )
+        with self.assertRaisesRegex(ValidationError, "include_no_call"):
+            parser.parse_bytes(
+                b"not-bcf",
+                source_id="typed-validation",
+                include_no_call=1,  # type: ignore[arg-type]
+            )
+
+    def test_text_parsers_preserve_outputs_at_exact_record_bound(self) -> None:
+        for input_format in (
+            IntakeFormat.VCF,
+            IntakeFormat.GVCF,
+            IntakeFormat.TSV,
+            IntakeFormat.JSON,
+        ):
+            with self.subTest(input_format=input_format):
+                text = self._text_source(input_format, 2)
+                legacy = VariantIntake().parse_text(
+                    text,
+                    source_id=f"legacy-{input_format}",
+                    input_format=input_format,
+                )
+                max_auxiliary_lines = (
+                    2
+                    if input_format in {IntakeFormat.VCF, IntakeFormat.GVCF}
+                    else MAX_VARIANT_INTAKE_AUXILIARY_LINES
+                )
+                bounded = VariantIntake(
+                    max_records=2,
+                    max_auxiliary_lines=max_auxiliary_lines,
+                ).parse_text(
+                    text,
+                    source_id=f"legacy-{input_format}",
+                    input_format=input_format,
+                )
+
+                self.assertEqual(bounded.variants, legacy.variants)
+                self.assertEqual(bounded.records, legacy.records)
+                self.assertEqual(bounded.issues, legacy.issues)
+                self.assertEqual(
+                    bounded.receipt.provenance_dict(),
+                    legacy.receipt.provenance_dict(),
+                )
+                self.assertEqual(bounded.receipt.record_count, 2)
+                self.assertFalse(bounded.has_errors)
+
+    def test_text_parsers_stop_on_one_overflow_sentinel_and_fail_closed(self) -> None:
+        expected_lines = {
+            IntakeFormat.VCF: 5,
+            IntakeFormat.GVCF: 5,
+            IntakeFormat.TSV: 4,
+            IntakeFormat.JSON: 3,
+        }
+        for input_format in (
+            IntakeFormat.VCF,
+            IntakeFormat.GVCF,
+            IntakeFormat.TSV,
+            IntakeFormat.JSON,
+        ):
+            with self.subTest(input_format=input_format):
+                text = self._text_source(input_format, 4)
+                parser = VariantIntake(max_records=2)
+                with patch.object(
+                    parser,
+                    "_add_record",
+                    wraps=parser._add_record,
+                ) as add_record:
+                    batch = parser.parse_text(
+                        text,
+                        source_id=f"overflow-{input_format}",
+                        input_format=input_format,
+                    )
+
+                add_record.assert_called()
+                self.assertEqual(add_record.call_count, 2)
+                self.assertEqual(batch.receipt.record_count, 3)
+                self.assertEqual(batch.receipt.accepted_count, 2)
+                self.assertEqual(batch.receipt.error_count, 1)
+                self.assertEqual(batch.receipt.rejected_count, 1)
+                self.assertEqual(batch.receipt.input_hash, content_hash(text))
+                self.assertTrue(batch.has_errors)
+                overflow = [issue for issue in batch.issues if issue.code == "max_records_exceeded"]
+                self.assertEqual(len(overflow), 1)
+                self.assertEqual(overflow[0].severity, IntakeSeverity.ERROR)
+                self.assertEqual(overflow[0].line_number, expected_lines[input_format])
+                if input_format in {IntakeFormat.VCF, IntakeFormat.GVCF}:
+                    sentinel_hash = content_hash("7\t3\tvariant-2\tA\tT\t.\tPASS\t.")
+                elif input_format == IntakeFormat.TSV:
+                    sentinel_hash = content_hash("7\t3\tA\tT\tvariant-2")
+                else:
+                    sentinel_hash = content_hash(
+                        {
+                            "variant_id": "variant-2",
+                            "chromosome": "7",
+                            "position": 3,
+                            "reference": "A",
+                            "alternate": "T",
+                        }
+                    )
+                self.assertEqual(overflow[0].raw_hash, sentinel_hash)
+
+                replay = VariantIntake(max_records=2).parse_text(
+                    text,
+                    source_id=f"overflow-{input_format}",
+                    input_format=input_format,
+                )
+                self.assertEqual(batch.receipt.content_address, replay.receipt.content_address)
+                self.assertEqual(batch.content_address, replay.content_address)
+
+    def test_vcf_auxiliary_limit_emits_one_addressed_error_and_stops(self) -> None:
+        sources = (
+            (
+                "\n".join(
+                    (
+                        "##fileformat=VCFv4.3",
+                        "##source=one",
+                        "##source=overflow",
+                        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO",
+                        "7\t1\tv1\tA\tT\t.\tPASS\t.",
+                    )
+                ),
+                3,
+                content_hash("##source=overflow"),
+            ),
+            (
+                "\n\n\n##fileformat=VCFv4.3\n"
+                "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n"
+                "7\t1\tv1\tA\tT\t.\tPASS\t.",
+                3,
+                content_hash(""),
+            ),
+        )
+        for input_format in (IntakeFormat.VCF, IntakeFormat.GVCF):
+            for text, line_number, sentinel_hash in sources:
+                with self.subTest(input_format=input_format, line_number=line_number):
+                    batch = VariantIntake(max_auxiliary_lines=2).parse_text(
+                        text,
+                        source_id=f"aux-{input_format}",
+                        input_format=input_format,
+                    )
+
+                    self.assertTrue(batch.has_errors)
+                    self.assertEqual(batch.receipt.record_count, 0)
+                    self.assertEqual(batch.receipt.input_hash, content_hash(text))
+                    self.assertEqual(len(batch.issues), 1)
+                    issue = batch.issues[0]
+                    self.assertEqual(issue.code, "max_auxiliary_lines_exceeded")
+                    self.assertEqual(issue.severity, IntakeSeverity.ERROR)
+                    self.assertEqual(issue.line_number, line_number)
+                    self.assertEqual(issue.raw_hash, sentinel_hash)
+
+    def test_tsv_header_and_blank_lines_share_the_auxiliary_ceiling(self) -> None:
+        text = (
+            "chrom\tpos\tref\talt\tvariant_id\n"
+            "\n"
+            "\n"
+            "7\t1\tA\tT\tvariant-1\n"
+        )
+        batch = VariantIntake(max_auxiliary_lines=2).parse_text(
+            text,
+            source_id="bounded-tsv-auxiliary",
+            input_format=IntakeFormat.TSV,
+        )
+
+        self.assertTrue(batch.has_errors)
+        self.assertEqual(batch.receipt.record_count, 0)
+        self.assertEqual(batch.receipt.input_hash, content_hash(text))
+        self.assertEqual(len(batch.issues), 1)
+        issue = batch.issues[0]
+        self.assertEqual(issue.code, "max_auxiliary_lines_exceeded")
+        self.assertEqual(issue.line_number, 3)
+        self.assertEqual(issue.raw_hash, content_hash(""))
+
+    def test_format_detection_stops_after_leading_blank_line_sentinel(self) -> None:
+        text = (
+            "\n\n\n##fileformat=VCFv4.3\n"
+            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n"
+            "7\t1\tv1\tA\tT\t.\tPASS\t."
+        )
+        with self.assertRaisesRegex(
+            ValidationError,
+            "max_auxiliary_lines_exceeded",
+        ):
+            VariantIntake(max_auxiliary_lines=2).parse_text(
+                text,
+                source_id="auto-detect-limit",
+            )
+
+    def test_json_rejects_duplicate_keys_and_non_finite_numbers(self) -> None:
+        invalid = (
+            (
+                '{"variants":[{"chromosome":"7","chromosome":"8",'
+                '"position":1,"reference":"A","alternate":"T"}]}',
+                "duplicate_json_key",
+            ),
+            (
+                '{"variants":[{"chromosome":"7","position":NaN,'
+                '"reference":"A","alternate":"T"}]}',
+                "non_finite_json_number",
+            ),
+            (
+                '{"variants":[{"chromosome":"7","position":Infinity,'
+                '"reference":"A","alternate":"T"}]}',
+                "non_finite_json_number",
+            ),
+            (
+                '{"variants":[{"chromosome":"7","position":-Infinity,'
+                '"reference":"A","alternate":"T"}]}',
+                "non_finite_json_number",
+            ),
+            (
+                '{"variants":[{"chromosome":"7","position":1e999,'
+                '"reference":"A","alternate":"T"}]}',
+                "non_finite_json_number",
+            ),
+        )
+        for text, code in invalid:
+            with self.subTest(code=code, text=text):
+                batch = VariantIntake(max_records=1).parse_text(
+                    text,
+                    source_id="strict-json",
+                    input_format=IntakeFormat.JSON,
+                )
+
+                self.assertTrue(batch.has_errors)
+                self.assertEqual(batch.variants, ())
+                self.assertEqual(batch.receipt.record_count, 0)
+                self.assertEqual(batch.receipt.input_hash, content_hash(text))
+                self.assertEqual(batch.issues[0].code, code)
+                self.assertEqual(batch.issues[0].severity, IntakeSeverity.ERROR)
 
         for invalid in ("variant-id", {"variant_id": "not-a-container"}, (object(),)):
             with self.subTest(invalid=type(invalid).__name__), self.assertRaisesRegex(
