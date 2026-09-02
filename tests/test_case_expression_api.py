@@ -8,17 +8,22 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from glio_noncode.api import create_server
+from glio_noncode.case_workflow import PreparedCase
 from glio_noncode.expression_claims import RNAElementGeneTarget
 from glio_noncode.expression_evidence import (
     AllelicCountObservation,
     ExpressionBatch,
+    ExpressionDirection,
     ExpressionObservation,
     ExpressionScale,
     PhaseStatus,
     PredictedRegulatoryEffect,
     RegulatoryDirection,
+    RNAConsequenceEvidence,
+    RNAEvidenceState,
 )
 from glio_noncode.models import ReferenceContext
+from glio_noncode.serialization import content_hash
 
 CONTEXT_KEY = "GRCh38|diffuse_glioma|adult|stem_like|tumor_core|pre_treatment"
 
@@ -101,6 +106,38 @@ class CaseExpressionApiTests(unittest.TestCase):
             source_id="rna-reference",
         )
 
+    def _case_rna_consequence(
+        self, prepared: dict[str, object]
+    ) -> RNAConsequenceEvidence:
+        typed = PreparedCase.from_mapping(prepared)
+        assert typed.manifest is not None
+        prediction_id = "prediction:case-api:egfr"
+        return RNAConsequenceEvidence(
+            prediction_id=prediction_id,
+            prediction_address=content_hash(
+                {"prediction_id": prediction_id},
+                prefix="regulatory-effect-prediction",
+            ),
+            variant_id=typed.manifest.variants[0].variant_id,
+            feature_id="EGFR",
+            context_key=typed.manifest.context.key,
+            predicted_direction=RegulatoryDirection.GAIN,
+            state=RNAEvidenceState.SUPPORTED,
+            expression_state=RNAEvidenceState.SUPPORTED,
+            expression_direction=ExpressionDirection.UP,
+            expression_robust_z=6.0,
+            expression_result_address=content_hash(
+                {"prediction_id": prediction_id, "component": "expression"},
+                prefix="expression-outlier",
+            ),
+            allelic_state=None,
+            allelic_direction=None,
+            allelic_log2_ratio=None,
+            allelic_q_value=None,
+            allelic_result_address=None,
+            reason_codes=("case_api_directional_support",),
+        )
+
     def test_case_prepare_and_run_use_the_server_runtime(self) -> None:
         status, prepared = self._post(
             "/v1/case-workflow/prepare", {"request": _case_request()}
@@ -114,6 +151,33 @@ class CaseExpressionApiTests(unittest.TestCase):
         self.assertTrue(result["accepted"])
         self.assertTrue(result["replay_report"]["event_chain_valid"])
         self.assertTrue((Path(self.temporary.name) / "data" / "runs").is_dir())
+
+    def test_case_run_carries_rna_evidence_into_the_persisted_graph(self) -> None:
+        status, prepared = self._post(
+            "/v1/case-workflow/prepare", {"request": _case_request()}
+        )
+        self.assertEqual(status, 200)
+        rna = self._case_rna_consequence(prepared)
+        status, result = self._post(
+            "/v1/case-workflow/run",
+            {"prepared": prepared, "rna_consequences": [rna.to_dict()]},
+        )
+        self.assertEqual(status, 200)
+        self.assertTrue(result["accepted"])
+        self.assertNotEqual(result["dossier"]["run_id"], prepared["run_id"])
+        claim = next(
+            item
+            for item in result["dossier"]["evidence"]
+            if item["channel"] == "matched_rna_consequence"
+        )
+        self.assertEqual(
+            claim["payload"]["rna_consequence"]["content_address"],
+            rna.content_address,
+        )
+        receipt = result["stage_receipts"][-1]
+        self.assertEqual(receipt["metadata"]["rna_consequence_count"], 1)
+        self.assertTrue(receipt["metadata"]["rna_input_address"].startswith("sha256:"))
+        self.assertTrue(result["replay_report"]["event_chain_valid"])
 
     def test_expression_analysis_and_integration_are_sample_free(self) -> None:
         target = self._expression("tumour-secret", 20)

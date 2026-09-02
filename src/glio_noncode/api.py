@@ -21825,11 +21825,25 @@ class ApiHandler(BaseHTTPRequestHandler):
         if path == "/v1/case-workflow/run":
             try:
                 payload = self._read_json()
+                unknown = set(payload) - {"prepared", "rna_consequences", "data_root"}
+                if unknown:
+                    raise ValueError(
+                        f"case workflow execution contains unknown fields: {sorted(unknown)}"
+                    )
                 prepared_raw = payload.get("prepared")
                 if not isinstance(prepared_raw, Mapping):
                     raise ValueError("case workflow execution requires a prepared object")
+                rna_raw = payload.get("rna_consequences", ())
+                if not isinstance(rna_raw, Sequence) or isinstance(
+                    rna_raw, (str, bytes, bytearray)
+                ):
+                    raise ValueError("rna_consequences must be an array")
+                if any(not isinstance(item, Mapping) for item in rna_raw):
+                    raise ValueError("every RNA consequence must be an object")
                 result = run_case(
-                    PreparedCase.from_mapping(prepared_raw), runtime=self._runtime()
+                    PreparedCase.from_mapping(prepared_raw),
+                    runtime=self._runtime(),
+                    rna_consequences=rna_raw,
                 )
                 self._write(
                     HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,

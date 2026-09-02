@@ -5,10 +5,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
-from ._cli_support import read_mapping, write_json
+from ._cli_support import read_json, read_mapping, write_json
 
 _PREPARE_FIELDS = frozenset(
     {
@@ -43,6 +43,10 @@ def build_parser() -> argparse.ArgumentParser:
         "run", help="execute an accepted prepared case and verify persisted replay"
     )
     run.add_argument("--prepared", required=True, help="prepared-case JSON path or -")
+    run.add_argument(
+        "--rna-consequences",
+        help="optional JSON array of canonical RNA consequence evidence",
+    )
     run.add_argument("--data-root", default=".glio")
     run.add_argument("--summary", action="store_true")
     run.add_argument("--output", default="-")
@@ -100,7 +104,21 @@ def main(argv: list[str] | None = None) -> int:
             prepared = PreparedCase.from_mapping(
                 read_mapping(args.prepared, "prepared case")
             )
-            result = run_case(prepared, data_root=args.data_root)
+            rna_consequences: Sequence[Mapping[str, Any]] = ()
+            if args.rna_consequences is not None:
+                raw_rna = read_json(args.rna_consequences, "RNA consequences")
+                if not isinstance(raw_rna, Sequence) or isinstance(
+                    raw_rna, (str, bytes, bytearray)
+                ):
+                    raise ValueError("RNA consequences must be a JSON array")
+                if any(not isinstance(item, Mapping) for item in raw_rna):
+                    raise ValueError("every RNA consequence must be a JSON object")
+                rna_consequences = raw_rna
+            result = run_case(
+                prepared,
+                data_root=args.data_root,
+                rna_consequences=rna_consequences,
+            )
             write_json(result.public_summary() if args.summary else result.to_dict(), args.output)
             return 0 if result.accepted else 2
         if args.case_command == "schema":

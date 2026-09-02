@@ -37,10 +37,21 @@ def read_mapping(
     *,
     max_bytes: int = DEFAULT_MAX_JSON_BYTES,
 ) -> Mapping[str, Any]:
-    value = json.loads(read_text(location, label=label, max_bytes=max_bytes))
+    value = read_json(location, label, max_bytes=max_bytes)
     if not isinstance(value, Mapping):
         raise ValueError(f"{label} must be a JSON object")
     return value
+
+
+def read_json(
+    location: str,
+    label: str,
+    *,
+    max_bytes: int = DEFAULT_MAX_JSON_BYTES,
+) -> Any:
+    """Read one bounded JSON value without constraining its top-level shape."""
+
+    return json.loads(read_text(location, label=label, max_bytes=max_bytes))
 
 
 def write_json(value: object, output: str) -> None:
@@ -53,4 +64,4 @@ def write_json(value: object, output: str) -> None:
     destination.write_text(rendered + "\n", encoding="utf-8")
 
 
-__all__ = ["DEFAULT_MAX_JSON_BYTES", "read_mapping", "read_text", "write_json"]
+__all__ = ["DEFAULT_MAX_JSON_BYTES", "read_json", "read_mapping", "read_text", "write_json"]

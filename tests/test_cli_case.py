@@ -6,6 +6,14 @@ import unittest
 from pathlib import Path
 
 from glio_noncode._cli_case import build_parser, main
+from glio_noncode.case_workflow import PreparedCase
+from glio_noncode.expression_evidence import (
+    ExpressionDirection,
+    RegulatoryDirection,
+    RNAConsequenceEvidence,
+    RNAEvidenceState,
+)
+from glio_noncode.serialization import content_hash
 
 VCF = "\n".join(
     (
@@ -55,6 +63,36 @@ class CaseCliTests(unittest.TestCase):
         path.write_text(json.dumps(value), encoding="utf-8")
         return path
 
+    def _rna_consequence(self, prepared: dict[str, object]) -> RNAConsequenceEvidence:
+        typed = PreparedCase.from_mapping(prepared)
+        assert typed.manifest is not None
+        prediction_id = "prediction:case-cli:egfr"
+        return RNAConsequenceEvidence(
+            prediction_id=prediction_id,
+            prediction_address=content_hash(
+                {"prediction_id": prediction_id},
+                prefix="regulatory-effect-prediction",
+            ),
+            variant_id=typed.manifest.variants[0].variant_id,
+            feature_id="EGFR",
+            context_key=typed.manifest.context.key,
+            predicted_direction=RegulatoryDirection.GAIN,
+            state=RNAEvidenceState.SUPPORTED,
+            expression_state=RNAEvidenceState.SUPPORTED,
+            expression_direction=ExpressionDirection.UP,
+            expression_robust_z=6.0,
+            expression_result_address=content_hash(
+                {"prediction_id": prediction_id, "component": "expression"},
+                prefix="expression-outlier",
+            ),
+            allelic_state=None,
+            allelic_direction=None,
+            allelic_log2_ratio=None,
+            allelic_q_value=None,
+            allelic_result_address=None,
+            reason_codes=("case_cli_directional_support",),
+        )
+
     def test_parser_exposes_prepare_run_and_discovery(self) -> None:
         choices = build_parser()._subparsers._group_actions[0].choices
         self.assertEqual(set(choices), {"prepare", "run", "schema", "capabilities"})
@@ -85,6 +123,39 @@ class CaseCliTests(unittest.TestCase):
             self.assertTrue(result["accepted"])
             self.assertTrue(result["replay_report"]["event_chain_valid"])
             self.assertTrue(result["replay_report"]["stored_dossier_matches_address"])
+
+            rna = self._rna_consequence(prepared)
+            rna_path = self._write(root, "rna-consequences.json", [rna.to_dict()])
+            rna_result_path = root / "rna-result.json"
+            self.assertEqual(
+                main(
+                    [
+                        "run",
+                        "--prepared",
+                        str(prepared_path),
+                        "--rna-consequences",
+                        str(rna_path),
+                        "--data-root",
+                        str(root / "rna-data"),
+                        "--output",
+                        str(rna_result_path),
+                    ]
+                ),
+                0,
+            )
+            rna_result = json.loads(rna_result_path.read_text())
+            self.assertTrue(rna_result["accepted"])
+            self.assertNotEqual(rna_result["dossier"]["run_id"], prepared["run_id"])
+            self.assertTrue(
+                any(
+                    item["channel"] == "matched_rna_consequence"
+                    for item in rna_result["dossier"]["evidence"]
+                )
+            )
+            self.assertEqual(
+                rna_result["stage_receipts"][-1]["metadata"]["rna_consequence_count"],
+                1,
+            )
 
     def test_blocked_request_has_nonzero_exit_and_discovery_is_machine_readable(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
