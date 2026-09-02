@@ -7,6 +7,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import patch
 
+from jsonschema import Draft202012Validator
+
 from glio_noncode.case_workflow import (
     MAX_CASE_RNA_CONSEQUENCES,
     CaseRunResult,
@@ -110,6 +112,31 @@ def consequence(value, gene_id: str, prediction_id: str) -> RNAConsequenceEviden
 
 
 class CaseExpressionWorkflowTests(unittest.TestCase):
+    def test_mapping_reason_codes_and_optional_address_are_schema_strict(self) -> None:
+        value = prepared()
+        canonical = consequence(value, "EGFR", "prediction:workflow:strict-rna").to_dict()
+        invalid_values = (
+            ("string reason codes", "reason_codes", "workflow_directional_support"),
+            (
+                "duplicate reason codes",
+                "reason_codes",
+                ["workflow_directional_support", "workflow_directional_support"],
+            ),
+            ("empty reason code", "reason_codes", [""]),
+            ("null optional address", "content_address", None),
+        )
+        for label, field_name, replacement in invalid_values:
+            mapping = json.loads(json.dumps(canonical))
+            mapping[field_name] = replacement
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as directory:
+                result = run_case(
+                    value,
+                    data_root=directory,
+                    rna_consequences=(mapping,),
+                )
+                self.assertTrue(result.blocked)
+                self.assertIn("invalid_rna_consequence", {item.code for item in result.issues})
+
     def test_mapping_input_reaches_exact_edge_and_causal_path(self) -> None:
         value = prepared()
         rna = consequence(value, "EGFR", "prediction:workflow:egfr")
@@ -271,6 +298,13 @@ class CaseExpressionWorkflowTests(unittest.TestCase):
         self.assertEqual(rna_schema["maxItems"], MAX_CASE_RNA_CONSEQUENCES)
         self.assertFalse(rna_schema["items"]["additionalProperties"])
         self.assertIn("content_address", rna_schema["items"]["properties"])
+        invalid_reason = consequence(
+            prepared(),
+            "EGFR",
+            "prediction:workflow:empty-schema-reason",
+        ).to_dict()
+        invalid_reason["reason_codes"] = [""]
+        self.assertFalse(Draft202012Validator(rna_schema).is_valid([invalid_reason]))
         self.assertIn("rna_consequences", advertised["optional_execution_inputs"])
         self.assertEqual(
             advertised["optional_execution_inputs"]["rna_consequences"]["max_items"],
