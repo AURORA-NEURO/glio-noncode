@@ -89,7 +89,9 @@ class StorageAuditTests(unittest.TestCase):
 
             report = build_storage_audit(runtime)
             self.assertFalse(report.accepted)
-            audited = next(item for item in report.objects if item.address == run_record["event_address"])
+            audited = next(
+                item for item in report.objects if item.address == run_record["event_address"]
+            )
             self.assertFalse(audited.hash_valid)
             self.assertFalse(audited.canonical_bytes_valid)
             self.assertTrue(any("content" in warning for warning in audited.warnings))
@@ -117,10 +119,14 @@ class StorageAuditTests(unittest.TestCase):
             runtime, _ = self._runtime(directory)
             (Path(directory) / "objects" / "leftover.tmp").write_text("leftover", encoding="utf-8")
             (Path(directory) / "runs" / "not-a-run.txt").write_text("leftover", encoding="utf-8")
+            (Path(directory) / "runs" / "run-malformed.json").write_text("{", encoding="utf-8")
             report = build_storage_audit(runtime)
             self.assertFalse(report.accepted)
             self.assertIn("objects/leftover.tmp", report.unexpected_entries)
             self.assertIn("runs/not-a-run.txt", report.unexpected_entries)
+            malformed = next(item for item in report.runs if item.filename == "run-malformed.json")
+            self.assertEqual(malformed.run_id, "run-malformed")
+            self.assertFalse(malformed.accepted)
 
     def test_cli_and_http_surfaces_return_the_same_audit_address(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

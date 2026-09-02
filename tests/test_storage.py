@@ -1,19 +1,107 @@
 from __future__ import annotations
 
+import multiprocessing
 import tempfile
 import threading
 import unittest
 from pathlib import Path
+from queue import Empty
+from typing import Any
+from unittest.mock import patch
 
 from glio_noncode.errors import StoreError
-from glio_noncode.storage import ObjectStore, RunStore
+from glio_noncode.storage import MAX_RUN_HISTORY_ENTRIES, ObjectStore, RunStore
 
 
 def _address(index: int) -> str:
     return f"sha256:{index:064x}"
 
 
+def _process_run_write(
+    root: str,
+    index: int,
+    barrier: Any,
+    results: Any,
+) -> None:
+    try:
+        barrier.wait(timeout=20)
+        RunStore(root).save_run(
+            "run-process-concurrent",
+            input_address=_address(1),
+            event_address=_address(100 + index),
+            dossier_address=_address(1_000 + index),
+        )
+        results.put(("ok", index))
+    except BaseException as exc:  # pragma: no cover - parent asserts serialized failure
+        results.put(("error", index, repr(exc)))
+
+
+def _process_object_write(
+    root: str,
+    index: int,
+    barrier: Any,
+    results: Any,
+    fixed_winner: int | None = None,
+) -> None:
+    value = {"winner": index % 2 if fixed_winner is None else fixed_winner}
+    try:
+        barrier.wait(timeout=20)
+        ObjectStore(root).put_at(_address(999), value)
+        results.put(("ok", index, value))
+    except BaseException as exc:  # pragma: no cover - parent asserts serialized result
+        results.put(("error", index, repr(exc)))
+
+
+def _process_blocking_run_read(
+    root: str,
+    ready: Any,
+    release: Any,
+    results: Any,
+) -> None:
+    original_read_bytes = Path.read_bytes
+
+    def blocked_read(path: Path) -> bytes:
+        if path.name != "run-reader-writer.json":
+            return original_read_bytes(path)
+        with path.open("rb") as handle:
+            ready.set()
+            if not release.wait(timeout=20):
+                raise TimeoutError("test reader was not released")
+            return handle.read()
+
+    try:
+        with patch.object(Path, "read_bytes", blocked_read):
+            record = RunStore(root).get_run("run-reader-writer")
+        results.put(("ok", record["event_address"]))
+    except BaseException as exc:  # pragma: no cover - parent asserts serialized result
+        results.put(("error", repr(exc)))
+
+
 class StorageBoundaryTests(unittest.TestCase):
+    def _process_results(self, processes: tuple[Any, ...], results: Any) -> list[Any]:
+        for process in processes:
+            process.start()
+        for process in processes:
+            process.join(timeout=30)
+        try:
+            self.assertFalse(
+                [process.pid for process in processes if process.is_alive()],
+                "storage writer process did not terminate",
+            )
+            self.assertTrue(all(process.exitcode == 0 for process in processes))
+            output = []
+            for _ in processes:
+                try:
+                    output.append(results.get(timeout=5))
+                except Empty as exc:  # pragma: no cover - assertion exposes process state
+                    self.fail(f"storage writer did not report a result: {exc}")
+            return output
+        finally:
+            for process in processes:
+                if process.is_alive():
+                    process.terminate()
+                    process.join(timeout=5)
+
     def test_immutable_object_address_rejects_different_existing_content(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             store = ObjectStore(directory)
@@ -76,8 +164,7 @@ class StorageBoundaryTests(unittest.TestCase):
                     failures.append(exc)
 
             threads = tuple(
-                threading.Thread(target=write, args=(index,))
-                for index in range(writer_count)
+                threading.Thread(target=write, args=(index,)) for index in range(writer_count)
             )
             for thread in threads:
                 thread.start()
@@ -96,6 +183,178 @@ class StorageBoundaryTests(unittest.TestCase):
                 {_address(1_000 + index) for index in range(writer_count)},
             )
             self.assertFalse(tuple((Path(directory) / "runs").glob("*.tmp")))
+
+    def test_cross_process_run_updates_retain_every_snapshot(self) -> None:
+        writer_count = 8
+        context = multiprocessing.get_context("spawn")
+        with tempfile.TemporaryDirectory() as directory:
+            barrier = context.Barrier(writer_count)
+            results = context.Queue()
+            processes = tuple(
+                context.Process(
+                    target=_process_run_write,
+                    args=(directory, index, barrier, results),
+                )
+                for index in range(writer_count)
+            )
+            output = self._process_results(processes, results)
+            self.assertTrue(all(item[0] == "ok" for item in output), output)
+            record = RunStore(directory).get_run("run-process-concurrent")
+            self.assertEqual(
+                set(record["event_history"]),
+                {_address(100 + index) for index in range(writer_count)},
+            )
+            self.assertEqual(
+                set(record["dossier_history"]),
+                {_address(1_000 + index) for index in range(writer_count)},
+            )
+
+    def test_cross_process_immutable_object_race_has_one_canonical_winner(self) -> None:
+        writer_count = 8
+        context = multiprocessing.get_context("spawn")
+        with tempfile.TemporaryDirectory() as directory:
+            barrier = context.Barrier(writer_count)
+            results = context.Queue()
+            processes = tuple(
+                context.Process(
+                    target=_process_object_write,
+                    args=(directory, index, barrier, results),
+                )
+                for index in range(writer_count)
+            )
+            output = self._process_results(processes, results)
+            successes = [item for item in output if item[0] == "ok"]
+            failures = [item for item in output if item[0] == "error"]
+            self.assertTrue(successes, output)
+            self.assertTrue(failures, output)
+            stored = ObjectStore(directory).get(_address(999))
+            self.assertIn(stored, ({"winner": 0}, {"winner": 1}))
+            self.assertTrue(all(item[2] == stored for item in successes), output)
+            self.assertTrue(
+                all("immutable address" in item[2] for item in failures),
+                output,
+            )
+
+    def test_cross_process_identical_object_writes_are_idempotent(self) -> None:
+        writer_count = 4
+        context = multiprocessing.get_context("spawn")
+        with tempfile.TemporaryDirectory() as directory:
+            barrier = context.Barrier(writer_count)
+            results = context.Queue()
+            processes = tuple(
+                context.Process(
+                    target=_process_object_write,
+                    args=(directory, index, barrier, results, 7),
+                )
+                for index in range(writer_count)
+            )
+            output = self._process_results(processes, results)
+            self.assertTrue(all(item[0] == "ok" for item in output), output)
+            self.assertEqual(ObjectStore(directory).get(_address(999)), {"winner": 7})
+
+    def test_cross_process_run_reader_holds_lock_until_file_handle_closes(self) -> None:
+        context = multiprocessing.get_context("spawn")
+        with tempfile.TemporaryDirectory() as directory:
+            store = RunStore(directory)
+            store.save_run(
+                "run-reader-writer",
+                input_address=_address(1),
+                event_address=_address(10),
+                dossier_address=_address(20),
+            )
+            reader_open = context.Event()
+            release_reader = context.Event()
+            reader_results = context.Queue()
+            writer_contended = threading.Event()
+            write_started = threading.Event()
+            failures: list[BaseException] = []
+
+            from glio_noncode import storage as storage_module
+
+            original_atomic_write = storage_module._atomic_write_text
+            original_try_lock = storage_module._try_filesystem_lock
+
+            def observed_write(path: Path, text: str) -> None:
+                write_started.set()
+                original_atomic_write(path, text)
+
+            def observed_try_lock(handle: Any) -> bool:
+                acquired = original_try_lock(handle)
+                if not acquired:
+                    writer_contended.set()
+                return acquired
+
+            def write() -> None:
+                try:
+                    store.save_run(
+                        "run-reader-writer",
+                        input_address=_address(1),
+                        event_address=_address(11),
+                        dossier_address=_address(21),
+                    )
+                except BaseException as exc:  # pragma: no cover - asserted below
+                    failures.append(exc)
+
+            reader = context.Process(
+                target=_process_blocking_run_read,
+                args=(directory, reader_open, release_reader, reader_results),
+            )
+            with (
+                patch("glio_noncode.storage._atomic_write_text", observed_write),
+                patch("glio_noncode.storage._try_filesystem_lock", observed_try_lock),
+            ):
+                writer = threading.Thread(target=write)
+                reader.start()
+                self.assertTrue(reader_open.wait(timeout=5))
+                writer.start()
+                self.assertTrue(writer_contended.wait(timeout=5))
+                self.assertFalse(write_started.is_set())
+                release_reader.set()
+                reader.join(timeout=10)
+                writer.join(timeout=5)
+
+            self.assertFalse(reader.is_alive())
+            self.assertEqual(reader.exitcode, 0)
+            self.assertFalse(writer.is_alive())
+            self.assertFalse(failures)
+            self.assertTrue(write_started.is_set())
+            self.assertEqual(reader_results.get(timeout=5), ("ok", _address(10)))
+            record = store.get_run("run-reader-writer")
+            self.assertEqual(record["event_address"], _address(11))
+            self.assertEqual(record["dossier_address"], _address(21))
+
+    def test_run_identity_and_history_growth_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = RunStore(directory)
+            store.save_run(
+                "run-bounded",
+                input_address=_address(1),
+                event_address=_address(10),
+                dossier_address=_address(20),
+            )
+            with self.assertRaisesRegex(StoreError, "input_address is immutable"):
+                store.save_run(
+                    "run-bounded",
+                    input_address=_address(2),
+                    event_address=_address(11),
+                    dossier_address=_address(21),
+                )
+
+            with patch("glio_noncode.storage.MAX_RUN_HISTORY_ENTRIES", 2):
+                store.save_run(
+                    "run-bounded",
+                    input_address=_address(1),
+                    event_address=_address(11),
+                    dossier_address=_address(21),
+                )
+                with self.assertRaisesRegex(StoreError, "exceeds 2 entries"):
+                    store.save_run(
+                        "run-bounded",
+                        input_address=_address(1),
+                        event_address=_address(12),
+                        dossier_address=_address(22),
+                    )
+            self.assertEqual(MAX_RUN_HISTORY_ENTRIES, 1_000)
 
     def test_get_run_rejects_non_object_records(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

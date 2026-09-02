@@ -331,18 +331,25 @@ def _scan_objects(root: Path) -> tuple[tuple[StorageObjectAudit, ...], dict[str,
     return tuple(audits), parsed, tuple(unexpected)
 
 
-def _read_index(path: Path) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
+def _decode_index(payload: bytes) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
     warnings: list[str] = []
     try:
-        payload = path.read_bytes()
         value = json.loads(payload.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as exc:
+    except (UnicodeDecodeError, json.JSONDecodeError, TypeError) as exc:
         return None, (f"index JSON is invalid: {exc}",)
     if not isinstance(value, dict):
         return None, ("index root must be an object",)
     if canonical_json(value).encode("utf-8") != payload:
         warnings.append("index bytes are not canonical UTF-8 JSON")
     return value, tuple(warnings)
+
+
+def _read_index(path: Path) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
+    try:
+        payload = path.read_bytes()
+    except OSError as exc:
+        return None, (f"index JSON is invalid: {exc}",)
+    return _decode_index(payload)
 
 
 def _index_pointer(value: Any, field: str, warnings: list[str]) -> str | None:
@@ -363,9 +370,14 @@ def _scan_runs(runtime: CaseRuntime) -> tuple[tuple[StorageRunAudit, ...], tuple
         if path.is_symlink() or not path.is_file() or path.suffix != ".json" or not path.name.startswith("run-"):
             unexpected.append(f"runs/{path.name}")
             continue
-        raw, index_warnings = _read_index(path)
+        try:
+            payload = runtime.store._read_run_bytes(path.stem)
+        except StoreError as exc:
+            raw, index_warnings = None, (f"index JSON is invalid: {exc}",)
+        else:
+            raw, index_warnings = _decode_index(payload)
         warnings = list(index_warnings)
-        run_id = str(raw.get("run_id", "")) if raw else f"run-{path.stem}"
+        run_id = str(raw.get("run_id", "")) if raw else path.stem
         if raw is not None and run_id != path.stem:
             warnings.append("run index filename does not match run_id")
         pointers: list[str] = []
