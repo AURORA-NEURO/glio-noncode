@@ -14,6 +14,7 @@ from glio_noncode.api import create_server
 from glio_noncode.batch_runtime import BatchRuntime
 from glio_noncode.cli import main
 from glio_noncode.runtime import CaseRuntime
+from glio_noncode.serialization import canonical_json
 from glio_noncode.storage_audit import build_storage_audit
 
 from .helpers import fixture_manifest
@@ -127,6 +128,25 @@ class StorageAuditTests(unittest.TestCase):
             malformed = next(item for item in report.runs if item.filename == "run-malformed.json")
             self.assertEqual(malformed.run_id, "run-malformed")
             self.assertFalse(malformed.accepted)
+
+    def test_audit_rejects_content_addressed_batch_with_invalid_counts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime, _ = self._runtime(directory)
+            batch_runtime = BatchRuntime(runtime=runtime)
+            batch = batch_runtime.evaluate([fixture_manifest().to_dict()])
+            payload = runtime.store.store.get(batch.result_address)
+            payload["failed_count"] = 7
+            malformed_address = runtime.store.store.put(payload)
+            index_path = batch_runtime._index_path(batch.batch_id)
+            index = json.loads(index_path.read_text(encoding="utf-8"))
+            index["result_address"] = malformed_address
+            index_path.write_text(canonical_json(index), encoding="utf-8")
+
+            report = build_storage_audit(runtime)
+            self.assertFalse(report.accepted)
+            audited = next(item for item in report.batches if item.batch_id == batch.batch_id)
+            self.assertFalse(audited.reopened)
+            self.assertTrue(any("invalid batch result" in warning for warning in audited.warnings))
 
     def test_cli_and_http_surfaces_return_the_same_audit_address(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

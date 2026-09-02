@@ -11,7 +11,9 @@ result.
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, Sequence
+import re
+from collections.abc import Iterator, Mapping, Sequence
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -22,6 +24,7 @@ from .models import CaseManifest
 from .module_fabric_support import contains_private_key
 from .runtime import CaseRuntime
 from .serialization import canonical_json, content_hash, utc_now
+from .storage import _address_digest, _atomic_write_text, _filesystem_lock, _run_lock
 
 BATCH_RUNTIME_VERSION = "batch-runtime-v1"
 BATCH_DEFAULT_MAX_ITEMS = 100
@@ -29,6 +32,134 @@ BATCH_HARD_MAX_ITEMS = 1000
 BATCH_CATALOG_DEFAULT_LIMIT = 25
 BATCH_CATALOG_MAX_LIMIT = 100
 BATCH_ITEM_STATES = ("accepted", "failed")
+_BATCH_LOCK_ATTEMPTS = 20
+_BATCH_RUN_ID_RE = re.compile(r"run-[0-9a-f]{24}\Z")
+_BATCH_ITEM_FIELDS = frozenset(
+    {
+        "index",
+        "case_id",
+        "state",
+        "input_address",
+        "run_id",
+        "dossier_address",
+        "error_code",
+        "error_message",
+        "accepted",
+        "content_address",
+    }
+)
+_BATCH_RESULT_FIELDS = frozenset(
+    {
+        "batch_version",
+        "batch_id",
+        "label",
+        "input_address",
+        "created_at",
+        "requested_count",
+        "completed_count",
+        "accepted_count",
+        "failed_count",
+        "items",
+        "options",
+        "accepted",
+    }
+)
+_BATCH_OPTION_FIELDS = frozenset({"live_reference", "window_bp", "max_items"})
+_BATCH_INDEX_FIELDS = frozenset(
+    {"batch_id", "result_address", "input_address", "created_at", "accepted"}
+)
+_BATCH_INPUT_FIELDS = frozenset(
+    {"batch_id", "manifests", "live_reference", "window_bp", "max_items"}
+)
+
+
+def _require_exact_fields(
+    raw: Mapping[str, Any], expected: frozenset[str], label: str
+) -> None:
+    actual = frozenset(raw)
+    if actual != expected:
+        missing = ", ".join(sorted(expected - actual)) or "none"
+        unexpected = ", ".join(sorted(str(field) for field in actual - expected)) or "none"
+        raise ValidationError(
+            f"{label} fields are invalid (missing: {missing}; unexpected: {unexpected})"
+        )
+
+
+def _required_field(raw: Mapping[str, Any], field: str) -> Any:
+    if field not in raw:
+        raise ValidationError(f"batch payload is missing {field}")
+    return raw[field]
+
+
+def _required_string(raw: Mapping[str, Any], field: str, *, allow_empty: bool = False) -> str:
+    value = _required_field(raw, field)
+    if not isinstance(value, str) or (not allow_empty and not value.strip()):
+        raise ValidationError(f"batch {field} must be a string")
+    return value
+
+
+def _optional_string(raw: Mapping[str, Any], field: str) -> str | None:
+    value = _required_field(raw, field)
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValidationError(f"batch {field} must be a string or null")
+    return value
+
+
+def _required_integer(raw: Mapping[str, Any], field: str) -> int:
+    value = _required_field(raw, field)
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ValidationError(f"batch {field} must be an integer")
+    return value
+
+
+def _required_boolean(raw: Mapping[str, Any], field: str) -> bool:
+    value = _required_field(raw, field)
+    if not isinstance(value, bool):
+        raise ValidationError(f"batch {field} must be a boolean")
+    return value
+
+
+def _exact_integer(value: object, label: str) -> int:
+    if type(value) is not int:
+        raise ValidationError(f"{label} must be an integer")
+    return value
+
+
+def _exact_boolean(value: object, label: str) -> bool:
+    if type(value) is not bool:
+        raise ValidationError(f"{label} must be a boolean")
+    return value
+
+
+def _required_sha256_address(raw: Mapping[str, Any], field: str) -> str:
+    value = _required_string(raw, field)
+    try:
+        _address_digest(value, label=field)
+    except StoreError as exc:
+        raise ValidationError(f"batch {field} must be a valid sha256 address") from exc
+    return value
+
+
+@contextmanager
+def _batch_filesystem_lock(path: Path) -> Iterator[None]:
+    """Wait through bounded store-lock windows for a long-running batch winner."""
+
+    for attempt in range(_BATCH_LOCK_ATTEMPTS):
+        stack = ExitStack()
+        try:
+            stack.enter_context(_filesystem_lock(path))
+        except StoreError as exc:
+            stack.close()
+            is_timeout = str(exc).startswith("timed out acquiring filesystem lock:")
+            if not is_timeout or attempt + 1 == _BATCH_LOCK_ATTEMPTS:
+                raise
+            continue
+        with stack:
+            yield
+        return
+    raise StoreError(f"timed out acquiring batch filesystem lock: {path.name}")
 
 
 def _batch_digest(batch_id: str) -> str:
@@ -79,17 +210,61 @@ class BatchItemResult:
 
     @classmethod
     def from_dict(cls, raw: Mapping[str, Any]) -> BatchItemResult:
-        return cls(
-            index=int(raw.get("index", 0)),
-            case_id=str(raw.get("case_id", "")),
-            state=str(raw.get("state", "failed")),
-            input_address=str(raw["input_address"]) if raw.get("input_address") else None,
-            run_id=str(raw["run_id"]) if raw.get("run_id") else None,
-            dossier_address=str(raw["dossier_address"]) if raw.get("dossier_address") else None,
-            error_code=str(raw["error_code"]) if raw.get("error_code") else None,
-            error_message=str(raw["error_message"]) if raw.get("error_message") else None,
-            content_address=str(raw.get("content_address", "")),
-        )
+        _require_exact_fields(raw, _BATCH_ITEM_FIELDS, "batch item")
+        index = _required_integer(raw, "index")
+        case_id = _required_string(raw, "case_id", allow_empty=True)
+        state = _required_string(raw, "state")
+        input_address = _optional_string(raw, "input_address")
+        run_id = _optional_string(raw, "run_id")
+        dossier_address = _optional_string(raw, "dossier_address")
+        error_code = _optional_string(raw, "error_code")
+        error_message = _optional_string(raw, "error_message")
+        serialized_accepted = _required_boolean(raw, "accepted")
+        serialized_address = _required_string(raw, "content_address")
+        if index < 0:
+            raise ValidationError("batch item index must be non-negative")
+        if state not in BATCH_ITEM_STATES:
+            raise ValidationError("batch item state is invalid")
+        if input_address is None:
+            raise ValidationError("batch item input_address must not be null")
+        try:
+            _address_digest(input_address, label="batch item input_address")
+        except StoreError as exc:
+            raise ValidationError(
+                "batch item input_address must be a valid sha256 address"
+            ) from exc
+        if state == "accepted":
+            if not run_id or not _BATCH_RUN_ID_RE.fullmatch(run_id) or dossier_address is None:
+                raise ValidationError("accepted batch item must retain run and dossier addresses")
+            try:
+                _address_digest(dossier_address, label="batch item dossier_address")
+            except StoreError as exc:
+                raise ValidationError(
+                    "batch item dossier_address must be a valid sha256 address"
+                ) from exc
+            if error_code is not None or error_message is not None:
+                raise ValidationError("accepted batch item must not retain error fields")
+        elif run_id is not None or dossier_address is not None:
+            raise ValidationError("failed batch item must not retain run or dossier addresses")
+        elif not error_code or not error_message:
+            raise ValidationError("failed batch item must retain error fields")
+        body = {
+            "index": index,
+            "case_id": case_id,
+            "state": state,
+            "input_address": input_address,
+            "run_id": run_id,
+            "dossier_address": dossier_address,
+            "error_code": error_code,
+            "error_message": error_message,
+        }
+        expected_address = content_hash(body, prefix="batch-item")
+        if serialized_address != expected_address:
+            raise ValidationError("batch item content address does not match its fields")
+        item = cls(**body, content_address=serialized_address)
+        if serialized_accepted != item.accepted:
+            raise ValidationError("batch item accepted state does not match its fields")
+        return item
 
 
 @dataclass(frozen=True, slots=True)
@@ -140,26 +315,88 @@ class BatchResult:
 
     @classmethod
     def from_payload(cls, raw: Mapping[str, Any], *, result_address: str) -> BatchResult:
-        items = tuple(
-            BatchItemResult.from_dict(item)
-            for item in raw.get("items", ())
-            if isinstance(item, Mapping)
-        )
-        return cls(
-            batch_id=str(raw.get("batch_id", "")),
-            label=str(raw["label"]) if raw.get("label") else None,
-            input_address=str(raw.get("input_address", "")),
+        _require_exact_fields(raw, _BATCH_RESULT_FIELDS, "batch result")
+        if _required_string(raw, "batch_version") != BATCH_RUNTIME_VERSION:
+            raise ValidationError("batch result version is invalid")
+        batch_id = _required_string(raw, "batch_id")
+        try:
+            batch_digest = _batch_digest(batch_id)
+        except StoreError as exc:
+            raise ValidationError("batch result identifier is invalid") from exc
+        label = _optional_string(raw, "label")
+        input_address = _required_sha256_address(raw, "input_address")
+        try:
+            result_digest = _address_digest(result_address, label="result_address")
+        except StoreError as exc:
+            raise ValidationError("batch result_address must be a valid sha256 address") from exc
+        if batch_digest != _address_digest(input_address, label="input_address"):
+            raise ValidationError("batch result identifier does not match its input address")
+        if content_hash(raw) != f"sha256:{result_digest}":
+            raise ValidationError("batch result content address does not match its payload")
+        created_at = _required_string(raw, "created_at")
+        requested_count = _required_integer(raw, "requested_count")
+        completed_count = _required_integer(raw, "completed_count")
+        accepted_count = _required_integer(raw, "accepted_count")
+        failed_count = _required_integer(raw, "failed_count")
+        accepted = _required_boolean(raw, "accepted")
+        items_raw = _required_field(raw, "items")
+        if not isinstance(items_raw, Sequence) or isinstance(items_raw, (str, bytes, bytearray)):
+            raise ValidationError("batch items must be an array")
+        hydrated_items: list[BatchItemResult] = []
+        for item in items_raw:
+            if not isinstance(item, Mapping):
+                raise ValidationError("batch items must contain only objects")
+            hydrated_items.append(BatchItemResult.from_dict(item))
+        items = tuple(hydrated_items)
+        options_raw = _required_field(raw, "options")
+        if not isinstance(options_raw, Mapping):
+            raise ValidationError("batch options must be an object")
+        _require_exact_fields(options_raw, _BATCH_OPTION_FIELDS, "batch options")
+        options = dict(options_raw)
+        live_reference = _required_boolean(options, "live_reference")
+        window_bp = _required_integer(options, "window_bp")
+        max_items = _required_integer(options, "max_items")
+        if requested_count < 1 or requested_count > BATCH_HARD_MAX_ITEMS:
+            raise ValidationError("batch requested_count is outside the supported bounds")
+        if completed_count != requested_count or len(items) != requested_count:
+            raise ValidationError("batch item and completion counts do not match requested_count")
+        if tuple(item.index for item in items) != tuple(range(requested_count)):
+            raise ValidationError("batch item indexes must be contiguous and ordered")
+        observed_accepted = sum(item.accepted for item in items)
+        observed_failed = len(items) - observed_accepted
+        if accepted_count != observed_accepted or failed_count != observed_failed:
+            raise ValidationError("batch accepted and failed counts do not match its items")
+        if accepted_count + failed_count != completed_count:
+            raise ValidationError("batch result counts are not conserved")
+        if accepted != (accepted_count == requested_count):
+            raise ValidationError("batch accepted state does not match its item counts")
+        if window_bp < 0:
+            raise ValidationError("batch window_bp must be non-negative")
+        if max_items < 1 or max_items > BATCH_HARD_MAX_ITEMS or requested_count > max_items:
+            raise ValidationError("batch max_items is inconsistent with requested_count")
+        result = cls(
+            batch_id=batch_id,
+            label=label,
+            input_address=input_address,
             result_address=result_address,
-            created_at=str(raw.get("created_at", "")),
-            requested_count=int(raw.get("requested_count", len(items))),
-            completed_count=int(raw.get("completed_count", 0)),
-            accepted_count=int(raw.get("accepted_count", 0)),
-            failed_count=int(raw.get("failed_count", 0)),
+            created_at=created_at,
+            requested_count=requested_count,
+            completed_count=completed_count,
+            accepted_count=accepted_count,
+            failed_count=failed_count,
             items=items,
-            options=dict(raw.get("options", {})),
-            accepted=bool(raw.get("accepted", False)),
+            options={
+                **options,
+                "live_reference": live_reference,
+                "window_bp": window_bp,
+                "max_items": max_items,
+            },
+            accepted=accepted,
             content_address=result_address,
         )
+        if content_hash(result._payload()) != result_address:
+            raise ValidationError("hydrated batch result does not match its content address")
+        return result
 
 
 @dataclass(frozen=True, slots=True)
@@ -220,6 +457,15 @@ class BatchCatalogPage:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class _BatchIndex:
+    batch_id: str
+    result_address: str
+    input_address: str
+    created_at: str
+    accepted: bool
+
+
 def _item(
     *,
     index: int,
@@ -262,9 +508,142 @@ class BatchRuntime:
         self.runtime = runtime or CaseRuntime(data_root)
         self.root = Path(self.runtime.store.root) / "batches"
         self.root.mkdir(parents=True, exist_ok=True)
+        self._locks = Path(self.runtime.store.root) / ".locks" / "batches"
+        self._locks.mkdir(parents=True, exist_ok=True)
 
     def _index_path(self, batch_id: str) -> Path:
         return self.root / f"{_batch_digest(batch_id)}.json"
+
+    def _lock_path(self, batch_id: str) -> Path:
+        return self._locks / f"{_batch_digest(batch_id)}.lock"
+
+    @staticmethod
+    def _read_index_unlocked(path: Path, batch_id: str) -> _BatchIndex:
+        if not path.exists():
+            raise StoreError("batch not found")
+        try:
+            payload = path.read_bytes()
+        except OSError as exc:
+            raise StoreError("batch index could not be read") from exc
+        try:
+            raw = json.loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise StoreError("invalid batch index") from exc
+        if not isinstance(raw, Mapping):
+            raise StoreError("invalid batch index")
+        try:
+            if canonical_json(raw).encode("utf-8") != payload:
+                raise ValidationError("batch index must use canonical UTF-8 JSON")
+            _require_exact_fields(raw, _BATCH_INDEX_FIELDS, "batch index")
+            stored_batch_id = _required_string(raw, "batch_id")
+            result_address = _required_sha256_address(raw, "result_address")
+            input_address = _required_sha256_address(raw, "input_address")
+            created_at = _required_string(raw, "created_at")
+            accepted = _required_boolean(raw, "accepted")
+            input_digest = _address_digest(input_address, label="input_address")
+            if stored_batch_id != batch_id:
+                raise ValidationError("batch index identifier does not match its filename")
+            if _batch_digest(stored_batch_id) != input_digest:
+                raise ValidationError("batch index identifier does not match its input address")
+        except (StoreError, ValidationError) as exc:
+            raise StoreError("invalid batch index") from exc
+        return _BatchIndex(
+            batch_id=stored_batch_id,
+            result_address=result_address,
+            input_address=input_address,
+            created_at=created_at,
+            accepted=accepted,
+        )
+
+    def _get_unlocked(self, batch_id: str, path: Path) -> BatchResult:
+        index = self._read_index_unlocked(path, batch_id)
+        try:
+            input_payload = self.runtime.store.store.get(index.input_address)
+        except (OSError, UnicodeError) as exc:
+            raise StoreError("batch input object could not be read") from exc
+        if (
+            not isinstance(input_payload, Mapping)
+            or content_hash(input_payload) != index.input_address
+        ):
+            raise StoreError("batch input address mismatch")
+        try:
+            _require_exact_fields(input_payload, _BATCH_INPUT_FIELDS, "batch input")
+        except ValidationError as exc:
+            raise StoreError("invalid batch input payload") from exc
+        try:
+            payload = self.runtime.store.store.get(index.result_address)
+        except (OSError, UnicodeError) as exc:
+            raise StoreError("batch result object could not be read") from exc
+        if not isinstance(payload, Mapping) or content_hash(payload) != index.result_address:
+            raise StoreError("batch result address mismatch")
+        try:
+            result = BatchResult.from_payload(payload, result_address=index.result_address)
+        except ValidationError as exc:
+            raise StoreError("invalid batch result") from exc
+        if result.batch_id != batch_id:
+            raise StoreError("batch result identifier mismatch")
+        if result.input_address != index.input_address:
+            raise StoreError("batch input pointer mismatch")
+        if result.created_at != index.created_at:
+            raise StoreError("batch index created_at does not match its result")
+        if result.accepted != index.accepted:
+            raise StoreError("batch index accepted state does not match its result")
+        manifests = input_payload.get("manifests")
+        if not isinstance(manifests, Sequence) or isinstance(manifests, (str, bytes, bytearray)):
+            raise StoreError("invalid batch input payload")
+        if len(manifests) != result.requested_count:
+            raise StoreError("batch input manifest count mismatch")
+        if input_payload.get("batch_id") != result.label:
+            raise StoreError("batch input label mismatch")
+        for field in ("live_reference", "window_bp", "max_items"):
+            if input_payload.get(field) != result.options[field]:
+                raise StoreError(f"batch input {field} mismatch")
+        for item, raw_manifest in zip(result.items, manifests, strict=True):
+            item_input = {
+                "batch_id": batch_id,
+                "index": item.index,
+                "manifest": raw_manifest,
+            }
+            expected_item_address = content_hash(item_input)
+            if item.input_address != expected_item_address:
+                raise StoreError("batch item input pointer mismatch")
+            try:
+                stored_item_input = self.runtime.store.store.get(expected_item_address)
+            except (OSError, UnicodeError) as exc:
+                raise StoreError("batch item input object could not be read") from exc
+            if stored_item_input != item_input:
+                raise StoreError("batch item input object mismatch")
+            if not item.accepted:
+                if item.case_id != _case_id(raw_manifest):
+                    raise StoreError("failed batch item case_id mismatch")
+                continue
+            if not isinstance(raw_manifest, Mapping):
+                raise StoreError("accepted batch item manifest must be an object")
+            try:
+                manifest = CaseManifest.from_dict(raw_manifest)
+                run_record = self.runtime.get_run(item.run_id or "")
+                dossier = self.runtime.get_dossier(item.dossier_address or "")
+            except (GlioError, OSError, KeyError, TypeError, ValueError) as exc:
+                raise StoreError("accepted batch item closure could not be reopened") from exc
+            dossier_body = (
+                {key: value for key, value in dossier.items() if key != "content_address"}
+                if isinstance(dossier, Mapping)
+                else {}
+            )
+            if (
+                item.case_id != manifest.case_id
+                or item.run_id != CaseRuntime._run_id(manifest)
+                or run_record.get("run_id") != item.run_id
+                or run_record.get("input_address") != manifest.content_address
+                or not isinstance(dossier, Mapping)
+                or dossier.get("content_address") != item.dossier_address
+                or content_hash(dossier_body) != item.dossier_address
+                or dossier.get("run_id") != item.run_id
+                or dossier.get("case_id") != item.case_id
+                or dossier.get("input_address") != manifest.content_address
+            ):
+                raise StoreError("accepted batch item run closure mismatch")
+        return result
 
     @staticmethod
     def _document_parts(
@@ -274,23 +653,33 @@ class BatchRuntime:
         window_bp: int,
         max_items: int,
     ) -> tuple[str | None, tuple[Any, ...], bool, int, int]:
+        effective_live_reference = _exact_boolean(live_reference, "live_reference")
+        effective_window_bp = _exact_integer(window_bp, "window_bp")
+        effective_max_items = _exact_integer(max_items, "max_items")
         if isinstance(document, Mapping):
-            label = str(document.get("batch_id", document.get("label", ""))).strip() or None
+            if "batch_id" in document and "label" in document:
+                raise ValidationError("batch input must use batch_id or label, not both")
+            raw_label = document.get("batch_id", document.get("label"))
+            if raw_label is not None and not isinstance(raw_label, str):
+                raise ValidationError("batch_id must be a string or null")
+            label = None if raw_label is None else raw_label.strip() or None
             if "manifests" in document:
                 raw_rows = document.get("manifests", ())
             elif "case_id" in document and "variants" in document:
                 raw_rows = (document,)
             else:
                 raise ValidationError("batch input must contain manifests or one case manifest")
-            effective_live_reference = bool(document.get("live_reference", live_reference))
-            effective_window_bp = int(document.get("window_bp", window_bp))
-            effective_max_items = int(document.get("max_items", max_items))
+            if "live_reference" in document:
+                effective_live_reference = _exact_boolean(
+                    document["live_reference"], "live_reference"
+                )
+            if "window_bp" in document:
+                effective_window_bp = _exact_integer(document["window_bp"], "window_bp")
+            if "max_items" in document:
+                effective_max_items = _exact_integer(document["max_items"], "max_items")
         elif isinstance(document, Sequence) and not isinstance(document, (str, bytes, bytearray)):
             label = None
             raw_rows = document
-            effective_live_reference = live_reference
-            effective_window_bp = window_bp
-            effective_max_items = max_items
         else:
             raise ValidationError("batch input must be an object with manifests or a manifest list")
         if not isinstance(raw_rows, Sequence) or isinstance(raw_rows, (str, bytes, bytearray)):
@@ -303,39 +692,23 @@ class BatchRuntime:
         if not rows:
             raise ValidationError("batch manifests must not be empty")
         if len(rows) > effective_max_items:
-            raise ValidationError(f"batch contains {len(rows)} items but max_items is {effective_max_items}")
+            raise ValidationError(
+                f"batch contains {len(rows)} items but max_items is {effective_max_items}"
+            )
         return label, rows, effective_live_reference, effective_window_bp, effective_max_items
 
-    def evaluate(
+    def _evaluate_new(
         self,
-        document: Mapping[str, Any] | Sequence[Any],
         *,
-        live_reference: bool = False,
-        window_bp: int = 2_000,
-        max_items: int = BATCH_DEFAULT_MAX_ITEMS,
+        label: str | None,
+        rows: tuple[Any, ...],
+        effective_live: bool,
+        effective_window: int,
+        effective_max: int,
+        input_address: str,
+        batch_id: str,
+        index_path: Path,
     ) -> BatchResult:
-        """Evaluate every item independently and persist one batch closure."""
-
-        label, rows, effective_live, effective_window, effective_max = self._document_parts(
-            document,
-            live_reference=live_reference,
-            window_bp=window_bp,
-            max_items=max_items,
-        )
-        if label:
-            self.runtime.policy.enforce_texts((label,))
-        raw_document = {
-            "batch_id": label,
-            "manifests": list(rows),
-            "live_reference": effective_live,
-            "window_bp": effective_window,
-            "max_items": effective_max,
-        }
-        input_address = self.runtime.store.store.put(raw_document)
-        batch_id = f"batch-{input_address.split(':', 1)[1]}"
-        index_path = self._index_path(batch_id)
-        if index_path.exists():
-            return self.get(batch_id)
         if effective_live:
             self.runtime.reference_retriever = PublicReferenceRetriever(
                 cache_root=Path(self.runtime.store.root) / "source-cache",
@@ -436,37 +809,59 @@ class BatchRuntime:
             "created_at": final.created_at,
             "accepted": final.accepted,
         }
-        temporary = index_path.with_suffix(".tmp")
-        temporary.write_text(canonical_json(index_record), encoding="utf-8")
-        temporary.replace(index_path)
+        _atomic_write_text(index_path, canonical_json(index_record))
         return final
+
+    def evaluate(
+        self,
+        document: Mapping[str, Any] | Sequence[Any],
+        *,
+        live_reference: bool = False,
+        window_bp: int = 2_000,
+        max_items: int = BATCH_DEFAULT_MAX_ITEMS,
+    ) -> BatchResult:
+        """Evaluate every item independently and persist one batch closure."""
+
+        label, rows, effective_live, effective_window, effective_max = self._document_parts(
+            document,
+            live_reference=live_reference,
+            window_bp=window_bp,
+            max_items=max_items,
+        )
+        if label:
+            self.runtime.policy.enforce_texts((label,))
+        raw_document = {
+            "batch_id": label,
+            "manifests": list(rows),
+            "live_reference": effective_live,
+            "window_bp": effective_window,
+            "max_items": effective_max,
+        }
+        input_address = self.runtime.store.store.put(raw_document)
+        batch_id = f"batch-{input_address.split(':', 1)[1]}"
+        index_path = self._index_path(batch_id)
+        process_lock = _run_lock(index_path)
+        with process_lock, _batch_filesystem_lock(self._lock_path(batch_id)):
+            if index_path.exists():
+                return self._get_unlocked(batch_id, index_path)
+            return self._evaluate_new(
+                label=label,
+                rows=rows,
+                effective_live=effective_live,
+                effective_window=effective_window,
+                effective_max=effective_max,
+                input_address=input_address,
+                batch_id=batch_id,
+                index_path=index_path,
+            )
 
     def get(self, batch_id: str) -> BatchResult:
         """Reopen and verify one persisted batch result."""
 
         path = self._index_path(batch_id)
-        if not path.exists():
-            raise StoreError("batch not found")
-        try:
-            index = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            raise StoreError("invalid batch index") from exc
-        if not isinstance(index, Mapping) or str(index.get("batch_id", "")) != batch_id:
-            raise StoreError("batch index identifier mismatch")
-        input_address = str(index.get("input_address", ""))
-        input_payload = self.runtime.store.store.get(input_address)
-        if content_hash(input_payload) != input_address:
-            raise StoreError("batch input address mismatch")
-        result_address = str(index.get("result_address", ""))
-        payload = self.runtime.store.store.get(result_address)
-        if not isinstance(payload, Mapping) or content_hash(payload) != result_address:
-            raise StoreError("batch result address mismatch")
-        result = BatchResult.from_payload(payload, result_address=result_address)
-        if result.batch_id != batch_id:
-            raise StoreError("batch result identifier mismatch")
-        if result.input_address != input_address:
-            raise StoreError("batch input pointer mismatch")
-        return result
+        process_lock = _run_lock(path)
+        with process_lock, _batch_filesystem_lock(self._lock_path(batch_id)):
+            return self._get_unlocked(batch_id, path)
 
     def catalog(
         self,
@@ -543,7 +938,9 @@ class BatchRuntime:
             limit=limit,
             has_more=body["has_more"],
             accepted=accepted,
-            content_address=content_hash(body | {"accepted": accepted}, prefix="batch-catalog-page"),
+            content_address=content_hash(
+                body | {"accepted": accepted}, prefix="batch-catalog-page"
+            ),
         )
 
 

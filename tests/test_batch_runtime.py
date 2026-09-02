@@ -3,31 +3,88 @@
 from __future__ import annotations
 
 import json
+import multiprocessing
 import tempfile
 import unittest
 from dataclasses import replace
 from http.client import HTTPConnection
 from pathlib import Path
+from queue import Empty
 from threading import Thread
+from typing import Any
 
 from glio_noncode.api import create_server
 from glio_noncode.batch_runtime import (
     BATCH_CATALOG_MAX_LIMIT,
     BATCH_HARD_MAX_ITEMS,
+    BATCH_RUNTIME_VERSION,
+    BatchResult,
     BatchRuntime,
 )
 from glio_noncode.cli import main
 from glio_noncode.errors import StoreError, ValidationError
 from glio_noncode.runtime import CaseRuntime
+from glio_noncode.serialization import canonical_json, content_hash
+from glio_noncode.storage import _filesystem_lock
 
 from .helpers import fixture_manifest
+
+
+def _process_batch_evaluate(
+    root: str,
+    document: dict[str, object],
+    index: int,
+    start: Any,
+    ready: Any,
+    results: Any,
+) -> None:
+    try:
+        ready.put(index)
+        if not start.wait(timeout=20):
+            raise TimeoutError("batch race start was not released")
+        result = BatchRuntime(root).evaluate(document)
+        results.put(
+            (
+                "ok",
+                index,
+                result.batch_id,
+                result.result_address,
+                result.created_at,
+            )
+        )
+    except BaseException as exc:  # pragma: no cover - parent asserts serialized failure
+        results.put(("error", index, type(exc).__name__, str(exc)))
 
 
 class BatchRuntimeTests(unittest.TestCase):
     def _document(self) -> dict[str, object]:
         first = fixture_manifest().to_dict()
-        second = replace(fixture_manifest(), case_id="batch-case-002", requested_by="batch-user-2").to_dict()
+        second = replace(
+            fixture_manifest(), case_id="batch-case-002", requested_by="batch-user-2"
+        ).to_dict()
         return {"batch_id": "batch-fixture", "manifests": [first, second]}
+
+    def _process_results(self, processes: tuple[Any, ...], results: Any) -> list[Any]:
+        for process in processes:
+            process.join(timeout=60)
+        try:
+            self.assertFalse(
+                [process.pid for process in processes if process.is_alive()],
+                "batch evaluator process did not terminate",
+            )
+            self.assertTrue(all(process.exitcode == 0 for process in processes))
+            output = []
+            for _ in processes:
+                try:
+                    output.append(results.get(timeout=5))
+                except Empty as exc:  # pragma: no cover - assertion exposes process state
+                    self.fail(f"batch evaluator did not report a result: {exc}")
+            return output
+        finally:
+            for process in processes:
+                if process.is_alive():
+                    process.terminate()
+                    process.join(timeout=5)
 
     def test_batch_evaluates_items_and_reopens_durably(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -84,6 +141,190 @@ class BatchRuntimeTests(unittest.TestCase):
             self.assertEqual(duplicate_result.items[1].error_code, "validation_error")
             self.assertIn("duplicate case_id", duplicate_result.items[1].error_message or "")
 
+    def test_cross_process_identical_batch_has_one_reopenable_winner(self) -> None:
+        writer_count = 4
+        context = multiprocessing.get_context("spawn")
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = BatchRuntime(directory)
+            document = self._document()
+            raw_document = {
+                "batch_id": "batch-fixture",
+                "manifests": document["manifests"],
+                "live_reference": False,
+                "window_bp": 2_000,
+                "max_items": 100,
+            }
+            input_address = content_hash(raw_document)
+            batch_id = f"batch-{input_address.split(':', 1)[1]}"
+            start = context.Event()
+            ready = context.Queue()
+            results = context.Queue()
+            processes = tuple(
+                context.Process(
+                    target=_process_batch_evaluate,
+                    args=(directory, document, index, start, ready, results),
+                )
+                for index in range(writer_count)
+            )
+            with _filesystem_lock(runtime._lock_path(batch_id)):
+                for process in processes:
+                    process.start()
+                ready_indexes = {ready.get(timeout=20) for _ in processes}
+                self.assertEqual(ready_indexes, set(range(writer_count)))
+                start.set()
+
+            output = self._process_results(processes, results)
+            self.assertTrue(all(item[0] == "ok" for item in output), output)
+            addresses = {item[3] for item in output}
+            created_values = {item[4] for item in output}
+            self.assertEqual(len(addresses), 1)
+            self.assertEqual(len(created_values), 1)
+            reopened = runtime.get(batch_id)
+            self.assertEqual(reopened.result_address, next(iter(addresses)))
+            self.assertEqual(reopened.created_at, next(iter(created_values)))
+            batch_payloads = []
+            for path in runtime.runtime.store.store.objects.glob("*.json"):
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                if (
+                    isinstance(payload, dict)
+                    and payload.get("batch_version") == BATCH_RUNTIME_VERSION
+                    and payload.get("batch_id") == batch_id
+                ):
+                    batch_payloads.append(payload)
+            self.assertEqual(len(batch_payloads), 1)
+            self.assertFalse(tuple(runtime.root.glob("*.tmp")))
+
+    def test_strict_hydration_rejects_malformed_index_and_result_payloads(self) -> None:
+        def move_first_item(payload: dict[str, Any]) -> None:
+            item = payload["items"][0]
+            item["index"] = 9
+            body = {
+                field: item[field]
+                for field in (
+                    "index",
+                    "case_id",
+                    "state",
+                    "input_address",
+                    "run_id",
+                    "dossier_address",
+                    "error_code",
+                    "error_message",
+                )
+            }
+            item["content_address"] = content_hash(body, prefix="batch-item")
+
+        mutations = {
+            "version": lambda payload: payload.__setitem__("batch_version", "wrong"),
+            "counts": lambda payload: payload.__setitem__("completed_count", -1),
+            "unknown-result-field": lambda payload: payload.__setitem__("unexpected", True),
+            "unknown-option-field": lambda payload: payload["options"].__setitem__(
+                "unexpected", True
+            ),
+            "unknown-item-field": lambda payload: payload["items"][0].__setitem__(
+                "unexpected", True
+            ),
+            "item-index": move_first_item,
+            "item-address": lambda payload: payload["items"][0].__setitem__(
+                "content_address", "batch-item:" + "0" * 64
+            ),
+        }
+        for label, mutate in mutations.items():
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as directory:
+                runtime = BatchRuntime(directory)
+                result = runtime.evaluate(self._document())
+                payload = runtime.runtime.store.store.get(result.result_address)
+                mutate(payload)
+                malformed_address = runtime.runtime.store.store.put(payload)
+                index_path = runtime._index_path(result.batch_id)
+                index = json.loads(index_path.read_text(encoding="utf-8"))
+                index["result_address"] = malformed_address
+                index_path.write_text(canonical_json(index), encoding="utf-8")
+                with self.assertRaisesRegex(StoreError, "invalid batch result"):
+                    runtime.get(result.batch_id)
+                with self.assertRaises(ValidationError):
+                    BatchResult.from_payload(payload, result_address=malformed_address)
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = BatchRuntime(directory)
+            document = self._document()
+            result = runtime.evaluate(document)
+            index_path = runtime._index_path(result.batch_id)
+            index = json.loads(index_path.read_text(encoding="utf-8"))
+            index["input_address"] = runtime.runtime.store.store.put({"foreign": True})
+            index_path.write_text(canonical_json(index), encoding="utf-8")
+            with self.assertRaisesRegex(StoreError, "invalid batch index"):
+                runtime.get(result.batch_id)
+            index["input_address"] = result.input_address
+            index["accepted"] = not result.accepted
+            index_path.write_text(canonical_json(index), encoding="utf-8")
+            with self.assertRaisesRegex(StoreError, "accepted state"):
+                runtime.get(result.batch_id)
+            index["accepted"] = result.accepted
+            index["unexpected"] = True
+            index_path.write_text(canonical_json(index), encoding="utf-8")
+            with self.assertRaisesRegex(StoreError, "invalid batch index"):
+                runtime.get(result.batch_id)
+            index_path.write_bytes(b"\xff")
+            with self.assertRaisesRegex(StoreError, "invalid batch index"):
+                runtime.get(result.batch_id)
+            with self.assertRaisesRegex(StoreError, "invalid batch index"):
+                runtime.evaluate(document)
+
+    def test_reopen_closes_item_inputs_and_historical_run_dossiers(self) -> None:
+        def publish_mutation(
+            runtime: BatchRuntime,
+            result: Any,
+            mutate: Any,
+        ) -> None:
+            payload = runtime.runtime.store.store.get(result.result_address)
+            mutate(payload)
+            item = payload["items"][0]
+            body = {
+                field: item[field]
+                for field in (
+                    "index",
+                    "case_id",
+                    "state",
+                    "input_address",
+                    "run_id",
+                    "dossier_address",
+                    "error_code",
+                    "error_message",
+                )
+            }
+            item["content_address"] = content_hash(body, prefix="batch-item")
+            result_address = runtime.runtime.store.store.put(payload)
+            index_path = runtime._index_path(result.batch_id)
+            index = json.loads(index_path.read_text(encoding="utf-8"))
+            index["result_address"] = result_address
+            index_path.write_text(canonical_json(index), encoding="utf-8")
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = BatchRuntime(directory)
+            result = runtime.evaluate(self._document())
+            publish_mutation(
+                runtime,
+                result,
+                lambda payload: payload["items"][0].__setitem__(
+                    "input_address", payload["items"][1]["input_address"]
+                ),
+            )
+            with self.assertRaisesRegex(StoreError, "item input pointer"):
+                runtime.get(result.batch_id)
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = BatchRuntime(directory)
+            result = runtime.evaluate(self._document())
+            publish_mutation(
+                runtime,
+                result,
+                lambda payload: payload["items"][0].__setitem__(
+                    "dossier_address", payload["items"][1]["dossier_address"]
+                ),
+            )
+            with self.assertRaisesRegex(StoreError, "run closure"):
+                runtime.get(result.batch_id)
+
     def test_partial_manifest_failure_preserves_successful_run(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime = BatchRuntime(directory)
@@ -102,12 +343,14 @@ class BatchRuntimeTests(unittest.TestCase):
             self.assertEqual(result.items[1].error_code, "validation_error")
             self.assertTrue(result.items[0].run_id)
             self.assertTrue(CaseRuntime(directory).get_run(result.items[0].run_id or ""))
+            self.assertEqual(runtime.get(result.batch_id).to_dict(), result.to_dict())
 
     def test_catalog_and_result_verification_fail_closed_on_tampering(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime = BatchRuntime(directory)
             result = runtime.evaluate(self._document())
-            result_path = runtime.runtime.store.store.objects / f"{result.result_address.split(':', 1)[1]}.json"
+            result_digest = result.result_address.split(":", 1)[1]
+            result_path = runtime.runtime.store.store.objects / f"{result_digest}.json"
             result_path.write_text(json.dumps({"tampered": True}), encoding="utf-8")
             with self.assertRaises(StoreError):
                 runtime.get(result.batch_id)
@@ -125,11 +368,36 @@ class BatchRuntimeTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 runtime.evaluate({"manifests": [fixture_manifest().to_dict()], "max_items": 0})
             with self.assertRaises(ValidationError):
-                runtime.evaluate({"manifests": [fixture_manifest().to_dict()], "max_items": BATCH_HARD_MAX_ITEMS + 1})
+                runtime.evaluate(
+                    {
+                        "manifests": [fixture_manifest().to_dict()],
+                        "max_items": BATCH_HARD_MAX_ITEMS + 1,
+                    }
+                )
             with self.assertRaises(ValidationError):
                 runtime.catalog(limit=BATCH_CATALOG_MAX_LIMIT + 1)
             with self.assertRaises(ValidationError):
                 runtime.catalog(offset=-1)
+            invalid_documents = (
+                {"manifests": [fixture_manifest().to_dict()], "live_reference": "false"},
+                {"manifests": [fixture_manifest().to_dict()], "window_bp": "2000"},
+                {"manifests": [fixture_manifest().to_dict()], "max_items": True},
+                {"batch_id": 7, "manifests": [fixture_manifest().to_dict()]},
+                {
+                    "batch_id": "one",
+                    "label": "two",
+                    "manifests": [fixture_manifest().to_dict()],
+                },
+            )
+            for document in invalid_documents:
+                with self.subTest(document=document), self.assertRaises(ValidationError):
+                    runtime.evaluate(document)  # type: ignore[arg-type]
+            with self.assertRaises(ValidationError):
+                runtime.evaluate([fixture_manifest().to_dict()], live_reference=1)  # type: ignore[arg-type]
+            with self.assertRaises(ValidationError):
+                runtime.evaluate([fixture_manifest().to_dict()], window_bp=True)
+            with self.assertRaises(ValidationError):
+                runtime.evaluate([fixture_manifest().to_dict()], max_items="100")  # type: ignore[arg-type]
 
     def test_cli_and_http_batch_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -178,7 +446,8 @@ class BatchRuntimeTests(unittest.TestCase):
                 ),
                 0,
             )
-            self.assertEqual(json.loads(inspect_path.read_text(encoding="utf-8"))["batch_id"], result["batch_id"])
+            inspected = json.loads(inspect_path.read_text(encoding="utf-8"))
+            self.assertEqual(inspected["batch_id"], result["batch_id"])
             self.assertTrue(json.loads(catalog_path.read_text(encoding="utf-8"))["accepted"])
 
             server = create_server("127.0.0.1", 0, directory)
