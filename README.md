@@ -28,6 +28,43 @@ glio-noncode references
 glio-noncode capabilities
 ```
 
+### Case and expression workflow
+
+The focused `case` and `expression` surfaces cover deterministic case preparation,
+matched RNA analysis, native claim derivation, and replay-verified execution. Discover
+commands without constructing the larger compatibility parser:
+
+```powershell
+glio-noncode --help
+glio-noncode commands search expression
+glio-noncode commands show case
+```
+
+Run the dependency-free synthetic walkthrough, or use the same file-based stages
+directly:
+
+```powershell
+python examples/case_expression_workflow_demo.py --temporary-data-root
+glio-noncode case prepare --request case-request.json --output prepared.json
+glio-noncode expression outlier --target expression-target.json --references expression-references.json --expected-direction gain --output expression-result.json
+glio-noncode expression allelic --input allelic-observation.json --expected-direction gain --output allelic-result.json
+glio-noncode expression integrate --prediction prediction.json --expression-result expression-result.json --allelic-result allelic-result.json --output rna-consequence.json
+glio-noncode expression claim --evidence rna-consequence.json --target element-gene-target.json --output matched-rna-claim.json
+python -c "import json; p=json.load(open('rna-consequence.json', encoding='utf-8')); json.dump([p], open('rna-consequences.json', 'w', encoding='utf-8'), indent=2)"
+glio-noncode case run --prepared prepared.json --rna-consequences rna-consequences.json --data-root .glio-case-expression --output run-result.json
+```
+
+`rna-consequences.json` is a bare JSON array. A matched consequence yields a
+deterministic `matched_rna_consequence` claim on the exact element→gene edge and
+supports the corresponding causal-path aggregate; evidence strength is not a
+probability. See the [case and expression workflow](docs/CASE_EXPRESSION_WORKFLOW.md)
+for exact Python, CLI, and HTTP request shapes, identity and provenance semantics,
+fail-closed gates, privacy boundaries, and a reproducible walkthrough.
+
+Package-root exports resolve lazily, and help, version, discovery, `case`, and
+`expression` stay on focused startup paths. Selecting an older command remains
+compatible and intentionally opts into the complete legacy command surface.
+
 To inspect a downloaded ZIP as bounded data, with explicit member selection,
 lineage, replay, audits, queries, and snapshot diffs, run
 `python examples/downloaded_data_ingestion_demo.py` against the downloaded
