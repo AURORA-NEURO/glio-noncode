@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from glio_noncode.case_workflow import (
+    MAX_CASE_RNA_CONSEQUENCES,
     CaseRunResult,
     RegulatoryTrackSource,
     VariantSource,
@@ -267,9 +268,14 @@ class CaseExpressionWorkflowTests(unittest.TestCase):
         advertised = capabilities()
         rna_schema = schema["$defs"]["rna_consequence_execution_input"]
         self.assertEqual(rna_schema["type"], "array")
+        self.assertEqual(rna_schema["maxItems"], MAX_CASE_RNA_CONSEQUENCES)
         self.assertFalse(rna_schema["items"]["additionalProperties"])
         self.assertIn("content_address", rna_schema["items"]["properties"])
         self.assertIn("rna_consequences", advertised["optional_execution_inputs"])
+        self.assertEqual(
+            advertised["optional_execution_inputs"]["rna_consequences"]["max_items"],
+            MAX_CASE_RNA_CONSEQUENCES,
+        )
         self.assertEqual(
             advertised["canonical_rna_order"],
             "RNAConsequenceEvidence.content_address",
@@ -280,6 +286,25 @@ class CaseExpressionWorkflowTests(unittest.TestCase):
                 "raw_values_in_receipts"
             ]
         )
+
+    def test_rna_execution_rejects_duplicate_and_over_limit_inputs(self) -> None:
+        from itertools import repeat
+
+        value = prepared()
+        evidence = consequence(value, "SOX2", "pred-duplicate")
+        for rows in (
+            (evidence, evidence),
+            repeat(evidence, MAX_CASE_RNA_CONSEQUENCES + 1),
+        ):
+            with self.subTest(rows=type(rows).__name__), tempfile.TemporaryDirectory() as directory:
+                result = run_case(value, data_root=directory, rna_consequences=rows)
+                self.assertTrue(result.blocked)
+                self.assertIsNone(result.dossier)
+                self.assertIn(
+                    "invalid_rna_consequence",
+                    {issue.code for issue in result.issues},
+                )
+                self.assertFalse(any((Path(directory) / "runs").glob("run-*.json")))
 
 
 if __name__ == "__main__":

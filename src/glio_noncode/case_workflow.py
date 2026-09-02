@@ -14,6 +14,7 @@ from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
+from itertools import islice
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +42,7 @@ from .runtime import CaseRuntime
 from .serialization import content_hash, hash_bytes, jsonable, utc_now
 
 WORKFLOW_VERSION = "case-workflow-v1"
+MAX_CASE_RNA_CONSEQUENCES = 10_000
 _CONTEXT_FIELDS = {
     "genome_build",
     "disease_class",
@@ -265,9 +267,13 @@ def _normalize_rna_consequences(
     if isinstance(values, (str, bytes, bytearray, Mapping)):
         raise ValidationError("rna_consequences must be an iterable of evidence objects")
     try:
-        items = tuple(values)
+        items = tuple(islice(iter(values), MAX_CASE_RNA_CONSEQUENCES + 1))
     except TypeError as exc:
         raise ValidationError("rna_consequences must be iterable") from exc
+    if len(items) > MAX_CASE_RNA_CONSEQUENCES:
+        raise ValidationError(
+            f"rna_consequences exceeds the maximum of {MAX_CASE_RNA_CONSEQUENCES} evidence objects"
+        )
 
     normalized: list[RNAConsequenceEvidence] = []
     for index, item in enumerate(items):
@@ -289,6 +295,9 @@ def _normalize_rna_consequences(
                 f"rna_consequences item {index} has an unsupported schema_version"
             )
         normalized.append(RNAConsequenceEvidence.from_mapping(raw))
+    addresses = [item.content_address for item in normalized]
+    if len(set(addresses)) != len(addresses):
+        raise ValidationError("rna_consequences contains duplicate evidence objects")
     return tuple(sorted(normalized, key=lambda item: item.content_address))
 
 
@@ -2085,6 +2094,7 @@ def _rna_consequence_execution_input_schema() -> dict[str, Any]:
             "may supply the corresponding typed immutable objects."
         ),
         "type": "array",
+        "maxItems": MAX_CASE_RNA_CONSEQUENCES,
         "uniqueItems": True,
         "items": {
             "type": "object",
@@ -2179,6 +2189,7 @@ def capabilities() -> dict[str, Any]:
             "rna_consequences": {
                 "python_inputs": ["RNAConsequenceEvidence", "strict_mapping"],
                 "schema": _rna_consequence_execution_input_schema()["$id"],
+                "max_items": MAX_CASE_RNA_CONSEQUENCES,
                 "receipt_provenance": [
                     "rna_consequence_count",
                     "rna_consequence_addresses",
@@ -2223,6 +2234,7 @@ case_workflow_capabilities = capabilities
 
 
 __all__ = [
+    "MAX_CASE_RNA_CONSEQUENCES",
     "WORKFLOW_VERSION",
     "CaseRunResult",
     "PreparedCase",

@@ -58,6 +58,10 @@ STALE_EXPORT_REPAIRS: dict[str, tuple[str, str]] = {
 Descriptor = tuple[str, str | None]
 
 CURATED_EXPORTS: dict[str, Descriptor] = {
+    "MAX_CASE_RNA_CONSEQUENCES": (
+        "glio_noncode.case_workflow",
+        "MAX_CASE_RNA_CONSEQUENCES",
+    ),
     "WORKFLOW_VERSION": ("glio_noncode.case_workflow", "WORKFLOW_VERSION"),
     "WorkflowState": ("glio_noncode.case_workflow", "WorkflowState"),
     "WorkflowSeverity": ("glio_noncode.case_workflow", "WorkflowSeverity"),
