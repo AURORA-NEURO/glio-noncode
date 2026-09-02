@@ -78,7 +78,7 @@ class RuntimeTests(unittest.TestCase):
 
         class StubRetriever:
             def enrich_manifest(self, value):
-                bundle = ReferenceBundle(
+                bundle = ReferenceBundle.create(
                     variant_id=value.variants[0].variant_id,
                     context_key=value.context.key,
                     sequence=None,
@@ -86,7 +86,6 @@ class RuntimeTests(unittest.TestCase):
                     raw_features=(),
                     receipts=(),
                     warnings=(),
-                    content_address="sha256:" + "1" * 64,
                 )
                 return EnrichmentResult(value, (bundle,), ())
 
@@ -107,7 +106,7 @@ class RuntimeTests(unittest.TestCase):
 
         class StubRetriever:
             def enrich_manifest(self, value):
-                bundle = ReferenceBundle(
+                bundle = ReferenceBundle.create(
                     variant_id=value.variants[0].variant_id,
                     context_key=value.context.key,
                     sequence=None,
@@ -115,7 +114,6 @@ class RuntimeTests(unittest.TestCase):
                     raw_features=(),
                     receipts=(),
                     warnings=(),
-                    content_address="sha256:" + "2" * 64,
                 )
                 return EnrichmentResult(value, (bundle,), ())
 

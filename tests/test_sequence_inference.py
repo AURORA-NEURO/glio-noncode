@@ -11,6 +11,7 @@ from glio_noncode.sequence_inference import (
     SequenceAnalysisState,
     SequenceInference,
 )
+from glio_noncode.serialization import content_hash
 
 
 def _sequence(sequence: str = "AACCGGTTAACC") -> SequenceSlice:
@@ -18,8 +19,8 @@ def _sequence(sequence: str = "AACCGGTTAACC") -> SequenceSlice:
         source_id="SRC-UCSC-REST",
         source_version="fixture-1",
         url="https://api.example/sequence",
-        request_hash="sha256:req",
-        response_hash="sha256:resp",
+        request_hash=content_hash({"request": "sequence-fixture"}),
+        response_hash=content_hash({"response": sequence}),
         status=FetchStatus.FETCHED,
         http_status=200,
         attempts=1,

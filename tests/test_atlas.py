@@ -20,8 +20,8 @@ def _receipt(source_id: str, suffix: str) -> FetchReceipt:
         source_id=source_id,
         source_version="fixture-1",
         url=f"https://{source_id.lower()}.example/{suffix}",
-        request_hash=f"sha256:req-{suffix}",
-        response_hash=f"sha256:resp-{suffix}",
+        request_hash=content_hash({"request": suffix, "source_id": source_id}),
+        response_hash=content_hash({"response": suffix, "source_id": source_id}),
         status=FetchStatus.FETCHED,
         http_status=200,
         attempts=1,
@@ -44,7 +44,7 @@ class StubReferenceRetriever:
             receipt=_receipt("SRC-UCSC-REST", "sequence"),
         )
         raw_features = ({"feature_type": "gene", "id": "ENSG000001", "external_name": "GENE_A"},)
-        return ReferenceBundle(
+        return ReferenceBundle.create(
             variant_id=variant.variant_id,
             context_key=context.key,
             sequence=sequence,
@@ -52,7 +52,6 @@ class StubReferenceRetriever:
             raw_features=raw_features,
             receipts=(sequence.receipt, _receipt("SRC-ENSEMBL-REST", "overlap")),
             warnings=(),
-            content_address=content_hash({"variant_id": variant.variant_id}),
         )
 
 
@@ -108,7 +107,7 @@ class AtlasTests(unittest.TestCase):
     def test_no_feature_overlap_is_absent_not_a_disease_negative(self) -> None:
         reference = StubReferenceRetriever()
         bundle = reference.retrieve(self.variant, self.context, window_bp=10)
-        empty_bundle = ReferenceBundle(
+        empty_bundle = ReferenceBundle.create(
             variant_id=bundle.variant_id,
             context_key=bundle.context_key,
             sequence=None,
@@ -116,7 +115,6 @@ class AtlasTests(unittest.TestCase):
             raw_features=(),
             receipts=bundle.receipts,
             warnings=("feature retrieval returned no rows",),
-            content_address=content_hash({"empty": True}),
         )
 
         class EmptyReference:

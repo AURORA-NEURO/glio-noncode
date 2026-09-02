@@ -79,7 +79,7 @@ def rows() -> list[dict[str, object]]:
 
 class EmptyReference:
     def retrieve(self, variant, context, *, window_bp=None):
-        return ReferenceBundle(
+        return ReferenceBundle.create(
             variant_id=variant.variant_id,
             context_key=context.key,
             sequence=None,
@@ -87,7 +87,6 @@ class EmptyReference:
             raw_features=(),
             receipts=(),
             warnings=(),
-            content_address="reference-bundle:empty",
         )
 
 

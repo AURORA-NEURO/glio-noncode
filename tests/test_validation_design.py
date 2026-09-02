@@ -4,6 +4,7 @@ import unittest
 
 from glio_noncode.data_sources import FetchReceipt, FetchStatus, SequenceSlice
 from glio_noncode.identity import parse_variant
+from glio_noncode.serialization import content_hash
 from glio_noncode.validation_design import (
     DesignStatus,
     GuideDesigner,
@@ -16,8 +17,8 @@ def _slice(sequence: str, start: int = 100) -> SequenceSlice:
         source_id="SRC-UCSC-REST",
         source_version="fixture-1",
         url="https://api.example/sequence",
-        request_hash="sha256:req",
-        response_hash="sha256:resp",
+        request_hash=content_hash({"request": "validation-sequence", "start": start}),
+        response_hash=content_hash({"response": sequence}),
         status=FetchStatus.FETCHED,
         http_status=200,
         attempts=1,
