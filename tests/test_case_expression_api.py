@@ -5,12 +5,14 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from glio_noncode.api import create_server
 from glio_noncode.case_workflow import PreparedCase
 from glio_noncode.expression_claims import RNAElementGeneTarget
 from glio_noncode.expression_evidence import (
+    AllelicCountBatch,
     AllelicCountObservation,
     ExpressionBatch,
     ExpressionDirection,
@@ -95,6 +97,24 @@ class CaseExpressionApiTests(unittest.TestCase):
         )
         with urlopen(request, timeout=30) as response:
             return response.status, json.loads(response.read())
+
+    def _post_raw_json(
+        self, path: str, body: bytes
+    ) -> tuple[int, dict[str, object]]:
+        request = Request(
+            self.base + path,
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=30) as response:
+                return response.status, json.loads(response.read())
+        except HTTPError as error:
+            try:
+                return error.code, json.loads(error.read())
+            finally:
+                error.close()
 
     def _expression(self, sample: str, value: float) -> ExpressionObservation:
         return ExpressionObservation(
@@ -266,6 +286,14 @@ class CaseExpressionApiTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(allelic["state"], "supported")
 
+        status, batch = self._post(
+            "/v1/expression-evidence/allelic-batch",
+            {"batch": AllelicCountBatch((observation,)).to_dict()},
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(batch["result_count"], 1)
+        self.assertEqual(batch["results"], [allelic])
+
     def test_discovery_endpoints_are_public_and_deterministic(self) -> None:
         for path in (
             "/v1/case-workflow/schema",
@@ -278,6 +306,107 @@ class CaseExpressionApiTests(unittest.TestCase):
             status, payload = self._get(path)
             self.assertEqual(status, 200)
             self.assertIsInstance(payload, dict)
+
+    def test_scientific_routes_reject_ambiguous_or_non_finite_json(self) -> None:
+        duplicate_routes = (
+            ("/v1/case-workflow/prepare", "invalid_case_workflow_request"),
+            ("/v1/case-workflow/run", "invalid_case_workflow_execution"),
+            ("/v1/expression-evidence/outlier", "invalid_expression_outlier"),
+            ("/v1/expression-evidence/allelic", "invalid_allelic_observation"),
+            ("/v1/expression-evidence/allelic-batch", "invalid_allelic_batch"),
+            ("/v1/expression-evidence/integrate", "invalid_rna_integration"),
+            ("/v1/expression-claims/derive", "invalid_expression_claim"),
+            ("/v1/expression-claims/match", "invalid_expression_claim_batch"),
+        )
+        for path, error_code in duplicate_routes:
+            with self.subTest(path=path):
+                status, payload = self._post_raw_json(path, b'{"input":{},"input":{}}')
+                self.assertEqual(status, 400)
+                self.assertEqual(payload["error"], error_code)
+                self.assertEqual(
+                    payload["message"], "JSON body contains duplicate object keys"
+                )
+
+        status, payload = self._post_raw_json(
+            "/v1/expression-evidence/outlier",
+            b'{"target":{"value":NaN},"references":{}}',
+        )
+        self.assertEqual(status, 400)
+        self.assertEqual(payload["error"], "invalid_expression_outlier")
+        self.assertEqual(payload["message"], "JSON body contains a non-finite number")
+
+    def test_scientific_routes_reject_unknown_fields_and_alias_collisions(self) -> None:
+        requests = (
+            (
+                "/v1/case-workflow/prepare",
+                {"request": {}, "ignored": True},
+                "invalid_case_workflow_request",
+            ),
+            (
+                "/v1/case-workflow/run",
+                {"unexpected": True},
+                "invalid_case_workflow_execution",
+            ),
+            (
+                "/v1/expression-evidence/outlier",
+                {"target": {}, "references": {}, "expected_direktion": "gain"},
+                "invalid_expression_outlier",
+            ),
+            (
+                "/v1/expression-evidence/allelic",
+                {"unexpected": True},
+                "invalid_allelic_observation",
+            ),
+            (
+                "/v1/expression-evidence/allelic-batch",
+                {"unexpected": True},
+                "invalid_allelic_batch",
+            ),
+            (
+                "/v1/expression-evidence/integrate",
+                {"unexpected": True},
+                "invalid_rna_integration",
+            ),
+            (
+                "/v1/expression-claims/derive",
+                {"unexpected": True},
+                "invalid_expression_claim",
+            ),
+            (
+                "/v1/expression-claims/match",
+                {"unexpected": True},
+                "invalid_expression_claim_batch",
+            ),
+        )
+        for path, request_body, error_code in requests:
+            with self.subTest(path=path):
+                status, payload = self._post_raw_json(
+                    path,
+                    json.dumps(request_body).encode("utf-8"),
+                )
+                self.assertEqual(status, 400)
+                self.assertEqual(payload["error"], error_code)
+                self.assertIn("unknown fields", payload["message"])
+
+        for path, request_body, expected_message in (
+            (
+                "/v1/expression-evidence/allelic",
+                {"observation": {}, "input": {}},
+                "use observation or input, not both",
+            ),
+            (
+                "/v1/expression-evidence/allelic-batch",
+                {"batch": {}, "input": {}},
+                "use batch or input, not both",
+            ),
+        ):
+            with self.subTest(path=path):
+                status, payload = self._post_raw_json(
+                    path,
+                    json.dumps(request_body).encode("utf-8"),
+                )
+                self.assertEqual(status, 400)
+                self.assertEqual(payload["message"], expected_message)
 
 
 if __name__ == "__main__":

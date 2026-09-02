@@ -2974,6 +2974,27 @@ def _json_bytes(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
+def _strict_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError("JSON body contains duplicate object keys")
+        value[key] = item
+    return value
+
+
+def _reject_non_finite_json_number(_value: str) -> Any:
+    raise ValueError("JSON body contains a non-finite number")
+
+
+def _reject_unknown_json_fields(
+    value: Mapping[str, Any], allowed: set[str], label: str
+) -> None:
+    unknown = set(value) - allowed
+    if unknown:
+        raise ValueError(f"{label} contains unknown fields: {sorted(unknown)}")
+
+
 def _parse_replication_pairs(query: Mapping[str, list[str]]) -> list[tuple[str, str, str]]:
     """Parse repeatable persisted packet pair references shared by release routes."""
 
@@ -4876,7 +4897,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
         self._write(status, {"error": "bad_request", "message": str(message)[:2048]})
 
-    def _read_json(self) -> dict[str, Any]:
+    def _read_json(self, *, strict: bool = False) -> dict[str, Any]:
         raw_length = self.headers.get("Content-Length", "0")
         try:
             length = int(raw_length)
@@ -4885,7 +4906,16 @@ class ApiHandler(BaseHTTPRequestHandler):
         if length < 1 or length > 5_000_000:
             raise ValueError("request body must be between 1 byte and 5 MB")
         body = self.rfile.read(length)
-        value = json.loads(body.decode("utf-8"))
+        decoded = body.decode("utf-8")
+        value = (
+            json.loads(
+                decoded,
+                object_pairs_hook=_strict_json_object,
+                parse_constant=_reject_non_finite_json_number,
+            )
+            if strict
+            else json.loads(decoded)
+        )
         if not isinstance(value, dict):
             raise ValueError("JSON body must be an object")
         return value
@@ -21802,8 +21832,14 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/case-workflow/prepare":
             try:
-                payload = self._read_json()
-                request = payload.get("request", payload)
+                payload = self._read_json(strict=True)
+                if "request" in payload:
+                    _reject_unknown_json_fields(
+                        payload, {"request"}, "case workflow preparation envelope"
+                    )
+                    request = payload["request"]
+                else:
+                    request = payload
                 if not isinstance(request, Mapping):
                     raise ValueError("case workflow preparation requires a request object")
                 result = prepare_case(**dict(request))
@@ -21824,7 +21860,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/case-workflow/run":
             try:
-                payload = self._read_json()
+                payload = self._read_json(strict=True)
                 unknown = set(payload) - {"prepared", "rna_consequences", "data_root"}
                 if unknown:
                     raise ValueError(
@@ -21862,7 +21898,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/expression-evidence/outlier":
             try:
-                payload = self._read_json()
+                payload = self._read_json(strict=True)
+                _reject_unknown_json_fields(
+                    payload,
+                    {"target", "references", "expected_direction", "context_key"},
+                    "expression outlier request",
+                )
                 target = payload.get("target")
                 references = payload.get("references")
                 if not isinstance(target, Mapping) or not isinstance(references, Mapping):
@@ -21887,7 +21928,14 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/expression-evidence/allelic":
             try:
-                payload = self._read_json()
+                payload = self._read_json(strict=True)
+                _reject_unknown_json_fields(
+                    payload,
+                    {"observation", "input", "expected_direction", "context_key"},
+                    "allelic analysis request",
+                )
+                if "observation" in payload and "input" in payload:
+                    raise ValueError("use observation or input, not both")
                 observation = payload.get("observation", payload.get("input"))
                 if not isinstance(observation, Mapping):
                     raise ValueError("allelic analysis requires an observation object")
@@ -21910,7 +21958,14 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/expression-evidence/allelic-batch":
             try:
-                payload = self._read_json()
+                payload = self._read_json(strict=True)
+                _reject_unknown_json_fields(
+                    payload,
+                    {"batch", "input", "expected_directions", "context_key"},
+                    "allelic batch request",
+                )
+                if "batch" in payload and "input" in payload:
+                    raise ValueError("use batch or input, not both")
                 batch_raw = payload.get("batch", payload.get("input"))
                 directions = payload.get("expected_directions")
                 if not isinstance(batch_raw, Mapping):
@@ -21949,7 +22004,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/expression-evidence/integrate":
             try:
-                payload = self._read_json()
+                payload = self._read_json(strict=True)
+                _reject_unknown_json_fields(
+                    payload,
+                    {"prediction", "expression_result", "allelic_result"},
+                    "RNA integration request",
+                )
                 prediction = payload.get("prediction")
                 expression_raw = payload.get("expression_result")
                 allelic_raw = payload.get("allelic_result")
@@ -21986,7 +22046,10 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/expression-claims/derive":
             try:
-                payload = self._read_json()
+                payload = self._read_json(strict=True)
+                _reject_unknown_json_fields(
+                    payload, {"evidence", "target"}, "claim derivation request"
+                )
                 evidence_raw = payload.get("evidence")
                 target_raw = payload.get("target")
                 if not isinstance(evidence_raw, Mapping) or not isinstance(
@@ -22014,7 +22077,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/expression-claims/match":
             try:
-                payload = self._read_json()
+                payload = self._read_json(strict=True)
+                _reject_unknown_json_fields(
+                    payload,
+                    {"evidence", "targets", "require_complete"},
+                    "claim matching request",
+                )
                 evidence_raw = payload.get("evidence")
                 targets_raw = payload.get("targets")
                 require_complete = payload.get("require_complete", False)

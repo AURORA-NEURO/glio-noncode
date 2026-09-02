@@ -401,7 +401,8 @@ curl -sS -X POST http://127.0.0.1:8765/v1/case-workflow/run \
 The HTTP server ignores the optional client `data_root` field and always uses its configured
 server-side runtime. Clients cannot select server-local paths. A successful execution responds
 `200`; blocked scientific or integrity inputs respond `422`; malformed transport input responds
-`400`.
+`400`. The focused case/expression routes reject duplicate JSON keys, non-finite JSON numbers,
+unknown request-envelope fields, and simultaneous use of both names of an accepted alias.
 
 The optional claim endpoints expose the same exact matching logic separately:
 
