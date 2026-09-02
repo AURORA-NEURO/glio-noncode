@@ -300,7 +300,14 @@ class CaseWorkflowTests(unittest.TestCase):
         schema = case_workflow_schema()
         advertised = capabilities()
         self.assertEqual(schema["version"], "case-workflow-v1")
-        self.assertFalse(schema["additionalProperties"])
+        self.assertFalse(schema["unevaluatedProperties"])
+        self.assertEqual(
+            schema["oneOf"],
+            [
+                {"$ref": "#/$defs/prepare_request"},
+                {"$ref": "#/$defs/run_request"},
+            ],
+        )
         self.assertFalse(schema["$defs"]["variant_source"]["additionalProperties"])
         self.assertFalse(advertised["server_local_paths"])
         self.assertIn("inline_bytes", advertised["source_transport"])

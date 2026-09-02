@@ -545,3 +545,6 @@ glio-noncode case capabilities
 glio-noncode expression schema
 glio-noncode expression capabilities
 ```
+
+The workflow schema validates either canonical request shape through `oneOf`; its `$defs` retain
+the standalone source, prepared-case, result, and RNA component contracts for tooling.

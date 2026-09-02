@@ -2242,8 +2242,13 @@ def case_workflow_schema() -> dict[str, Any]:
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "urn:glio-noncode:case-workflow:v1",
         "version": WORKFLOW_VERSION,
+        "title": "Case workflow request",
         "type": "object",
-        "additionalProperties": False,
+        "oneOf": [
+            {"$ref": "#/$defs/prepare_request"},
+            {"$ref": "#/$defs/run_request"},
+        ],
+        "unevaluatedProperties": False,
         "$defs": {
             "prepare_request": prepare_request_schema(),
             "run_request": run_request_schema(),
