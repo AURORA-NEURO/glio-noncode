@@ -512,6 +512,10 @@ identity mismatch, persistence mismatch, or failed replay integrity.
 - Case preparation accepts at most 1,000 regulatory-track sources through either Python iterable
   name. The limit is published by case capabilities; over-limit or non-iterable inputs fail before
   track parsing.
+- Each regulatory-track parser accepts at most 1,000,000 data records and 100,000 auxiliary
+  header/blank lines by default; callers may choose lower per-parser limits. Over-limit text inputs
+  stop at one sentinel with a typed error issue, and regulatory JSON rejects duplicate keys and
+  non-finite numbers.
 - Direct RNA claim matching accepts at most 10,000 consequences and 10,000 element-gene targets.
   The bridge consumes at most one sentinel beyond either limit, rejects duplicate content
   identities, and publishes the limits in its schema and capabilities.

@@ -9,6 +9,7 @@ candidate regulatory elements.
 
 from __future__ import annotations
 
+import io
 import json
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -20,6 +21,22 @@ from .errors import ValidationError
 from .identity import normalize_chromosome
 from .models import CandidateElement, ReferenceContext
 from .serialization import content_hash, jsonable
+
+MAX_REGULATORY_TRACK_RECORDS = 1_000_000
+MAX_REGULATORY_TRACK_AUXILIARY_LINES = 100_000
+
+
+def _strict_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError("regulatory JSON contains duplicate object keys")
+        value[key] = item
+    return value
+
+
+def _reject_non_finite_json_number(_value: str) -> Any:
+    raise ValueError("regulatory JSON contains a non-finite number")
 
 
 class RegulatoryTrackFormat(StrEnum):
@@ -173,6 +190,33 @@ class RegulatoryTrackBatch:
 class RegulatoryTrackParser:
     """Parse interval tracks while preserving coordinates and anomalies."""
 
+    def __init__(
+        self,
+        *,
+        max_records: int = MAX_REGULATORY_TRACK_RECORDS,
+        max_auxiliary_lines: int = MAX_REGULATORY_TRACK_AUXILIARY_LINES,
+    ) -> None:
+        if (
+            isinstance(max_records, bool)
+            or not isinstance(max_records, int)
+            or not 1 <= max_records <= MAX_REGULATORY_TRACK_RECORDS
+        ):
+            raise ValidationError(
+                "max_records must be an integer between 1 and "
+                f"{MAX_REGULATORY_TRACK_RECORDS}"
+            )
+        self.max_records = max_records
+        if (
+            isinstance(max_auxiliary_lines, bool)
+            or not isinstance(max_auxiliary_lines, int)
+            or not 1 <= max_auxiliary_lines <= MAX_REGULATORY_TRACK_AUXILIARY_LINES
+        ):
+            raise ValidationError(
+                "max_auxiliary_lines must be an integer between 1 and "
+                f"{MAX_REGULATORY_TRACK_AUXILIARY_LINES}"
+            )
+        self.max_auxiliary_lines = max_auxiliary_lines
+
     def parse_text(
         self,
         text: str,
@@ -183,7 +227,12 @@ class RegulatoryTrackParser:
     ) -> RegulatoryTrackBatch:
         if not isinstance(text, str) or not text.strip():
             raise ValidationError("regulatory track text must not be empty")
-        if not source_id.strip() or not genome_build.strip():
+        if (
+            not isinstance(source_id, str)
+            or not source_id.strip()
+            or not isinstance(genome_build, str)
+            or not genome_build.strip()
+        ):
             raise ValidationError("source_id and genome_build are required")
         selected = self._select_format(text, input_format)
         if selected == RegulatoryTrackFormat.JSON:
@@ -192,8 +241,8 @@ class RegulatoryTrackParser:
             return self._parse_gff3(text, source_id, genome_build)
         return self._parse_bed(text, source_id, genome_build, selected)
 
-    @staticmethod
     def _select_format(
+        self,
         text: str,
         input_format: RegulatoryTrackFormat | str | None,
     ) -> RegulatoryTrackFormat:
@@ -204,7 +253,18 @@ class RegulatoryTrackParser:
                 raise ValidationError(
                     f"unsupported regulatory track format: {input_format}"
                 ) from exc
-        first = next((line.strip() for line in text.splitlines() if line.strip()), "")
+        first = ""
+        auxiliary_lines = 0
+        for line in io.StringIO(text, newline=None):
+            first = line.strip()
+            if first:
+                break
+            auxiliary_lines += 1
+            if auxiliary_lines > self.max_auxiliary_lines:
+                raise ValidationError(
+                    "regulatory track format detection exceeds the maximum of "
+                    f"{self.max_auxiliary_lines} auxiliary lines"
+                )
         if first.startswith("##gff-version") or first.count("\t") >= 8:
             fields = first.split("\t")
             try:
@@ -231,12 +291,27 @@ class RegulatoryTrackParser:
         features: list[RegulatoryFeature] = []
         issues: list[TrackIssue] = []
         headers: list[str] = []
-        for line_number, line in enumerate(text.splitlines(), start=1):
+        record_count = 0
+        auxiliary_count = 0
+        for line_number, raw_line in enumerate(io.StringIO(text, newline=None), start=1):
+            line = raw_line.rstrip("\n")
             if not line.strip():
+                auxiliary_count += 1
+                if auxiliary_count > self.max_auxiliary_lines:
+                    issues.append(self._auxiliary_line_limit_issue(line_number))
+                    break
                 continue
             if line.startswith(("#", "track ", "browser ")):
+                auxiliary_count += 1
+                if auxiliary_count > self.max_auxiliary_lines:
+                    issues.append(self._auxiliary_line_limit_issue(line_number, line))
+                    break
                 headers.append(line)
                 continue
+            record_count += 1
+            if record_count > self.max_records:
+                issues.append(self._record_limit_issue(line_number, line))
+                break
             raw_hash = content_hash(line)
             fields = line.split("\t")
             if len(fields) < 3:
@@ -301,12 +376,27 @@ class RegulatoryTrackParser:
         features: list[RegulatoryFeature] = []
         issues: list[TrackIssue] = []
         headers: list[str] = []
-        for line_number, line in enumerate(text.splitlines(), start=1):
+        record_count = 0
+        auxiliary_count = 0
+        for line_number, raw_line in enumerate(io.StringIO(text, newline=None), start=1):
+            line = raw_line.rstrip("\n")
             if not line.strip():
+                auxiliary_count += 1
+                if auxiliary_count > self.max_auxiliary_lines:
+                    issues.append(self._auxiliary_line_limit_issue(line_number))
+                    break
                 continue
             if line.startswith("#"):
+                auxiliary_count += 1
+                if auxiliary_count > self.max_auxiliary_lines:
+                    issues.append(self._auxiliary_line_limit_issue(line_number, line))
+                    break
                 headers.append(line)
                 continue
+            record_count += 1
+            if record_count > self.max_records:
+                issues.append(self._record_limit_issue(line_number, line))
+                break
             raw_hash = content_hash(line)
             fields = line.split("\t")
             if len(fields) != 9:
@@ -377,8 +467,12 @@ class RegulatoryTrackParser:
         features: list[RegulatoryFeature] = []
         issues: list[TrackIssue] = []
         try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
+            payload = json.loads(
+                text,
+                object_pairs_hook=_strict_json_object,
+                parse_constant=_reject_non_finite_json_number,
+            )
+        except (json.JSONDecodeError, ValueError) as exc:
             issues.append(TrackIssue("invalid_json", TrackIssueSeverity.ERROR, str(exc)))
             return self._finish(
                 text, source_id, genome_build, RegulatoryTrackFormat.JSON, (), features, issues
@@ -396,6 +490,9 @@ class RegulatoryTrackParser:
                 text, source_id, genome_build, RegulatoryTrackFormat.JSON, (), features, issues
             )
         for line_number, raw in enumerate(rows, start=1):
+            if line_number > self.max_records:
+                issues.append(self._record_limit_issue(line_number))
+                break
             raw_hash = content_hash(raw)
             if not isinstance(raw, Mapping):
                 issues.append(
@@ -444,6 +541,31 @@ class RegulatoryTrackParser:
                 )
         return self._finish(
             text, source_id, genome_build, RegulatoryTrackFormat.JSON, (), features, issues
+        )
+
+    def _record_limit_issue(
+        self, line_number: int, raw: object | None = None
+    ) -> TrackIssue:
+        return TrackIssue(
+            "record_limit_exceeded",
+            TrackIssueSeverity.ERROR,
+            f"regulatory track exceeds the maximum of {self.max_records} records",
+            line_number,
+            None if raw is None else content_hash(raw),
+            "Split the source into explicitly addressed bounded batches.",
+        )
+
+    def _auxiliary_line_limit_issue(
+        self, line_number: int, raw: object | None = None
+    ) -> TrackIssue:
+        return TrackIssue(
+            "auxiliary_line_limit_exceeded",
+            TrackIssueSeverity.ERROR,
+            "regulatory track exceeds the maximum of "
+            f"{self.max_auxiliary_lines} blank or header lines",
+            line_number,
+            None if raw is None else content_hash(raw),
+            "Remove excess blank/header lines or split the source into bounded batches.",
         )
 
     @staticmethod
