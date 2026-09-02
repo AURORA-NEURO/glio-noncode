@@ -1544,7 +1544,7 @@ from .workbench_release_frontier_offline_bundle import build_workbench_release_o
 from .workbench_release_frontier_offline_schema import workbench_release_offline_bundle_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 2126
+PUBLIC_SURFACE_EXPECTED_COUNT = 2140
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -2099,6 +2099,10 @@ def default_public_surface_inventory(
     from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_audit_surface
     from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query_surface
     from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query_audit_surface
+    from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_surface
+    from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_audit_surface
+    from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_surface
+    from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_audit as exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_audit_surface
     from . import exact_history_diff_archive_transfer_recovery_execution_runtime as exact_history_diff_archive_transfer_recovery_execution_runtime_surface
     from . import exact_history_diff_archive_transfer_recovery_execution_runtime_audit as exact_history_diff_archive_transfer_recovery_execution_runtime_audit_surface
     from . import exact_history_diff_archive_transfer_recovery_execution_runtime_query as exact_history_diff_archive_transfer_recovery_execution_runtime_query_surface
@@ -4812,6 +4816,25 @@ def default_public_surface_inventory(
             f"{history_diff_archive_surface_prefix}-query-audit-check-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query_audit_surface.check_schema(),
             f"{history_diff_archive_surface_prefix}-query-audit-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query_audit_surface.audit_schema(),
             f"{history_diff_archive_surface_prefix}-query-audit-capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query_audit_surface.capabilities(),
+        }
+    )
+    history_diff_archive_transfer_surface_prefix = history_diff_archive_surface_prefix + "-transfer"
+    inventory.update(
+        {
+            f"{history_diff_archive_transfer_surface_prefix}-chunk-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_surface.chunk_schema(),
+            f"{history_diff_archive_transfer_surface_prefix}-manifest-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_surface.manifest_schema(),
+            f"{history_diff_archive_transfer_surface_prefix}-progress-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_surface.progress_schema(),
+            f"{history_diff_archive_transfer_surface_prefix}-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_surface.transfer_schema(),
+            f"{history_diff_archive_transfer_surface_prefix}-capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_surface.capabilities(),
+            f"{history_diff_archive_transfer_surface_prefix}-audit-check-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_audit_surface.check_schema(),
+            f"{history_diff_archive_transfer_surface_prefix}-audit-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_audit_surface.audit_schema(),
+            f"{history_diff_archive_transfer_surface_prefix}-audit-capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_audit_surface.capabilities(),
+            f"{history_diff_archive_transfer_surface_prefix}-query-row-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_surface.row_schema(),
+            f"{history_diff_archive_transfer_surface_prefix}-query-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_surface.query_schema(),
+            f"{history_diff_archive_transfer_surface_prefix}-query-capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_surface.capabilities(),
+            f"{history_diff_archive_transfer_surface_prefix}-query-audit-check-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_audit_surface.check_schema(),
+            f"{history_diff_archive_transfer_surface_prefix}-query-audit-schema": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_audit_surface.audit_schema(),
+            f"{history_diff_archive_transfer_surface_prefix}-query-audit-capabilities": exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_audit_surface.capabilities(),
         }
     )
     return inventory
