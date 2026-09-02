@@ -4571,6 +4571,7 @@ from .topology_beta import LoopStripeAdapter as LoopStripeAdapter
 from .topology_beta import LoopStripeBatch as LoopStripeBatch
 from .topology_beta import LoopStripeObservation as LoopStripeObservation
 from .case_workflow import MAX_CASE_RNA_CONSEQUENCES as MAX_CASE_RNA_CONSEQUENCES
+from .expression_evidence import MAX_EXACT_BINOMIAL_TRIALS as MAX_EXACT_BINOMIAL_TRIALS
 from .methylation_frontier_public_data import METHYLATION_FRONTIER_BOUNDARY as METHYLATION_FRONTIER_BOUNDARY
 from .methylation_frontier_public_data import METHYLATION_FRONTIER_CONTEXT_KEY as METHYLATION_FRONTIER_CONTEXT_KEY
 from .methylation_frontier_public_data import METHYLATION_FRONTIER_CONTROL_COUNT as METHYLATION_FRONTIER_CONTROL_COUNT

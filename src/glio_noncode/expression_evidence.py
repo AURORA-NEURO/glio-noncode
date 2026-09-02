@@ -31,6 +31,8 @@ from .errors import ValidationError
 from .serialization import canonical_json, content_hash
 
 SCHEMA_VERSION = "1.0.0"
+MAX_EXACT_BINOMIAL_TRIALS = 100_000
+_EXACT_BINOMIAL_DEPTH_LIMIT_REASON = "exact_binomial_depth_limit_exceeded"
 
 
 class RNAEvidenceState(StrEnum):
@@ -969,13 +971,20 @@ def exact_two_sided_binomial_pvalue(successes: int, trials: int, probability: fl
     This matches the definition used by exact binomial tests: sum the null
     probabilities of every outcome no more likely than the observed outcome.
     Computation is in log space to avoid overflowing ``comb`` or underflowing
-    individual probability products.
+    individual probability products.  Runtime is linear in ``trials``, so the
+    public function rejects values above :data:`MAX_EXACT_BINOMIAL_TRIALS`
+    before entering the exact enumeration.
     """
 
     successes = _count(successes, "successes")
     trials = _count(trials, "trials")
     if successes > trials:
         raise ValidationError("successes must not exceed trials")
+    if trials > MAX_EXACT_BINOMIAL_TRIALS:
+        raise ValidationError(
+            "trials must not exceed "
+            f"MAX_EXACT_BINOMIAL_TRIALS ({MAX_EXACT_BINOMIAL_TRIALS})"
+        )
     probability = _finite(probability, "probability")
     if not 0.0 <= probability <= 1.0:
         raise ValidationError("probability must be between 0 and 1")
@@ -1042,14 +1051,36 @@ def benjamini_hochberg(p_values: Sequence[float]) -> tuple[float, ...]:
 
 @dataclass(frozen=True, slots=True)
 class AllelicImbalancePolicy:
+    """QC and bounded-computation policy for exact allelic inference."""
+
     min_informative_depth: int = 20
     max_other_fraction: float = 0.10
     max_abs_mapping_bias: float = 0.10
     alpha: float = 0.05
+    max_informative_depth: int = MAX_EXACT_BINOMIAL_TRIALS
 
     def __post_init__(self) -> None:
-        if isinstance(self.min_informative_depth, bool) or self.min_informative_depth < 1:
+        if (
+            isinstance(self.min_informative_depth, bool)
+            or not isinstance(self.min_informative_depth, int)
+            or self.min_informative_depth < 1
+        ):
             raise ValidationError("min_informative_depth must be a positive integer")
+        if (
+            isinstance(self.max_informative_depth, bool)
+            or not isinstance(self.max_informative_depth, int)
+            or self.max_informative_depth < 1
+        ):
+            raise ValidationError("max_informative_depth must be a positive integer")
+        if self.max_informative_depth < self.min_informative_depth:
+            raise ValidationError(
+                "max_informative_depth must be at least min_informative_depth"
+            )
+        if self.max_informative_depth > MAX_EXACT_BINOMIAL_TRIALS:
+            raise ValidationError(
+                "max_informative_depth must not exceed "
+                f"MAX_EXACT_BINOMIAL_TRIALS ({MAX_EXACT_BINOMIAL_TRIALS})"
+            )
         for field_name in ("max_other_fraction", "max_abs_mapping_bias", "alpha"):
             value = _finite(getattr(self, field_name), field_name)
             if not 0.0 <= value <= 1.0:
@@ -1231,7 +1262,11 @@ def _classify_allelic(
 
 
 class AllelicImbalanceAnalyzer:
-    """Apply phase/QC gates and exact binomial inference to allelic counts."""
+    """Apply phase/QC gates and bounded exact inference to allelic counts.
+
+    Depth above the policy maximum is an explicit abstention: the observation
+    may remain biologically in-domain, but exact enumeration was not performed.
+    """
 
     def __init__(self, policy: AllelicImbalancePolicy | None = None) -> None:
         self.policy = policy or AllelicImbalancePolicy()
@@ -1303,6 +1338,11 @@ class AllelicImbalanceAnalyzer:
             return abstain(RNAEvidenceState.ABSTAINED, "allele_phase_unresolved")
         if observation.informative_depth < self.policy.min_informative_depth:
             return abstain(RNAEvidenceState.ABSTAINED, "low_informative_depth")
+        if observation.informative_depth > self.policy.max_informative_depth:
+            return abstain(
+                RNAEvidenceState.ABSTAINED,
+                _EXACT_BINOMIAL_DEPTH_LIMIT_REASON,
+            )
         if observation.total_depth and (
             observation.other_count / observation.total_depth > self.policy.max_other_fraction
         ):
@@ -1720,6 +1760,12 @@ def expression_evidence_capabilities() -> dict[str, Any]:
             ExpectedFractionMethod.DECLARED.value,
             ExpectedFractionMethod.COPY_NUMBER_PURITY.value,
         ],
+        "computational_bounds": {
+            "max_exact_binomial_trials": MAX_EXACT_BINOMIAL_TRIALS,
+            "default_max_informative_depth": AllelicImbalancePolicy().max_informative_depth,
+            "over_limit_state": RNAEvidenceState.ABSTAINED.value,
+            "over_limit_reason_code": _EXACT_BINOMIAL_DEPTH_LIMIT_REASON,
+        },
         "privacy": {
             "public_results_are_sample_free": True,
             "raw_cohort_vectors_excluded": True,
@@ -1729,6 +1775,7 @@ def expression_evidence_capabilities() -> dict[str, Any]:
             "research evidence only",
             "raw count expression is not compared across samples",
             "allelic tests abstain without phase and an expected fraction",
+            "allelic exact inference abstains above the declared maximum informative depth",
             "mapping bias is gated, not statistically corrected",
         ],
     }
@@ -1747,6 +1794,46 @@ def expression_evidence_schema(*, public: bool = True) -> dict[str, Any]:
         "content_address": {"type": "string"},
     }
     definitions: dict[str, Any] = {
+        "AllelicImbalancePolicy": {
+            "type": "object",
+            "required": [
+                "min_informative_depth",
+                "max_informative_depth",
+                "max_other_fraction",
+                "max_abs_mapping_bias",
+                "alpha",
+            ],
+            "properties": {
+                "min_informative_depth": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": MAX_EXACT_BINOMIAL_TRIALS,
+                },
+                "max_informative_depth": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": MAX_EXACT_BINOMIAL_TRIALS,
+                    "default": MAX_EXACT_BINOMIAL_TRIALS,
+                    "description": "Must be at least min_informative_depth.",
+                },
+                "max_other_fraction": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                },
+                "max_abs_mapping_bias": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                },
+                "alpha": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                },
+            },
+            "additionalProperties": False,
+        },
         "ExpressionOutlierResult": {
             "type": "object",
             "required": list(result_fields),
@@ -1827,6 +1914,9 @@ def expression_evidence_schema(*, public: bool = True) -> dict[str, Any]:
         "title": "Matched tumour RNA consequence evidence",
         "schema_version": SCHEMA_VERSION,
         "public": public,
+        "computational_bounds": {
+            "max_exact_binomial_trials": MAX_EXACT_BINOMIAL_TRIALS,
+        },
         "$defs": definitions,
     }
     return body | {"content_address": content_hash(body, prefix="expression-evidence-schema")}
@@ -1865,6 +1955,7 @@ __all__ = [
     "ExpressionOutlierAnalyzer",
     "ExpressionOutlierResult",
     "ExpressionScale",
+    "MAX_EXACT_BINOMIAL_TRIALS",
     "PhaseStatus",
     "PredictedRegulatoryEffect",
     "RNAConsequenceEvidence",

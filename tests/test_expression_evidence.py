@@ -3,13 +3,16 @@ from __future__ import annotations
 import json
 import math
 import unittest
+from unittest.mock import patch
 
 from glio_noncode.errors import ValidationError
 from glio_noncode.expression_evidence import (
+    MAX_EXACT_BINOMIAL_TRIALS,
     AllelicCountBatch,
     AllelicCountObservation,
     AllelicDirection,
     AllelicImbalanceAnalyzer,
+    AllelicImbalancePolicy,
     DispersionMethod,
     ExpectedFractionMethod,
     ExpressionBatch,
@@ -323,6 +326,132 @@ class AllelicImbalanceTests(unittest.TestCase):
             1.0,
         )
 
+    def test_exact_binomial_global_limit_fails_before_enumeration(self) -> None:
+        self.assertEqual(
+            exact_two_sided_binomial_pvalue(0, MAX_EXACT_BINOMIAL_TRIALS, 0.0),
+            1.0,
+        )
+        with patch(
+            "builtins.range",
+            side_effect=AssertionError("exact outcome enumeration must not start"),
+        ) as outcome_range:
+            with self.assertRaisesRegex(
+                ValidationError,
+                "MAX_EXACT_BINOMIAL_TRIALS",
+            ):
+                exact_two_sided_binomial_pvalue(
+                    1,
+                    MAX_EXACT_BINOMIAL_TRIALS + 1,
+                    0.5,
+                )
+        outcome_range.assert_not_called()
+
+    def test_allelic_policy_validates_integer_depth_interval(self) -> None:
+        default = AllelicImbalancePolicy()
+        self.assertEqual(default.max_informative_depth, MAX_EXACT_BINOMIAL_TRIALS)
+        legacy_positional = AllelicImbalancePolicy(20, 0.10, 0.10, 0.05)
+        self.assertEqual(
+            legacy_positional.max_informative_depth,
+            MAX_EXACT_BINOMIAL_TRIALS,
+        )
+        self.assertEqual(
+            AllelicImbalancePolicy(
+                min_informative_depth=25,
+                max_informative_depth=25,
+            ).max_informative_depth,
+            25,
+        )
+        invalid = (
+            ({"min_informative_depth": True}, "min_informative_depth"),
+            ({"min_informative_depth": 1.5}, "min_informative_depth"),
+            ({"max_informative_depth": False}, "max_informative_depth"),
+            ({"max_informative_depth": 100.5}, "max_informative_depth"),
+            (
+                {"min_informative_depth": 20, "max_informative_depth": 19},
+                "at least min_informative_depth",
+            ),
+            (
+                {"max_informative_depth": MAX_EXACT_BINOMIAL_TRIALS + 1},
+                "MAX_EXACT_BINOMIAL_TRIALS",
+            ),
+        )
+        for arguments, message in invalid:
+            with self.subTest(arguments=arguments), self.assertRaisesRegex(
+                ValidationError,
+                message,
+            ):
+                AllelicImbalancePolicy(**arguments)
+
+    def test_policy_boundary_runs_exact_test_and_over_limit_abstains(self) -> None:
+        analyzer = AllelicImbalanceAnalyzer(
+            AllelicImbalancePolicy(
+                min_informative_depth=1,
+                max_informative_depth=100,
+            )
+        )
+        with patch(
+            "glio_noncode.expression_evidence.exact_two_sided_binomial_pvalue",
+            wraps=exact_two_sided_binomial_pvalue,
+        ) as exact_test:
+            boundary = analyzer.analyze(allelic(50, 50))
+            self.assertIsNotNone(boundary.p_value)
+            exact_test.assert_called_once()
+            exact_test.reset_mock()
+
+            over_limit = analyzer.analyze(allelic(50, 51))
+            exact_test.assert_not_called()
+        self.assertEqual(over_limit.state, RNAEvidenceState.ABSTAINED)
+        self.assertEqual(over_limit.direction, AllelicDirection.UNKNOWN)
+        self.assertIsNone(over_limit.p_value)
+        self.assertIsNone(over_limit.q_value)
+        self.assertIsNone(over_limit.log2_ratio)
+        self.assertIn(
+            "exact_binomial_depth_limit_exceeded",
+            over_limit.reason_codes,
+        )
+
+    def test_global_over_limit_depth_abstains_without_exact_inference(self) -> None:
+        observation = allelic(MAX_EXACT_BINOMIAL_TRIALS + 1, 0)
+        with patch(
+            "glio_noncode.expression_evidence.exact_two_sided_binomial_pvalue",
+            side_effect=AssertionError("exact inference must not run"),
+        ) as exact_test:
+            result = self.analyzer.analyze(observation)
+        exact_test.assert_not_called()
+        self.assertEqual(result.state, RNAEvidenceState.ABSTAINED)
+        self.assertEqual(
+            result.reason_codes,
+            ("exact_binomial_depth_limit_exceeded",),
+        )
+        self.assertIsNone(result.p_value)
+
+    def test_batch_excludes_over_limit_rows_from_exact_test_and_bh(self) -> None:
+        batch = AllelicCountBatch(
+            (
+                allelic(
+                    MAX_EXACT_BINOMIAL_TRIALS + 1,
+                    0,
+                    sample_key="tumour:a",
+                ),
+                allelic(50, 50, sample_key="tumour:b"),
+            )
+        )
+        with patch(
+            "glio_noncode.expression_evidence.exact_two_sided_binomial_pvalue",
+            wraps=exact_two_sided_binomial_pvalue,
+        ) as exact_test:
+            results = self.analyzer.analyze_batch(batch)
+        exact_test.assert_called_once()
+        by_depth = {item.informative_depth: item for item in results}
+        oversized = by_depth[MAX_EXACT_BINOMIAL_TRIALS + 1]
+        tested = by_depth[100]
+        self.assertEqual(oversized.state, RNAEvidenceState.ABSTAINED)
+        self.assertIsNone(oversized.p_value)
+        self.assertIsNone(oversized.q_value)
+        self.assertEqual(tested.state, RNAEvidenceState.MEASURED_NEGATIVE)
+        self.assertAlmostEqual(tested.p_value or 0.0, 1.0)
+        self.assertAlmostEqual(tested.q_value or 0.0, 1.0)
+
     def test_bh_is_deterministic_and_preserves_input_order(self) -> None:
         values = (0.01, 0.04, 0.03, 0.002)
         expected = (0.02, 0.04, 0.04, 0.008)
@@ -436,9 +565,29 @@ class RNAIntegrationAndPrivacyTests(unittest.TestCase):
         capabilities = expression_evidence_capabilities()
         self.assertEqual(capabilities, expression_evidence_capabilities())
         self.assertTrue(capabilities["privacy"]["public_results_are_sample_free"])
+        self.assertEqual(
+            capabilities["computational_bounds"]["max_exact_binomial_trials"],
+            MAX_EXACT_BINOMIAL_TRIALS,
+        )
+        self.assertEqual(
+            capabilities["computational_bounds"]["over_limit_state"],
+            RNAEvidenceState.ABSTAINED.value,
+        )
         public_schema = expression_evidence_schema()
         self.assertEqual(public_schema, expression_evidence_schema(public=True))
         rendered = json.dumps(public_schema, sort_keys=True)
+        self.assertEqual(
+            public_schema["$defs"]["AllelicImbalancePolicy"]["properties"][
+                "max_informative_depth"
+            ]["maximum"],
+            MAX_EXACT_BINOMIAL_TRIALS,
+        )
+        self.assertEqual(
+            public_schema["$defs"]["AllelicImbalancePolicy"]["properties"]["alpha"][
+                "minimum"
+            ],
+            0.0,
+        )
         self.assertNotIn("sample_key", rendered)
         self.assertIn("sample_key", json.dumps(expression_evidence_schema(public=False)))
 

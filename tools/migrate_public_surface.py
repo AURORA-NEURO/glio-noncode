@@ -92,6 +92,10 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
         "glio_noncode.expression_evidence",
         "SCHEMA_VERSION",
     ),
+    "MAX_EXACT_BINOMIAL_TRIALS": (
+        "glio_noncode.expression_evidence",
+        "MAX_EXACT_BINOMIAL_TRIALS",
+    ),
     "RNAEvidenceState": ("glio_noncode.expression_evidence", "RNAEvidenceState"),
     "ExpressionScale": ("glio_noncode.expression_evidence", "ExpressionScale"),
     "RegulatoryDirection": (
