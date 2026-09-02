@@ -8,6 +8,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from glio_noncode.api import create_server
+from glio_noncode.expression_claims import RNAElementGeneTarget
 from glio_noncode.expression_evidence import (
     AllelicCountObservation,
     ExpressionBatch,
@@ -17,6 +18,7 @@ from glio_noncode.expression_evidence import (
     PredictedRegulatoryEffect,
     RegulatoryDirection,
 )
+from glio_noncode.models import ReferenceContext
 
 CONTEXT_KEY = "GRCh38|diffuse_glioma|adult|stem_like|tumor_core|pre_treatment"
 
@@ -150,6 +152,39 @@ class CaseExpressionApiTests(unittest.TestCase):
         self.assertNotIn("sample_key", rendered)
         self.assertNotIn("tumour-secret", rendered)
 
+        target = RNAElementGeneTarget(
+            variant_id="variant-1",
+            element_id="element-SOX2",
+            gene_id="SOX2",
+            context=ReferenceContext(
+                genome_build="GRCh38",
+                disease_class="diffuse_glioma",
+                age_group="adult",
+                cell_state="stem_like",
+                territory="tumor_core",
+                treatment_phase="pre_treatment",
+            ),
+        )
+        status, claim = self._post(
+            "/v1/expression-claims/derive",
+            {"evidence": consequence, "target": target.to_dict()},
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(claim["edge_id"], target.edge_id)
+        self.assertEqual(claim["channel"], "matched_rna_consequence")
+
+        status, batch = self._post(
+            "/v1/expression-claims/match",
+            {
+                "evidence": [consequence],
+                "targets": [target.to_dict()],
+                "require_complete": True,
+            },
+        )
+        self.assertEqual(status, 200)
+        self.assertTrue(batch["complete"])
+        self.assertEqual(batch["claims"], [claim])
+
         observation = AllelicCountObservation(
             feature_id="SOX2",
             variant_id="variant-1",
@@ -173,6 +208,8 @@ class CaseExpressionApiTests(unittest.TestCase):
             "/v1/case-workflow/capabilities",
             "/v1/expression-evidence/schema",
             "/v1/expression-evidence/capabilities",
+            "/v1/expression-claims/schema",
+            "/v1/expression-claims/capabilities",
         ):
             status, payload = self._get(path)
             self.assertEqual(status, 200)

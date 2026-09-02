@@ -64,6 +64,19 @@ def build_parser() -> argparse.ArgumentParser:
     integrate.add_argument("--allelic-result")
     integrate.add_argument("--output", default="-")
 
+    claim = commands.add_parser(
+        "claim", help="derive one native element-to-gene claim from an RNA consequence"
+    )
+    claim.add_argument("--evidence", required=True)
+    claim.add_argument("--target", required=True)
+    claim.add_argument("--output", default="-")
+
+    claim_batch = commands.add_parser(
+        "claim-batch", help="match RNA consequences to explicit element-gene targets"
+    )
+    claim_batch.add_argument("--input", required=True)
+    claim_batch.add_argument("--output", default="-")
+
     schema = commands.add_parser("schema", help="print the RNA evidence schema")
     schema.add_argument("--include-private", action="store_true")
     schema.add_argument("--output", default="-")
@@ -72,6 +85,16 @@ def build_parser() -> argparse.ArgumentParser:
         "capabilities", help="print the RNA evidence capability declaration"
     )
     capabilities.add_argument("--output", default="-")
+
+    claims_schema = commands.add_parser(
+        "claims-schema", help="print the native RNA claim bridge schema"
+    )
+    claims_schema.add_argument("--output", default="-")
+
+    claims_capabilities = commands.add_parser(
+        "claims-capabilities", help="print the native RNA claim bridge capabilities"
+    )
+    claims_capabilities.add_argument("--output", default="-")
     return parser
 
 
@@ -90,6 +113,16 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         from .errors import ValidationError
+        from .expression_claims import (
+            RNAElementGeneTarget,
+            expression_claims_capabilities,
+            expression_claims_schema,
+            match_rna_consequences,
+            rna_consequence_to_claim,
+        )
+        from .expression_claims import (
+            public_projection as expression_claim_public_projection,
+        )
         from .expression_evidence import (
             AllelicCountBatch,
             AllelicCountObservation,
@@ -99,6 +132,7 @@ def main(argv: list[str] | None = None) -> int:
             ExpressionObservation,
             ExpressionOutlierResult,
             PredictedRegulatoryEffect,
+            RNAConsequenceEvidence,
             RNAConsequenceIntegrator,
             RobustExpressionOutlierAnalyzer,
             expression_evidence_capabilities,
@@ -162,6 +196,48 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(result.public_projection(), args.output)
             return 0
+        if args.expression_command == "claim":
+            claim = rna_consequence_to_claim(
+                RNAConsequenceEvidence.from_mapping(
+                    _read_mapping(args.evidence, "RNA consequence")
+                ),
+                RNAElementGeneTarget.from_mapping(
+                    _read_mapping(args.target, "element-gene target")
+                ),
+            )
+            _write_json(expression_claim_public_projection(claim), args.output)
+            return 0
+        if args.expression_command == "claim-batch":
+            request = _read_mapping(args.input, "RNA claim batch request")
+            unknown = set(request) - {"evidence", "targets", "require_complete"}
+            if unknown:
+                raise ValueError(
+                    f"RNA claim batch request contains unknown fields: {sorted(unknown)}"
+                )
+            evidence_raw = request.get("evidence")
+            targets_raw = request.get("targets")
+            require_complete = request.get("require_complete", False)
+            if not isinstance(evidence_raw, Sequence) or isinstance(
+                evidence_raw, (str, bytes, bytearray)
+            ):
+                raise ValueError("RNA claim batch evidence must be an array")
+            if not isinstance(targets_raw, Sequence) or isinstance(
+                targets_raw, (str, bytes, bytearray)
+            ):
+                raise ValueError("RNA claim batch targets must be an array")
+            if type(require_complete) is not bool:
+                raise ValueError("require_complete must be a boolean")
+            if any(not isinstance(item, Mapping) for item in evidence_raw):
+                raise ValueError("every RNA consequence must be an object")
+            if any(not isinstance(item, Mapping) for item in targets_raw):
+                raise ValueError("every element-gene target must be an object")
+            result = match_rna_consequences(
+                tuple(RNAConsequenceEvidence.from_mapping(item) for item in evidence_raw),
+                tuple(RNAElementGeneTarget.from_mapping(item) for item in targets_raw),
+                require_complete=require_complete,
+            )
+            _write_json(result.public_projection(), args.output)
+            return 0
         if args.expression_command == "schema":
             _write_json(
                 expression_evidence_schema(public=not args.include_private), args.output
@@ -169,6 +245,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.expression_command == "capabilities":
             _write_json(expression_evidence_capabilities(), args.output)
+            return 0
+        if args.expression_command == "claims-schema":
+            _write_json(expression_claims_schema(), args.output)
+            return 0
+        if args.expression_command == "claims-capabilities":
+            _write_json(expression_claims_capabilities(), args.output)
             return 0
     except (OSError, UnicodeError, ValueError, json.JSONDecodeError, ValidationError) as exc:
         print(f"error: {exc}", file=sys.stderr)

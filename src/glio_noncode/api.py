@@ -2725,10 +2725,19 @@ from .expression_evidence import (
     ExpressionObservation,
     ExpressionOutlierResult,
     PredictedRegulatoryEffect,
+    RNAConsequenceEvidence,
     RNAConsequenceIntegrator,
     RobustExpressionOutlierAnalyzer,
     expression_evidence_capabilities,
     expression_evidence_schema,
+)
+from .expression_claims import (
+    RNAElementGeneTarget,
+    expression_claims_capabilities,
+    expression_claims_schema,
+    match_rna_consequences,
+    public_projection as expression_claim_public_projection,
+    rna_consequence_to_claim,
 )
 from .runtime import CaseRuntime
 from .schema import schema_document
@@ -4917,6 +4926,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/expression-evidence/capabilities":
             self._write(HTTPStatus.OK, expression_evidence_capabilities())
+            return
+        if path == "/v1/expression-claims/schema":
+            self._write(HTTPStatus.OK, expression_claims_schema())
+            return
+        if path == "/v1/expression-claims/capabilities":
+            self._write(HTTPStatus.OK, expression_claims_capabilities())
             return
         downloaded_data_prefix = "/v1/downloaded-data"
         if path == downloaded_data_prefix or path.startswith(downloaded_data_prefix + "/"):
@@ -21953,6 +21968,71 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(
                     HTTPStatus.BAD_REQUEST,
                     {"error": "invalid_rna_integration", "message": str(exc)},
+                )
+            return
+        if path == "/v1/expression-claims/derive":
+            try:
+                payload = self._read_json()
+                evidence_raw = payload.get("evidence")
+                target_raw = payload.get("target")
+                if not isinstance(evidence_raw, Mapping) or not isinstance(
+                    target_raw, Mapping
+                ):
+                    raise ValueError("claim derivation requires evidence and target objects")
+                claim = rna_consequence_to_claim(
+                    RNAConsequenceEvidence.from_mapping(evidence_raw),
+                    RNAElementGeneTarget.from_mapping(target_raw),
+                )
+                self._write(
+                    HTTPStatus.OK,
+                    expression_claim_public_projection(claim),
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_expression_claim", "message": str(exc)},
+                )
+            return
+        if path == "/v1/expression-claims/match":
+            try:
+                payload = self._read_json()
+                evidence_raw = payload.get("evidence")
+                targets_raw = payload.get("targets")
+                require_complete = payload.get("require_complete", False)
+                if not isinstance(evidence_raw, Sequence) or isinstance(
+                    evidence_raw, (str, bytes, bytearray)
+                ):
+                    raise ValueError("claim matching requires an evidence array")
+                if not isinstance(targets_raw, Sequence) or isinstance(
+                    targets_raw, (str, bytes, bytearray)
+                ):
+                    raise ValueError("claim matching requires a targets array")
+                if type(require_complete) is not bool:
+                    raise ValueError("require_complete must be a boolean")
+                if any(not isinstance(item, Mapping) for item in evidence_raw):
+                    raise ValueError("every evidence item must be an object")
+                if any(not isinstance(item, Mapping) for item in targets_raw):
+                    raise ValueError("every target item must be an object")
+                batch = match_rna_consequences(
+                    tuple(RNAConsequenceEvidence.from_mapping(item) for item in evidence_raw),
+                    tuple(RNAElementGeneTarget.from_mapping(item) for item in targets_raw),
+                    require_complete=require_complete,
+                )
+                self._write(HTTPStatus.OK, batch.public_projection())
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_expression_claim_batch", "message": str(exc)},
                 )
             return
         if path == "/v1/storage/catalog/verify":

@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from glio_noncode._cli_expression import build_parser, main
+from glio_noncode.expression_claims import RNAElementGeneTarget
 from glio_noncode.expression_evidence import (
     AllelicCountBatch,
     AllelicCountObservation,
@@ -16,6 +17,7 @@ from glio_noncode.expression_evidence import (
     PredictedRegulatoryEffect,
     RegulatoryDirection,
 )
+from glio_noncode.models import ReferenceContext
 
 CONTEXT = "GRCh38|glioma|adult|stem_like|unknown|unknown"
 
@@ -53,7 +55,18 @@ class ExpressionCliTests(unittest.TestCase):
         choices = build_parser()._subparsers._group_actions[0].choices
         self.assertEqual(
             set(choices),
-            {"outlier", "allelic", "allelic-batch", "integrate", "schema", "capabilities"},
+            {
+                "outlier",
+                "allelic",
+                "allelic-batch",
+                "integrate",
+                "claim",
+                "claim-batch",
+                "schema",
+                "capabilities",
+                "claims-schema",
+                "claims-capabilities",
+            },
         )
 
     def test_outlier_allelic_batch_and_integration_execute(self) -> None:
@@ -111,18 +124,95 @@ class ExpressionCliTests(unittest.TestCase):
             self.assertEqual(integrated["state"], "supported")
             self.assertNotIn("sample_key", json.dumps(integrated))
 
+            target = RNAElementGeneTarget(
+                variant_id="variant-1",
+                element_id="element-SOX2",
+                gene_id="SOX2",
+                context=ReferenceContext(
+                    genome_build="GRCh38",
+                    disease_class="glioma",
+                    age_group="adult",
+                    cell_state="stem_like",
+                ),
+            )
+            target_path = self._write(root, "claim-target.json", target.to_dict())
+            claim_path = root / "claim.json"
+            self.assertEqual(
+                main(
+                    [
+                        "claim",
+                        "--evidence",
+                        str(integrated_path),
+                        "--target",
+                        str(target_path),
+                        "--output",
+                        str(claim_path),
+                    ]
+                ),
+                0,
+            )
+            claim = json.loads(claim_path.read_text())
+            self.assertEqual(claim["edge_id"], target.edge_id)
+            self.assertEqual(claim["channel"], "matched_rna_consequence")
+
+            claim_request = self._write(
+                root,
+                "claim-batch-request.json",
+                {
+                    "evidence": [integrated],
+                    "targets": [target.to_dict()],
+                    "require_complete": True,
+                },
+            )
+            claim_batch_path = root / "claim-batch.json"
+            self.assertEqual(
+                main(
+                    [
+                        "claim-batch",
+                        "--input",
+                        str(claim_request),
+                        "--output",
+                        str(claim_batch_path),
+                    ]
+                ),
+                0,
+            )
+            claim_batch = json.loads(claim_batch_path.read_text())
+            self.assertTrue(claim_batch["complete"])
+            self.assertEqual(claim_batch["claims"], [claim])
+
     def test_schema_capabilities_and_invalid_inputs_are_bounded(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             schema_path = root / "schema.json"
             capabilities_path = root / "capabilities.json"
+            claims_schema_path = root / "claims-schema.json"
+            claims_capabilities_path = root / "claims-capabilities.json"
             self.assertEqual(main(["schema", "--output", str(schema_path)]), 0)
             self.assertEqual(main(["capabilities", "--output", str(capabilities_path)]), 0)
+            self.assertEqual(
+                main(["claims-schema", "--output", str(claims_schema_path)]), 0
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "claims-capabilities",
+                        "--output",
+                        str(claims_capabilities_path),
+                    ]
+                ),
+                0,
+            )
             self.assertTrue(json.loads(schema_path.read_text())["public"])
             self.assertTrue(
                 json.loads(capabilities_path.read_text())["privacy"][
                     "public_results_are_sample_free"
                 ]
+            )
+            self.assertIn("$defs", json.loads(claims_schema_path.read_text()))
+            self.assertEqual(
+                json.loads(claims_capabilities_path.read_text())["channel"],
+                "matched_rna_consequence",
             )
             bad = self._write(root, "bad.json", [])
             self.assertEqual(main(["allelic", "--input", str(bad)]), 2)
