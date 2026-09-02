@@ -7,7 +7,10 @@ from typing import Any
 
 from .link_graph_foundation_frontier_fixture_eval import LinkGraphFoundationFrontierEvaluation
 from .link_graph_foundation_frontier_public_data import LinkGraphFoundationFrontierFixture
-from .link_graph_foundation_frontier_review_queue import LinkGraphFoundationFrontierReviewQueue
+from .link_graph_foundation_frontier_review_queue import (
+    LinkGraphFoundationFrontierReviewEntry,
+    LinkGraphFoundationFrontierReviewQueue,
+)
 from .link_graph_foundation_frontier_support import state_counts
 from .serialization import content_hash, jsonable
 

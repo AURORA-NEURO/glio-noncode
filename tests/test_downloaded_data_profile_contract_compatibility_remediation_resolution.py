@@ -139,7 +139,18 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionTests(unitt
 
         audit = build_default_public_surface_audit()
         self.assertTrue(audit.accepted)
-        self.assertEqual(len(audit.checks), 1997)
+        self.assertEqual(audit.passed_surface_count, audit.surface_count)
+        self.assertEqual(audit.failed_surface_count, 0)
+        surface_ids = {check.surface_id for check in audit.checks}
+        self.assertTrue(
+            {
+                "downloaded-data-profile-contract-compatibility-remediation-resolution-schema",
+                "downloaded-data-profile-contract-compatibility-remediation-resolution-query-schema",
+                "downloaded-data-profile-contract-compatibility-remediation-resolution-runtime-schema",
+                "downloaded-data-profile-contract-compatibility-remediation-resolution-runtime-audit-schema",
+            }
+            <= surface_ids
+        )
         for schema in (resolution_model.entry_schema(), resolution_model.resolution_schema(), resolution_audit_model.check_schema(), resolution_audit_model.audit_schema(), resolution_query_model.row_schema(), resolution_query_model.query_schema(), resolution_query_audit_model.check_schema(), resolution_query_audit_model.audit_schema(), resolution_runtime_model.manifest_schema(), resolution_runtime_model.runtime_schema(), resolution_runtime_audit_model.check_schema(), resolution_runtime_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
             self._assert_public(schema)

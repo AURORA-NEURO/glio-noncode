@@ -2550,6 +2550,7 @@ from .module_workbench_audit import (
     query_module_workbench_audit,
 )
 from .module_workbench_diff import (
+    build_module_workbench_diff,
     module_workbench_diff_capabilities,
     module_workbench_diff_csv,
     module_workbench_diff_json,
@@ -2574,6 +2575,7 @@ from .module_workbench_execution_audit import (
     query_module_workbench_execution_audit,
 )
 from .module_workbench_execution_diff import (
+    build_module_workbench_execution_diff,
     module_workbench_execution_diff_capabilities,
     module_workbench_execution_diff_csv,
     module_workbench_execution_diff_json,
@@ -2582,6 +2584,7 @@ from .module_workbench_execution_diff import (
 )
 from .module_workbench_execution_packet import (
     build_module_workbench_execution_packet,
+    load_module_workbench_execution_packet,
     module_workbench_execution_packet_capabilities,
     module_workbench_execution_packet_csv,
     module_workbench_execution_packet_json,
@@ -3225,6 +3228,7 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     build_decision_assurance_history,
     decision_assurance_history_csv,
     decision_assurance_history_entry_schema,
+    decision_assurance_history_json,
     decision_assurance_history_query_csv,
     decision_assurance_history_query_json,
     decision_assurance_history_query_schema,
@@ -5390,6 +5394,21 @@ def _downloaded_contract_compatibility_remediation_resolution_from_input(input_p
     if "resolution_id" in raw and "entries" in raw and "content_address" in raw:
         return downloaded_data_profile_contract_compatibility_remediation_resolution_model.resolution_from_mapping(raw)
     return downloaded_data_profile_contract_compatibility_remediation_resolution_model.build_resolution(_downloaded_contract_compatibility_remediation_plan_from_input(input_path))
+
+
+def _downloaded_contract_compatibility_remediation_resolution_query_from_input(input_path: str):
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    return downloaded_data_profile_contract_compatibility_remediation_resolution_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_contract_compatibility_remediation_resolution_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model.load_runtime(source)
+    raw = _read_json(input_path)
+    nested = raw.get("runtime")
+    return downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model.runtime_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
 
 def _downloaded_contract_compatibility_remediation_resolution_history_resolutions_from_input(input_path: str):

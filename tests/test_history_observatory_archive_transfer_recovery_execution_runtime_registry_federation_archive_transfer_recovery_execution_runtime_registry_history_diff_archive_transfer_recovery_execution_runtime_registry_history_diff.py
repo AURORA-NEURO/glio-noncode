@@ -102,7 +102,8 @@ class HistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffTests
                     api_diff = json.loads(response.read().decode("utf-8"))
                 self.assertEqual((api_diff["item_count"], api_diff["added_count"], api_diff["accepted"]), (2, 1, True))
                 diff_input = str(diff_directory)
-                with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}/audit?{urlencode({"input": diff_input, "format": "json"})}", timeout=30) as response:
+                audit_params = {"input": diff_input, "format": "json"}
+                with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}/audit?{urlencode(audit_params)}", timeout=30) as response:
                     self.assertTrue(json.loads(response.read().decode("utf-8"))["accepted"])
                 query_params = {"input": diff_input, "change": "added", "format": "json"}
                 with urlopen(f"http://127.0.0.1:{server.server_port}{API_PATH}/query?{urlencode(query_params)}", timeout=30) as response:

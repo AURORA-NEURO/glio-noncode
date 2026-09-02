@@ -259,10 +259,10 @@ def _filter_rows(
             if str(item).strip()
         }
 
-        def value_for(item: Mapping[str, Any]) -> str:
-            if field == "state" and "state" not in item and "passed" in item:
+        def value_for(item: Mapping[str, Any], selected_field: str = field) -> str:
+            if selected_field == "state" and "state" not in item and "passed" in item:
                 return "passed" if bool(item.get("passed")) else "failed"
-            return str(item.get(field, ""))
+            return str(item.get(selected_field, ""))
 
         selected = tuple(item for item in selected if value_for(item) in values)
     raw_text = filters.get("text", "")

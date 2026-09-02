@@ -144,7 +144,18 @@ class DownloadedDataProfileContractDiffTests(unittest.TestCase):
     def test_public_inventory_includes_the_complete_diff_plane(self):
         audit = build_default_public_surface_audit()
         self.assertTrue(audit.accepted)
-        self.assertEqual(len(audit.checks), 1997)
+        self.assertEqual(audit.passed_surface_count, audit.surface_count)
+        self.assertEqual(audit.failed_surface_count, 0)
+        surface_ids = {check.surface_id for check in audit.checks}
+        self.assertTrue(
+            {
+                "downloaded-data-profile-contract-diff-schema",
+                "downloaded-data-profile-contract-diff-query-schema",
+                "downloaded-data-profile-contract-diff-runtime-schema",
+                "downloaded-data-profile-contract-diff-runtime-audit-schema",
+            }
+            <= surface_ids
+        )
         for schema in (diff_model.item_schema(), diff_model.diff_schema(), diff_audit_model.check_schema(), diff_audit_model.audit_schema(), diff_query_model.row_schema(), diff_query_model.query_schema(), diff_query_audit_model.check_schema(), diff_query_audit_model.audit_schema(), diff_runtime_model.manifest_schema(), diff_runtime_model.runtime_schema(), diff_runtime_audit_model.check_schema(), diff_runtime_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
             self._assert_public(schema)
