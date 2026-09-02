@@ -858,12 +858,22 @@ from .assurance_history_series_release_registry_federation_gate_review_decision_
 )
 from .capability_certification_bundle import build_capability_certification_bundle
 from .capability_certification_bundle_schema import capability_certification_bundle_schema
+from .case_workflow import capabilities as case_workflow_public_capabilities
+from .case_workflow import case_workflow_schema as case_workflow_public_schema
 from .cohort_benchmarks import cohort_benchmark_capabilities, cohort_benchmark_schema
 from .deployment_frontier_offline_bundle import build_deployment_frontier_offline_bundle
 from .deployment_frontier_offline_schema import deployment_frontier_offline_bundle_schema
 from .deployment_profiles import build_deployment_profile, deployment_profile_schema
 from .evidence_lifecycle_frontier_offline_bundle import build_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_schema import evidence_lifecycle_offline_bundle_schema
+from .expression_claims import (
+    expression_claims_capabilities as expression_claims_public_capabilities,
+)
+from .expression_claims import expression_claims_schema as expression_claims_public_schema
+from .expression_evidence import (
+    expression_evidence_capabilities as expression_evidence_public_capabilities,
+)
+from .expression_evidence import expression_evidence_schema as expression_evidence_public_schema
 from .mission_plan_public_conformance import (
     mission_plan_public_conformance_capabilities,
     mission_plan_public_conformance_schema,
@@ -1544,7 +1554,7 @@ from .workbench_release_frontier_offline_bundle import build_workbench_release_o
 from .workbench_release_frontier_offline_schema import workbench_release_offline_bundle_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 2164
+PUBLIC_SURFACE_EXPECTED_COUNT = 2170
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -1579,6 +1589,20 @@ _FORBIDDEN_PUBLIC_KEYS = frozenset(
     })
 
 _PRIVATE_INPUT_SCHEMA_KEYS = frozenset({"individual_id", "medical_record_number", "participant_id", "patient_id", "phone", "sample_id", "subject_id"})
+_SCHEMA_METADATA_ONLY_KEYS = frozenset({"produced_by"})
+_JSON_SCHEMA_DECLARATION_KEYS = frozenset(
+    {
+        "$ref",
+        "allOf",
+        "anyOf",
+        "const",
+        "enum",
+        "not",
+        "oneOf",
+        "properties",
+        "type",
+    }
+)
 
 
 class PublicSurfaceAuditPlane(StrEnum):
@@ -1653,14 +1677,46 @@ def _violation_paths(value: Any, path: str = "$") -> tuple[str, ...]:
     return tuple(paths)
 
 
+def _schema_metadata_paths(value: Any) -> frozenset[str]:
+    """Identify forbidden-looking keys used only as JSON Schema property names."""
+
+    if not isinstance(value, Mapping):
+        return frozenset()
+    schema_uri = value.get("$schema")
+    if not isinstance(schema_uri, str) or "json-schema.org" not in schema_uri.casefold():
+        return frozenset()
+
+    paths: set[str] = set()
+
+    def visit(item: Any, path: str) -> None:
+        if not isinstance(item, Mapping):
+            return
+        properties = item.get("properties")
+        if isinstance(properties, Mapping):
+            for key, declaration in properties.items():
+                if (
+                    str(key).casefold() in _SCHEMA_METADATA_ONLY_KEYS
+                    and isinstance(declaration, Mapping)
+                    and not _JSON_SCHEMA_DECLARATION_KEYS.isdisjoint(declaration)
+                ):
+                    paths.add(f"{path}.properties.{key}")
+        for key, child in item.items():
+            visit(child, f"{path}.{key}")
+
+    visit(value, "$")
+    return frozenset(paths)
+
+
 def _audit_surface(surface_id: str, plane: PublicSurfaceAuditPlane, value: Any) -> PublicSurfaceAuditCheck:
     projected = jsonable(value)
     violations = _violation_paths(projected)
     if plane is PublicSurfaceAuditPlane.SCHEMA:
+        metadata_paths = _schema_metadata_paths(projected)
         violations = tuple(
             item
             for item in violations
-            if not any(item.casefold().endswith(f".{key}") for key in _PRIVATE_INPUT_SCHEMA_KEYS)
+            if item not in metadata_paths
+            and not any(item.casefold().endswith(f".{key}") for key in _PRIVATE_INPUT_SCHEMA_KEYS)
         )
     violations = tuple(item for item in violations if item)
     if plane is not PublicSurfaceAuditPlane.SCHEMA:
@@ -4767,6 +4823,12 @@ def default_public_surface_inventory(
         "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime-query-capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_runtime_query_capabilities(),
         "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime-policy-schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_runtime_policy_schema(),
         "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime-policy-capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_runtime_policy_capabilities(),
+        "case-workflow-schema": case_workflow_public_schema(),
+        "case-workflow-capabilities": case_workflow_public_capabilities(),
+        "expression-evidence-schema": expression_evidence_public_schema(public=True),
+        "expression-evidence-capabilities": expression_evidence_public_capabilities(),
+        "expression-claims-schema": expression_claims_public_schema(),
+        "expression-claims-capabilities": expression_claims_public_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),
