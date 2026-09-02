@@ -508,6 +508,9 @@ identity mismatch, persistence mismatch, or failed replay integrity.
 - Case execution accepts at most 10,000 unique RNA consequence objects. Duplicate content
   addresses and over-limit Python iterables fail closed before runtime persistence; the bound is
   published by both case schema and capabilities discovery.
+- Case preparation accepts at most 1,000 regulatory-track sources through either Python iterable
+  name. The limit is published by case capabilities; over-limit or non-iterable inputs fail before
+  track parsing.
 - All case sources on these façade routes are inline text or bytes; the server does not dereference
   client-provided local paths.
 - Expression and consequence identifiers are bounded opaque keys; normalized free-text fields are

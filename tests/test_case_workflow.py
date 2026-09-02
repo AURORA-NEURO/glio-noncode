@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from glio_noncode.case_workflow import (
+    MAX_CASE_REGULATORY_TRACKS,
     CaseRunResult,
     PreparedCase,
     RegulatoryTrackSource,
@@ -157,6 +158,30 @@ class CaseWorkflowTests(unittest.TestCase):
         )
         self.assertTrue(all(item.startswith("sha256:") for item in forward.provenance_addresses))
 
+    def test_regulatory_track_iterables_are_bounded_for_both_parameter_names(self) -> None:
+        from itertools import repeat
+
+        alias = prepared(regulatory_tracks=(), tracks=(track(),))
+        self.assertTrue(alias.accepted, alias.to_dict())
+
+        for parameter_name in ("regulatory_tracks", "tracks"):
+            arguments: dict[str, object] = {
+                "regulatory_tracks": (),
+                parameter_name: repeat(track(), MAX_CASE_REGULATORY_TRACKS + 1),
+            }
+            with self.subTest(parameter_name=parameter_name), self.assertRaisesRegex(
+                ValidationError,
+                f"maximum of {MAX_CASE_REGULATORY_TRACKS}",
+            ):
+                prepared(**arguments)
+
+        for invalid in ("track.json", {"source_id": "not-an-iterable-container"}):
+            with self.subTest(invalid=type(invalid).__name__), self.assertRaisesRegex(
+                ValidationError,
+                "iterable of track objects",
+            ):
+                prepared(regulatory_tracks=invalid)
+
     def test_fail_closed_gates_are_typed(self) -> None:
         cases = {
             "intake": prepared(
@@ -273,6 +298,10 @@ class CaseWorkflowTests(unittest.TestCase):
         self.assertFalse(advertised["server_local_paths"])
         self.assertIn("inline_bytes", advertised["source_transport"])
         self.assertIn("manifest_address", advertised["deterministic_outputs"])
+        self.assertEqual(
+            advertised["preparation_inputs"]["regulatory_tracks"]["max_items"],
+            MAX_CASE_REGULATORY_TRACKS,
+        )
 
 
 if __name__ == "__main__":

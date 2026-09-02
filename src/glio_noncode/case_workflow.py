@@ -43,6 +43,7 @@ from .serialization import content_hash, hash_bytes, jsonable, utc_now
 
 WORKFLOW_VERSION = "case-workflow-v1"
 MAX_CASE_RNA_CONSEQUENCES = 10_000
+MAX_CASE_REGULATORY_TRACKS = 1_000
 _CONTEXT_FIELDS = {
     "genome_build",
     "disease_class",
@@ -299,6 +300,23 @@ def _normalize_rna_consequences(
     if len(set(addresses)) != len(addresses):
         raise ValidationError("rna_consequences contains duplicate evidence objects")
     return tuple(sorted(normalized, key=lambda item: item.content_address))
+
+
+def _bounded_regulatory_tracks(
+    values: Iterable[RegulatoryTrackSource | Mapping[str, Any]],
+    label: str,
+) -> tuple[RegulatoryTrackSource | Mapping[str, Any], ...]:
+    if isinstance(values, (str, bytes, bytearray, Mapping)):
+        raise ValidationError(f"{label} must be an iterable of track objects")
+    try:
+        items = tuple(islice(iter(values), MAX_CASE_REGULATORY_TRACKS + 1))
+    except TypeError as exc:
+        raise ValidationError(f"{label} must be iterable") from exc
+    if len(items) > MAX_CASE_REGULATORY_TRACKS:
+        raise ValidationError(
+            f"{label} exceeds the maximum of {MAX_CASE_REGULATORY_TRACKS} tracks"
+        )
+    return items
 
 
 def _runtime_rna_input_address(event_record: object) -> str | None:
@@ -1422,8 +1440,8 @@ def prepare_case(
         if isinstance(variant_source, VariantSource)
         else VariantSource.from_mapping(variant_source)
     )
-    declared_tracks = tuple(regulatory_tracks)
-    alias_tracks = () if tracks is None else tuple(tracks)
+    declared_tracks = _bounded_regulatory_tracks(regulatory_tracks, "regulatory_tracks")
+    alias_tracks = () if tracks is None else _bounded_regulatory_tracks(tracks, "tracks")
     if declared_tracks and alias_tracks:
         raise ValidationError("use regulatory_tracks or tracks, not both")
     track_values = alias_tracks or declared_tracks
@@ -2175,6 +2193,12 @@ def capabilities() -> dict[str, Any]:
         "regulatory_track_formats": [item.value for item in RegulatoryTrackFormat],
         "source_transport": ["inline_text", "inline_bytes"],
         "server_local_paths": False,
+        "preparation_inputs": {
+            "regulatory_tracks": {
+                "max_items": MAX_CASE_REGULATORY_TRACKS,
+                "canonical_order": "source identity and canonical content",
+            }
+        },
         "canonical_track_order": True,
         "canonical_rna_order": "RNAConsequenceEvidence.content_address",
         "observational_timestamps_in_scientific_identity": False,
@@ -2234,6 +2258,7 @@ case_workflow_capabilities = capabilities
 
 
 __all__ = [
+    "MAX_CASE_REGULATORY_TRACKS",
     "MAX_CASE_RNA_CONSEQUENCES",
     "WORKFLOW_VERSION",
     "CaseRunResult",
