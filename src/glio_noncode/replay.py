@@ -66,7 +66,7 @@ class ReplayVerifier:
             run_record["input_address"],
             "run record input_address",
         )
-        _sha256_address(
+        event_address = _sha256_address(
             run_record["event_address"],
             "run record event_address",
         )
@@ -79,7 +79,7 @@ class ReplayVerifier:
         warnings: list[str] = []
         log: EventLog | None = None
         try:
-            log = EventLog.from_record(event_record)
+            log = EventLog.from_record(event_record, expected_address=event_address)
             event_chain_valid = log.run_id == run_id and log.verify()
         except (KeyError, TypeError, ValueError):
             event_chain_valid = False

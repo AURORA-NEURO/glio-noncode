@@ -239,8 +239,12 @@ class CaseRuntime:
                 )
             else:
                 try:
-                    event_record = self.store.store.get(str(run_record["event_address"]))
-                    log = EventLog.from_record(event_record)
+                    event_address = run_record["event_address"]
+                    event_record = self.store.store.get(event_address)
+                    log = EventLog.from_record(
+                        event_record,
+                        expected_address=event_address,
+                    )
                 except (KeyError, ValueError) as exc:
                     raise ValidationError(
                         "cannot continue a run with an invalid event record"
@@ -290,7 +294,10 @@ class CaseRuntime:
             or not self.store.store.exists(str(run_record["input_address"]))
         ):
             raise ValidationError("cannot review a run that fails replay integrity")
-        self._logs[run_id] = EventLog.from_record(event_record)
+        self._logs[run_id] = EventLog.from_record(
+            event_record,
+            expected_address=run_record["event_address"],
+        )
         dossier = Dossier.from_dict(stored)
         if dossier.run_id != run_id:
             raise ValidationError("stored dossier run_id does not match requested run")
@@ -343,7 +350,10 @@ class CaseRuntime:
             ReviewState.REJECTED,
         }:
             raise ValidationError("cannot assign a completed review")
-        log = EventLog.from_record(event_record)
+        log = EventLog.from_record(
+            event_record,
+            expected_address=run_record["event_address"],
+        )
         if any(event.event_id == assignment_id for event in log.all()):
             raise ValidationError("assignment_id already exists in the run event chain")
         assignment_body = {
