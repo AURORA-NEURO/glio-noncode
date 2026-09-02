@@ -116,5 +116,50 @@ class ApiJsonReaderTests(unittest.TestCase):
         )
 
 
+class ApiBodyChunkReaderTests(unittest.TestCase):
+    def test_streaming_reader_yields_bounded_chunks_without_materializing(self) -> None:
+        body = b"x" * 70_000
+
+        chunks = list(
+            _handler(body, str(len(body)))._read_body_chunks(max_bytes=len(body))
+        )
+
+        self.assertEqual(tuple(map(len, chunks)), (65_536, 4_464))
+        self.assertEqual(b"".join(chunks), body)
+
+    def test_streaming_reader_uses_the_same_strict_body_framing(self) -> None:
+        cases = (
+            ((), "missing Content-Length"),
+            (("2", "2"), "multiple Content-Length headers"),
+            (("",), "invalid Content-Length"),
+            (("-1",), "invalid Content-Length"),
+            (("0",), "must not be empty"),
+            (("3",), "exceeds 2 bytes"),
+            (("9" * 5_000,), "exceeds 2 bytes"),
+        )
+        for values, message in cases:
+            with self.subTest(values=values), self.assertRaisesRegex(ValueError, message):
+                list(_handler(b"{}", *values)._read_body_chunks(max_bytes=2))
+
+        handler = _handler(b"{}", "2")
+        handler.headers.add_header("Transfer-Encoding", "chunked")
+        with self.assertRaisesRegex(ValueError, "Transfer-Encoding is not supported"):
+            list(handler._read_body_chunks(max_bytes=2))
+
+    def test_streaming_reader_rejects_short_bodies_and_invalid_internal_limits(self) -> None:
+        with self.assertRaisesRegex(ValueError, "ended before Content-Length"):
+            list(_handler(b"{}", "3")._read_body_chunks(max_bytes=3))
+        for max_bytes in (False, 0, 1.5):
+            with self.subTest(max_bytes=max_bytes), self.assertRaisesRegex(
+                ValueError,
+                "max_bytes must be a positive integer",
+            ):
+                list(
+                    _handler(b"{}", "2")._read_body_chunks(  # type: ignore[arg-type]
+                        max_bytes=max_bytes
+                    )
+                )
+
+
 if __name__ == "__main__":
     unittest.main()

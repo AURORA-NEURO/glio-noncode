@@ -4937,6 +4937,35 @@ class ApiHandler(BaseHTTPRequestHandler):
 
         self._write(status, {"error": "bad_request", "message": str(message)[:2048]})
 
+    def _declared_body_length(self, *, max_bytes: int, label: str) -> int:
+        """Return one unambiguous, bounded HTTP request-body length."""
+
+        if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes < 1:
+            raise ValueError("max_bytes must be a positive integer")
+        if self.headers.get_all("Transfer-Encoding", []):
+            raise ValueError(f"Transfer-Encoding is not supported for {label}")
+        raw_lengths = self.headers.get_all("Content-Length", [])
+        if len(raw_lengths) != 1:
+            if raw_lengths:
+                raise ValueError("multiple Content-Length headers are not allowed")
+            raise ValueError(f"missing Content-Length for {label}")
+        raw_length = raw_lengths[0]
+        if not isinstance(raw_length, str):
+            raise ValueError("invalid Content-Length")
+        raw_length = raw_length.strip()
+        if not raw_length or not raw_length.isascii() or not raw_length.isdigit():
+            raise ValueError("invalid Content-Length")
+        normalized_length = raw_length.lstrip("0") or "0"
+        maximum = str(max_bytes)
+        if len(normalized_length) > len(maximum) or (
+            len(normalized_length) == len(maximum) and normalized_length > maximum
+        ):
+            raise ValueError(f"{label} exceeds {max_bytes} bytes")
+        length = int(normalized_length)
+        if length < 1:
+            raise ValueError(f"{label} must not be empty")
+        return length
+
     def _read_json(self, *, strict: bool = False) -> dict[str, Any]:
         """Read one bounded JSON object using strict semantics on every route.
 
@@ -4945,31 +4974,10 @@ class ApiHandler(BaseHTTPRequestHandler):
         """
 
         del strict
-        if self.headers.get_all("Transfer-Encoding", []):
-            raise ValueError("Transfer-Encoding is not supported for JSON requests")
-        raw_lengths = self.headers.get_all("Content-Length", [])
-        if len(raw_lengths) != 1:
-            if raw_lengths:
-                raise ValueError("multiple Content-Length headers are not allowed")
-            raise ValueError("missing Content-Length")
-        raw_length = raw_lengths[0]
-        if not isinstance(raw_length, str):
-            raise ValueError("invalid Content-Length")
-        raw_length = raw_length.strip()
-        if not raw_length or not raw_length.isascii() or not raw_length.isdigit():
-            raise ValueError("invalid Content-Length")
-        normalized_length = raw_length.lstrip("0") or "0"
-        if len(normalized_length) > len(str(MAX_JSON_REQUEST_BYTES)):
-            raise ValueError(
-                f"JSON request body exceeds {MAX_JSON_REQUEST_BYTES} bytes"
-            )
-        length = int(normalized_length)
-        if length < 1:
-            raise ValueError("JSON request body must not be empty")
-        if length > MAX_JSON_REQUEST_BYTES:
-            raise ValueError(
-                f"JSON request body exceeds {MAX_JSON_REQUEST_BYTES} bytes"
-            )
+        length = self._declared_body_length(
+            max_bytes=MAX_JSON_REQUEST_BYTES,
+            label="JSON request body",
+        )
         body = self.rfile.read(length)
         if len(body) != length:
             raise ValueError("JSON request body ended before Content-Length")
@@ -4988,15 +4996,10 @@ class ApiHandler(BaseHTTPRequestHandler):
     def _read_body_chunks(self, *, max_bytes: int) -> Iterator[bytes]:
         """Yield a bounded raw request body without creating one large buffer."""
 
-        raw_length = self.headers.get("Content-Length", "0")
-        try:
-            length = int(raw_length)
-        except ValueError as exc:
-            raise ValueError("invalid Content-Length") from exc
-        if length < 1:
-            raise ValueError("streaming intake requires a non-empty Content-Length")
-        if length > max_bytes:
-            raise ValueError(f"streaming intake body exceeds {max_bytes} bytes")
+        length = self._declared_body_length(
+            max_bytes=max_bytes,
+            label="streaming intake body",
+        )
         remaining = length
         while remaining:
             chunk = self.rfile.read(min(65_536, remaining))
