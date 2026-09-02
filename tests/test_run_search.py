@@ -88,12 +88,15 @@ class RunSearchTests(unittest.TestCase):
             experiments = search_persisted_runs(
                 runtime,
                 resource="experiments",
-                assay="rna_measurement",
+                assay="mpra",
             )
-            self.assertEqual(experiments.total_count, 2)
-            self.assertTrue(
-                all(row.payload["assay"] == "rna_measurement" for row in experiments.rows)
+            expected_mpra_count = sum(
+                option.assay.value == "mpra"
+                for dossier in (first, second)
+                for option in dossier.experiments
             )
+            self.assertEqual(experiments.total_count, expected_mpra_count)
+            self.assertTrue(all(row.payload["assay"] == "mpra" for row in experiments.rows))
 
     def test_filters_pagination_and_ranking_are_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -110,7 +113,13 @@ class RunSearchTests(unittest.TestCase):
             repeated = search_persisted_runs(**kwargs)
             self.assertTrue(page.accepted)
             self.assertEqual(page.to_dict(), repeated.to_dict())
-            self.assertEqual(page.total_count, 17)
+            expected_count = (
+                1
+                + len(first.hypotheses)
+                + len(first.evidence)
+                + len(first.experiments)
+            )
+            self.assertEqual(page.total_count, expected_count)
             self.assertEqual(len(page.rows), 3)
             self.assertTrue(page.has_more)
             self.assertEqual(
@@ -129,7 +138,7 @@ class RunSearchTests(unittest.TestCase):
             )
             self.assertTrue(closure["accepted"])
             self.assertFalse(closure["page"]["has_more"])
-            self.assertEqual(closure["page"]["total_count"], 1)
+            self.assertEqual(closure["page"]["total_count"], len(first.experiments))
             self.assertTrue(closure["content_address"].startswith("run-search-closure:"))
 
     def test_corrupt_runs_are_blocked_and_never_scientific_hits(self) -> None:

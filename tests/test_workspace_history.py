@@ -66,8 +66,18 @@ class WorkspaceHistoryTests(unittest.TestCase):
                 [item.dossier_address for item in history.snapshots],
                 [original.content_address, reviewed.content_address],
             )
-            self.assertEqual(history.snapshots[0].record_count, 18)
-            self.assertEqual(history.snapshots[1].record_count, 18)
+            manifest = fixture_manifest()
+            expected_record_count = (
+                len(manifest.variants)
+                + len(manifest.candidate_elements)
+                + len(original.hypotheses)
+                + len(original.evidence)
+                + len(original.experiments)
+            )
+            self.assertEqual(
+                [snapshot.record_count for snapshot in history.snapshots],
+                [expected_record_count, expected_record_count],
+            )
             transition = history.transitions[0]
             self.assertTrue(transition.metadata_changed)
             self.assertTrue(transition.changed)

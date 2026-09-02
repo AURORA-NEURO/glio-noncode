@@ -11,7 +11,7 @@ from .atlas import AtlasQuery, PublicAtlasRetriever
 from .data_sources import EnrichmentResult, PublicReferenceRetriever
 from .errors import PolicyViolation, StoreError, ValidationError
 from .events import EventLog
-from .experiments import ExperimentPlanner
+from .experiments import ExperimentPlanner, ExperimentPlanningLimits
 from .expression_evidence import RNAConsequenceEvidence
 from .hypotheses import HypothesisBuilder, HypothesisWorkLimits
 from .models import (
@@ -37,11 +37,13 @@ class CaseRuntime:
         reference_retriever: PublicReferenceRetriever | None = None,
         atlas_retriever: PublicAtlasRetriever | None = None,
         hypothesis_limits: HypothesisWorkLimits | None = None,
+        experiment_limits: ExperimentPlanningLimits | None = None,
     ) -> None:
         builder = HypothesisBuilder(limits=hypothesis_limits)
+        planner = ExperimentPlanner(limits=experiment_limits)
         self.store = RunStore(data_root)
         self.builder = builder
-        self.planner = ExperimentPlanner()
+        self.planner = planner
         self.policy = ResearchPolicy()
         self.reference_retriever = reference_retriever
         self.atlas_retriever = atlas_retriever
