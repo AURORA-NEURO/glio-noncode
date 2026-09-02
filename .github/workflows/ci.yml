@@ -2119,6 +2119,8 @@ jobs:
           done
       - name: Downloaded-data exact history-diff archive transfer recovery execution runtime registry history diff archive transfer recovery focused tests
         run: python -m unittest tests.test_exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery -v
+      - name: Downloaded-data exact history-diff archive transfer recovery execution ledger runtime registry history diff archive transfer recovery focused tests
+        run: python -m unittest tests.test_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery -v
       - name: Downloaded-data exact history-diff archive transfer recovery execution CLI surface
         run: |
           set -euo pipefail
