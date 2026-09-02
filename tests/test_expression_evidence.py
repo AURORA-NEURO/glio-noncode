@@ -1,0 +1,447 @@
+from __future__ import annotations
+
+import json
+import math
+import unittest
+
+from glio_noncode.errors import ValidationError
+from glio_noncode.expression_evidence import (
+    AllelicCountBatch,
+    AllelicCountObservation,
+    AllelicDirection,
+    AllelicImbalanceAnalyzer,
+    DispersionMethod,
+    ExpectedFractionMethod,
+    ExpressionBatch,
+    ExpressionDirection,
+    ExpressionObservation,
+    ExpressionOutlierResult,
+    ExpressionScale,
+    PhaseStatus,
+    PredictedRegulatoryEffect,
+    RegulatoryDirection,
+    RNAConsequenceEvidence,
+    RNAConsequenceIntegrator,
+    RNAEvidenceState,
+    RobustExpressionOutlierAnalyzer,
+    benjamini_hochberg,
+    exact_two_sided_binomial_pvalue,
+    expression_evidence_capabilities,
+    expression_evidence_schema,
+)
+
+CONTEXT = "GRCh38|diffuse_glioma|adult|malignant|core|pre"
+
+
+def expression(
+    sample_key: str,
+    value: float,
+    *,
+    feature_id: str = "gene:SOX2",
+    scale: ExpressionScale | str = ExpressionScale.LOG2_TPM,
+    context_key: str = CONTEXT,
+    source_id: str = "rna-reference",
+) -> ExpressionObservation:
+    return ExpressionObservation(
+        feature_id=feature_id,
+        sample_key=sample_key,
+        value=value,
+        scale=scale,
+        context_key=context_key,
+        source_id=source_id,
+        source_version="2026-08",
+    )
+
+
+def reference_batch(values: list[float]) -> ExpressionBatch:
+    return ExpressionBatch.from_observations(
+        expression(f"reference:{index}", value) for index, value in enumerate(values)
+    )
+
+
+def allelic(
+    ref_count: int,
+    alt_count: int,
+    *,
+    sample_key: str = "tumour:opaque-01",
+    phase: PhaseStatus | str = PhaseStatus.PHASED,
+    expected_alt_fraction: float | None = 0.5,
+    mapping_bias: float | None = None,
+    mapping_bias_flag: bool = False,
+    context_key: str = CONTEXT,
+    other_count: int = 0,
+    ref_copy_number: float | None = None,
+    alt_copy_number: float | None = None,
+    purity: float | None = None,
+) -> AllelicCountObservation:
+    return AllelicCountObservation(
+        feature_id="gene:SOX2",
+        variant_id="variant:chr3-181711925-A-G",
+        sample_key=sample_key,
+        ref_count=ref_count,
+        alt_count=alt_count,
+        other_count=other_count,
+        phase=phase,
+        context_key=context_key,
+        source_id="rna-ase",
+        source_version="pipeline-4",
+        expected_alt_fraction=expected_alt_fraction,
+        ref_copy_number=ref_copy_number,
+        alt_copy_number=alt_copy_number,
+        purity=purity,
+        mapping_bias=mapping_bias,
+        mapping_bias_flag=mapping_bias_flag,
+    )
+
+
+class ExpressionContractTests(unittest.TestCase):
+    def test_observation_and_batch_round_trip_canonically(self) -> None:
+        first = expression("reference:1", 2.5)
+        self.assertEqual(ExpressionObservation.from_json(first.to_json()), first)
+        batch = ExpressionBatch((first, expression("reference:2", 3.0)))
+        rebuilt = ExpressionBatch.from_mapping(batch.to_dict())
+        self.assertEqual(rebuilt, batch)
+        self.assertEqual(rebuilt.content_address, batch.content_address)
+        self.assertEqual(rebuilt.to_json(), batch.to_json())
+
+    def test_row_order_does_not_change_batch_address(self) -> None:
+        rows = [expression("reference:2", 3.0), expression("reference:1", 2.5)]
+        self.assertEqual(
+            ExpressionBatch(tuple(rows)).content_address,
+            ExpressionBatch(tuple(reversed(rows))).content_address,
+        )
+        self.assertEqual(
+            ExpressionBatch(tuple(rows)).to_json(),
+            ExpressionBatch(tuple(reversed(rows))).to_json(),
+        )
+
+    def test_mixed_scale_and_context_batches_are_rejected(self) -> None:
+        with self.assertRaisesRegex(ValidationError, "mix scales"):
+            ExpressionBatch((
+                expression("reference:1", 1.0),
+                expression("reference:2", 2.0, scale=ExpressionScale.TPM),
+            ))
+        with self.assertRaisesRegex(ValidationError, "mix contexts"):
+            ExpressionBatch((
+                expression("reference:1", 1.0),
+                expression("reference:2", 2.0, context_key="foreign-context"),
+            ))
+
+    def test_nonfinite_values_and_invalid_keys_are_rejected(self) -> None:
+        for value in (math.nan, math.inf, -math.inf):
+            with self.subTest(value=value), self.assertRaisesRegex(ValidationError, "finite"):
+                expression("reference:1", value)
+        with self.assertRaisesRegex(ValidationError, "sample_key"):
+            expression("direct patient name", 1.0)
+        with self.assertRaisesRegex(ValidationError, "source_id"):
+            expression("reference:1", 1.0, source_id="bad source")
+
+    def test_duplicate_feature_sample_key_is_rejected(self) -> None:
+        with self.assertRaisesRegex(ValidationError, "duplicate"):
+            ExpressionBatch((
+                expression("reference:1", 1.0),
+                expression("reference:1", 2.0),
+            ))
+
+
+class RobustExpressionOutlierTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.analyzer = RobustExpressionOutlierAnalyzer()
+
+    def test_mad_outlier_support_and_opposite_direction_contradiction(self) -> None:
+        references = reference_batch([1, 2, 3, 4, 5, 6, 7])
+        high = expression("tumour:opaque-01", 20.0, source_id="matched-tumour")
+        supported = self.analyzer.analyze(
+            high, references, expected_direction=RegulatoryDirection.GAIN
+        )
+        contradicted = self.analyzer.analyze(
+            high, references, expected_direction=RegulatoryDirection.LOSS
+        )
+        self.assertEqual(supported.state, RNAEvidenceState.SUPPORTED)
+        self.assertEqual(contradicted.state, RNAEvidenceState.CONTRADICTORY)
+        self.assertEqual(supported.direction, ExpressionDirection.UP)
+        self.assertEqual(supported.dispersion_method, DispersionMethod.MAD)
+        self.assertGreater(supported.robust_z or 0.0, supported.z_threshold)
+
+    def test_non_outlier_is_a_measured_negative(self) -> None:
+        result = self.analyzer.analyze(
+            expression("tumour:opaque-01", 4.1, source_id="matched-tumour"),
+            reference_batch([1, 2, 3, 4, 5, 6, 7]),
+            expected_direction=RegulatoryDirection.GAIN,
+        )
+        self.assertEqual(result.state, RNAEvidenceState.MEASURED_NEGATIVE)
+        self.assertIn("no_expression_outlier", result.reason_codes)
+
+    def test_zero_mad_uses_iqr_fallback(self) -> None:
+        references = reference_batch([1, 1, 1, 1, 1, 2, 3, 4, 5])
+        result = self.analyzer.analyze(
+            expression("tumour:opaque-01", 20, source_id="matched-tumour"), references
+        )
+        self.assertEqual(result.state, RNAEvidenceState.SUPPORTED)
+        self.assertEqual(result.dispersion_method, DispersionMethod.IQR)
+        self.assertIn("mad_zero_iqr_fallback", result.reason_codes)
+
+    def test_zero_mad_and_iqr_abstains_instead_of_dividing_by_zero(self) -> None:
+        result = self.analyzer.analyze(
+            expression("tumour:opaque-01", 20, source_id="matched-tumour"),
+            reference_batch([1, 1, 1, 1, 1, 1]),
+        )
+        self.assertEqual(result.state, RNAEvidenceState.ABSTAINED)
+        self.assertIsNone(result.robust_z)
+        self.assertIsNone(result.dispersion)
+        self.assertIn("zero_reference_dispersion", result.reason_codes)
+
+    def test_context_and_scale_mismatch_are_out_of_domain(self) -> None:
+        target = expression("tumour:opaque-01", 10, source_id="matched-tumour")
+        foreign = ExpressionBatch(tuple(
+            expression(f"reference:{index}", float(index), context_key="foreign-context")
+            for index in range(6)
+        ))
+        self.assertEqual(
+            self.analyzer.analyze(target, foreign).state,
+            RNAEvidenceState.OUT_OF_DOMAIN,
+        )
+        linear = ExpressionBatch(tuple(
+            expression(f"reference:{index}", float(index), scale=ExpressionScale.TPM)
+            for index in range(6)
+        ))
+        self.assertIn(
+            "expression_scale_mismatch",
+            self.analyzer.analyze(target, linear).reason_codes,
+        )
+
+    def test_raw_counts_are_not_treated_as_cross_sample_expression(self) -> None:
+        target = expression(
+            "tumour:opaque-01", 100, scale=ExpressionScale.RAW_COUNT, source_id="tumour"
+        )
+        references = ExpressionBatch(tuple(
+            expression(
+                f"reference:{index}",
+                index,
+                scale=ExpressionScale.RAW_COUNT,
+            )
+            for index in range(6)
+        ))
+        result = self.analyzer.analyze(target, references)
+        self.assertEqual(result.state, RNAEvidenceState.OUT_OF_DOMAIN)
+        self.assertIn("unnormalized_expression_scale", result.reason_codes)
+
+    def test_result_round_trip_checks_content_address(self) -> None:
+        result = self.analyzer.analyze(
+            expression("tumour:opaque-01", 20, source_id="matched-tumour"),
+            reference_batch([1, 2, 3, 4, 5, 6]),
+        )
+        self.assertEqual(ExpressionOutlierResult.from_json(result.to_json()), result)
+        forged = result.to_dict() | {"content_address": "expression-outlier:forged"}
+        with self.assertRaisesRegex(ValidationError, "content_address"):
+            ExpressionOutlierResult.from_mapping(forged)
+
+
+class AllelicImbalanceTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.analyzer = AllelicImbalanceAnalyzer()
+
+    def test_balanced_measurement_is_negative_and_has_zero_log2_ratio(self) -> None:
+        result = self.analyzer.analyze(allelic(50, 50))
+        self.assertEqual(result.state, RNAEvidenceState.MEASURED_NEGATIVE)
+        self.assertEqual(result.direction, AllelicDirection.BALANCED)
+        self.assertAlmostEqual(result.p_value or 0.0, 1.0)
+        self.assertAlmostEqual(result.q_value or 0.0, 1.0)
+        self.assertIsNotNone(result.log2_ratio)
+        self.assertAlmostEqual(float(result.log2_ratio), 0.0)
+
+    def test_imbalanced_measurement_is_supported_or_directionally_contradictory(self) -> None:
+        observation = allelic(20, 80)
+        supported = self.analyzer.analyze(
+            observation, expected_direction=RegulatoryDirection.GAIN
+        )
+        contradicted = self.analyzer.analyze(
+            observation, expected_direction=RegulatoryDirection.LOSS
+        )
+        self.assertEqual(supported.state, RNAEvidenceState.SUPPORTED)
+        self.assertEqual(contradicted.state, RNAEvidenceState.CONTRADICTORY)
+        self.assertEqual(supported.direction, AllelicDirection.ALT_ENRICHED)
+        self.assertLess(supported.p_value or 1.0, 1e-8)
+        self.assertAlmostEqual(supported.log2_ratio or 0.0, 2.0)
+
+    def test_low_depth_unphased_and_mapping_biased_rows_abstain(self) -> None:
+        cases = (
+            (allelic(4, 5), "low_informative_depth"),
+            (allelic(30, 70, phase=PhaseStatus.UNPHASED), "allele_phase_unresolved"),
+            (allelic(30, 70, mapping_bias=0.2), "mapping_bias"),
+            (allelic(30, 70, mapping_bias_flag=True), "mapping_bias"),
+        )
+        for observation, reason in cases:
+            with self.subTest(reason=reason):
+                result = self.analyzer.analyze(observation)
+                self.assertEqual(result.state, RNAEvidenceState.ABSTAINED)
+                self.assertIn(reason, result.reason_codes)
+                self.assertIsNone(result.p_value)
+
+    def test_missing_expected_fraction_abstains_without_assuming_half(self) -> None:
+        observation = allelic(50, 50, expected_alt_fraction=None)
+        self.assertIsNone(observation.resolved_expected_alt_fraction)
+        result = self.analyzer.analyze(observation)
+        self.assertEqual(result.state, RNAEvidenceState.ABSTAINED)
+        self.assertIn("missing_expected_alt_fraction", result.reason_codes)
+        self.assertIsNone(result.expected_alt_fraction)
+
+    def test_copy_number_and_purity_adjust_loh_baseline(self) -> None:
+        observation = allelic(
+            90,
+            10,
+            expected_alt_fraction=None,
+            ref_copy_number=2,
+            alt_copy_number=0,
+            purity=0.8,
+        )
+        self.assertAlmostEqual(observation.resolved_expected_alt_fraction or 0.0, 0.1)
+        self.assertEqual(
+            observation.expected_fraction_method,
+            ExpectedFractionMethod.COPY_NUMBER_PURITY,
+        )
+        result = self.analyzer.analyze(observation)
+        self.assertEqual(result.state, RNAEvidenceState.MEASURED_NEGATIVE)
+        self.assertEqual(result.direction, AllelicDirection.BALANCED)
+        self.assertAlmostEqual(result.p_value or 0.0, 1.0)
+        self.assertIsNotNone(result.log2_ratio)
+        self.assertAlmostEqual(float(result.log2_ratio), 0.0)
+
+    def test_context_mismatch_is_out_of_domain(self) -> None:
+        result = self.analyzer.analyze(
+            allelic(20, 80), expected_context_key="foreign-context"
+        )
+        self.assertEqual(result.state, RNAEvidenceState.OUT_OF_DOMAIN)
+        self.assertIn("context_mismatch", result.reason_codes)
+
+    def test_exact_binomial_known_values_and_boundaries(self) -> None:
+        self.assertAlmostEqual(exact_two_sided_binomial_pvalue(8, 10, 0.5), 0.109375)
+        self.assertEqual(exact_two_sided_binomial_pvalue(0, 10, 0.0), 1.0)
+        self.assertEqual(exact_two_sided_binomial_pvalue(1, 10, 0.0), 0.0)
+        self.assertAlmostEqual(
+            exact_two_sided_binomial_pvalue(2, 10, 0.2),
+            1.0,
+        )
+
+    def test_bh_is_deterministic_and_preserves_input_order(self) -> None:
+        values = (0.01, 0.04, 0.03, 0.002)
+        expected = (0.02, 0.04, 0.04, 0.008)
+        self.assertEqual(benjamini_hochberg(values), expected)
+        reverse_adjusted = benjamini_hochberg(tuple(reversed(values)))
+        self.assertEqual(tuple(reversed(reverse_adjusted)), expected)
+
+    def test_batch_addresses_and_q_values_are_row_order_deterministic(self) -> None:
+        rows = (
+            allelic(50, 50, sample_key="tumour:a"),
+            allelic(20, 80, sample_key="tumour:b"),
+            allelic(30, 70, sample_key="tumour:c"),
+        )
+        first = AllelicCountBatch(rows)
+        second = AllelicCountBatch(tuple(reversed(rows)))
+        self.assertEqual(first.content_address, second.content_address)
+        left = self.analyzer.analyze_batch(first)
+        right = self.analyzer.analyze_batch(second)
+        self.assertEqual([item.to_dict() for item in left], [item.to_dict() for item in right])
+
+    def test_observation_batch_and_result_round_trip(self) -> None:
+        observation = allelic(20, 80)
+        self.assertEqual(
+            AllelicCountObservation.from_json(observation.to_json()), observation
+        )
+        batch = AllelicCountBatch((observation, allelic(50, 50, sample_key="tumour:b")))
+        self.assertEqual(AllelicCountBatch.from_json(batch.to_json()), batch)
+        result = self.analyzer.analyze(observation)
+        self.assertEqual(type(result).from_json(result.to_json()), result)
+
+
+class RNAIntegrationAndPrivacyTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.prediction = PredictedRegulatoryEffect(
+            prediction_id="prediction:01",
+            variant_id="variant:chr3-181711925-A-G",
+            feature_id="gene:SOX2",
+            direction=RegulatoryDirection.GAIN,
+            context_key=CONTEXT,
+            source_id="sequence-model",
+            source_version="model-3",
+            confidence=0.91,
+        )
+        references = reference_batch([1, 2, 3, 4, 5, 6, 7])
+        self.expression_supported = RobustExpressionOutlierAnalyzer().analyze(
+            expression("tumour:secret-direct-id", 20, source_id="matched-tumour"),
+            references,
+        )
+        self.expression_opposite = RobustExpressionOutlierAnalyzer().analyze(
+            expression("tumour:secret-direct-id", -20, source_id="matched-tumour"),
+            references,
+        )
+        self.allelic_supported = AllelicImbalanceAnalyzer().analyze(allelic(20, 80))
+
+    def test_concordant_and_opposite_directions_remain_distinct(self) -> None:
+        integrator = RNAConsequenceIntegrator()
+        concordant = integrator.integrate(
+            self.prediction,
+            expression=self.expression_supported,
+            allelic=self.allelic_supported,
+        )
+        opposite = integrator.integrate(
+            self.prediction,
+            expression=self.expression_opposite,
+        )
+        self.assertEqual(concordant.state, RNAEvidenceState.SUPPORTED)
+        self.assertEqual(opposite.state, RNAEvidenceState.CONTRADICTORY)
+        self.assertIn("rna_direction_concordant", concordant.reason_codes)
+        self.assertIn("rna_direction_opposes_prediction", opposite.reason_codes)
+
+    def test_scope_mismatch_is_out_of_domain(self) -> None:
+        foreign_prediction = PredictedRegulatoryEffect(
+            prediction_id="prediction:foreign",
+            variant_id=self.prediction.variant_id,
+            feature_id="gene:OTHER",
+            direction=RegulatoryDirection.GAIN,
+            context_key=CONTEXT,
+            source_id="sequence-model",
+        )
+        result = RNAConsequenceIntegrator().integrate(
+            foreign_prediction, expression=self.expression_supported
+        )
+        self.assertEqual(result.state, RNAEvidenceState.OUT_OF_DOMAIN)
+
+    def test_public_projection_contains_no_sample_ids_or_cohort_vectors(self) -> None:
+        result = RNAConsequenceIntegrator().integrate(
+            self.prediction,
+            expression=self.expression_supported,
+            allelic=self.allelic_supported,
+        )
+        projection = result.public_projection()
+        rendered = json.dumps(projection, sort_keys=True)
+        self.assertNotIn("sample_key", rendered)
+        self.assertNotIn("sample_id", rendered)
+        self.assertNotIn("secret-direct-id", rendered)
+        self.assertNotIn("observations", rendered)
+        self.assertNotIn("cohort_values", rendered)
+        self.assertEqual(set(projection), set(result.to_dict()))
+
+    def test_integration_round_trip_and_content_address(self) -> None:
+        result = RNAConsequenceIntegrator().integrate(
+            self.prediction,
+            expression=self.expression_supported,
+            allelic=self.allelic_supported,
+        )
+        rebuilt = RNAConsequenceEvidence.from_json(result.to_json())
+        self.assertEqual(rebuilt, result)
+        self.assertEqual(rebuilt.content_address, result.content_address)
+
+    def test_capability_and_public_schema_helpers_are_deterministic_and_private(self) -> None:
+        capabilities = expression_evidence_capabilities()
+        self.assertEqual(capabilities, expression_evidence_capabilities())
+        self.assertTrue(capabilities["privacy"]["public_results_are_sample_free"])
+        public_schema = expression_evidence_schema()
+        self.assertEqual(public_schema, expression_evidence_schema(public=True))
+        rendered = json.dumps(public_schema, sort_keys=True)
+        self.assertNotIn("sample_key", rendered)
+        self.assertIn("sample_key", json.dumps(expression_evidence_schema(public=False)))
+
+
+if __name__ == "__main__":
+    unittest.main()
