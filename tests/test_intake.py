@@ -2,14 +2,34 @@ from __future__ import annotations
 
 import json
 import unittest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import patch
 
-from glio_noncode.intake import IntakeFormat, IntakeSeverity, VariantIndex, VariantIntake
-from glio_noncode.models import ReferenceContext
+from glio_noncode.errors import ValidationError
+from glio_noncode.intake import (
+    MAX_VARIANT_INDEX_RECORDS,
+    IntakeFormat,
+    IntakeSeverity,
+    VariantIndex,
+    VariantIntake,
+)
+from glio_noncode.models import ReferenceContext, VariantIdentity, VariantKind
 
 
 class IntakeTests(unittest.TestCase):
+    @staticmethod
+    def _variant(index: int) -> VariantIdentity:
+        return VariantIdentity(
+            variant_id=f"variant-{index}",
+            kind=VariantKind.SNV,
+            chromosome="7",
+            start=index + 1,
+            end=index + 1,
+            reference="A",
+            alternate="T",
+            genome_build="GRCh38",
+        )
+
     def test_vcf_multiallelic_and_sample_metadata_are_canonicalized(self) -> None:
         text = "\n".join(
             (
@@ -88,13 +108,56 @@ class IntakeTests(unittest.TestCase):
         self.assertEqual(manifest.metadata["intake_receipt"]["accepted_count"], 1)
         self.assertNotIn("created_at", manifest.metadata["intake_receipt"])
 
+    def test_variant_index_accepts_exact_configured_record_bound(self) -> None:
+        variants = (self._variant(index) for index in range(3))
+
+        index = VariantIndex(variants, max_records=3)
+
+        self.assertEqual(
+            tuple(variant.variant_id for variant in index.all()),
+            ("variant-0", "variant-1", "variant-2"),
+        )
+
+    def test_variant_index_stops_after_max_plus_one_record(self) -> None:
+        consumed: list[int] = []
+
+        def variants():
+            for index in range(4):
+                consumed.append(index)
+                if index == 3:
+                    raise AssertionError("variant index consumed beyond max-plus-one")
+                yield self._variant(index)
+
+        with self.assertRaisesRegex(
+            ValidationError,
+            "variant_index_record_limit_exceeded",
+        ):
+            VariantIndex(variants(), max_records=2)
+
+        self.assertEqual(consumed, [0, 1, 2])
+
+    def test_variant_index_record_limit_is_strictly_bounded(self) -> None:
+        for value in (False, 0, 1.5, MAX_VARIANT_INDEX_RECORDS + 1):
+            with self.subTest(value=value), self.assertRaisesRegex(
+                ValidationError,
+                "MAX_VARIANT_INDEX_RECORDS",
+            ):
+                VariantIndex((), max_records=value)  # type: ignore[arg-type]
+
+        for invalid in ("variant-id", {"variant_id": "not-a-container"}, (object(),)):
+            with self.subTest(invalid=type(invalid).__name__), self.assertRaisesRegex(
+                ValidationError,
+                "VariantIdentity",
+            ):
+                VariantIndex(invalid)  # type: ignore[arg-type]
+
     def test_observation_time_does_not_change_scientific_identity(self) -> None:
         source = '[{"notation":"7:30:C>T","variant_id":"v1","genome_build":"GRCh38"}]'
         with patch(
             "glio_noncode.intake.utc_now",
             side_effect=(
-                datetime(2026, 1, 1, tzinfo=timezone.utc),
-                datetime(2026, 2, 1, tzinfo=timezone.utc),
+                datetime(2026, 1, 1, tzinfo=UTC),
+                datetime(2026, 2, 1, tzinfo=UTC),
             ),
         ):
             first = VariantIntake().parse_text(source, source_id="fixture-json")

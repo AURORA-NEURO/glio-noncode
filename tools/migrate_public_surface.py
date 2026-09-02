@@ -70,6 +70,10 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
         "glio_noncode.regulatory_tracks",
         "MAX_REGULATORY_TRACK_RECORDS",
     ),
+    "MAX_VARIANT_INDEX_RECORDS": (
+        "glio_noncode.intake",
+        "MAX_VARIANT_INDEX_RECORDS",
+    ),
     "MAX_CASE_RNA_CONSEQUENCES": (
         "glio_noncode.case_workflow",
         "MAX_CASE_RNA_CONSEQUENCES",

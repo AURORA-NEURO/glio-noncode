@@ -516,6 +516,9 @@ identity mismatch, persistence mismatch, or failed replay integrity.
   header/blank lines by default; callers may choose lower per-parser limits. Over-limit text inputs
   stop at one sentinel with a typed error issue, and regulatory JSON rejects duplicate keys and
   non-finite numbers.
+- The in-memory `VariantIndex` accepts at most 100,000 canonical variants by default, supports a
+  lower caller-selected ceiling, and consumes only one sentinel beyond that ceiling. Larger cohort
+  indexing belongs on the separately bounded streaming/index surfaces.
 - Direct RNA claim matching accepts at most 10,000 consequences and 10,000 element-gene targets.
   The bridge consumes at most one sentinel beyond either limit, rejects duplicate content
   identities, and publishes the limits in its schema and capabilities.

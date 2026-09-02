@@ -15,6 +15,7 @@ import json
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
+from itertools import islice
 from typing import Any
 
 from .bcf import BcfReader
@@ -22,6 +23,10 @@ from .errors import ValidationError
 from .identity import normalize_chromosome, normalize_variant
 from .models import CaseManifest, ReferenceContext, VariantIdentity
 from .serialization import content_hash, jsonable, utc_now
+
+# Keep the legacy in-memory index suitable for focused case-sized collections.
+# Larger cohorts should use the independently bounded streaming/index surfaces.
+MAX_VARIANT_INDEX_RECORDS = 100_000
 
 
 class IntakeFormat(StrEnum):
@@ -804,10 +809,36 @@ class VariantIntake:
 
 
 class VariantIndex:
-    """Deterministic interval index for accepted canonical variants."""
+    """Deterministic, bounded interval index for accepted canonical variants."""
 
-    def __init__(self, variants: Iterable[VariantIdentity]) -> None:
-        values = tuple(variants)
+    def __init__(
+        self,
+        variants: Iterable[VariantIdentity],
+        *,
+        max_records: int = MAX_VARIANT_INDEX_RECORDS,
+    ) -> None:
+        if (
+            isinstance(max_records, bool)
+            or not isinstance(max_records, int)
+            or not 1 <= max_records <= MAX_VARIANT_INDEX_RECORDS
+        ):
+            raise ValidationError(
+                "max_records must be an integer between 1 and "
+                f"MAX_VARIANT_INDEX_RECORDS ({MAX_VARIANT_INDEX_RECORDS})"
+            )
+        if isinstance(variants, (str, bytes, bytearray, Mapping)):
+            raise ValidationError("variants must be an iterable of VariantIdentity objects")
+        try:
+            values = tuple(islice(iter(variants), max_records + 1))
+        except TypeError as exc:
+            raise ValidationError("variants must be iterable") from exc
+        if len(values) > max_records:
+            raise ValidationError(
+                "variant_index_record_limit_exceeded: "
+                f"variant index record ceiling of {max_records} was exceeded"
+            )
+        if any(not isinstance(variant, VariantIdentity) for variant in values):
+            raise ValidationError("variants must contain only VariantIdentity objects")
         if len({variant.variant_id for variant in values}) != len(values):
             raise ValidationError("variant index requires unique variant IDs")
         self._variants = tuple(
