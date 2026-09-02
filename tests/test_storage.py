@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import multiprocessing
 import tempfile
 import threading
@@ -184,6 +185,91 @@ class StorageBoundaryTests(unittest.TestCase):
             )
             self.assertFalse(tuple((Path(directory) / "runs").glob("*.tmp")))
 
+    def test_unrelated_object_and_run_writes_do_not_share_process_locks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            from glio_noncode import storage as storage_module
+
+            object_store = ObjectStore(directory)
+            run_store = RunStore(directory)
+            original_atomic_write = storage_module._atomic_write_text
+
+            for first_name, first_write, second_write in (
+                (
+                    f"{_address(700).split(':', 1)[1]}.json",
+                    lambda: object_store.put_at(_address(700), {"value": "first"}),
+                    lambda: object_store.put_at(_address(701), {"value": "second"}),
+                ),
+                (
+                    "run-independent-a.json",
+                    lambda: run_store.save_run(
+                        "run-independent-a",
+                        input_address=_address(1),
+                        event_address=_address(2),
+                        dossier_address=_address(3),
+                    ),
+                    lambda: run_store.save_run(
+                        "run-independent-b",
+                        input_address=_address(4),
+                        event_address=_address(5),
+                        dossier_address=_address(6),
+                    ),
+                ),
+            ):
+                with self.subTest(first_name=first_name):
+                    first_entered = threading.Event()
+                    release_first = threading.Event()
+                    second_finished = threading.Event()
+                    failures: list[BaseException] = []
+
+                    def controlled_write(
+                        path: Path,
+                        text: str,
+                        *,
+                        target_name: str = first_name,
+                        entered: threading.Event = first_entered,
+                        release: threading.Event = release_first,
+                    ) -> None:
+                        if path.name == target_name:
+                            entered.set()
+                            if not release.wait(timeout=10):
+                                raise TimeoutError("first independent writer was not released")
+                        original_atomic_write(path, text)
+
+                    def run_first(
+                        operation: Any = first_write,
+                        errors: list[BaseException] = failures,
+                    ) -> None:
+                        try:
+                            operation()
+                        except BaseException as exc:  # pragma: no cover - asserted below
+                            errors.append(exc)
+
+                    def run_second(
+                        operation: Any = second_write,
+                        errors: list[BaseException] = failures,
+                        finished: threading.Event = second_finished,
+                    ) -> None:
+                        try:
+                            operation()
+                        except BaseException as exc:  # pragma: no cover - asserted below
+                            errors.append(exc)
+                        finally:
+                            finished.set()
+
+                    with patch("glio_noncode.storage._atomic_write_text", controlled_write):
+                        first = threading.Thread(target=run_first)
+                        second = threading.Thread(target=run_second)
+                        first.start()
+                        self.assertTrue(first_entered.wait(timeout=5))
+                        second.start()
+                        self.assertTrue(second_finished.wait(timeout=5))
+                        release_first.set()
+                        first.join(timeout=5)
+                        second.join(timeout=5)
+                    self.assertFalse(first.is_alive())
+                    self.assertFalse(second.is_alive())
+                    self.assertFalse(failures, failures)
+
     def test_cross_process_run_updates_retain_every_snapshot(self) -> None:
         writer_count = 8
         context = multiprocessing.get_context("spawn")
@@ -363,6 +449,99 @@ class StorageBoundaryTests(unittest.TestCase):
             path.write_text("[]", encoding="utf-8")
             with self.assertRaisesRegex(StoreError, "must be an object"):
                 store.get_run("run-invalid")
+
+    def test_run_reads_validate_exact_links_and_upgrade_legacy_histories(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = RunStore(directory)
+            store.save_run(
+                "run-strict",
+                input_address=_address(1),
+                event_address=_address(2),
+                dossier_address=_address(3),
+            )
+            path = Path(directory) / "runs" / "run-strict.json"
+            valid = json.loads(path.read_text(encoding="utf-8"))
+            mutations = {
+                "unknown field": lambda value: value.__setitem__("unexpected", True),
+                "wrong run": lambda value: value.__setitem__("run_id", "run-foreign"),
+                "bad input": lambda value: value.__setitem__("input_address", "sha256:bad"),
+                "missing current event": lambda value: value.__setitem__(
+                    "event_history", [_address(9)]
+                ),
+                "duplicate dossier history": lambda value: value.__setitem__(
+                    "dossier_history", [_address(3), _address(3)]
+                ),
+            }
+            for label, mutate in mutations.items():
+                with self.subTest(label=label):
+                    malformed = json.loads(json.dumps(valid))
+                    mutate(malformed)
+                    path.write_text(json.dumps(malformed), encoding="utf-8")
+                    with self.assertRaises(StoreError):
+                        store.get_run("run-strict")
+            path.write_text(json.dumps(valid), encoding="utf-8")
+            self.assertEqual(store.get_run("run-strict"), valid)
+
+            legacy_path = Path(directory) / "runs" / "run-legacy.json"
+            legacy_path.write_text(
+                json.dumps(
+                    {
+                        "run_id": "run-legacy",
+                        "input_address": _address(10),
+                        "event_address": _address(11),
+                        "dossier_address": _address(12),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            reopened = store.get_run("run-legacy")
+            self.assertEqual(reopened["event_history"], [_address(11)])
+            self.assertEqual(reopened["dossier_history"], [_address(12)])
+
+            dossier_history_path = Path(directory) / "runs" / "run-dossier-legacy.json"
+            dossier_history_path.write_text(
+                json.dumps(
+                    {
+                        "run_id": "run-dossier-legacy",
+                        "input_address": _address(20),
+                        "event_address": _address(21),
+                        "dossier_address": _address(23),
+                        "dossier_history": [_address(22), _address(23)],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            dossier_history_legacy = store.get_run("run-dossier-legacy")
+            self.assertEqual(dossier_history_legacy["event_history"], [_address(21)])
+            self.assertEqual(
+                dossier_history_legacy["dossier_history"],
+                [_address(22), _address(23)],
+            )
+            store.save_run(
+                "run-dossier-legacy",
+                input_address=_address(20),
+                event_address=_address(24),
+                dossier_address=_address(25),
+            )
+            upgraded_dossier_history = store.get_run("run-dossier-legacy")
+            self.assertEqual(
+                upgraded_dossier_history["event_history"],
+                [_address(21), _address(24)],
+            )
+            self.assertEqual(
+                upgraded_dossier_history["dossier_history"],
+                [_address(22), _address(23), _address(25)],
+            )
+
+            store.save_run(
+                "run-legacy",
+                input_address=_address(10),
+                event_address=_address(13),
+                dossier_address=_address(14),
+            )
+            upgraded = store.get_run("run-legacy")
+            self.assertEqual(upgraded["event_history"], [_address(11), _address(13)])
+            self.assertEqual(upgraded["dossier_history"], [_address(12), _address(14)])
 
 
 if __name__ == "__main__":

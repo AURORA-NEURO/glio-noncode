@@ -23,6 +23,20 @@ _RUN_LOCKS_GUARD = Lock()
 _FILESYSTEM_LOCK_TIMEOUT_SECONDS = 30.0
 _FILESYSTEM_LOCK_POLL_SECONDS = 0.01
 MAX_RUN_HISTORY_ENTRIES = 1_000
+_RUN_RECORD_FIELDS = frozenset(
+    {
+        "run_id",
+        "input_address",
+        "event_address",
+        "event_history",
+        "dossier_address",
+        "dossier_history",
+    }
+)
+_LEGACY_RUN_RECORD_FIELDS = frozenset(
+    {"run_id", "input_address", "event_address", "dossier_address"}
+)
+_LEGACY_DOSSIER_HISTORY_FIELDS = _LEGACY_RUN_RECORD_FIELDS | {"dossier_history"}
 
 
 def _sync_directory(path: Path) -> None:
@@ -148,6 +162,61 @@ def _history_values(value: object, label: str) -> tuple[str, ...]:
     return items
 
 
+def _validated_run_record(
+    value: object,
+    *,
+    expected_run_id: str,
+) -> dict[str, Any]:
+    """Validate one current or legacy run index without scalar coercion."""
+
+    if not isinstance(value, dict):
+        raise StoreError(f"run record must be an object: {expected_run_id}.json")
+    fields = frozenset(value)
+    if fields not in {
+        _RUN_RECORD_FIELDS,
+        _LEGACY_RUN_RECORD_FIELDS,
+        _LEGACY_DOSSIER_HISTORY_FIELDS,
+    }:
+        missing = sorted(_LEGACY_RUN_RECORD_FIELDS - fields)
+        unexpected = sorted(str(field) for field in fields - _RUN_RECORD_FIELDS)
+        raise StoreError(
+            "run record fields are invalid "
+            f"(missing: {missing or ['none']}; unexpected: {unexpected or ['none']})"
+        )
+    run_id = value.get("run_id")
+    if run_id != expected_run_id:
+        raise StoreError("stored run_id does not match its index filename")
+    input_address = value.get("input_address")
+    event_address = value.get("event_address")
+    dossier_address = value.get("dossier_address")
+    _address_digest(input_address, label="stored input address")
+    _address_digest(event_address, label="stored event address")
+    _address_digest(dossier_address, label="stored dossier address")
+    if "event_history" in fields:
+        event_history = _history_values(value.get("event_history"), "stored event_history")
+        if event_address not in event_history:
+            raise StoreError("stored event_address is absent from event_history")
+    else:
+        event_history = (event_address,)
+    if "dossier_history" in fields:
+        dossier_history = _history_values(
+            value.get("dossier_history"),
+            "stored dossier_history",
+        )
+        if dossier_address not in dossier_history:
+            raise StoreError("stored dossier_address is absent from dossier_history")
+    else:
+        dossier_history = (dossier_address,)
+    return {
+        "run_id": run_id,
+        "input_address": input_address,
+        "event_address": event_address,
+        "event_history": list(event_history),
+        "dossier_address": dossier_address,
+        "dossier_history": list(dossier_history),
+    }
+
+
 class ObjectStore:
     """Store immutable JSON objects under a hash-derived path."""
 
@@ -170,7 +239,7 @@ class ObjectStore:
         digest = _address_digest(address)
         path = self.objects / f"{digest}.json"
         serialized = canonical_json(value)
-        with self._lock, _filesystem_lock(self._locks / f"{digest}.lock"):
+        with _run_lock(path), _filesystem_lock(self._locks / f"{digest}.lock"):
             if path.exists():
                 try:
                     existing = json.loads(path.read_text(encoding="utf-8"))
@@ -221,7 +290,7 @@ class RunStore:
         """Return one stable run-index snapshot under its writer lock."""
 
         path = self._run_path(run_id)
-        with self._lock, _filesystem_lock(self._locks / f"{run_id}.lock"):
+        with _run_lock(path), _filesystem_lock(self._locks / f"{run_id}.lock"):
             if not path.exists():
                 raise StoreError(f"run not found: {run_id}")
             try:
@@ -240,9 +309,9 @@ class RunStore:
     ) -> Path:
         """Persist the current run pointers and retain every dossier address.
 
-        Older run records do not contain ``dossier_history``.  They are upgraded
-        deterministically on the next write by retaining their current pointer
-        before appending the new snapshot address.
+        Older run records may omit one or both history arrays. They are upgraded
+        deterministically on the next write by retaining their current pointers
+        before appending the new snapshot addresses.
         """
 
         path = self._run_path(run_id)
@@ -252,20 +321,16 @@ class RunStore:
         declared_history = (
             () if dossier_history is None else _history_values(dossier_history, "dossier_history")
         )
-        with self._lock, _filesystem_lock(self._locks / f"{run_id}.lock"):
+        with _run_lock(path), _filesystem_lock(self._locks / f"{run_id}.lock"):
             previous: dict[str, Any] = {}
             if path.exists():
                 try:
                     stored = json.loads(path.read_text(encoding="utf-8"))
                 except json.JSONDecodeError as exc:
                     raise StoreError(f"invalid run record: {path.name}") from exc
-                if not isinstance(stored, dict):
-                    raise StoreError(f"run record must be an object: {path.name}")
-                previous = stored
+                previous = _validated_run_record(stored, expected_run_id=run_id)
 
             if previous:
-                if previous.get("run_id") != run_id:
-                    raise StoreError("stored run_id does not match its index filename")
                 if previous.get("input_address") != input_address:
                     raise StoreError("run input_address is immutable")
             previous_history = _history_values(
@@ -313,9 +378,7 @@ class RunStore:
             value = json.loads(self._read_run_bytes(run_id).decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise StoreError(f"invalid run record: {path.name}") from exc
-        if not isinstance(value, dict):
-            raise StoreError(f"run record must be an object: {path.name}")
-        return value
+        return _validated_run_record(value, expected_run_id=run_id)
 
     def list_runs(self) -> tuple[dict[str, Any], ...]:
         """Return every persisted run record in deterministic run-id order."""
@@ -326,7 +389,5 @@ class RunStore:
                 value = json.loads(self._read_run_bytes(path.stem).decode("utf-8"))
             except (UnicodeDecodeError, json.JSONDecodeError) as exc:
                 raise StoreError(f"invalid run record: {path.name}") from exc
-            if not isinstance(value, dict):
-                raise StoreError(f"run record must be an object: {path.name}")
-            records.append(value)
+            records.append(_validated_run_record(value, expected_run_id=path.stem))
         return tuple(records)
