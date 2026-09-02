@@ -18,6 +18,16 @@ from pathlib import Path
 from typing import Any
 
 from .errors import GlioError, ValidationError
+from .expression_evidence import (
+    SCHEMA_VERSION as EXPRESSION_EVIDENCE_SCHEMA_VERSION,
+)
+from .expression_evidence import (
+    AllelicDirection,
+    ExpressionDirection,
+    RegulatoryDirection,
+    RNAConsequenceEvidence,
+    RNAEvidenceState,
+)
 from .intake import IntakeBatch, IntakeFormat, IntakeSeverity, VariantIntake
 from .models import CandidateElement, CaseManifest, Dossier, ReferenceContext
 from .regulatory_tracks import (
@@ -97,6 +107,28 @@ _DOSSIER_FIELDS = {
     "source_receipts",
     "source_bundle_addresses",
 }
+_RNA_CONSEQUENCE_FIELDS = {
+    "schema_version",
+    "prediction_id",
+    "prediction_address",
+    "variant_id",
+    "feature_id",
+    "context_key",
+    "predicted_direction",
+    "state",
+    "expression_state",
+    "expression_direction",
+    "expression_robust_z",
+    "expression_result_address",
+    "allelic_state",
+    "allelic_direction",
+    "allelic_log2_ratio",
+    "allelic_q_value",
+    "allelic_result_address",
+    "reason_codes",
+    "content_address",
+}
+_RNA_CONSEQUENCE_REQUIRED_FIELDS = _RNA_CONSEQUENCE_FIELDS - {"content_address"}
 
 
 class WorkflowState(StrEnum):
@@ -225,6 +257,56 @@ def _strict_manifest(value: Mapping[str, Any]) -> CaseManifest:
                 label=f"prepared manifest candidate element {index} context",
             )
     return CaseManifest.from_dict(raw)
+
+
+def _normalize_rna_consequences(
+    values: Iterable[RNAConsequenceEvidence | Mapping[str, Any]],
+) -> tuple[RNAConsequenceEvidence, ...]:
+    if isinstance(values, (str, bytes, bytearray, Mapping)):
+        raise ValidationError("rna_consequences must be an iterable of evidence objects")
+    try:
+        items = tuple(values)
+    except TypeError as exc:
+        raise ValidationError("rna_consequences must be iterable") from exc
+
+    normalized: list[RNAConsequenceEvidence] = []
+    for index, item in enumerate(items):
+        if isinstance(item, RNAConsequenceEvidence):
+            normalized.append(RNAConsequenceEvidence.from_mapping(item.to_dict()))
+            continue
+        if not isinstance(item, Mapping):
+            raise ValidationError(
+                f"rna_consequences item {index} must be RNAConsequenceEvidence or an object"
+            )
+        raw = _strict_mapping(
+            item,
+            allowed=_RNA_CONSEQUENCE_FIELDS,
+            required=_RNA_CONSEQUENCE_REQUIRED_FIELDS,
+            label=f"rna_consequences item {index}",
+        )
+        if raw["schema_version"] != EXPRESSION_EVIDENCE_SCHEMA_VERSION:
+            raise ValidationError(
+                f"rna_consequences item {index} has an unsupported schema_version"
+            )
+        normalized.append(RNAConsequenceEvidence.from_mapping(raw))
+    return tuple(sorted(normalized, key=lambda item: item.content_address))
+
+
+def _runtime_rna_input_address(event_record: object) -> str | None:
+    if not isinstance(event_record, Mapping):
+        return None
+    events = event_record.get("events")
+    if not isinstance(events, Sequence) or isinstance(events, (str, bytes, bytearray)):
+        return None
+    for event in events:
+        if not isinstance(event, Mapping) or event.get("event_type") != "case_received":
+            continue
+        payload = event.get("payload")
+        if not isinstance(payload, Mapping):
+            return None
+        address = payload.get("rna_input_address")
+        return address if isinstance(address, str) and address else None
+    return None
 
 
 def _decode_payload(payload: str | bytes, label: str) -> str:
@@ -1668,20 +1750,62 @@ def run_case(
     *,
     data_root: str | Path = ".glio",
     runtime: CaseRuntime | None = None,
+    rna_consequences: Iterable[RNAConsequenceEvidence | Mapping[str, Any]] = (),
 ) -> CaseRunResult:
-    """Execute accepted preparation, persist it, then verify the persisted replay chain."""
+    """Execute accepted preparation with optional matched-RNA consequences."""
 
     value = prepared if isinstance(prepared, PreparedCase) else PreparedCase.from_mapping(prepared)
     issues = list(value.issues)
     receipts = list(value.stage_receipts)
     observed_at = utc_now().isoformat()
     manifest_address = value.manifest_address or value.content_address
-    if not value.accepted or value.manifest is None or value.run_id is None:
+    rna_rows: tuple[RNAConsequenceEvidence, ...] = ()
+    rna_input_blocked = False
+    try:
+        rna_rows = _normalize_rna_consequences(rna_consequences)
+    except (GlioError, OverflowError, TypeError, ValueError) as exc:
+        rna_input_blocked = True
+        issues.append(
+            WorkflowIssue(
+                code="invalid_rna_consequence",
+                severity=WorkflowSeverity.ERROR,
+                stage=WorkflowStage.CASE_RUNTIME,
+                message=str(exc),
+                remediation=(
+                    "Supply canonical RNAConsequenceEvidence objects or strict mappings "
+                    "with valid content addresses."
+                ),
+            )
+        )
+
+    evaluation_run_id = value.run_id
+    if value.manifest is not None and not rna_input_blocked:
+        evaluation_run_id = CaseRuntime._run_id(value.manifest, rna_rows)
+
+    if (
+        not value.accepted
+        or value.manifest is None
+        or value.run_id is None
+        or rna_input_blocked
+    ):
+        blocked_metadata: dict[str, Any] = {
+            "executed": False,
+            "reason": (
+                "invalid_rna_consequence" if rna_input_blocked else "preparation_blocked"
+            ),
+        }
+        if rna_rows:
+            blocked_metadata.update(
+                {
+                    "rna_consequence_count": len(rna_rows),
+                    "rna_consequence_addresses": [item.content_address for item in rna_rows],
+                }
+            )
         receipts.append(
             StageReceipt(
                 stage=WorkflowStage.CASE_RUNTIME,
                 state=WorkflowState.BLOCKED,
-                source_id=value.run_id or "unassigned-run",
+                source_id=evaluation_run_id or "unassigned-run",
                 input_address=manifest_address,
                 output_address=None,
                 observed_at=observed_at,
@@ -1689,7 +1813,7 @@ def run_case(
                 warning_count=sum(item.severity == WorkflowSeverity.WARNING for item in issues),
                 error_count=sum(item.severity == WorkflowSeverity.ERROR for item in issues),
                 issue_addresses=tuple(item.content_address for item in issues),
-                metadata={"executed": False, "reason": "preparation_blocked"},
+                metadata=blocked_metadata,
             )
         )
         return CaseRunResult(
@@ -1704,24 +1828,37 @@ def run_case(
 
     runtime_manifest_address = value.manifest_address
     assert runtime_manifest_address is not None
+    assert evaluation_run_id is not None
     dossier: Dossier | None = None
     run_record: Mapping[str, Any] | None = None
     replay: ReplayReport | None = None
+    rna_input_address: str | None = None
     try:
         engine = runtime or CaseRuntime(data_root)
-        dossier = engine.evaluate(value.manifest, live_reference=value.live_reference)
+        dossier = engine.evaluate(
+            value.manifest,
+            live_reference=value.live_reference,
+            rna_consequences=rna_rows,
+        )
         run_record = engine.get_run(dossier.run_id)
         event_record = engine.store.store.get(str(run_record["event_address"]))
+        rna_input_address = _runtime_rna_input_address(event_record)
         stored_dossier = engine.get_dossier(str(run_record["dossier_address"]))
         replay = ReplayVerifier().verify(dict(run_record), event_record, stored_dossier)
-        if dossier.run_id != value.run_id:
+        if dossier.run_id != evaluation_run_id:
             issues.append(
                 WorkflowIssue(
                     code="run_identity_mismatch",
                     severity=WorkflowSeverity.ERROR,
                     stage=WorkflowStage.CASE_RUNTIME,
-                    message="runtime run_id does not match the prepared scientific identity",
-                    remediation="Do not execute a manifest through an identity-mutating adapter.",
+                    message=(
+                        "runtime run_id does not match the expected manifest and RNA "
+                        "evaluation identity"
+                    ),
+                    remediation=(
+                        "Do not execute a manifest or RNA consequence through an "
+                        "identity-mutating adapter."
+                    ),
                 )
             )
         if str(run_record.get("input_address")) != runtime_manifest_address:
@@ -1759,11 +1896,30 @@ def run_case(
 
     runtime_issues = tuple(item for item in issues if item.stage == WorkflowStage.CASE_RUNTIME)
     accepted = dossier is not None and replay is not None and not _has_errors(runtime_issues)
+    runtime_metadata: dict[str, Any] = {
+        "persisted": run_record is not None,
+        "replay_valid": bool(
+            replay is not None
+            and replay.event_chain_valid
+            and replay.stored_dossier_matches_address
+        ),
+    }
+    if rna_rows:
+        runtime_metadata.update(
+            {
+                "prepared_run_id": value.run_id,
+                "evaluation_run_id": evaluation_run_id,
+                "rna_consequence_count": len(rna_rows),
+                "rna_consequence_addresses": [item.content_address for item in rna_rows],
+            }
+        )
+        if rna_input_address is not None:
+            runtime_metadata["rna_input_address"] = rna_input_address
     receipts.append(
         StageReceipt(
             stage=WorkflowStage.CASE_RUNTIME,
             state=WorkflowState.ACCEPTED if accepted else WorkflowState.BLOCKED,
-            source_id=value.run_id,
+            source_id=evaluation_run_id,
             input_address=runtime_manifest_address,
             output_address=None if dossier is None else dossier.content_address,
             observed_at=(dossier.created_at if dossier is not None else observed_at),
@@ -1773,14 +1929,7 @@ def run_case(
             warning_count=sum(item.severity == WorkflowSeverity.WARNING for item in runtime_issues),
             error_count=sum(item.severity == WorkflowSeverity.ERROR for item in runtime_issues),
             issue_addresses=tuple(item.content_address for item in runtime_issues),
-            metadata={
-                "persisted": run_record is not None,
-                "replay_valid": bool(
-                    replay is not None
-                    and replay.event_chain_valid
-                    and replay.stored_dossier_matches_address
-                ),
-            },
+            metadata=runtime_metadata,
         )
     )
     return CaseRunResult(
@@ -1926,6 +2075,67 @@ def run_result_schema() -> dict[str, Any]:
     }
 
 
+def _rna_consequence_execution_input_schema() -> dict[str, Any]:
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:glio-noncode:case-workflow:rna-consequence-execution-input:v1",
+        "title": "Optional matched-RNA execution input",
+        "description": (
+            "Canonical RNAConsequenceEvidence mappings accepted by run_case; Python callers "
+            "may supply the corresponding typed immutable objects."
+        ),
+        "type": "array",
+        "uniqueItems": True,
+        "items": {
+            "type": "object",
+            "additionalProperties": False,
+            "required": sorted(_RNA_CONSEQUENCE_REQUIRED_FIELDS),
+            "properties": {
+                "schema_version": {"const": EXPRESSION_EVIDENCE_SCHEMA_VERSION},
+                "prediction_id": {"type": "string", "minLength": 1},
+                "prediction_address": {"type": "string", "minLength": 1},
+                "variant_id": {"type": "string", "minLength": 1},
+                "feature_id": {"type": "string", "minLength": 1},
+                "context_key": {"type": "string", "minLength": 1},
+                "predicted_direction": {
+                    "enum": [item.value for item in RegulatoryDirection]
+                },
+                "state": {"enum": [item.value for item in RNAEvidenceState]},
+                "expression_state": {
+                    "enum": [None, *(item.value for item in RNAEvidenceState)]
+                },
+                "expression_direction": {
+                    "enum": [None, *(item.value for item in ExpressionDirection)]
+                },
+                "expression_robust_z": {"type": ["number", "null"]},
+                "expression_result_address": {"type": ["string", "null"]},
+                "allelic_state": {
+                    "enum": [None, *(item.value for item in RNAEvidenceState)]
+                },
+                "allelic_direction": {
+                    "enum": [None, *(item.value for item in AllelicDirection)]
+                },
+                "allelic_log2_ratio": {"type": ["number", "null"]},
+                "allelic_q_value": {
+                    "type": ["number", "null"],
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                },
+                "allelic_result_address": {"type": ["string", "null"]},
+                "reason_codes": {
+                    "type": "array",
+                    "uniqueItems": True,
+                    "items": {"type": "string"},
+                },
+                "content_address": {
+                    "type": "string",
+                    "pattern": "^rna-consequence-evidence:[0-9a-f]{64}$",
+                },
+            },
+        },
+    }
+
+
 def case_workflow_schema() -> dict[str, Any]:
     """Return the complete inline-source facade contract."""
 
@@ -1940,6 +2150,7 @@ def case_workflow_schema() -> dict[str, Any]:
             "regulatory_track_source": regulatory_track_source_schema(),
             "prepared_case": prepared_case_schema(),
             "run_result": run_result_schema(),
+            "rna_consequence_execution_input": _rna_consequence_execution_input_schema(),
         },
     }
 
@@ -1955,14 +2166,41 @@ def capabilities() -> dict[str, Any]:
         "source_transport": ["inline_text", "inline_bytes"],
         "server_local_paths": False,
         "canonical_track_order": True,
+        "canonical_rna_order": "RNAConsequenceEvidence.content_address",
         "observational_timestamps_in_scientific_identity": False,
-        "deterministic_outputs": ["manifest_address", "run_id", "stage_receipt_address"],
+        "deterministic_outputs": [
+            "manifest_address",
+            "run_id",
+            "evaluation_run_id",
+            "rna_input_address",
+            "stage_receipt_address",
+        ],
+        "optional_execution_inputs": {
+            "rna_consequences": {
+                "python_inputs": ["RNAConsequenceEvidence", "strict_mapping"],
+                "schema": _rna_consequence_execution_input_schema()["$id"],
+                "receipt_provenance": [
+                    "rna_consequence_count",
+                    "rna_consequence_addresses",
+                    "rna_input_address",
+                ],
+                "raw_values_in_receipts": False,
+            }
+        },
+        "identity_semantics": {
+            "prepared_run_id": "manifest-only preparation identity",
+            "evaluation_run_id": (
+                "manifest identity plus sorted RNA consequence content addresses when non-empty"
+            ),
+            "empty_rna_preserves_prepared_run_id": True,
+        },
         "fail_closed_gates": [
             "intake_error",
             "regulatory_track_error",
             "genome_build_mismatch",
             "duplicate_element_id",
             "no_candidate_elements_unless_live_reference",
+            "invalid_rna_consequence",
             "replay_integrity_error",
         ],
         "persistence": "CaseRuntime content-addressed dossier and event replay",
@@ -1972,6 +2210,9 @@ def capabilities() -> dict[str, Any]:
             "regulatory_track_source": regulatory_track_source_schema()["$id"],
             "prepared_case": prepared_case_schema()["$id"],
             "run_result": run_result_schema()["$id"],
+            "rna_consequence_execution_input": _rna_consequence_execution_input_schema()[
+                "$id"
+            ],
         },
     }
 
