@@ -12,6 +12,7 @@ from .data_sources import EnrichmentResult, PublicReferenceRetriever
 from .errors import PolicyViolation, StoreError, ValidationError
 from .events import EventLog
 from .experiments import ExperimentPlanner
+from .expression_evidence import RNAConsequenceEvidence
 from .hypotheses import HypothesisBuilder
 from .models import (
     CaseManifest,
@@ -44,17 +45,42 @@ class CaseRuntime:
         self.atlas_retriever = atlas_retriever
         self._logs: dict[str, EventLog] = {}
 
-    def evaluate(self, manifest: CaseManifest, *, live_reference: bool = False) -> Dossier:
+    def evaluate(
+        self,
+        manifest: CaseManifest,
+        *,
+        live_reference: bool = False,
+        rna_consequences: tuple[RNAConsequenceEvidence, ...] = (),
+    ) -> Dossier:
         """Evaluate a manifest and persist its immutable output."""
 
         self.policy.enforce_texts((manifest.case_id, manifest.requested_by))
-        run_id = self._run_id(manifest)
+        rna_rows = tuple(rna_consequences)
+        run_id = self._run_id(manifest, rna_rows)
         log = EventLog(run_id)
         self._logs[run_id] = log
         input_address = self.store.store.put(manifest.to_dict())
+        case_received_payload: dict[str, Any] = {
+            "input_address": input_address,
+            "case_id": manifest.case_id,
+        }
+        if rna_rows:
+            rna_input = {
+                "schema_version": "1.0.0",
+                "kind": "rna_consequence_batch",
+                "consequences": [
+                    item.to_dict() for item in sorted(rna_rows, key=lambda row: row.content_address)
+                ],
+            }
+            case_received_payload.update(
+                {
+                    "rna_input_address": self.store.store.put(rna_input),
+                    "rna_consequence_count": len(rna_rows),
+                }
+            )
         log.append(
             "case_received",
-            {"input_address": input_address, "case_id": manifest.case_id},
+            case_received_payload,
             event_id=f"evt-{run_id}-received",
         )
         build_manifest = manifest
@@ -131,7 +157,11 @@ class CaseRuntime:
                     },
                     event_id=f"evt-{run_id}-atlas",
                 )
-        built = self.builder.build(build_manifest, run_id)
+        built = self.builder.build(
+            build_manifest,
+            run_id,
+            rna_consequences=rna_rows,
+        )
         all_warnings = tuple(dict.fromkeys(tuple(built.warnings) + runtime_warnings))
         log.append(
             "hypotheses_built",
@@ -201,7 +231,9 @@ class CaseRuntime:
                     event_record = self.store.store.get(str(run_record["event_address"]))
                     log = EventLog.from_record(event_record)
                 except (KeyError, ValueError) as exc:
-                    raise ValidationError("cannot continue a run with an invalid event record") from exc
+                    raise ValidationError(
+                        "cannot continue a run with an invalid event record"
+                    ) from exc
                 if not log.verify():
                     raise ValidationError("cannot continue a run with an invalid event chain")
             self._logs[dossier.run_id] = log
@@ -347,10 +379,17 @@ class CaseRuntime:
         return self.store.store.get(dossier_address)
 
     @staticmethod
-    def _run_id(manifest: CaseManifest) -> str:
-        digest = content_hash(
-            {"input": manifest.content_address, "requested_by": manifest.requested_by}
-        ).split(":", 1)[1]
+    def _run_id(
+        manifest: CaseManifest,
+        rna_consequences: tuple[RNAConsequenceEvidence, ...] = (),
+    ) -> str:
+        payload: dict[str, Any] = {
+            "input": manifest.content_address,
+            "requested_by": manifest.requested_by,
+        }
+        if rna_consequences:
+            payload["rna_consequences"] = sorted(item.content_address for item in rna_consequences)
+        digest = content_hash(payload).split(":", 1)[1]
         return f"run-{digest[:24]}"
 
     @staticmethod

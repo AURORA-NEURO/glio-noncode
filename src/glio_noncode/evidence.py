@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from .errors import ValidationError
 from .models import EvidenceClaim, EvidenceState, EvidenceTier, HypothesisEdge
@@ -87,12 +87,19 @@ class EvidenceGraph:
             claim
             for claim in claims
             if claim.state
-            in (EvidenceState.ABSENT, EvidenceState.UNSUPPORTED, EvidenceState.OUT_OF_DOMAIN, EvidenceState.ABSTAINED)
+            in (
+                EvidenceState.ABSENT,
+                EvidenceState.UNSUPPORTED,
+                EvidenceState.OUT_OF_DOMAIN,
+                EvidenceState.ABSTAINED,
+            )
         ]
         groups = self._group_channels(claims)
         group_scores: list[float] = []
         for group in groups:
-            group_claims = [claim for claim in supported if self._channel_group(claim.channel) == group]
+            group_claims = [
+                claim for claim in supported if self._channel_group(claim.channel) == group
+            ]
             if group_claims:
                 group_scores.append(max(self._claim_value(claim) for claim in group_claims))
         positive = self._dependence_adjusted_mean(group_scores)
@@ -116,7 +123,8 @@ class EvidenceGraph:
             6,
         )
         rationale = (
-            f"{len(supported)} supported, {len(negative)} negative, {len(missing)} missing/unsupported; "
+            f"{len(supported)} supported, {len(negative)} negative, "
+            f"{len(missing)} missing/unsupported; "
             f"{len(groups)} independent channel groups with dependence-adjusted aggregation."
         )
         return AggregateSupport(
@@ -146,6 +154,7 @@ class EvidenceGraph:
             "coaccessibility": "linking",
             "perturbation": "functional",
             "cohort": "cohort",
+            "matched_rna_consequence": "expression",
         }
         return mapping.get(channel, channel)
 
@@ -170,4 +179,7 @@ class EvidenceGraph:
         ordered = sorted(values, reverse=True)
         weights = [1.0 / (index + 1) for index in range(len(ordered))]
         denominator = sum(weights)
-        return sum(value * weight for value, weight in zip(ordered, weights)) / denominator
+        return (
+            sum(value * weight for value, weight in zip(ordered, weights, strict=True))
+            / denominator
+        )

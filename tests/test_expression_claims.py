@@ -355,7 +355,7 @@ class ClaimDerivationTests(unittest.TestCase):
             support_level=SupportLevel.UNKNOWN,
         )
         aggregate = graph.aggregate(edge)
-        self.assertEqual(aggregate.channel_groups, (RNA_CONSEQUENCE_CHANNEL,))
+        self.assertEqual(aggregate.channel_groups, ("expression",))
         self.assertEqual(aggregate.supported_claim_ids, (supported.evidence_id,))
         self.assertEqual(aggregate.negative_claim_ids, (negative.evidence_id,))
 
