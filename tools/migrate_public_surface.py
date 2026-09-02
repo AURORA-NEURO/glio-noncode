@@ -120,6 +120,18 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
         "glio_noncode.expression_evidence",
         "MAX_EXACT_BINOMIAL_TRIALS",
     ),
+    "MAX_EXPRESSION_BATCH_OBSERVATIONS": (
+        "glio_noncode.expression_evidence",
+        "MAX_EXPRESSION_BATCH_OBSERVATIONS",
+    ),
+    "MAX_ALLELIC_BATCH_OBSERVATIONS": (
+        "glio_noncode.expression_evidence",
+        "MAX_ALLELIC_BATCH_OBSERVATIONS",
+    ),
+    "MAX_ALLELIC_BATCH_EXACT_OUTCOMES": (
+        "glio_noncode.expression_evidence",
+        "MAX_ALLELIC_BATCH_EXACT_OUTCOMES",
+    ),
     "RNAEvidenceState": ("glio_noncode.expression_evidence", "RNAEvidenceState"),
     "ExpressionScale": ("glio_noncode.expression_evidence", "ExpressionScale"),
     "RegulatoryDirection": (

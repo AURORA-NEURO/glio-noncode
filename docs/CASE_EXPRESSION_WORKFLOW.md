@@ -480,7 +480,9 @@ exceed 10% of total depth, absolute mapping bias exceeds 0.10 (or its flag is se
 alternate fraction can be established. Exact binomial inference is bounded at 100,000 informative
 reads by default; observations above the declared policy maximum abstain with
 `exact_binomial_depth_limit_exceeded` and do not enter multiple-testing correction. Mapping bias is
-gated, not statistically corrected.
+gated, not statistically corrected. A batch is preflighted before any exact test and is rejected as
+a whole when its potential exact enumeration exceeds one million outcomes by default, so input
+ordering cannot select a partially analyzed prefix.
 
 Integration preserves contradictory, out-of-domain, measured-negative, and abstained components; it
 does not coerce them into support. Case execution blocks on malformed/tampered consequence mappings,
@@ -519,6 +521,10 @@ identity mismatch, persistence mismatch, or failed replay integrity.
 - The in-memory `VariantIndex` accepts at most 100,000 canonical variants by default, supports a
   lower caller-selected ceiling, and consumes only one sentinel beyond that ceiling. Larger cohort
   indexing belongs on the separately bounded streaming/index surfaces.
+- Expression and allelic-count batches each accept at most 10,000 observations and consume at most
+  one sentinel beyond that ceiling. Duplicate scientific identities are rejected. Allelic batch
+  inference additionally has a downward-configurable, one-million-outcome exact-work ceiling and
+  rejects an over-budget batch before starting inference.
 - Direct RNA claim matching accepts at most 10,000 consequences and 10,000 element-gene targets.
   The bridge consumes at most one sentinel beyond either limit, rejects duplicate content
   identities, and publishes the limits in its schema and capabilities.

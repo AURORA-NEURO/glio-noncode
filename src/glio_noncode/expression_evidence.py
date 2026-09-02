@@ -24,6 +24,7 @@ import re
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from enum import StrEnum
+from itertools import islice
 from statistics import median
 from typing import Any, TypeVar
 
@@ -32,6 +33,9 @@ from .serialization import canonical_json, content_hash
 
 SCHEMA_VERSION = "1.0.0"
 MAX_EXACT_BINOMIAL_TRIALS = 100_000
+MAX_EXPRESSION_BATCH_OBSERVATIONS = 10_000
+MAX_ALLELIC_BATCH_OBSERVATIONS = 10_000
+MAX_ALLELIC_BATCH_EXACT_OUTCOMES = 1_000_000
 _EXACT_BINOMIAL_DEPTH_LIMIT_REASON = "exact_binomial_depth_limit_exceeded"
 
 
@@ -155,6 +159,27 @@ def _mapping(value: object, label: str) -> Mapping[str, Any]:
     return value
 
 
+def _bounded_batch_rows(
+    values: object,
+    *,
+    max_observations: int,
+    label: str,
+) -> tuple[Any, ...]:
+    if isinstance(values, (str, bytes, bytearray, Mapping)):
+        raise ValidationError(f"{label} must be an iterable of observation objects")
+    try:
+        rows = tuple(islice(iter(values), max_observations + 1))
+    except TypeError as error:
+        raise ValidationError(
+            f"{label} must be an iterable of observation objects"
+        ) from error
+    if len(rows) > max_observations:
+        raise ValidationError(
+            f"{label} exceeds the maximum of {max_observations} observations"
+        )
+    return rows
+
+
 def _json_mapping(text: str, label: str) -> Mapping[str, Any]:
     try:
         value = json.loads(text)
@@ -258,18 +283,22 @@ class ExpressionBatch:
     observations: tuple[ExpressionObservation, ...]
 
     def __post_init__(self) -> None:
-        values = tuple(self.observations)
+        values = _bounded_batch_rows(
+            self.observations,
+            max_observations=MAX_EXPRESSION_BATCH_OBSERVATIONS,
+            label="expression batch observations",
+        )
         if not values:
             raise ValidationError("expression batch must contain observations")
         if any(not isinstance(item, ExpressionObservation) for item in values):
             raise ValidationError("expression batch rows must be ExpressionObservation objects")
+        identities = [(item.feature_id, item.sample_key) for item in values]
+        if len(identities) != len(set(identities)):
+            raise ValidationError("expression batch contains duplicate feature/sample keys")
         ordered = tuple(sorted(
             values,
             key=lambda item: (item.feature_id, item.sample_key, item.content_address),
         ))
-        keys = [(item.feature_id, item.sample_key) for item in ordered]
-        if len(keys) != len(set(keys)):
-            raise ValidationError("expression batch contains duplicate feature/sample keys")
         for attribute, label in (
             ("scale", "scales"),
             ("context_key", "contexts"),
@@ -282,7 +311,11 @@ class ExpressionBatch:
 
     @classmethod
     def from_observations(cls, observations: Iterable[ExpressionObservation]) -> ExpressionBatch:
-        return cls(tuple(observations))
+        return cls(_bounded_batch_rows(
+            observations,
+            max_observations=MAX_EXPRESSION_BATCH_OBSERVATIONS,
+            label="expression batch observations",
+        ))
 
     @property
     def scale(self) -> ExpressionScale:
@@ -342,10 +375,16 @@ class ExpressionBatch:
     def from_mapping(cls, raw: Mapping[str, Any]) -> ExpressionBatch:
         value = _mapping(raw, "expression batch")
         rows = value.get("observations")
-        if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes)):
+        if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
             raise ValidationError("expression batch observations must be a sequence")
+        bounded_rows = _bounded_batch_rows(
+            rows,
+            max_observations=MAX_EXPRESSION_BATCH_OBSERVATIONS,
+            label="expression batch observations",
+        )
         result = cls(tuple(
-            ExpressionObservation.from_mapping(_mapping(row, "row")) for row in rows
+            ExpressionObservation.from_mapping(_mapping(row, "row"))
+            for row in bounded_rows
         ))
         declared = {
             "scale": result.scale.value,
@@ -868,19 +907,25 @@ class AllelicCountBatch:
     observations: tuple[AllelicCountObservation, ...]
 
     def __post_init__(self) -> None:
-        values = tuple(self.observations)
+        values = _bounded_batch_rows(
+            self.observations,
+            max_observations=MAX_ALLELIC_BATCH_OBSERVATIONS,
+            label="allelic count batch observations",
+        )
         if not values:
             raise ValidationError("allelic count batch must contain observations")
         if any(not isinstance(item, AllelicCountObservation) for item in values):
             raise ValidationError("allelic batch rows must be AllelicCountObservation objects")
-        ordered = tuple(sorted(values, key=lambda item: (
-            item.feature_id, item.variant_id, item.sample_key, item.content_address
-        )))
-        keys = [(item.feature_id, item.variant_id, item.sample_key) for item in ordered]
-        if len(keys) != len(set(keys)):
+        identities = [
+            (item.feature_id, item.variant_id, item.sample_key) for item in values
+        ]
+        if len(identities) != len(set(identities)):
             raise ValidationError(
                 "allelic count batch contains duplicate feature/variant/sample keys"
             )
+        ordered = tuple(sorted(values, key=lambda item: (
+            item.feature_id, item.variant_id, item.sample_key, item.content_address
+        )))
         for attribute, label in (
             ("context_key", "contexts"),
             ("source_id", "sources"),
@@ -894,7 +939,11 @@ class AllelicCountBatch:
     def from_observations(
         cls, observations: Iterable[AllelicCountObservation]
     ) -> AllelicCountBatch:
-        return cls(tuple(observations))
+        return cls(_bounded_batch_rows(
+            observations,
+            max_observations=MAX_ALLELIC_BATCH_OBSERVATIONS,
+            label="allelic count batch observations",
+        ))
 
     @property
     def context_key(self) -> str:
@@ -945,10 +994,16 @@ class AllelicCountBatch:
     def from_mapping(cls, raw: Mapping[str, Any]) -> AllelicCountBatch:
         value = _mapping(raw, "allelic count batch")
         rows = value.get("observations")
-        if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes)):
+        if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes, bytearray)):
             raise ValidationError("allelic count batch observations must be a sequence")
+        bounded_rows = _bounded_batch_rows(
+            rows,
+            max_observations=MAX_ALLELIC_BATCH_OBSERVATIONS,
+            label="allelic count batch observations",
+        )
         result = cls(tuple(
-            AllelicCountObservation.from_mapping(_mapping(row, "row")) for row in rows
+            AllelicCountObservation.from_mapping(_mapping(row, "row"))
+            for row in bounded_rows
         ))
         for field_name, actual in (
             ("context_key", result.context_key),
@@ -1058,6 +1113,7 @@ class AllelicImbalancePolicy:
     max_abs_mapping_bias: float = 0.10
     alpha: float = 0.05
     max_informative_depth: int = MAX_EXACT_BINOMIAL_TRIALS
+    max_batch_exact_outcomes: int = MAX_ALLELIC_BATCH_EXACT_OUTCOMES
 
     def __post_init__(self) -> None:
         if (
@@ -1080,6 +1136,18 @@ class AllelicImbalancePolicy:
             raise ValidationError(
                 "max_informative_depth must not exceed "
                 f"MAX_EXACT_BINOMIAL_TRIALS ({MAX_EXACT_BINOMIAL_TRIALS})"
+            )
+        if (
+            isinstance(self.max_batch_exact_outcomes, bool)
+            or not isinstance(self.max_batch_exact_outcomes, int)
+            or self.max_batch_exact_outcomes < 1
+        ):
+            raise ValidationError("max_batch_exact_outcomes must be a positive integer")
+        if self.max_batch_exact_outcomes > MAX_ALLELIC_BATCH_EXACT_OUTCOMES:
+            raise ValidationError(
+                "max_batch_exact_outcomes must not exceed "
+                "MAX_ALLELIC_BATCH_EXACT_OUTCOMES "
+                f"({MAX_ALLELIC_BATCH_EXACT_OUTCOMES})"
             )
         for field_name in ("max_other_fraction", "max_abs_mapping_bias", "alpha"):
             value = _finite(getattr(self, field_name), field_name)
@@ -1266,6 +1334,8 @@ class AllelicImbalanceAnalyzer:
 
     Depth above the policy maximum is an explicit abstention: the observation
     may remain biologically in-domain, but exact enumeration was not performed.
+    Batch analysis also rejects the whole batch before inference when its
+    order-independent potential exact-enumeration work exceeds the policy.
     """
 
     def __init__(self, policy: AllelicImbalancePolicy | None = None) -> None:
@@ -1383,6 +1453,19 @@ class AllelicImbalanceAnalyzer:
     ) -> tuple[AllelicImbalanceResult, ...]:
         if not isinstance(batch, AllelicCountBatch):
             raise ValidationError("batch must be an AllelicCountBatch")
+        potential_exact_outcomes = sum(
+            observation.informative_depth + 1
+            for observation in batch.observations
+            if self.policy.min_informative_depth
+            <= observation.informative_depth
+            <= self.policy.max_informative_depth
+        )
+        if potential_exact_outcomes > self.policy.max_batch_exact_outcomes:
+            raise ValidationError(
+                "allelic batch potential exact inference requires "
+                f"{potential_exact_outcomes} outcomes, exceeding the policy maximum "
+                f"of {self.policy.max_batch_exact_outcomes}"
+            )
         direction_map = expected_directions or {}
         preliminary = tuple(
             self._analyze_one(
@@ -1762,9 +1845,21 @@ def expression_evidence_capabilities() -> dict[str, Any]:
         ],
         "computational_bounds": {
             "max_exact_binomial_trials": MAX_EXACT_BINOMIAL_TRIALS,
+            "max_expression_batch_observations": MAX_EXPRESSION_BATCH_OBSERVATIONS,
+            "max_allelic_batch_observations": MAX_ALLELIC_BATCH_OBSERVATIONS,
+            "max_allelic_batch_exact_outcomes": MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
             "default_max_informative_depth": AllelicImbalancePolicy().max_informative_depth,
+            "default_max_batch_exact_outcomes": (
+                AllelicImbalancePolicy().max_batch_exact_outcomes
+            ),
+            "batch_exact_work_over_limit_action": "reject_batch_before_inference",
             "over_limit_state": RNAEvidenceState.ABSTAINED.value,
             "over_limit_reason_code": _EXACT_BINOMIAL_DEPTH_LIMIT_REASON,
+        },
+        "batch_validation": {
+            "bounded_materialization": True,
+            "strict_item_types": True,
+            "duplicate_identities_rejected": True,
         },
         "privacy": {
             "public_results_are_sample_free": True,
@@ -1799,6 +1894,7 @@ def expression_evidence_schema(*, public: bool = True) -> dict[str, Any]:
             "required": [
                 "min_informative_depth",
                 "max_informative_depth",
+                "max_batch_exact_outcomes",
                 "max_other_fraction",
                 "max_abs_mapping_bias",
                 "alpha",
@@ -1815,6 +1911,15 @@ def expression_evidence_schema(*, public: bool = True) -> dict[str, Any]:
                     "maximum": MAX_EXACT_BINOMIAL_TRIALS,
                     "default": MAX_EXACT_BINOMIAL_TRIALS,
                     "description": "Must be at least min_informative_depth.",
+                },
+                "max_batch_exact_outcomes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
+                    "default": MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
+                    "description": (
+                        "Maximum potential exact-binomial outcomes across one batch."
+                    ),
                 },
                 "max_other_fraction": {
                     "type": "number",
@@ -1907,6 +2012,32 @@ def expression_evidence_schema(*, public: bool = True) -> dict[str, Any]:
                     "source_id",
                 ],
             },
+            "ExpressionBatch": {
+                "type": "object",
+                "required": ["observations"],
+                "properties": {
+                    "observations": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": MAX_EXPRESSION_BATCH_OBSERVATIONS,
+                        "uniqueItems": True,
+                        "items": {"$ref": "#/$defs/ExpressionObservation"},
+                    },
+                },
+            },
+            "AllelicCountBatch": {
+                "type": "object",
+                "required": ["observations"],
+                "properties": {
+                    "observations": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": MAX_ALLELIC_BATCH_OBSERVATIONS,
+                        "uniqueItems": True,
+                        "items": {"$ref": "#/$defs/AllelicCountObservation"},
+                    },
+                },
+            },
         }
     body: dict[str, Any] = {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1916,6 +2047,9 @@ def expression_evidence_schema(*, public: bool = True) -> dict[str, Any]:
         "public": public,
         "computational_bounds": {
             "max_exact_binomial_trials": MAX_EXACT_BINOMIAL_TRIALS,
+            "max_expression_batch_observations": MAX_EXPRESSION_BATCH_OBSERVATIONS,
+            "max_allelic_batch_observations": MAX_ALLELIC_BATCH_OBSERVATIONS,
+            "max_allelic_batch_exact_outcomes": MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
         },
         "$defs": definitions,
     }
@@ -1955,7 +2089,10 @@ __all__ = [
     "ExpressionOutlierAnalyzer",
     "ExpressionOutlierResult",
     "ExpressionScale",
+    "MAX_ALLELIC_BATCH_EXACT_OUTCOMES",
+    "MAX_ALLELIC_BATCH_OBSERVATIONS",
     "MAX_EXACT_BINOMIAL_TRIALS",
+    "MAX_EXPRESSION_BATCH_OBSERVATIONS",
     "PhaseStatus",
     "PredictedRegulatoryEffect",
     "RNAConsequenceEvidence",

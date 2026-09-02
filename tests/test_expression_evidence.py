@@ -7,7 +7,10 @@ from unittest.mock import patch
 
 from glio_noncode.errors import ValidationError
 from glio_noncode.expression_evidence import (
+    MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
+    MAX_ALLELIC_BATCH_OBSERVATIONS,
     MAX_EXACT_BINOMIAL_TRIALS,
+    MAX_EXPRESSION_BATCH_OBSERVATIONS,
     AllelicCountBatch,
     AllelicCountObservation,
     AllelicDirection,
@@ -145,6 +148,125 @@ class ExpressionContractTests(unittest.TestCase):
                 expression("reference:1", 1.0),
                 expression("reference:1", 2.0),
             ))
+
+
+class BatchBoundaryTests(unittest.TestCase):
+    def test_exact_global_batch_limits_accept_one_shot_iterables(self) -> None:
+        expression_batch = ExpressionBatch.from_observations(
+            expression(f"reference:{index}", float(index % 101))
+            for index in range(MAX_EXPRESSION_BATCH_OBSERVATIONS)
+        )
+        self.assertEqual(
+            len(expression_batch.observations),
+            MAX_EXPRESSION_BATCH_OBSERVATIONS,
+        )
+
+        allelic_batch = AllelicCountBatch.from_observations(
+            allelic(10, 10, sample_key=f"tumour:{index}")
+            for index in range(MAX_ALLELIC_BATCH_OBSERVATIONS)
+        )
+        self.assertEqual(
+            len(allelic_batch.observations),
+            MAX_ALLELIC_BATCH_OBSERVATIONS,
+        )
+
+    def test_endless_iterables_stop_after_limit_plus_one(self) -> None:
+        expression_reads = 0
+
+        def endless_expression_rows():
+            nonlocal expression_reads
+            while True:
+                expression_reads += 1
+                yield object()
+
+        with self.assertRaisesRegex(
+            ValidationError,
+            rf"maximum of {MAX_EXPRESSION_BATCH_OBSERVATIONS} observations",
+        ):
+            ExpressionBatch(endless_expression_rows())  # type: ignore[arg-type]
+        self.assertEqual(
+            expression_reads,
+            MAX_EXPRESSION_BATCH_OBSERVATIONS + 1,
+        )
+
+        allelic_reads = 0
+
+        def endless_allelic_rows():
+            nonlocal allelic_reads
+            while True:
+                allelic_reads += 1
+                yield object()
+
+        with self.assertRaisesRegex(
+            ValidationError,
+            rf"maximum of {MAX_ALLELIC_BATCH_OBSERVATIONS} observations",
+        ):
+            AllelicCountBatch(endless_allelic_rows())  # type: ignore[arg-type]
+        self.assertEqual(allelic_reads, MAX_ALLELIC_BATCH_OBSERVATIONS + 1)
+
+    def test_mapping_paths_check_bounds_before_materializing_rows(self) -> None:
+        with self.assertRaisesRegex(
+            ValidationError,
+            rf"maximum of {MAX_EXPRESSION_BATCH_OBSERVATIONS} observations",
+        ):
+            ExpressionBatch.from_mapping(
+                {"observations": [{}] * (MAX_EXPRESSION_BATCH_OBSERVATIONS + 1)}
+            )
+        with self.assertRaisesRegex(
+            ValidationError,
+            rf"maximum of {MAX_ALLELIC_BATCH_OBSERVATIONS} observations",
+        ):
+            AllelicCountBatch.from_mapping(
+                {"observations": [{}] * (MAX_ALLELIC_BATCH_OBSERVATIONS + 1)}
+            )
+
+    def test_containers_items_and_duplicate_identities_fail_closed(self) -> None:
+        invalid_containers = ("rows", b"rows", bytearray(b"rows"), {"row": 1}, 1)
+        for value in invalid_containers:
+            with self.subTest(batch="expression", value=type(value).__name__):
+                with self.assertRaisesRegex(ValidationError, "iterable of observation"):
+                    ExpressionBatch(value)  # type: ignore[arg-type]
+            with self.subTest(batch="allelic", value=type(value).__name__):
+                with self.assertRaisesRegex(ValidationError, "iterable of observation"):
+                    AllelicCountBatch(value)  # type: ignore[arg-type]
+
+        with self.assertRaisesRegex(ValidationError, "ExpressionObservation objects"):
+            ExpressionBatch((object(),))  # type: ignore[arg-type]
+        with self.assertRaisesRegex(ValidationError, "AllelicCountObservation objects"):
+            AllelicCountBatch((object(),))  # type: ignore[arg-type]
+
+        expression_row = expression("reference:duplicate", 1.0)
+        with self.assertRaisesRegex(ValidationError, "duplicate feature/sample"):
+            ExpressionBatch((expression_row, expression_row))
+        allelic_row = allelic(10, 10)
+        with self.assertRaisesRegex(ValidationError, "duplicate feature/variant/sample"):
+            AllelicCountBatch((allelic_row, allelic_row))
+
+    def test_bounded_batches_remain_analyzer_and_integrator_compatible(self) -> None:
+        expression_result = RobustExpressionOutlierAnalyzer().analyze(
+            expression("tumour:private", 20.0, source_id="matched-tumour"),
+            reference_batch([1, 2, 3, 4, 5, 6, 7]),
+        )
+        allelic_result = AllelicImbalanceAnalyzer().analyze_batch(
+            AllelicCountBatch((allelic(20, 80),))
+        )[0]
+        prediction = PredictedRegulatoryEffect(
+            prediction_id="prediction:bounded-batches",
+            variant_id="variant:chr3-181711925-A-G",
+            feature_id="gene:SOX2",
+            direction=RegulatoryDirection.GAIN,
+            context_key=CONTEXT,
+            source_id="sequence-model",
+        )
+        result = RNAConsequenceIntegrator().integrate(
+            prediction,
+            expression=expression_result,
+            allelic=allelic_result,
+        )
+        self.assertEqual(result.state, RNAEvidenceState.SUPPORTED)
+        rendered = json.dumps(result.public_projection(), sort_keys=True)
+        self.assertNotIn("sample_key", rendered)
+        self.assertNotIn("tumour:private", rendered)
 
 
 class RobustExpressionOutlierTests(unittest.TestCase):
@@ -349,15 +471,30 @@ class AllelicImbalanceTests(unittest.TestCase):
     def test_allelic_policy_validates_integer_depth_interval(self) -> None:
         default = AllelicImbalancePolicy()
         self.assertEqual(default.max_informative_depth, MAX_EXACT_BINOMIAL_TRIALS)
+        self.assertEqual(
+            default.max_batch_exact_outcomes,
+            MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
+        )
         legacy_positional = AllelicImbalancePolicy(20, 0.10, 0.10, 0.05)
         self.assertEqual(
             legacy_positional.max_informative_depth,
             MAX_EXACT_BINOMIAL_TRIALS,
         )
         self.assertEqual(
+            legacy_positional.max_batch_exact_outcomes,
+            MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
+        )
+        legacy_depth_positional = AllelicImbalancePolicy(20, 0.10, 0.10, 0.05, 25)
+        self.assertEqual(legacy_depth_positional.max_informative_depth, 25)
+        self.assertEqual(
+            legacy_depth_positional.max_batch_exact_outcomes,
+            MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
+        )
+        self.assertEqual(
             AllelicImbalancePolicy(
                 min_informative_depth=25,
                 max_informative_depth=25,
+                max_batch_exact_outcomes=26,
             ).max_informative_depth,
             25,
         )
@@ -374,6 +511,17 @@ class AllelicImbalanceTests(unittest.TestCase):
                 {"max_informative_depth": MAX_EXACT_BINOMIAL_TRIALS + 1},
                 "MAX_EXACT_BINOMIAL_TRIALS",
             ),
+            ({"max_batch_exact_outcomes": True}, "max_batch_exact_outcomes"),
+            ({"max_batch_exact_outcomes": 1.5}, "max_batch_exact_outcomes"),
+            ({"max_batch_exact_outcomes": 0}, "max_batch_exact_outcomes"),
+            (
+                {
+                    "max_batch_exact_outcomes": (
+                        MAX_ALLELIC_BATCH_EXACT_OUTCOMES + 1
+                    )
+                },
+                "MAX_ALLELIC_BATCH_EXACT_OUTCOMES",
+            ),
         )
         for arguments, message in invalid:
             with self.subTest(arguments=arguments), self.assertRaisesRegex(
@@ -381,6 +529,50 @@ class AllelicImbalanceTests(unittest.TestCase):
                 message,
             ):
                 AllelicImbalancePolicy(**arguments)
+
+    def test_batch_exact_work_budget_is_preflighted_and_order_independent(self) -> None:
+        rows = (
+            allelic(50, 49, sample_key="tumour:a"),
+            allelic(50, 51, sample_key="tumour:b"),
+        )
+        boundary_analyzer = AllelicImbalanceAnalyzer(
+            AllelicImbalancePolicy(
+                min_informative_depth=1,
+                max_informative_depth=101,
+                max_batch_exact_outcomes=202,
+            )
+        )
+        with patch(
+            "glio_noncode.expression_evidence.exact_two_sided_binomial_pvalue",
+            return_value=1.0,
+        ) as exact_test:
+            results = boundary_analyzer.analyze_batch(AllelicCountBatch(rows))
+        self.assertEqual(len(results), 2)
+        self.assertEqual(exact_test.call_count, 2)
+
+        over_limit_analyzer = AllelicImbalanceAnalyzer(
+            AllelicImbalancePolicy(
+                min_informative_depth=1,
+                max_informative_depth=101,
+                max_batch_exact_outcomes=201,
+            )
+        )
+        messages = []
+        with patch(
+            "glio_noncode.expression_evidence.exact_two_sided_binomial_pvalue",
+            side_effect=AssertionError("exact inference must not start"),
+        ) as exact_test:
+            for ordered_rows in (rows, tuple(reversed(rows))):
+                with self.assertRaisesRegex(
+                    ValidationError,
+                    "requires 202 outcomes.*policy maximum of 201",
+                ) as raised:
+                    over_limit_analyzer.analyze_batch(
+                        AllelicCountBatch(ordered_rows)
+                    )
+                messages.append(str(raised.exception))
+        exact_test.assert_not_called()
+        self.assertEqual(messages[0], messages[1])
 
     def test_policy_boundary_runs_exact_test_and_over_limit_abstains(self) -> None:
         analyzer = AllelicImbalanceAnalyzer(
@@ -570,6 +762,44 @@ class RNAIntegrationAndPrivacyTests(unittest.TestCase):
             MAX_EXACT_BINOMIAL_TRIALS,
         )
         self.assertEqual(
+            capabilities["computational_bounds"][
+                "max_expression_batch_observations"
+            ],
+            MAX_EXPRESSION_BATCH_OBSERVATIONS,
+        )
+        self.assertEqual(
+            capabilities["computational_bounds"][
+                "max_allelic_batch_observations"
+            ],
+            MAX_ALLELIC_BATCH_OBSERVATIONS,
+        )
+        self.assertEqual(
+            capabilities["computational_bounds"][
+                "max_allelic_batch_exact_outcomes"
+            ],
+            MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
+        )
+        self.assertEqual(
+            capabilities["computational_bounds"][
+                "default_max_batch_exact_outcomes"
+            ],
+            MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
+        )
+        self.assertEqual(
+            capabilities["computational_bounds"][
+                "batch_exact_work_over_limit_action"
+            ],
+            "reject_batch_before_inference",
+        )
+        self.assertEqual(
+            capabilities["batch_validation"],
+            {
+                "bounded_materialization": True,
+                "strict_item_types": True,
+                "duplicate_identities_rejected": True,
+            },
+        )
+        self.assertEqual(
             capabilities["computational_bounds"]["over_limit_state"],
             RNAEvidenceState.ABSTAINED.value,
         )
@@ -583,13 +813,52 @@ class RNAIntegrationAndPrivacyTests(unittest.TestCase):
             MAX_EXACT_BINOMIAL_TRIALS,
         )
         self.assertEqual(
+            public_schema["$defs"]["AllelicImbalancePolicy"]["properties"][
+                "max_batch_exact_outcomes"
+            ]["maximum"],
+            MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
+        )
+        self.assertEqual(
             public_schema["$defs"]["AllelicImbalancePolicy"]["properties"]["alpha"][
                 "minimum"
             ],
             0.0,
         )
         self.assertNotIn("sample_key", rendered)
-        self.assertIn("sample_key", json.dumps(expression_evidence_schema(public=False)))
+        self.assertNotIn("ExpressionBatch", public_schema["$defs"])
+        self.assertNotIn("AllelicCountBatch", public_schema["$defs"])
+        private_schema = expression_evidence_schema(public=False)
+        self.assertIn("sample_key", json.dumps(private_schema))
+        self.assertEqual(
+            private_schema["$defs"]["ExpressionBatch"]["properties"][
+                "observations"
+            ]["maxItems"],
+            MAX_EXPRESSION_BATCH_OBSERVATIONS,
+        )
+        self.assertEqual(
+            private_schema["$defs"]["AllelicCountBatch"]["properties"][
+                "observations"
+            ]["maxItems"],
+            MAX_ALLELIC_BATCH_OBSERVATIONS,
+        )
+        self.assertEqual(
+            public_schema["computational_bounds"][
+                "max_expression_batch_observations"
+            ],
+            MAX_EXPRESSION_BATCH_OBSERVATIONS,
+        )
+        self.assertEqual(
+            public_schema["computational_bounds"][
+                "max_allelic_batch_observations"
+            ],
+            MAX_ALLELIC_BATCH_OBSERVATIONS,
+        )
+        self.assertEqual(
+            public_schema["computational_bounds"][
+                "max_allelic_batch_exact_outcomes"
+            ],
+            MAX_ALLELIC_BATCH_EXACT_OUTCOMES,
+        )
 
 
 if __name__ == "__main__":
