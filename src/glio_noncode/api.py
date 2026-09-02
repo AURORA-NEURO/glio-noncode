@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -2970,6 +2971,10 @@ from .workspace_history import (
 from .workspace_release import build_persisted_workspace_release
 
 
+MAX_JSON_REQUEST_BYTES = 5_000_000
+MAX_JSON_NESTING_DEPTH = 100
+
+
 def _json_bytes(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
@@ -2985,6 +2990,41 @@ def _strict_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 def _reject_non_finite_json_number(_value: str) -> Any:
     raise ValueError("JSON body contains a non-finite number")
+
+
+def _strict_json_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError("JSON body contains a non-finite number")
+    return parsed
+
+
+def _validate_json_nesting(value: str) -> None:
+    """Reject pathologically deep JSON without counting brackets in strings."""
+
+    depth = 0
+    in_string = False
+    escaped = False
+    for character in value:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+            continue
+        if character == '"':
+            in_string = True
+        elif character in "[{":
+            depth += 1
+            if depth > MAX_JSON_NESTING_DEPTH:
+                raise ValueError(
+                    "JSON request nesting exceeds "
+                    f"MAX_JSON_NESTING_DEPTH ({MAX_JSON_NESTING_DEPTH})"
+                )
+        elif character in "]}":
+            depth -= 1
 
 
 def _reject_unknown_json_fields(
@@ -4898,23 +4938,48 @@ class ApiHandler(BaseHTTPRequestHandler):
         self._write(status, {"error": "bad_request", "message": str(message)[:2048]})
 
     def _read_json(self, *, strict: bool = False) -> dict[str, Any]:
-        raw_length = self.headers.get("Content-Length", "0")
-        try:
-            length = int(raw_length)
-        except ValueError as exc:
-            raise ValueError("invalid Content-Length") from exc
-        if length < 1 or length > 5_000_000:
-            raise ValueError("request body must be between 1 byte and 5 MB")
-        body = self.rfile.read(length)
-        decoded = body.decode("utf-8")
-        value = (
-            json.loads(
-                decoded,
-                object_pairs_hook=_strict_json_object,
-                parse_constant=_reject_non_finite_json_number,
+        """Read one bounded JSON object using strict semantics on every route.
+
+        ``strict`` remains accepted for compatibility with focused callers, but
+        permissive JSON is no longer exposed at the HTTP request boundary.
+        """
+
+        del strict
+        if self.headers.get_all("Transfer-Encoding", []):
+            raise ValueError("Transfer-Encoding is not supported for JSON requests")
+        raw_lengths = self.headers.get_all("Content-Length", [])
+        if len(raw_lengths) != 1:
+            if raw_lengths:
+                raise ValueError("multiple Content-Length headers are not allowed")
+            raise ValueError("missing Content-Length")
+        raw_length = raw_lengths[0]
+        if not isinstance(raw_length, str):
+            raise ValueError("invalid Content-Length")
+        raw_length = raw_length.strip()
+        if not raw_length or not raw_length.isascii() or not raw_length.isdigit():
+            raise ValueError("invalid Content-Length")
+        normalized_length = raw_length.lstrip("0") or "0"
+        if len(normalized_length) > len(str(MAX_JSON_REQUEST_BYTES)):
+            raise ValueError(
+                f"JSON request body exceeds {MAX_JSON_REQUEST_BYTES} bytes"
             )
-            if strict
-            else json.loads(decoded)
+        length = int(normalized_length)
+        if length < 1:
+            raise ValueError("JSON request body must not be empty")
+        if length > MAX_JSON_REQUEST_BYTES:
+            raise ValueError(
+                f"JSON request body exceeds {MAX_JSON_REQUEST_BYTES} bytes"
+            )
+        body = self.rfile.read(length)
+        if len(body) != length:
+            raise ValueError("JSON request body ended before Content-Length")
+        decoded = body.decode("utf-8")
+        _validate_json_nesting(decoded)
+        value = json.loads(
+            decoded,
+            object_pairs_hook=_strict_json_object,
+            parse_constant=_reject_non_finite_json_number,
+            parse_float=_strict_json_float,
         )
         if not isinstance(value, dict):
             raise ValueError("JSON body must be an object")
