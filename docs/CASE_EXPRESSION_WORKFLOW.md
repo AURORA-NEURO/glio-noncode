@@ -506,14 +506,28 @@ identity mismatch, persistence mismatch, or failed replay integrity.
 
 ## Operational limits and reproducibility notes
 
-- Focused CLI JSON readers accept at most 16 MiB per input. The local HTTP JSON body must be an
-  object between 1 byte and 5 MB.
+- Focused CLI JSON readers accept at most 16 MiB per input and 100 object/array nesting levels. CLI
+  and local HTTP JSON both reject duplicate keys and non-finite or overflowing numbers; CLI input
+  also rejects noncanonical Unicode. The HTTP body must additionally be an object between 1 and
+  5,000,000 bytes and rejects ambiguous length framing or truncated bodies.
 - Case execution accepts at most 10,000 unique RNA consequence objects. Duplicate content
   addresses and over-limit Python iterables fail closed before runtime persistence; the bound is
   published by both case schema and capabilities discovery.
-- Case preparation accepts at most 1,000 regulatory-track sources through either Python iterable
-  name. The limit is published by case capabilities; over-limit or non-iterable inputs fail before
-  track parsing.
+- Case preparation accepts at most 1,000 regulatory-track sources and 1,000,000 candidate elements
+  across the case. Each track may declare at most 32 unique target-gene keys of 128 characters;
+  aggregate conversion stops after the first source that crosses the case ceiling and later sources
+  are not parsed. The same 1,000-source bound applies through either Python iterable name. Over-limit
+  or non-iterable inputs fail before track parsing. These ceilings are published in request schemas
+  and capabilities discovery.
+- Every candidate element may contain at most 128 target genes and 128 state IDs. Preparation and
+  hydration also cap conservative runtime work at 10,000 units, computed as
+  `variant_count * max(1, sum(1 + max(1, target_gene_count) + max(1, state_id_count)))` across
+  candidates. An over-budget preparation returns the typed `case_runtime_work_limit_exceeded` gate;
+  a forged or stale persisted manifest fails validation before execution.
+- Case, source, receipt, and hydrated run metadata are recursively canonicalized and frozen. Keys
+  must be strings, numbers finite, recursive/non-JSON values are rejected, and user metadata cannot
+  claim the reserved `case_workflow_provenance` key. Persisted manifests, dossiers, run records,
+  replay proofs, and runtime receipts are revalidated and cross-linked before execution or reuse.
 - Each regulatory-track parser accepts at most 1,000,000 data records and 100,000 auxiliary
   header/blank lines by default; callers may choose lower per-parser limits. Over-limit text inputs
   stop at one sentinel with a typed error issue, and regulatory JSON rejects duplicate keys and
@@ -521,6 +535,15 @@ identity mismatch, persistence mismatch, or failed replay integrity.
 - The in-memory `VariantIndex` accepts at most 100,000 canonical variants by default, supports a
   lower caller-selected ceiling, and consumes only one sentinel beyond that ceiling. Larger cohort
   indexing belongs on the separately bounded streaming/index surfaces.
+- In-memory variant intake accepts at most 100,000 source records and 10,000 auxiliary header or
+  blank lines by default, with lower caller-selected ceilings. VCF, gVCF, TSV, JSON, and decoded BCF
+  normalization stop after one addressed sentinel; JSON additionally rejects duplicate keys and
+  non-finite numbers.
+- `BcfReader` separately bounds its work before intake normalization: 1 GB each for input and total
+  decoded bytes, 100,000 BGZF members, 65,536 bytes per compressed or decoded BGZF member, 5 MB of
+  header data, 1,000,000 records, and 16 MB per framed record. Every configurable ceiling can be
+  lowered; large sources should use the streaming importer. These checks preserve legacy input,
+  record, and document addresses without materializing whole-input hexadecimal copies.
 - Expression and allelic-count batches each accept at most 10,000 observations and consume at most
   one sentinel beyond that ceiling. Duplicate scientific identities are rejected. Allelic batch
   inference additionally has a downward-configurable, one-million-outcome exact-work ceiling and
@@ -534,6 +557,23 @@ identity mismatch, persistence mismatch, or failed replay integrity.
   bounded as well. Prefer short stable IDs.
 - The case façade sorts regulatory tracks and RNA consequences canonically. Reversing consequence
   order does not change evaluation identity.
+- Content-addressed object writes and run-record access serialize the same resource across processes.
+  Writes use a flushed unique sibling temporary and atomic same-directory replacement; run-index
+  reads share the writer lock for a stable snapshot. A run retains at most 1,000 unique event-history
+  entries and 1,000 unique dossier-history entries; malformed, mismatched, or over-limit histories
+  fail closed.
+- Identical canonical batch requests share one content-derived batch ID. A cross-process batch lock
+  elects one evaluator and followers reopen that winner's verified result. Under normal completion,
+  concurrent retries therefore share one indexed closure instead of creating competing result
+  objects. A malformed index, input object, result, count, item link, or persisted closure is rejected
+  instead of being silently overwritten or reevaluated.
+- The persisted case contracts retain their v1 identifiers, and canonical v1 artifacts emitted by
+  the package remain readable. Hydration is intentionally stricter: unknown fields, coercive scalar
+  types, noncanonical JSON, broken content addresses, or incomplete cross-links that older permissive
+  readers may have accepted now fail closed. Legacy v1 per-track provenance may omit its full
+  `context`; when candidates survive, the compatibility path reconstructs a single unanimous context
+  and verifies its context key, legacy parser order, and candidate address. Newly generated v1
+  payloads always include the full track context.
 - The exact output addresses in this document are placeholders. Scientific input, evidence, claim,
   and run identities are reproducible from the same package version and canonical inputs;
   receipt-bearing workflow and stored-dossier addresses may also reflect observational history.

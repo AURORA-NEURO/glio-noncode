@@ -58,9 +58,58 @@ STALE_EXPORT_REPAIRS: dict[str, tuple[str, str]] = {
 Descriptor = tuple[str, str | None]
 
 CURATED_EXPORTS: dict[str, Descriptor] = {
+    "BCF_MAX_INPUT_BYTES": ("glio_noncode.bcf", "BCF_MAX_INPUT_BYTES"),
+    "BCF_MAX_DECOMPRESSED_BYTES": (
+        "glio_noncode.bcf",
+        "BCF_MAX_DECOMPRESSED_BYTES",
+    ),
+    "BCF_MAX_BGZF_BLOCKS": ("glio_noncode.bcf", "BCF_MAX_BGZF_BLOCKS"),
+    "BCF_MAX_BGZF_BLOCK_BYTES": (
+        "glio_noncode.bcf",
+        "BCF_MAX_BGZF_BLOCK_BYTES",
+    ),
+    "BCF_MAX_BGZF_DECOMPRESSED_BLOCK_BYTES": (
+        "glio_noncode.bcf",
+        "BCF_MAX_BGZF_DECOMPRESSED_BLOCK_BYTES",
+    ),
+    "BCF_MAX_HEADER_BYTES": ("glio_noncode.bcf", "BCF_MAX_HEADER_BYTES"),
+    "BCF_MAX_RECORDS": ("glio_noncode.bcf", "BCF_MAX_RECORDS"),
+    "BCF_MAX_RECORD_BYTES": ("glio_noncode.bcf", "BCF_MAX_RECORD_BYTES"),
+    "MAX_JSON_REQUEST_BYTES": (
+        "glio_noncode.api",
+        "MAX_JSON_REQUEST_BYTES",
+    ),
+    "MAX_JSON_NESTING_DEPTH": (
+        "glio_noncode.api",
+        "MAX_JSON_NESTING_DEPTH",
+    ),
     "MAX_CASE_REGULATORY_TRACKS": (
         "glio_noncode.case_workflow",
         "MAX_CASE_REGULATORY_TRACKS",
+    ),
+    "MAX_CASE_CANDIDATE_ELEMENTS": (
+        "glio_noncode.case_workflow",
+        "MAX_CASE_CANDIDATE_ELEMENTS",
+    ),
+    "MAX_CASE_TARGET_GENE_KEYS": (
+        "glio_noncode.case_workflow",
+        "MAX_CASE_TARGET_GENE_KEYS",
+    ),
+    "MAX_CASE_TARGET_GENE_KEY_LENGTH": (
+        "glio_noncode.case_workflow",
+        "MAX_CASE_TARGET_GENE_KEY_LENGTH",
+    ),
+    "MAX_CASE_TARGETS_PER_ELEMENT": (
+        "glio_noncode.case_workflow",
+        "MAX_CASE_TARGETS_PER_ELEMENT",
+    ),
+    "MAX_CASE_RUNTIME_WORK_ITEMS": (
+        "glio_noncode.case_workflow",
+        "MAX_CASE_RUNTIME_WORK_ITEMS",
+    ),
+    "MAX_RUN_HISTORY_ENTRIES": (
+        "glio_noncode.storage",
+        "MAX_RUN_HISTORY_ENTRIES",
     ),
     "MAX_REGULATORY_TRACK_AUXILIARY_LINES": (
         "glio_noncode.regulatory_tracks",
@@ -73,6 +122,14 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
     "MAX_VARIANT_INDEX_RECORDS": (
         "glio_noncode.intake",
         "MAX_VARIANT_INDEX_RECORDS",
+    ),
+    "MAX_VARIANT_INTAKE_RECORDS": (
+        "glio_noncode.intake",
+        "MAX_VARIANT_INTAKE_RECORDS",
+    ),
+    "MAX_VARIANT_INTAKE_AUXILIARY_LINES": (
+        "glio_noncode.intake",
+        "MAX_VARIANT_INTAKE_AUXILIARY_LINES",
     ),
     "MAX_CASE_RNA_CONSEQUENCES": (
         "glio_noncode.case_workflow",
