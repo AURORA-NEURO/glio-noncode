@@ -10,11 +10,14 @@ index generation; those belong to a future indexed-data capability.
 
 from __future__ import annotations
 
+import io
 import re
 import struct
 import zlib
+from binascii import hexlify
 from collections.abc import Mapping
 from dataclasses import dataclass
+from hashlib import sha256
 from math import isnan
 from typing import Any
 
@@ -26,6 +29,56 @@ _MISSING_INT16 = -32768
 _MISSING_INT32 = -2147483648
 _MISSING_FLOAT = 0x7F800001
 _HEADER_ID = re.compile(r"<ID=([^,>]+)")
+_HASH_CHUNK_BYTES = 1_048_576
+
+# The in-memory reader is intentionally more conservative than the 20 GB
+# streaming input surface. Format-level bounds match variant_stream where the
+# same object is being bounded.
+BCF_MAX_INPUT_BYTES = 1_000_000_000
+BCF_MAX_DECOMPRESSED_BYTES = 1_000_000_000
+BCF_MAX_BGZF_BLOCKS = 100_000
+BCF_MAX_BGZF_BLOCK_BYTES = 65_536
+BCF_MAX_BGZF_DECOMPRESSED_BLOCK_BYTES = 65_536
+BCF_MAX_HEADER_BYTES = 5_000_000
+BCF_MAX_RECORDS = 1_000_000
+BCF_MAX_RECORD_BYTES = 16_000_000
+
+
+def _validated_limit(value: int, name: str, ceiling: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= ceiling:
+        raise ValidationError(f"{name} must be an integer between 1 and {ceiling}")
+    return value
+
+
+def _update_hex_digest(digest: Any, value: bytes | bytearray | memoryview) -> None:
+    view = memoryview(value).cast("B")
+    for offset in range(0, len(view), _HASH_CHUNK_BYTES):
+        digest.update(hexlify(view[offset : offset + _HASH_CHUNK_BYTES]))
+
+
+def _legacy_hex_content_hash(value: bytes | bytearray | memoryview) -> str:
+    """Hash bytes exactly as the legacy ``content_hash(value.hex())`` call."""
+
+    digest = sha256()
+    digest.update(b'"')
+    _update_hex_digest(digest, value)
+    digest.update(b'"')
+    return f"sha256:{digest.hexdigest()}"
+
+
+def _legacy_record_hash(
+    shared: bytes | bytearray | memoryview,
+    individual: bytes | bytearray | memoryview,
+) -> str:
+    """Hash record buffers without materializing their legacy hex strings."""
+
+    digest = sha256()
+    digest.update(b'{"individual":"')
+    _update_hex_digest(digest, individual)
+    digest.update(b'","shared":"')
+    _update_hex_digest(digest, shared)
+    digest.update(b'"}')
+    return f"sha256:{digest.hexdigest()}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,11 +125,11 @@ class BcfDocument:
 class _Cursor:
     """Bounds-checked little-endian cursor over one decompressed BCF stream."""
 
-    def __init__(self, data: bytes) -> None:
+    def __init__(self, data: bytes | bytearray) -> None:
         self.data = data
         self.offset = 0
 
-    def take(self, length: int, field: str) -> bytes:
+    def take(self, length: int, field: str) -> bytes | bytearray:
         if length < 0 or self.offset + length > len(self.data):
             raise ValidationError(f"BCF truncated while reading {field}")
         value = self.data[self.offset : self.offset + length]
@@ -117,17 +170,72 @@ class BcfReader:
 
     _supported_types = frozenset({1, 2, 3, 5, 7})
 
+    def __init__(
+        self,
+        *,
+        max_input_bytes: int = BCF_MAX_INPUT_BYTES,
+        max_decompressed_bytes: int = BCF_MAX_DECOMPRESSED_BYTES,
+        max_bgzf_blocks: int = BCF_MAX_BGZF_BLOCKS,
+        max_bgzf_block_bytes: int = BCF_MAX_BGZF_BLOCK_BYTES,
+        max_header_bytes: int = BCF_MAX_HEADER_BYTES,
+        max_records: int = BCF_MAX_RECORDS,
+        max_record_bytes: int = BCF_MAX_RECORD_BYTES,
+    ) -> None:
+        self.max_input_bytes = _validated_limit(
+            max_input_bytes,
+            "max_input_bytes",
+            BCF_MAX_INPUT_BYTES,
+        )
+        self.max_decompressed_bytes = _validated_limit(
+            max_decompressed_bytes,
+            "max_decompressed_bytes",
+            BCF_MAX_DECOMPRESSED_BYTES,
+        )
+        self.max_bgzf_blocks = _validated_limit(
+            max_bgzf_blocks,
+            "max_bgzf_blocks",
+            BCF_MAX_BGZF_BLOCKS,
+        )
+        self.max_bgzf_block_bytes = _validated_limit(
+            max_bgzf_block_bytes,
+            "max_bgzf_block_bytes",
+            BCF_MAX_BGZF_BLOCK_BYTES,
+        )
+        self.max_header_bytes = _validated_limit(
+            max_header_bytes,
+            "max_header_bytes",
+            BCF_MAX_HEADER_BYTES,
+        )
+        self.max_records = _validated_limit(
+            max_records,
+            "max_records",
+            BCF_MAX_RECORDS,
+        )
+        self.max_record_bytes = _validated_limit(
+            max_record_bytes,
+            "max_record_bytes",
+            BCF_MAX_RECORD_BYTES,
+        )
+
     def read(self, data: bytes) -> BcfDocument:
         if not isinstance(data, bytes) or not data:
             raise ValidationError("BCF input must be non-empty bytes")
-        input_hash = content_hash(data.hex())
+        if len(data) > self.max_input_bytes:
+            raise ValidationError(
+                f"BCF input exceeds max_input_bytes ({self.max_input_bytes})"
+            )
+        input_hash = _legacy_hex_content_hash(data)
         decoded, block_count = self._decompress(data)
         cursor = _Cursor(decoded)
-        magic = cursor.take(5, "magic")
+        magic = bytes(cursor.take(5, "magic"))
         if magic[:3] != b"BCF" or magic[3] != 2:
             raise ValidationError(f"unsupported BCF magic: {magic!r}")
         version = f"{magic[3]}.{magic[4]}"
         header_length = cursor.u32("header length")
+        if header_length > self.max_header_bytes:
+            raise ValidationError(
+                f"BCF header exceeds max_header_bytes ({self.max_header_bytes})"
+            )
         header_bytes = cursor.take(header_length, "header text")
         header_text = header_bytes.rstrip(b"\x00").decode("utf-8", errors="strict")
         header = self._parse_header(header_text)
@@ -139,8 +247,15 @@ class BcfReader:
                 if trailing and any(trailing):
                     raise ValidationError("BCF has a non-zero truncated record trailer")
                 break
+            if index >= self.max_records:
+                raise ValidationError(f"BCF record count exceeds max_records ({self.max_records})")
             shared_length = cursor.u32("shared record length")
             individual_length = cursor.u32("individual record length")
+            record_bytes = 8 + shared_length + individual_length
+            if record_bytes > self.max_record_bytes:
+                raise ValidationError(
+                    f"BCF record exceeds max_record_bytes ({self.max_record_bytes})"
+                )
             shared = cursor.take(shared_length, "shared record")
             individual = cursor.take(individual_length, "individual record")
             records.append(self._record(index, shared, individual, header))
@@ -165,14 +280,22 @@ class BcfReader:
             content_address=content_hash(body),
         )
 
-    @staticmethod
-    def _decompress(data: bytes) -> tuple[bytes, int]:
+    def _decompress(self, data: bytes) -> tuple[bytes | bytearray, int]:
         if data[:3] == b"BCF":
+            if len(data) > self.max_decompressed_bytes:
+                raise ValidationError(
+                    "raw BCF exceeds max_decompressed_bytes "
+                    f"({self.max_decompressed_bytes})"
+                )
             return data, 0
         output = bytearray()
         offset = 0
         blocks = 0
         while offset < len(data):
+            if blocks >= self.max_bgzf_blocks:
+                raise ValidationError(
+                    f"BGZF block count exceeds max_bgzf_blocks ({self.max_bgzf_blocks})"
+                )
             if data[offset : offset + 2] != b"\x1f\x8b":
                 raise ValidationError("BCF input is neither raw BCF nor BGZF")
             if offset + 12 > len(data):
@@ -184,6 +307,11 @@ class BcfReader:
             extra_end = extra_start + extra_length
             if extra_end > len(data):
                 raise ValidationError("truncated BGZF extra field")
+            if extra_end - offset > self.max_bgzf_block_bytes:
+                raise ValidationError(
+                    "BGZF extra field exceeds max_bgzf_block_bytes "
+                    f"({self.max_bgzf_block_bytes})"
+                )
             block_size: int | None = None
             cursor = extra_start
             while cursor + 4 <= extra_end:
@@ -198,14 +326,49 @@ class BcfReader:
                 cursor = value_end
             if block_size is None or offset + block_size > len(data):
                 raise ValidationError("BGZF BC subfield or block size is missing")
-            block = data[offset : offset + block_size]
+            if block_size > self.max_bgzf_block_bytes:
+                raise ValidationError(
+                    f"BGZF member exceeds max_bgzf_block_bytes ({self.max_bgzf_block_bytes})"
+                )
+            if block_size < 8:
+                raise ValidationError("BGZF member is too short to contain a trailer")
+            declared_size = struct.unpack_from("<I", data, offset + block_size - 4)[0]
+            if declared_size > BCF_MAX_BGZF_DECOMPRESSED_BLOCK_BYTES:
+                raise ValidationError(
+                    "BGZF decompressed block exceeds the format ceiling "
+                    f"({BCF_MAX_BGZF_DECOMPRESSED_BLOCK_BYTES})"
+                )
+            remaining = self.max_decompressed_bytes - len(output)
+            if declared_size > remaining:
+                raise ValidationError(
+                    "BGZF output exceeds max_decompressed_bytes "
+                    f"({self.max_decompressed_bytes})"
+                )
+            block = memoryview(data)[offset : offset + block_size]
+            output_limit = min(remaining, BCF_MAX_BGZF_DECOMPRESSED_BLOCK_BYTES)
+            decompressor = zlib.decompressobj(wbits=31)
             try:
-                output.extend(zlib.decompress(block, wbits=31))
+                payload = decompressor.decompress(block, output_limit + 1)
+                if len(payload) > output_limit or decompressor.unconsumed_tail:
+                    raise ValidationError(
+                        "BGZF decompression exceeded its bounded output allowance"
+                    )
+                tail = decompressor.flush(output_limit - len(payload) + 1)
             except zlib.error as exc:
                 raise ValidationError(f"invalid BGZF compressed block: {exc}") from exc
+            if len(payload) + len(tail) > output_limit:
+                raise ValidationError("BGZF decompression exceeded its bounded output allowance")
+            payload += tail
+            if not decompressor.eof:
+                raise ValidationError("invalid or truncated BGZF compressed block")
+            if decompressor.unused_data:
+                raise ValidationError("BGZF member contains bytes after its gzip stream")
+            if len(payload) != declared_size:
+                raise ValidationError("BGZF trailer size does not match decompressed bytes")
+            output.extend(payload)
             blocks += 1
             offset += block_size
-        return bytes(output), blocks
+        return output, blocks
 
     @staticmethod
     def _parse_header(text: str) -> dict[str, Any]:
@@ -214,7 +377,8 @@ class BcfReader:
         infos: list[str] = []
         formats: list[str] = []
         samples: tuple[str, ...] = ()
-        for line in text.splitlines():
+        for source_line in io.StringIO(text, newline=None):
+            line = source_line.rstrip("\r\n")
             if line.startswith("##contig=<"):
                 match = _HEADER_ID.search(line)
                 if match:
@@ -247,8 +411,8 @@ class BcfReader:
     def _record(
         self,
         index: int,
-        shared_data: bytes,
-        individual_data: bytes,
+        shared_data: bytes | bytearray,
+        individual_data: bytes | bytearray,
         header: Mapping[str, Any],
     ) -> BcfRecord:
         shared = _Cursor(shared_data)
@@ -319,9 +483,7 @@ class BcfReader:
             filters=filters,
             info=info,
             samples=samples,
-            raw_hash=content_hash(
-                {"shared": shared_data.hex(), "individual": individual_data.hex()}
-            ),
+            raw_hash=_legacy_record_hash(shared_data, individual_data),
         )
 
     def _typed_string(self, cursor: _Cursor, field: str) -> str:
