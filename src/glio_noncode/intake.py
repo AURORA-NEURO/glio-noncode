@@ -95,6 +95,13 @@ class IntakeReceipt:
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
 
+    def provenance_dict(self) -> dict[str, Any]:
+        """Return the stable receipt projection suitable for scientific identity."""
+
+        payload = self.to_dict()
+        payload.pop("created_at", None)
+        return payload
+
 
 @dataclass(frozen=True, slots=True)
 class IntakeBatch:
@@ -120,7 +127,7 @@ class IntakeBatch:
                 "input_format": self.input_format,
                 "variants": self.variants,
                 "issues": self.issues,
-                "receipt": self.receipt,
+                "receipt": self.receipt.provenance_dict(),
             }
         )
 
@@ -138,7 +145,10 @@ class IntakeBatch:
         """Build a normal case manifest while preserving intake provenance."""
 
         merged_metadata = dict(metadata or {})
-        merged_metadata["intake_receipt"] = self.receipt.to_dict()
+        # ``created_at`` is operational provenance, not a property of the
+        # scientific input.  Keeping it out of the manifest makes identical
+        # source material resolve to the same manifest and run addresses.
+        merged_metadata["intake_receipt"] = self.receipt.provenance_dict()
         merged_metadata["intake_content_address"] = self.content_address
         return CaseManifest(
             case_id=case_id,

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import unittest
+from datetime import datetime, timezone
+from unittest.mock import patch
 
 from glio_noncode.intake import IntakeFormat, IntakeSeverity, VariantIndex, VariantIntake
 from glio_noncode.models import ReferenceContext
@@ -84,6 +86,32 @@ class IntakeTests(unittest.TestCase):
         self.assertEqual(index.overlap("chr7", 30, 30)[0].variant_id, "v1")
         self.assertEqual(manifest.input_versions["fixture-json"], batch.receipt.input_hash)
         self.assertEqual(manifest.metadata["intake_receipt"]["accepted_count"], 1)
+        self.assertNotIn("created_at", manifest.metadata["intake_receipt"])
+
+    def test_observation_time_does_not_change_scientific_identity(self) -> None:
+        source = '[{"notation":"7:30:C>T","variant_id":"v1","genome_build":"GRCh38"}]'
+        with patch(
+            "glio_noncode.intake.utc_now",
+            side_effect=(
+                datetime(2026, 1, 1, tzinfo=timezone.utc),
+                datetime(2026, 2, 1, tzinfo=timezone.utc),
+            ),
+        ):
+            first = VariantIntake().parse_text(source, source_id="fixture-json")
+            second = VariantIntake().parse_text(source, source_id="fixture-json")
+
+        context = ReferenceContext("GRCh38", "glioma", "adult", "stem_like")
+        first_manifest = first.to_manifest(
+            case_id="case-intake", subject_id="subject-local", context=context
+        )
+        second_manifest = second.to_manifest(
+            case_id="case-intake", subject_id="subject-local", context=context
+        )
+
+        self.assertNotEqual(first.receipt.created_at, second.receipt.created_at)
+        self.assertEqual(first.receipt.content_address, second.receipt.content_address)
+        self.assertEqual(first.content_address, second.content_address)
+        self.assertEqual(first_manifest.content_address, second_manifest.content_address)
 
     def test_invalid_input_is_an_error_not_an_empty_success(self) -> None:
         batch = VariantIntake().parse_text(
