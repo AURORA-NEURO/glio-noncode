@@ -26,8 +26,10 @@ import types
 from dataclasses import dataclass
 from pathlib import Path
 
-MANIFEST_VERSION = 1
+MANIFEST_VERSION = 2
+SUPPORTED_GENERATED_VERSIONS = frozenset({1, MANIFEST_VERSION})
 PACKAGE_NAME = "glio_noncode"
+LEGACY_ALL_DIGEST = "92622f9cc8f55b9956927bca80dda54658c7c14eaaa3c55124ac34077be3e9ff"
 IGNORED_RUNTIME_NAMES = frozenset(
     {
         "__all__",
@@ -54,6 +56,167 @@ STALE_EXPORT_REPAIRS: dict[str, tuple[str, str]] = {
 }
 
 Descriptor = tuple[str, str | None]
+
+CURATED_EXPORTS: dict[str, Descriptor] = {
+    "WORKFLOW_VERSION": ("glio_noncode.case_workflow", "WORKFLOW_VERSION"),
+    "WorkflowState": ("glio_noncode.case_workflow", "WorkflowState"),
+    "WorkflowSeverity": ("glio_noncode.case_workflow", "WorkflowSeverity"),
+    "WorkflowStage": ("glio_noncode.case_workflow", "WorkflowStage"),
+    "VariantSource": ("glio_noncode.case_workflow", "VariantSource"),
+    "VariantSourceInput": ("glio_noncode.case_workflow", "VariantSourceInput"),
+    "RegulatoryTrackSource": ("glio_noncode.case_workflow", "RegulatoryTrackSource"),
+    "RegulatoryTrackSourceInput": (
+        "glio_noncode.case_workflow",
+        "RegulatoryTrackSourceInput",
+    ),
+    "WorkflowIssue": ("glio_noncode.case_workflow", "WorkflowIssue"),
+    "StageReceipt": ("glio_noncode.case_workflow", "StageReceipt"),
+    "PreparedCase": ("glio_noncode.case_workflow", "PreparedCase"),
+    "CaseRunResult": ("glio_noncode.case_workflow", "CaseRunResult"),
+    "prepare_case": ("glio_noncode.case_workflow", "prepare_case"),
+    "run_case": ("glio_noncode.case_workflow", "run_case"),
+    "case_workflow_schema": ("glio_noncode.case_workflow", "case_workflow_schema"),
+    "variant_source_schema": ("glio_noncode.case_workflow", "variant_source_schema"),
+    "regulatory_track_source_schema": (
+        "glio_noncode.case_workflow",
+        "regulatory_track_source_schema",
+    ),
+    "prepared_case_schema": ("glio_noncode.case_workflow", "prepared_case_schema"),
+    "run_result_schema": ("glio_noncode.case_workflow", "run_result_schema"),
+    "case_workflow_capabilities": ("glio_noncode.case_workflow", "capabilities"),
+    "EXPRESSION_EVIDENCE_SCHEMA_VERSION": (
+        "glio_noncode.expression_evidence",
+        "SCHEMA_VERSION",
+    ),
+    "RNAEvidenceState": ("glio_noncode.expression_evidence", "RNAEvidenceState"),
+    "ExpressionScale": ("glio_noncode.expression_evidence", "ExpressionScale"),
+    "RegulatoryDirection": (
+        "glio_noncode.expression_evidence",
+        "RegulatoryDirection",
+    ),
+    "ExpressionDirection": (
+        "glio_noncode.expression_evidence",
+        "ExpressionDirection",
+    ),
+    "AllelicDirection": ("glio_noncode.expression_evidence", "AllelicDirection"),
+    "PhaseStatus": ("glio_noncode.expression_evidence", "PhaseStatus"),
+    "DispersionMethod": ("glio_noncode.expression_evidence", "DispersionMethod"),
+    "ExpectedFractionMethod": (
+        "glio_noncode.expression_evidence",
+        "ExpectedFractionMethod",
+    ),
+    "ExpressionObservation": (
+        "glio_noncode.expression_evidence",
+        "ExpressionObservation",
+    ),
+    "ExpressionBatch": ("glio_noncode.expression_evidence", "ExpressionBatch"),
+    "RobustOutlierPolicy": (
+        "glio_noncode.expression_evidence",
+        "RobustOutlierPolicy",
+    ),
+    "ExpressionOutlierResult": (
+        "glio_noncode.expression_evidence",
+        "ExpressionOutlierResult",
+    ),
+    "RobustExpressionOutlierAnalyzer": (
+        "glio_noncode.expression_evidence",
+        "RobustExpressionOutlierAnalyzer",
+    ),
+    "AllelicCountObservation": (
+        "glio_noncode.expression_evidence",
+        "AllelicCountObservation",
+    ),
+    "AllelicCountBatch": (
+        "glio_noncode.expression_evidence",
+        "AllelicCountBatch",
+    ),
+    "AllelicImbalancePolicy": (
+        "glio_noncode.expression_evidence",
+        "AllelicImbalancePolicy",
+    ),
+    "AllelicImbalanceResult": (
+        "glio_noncode.expression_evidence",
+        "AllelicImbalanceResult",
+    ),
+    "AllelicImbalanceAnalyzer": (
+        "glio_noncode.expression_evidence",
+        "AllelicImbalanceAnalyzer",
+    ),
+    "PredictedRegulatoryEffect": (
+        "glio_noncode.expression_evidence",
+        "PredictedRegulatoryEffect",
+    ),
+    "RNAConsequenceEvidence": (
+        "glio_noncode.expression_evidence",
+        "RNAConsequenceEvidence",
+    ),
+    "RNAConsequenceIntegrator": (
+        "glio_noncode.expression_evidence",
+        "RNAConsequenceIntegrator",
+    ),
+    "expression_evidence_schema": (
+        "glio_noncode.expression_evidence",
+        "expression_evidence_schema",
+    ),
+    "expression_evidence_capabilities": (
+        "glio_noncode.expression_evidence",
+        "expression_evidence_capabilities",
+    ),
+    "expression_evidence_public_projection": (
+        "glio_noncode.expression_evidence",
+        "public_projection",
+    ),
+    "EXPRESSION_CLAIMS_SCHEMA_VERSION": (
+        "glio_noncode.expression_claims",
+        "SCHEMA_VERSION",
+    ),
+    "RNA_CONSEQUENCE_CHANNEL": (
+        "glio_noncode.expression_claims",
+        "RNA_CONSEQUENCE_CHANNEL",
+    ),
+    "RNAElementGeneTarget": (
+        "glio_noncode.expression_claims",
+        "RNAElementGeneTarget",
+    ),
+    "RNAClaimPolicy": ("glio_noncode.expression_claims", "RNAClaimPolicy"),
+    "DEFAULT_RNA_CLAIM_POLICY": (
+        "glio_noncode.expression_claims",
+        "DEFAULT_RNA_CLAIM_POLICY",
+    ),
+    "RNAClaimDerivation": (
+        "glio_noncode.expression_claims",
+        "RNAClaimDerivation",
+    ),
+    "RNAClaimBatch": ("glio_noncode.expression_claims", "RNAClaimBatch"),
+    "element_gene_edge_id": (
+        "glio_noncode.expression_claims",
+        "element_gene_edge_id",
+    ),
+    "matches_rna_consequence": (
+        "glio_noncode.expression_claims",
+        "matches_rna_consequence",
+    ),
+    "rna_consequence_to_claim": (
+        "glio_noncode.expression_claims",
+        "rna_consequence_to_claim",
+    ),
+    "match_rna_consequences": (
+        "glio_noncode.expression_claims",
+        "match_rna_consequences",
+    ),
+    "expression_claims_schema": (
+        "glio_noncode.expression_claims",
+        "expression_claims_schema",
+    ),
+    "expression_claims_capabilities": (
+        "glio_noncode.expression_claims",
+        "expression_claims_capabilities",
+    ),
+    "expression_claim_public_projection": (
+        "glio_noncode.expression_claims",
+        "public_projection",
+    ),
+}
 
 
 class SurfaceMigrationError(RuntimeError):
@@ -85,6 +248,8 @@ class SurfaceManifest:
     child_modules: dict[str, str]
     lazy_modules: tuple[str, ...]
     export_child_conflicts: tuple[str, ...]
+    curated_exports: dict[str, Descriptor]
+    curated_all: tuple[str, ...]
 
 
 def repository_root() -> Path:
@@ -315,6 +480,8 @@ def _surface_payload(
     child_modules: dict[str, str],
     lazy_modules: tuple[str, ...],
     conflicts: tuple[str, ...],
+    curated_exports: dict[str, Descriptor],
+    curated_all: tuple[str, ...],
 ) -> bytes:
     payload = {
         "manifest_version": MANIFEST_VERSION,
@@ -334,6 +501,11 @@ def _surface_payload(
         "child_modules": list(child_modules.items()),
         "lazy_modules": list(lazy_modules),
         "export_child_conflicts": list(conflicts),
+        "curated_exports": [
+            [name, module, attribute]
+            for name, (module, attribute) in curated_exports.items()
+        ],
+        "curated_all": list(curated_all),
     }
     return json.dumps(
         payload,
@@ -362,14 +534,14 @@ def _manifest_from_generated(source_root: Path) -> SurfaceManifest:
     if source_root_text not in sys.path:
         sys.path.insert(0, source_root_text)
     surface = importlib.import_module(f"{PACKAGE_NAME}._public_surface")
-    if surface.MANIFEST_VERSION != MANIFEST_VERSION:
+    if surface.MANIFEST_VERSION not in SUPPORTED_GENERATED_VERSIONS:
         raise SurfaceMigrationError(
             f"unsupported generated manifest version {surface.MANIFEST_VERSION!r}"
         )
     conflicts = tuple(surface.CANONICAL_EXPORT_CHILD_CONFLICTS)
     if tuple(surface.EXPORT_CHILD_CONFLICTS) != conflicts:
         raise SurfaceMigrationError("generated conflict aliases disagree")
-    return SurfaceManifest(
+    manifest = SurfaceManifest(
         source_digest=surface.SOURCE_DIGEST,
         all_digest=surface.ALL_DIGEST,
         surface_digest=surface.SURFACE_DIGEST,
@@ -382,6 +554,92 @@ def _manifest_from_generated(source_root: Path) -> SurfaceManifest:
         child_modules=dict(surface.CHILD_MODULES),
         lazy_modules=tuple(surface.LAZY_MODULES),
         export_child_conflicts=conflicts,
+        curated_exports=dict(getattr(surface, "CURATED_EXPORTS", {})),
+        curated_all=tuple(getattr(surface, "CURATED_ALL", ())),
+    )
+    return manifest
+
+
+def _apply_curated_exports(manifest: SurfaceManifest) -> SurfaceManifest:
+    previous_exports = manifest.curated_exports
+    previous_all = manifest.curated_all
+    if tuple(previous_exports) != previous_all:
+        raise SurfaceMigrationError(
+            "generated CURATED_ALL differs from CURATED_EXPORTS order"
+        )
+
+    legacy_all = manifest.all_names
+    if previous_all:
+        if legacy_all[-len(previous_all) :] != previous_all:
+            raise SurfaceMigrationError("generated curated names are not the ALL suffix")
+        legacy_all = legacy_all[: -len(previous_all)]
+    if _all_digest(legacy_all) != LEGACY_ALL_DIGEST:
+        raise SurfaceMigrationError(
+            "captured legacy ALL order or duplicates differ from the migration baseline"
+        )
+
+    exports = dict(manifest.exports)
+    for name, descriptor in previous_exports.items():
+        if exports.get(name) != descriptor:
+            raise SurfaceMigrationError(
+                f"generated curated descriptor for {name!r} differs from EXPORTS"
+            )
+        exports.pop(name)
+
+    collisions = sorted(
+        name for name in CURATED_EXPORTS if name in exports or name in legacy_all
+    )
+    if collisions:
+        raise SurfaceMigrationError(
+            f"curated additions collide with the captured legacy surface: {collisions!r}"
+        )
+    for descriptor in CURATED_EXPORTS.values():
+        _resolve(descriptor)
+    exports.update(CURATED_EXPORTS)
+    exports = dict(sorted(exports.items()))
+
+    curated_exports = dict(CURATED_EXPORTS)
+    curated_all = tuple(curated_exports)
+    all_names = legacy_all + curated_all
+    lazy_modules = tuple(
+        sorted(
+            {module for module, _attribute in exports.values()}
+            | set(manifest.child_modules.values())
+        )
+    )
+    conflicts = tuple(sorted(set(exports).intersection(manifest.child_modules)))
+    all_digest = _all_digest(all_names)
+    surface_digest = _sha256(
+        _surface_payload(
+            source_digest=manifest.source_digest,
+            all_names=all_names,
+            exports=exports,
+            constants=manifest.constants,
+            assigned_aliases=manifest.assigned_aliases,
+            repaired_exports=manifest.repaired_exports,
+            implicit_modules=manifest.implicit_modules,
+            child_modules=manifest.child_modules,
+            lazy_modules=lazy_modules,
+            conflicts=conflicts,
+            curated_exports=curated_exports,
+            curated_all=curated_all,
+        )
+    )
+    return SurfaceManifest(
+        source_digest=manifest.source_digest,
+        all_digest=all_digest,
+        surface_digest=surface_digest,
+        all_names=all_names,
+        exports=exports,
+        constants=manifest.constants,
+        assigned_aliases=manifest.assigned_aliases,
+        repaired_exports=manifest.repaired_exports,
+        implicit_modules=manifest.implicit_modules,
+        child_modules=manifest.child_modules,
+        lazy_modules=lazy_modules,
+        export_child_conflicts=conflicts,
+        curated_exports=curated_exports,
+        curated_all=curated_all,
     )
 
 
@@ -405,7 +663,7 @@ def build_manifest(repo_root: Path | None = None) -> SurfaceManifest:
     if source_root_text not in sys.path:
         sys.path.insert(0, source_root_text)
     if _is_lazy_initializer(tree):
-        return _manifest_from_generated(source_root)
+        return _apply_curated_exports(_manifest_from_generated(source_root))
 
     package = importlib.import_module(PACKAGE_NAME)
     replay = replay_initializer(tree)
@@ -498,9 +756,11 @@ def build_manifest(repo_root: Path | None = None) -> SurfaceManifest:
             child_modules=child_modules,
             lazy_modules=lazy_modules,
             conflicts=conflicts,
+            curated_exports={},
+            curated_all=(),
         )
     )
-    return SurfaceManifest(
+    manifest = SurfaceManifest(
         source_digest=source_digest,
         all_digest=all_digest,
         surface_digest=surface_digest,
@@ -513,7 +773,10 @@ def build_manifest(repo_root: Path | None = None) -> SurfaceManifest:
         child_modules=child_modules,
         lazy_modules=lazy_modules,
         export_child_conflicts=conflicts,
+        curated_exports={},
+        curated_all=(),
     )
+    return _apply_curated_exports(manifest)
 
 
 def _render_string_tuple(name: str, values: tuple[str, ...]) -> list[str]:
@@ -562,6 +825,10 @@ def render_manifest(manifest: SurfaceManifest) -> str:
     lines.extend(_render_descriptor_dict("ASSIGNED_ALIASES", manifest.assigned_aliases))
     lines.append("")
     lines.extend(_render_descriptor_dict("REPAIRED_EXPORTS", manifest.repaired_exports))
+    lines.append("")
+    lines.extend(_render_descriptor_dict("CURATED_EXPORTS", manifest.curated_exports))
+    lines.append("")
+    lines.extend(_render_string_tuple("CURATED_ALL", manifest.curated_all))
     lines.append("")
     lines.extend(_render_string_dict("IMPLICIT_MODULES", manifest.implicit_modules))
     lines.append("")
@@ -661,6 +928,26 @@ def validate_manifest(manifest: SurfaceManifest, repo_root: Path | None = None) 
         raise SurfaceMigrationError("IMPLICIT_MODULES is not sorted by local name")
     if tuple(manifest.child_modules) != tuple(sorted(manifest.child_modules)):
         raise SurfaceMigrationError("CHILD_MODULES is not sorted by local name")
+    if manifest.curated_exports != CURATED_EXPORTS:
+        raise SurfaceMigrationError("CURATED_EXPORTS differs from configured additions")
+    if manifest.curated_all != tuple(CURATED_EXPORTS):
+        raise SurfaceMigrationError("CURATED_ALL differs from configured addition order")
+    if manifest.curated_all and (
+        manifest.all_names[-len(manifest.curated_all) :] != manifest.curated_all
+    ):
+        raise SurfaceMigrationError("curated names are not the ALL suffix")
+    duplicate_curated = [
+        name for name in manifest.curated_all if manifest.all_names.count(name) != 1
+    ]
+    if duplicate_curated:
+        raise SurfaceMigrationError(
+            f"curated names must occur exactly once in ALL: {duplicate_curated!r}"
+        )
+    for name, descriptor in manifest.curated_exports.items():
+        if manifest.exports.get(name) != descriptor:
+            raise SurfaceMigrationError(
+                f"curated export {name!r} differs from its configured descriptor"
+            )
     if set(manifest.all_names) - set(manifest.exports):
         missing = sorted(set(manifest.all_names) - set(manifest.exports))
         raise SurfaceMigrationError(f"ALL has names missing from EXPORTS: {missing!r}")
@@ -738,6 +1025,8 @@ def validate_manifest(manifest: SurfaceManifest, repo_root: Path | None = None) 
             child_modules=manifest.child_modules,
             lazy_modules=manifest.lazy_modules,
             conflicts=manifest.export_child_conflicts,
+            curated_exports=manifest.curated_exports,
+            curated_all=manifest.curated_all,
         )
     )
     if manifest.surface_digest != expected_surface_digest:
@@ -782,8 +1071,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     manifest = build_manifest()
-    validate_manifest(manifest)
     if args.check:
+        validate_manifest(manifest)
         check_generated(manifest)
         print(
             f"public surface is current: {len(manifest.exports)} descriptors, "
@@ -791,6 +1080,15 @@ def main(argv: list[str] | None = None) -> int:
         )
     else:
         write_generated(manifest)
+        importlib.invalidate_caches()
+        surface_name = f"{PACKAGE_NAME}._public_surface"
+        if surface_name in sys.modules:
+            importlib.reload(sys.modules[surface_name])
+        if PACKAGE_NAME in sys.modules:
+            importlib.reload(sys.modules[PACKAGE_NAME])
+        manifest = build_manifest()
+        validate_manifest(manifest)
+        check_generated(manifest)
         print(
             f"wrote public surface: {len(manifest.exports)} descriptors, "
             f"{len(manifest.all_names)} __all__ entries, {manifest.surface_digest}"
