@@ -11,7 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .errors import StoreError
+from .errors import StoreError, ValidationError
+from .models import Dossier
 from .replay import ReplayReport, ReplayVerifier
 from .runtime import CaseRuntime
 from .serialization import content_hash
@@ -179,14 +180,14 @@ def _build_integrity(
 ) -> tuple[RunIntegrity, ReplayReport]:
     replay = ReplayVerifier().verify(run_record, event_record, dossier_record)
     warnings = list(replay.warnings)
-    run_id = str(run_record.get("run_id", ""))
+    run_id = run_record["run_id"]
     if event_record.get("run_id") != run_id:
         warnings.append("event record run identifier does not match run record")
     if dossier_record.get("run_id") != run_id:
         warnings.append("dossier run identifier does not match run record")
-    input_address = str(run_record.get("input_address", ""))
-    event_address = str(run_record.get("event_address", ""))
-    dossier_address = str(run_record.get("dossier_address", ""))
+    input_address = run_record["input_address"]
+    event_address = run_record["event_address"]
+    dossier_address = run_record["dossier_address"]
     body = {
         "event_chain_valid": replay.event_chain_valid,
         "stored_dossier_matches_address": replay.stored_dossier_matches_address,
@@ -209,29 +210,31 @@ def _build_summary(
     dossier_record: dict[str, Any],
 ) -> tuple[RunSummary, ReplayReport]:
     integrity, replay = _build_integrity(runtime, run_record, event_record, dossier_record)
-    review = dossier_record.get("review")
+    dossier: Dossier | None
+    try:
+        dossier = Dossier.from_dict(dossier_record)
+    except ValidationError:
+        dossier = None
+    events = event_record.get("events")
+    event_count = len(events) if isinstance(events, list) else 0
     body = {
-        "run_id": str(run_record.get("run_id", "")),
+        "run_id": run_record["run_id"],
         "run_address": content_hash(run_record, prefix="run-record"),
-        "case_id": str(dossier_record.get("case_id", "")),
-        "dossier_id": str(dossier_record.get("dossier_id", "")),
-        "dossier_address": str(run_record.get("dossier_address", "")),
-        "event_address": str(run_record.get("event_address", "")),
-        "input_address": str(run_record.get("input_address", "")),
-        "created_at": str(dossier_record.get("created_at", "")),
-        "status": str(dossier_record.get("status", "")),
-        "research_use_only": bool(dossier_record.get("research_use_only", False)),
-        "is_releasable": bool(
-            dossier_record.get("research_use_only", False)
-            and isinstance(review, dict)
-            and review.get("state") == "accepted"
-        ),
-        "event_count": len(event_record.get("events", [])),
-        "hypothesis_count": len(dossier_record.get("hypotheses", [])),
-        "evidence_count": len(dossier_record.get("evidence", [])),
-        "experiment_count": len(dossier_record.get("experiments", [])),
-        "warning_count": len(dossier_record.get("warnings", [])),
-        "warnings": tuple(str(item) for item in dossier_record.get("warnings", ())),
+        "case_id": dossier.case_id if dossier is not None else "",
+        "dossier_id": dossier.dossier_id if dossier is not None else "",
+        "dossier_address": run_record["dossier_address"],
+        "event_address": run_record["event_address"],
+        "input_address": run_record["input_address"],
+        "created_at": dossier.created_at if dossier is not None else "",
+        "status": dossier.status.value if dossier is not None else "invalid",
+        "research_use_only": dossier.research_use_only if dossier is not None else False,
+        "is_releasable": dossier.is_releasable if dossier is not None else False,
+        "event_count": event_count,
+        "hypothesis_count": len(dossier.hypotheses) if dossier is not None else 0,
+        "evidence_count": len(dossier.evidence) if dossier is not None else 0,
+        "experiment_count": len(dossier.experiments) if dossier is not None else 0,
+        "warning_count": len(dossier.warnings) if dossier is not None else len(replay.warnings),
+        "warnings": dossier.warnings if dossier is not None else replay.warnings,
         "integrity": integrity,
     }
     summary = RunSummary(
@@ -246,8 +249,12 @@ def inspect_run(runtime: CaseRuntime, run_id: str) -> RunInspection:
 
     selected_run_id = _require_run_id(run_id)
     run_record = runtime.get_run(selected_run_id)
-    event_record = runtime.store.store.get(str(run_record["event_address"]))
-    dossier_record = runtime.store.store.get(str(run_record["dossier_address"]))
+    event_record = runtime.store.store.get(run_record["event_address"])
+    dossier_record = runtime.store.store.get(run_record["dossier_address"])
+    if not isinstance(event_record, dict):
+        raise StoreError("persisted event record must be an object")
+    if not isinstance(dossier_record, dict):
+        raise StoreError("persisted dossier record must be an object")
     summary, replay = _build_summary(runtime, run_record, event_record, dossier_record)
     body = {
         "summary": summary,
@@ -312,9 +319,11 @@ def build_run_catalog_page(
     normalized_text = text.strip().lower() if text else None
     summaries: list[RunSummary] = []
     for record in runtime.store.list_runs():
-        inspection = inspect_run(runtime, str(record.get("run_id", "")))
+        inspection = inspect_run(runtime, record["run_id"])
         summary = inspection.summary
-        haystack = f"{summary.run_id} {summary.case_id} {summary.dossier_id} {summary.status}".lower()
+        haystack = (
+            f"{summary.run_id} {summary.case_id} {summary.dossier_id} {summary.status}".lower()
+        )
         if case_id is not None and summary.case_id != case_id:
             continue
         if status is not None and summary.status != status:

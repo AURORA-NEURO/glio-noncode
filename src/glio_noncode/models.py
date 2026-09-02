@@ -2,15 +2,161 @@
 
 from __future__ import annotations
 
+import math
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty, utc_now
+from .serialization import (
+    canonical_bytes,
+    content_hash,
+    freeze_json,
+    jsonable,
+    require_non_empty,
+    utc_now,
+)
 
 
-class ValueEnum(str, Enum):
+def _strict_mapping(
+    raw: object,
+    *,
+    label: str,
+    allowed: frozenset[str],
+    required: frozenset[str],
+) -> Mapping[str, Any]:
+    if not isinstance(raw, Mapping):
+        raise ValidationError(f"{label} must be an object")
+    if any(type(key) is not str for key in raw):
+        raise ValidationError(f"{label} keys must be strings")
+    unknown = set(raw) - allowed
+    if unknown:
+        raise ValidationError(f"{label} contains unknown fields: {sorted(unknown)}")
+    missing = required - set(raw)
+    if missing:
+        raise ValidationError(f"{label} is missing required fields: {sorted(missing)}")
+    return raw
+
+
+def _string(value: object, label: str, *, non_empty: bool = True) -> str:
+    if type(value) is not str:
+        raise ValidationError(f"{label} must be a string")
+    if non_empty and not value.strip():
+        raise ValidationError(f"{label} must not be empty")
+    return value
+
+
+def _integer(value: object, label: str) -> int:
+    if type(value) is not int:
+        raise ValidationError(f"{label} must be an integer")
+    return value
+
+
+def _number(value: object, label: str) -> float:
+    if type(value) not in {int, float}:
+        raise ValidationError(f"{label} must be a finite number")
+    try:
+        result = float(value)
+    except OverflowError as exc:
+        raise ValidationError(f"{label} must be a finite number") from exc
+    if not math.isfinite(result):
+        raise ValidationError(f"{label} must be a finite number")
+    return result
+
+
+def _boolean(value: object, label: str) -> bool:
+    if type(value) is not bool:
+        raise ValidationError(f"{label} must be a boolean")
+    return value
+
+
+def _sequence(value: object, label: str) -> list[Any] | tuple[Any, ...]:
+    if not isinstance(value, (list, tuple)):
+        raise ValidationError(f"{label} must be an array")
+    return value
+
+
+def _strings(
+    value: object,
+    label: str,
+    *,
+    non_empty: bool = False,
+    unique: bool = False,
+) -> tuple[str, ...]:
+    values = tuple(
+        _string(item, f"{label}[{index}]")
+        for index, item in enumerate(_sequence(value, label))
+    )
+    if non_empty and not values:
+        raise ValidationError(f"{label} must not be empty")
+    if unique and len(values) != len(set(values)):
+        raise ValidationError(f"{label} must contain unique values")
+    return values
+
+
+def _json_mapping(value: object, label: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValidationError(f"{label} must be an object")
+    frozen = freeze_json(value, field=label)
+    if not isinstance(frozen, Mapping):  # pragma: no cover - guarded above
+        raise ValidationError(f"{label} must be an object")
+    return frozen
+
+
+def _enum(enum_type: type[ValueEnum], value: object, label: str) -> ValueEnum:
+    text = _string(value, label)
+    try:
+        return enum_type(text)
+    except ValueError as exc:
+        raise ValidationError(f"{label} has unsupported value {text!r}") from exc
+
+
+def _sha256_address(value: object, label: str) -> str:
+    address = _string(value, label)
+    if (
+        len(address) != 71
+        or not address.startswith("sha256:")
+        or any(character not in "0123456789abcdef" for character in address[7:])
+    ):
+        raise ValidationError(f"{label} must be a canonical sha256 content address")
+    return address
+
+
+def _content_address(value: object, label: str) -> str:
+    address = _string(value, label)
+    prefix, separator, digest = address.rpartition(":")
+    if (
+        separator != ":"
+        or not prefix
+        or len(digest) != 64
+        or any(character not in "0123456789abcdef" for character in digest)
+    ):
+        raise ValidationError(f"{label} must be a canonical content address")
+    return address
+
+
+def _utc_timestamp(value: object, label: str) -> str:
+    timestamp = _string(value, label)
+    try:
+        parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValidationError(f"{label} must be an ISO-8601 UTC timestamp") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() != timedelta(0):
+        raise ValidationError(f"{label} must be an ISO-8601 UTC timestamp")
+    return timestamp
+
+
+def _require_exact_roundtrip(raw: Mapping[str, Any], value: object, label: str) -> None:
+    try:
+        if canonical_bytes(raw) != canonical_bytes(jsonable(value)):
+            raise ValidationError(f"{label} is not an exact canonical typed representation")
+    except (TypeError, ValueError, UnicodeError) as exc:
+        raise ValidationError(f"{label} must contain only canonical JSON values") from exc
+
+
+class ValueEnum(str, Enum):  # noqa: UP042 - preserve historical str(member) behavior
     """Enum base whose values are stable strings in serialized contracts."""
 
 
@@ -102,8 +248,21 @@ class ReferenceContext:
     source_version: str = "unspecified"
 
     def __post_init__(self) -> None:
-        for name in ("genome_build", "disease_class", "age_group", "cell_state"):
+        for name in (
+            "genome_build",
+            "disease_class",
+            "age_group",
+            "cell_state",
+            "territory",
+            "treatment_phase",
+            "source_version",
+        ):
             require_non_empty(getattr(self, name), name)
+        object.__setattr__(
+            self,
+            "assay_support",
+            _strings(self.assay_support, "assay_support", unique=True),
+        )
 
     @property
     def key(self) -> str:
@@ -118,16 +277,52 @@ class ReferenceContext:
         return "|".join(parts)
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "ReferenceContext":
+    def from_dict(
+        cls,
+        raw: Mapping[str, Any],
+        *,
+        persisted: bool = False,
+    ) -> ReferenceContext:
+        allowed = frozenset(
+            {
+                "genome_build",
+                "disease_class",
+                "age_group",
+                "cell_state",
+                "territory",
+                "treatment_phase",
+                "assay_support",
+                "source_version",
+            }
+        )
+        required = allowed if persisted else frozenset(
+            {"genome_build", "disease_class", "age_group", "cell_state"}
+        )
+        value = _strict_mapping(
+            raw,
+            label="reference context",
+            allowed=allowed,
+            required=required,
+        )
         return cls(
-            genome_build=str(raw.get("genome_build", "")),
-            disease_class=str(raw.get("disease_class", "")),
-            age_group=str(raw.get("age_group", "")),
-            cell_state=str(raw.get("cell_state", "")),
-            territory=str(raw.get("territory", "unknown")),
-            treatment_phase=str(raw.get("treatment_phase", "unknown")),
-            assay_support=tuple(str(item) for item in raw.get("assay_support", ())),
-            source_version=str(raw.get("source_version", "unspecified")),
+            genome_build=_string(value["genome_build"], "context.genome_build"),
+            disease_class=_string(value["disease_class"], "context.disease_class"),
+            age_group=_string(value["age_group"], "context.age_group"),
+            cell_state=_string(value["cell_state"], "context.cell_state"),
+            territory=_string(value.get("territory", "unknown"), "context.territory"),
+            treatment_phase=_string(
+                value.get("treatment_phase", "unknown"),
+                "context.treatment_phase",
+            ),
+            assay_support=_strings(
+                value.get("assay_support", ()),
+                "context.assay_support",
+                unique=True,
+            ),
+            source_version=_string(
+                value.get("source_version", "unspecified"),
+                "context.source_version",
+            ),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -159,6 +354,7 @@ class VariantIdentity:
             raise ValidationError("variant coordinates must satisfy 1 <= start <= end")
         if not self.reference or not self.alternate:
             raise ValidationError("reference and alternate alleles must not be empty")
+        object.__setattr__(self, "annotations", _json_mapping(self.annotations, "annotations"))
 
     @property
     def canonical_key(self) -> str:
@@ -174,22 +370,64 @@ class VariantIdentity:
         )
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "VariantIdentity":
-        kind = VariantKind(str(raw.get("kind", VariantKind.SNV.value)))
-        origin = VariantOrigin(str(raw.get("origin", VariantOrigin.UNCERTAIN.value)))
+    def from_dict(cls, raw: Mapping[str, Any]) -> VariantIdentity:
+        allowed = frozenset(
+            {
+                "variant_id",
+                "kind",
+                "chromosome",
+                "start",
+                "end",
+                "reference",
+                "alternate",
+                "genome_build",
+                "origin",
+                "clonality",
+                "sample_id",
+                "annotations",
+            }
+        )
+        value = _strict_mapping(
+            raw,
+            label="variant",
+            allowed=allowed,
+            required=frozenset(
+                {
+                    "variant_id",
+                    "chromosome",
+                    "start",
+                    "reference",
+                    "alternate",
+                    "genome_build",
+                }
+            ),
+        )
+        start = _integer(value["start"], "variant.start")
         return cls(
-            variant_id=str(raw.get("variant_id", "")),
-            kind=kind,
-            chromosome=str(raw.get("chromosome", "")),
-            start=int(raw.get("start", 0)),
-            end=int(raw.get("end", raw.get("start", 0))),
-            reference=str(raw.get("reference", "")),
-            alternate=str(raw.get("alternate", "")),
-            genome_build=str(raw.get("genome_build", "")),
-            origin=origin,
-            clonality=str(raw.get("clonality", "unknown")),
-            sample_id=str(raw.get("sample_id", "unspecified")),
-            annotations=dict(raw.get("annotations", {})),
+            variant_id=_string(value["variant_id"], "variant.variant_id"),
+            kind=VariantKind(
+                _enum(
+                    VariantKind,
+                    value.get("kind", VariantKind.SNV.value),
+                    "variant.kind",
+                )
+            ),
+            chromosome=_string(value["chromosome"], "variant.chromosome"),
+            start=start,
+            end=_integer(value.get("end", start), "variant.end"),
+            reference=_string(value["reference"], "variant.reference"),
+            alternate=_string(value["alternate"], "variant.alternate"),
+            genome_build=_string(value["genome_build"], "variant.genome_build"),
+            origin=VariantOrigin(
+                _enum(
+                    VariantOrigin,
+                    value.get("origin", VariantOrigin.UNCERTAIN.value),
+                    "variant.origin",
+                )
+            ),
+            clonality=_string(value.get("clonality", "unknown"), "variant.clonality"),
+            sample_id=_string(value.get("sample_id", "unspecified"), "variant.sample_id"),
+            annotations=_json_mapping(value.get("annotations", {}), "variant.annotations"),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -219,24 +457,84 @@ class CandidateElement:
             raise ValidationError("element coordinates must satisfy 1 <= start <= end")
         if not self.target_genes and not self.state_ids:
             raise ValidationError("an element must expose a candidate gene or state")
+        object.__setattr__(
+            self,
+            "target_genes",
+            _strings(self.target_genes, "target_genes", unique=True),
+        )
+        object.__setattr__(self, "state_ids", _strings(self.state_ids, "state_ids", unique=True))
+        features = _json_mapping(self.features, "features")
+        for name, value in features.items():
+            _number(value, f"features.{name}")
+        object.__setattr__(self, "features", features)
+        object.__setattr__(self, "annotations", _json_mapping(self.annotations, "annotations"))
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any], default_context: ReferenceContext) -> "CandidateElement":
-        context_raw = raw.get("context")
-        context = default_context if not isinstance(context_raw, Mapping) else ReferenceContext.from_dict(context_raw)
-        features = {str(key): float(value) for key, value in dict(raw.get("features", {})).items()}
+    def from_dict(
+        cls,
+        raw: Mapping[str, Any],
+        default_context: ReferenceContext,
+    ) -> CandidateElement:
+        allowed = frozenset(
+            {
+                "element_id",
+                "chromosome",
+                "start",
+                "end",
+                "element_type",
+                "context",
+                "source_id",
+                "target_genes",
+                "state_ids",
+                "features",
+                "annotations",
+            }
+        )
+        value = _strict_mapping(
+            raw,
+            label="candidate element",
+            allowed=allowed,
+            required=frozenset({"element_id", "chromosome", "start", "source_id"}),
+        )
+        if "context" not in value:
+            context = default_context
+        else:
+            context_raw = value["context"]
+            if not isinstance(context_raw, Mapping):
+                raise ValidationError("candidate element context must be an object")
+            context = ReferenceContext.from_dict(context_raw)
+        start = _integer(value["start"], "candidate_element.start")
+        features_raw = _json_mapping(value.get("features", {}), "candidate_element.features")
+        features = {
+            key: _number(item, f"candidate_element.features.{key}")
+            for key, item in features_raw.items()
+        }
         return cls(
-            element_id=str(raw.get("element_id", "")),
-            chromosome=str(raw.get("chromosome", "")),
-            start=int(raw.get("start", 0)),
-            end=int(raw.get("end", raw.get("start", 0))),
-            element_type=str(raw.get("element_type", "regulatory_element")),
+            element_id=_string(value["element_id"], "candidate_element.element_id"),
+            chromosome=_string(value["chromosome"], "candidate_element.chromosome"),
+            start=start,
+            end=_integer(value.get("end", start), "candidate_element.end"),
+            element_type=_string(
+                value.get("element_type", "regulatory_element"),
+                "candidate_element.element_type",
+            ),
             context=context,
-            source_id=str(raw.get("source_id", "")),
-            target_genes=tuple(str(item) for item in raw.get("target_genes", ())),
-            state_ids=tuple(str(item) for item in raw.get("state_ids", ())),
+            source_id=_string(value["source_id"], "candidate_element.source_id"),
+            target_genes=_strings(
+                value.get("target_genes", ()),
+                "candidate_element.target_genes",
+                unique=True,
+            ),
+            state_ids=_strings(
+                value.get("state_ids", ()),
+                "candidate_element.state_ids",
+                unique=True,
+            ),
             features=features,
-            annotations=dict(raw.get("annotations", {})),
+            annotations=_json_mapping(
+                value.get("annotations", {}),
+                "candidate_element.annotations",
+            ),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -269,23 +567,71 @@ class CaseManifest:
         element_ids = [element.element_id for element in self.candidate_elements]
         if len(element_ids) != len(set(element_ids)):
             raise ValidationError("candidate element IDs must be unique")
+        object.__setattr__(self, "metadata", _json_mapping(self.metadata, "metadata"))
+        if not isinstance(self.input_versions, Mapping):
+            raise ValidationError("input_versions must be an object")
+        versions = {
+            _string(key, "input_versions key"): _string(value, f"input_versions.{key}")
+            for key, value in self.input_versions.items()
+        }
+        object.__setattr__(self, "input_versions", _json_mapping(versions, "input_versions"))
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "CaseManifest":
-        context = ReferenceContext.from_dict(dict(raw.get("context", {})))
-        variants = tuple(VariantIdentity.from_dict(item) for item in raw.get("variants", ()))
-        elements = tuple(
-            CandidateElement.from_dict(item, context) for item in raw.get("candidate_elements", ())
+    def from_dict(cls, raw: Mapping[str, Any]) -> CaseManifest:
+        allowed = frozenset(
+            {
+                "case_id",
+                "subject_id",
+                "context",
+                "variants",
+                "candidate_elements",
+                "metadata",
+                "input_versions",
+                "requested_by",
+            }
         )
+        value = _strict_mapping(
+            raw,
+            label="case manifest",
+            allowed=allowed,
+            required=frozenset({"case_id", "subject_id", "context", "variants"}),
+        )
+        context_raw = value["context"]
+        if not isinstance(context_raw, Mapping):
+            raise ValidationError("case manifest context must be an object")
+        context = ReferenceContext.from_dict(context_raw)
+        variants = tuple(
+            VariantIdentity.from_dict(item)
+            for item in _sequence(value["variants"], "case manifest variants")
+        )
+        elements = tuple(
+            CandidateElement.from_dict(item, context)
+            for item in _sequence(
+                value.get("candidate_elements", ()),
+                "case manifest candidate_elements",
+            )
+        )
+        versions_raw = value.get("input_versions", {})
+        if not isinstance(versions_raw, Mapping):
+            raise ValidationError("case manifest input_versions must be an object")
         return cls(
-            case_id=str(raw.get("case_id", "")),
-            subject_id=str(raw.get("subject_id", "")),
+            case_id=_string(value["case_id"], "case manifest case_id"),
+            subject_id=_string(value["subject_id"], "case manifest subject_id"),
             context=context,
             variants=variants,
             candidate_elements=elements,
-            metadata=dict(raw.get("metadata", {})),
-            input_versions={str(key): str(value) for key, value in dict(raw.get("input_versions", {})).items()},
-            requested_by=str(raw.get("requested_by", "unspecified")),
+            metadata=_json_mapping(value.get("metadata", {}), "case manifest metadata"),
+            input_versions={
+                _string(key, "case manifest input_versions key"): _string(
+                    item,
+                    f"case manifest input_versions.{key}",
+                )
+                for key, item in versions_raw.items()
+            },
+            requested_by=_string(
+                value.get("requested_by", "unspecified"),
+                "case manifest requested_by",
+            ),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -325,6 +671,70 @@ class EvidenceClaim:
             raise ValidationError("evidence confidence must be between 0 and 1")
         if self.supersedes == self.evidence_id:
             raise ValidationError("an evidence claim cannot supersede itself")
+        if self.evidence_id in self.depends_on:
+            raise ValidationError("an evidence claim cannot depend on itself")
+        object.__setattr__(self, "payload", _json_mapping(self.payload, "evidence payload"))
+        object.__setattr__(
+            self,
+            "depends_on",
+            _strings(self.depends_on, "evidence depends_on", unique=True),
+        )
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> EvidenceClaim:
+        fields = frozenset(
+            {
+                "evidence_id",
+                "edge_id",
+                "source_id",
+                "channel",
+                "state",
+                "tier",
+                "score",
+                "confidence",
+                "context",
+                "summary",
+                "payload",
+                "depends_on",
+                "produced_by",
+                "created_at",
+                "supersedes",
+            }
+        )
+        value = _strict_mapping(
+            raw,
+            label="evidence claim",
+            allowed=fields,
+            required=fields,
+        )
+        context_raw = value["context"]
+        if not isinstance(context_raw, Mapping):
+            raise ValidationError("evidence claim context must be an object")
+        score_raw = value["score"]
+        supersedes_raw = value["supersedes"]
+        if supersedes_raw is not None and type(supersedes_raw) is not str:
+            raise ValidationError("evidence claim supersedes must be a string or null")
+        return cls(
+            evidence_id=_string(value["evidence_id"], "evidence.evidence_id"),
+            edge_id=_string(value["edge_id"], "evidence.edge_id"),
+            source_id=_string(value["source_id"], "evidence.source_id"),
+            channel=_string(value["channel"], "evidence.channel"),
+            state=EvidenceState(_enum(EvidenceState, value["state"], "evidence.state")),
+            tier=EvidenceTier(_enum(EvidenceTier, value["tier"], "evidence.tier")),
+            score=None if score_raw is None else _number(score_raw, "evidence.score"),
+            confidence=_number(value["confidence"], "evidence.confidence"),
+            context=ReferenceContext.from_dict(context_raw, persisted=True),
+            summary=_string(value["summary"], "evidence.summary"),
+            payload=_json_mapping(value["payload"], "evidence.payload"),
+            depends_on=_strings(value["depends_on"], "evidence.depends_on", unique=True),
+            produced_by=_string(value["produced_by"], "evidence.produced_by"),
+            created_at=_utc_timestamp(value["created_at"], "evidence.created_at"),
+            supersedes=(
+                None
+                if supersedes_raw is None
+                else _string(supersedes_raw, "evidence.supersedes")
+            ),
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -354,6 +764,58 @@ class HypothesisEdge:
                 raise ValidationError(f"{name} must be between 0 and 1")
         if not self.claim_ids:
             raise ValidationError("each edge must reference at least one claim or abstention")
+        object.__setattr__(
+            self,
+            "claim_ids",
+            _strings(self.claim_ids, "edge claim_ids", non_empty=True, unique=True),
+        )
+        object.__setattr__(
+            self,
+            "alternatives",
+            _strings(self.alternatives, "edge alternatives", unique=True),
+        )
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> HypothesisEdge:
+        fields = frozenset(
+            {
+                "edge_id",
+                "edge_type",
+                "source_id",
+                "target_id",
+                "support",
+                "uncertainty",
+                "context_fit",
+                "claim_ids",
+                "support_level",
+                "alternatives",
+            }
+        )
+        value = _strict_mapping(
+            raw,
+            label="hypothesis edge",
+            allowed=fields,
+            required=fields,
+        )
+        return cls(
+            edge_id=_string(value["edge_id"], "edge.edge_id"),
+            edge_type=EdgeType(_enum(EdgeType, value["edge_type"], "edge.edge_type")),
+            source_id=_string(value["source_id"], "edge.source_id"),
+            target_id=_string(value["target_id"], "edge.target_id"),
+            support=_number(value["support"], "edge.support"),
+            uncertainty=_number(value["uncertainty"], "edge.uncertainty"),
+            context_fit=_number(value["context_fit"], "edge.context_fit"),
+            claim_ids=_strings(
+                value["claim_ids"],
+                "edge.claim_ids",
+                non_empty=True,
+                unique=True,
+            ),
+            support_level=SupportLevel(
+                _enum(SupportLevel, value["support_level"], "edge.support_level")
+            ),
+            alternatives=_strings(value["alternatives"], "edge.alternatives", unique=True),
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -380,7 +842,14 @@ class Hypothesis:
     provenance: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        for name in ("hypothesis_id", "variant_id", "element_id", "gene_id", "state_id", "mechanism"):
+        for name in (
+            "hypothesis_id",
+            "variant_id",
+            "element_id",
+            "gene_id",
+            "state_id",
+            "mechanism",
+        ):
             require_non_empty(getattr(self, name), name)
         if not self.edges:
             raise ValidationError("a hypothesis must have at least one edge")
@@ -388,6 +857,78 @@ class Hypothesis:
             value = getattr(self, name)
             if not 0.0 <= value <= 1.0:
                 raise ValidationError(f"{name} must be between 0 and 1")
+        ensure_unique((edge.edge_id for edge in self.edges), "hypothesis edge_id")
+        for name in ("missing_evidence", "negative_evidence", "alternatives", "provenance"):
+            object.__setattr__(
+                self,
+                name,
+                _strings(getattr(self, name), f"hypothesis {name}", unique=True),
+            )
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> Hypothesis:
+        fields = frozenset(
+            {
+                "hypothesis_id",
+                "variant_id",
+                "element_id",
+                "gene_id",
+                "state_id",
+                "mechanism",
+                "context",
+                "edges",
+                "support",
+                "uncertainty",
+                "status",
+                "missing_evidence",
+                "negative_evidence",
+                "alternatives",
+                "provenance",
+            }
+        )
+        value = _strict_mapping(
+            raw,
+            label="hypothesis",
+            allowed=fields,
+            required=fields,
+        )
+        context_raw = value["context"]
+        if not isinstance(context_raw, Mapping):
+            raise ValidationError("hypothesis context must be an object")
+        return cls(
+            hypothesis_id=_string(value["hypothesis_id"], "hypothesis.hypothesis_id"),
+            variant_id=_string(value["variant_id"], "hypothesis.variant_id"),
+            element_id=_string(value["element_id"], "hypothesis.element_id"),
+            gene_id=_string(value["gene_id"], "hypothesis.gene_id"),
+            state_id=_string(value["state_id"], "hypothesis.state_id"),
+            mechanism=_string(value["mechanism"], "hypothesis.mechanism"),
+            context=ReferenceContext.from_dict(context_raw, persisted=True),
+            edges=tuple(
+                HypothesisEdge.from_dict(item)
+                for item in _sequence(value["edges"], "hypothesis.edges")
+            ),
+            support=_number(value["support"], "hypothesis.support"),
+            uncertainty=_number(value["uncertainty"], "hypothesis.uncertainty"),
+            status=ResearchStatus(
+                _enum(ResearchStatus, value["status"], "hypothesis.status")
+            ),
+            missing_evidence=_strings(
+                value["missing_evidence"],
+                "hypothesis.missing_evidence",
+                unique=True,
+            ),
+            negative_evidence=_strings(
+                value["negative_evidence"],
+                "hypothesis.negative_evidence",
+                unique=True,
+            ),
+            alternatives=_strings(
+                value["alternatives"],
+                "hypothesis.alternatives",
+                unique=True,
+            ),
+            provenance=_strings(value["provenance"], "hypothesis.provenance", unique=True),
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -416,6 +957,68 @@ class ExperimentOption:
             value = getattr(self, name)
             if not 0.0 <= value <= 1.0:
                 raise ValidationError(f"{name} must be between 0 and 1")
+        object.__setattr__(
+            self,
+            "tests_edges",
+            _strings(self.tests_edges, "experiment tests_edges", non_empty=True, unique=True),
+        )
+        for name in ("required_context", "controls", "readouts", "limitations"):
+            object.__setattr__(
+                self,
+                name,
+                _strings(getattr(self, name), f"experiment {name}", unique=True),
+            )
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> ExperimentOption:
+        fields = frozenset(
+            {
+                "option_id",
+                "assay",
+                "tests_edges",
+                "expected_information_gain",
+                "feasibility",
+                "cost_class",
+                "required_context",
+                "controls",
+                "readouts",
+                "limitations",
+            }
+        )
+        value = _strict_mapping(
+            raw,
+            label="experiment option",
+            allowed=fields,
+            required=fields,
+        )
+        return cls(
+            option_id=_string(value["option_id"], "experiment.option_id"),
+            assay=AssayType(_enum(AssayType, value["assay"], "experiment.assay")),
+            tests_edges=_strings(
+                value["tests_edges"],
+                "experiment.tests_edges",
+                non_empty=True,
+                unique=True,
+            ),
+            expected_information_gain=_number(
+                value["expected_information_gain"],
+                "experiment.expected_information_gain",
+            ),
+            feasibility=_number(value["feasibility"], "experiment.feasibility"),
+            cost_class=_string(value["cost_class"], "experiment.cost_class"),
+            required_context=_strings(
+                value["required_context"],
+                "experiment.required_context",
+                unique=True,
+            ),
+            controls=_strings(value["controls"], "experiment.controls", unique=True),
+            readouts=_strings(value["readouts"], "experiment.readouts", unique=True),
+            limitations=_strings(
+                value["limitations"],
+                "experiment.limitations",
+                unique=True,
+            ),
+        )
 
     @property
     def priority(self) -> float:
@@ -443,20 +1046,72 @@ class ReviewDecision:
             require_non_empty(getattr(self, name), name)
         if not self.reviewed_hypothesis_ids:
             raise ValidationError("review must name at least one hypothesis")
+        object.__setattr__(
+            self,
+            "reviewed_hypothesis_ids",
+            _strings(
+                self.reviewed_hypothesis_ids,
+                "review reviewed_hypothesis_ids",
+                non_empty=True,
+                unique=True,
+            ),
+        )
+        object.__setattr__(
+            self,
+            "checked_claim_ids",
+            _strings(self.checked_claim_ids, "review checked_claim_ids", unique=True),
+        )
 
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "ReviewDecision":
+    def from_dict(
+        cls,
+        raw: Mapping[str, Any],
+        *,
+        persisted: bool = False,
+    ) -> ReviewDecision:
         """Rehydrate a review request from the public JSON contract."""
 
+        fields = frozenset(
+            {
+                "review_id",
+                "case_id",
+                "reviewer",
+                "state",
+                "reviewed_hypothesis_ids",
+                "rationale",
+                "checked_claim_ids",
+                "created_at",
+            }
+        )
+        required = fields if persisted else fields - {"created_at"}
+        value = _strict_mapping(
+            raw,
+            label="review decision",
+            allowed=fields,
+            required=required,
+        )
         return cls(
-            review_id=str(raw.get("review_id", "")),
-            case_id=str(raw.get("case_id", "")),
-            reviewer=str(raw.get("reviewer", "")),
-            state=ReviewState(str(raw.get("state", ReviewState.PENDING.value))),
-            reviewed_hypothesis_ids=tuple(str(item) for item in raw.get("reviewed_hypothesis_ids", ())),
-            rationale=str(raw.get("rationale", "")),
-            checked_claim_ids=tuple(str(item) for item in raw.get("checked_claim_ids", ())),
-            created_at=str(raw.get("created_at", utc_now().isoformat())),
+            review_id=_string(value["review_id"], "review.review_id"),
+            case_id=_string(value["case_id"], "review.case_id"),
+            reviewer=_string(value["reviewer"], "review.reviewer"),
+            state=ReviewState(_enum(ReviewState, value["state"], "review.state")),
+            reviewed_hypothesis_ids=_strings(
+                value["reviewed_hypothesis_ids"],
+                "review.reviewed_hypothesis_ids",
+                non_empty=True,
+                unique=True,
+            ),
+            rationale=_string(value["rationale"], "review.rationale"),
+            checked_claim_ids=_strings(
+                value["checked_claim_ids"],
+                "review.checked_claim_ids",
+                unique=True,
+            ),
+            created_at=(
+                _utc_timestamp(value["created_at"], "review.created_at")
+                if "created_at" in value
+                else utc_now().isoformat()
+            ),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -485,110 +1140,328 @@ class Dossier:
     source_receipts: tuple[Mapping[str, Any], ...] = ()
     source_bundle_addresses: tuple[str, ...] = ()
 
+    def __post_init__(self) -> None:
+        for name in (
+            "dossier_id",
+            "case_id",
+            "run_id",
+            "created_at",
+            "input_address",
+            "policy_version",
+            "event_head",
+            "content_address",
+        ):
+            require_non_empty(getattr(self, name), name)
+        if type(self.research_use_only) is not bool:
+            raise ValidationError("research_use_only must be a boolean")
+
+        object.__setattr__(self, "warnings", _strings(self.warnings, "dossier warnings"))
+        frozen_receipts: list[Mapping[str, Any]] = []
+        for index, receipt in enumerate(self.source_receipts):
+            frozen_receipts.append(
+                _json_mapping(receipt, f"dossier source_receipts[{index}]")
+            )
+        object.__setattr__(self, "source_receipts", tuple(frozen_receipts))
+        object.__setattr__(
+            self,
+            "source_bundle_addresses",
+            _strings(
+                self.source_bundle_addresses,
+                "dossier source_bundle_addresses",
+                unique=True,
+            ),
+        )
+
+    def _validate_structure(self) -> None:
+        """Validate the closed identity graph of a persisted dossier."""
+
+        hypothesis_ids = tuple(item.hypothesis_id for item in self.hypotheses)
+        evidence_ids = tuple(item.evidence_id for item in self.evidence)
+        option_ids = tuple(item.option_id for item in self.experiments)
+        ensure_unique(hypothesis_ids, "dossier hypothesis_id")
+        ensure_unique(evidence_ids, "dossier evidence_id")
+        ensure_unique(option_ids, "dossier option_id")
+
+        edges = tuple(edge for hypothesis in self.hypotheses for edge in hypothesis.edges)
+        edge_ids = tuple(edge.edge_id for edge in edges)
+        edges_by_id: dict[str, HypothesisEdge] = {}
+        for edge in edges:
+            previous = edges_by_id.get(edge.edge_id)
+            if previous is not None and canonical_bytes(previous.to_dict()) != canonical_bytes(
+                edge.to_dict()
+            ):
+                raise ValidationError(
+                    f"edge {edge.edge_id} has conflicting definitions across hypotheses"
+                )
+            edges_by_id[edge.edge_id] = edge
+        evidence_by_id = {item.evidence_id: item for item in self.evidence}
+        for edge in edges_by_id.values():
+            for claim_id in edge.claim_ids:
+                claim = evidence_by_id.get(claim_id)
+                if claim is None:
+                    raise ValidationError(
+                        f"edge {edge.edge_id} references unknown evidence claim {claim_id}"
+                    )
+                if claim.edge_id != edge.edge_id:
+                    raise ValidationError(
+                        f"evidence claim {claim_id} is bound to {claim.edge_id}, not {edge.edge_id}"
+                    )
+
+        evidence_positions = {
+            claim.evidence_id: index for index, claim in enumerate(self.evidence)
+        }
+        for index, claim in enumerate(self.evidence):
+            for dependency in claim.depends_on:
+                dependency_index = evidence_positions.get(dependency)
+                if dependency_index is None:
+                    _content_address(
+                        dependency,
+                        f"evidence {claim.evidence_id} dependency",
+                    )
+                elif dependency_index >= index:
+                    raise ValidationError(
+                        f"evidence claim {claim.evidence_id} has a forward or cyclic dependency"
+                    )
+            if claim.supersedes is not None:
+                superseded_index = evidence_positions.get(claim.supersedes)
+                if superseded_index is None:
+                    raise ValidationError(
+                        f"evidence claim {claim.evidence_id} supersedes unknown evidence "
+                        f"{claim.supersedes}"
+                    )
+                if superseded_index >= index:
+                    raise ValidationError(
+                        f"evidence claim {claim.evidence_id} must supersede earlier evidence"
+                    )
+
+        missing_states = {
+            EvidenceState.ABSENT,
+            EvidenceState.UNSUPPORTED,
+            EvidenceState.OUT_OF_DOMAIN,
+            EvidenceState.ABSTAINED,
+        }
+        negative_states = {
+            EvidenceState.MEASURED_NEGATIVE,
+            EvidenceState.CONTRADICTORY,
+        }
+        for hypothesis in self.hypotheses:
+            hypothesis_claim_ids = {
+                claim_id for edge in hypothesis.edges for claim_id in edge.claim_ids
+            }
+            for claim_id in hypothesis.missing_evidence:
+                claim = evidence_by_id.get(claim_id)
+                if claim is None or claim_id not in hypothesis_claim_ids:
+                    raise ValidationError(
+                        f"hypothesis {hypothesis.hypothesis_id} has unknown missing evidence "
+                        f"{claim_id}"
+                    )
+                if claim.state not in missing_states:
+                    raise ValidationError(
+                        f"hypothesis {hypothesis.hypothesis_id} classifies non-missing claim "
+                        f"{claim_id} as missing"
+                    )
+            for claim_id in hypothesis.negative_evidence:
+                claim = evidence_by_id.get(claim_id)
+                if claim is None or claim_id not in hypothesis_claim_ids:
+                    raise ValidationError(
+                        f"hypothesis {hypothesis.hypothesis_id} has unknown negative evidence "
+                        f"{claim_id}"
+                    )
+                if claim.state not in negative_states:
+                    raise ValidationError(
+                        f"hypothesis {hypothesis.hypothesis_id} classifies non-negative claim "
+                        f"{claim_id} as negative"
+                    )
+            self._validate_hypothesis_path(hypothesis)
+
+        known_edges = set(edge_ids)
+        for experiment in self.experiments:
+            missing_edges = set(experiment.tests_edges) - known_edges
+            if missing_edges:
+                raise ValidationError(
+                    f"experiment {experiment.option_id} references unknown edges: "
+                    f"{sorted(missing_edges)}"
+                )
+
+        if self.review is not None:
+            if self.review.case_id != self.case_id:
+                raise ValidationError("review case_id does not match dossier case_id")
+            unknown_hypotheses = set(self.review.reviewed_hypothesis_ids) - set(hypothesis_ids)
+            if unknown_hypotheses:
+                raise ValidationError(
+                    "review references unknown hypotheses: "
+                    f"{sorted(unknown_hypotheses)}"
+                )
+            unknown_claims = set(self.review.checked_claim_ids) - set(evidence_ids)
+            if unknown_claims:
+                raise ValidationError(
+                    f"review references unknown evidence claims: {sorted(unknown_claims)}"
+                )
+
+    @staticmethod
+    def _validate_hypothesis_path(hypothesis: Hypothesis) -> None:
+        if (
+            hypothesis.element_id == "unresolved"
+            and hypothesis.gene_id == "unresolved_gene"
+            and hypothesis.state_id == "unresolved_state"
+        ):
+            if (
+                len(hypothesis.edges) != 1
+                or hypothesis.edges[0].edge_type != EdgeType.CAUSAL_PATH
+                or hypothesis.edges[0].source_id != hypothesis.variant_id
+                or hypothesis.edges[0].target_id != "unresolved"
+                or not hypothesis.mechanism.startswith("abstained:")
+                or hypothesis.support != 0.0
+                or hypothesis.uncertainty != 1.0
+            ):
+                raise ValidationError(
+                    f"hypothesis {hypothesis.hypothesis_id} has an invalid abstention path"
+                )
+            return
+
+        required_links = (
+            (
+                EdgeType.VARIANT_TO_ELEMENT,
+                hypothesis.variant_id,
+                hypothesis.element_id,
+                "variant-to-element",
+            ),
+            (
+                EdgeType.ELEMENT_TO_GENE,
+                hypothesis.element_id,
+                hypothesis.gene_id,
+                "element-to-gene",
+            ),
+            (
+                EdgeType.GENE_TO_STATE,
+                hypothesis.gene_id,
+                hypothesis.state_id,
+                "gene-to-state",
+            ),
+            (
+                EdgeType.CAUSAL_PATH,
+                hypothesis.variant_id,
+                hypothesis.state_id,
+                "causal-path",
+            ),
+        )
+        for edge_type, source_id, target_id, label in required_links:
+            if not any(
+                edge.edge_type == edge_type
+                and edge.source_id == source_id
+                and edge.target_id == target_id
+                for edge in hypothesis.edges
+            ):
+                raise ValidationError(
+                    f"hypothesis {hypothesis.hypothesis_id} is missing its {label} identity edge"
+                )
+
     @classmethod
-    def from_dict(cls, raw: Mapping[str, Any]) -> "Dossier":
+    def from_dict(cls, raw: Mapping[str, Any]) -> Dossier:
         """Rehydrate an immutable stored dossier for a follow-up review."""
 
-        hypotheses: list[Hypothesis] = []
-        for hypothesis_raw in raw.get("hypotheses", ()):
-            context = ReferenceContext.from_dict(hypothesis_raw.get("context", {}))
-            edges = tuple(
-                HypothesisEdge(
-                    edge_id=str(edge_raw.get("edge_id", "")),
-                    edge_type=EdgeType(str(edge_raw.get("edge_type", EdgeType.CAUSAL_PATH.value))),
-                    source_id=str(edge_raw.get("source_id", "")),
-                    target_id=str(edge_raw.get("target_id", "")),
-                    support=float(edge_raw.get("support", 0.0)),
-                    uncertainty=float(edge_raw.get("uncertainty", 0.0)),
-                    context_fit=float(edge_raw.get("context_fit", 0.0)),
-                    claim_ids=tuple(str(item) for item in edge_raw.get("claim_ids", ())),
-                    support_level=SupportLevel(str(edge_raw.get("support_level", SupportLevel.UNKNOWN.value))),
-                    alternatives=tuple(str(item) for item in edge_raw.get("alternatives", ())),
+        fields = frozenset(
+            {
+                "dossier_id",
+                "case_id",
+                "run_id",
+                "created_at",
+                "input_address",
+                "hypotheses",
+                "evidence",
+                "experiments",
+                "review",
+                "research_use_only",
+                "policy_version",
+                "event_head",
+                "content_address",
+                "status",
+                "warnings",
+                "source_receipts",
+                "source_bundle_addresses",
+            }
+        )
+        value = _strict_mapping(
+            raw,
+            label="dossier",
+            allowed=fields,
+            required=fields,
+        )
+        review_raw = value["review"]
+        if review_raw is not None and not isinstance(review_raw, Mapping):
+            raise ValidationError("dossier review must be an object or null")
+        receipts: list[Mapping[str, Any]] = []
+        for index, item in enumerate(
+            _sequence(value["source_receipts"], "dossier.source_receipts")
+        ):
+            receipts.append(_json_mapping(item, f"dossier.source_receipts[{index}]"))
+        dossier = cls(
+            dossier_id=_string(value["dossier_id"], "dossier.dossier_id"),
+            case_id=_string(value["case_id"], "dossier.case_id"),
+            run_id=_string(value["run_id"], "dossier.run_id"),
+            created_at=_utc_timestamp(value["created_at"], "dossier.created_at"),
+            input_address=_sha256_address(value["input_address"], "dossier.input_address"),
+            hypotheses=tuple(
+                Hypothesis.from_dict(item)
+                for item in _sequence(value["hypotheses"], "dossier.hypotheses")
+            ),
+            evidence=tuple(
+                EvidenceClaim.from_dict(item)
+                for item in _sequence(value["evidence"], "dossier.evidence")
+            ),
+            experiments=tuple(
+                ExperimentOption.from_dict(item)
+                for item in _sequence(value["experiments"], "dossier.experiments")
+            ),
+            review=(
+                ReviewDecision.from_dict(review_raw, persisted=True)
+                if review_raw is not None
+                else None
+            ),
+            research_use_only=_boolean(
+                value["research_use_only"],
+                "dossier.research_use_only",
+            ),
+            policy_version=_string(value["policy_version"], "dossier.policy_version"),
+            event_head=_sha256_address(value["event_head"], "dossier.event_head"),
+            content_address=_sha256_address(
+                value["content_address"],
+                "dossier.content_address",
+            ),
+            status=ResearchStatus(_enum(ResearchStatus, value["status"], "dossier.status")),
+            warnings=_strings(value["warnings"], "dossier.warnings"),
+            source_receipts=tuple(receipts),
+            source_bundle_addresses=tuple(
+                _sha256_address(item, f"dossier.source_bundle_addresses[{index}]")
+                for index, item in enumerate(
+                    _sequence(
+                        value["source_bundle_addresses"],
+                        "dossier.source_bundle_addresses",
+                    )
                 )
-                for edge_raw in hypothesis_raw.get("edges", ())
-            )
-            hypotheses.append(
-                Hypothesis(
-                    hypothesis_id=str(hypothesis_raw.get("hypothesis_id", "")),
-                    variant_id=str(hypothesis_raw.get("variant_id", "")),
-                    element_id=str(hypothesis_raw.get("element_id", "")),
-                    gene_id=str(hypothesis_raw.get("gene_id", "")),
-                    state_id=str(hypothesis_raw.get("state_id", "")),
-                    mechanism=str(hypothesis_raw.get("mechanism", "")),
-                    context=context,
-                    edges=edges,
-                    support=float(hypothesis_raw.get("support", 0.0)),
-                    uncertainty=float(hypothesis_raw.get("uncertainty", 0.0)),
-                    status=ResearchStatus(str(hypothesis_raw.get("status", ResearchStatus.DRAFT.value))),
-                    missing_evidence=tuple(str(item) for item in hypothesis_raw.get("missing_evidence", ())),
-                    negative_evidence=tuple(str(item) for item in hypothesis_raw.get("negative_evidence", ())),
-                    alternatives=tuple(str(item) for item in hypothesis_raw.get("alternatives", ())),
-                    provenance=tuple(str(item) for item in hypothesis_raw.get("provenance", ())),
-                )
-            )
-        evidence = tuple(
-            EvidenceClaim(
-                evidence_id=str(item.get("evidence_id", "")),
-                edge_id=str(item.get("edge_id", "")),
-                source_id=str(item.get("source_id", "")),
-                channel=str(item.get("channel", "")),
-                state=EvidenceState(str(item.get("state", EvidenceState.ABSTAINED.value))),
-                tier=EvidenceTier(str(item.get("tier", EvidenceTier.COMPUTED.value))),
-                score=None if item.get("score") is None else float(item.get("score")),
-                confidence=float(item.get("confidence", 0.0)),
-                context=ReferenceContext.from_dict(item.get("context", {})),
-                summary=str(item.get("summary", "")),
-                payload=dict(item.get("payload", {})),
-                depends_on=tuple(str(value) for value in item.get("depends_on", ())),
-                produced_by=str(item.get("produced_by", "deterministic_runtime")),
-                created_at=str(item.get("created_at", utc_now().isoformat())),
-                supersedes=item.get("supersedes"),
-            )
-            for item in raw.get("evidence", ())
+            ),
         )
-        experiments = tuple(
-            ExperimentOption(
-                option_id=str(item.get("option_id", "")),
-                assay=AssayType(str(item.get("assay", AssayType.PERTURBATION.value))),
-                tests_edges=tuple(str(value) for value in item.get("tests_edges", ())),
-                expected_information_gain=float(item.get("expected_information_gain", 0.0)),
-                feasibility=float(item.get("feasibility", 0.0)),
-                cost_class=str(item.get("cost_class", "unspecified")),
-                required_context=tuple(str(value) for value in item.get("required_context", ())),
-                controls=tuple(str(value) for value in item.get("controls", ())),
-                readouts=tuple(str(value) for value in item.get("readouts", ())),
-                limitations=tuple(str(value) for value in item.get("limitations", ())),
-            )
-            for item in raw.get("experiments", ())
-        )
-        review_raw = raw.get("review")
-        review = ReviewDecision.from_dict(review_raw) if isinstance(review_raw, Mapping) else None
-        return cls(
-            dossier_id=str(raw.get("dossier_id", "")),
-            case_id=str(raw.get("case_id", "")),
-            run_id=str(raw.get("run_id", "")),
-            created_at=str(raw.get("created_at", "")),
-            input_address=str(raw.get("input_address", "")),
-            hypotheses=tuple(hypotheses),
-            evidence=evidence,
-            experiments=experiments,
-            review=review,
-            research_use_only=bool(raw.get("research_use_only", False)),
-            policy_version=str(raw.get("policy_version", "")),
-            event_head=str(raw.get("event_head", "")),
-            content_address=str(raw.get("content_address", "")),
-            status=ResearchStatus(str(raw.get("status", ResearchStatus.DRAFT.value))),
-            warnings=tuple(str(item) for item in raw.get("warnings", ())),
-            source_receipts=tuple(dict(item) for item in raw.get("source_receipts", ())),
-            source_bundle_addresses=tuple(str(item) for item in raw.get("source_bundle_addresses", ())),
-        )
+        dossier._validate_structure()
+        _require_exact_roundtrip(value, dossier, "dossier")
+        body = {
+            key: item
+            for key, item in dossier.to_dict().items()
+            if key != "content_address"
+        }
+        if dossier.content_address != content_hash(body):
+            raise ValidationError("dossier content_address does not match its canonical payload")
+        return dossier
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
 
     @property
     def is_releasable(self) -> bool:
-        return self.research_use_only and self.review is not None and self.review.state == ReviewState.ACCEPTED
+        return (
+            self.research_use_only
+            and self.review is not None
+            and self.review.state == ReviewState.ACCEPTED
+        )
 
 
 def enum_values(enum_type: type[ValueEnum]) -> list[str]:

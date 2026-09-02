@@ -910,15 +910,14 @@ class CaseWorkflowTests(unittest.TestCase):
             with self.subTest(context=malformed), self.assertRaises(ValidationError):
                 RegulatoryTrackSource.from_mapping(raw_track)
 
-        malformed_object = ReferenceContext(
-            "GRCh38",
-            "diffuse_glioma",
-            "adult",
-            "stem_like",
-            assay_support="RNA-seq",  # type: ignore[arg-type]
-        )
         with self.assertRaises(ValidationError):
-            prepared(context=malformed_object)
+            ReferenceContext(
+                "GRCh38",
+                "diffuse_glioma",
+                "adult",
+                "stem_like",
+                assay_support="RNA-seq",  # type: ignore[arg-type]
+            )
 
     def test_payload_encoding_declarations_are_strict_and_canonical(self) -> None:
         for factory, label in (

@@ -328,7 +328,7 @@ def _snapshot_from_record(
         warnings.append(f"snapshot {index} identity does not match run: {address}")
     try:
         Dossier.from_dict(raw)
-    except (KeyError, TypeError, ValueError):
+    except (KeyError, TypeError, ValueError, ValidationError):
         address_valid = False
         warnings.append(f"snapshot {index} cannot be rehydrated: {address}")
     if not address_valid:

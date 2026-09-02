@@ -11,7 +11,7 @@ from threading import Thread
 
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
-from glio_noncode.errors import ValidationError
+from glio_noncode.errors import StoreError, ValidationError
 from glio_noncode.models import ReviewDecision, ReviewState
 from glio_noncode.run_comparison import (
     build_dossier_comparison,
@@ -77,9 +77,8 @@ class RunComparisonTests(unittest.TestCase):
             record["dossier_history"] = [dossier.content_address, dossier.content_address]
             run_path.write_text(json.dumps(record), encoding="utf-8")
 
-            history = build_run_history(runtime, dossier.run_id)
-            self.assertFalse(history.accepted)
-            self.assertTrue(any("duplicate" in warning for warning in history.warnings))
+            with self.assertRaisesRegex(StoreError, "unique addresses"):
+                build_run_history(runtime, dossier.run_id)
 
     def test_review_transition_comparison_is_semantic_and_replay_gated(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
