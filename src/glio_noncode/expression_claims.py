@@ -19,6 +19,7 @@ import math
 import re
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
+from itertools import islice
 from typing import Any
 
 from .errors import ValidationError
@@ -34,6 +35,10 @@ PRODUCED_BY = "deterministic_rna_claim_bridge"
 # pure bridge has no observation time, so a stable sentinel prevents wall-clock
 # time from changing otherwise identical scientific content.
 DETERMINISTIC_CREATED_AT = "1970-01-01T00:00:00+00:00"
+
+# Keep direct claim matching at the same bounded scale as case-workflow RNA
+# execution.  The limit applies independently to consequences and targets.
+MAX_RNA_CLAIM_BATCH_ITEMS = 10_000
 
 _REASON_CODE_RE = re.compile(r"[a-z][a-z0-9_]{0,127}\Z")
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
@@ -88,6 +93,20 @@ def _sequence(value: object, label: str) -> Sequence[Any]:
     if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
         raise ValidationError(f"{label} must be a sequence")
     return value
+
+
+def _bounded_batch_rows(values: Iterable[Any], label: str) -> tuple[Any, ...]:
+    if isinstance(values, (str, bytes, bytearray, Mapping)):
+        raise ValidationError(f"{label} must be an iterable of objects")
+    try:
+        rows = tuple(islice(iter(values), MAX_RNA_CLAIM_BATCH_ITEMS + 1))
+    except TypeError as error:
+        raise ValidationError(f"{label} must be iterable") from error
+    if len(rows) > MAX_RNA_CLAIM_BATCH_ITEMS:
+        raise ValidationError(
+            f"{label} exceeds the maximum of {MAX_RNA_CLAIM_BATCH_ITEMS} items"
+        )
+    return rows
 
 
 def _json_mapping(text: str, label: str) -> Mapping[str, Any]:
@@ -749,15 +768,16 @@ class RNAClaimBatch:
             "unmatched_evidence_addresses",
             "ambiguous_evidence_addresses",
         ):
-            raw_values = getattr(self, field_name)
-            if not isinstance(raw_values, tuple):
-                raw_values = tuple(raw_values)
+            raw_values = _bounded_batch_rows(getattr(self, field_name), field_name)
             values = tuple(sorted(_text(item, field_name) for item in raw_values))
             if len(values) != len(set(values)):
                 raise ValidationError(f"{field_name} must not contain duplicates")
             object.__setattr__(self, field_name, values)
 
-        claims = tuple(sorted(self.claims, key=lambda item: (item.edge_id, item.evidence_id)))
+        claim_rows = _bounded_batch_rows(self.claims, "claims")
+        if any(not isinstance(item, EvidenceClaim) for item in claim_rows):
+            raise ValidationError("claims must contain only EvidenceClaim objects")
+        claims = tuple(sorted(claim_rows, key=lambda item: (item.edge_id, item.evidence_id)))
         for claim in claims:
             _validate_bridge_claim(claim)
         if len({claim.evidence_id for claim in claims}) != len(claims):
@@ -864,31 +884,48 @@ class RNAClaimBatch:
         if value.get("schema_version") != SCHEMA_VERSION:
             raise ValidationError("unsupported RNA claim batch schema_version")
         result = cls(
-            evidence_addresses=tuple(
-                _text(item, "evidence address")
-                for item in _sequence(value.get("evidence_addresses"), "evidence_addresses")
+            evidence_addresses=_bounded_batch_rows(
+                (
+                    _text(item, "evidence address")
+                    for item in _sequence(
+                        value.get("evidence_addresses"), "evidence_addresses"
+                    )
+                ),
+                "evidence_addresses",
             ),
-            target_addresses=tuple(
-                _text(item, "target address")
-                for item in _sequence(value.get("target_addresses"), "target_addresses")
+            target_addresses=_bounded_batch_rows(
+                (
+                    _text(item, "target address")
+                    for item in _sequence(value.get("target_addresses"), "target_addresses")
+                ),
+                "target_addresses",
             ),
-            claims=tuple(
-                _claim_from_mapping(_mapping(item, "claim"))
-                for item in _sequence(value.get("claims"), "claims")
+            claims=_bounded_batch_rows(
+                (
+                    _claim_from_mapping(_mapping(item, "claim"))
+                    for item in _sequence(value.get("claims"), "claims")
+                ),
+                "claims",
             ),
-            unmatched_evidence_addresses=tuple(
-                _text(item, "unmatched evidence address")
-                for item in _sequence(
-                    value.get("unmatched_evidence_addresses"),
-                    "unmatched_evidence_addresses",
-                )
+            unmatched_evidence_addresses=_bounded_batch_rows(
+                (
+                    _text(item, "unmatched evidence address")
+                    for item in _sequence(
+                        value.get("unmatched_evidence_addresses"),
+                        "unmatched_evidence_addresses",
+                    )
+                ),
+                "unmatched_evidence_addresses",
             ),
-            ambiguous_evidence_addresses=tuple(
-                _text(item, "ambiguous evidence address")
-                for item in _sequence(
-                    value.get("ambiguous_evidence_addresses"),
-                    "ambiguous_evidence_addresses",
-                )
+            ambiguous_evidence_addresses=_bounded_batch_rows(
+                (
+                    _text(item, "ambiguous evidence address")
+                    for item in _sequence(
+                        value.get("ambiguous_evidence_addresses"),
+                        "ambiguous_evidence_addresses",
+                    )
+                ),
+                "ambiguous_evidence_addresses",
             ),
         )
         expected = result._payload()
@@ -915,23 +952,25 @@ def match_rna_consequences(
     A consequence that matches no target is reported as unmatched.  A
     consequence that matches more than one element target is reported as
     ambiguous and emits no claim.  Input order does not affect any output.
+    Each iterable is consumed only through the advertised batch maximum plus
+    one sentinel item, so unbounded producers fail closed.
     """
 
     if not isinstance(policy, RNAClaimPolicy):
         raise ValidationError("policy must be RNAClaimPolicy")
     if not isinstance(require_complete, bool):
         raise ValidationError("require_complete must be boolean")
-    evidence_rows = tuple(evidence)
-    target_rows = tuple(targets)
+    evidence_rows = _bounded_batch_rows(evidence, "evidence")
     for item in evidence_rows:
         _validate_consequence(item)
-    if any(not isinstance(item, RNAElementGeneTarget) for item in target_rows):
-        raise ValidationError("targets must contain only RNAElementGeneTarget objects")
-
     evidence_addresses = tuple(item.content_address for item in evidence_rows)
-    target_addresses = tuple(item.content_address for item in target_rows)
     if len(evidence_addresses) != len(set(evidence_addresses)):
         raise ValidationError("evidence contains duplicate RNA consequences")
+
+    target_rows = _bounded_batch_rows(targets, "targets")
+    if any(not isinstance(item, RNAElementGeneTarget) for item in target_rows):
+        raise ValidationError("targets must contain only RNAElementGeneTarget objects")
+    target_addresses = tuple(item.content_address for item in target_rows)
     if len(target_addresses) != len(set(target_addresses)):
         raise ValidationError("targets contains duplicate destinations")
 
@@ -979,6 +1018,7 @@ def expression_claims_capabilities() -> dict[str, Any]:
             "deterministic_element_gene_edge_addressing",
             "exact_three_key_matching",
             "fail_closed_ambiguity_detection",
+            "bounded_batch_matching",
             "native_evidence_claim_projection",
             "deterministic_batch_round_trip",
         ],
@@ -1001,6 +1041,10 @@ def expression_claims_capabilities() -> dict[str, Any]:
             "cohort_vectors_excluded": True,
         },
         "ambiguity_policy": "emit no claim until exactly one element target matches",
+        "limits": {
+            "max_evidence_items": MAX_RNA_CLAIM_BATCH_ITEMS,
+            "max_target_items": MAX_RNA_CLAIM_BATCH_ITEMS,
+        },
     }
     return body | {"content_address": content_hash(body, prefix="expression-claims-capabilities")}
 
@@ -1091,34 +1135,81 @@ def expression_claims_schema() -> dict[str, Any]:
                 ],
                 "properties": {
                     "schema_version": {"const": SCHEMA_VERSION},
-                    "evidence_count": {"type": "integer", "minimum": 0},
-                    "target_count": {"type": "integer", "minimum": 0},
-                    "claim_count": {"type": "integer", "minimum": 0},
-                    "matched_count": {"type": "integer", "minimum": 0},
-                    "unmatched_count": {"type": "integer", "minimum": 0},
-                    "ambiguous_count": {"type": "integer", "minimum": 0},
-                    "unmatched_target_count": {"type": "integer", "minimum": 0},
+                    "evidence_count": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": MAX_RNA_CLAIM_BATCH_ITEMS,
+                    },
+                    "target_count": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": MAX_RNA_CLAIM_BATCH_ITEMS,
+                    },
+                    "claim_count": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": MAX_RNA_CLAIM_BATCH_ITEMS,
+                    },
+                    "matched_count": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": MAX_RNA_CLAIM_BATCH_ITEMS,
+                    },
+                    "unmatched_count": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": MAX_RNA_CLAIM_BATCH_ITEMS,
+                    },
+                    "ambiguous_count": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": MAX_RNA_CLAIM_BATCH_ITEMS,
+                    },
+                    "unmatched_target_count": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": MAX_RNA_CLAIM_BATCH_ITEMS,
+                    },
                     "complete": {"type": "boolean"},
-                    "evidence_addresses": {"type": "array", "items": {"type": "string"}},
-                    "target_addresses": {"type": "array", "items": {"type": "string"}},
+                    "evidence_addresses": {
+                        "type": "array",
+                        "maxItems": MAX_RNA_CLAIM_BATCH_ITEMS,
+                        "uniqueItems": True,
+                        "items": {"type": "string"},
+                    },
+                    "target_addresses": {
+                        "type": "array",
+                        "maxItems": MAX_RNA_CLAIM_BATCH_ITEMS,
+                        "uniqueItems": True,
+                        "items": {"type": "string"},
+                    },
                     "matched_evidence_addresses": {
                         "type": "array",
+                        "maxItems": MAX_RNA_CLAIM_BATCH_ITEMS,
+                        "uniqueItems": True,
                         "items": {"type": "string"},
                     },
                     "unmatched_evidence_addresses": {
                         "type": "array",
+                        "maxItems": MAX_RNA_CLAIM_BATCH_ITEMS,
+                        "uniqueItems": True,
                         "items": {"type": "string"},
                     },
                     "ambiguous_evidence_addresses": {
                         "type": "array",
+                        "maxItems": MAX_RNA_CLAIM_BATCH_ITEMS,
+                        "uniqueItems": True,
                         "items": {"type": "string"},
                     },
                     "unmatched_target_addresses": {
                         "type": "array",
+                        "maxItems": MAX_RNA_CLAIM_BATCH_ITEMS,
+                        "uniqueItems": True,
                         "items": {"type": "string"},
                     },
                     "claims": {
                         "type": "array",
+                        "maxItems": MAX_RNA_CLAIM_BATCH_ITEMS,
                         "items": {"$ref": "#/$defs/EvidenceClaim"},
                     },
                     "content_address": {
@@ -1157,6 +1248,7 @@ schema_contract = expression_claims_schema
 __all__ = [
     "DEFAULT_RNA_CLAIM_POLICY",
     "DETERMINISTIC_CREATED_AT",
+    "MAX_RNA_CLAIM_BATCH_ITEMS",
     "PRODUCED_BY",
     "RNA_CONSEQUENCE_CHANNEL",
     "RNAClaimBatch",

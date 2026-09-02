@@ -182,6 +182,10 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
         "glio_noncode.expression_claims",
         "SCHEMA_VERSION",
     ),
+    "MAX_RNA_CLAIM_BATCH_ITEMS": (
+        "glio_noncode.expression_claims",
+        "MAX_RNA_CLAIM_BATCH_ITEMS",
+    ),
     "RNA_CONSEQUENCE_CHANNEL": (
         "glio_noncode.expression_claims",
         "RNA_CONSEQUENCE_CHANNEL",

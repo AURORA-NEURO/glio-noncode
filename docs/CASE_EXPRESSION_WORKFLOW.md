@@ -511,6 +511,9 @@ identity mismatch, persistence mismatch, or failed replay integrity.
 - Case preparation accepts at most 1,000 regulatory-track sources through either Python iterable
   name. The limit is published by case capabilities; over-limit or non-iterable inputs fail before
   track parsing.
+- Direct RNA claim matching accepts at most 10,000 consequences and 10,000 element-gene targets.
+  The bridge consumes at most one sentinel beyond either limit, rejects duplicate content
+  identities, and publishes the limits in its schema and capabilities.
 - All case sources on these façade routes are inline text or bytes; the server does not dereference
   client-provided local paths.
 - Expression and consequence identifiers are bounded opaque keys; normalized free-text fields are

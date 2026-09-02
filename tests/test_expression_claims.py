@@ -9,6 +9,7 @@ from glio_noncode.evidence import EvidenceGraph
 from glio_noncode.expression_claims import (
     DEFAULT_RNA_CLAIM_POLICY,
     DETERMINISTIC_CREATED_AT,
+    MAX_RNA_CLAIM_BATCH_ITEMS,
     PRODUCED_BY,
     RNA_CONSEQUENCE_CHANNEL,
     RNAClaimBatch,
@@ -409,10 +410,18 @@ class BatchMatchingTests(unittest.TestCase):
     def test_batch_is_input_order_independent_and_round_trips(self) -> None:
         evidence, destinations = self.fixture()
         forward = match_rna_consequences(evidence, destinations)
-        reverse = match_rna_consequences(tuple(reversed(evidence)), tuple(reversed(destinations)))
+        reverse = match_rna_consequences(iter(reversed(evidence)), iter(reversed(destinations)))
         self.assertEqual(forward, reverse)
         self.assertEqual(forward.to_json(), reverse.to_json())
         self.assertEqual(RNAClaimBatch.from_json(forward.to_json()), forward)
+
+    def test_one_shot_iterables_preserve_single_item_compatibility(self) -> None:
+        evidence = consequence()
+        destination = target()
+        expected = match_rna_consequences((evidence,), (destination,))
+        observed = match_rna_consequences(iter((evidence,)), iter((destination,)))
+        self.assertEqual(observed, expected)
+        self.assertEqual(observed.to_json(), expected.to_json())
 
     def test_complete_matching_and_strict_mode(self) -> None:
         evidence = (consequence(),)
@@ -427,10 +436,83 @@ class BatchMatchingTests(unittest.TestCase):
     def test_duplicate_evidence_and_targets_fail_closed(self) -> None:
         evidence = consequence()
         destination = target()
+        duplicate_evidence = RNAConsequenceEvidence.from_mapping(evidence.to_dict())
+        duplicate_destination = RNAElementGeneTarget.from_mapping(destination.to_dict())
+        targets_started = False
+
+        def untouched_targets():
+            nonlocal targets_started
+            targets_started = True
+            yield destination
+
         with self.assertRaisesRegex(ValidationError, "duplicate RNA consequences"):
-            match_rna_consequences((evidence, evidence), (destination,))
+            match_rna_consequences((evidence, duplicate_evidence), untouched_targets())
+        self.assertFalse(targets_started)
         with self.assertRaisesRegex(ValidationError, "duplicate destinations"):
-            match_rna_consequences((evidence,), (destination, destination))
+            match_rna_consequences((evidence,), (destination, duplicate_destination))
+
+    def test_distinct_evidence_identities_may_share_one_match_key(self) -> None:
+        evidence = (
+            consequence(prediction_id="prediction:same-key:a"),
+            consequence(prediction_id="prediction:same-key:b"),
+        )
+        batch = match_rna_consequences(evidence, (target(),), require_complete=True)
+        self.assertEqual(len(batch.claims), 2)
+        self.assertEqual(
+            batch.matched_evidence_addresses,
+            tuple(sorted(item.content_address for item in evidence)),
+        )
+        self.assertEqual(len({claim.evidence_id for claim in batch.claims}), 2)
+
+    def test_exact_advertised_target_limit_is_accepted(self) -> None:
+        context = reference_context()
+        destinations = (
+            target(element_id=f"element:limit:{index}", context=context)
+            for index in range(MAX_RNA_CLAIM_BATCH_ITEMS)
+        )
+        batch = match_rna_consequences((), destinations)
+        self.assertEqual(len(batch.target_addresses), MAX_RNA_CLAIM_BATCH_ITEMS)
+        self.assertEqual(len(batch.unmatched_target_addresses), MAX_RNA_CLAIM_BATCH_ITEMS)
+
+    def test_unbounded_iterables_stop_at_the_advertised_limit(self) -> None:
+        evidence_reads = 0
+        target_started = False
+
+        def endless_evidence():
+            nonlocal evidence_reads
+            item = consequence()
+            while True:
+                evidence_reads += 1
+                yield item
+
+        def untouched_targets():
+            nonlocal target_started
+            target_started = True
+            yield target()
+
+        with self.assertRaisesRegex(
+            ValidationError,
+            rf"evidence exceeds the maximum of {MAX_RNA_CLAIM_BATCH_ITEMS} items",
+        ):
+            match_rna_consequences(endless_evidence(), untouched_targets())
+        self.assertEqual(evidence_reads, MAX_RNA_CLAIM_BATCH_ITEMS + 1)
+        self.assertFalse(target_started)
+
+        target_reads = 0
+
+        def endless_targets():
+            nonlocal target_reads
+            item = target()
+            while True:
+                target_reads += 1
+                yield item
+
+        with self.assertRaisesRegex(
+            ValidationError,
+            rf"targets exceeds the maximum of {MAX_RNA_CLAIM_BATCH_ITEMS} items",
+        ):
+            match_rna_consequences((consequence(),), endless_targets())
+        self.assertEqual(target_reads, MAX_RNA_CLAIM_BATCH_ITEMS + 1)
 
     def test_batch_round_trip_detects_claim_and_receipt_tampering(self) -> None:
         batch = match_rna_consequences((consequence(),), (target(),))
@@ -467,6 +549,14 @@ class SurfaceContractTests(unittest.TestCase):
         self.assertEqual(first["channel"], RNA_CONSEQUENCE_CHANNEL)
         self.assertTrue(first["privacy"]["sample_free_payloads"])
         self.assertIn("exact_three_key_matching", first["operations"])
+        self.assertIn("bounded_batch_matching", first["operations"])
+        self.assertEqual(
+            first["limits"],
+            {
+                "max_evidence_items": MAX_RNA_CLAIM_BATCH_ITEMS,
+                "max_target_items": MAX_RNA_CLAIM_BATCH_ITEMS,
+            },
+        )
 
     def test_schema_is_deterministic_and_declares_strict_surfaces(self) -> None:
         contract = expression_claims_schema()
@@ -478,6 +568,21 @@ class SurfaceContractTests(unittest.TestCase):
         rendered = json.dumps(contract, sort_keys=True)
         self.assertNotIn("sample_key", rendered)
         self.assertNotIn("patient_id", rendered)
+        batch_properties = contract["$defs"]["RNAClaimBatch"]["properties"]
+        for field_name in (
+            "evidence_addresses",
+            "target_addresses",
+            "matched_evidence_addresses",
+            "unmatched_evidence_addresses",
+            "ambiguous_evidence_addresses",
+            "unmatched_target_addresses",
+            "claims",
+        ):
+            self.assertEqual(
+                batch_properties[field_name]["maxItems"], MAX_RNA_CLAIM_BATCH_ITEMS
+            )
+            if field_name != "claims":
+                self.assertTrue(batch_properties[field_name]["uniqueItems"])
 
     def test_public_projection_rejects_foreign_native_claims(self) -> None:
         foreign = EvidenceClaim(
