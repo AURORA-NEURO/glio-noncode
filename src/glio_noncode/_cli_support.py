@@ -3,12 +3,63 @@
 from __future__ import annotations
 
 import json
+import math
 import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
 DEFAULT_MAX_JSON_BYTES = 16 * 1024 * 1024
+DEFAULT_MAX_JSON_NESTING_DEPTH = 100
+
+
+def _positive_limit(value: object, label: str) -> int:
+    if type(value) is not int or value < 1:
+        raise ValueError(f"{label} must be a positive integer")
+    return value
+
+
+def _strict_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError(f"JSON input contains duplicate object key: {key!r}")
+        value[key] = item
+    return value
+
+
+def _reject_non_finite_json_number(_value: str) -> Any:
+    raise ValueError("JSON input contains a non-finite number")
+
+
+def _strict_json_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError("JSON input contains a non-finite number")
+    return parsed
+
+
+def _validate_json_nesting(value: str, *, max_depth: int) -> None:
+    depth = 0
+    in_string = False
+    escaped = False
+    for character in value:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+            continue
+        if character == '"':
+            in_string = True
+        elif character in "[{":
+            depth += 1
+            if depth > max_depth:
+                raise ValueError(f"JSON input nesting exceeds the {max_depth}-level limit")
+        elif character in "]}":
+            depth -= 1
 
 
 def read_text(
@@ -17,6 +68,7 @@ def read_text(
     label: str = "input",
     max_bytes: int = DEFAULT_MAX_JSON_BYTES,
 ) -> str:
+    max_bytes = _positive_limit(max_bytes, "max_bytes")
     if location == "-":
         text = sys.stdin.read(max_bytes + 1)
         if len(text.encode("utf-8")) > max_bytes:
@@ -36,8 +88,14 @@ def read_mapping(
     label: str,
     *,
     max_bytes: int = DEFAULT_MAX_JSON_BYTES,
+    max_nesting_depth: int = DEFAULT_MAX_JSON_NESTING_DEPTH,
 ) -> Mapping[str, Any]:
-    value = read_json(location, label, max_bytes=max_bytes)
+    value = read_json(
+        location,
+        label,
+        max_bytes=max_bytes,
+        max_nesting_depth=max_nesting_depth,
+    )
     if not isinstance(value, Mapping):
         raise ValueError(f"{label} must be a JSON object")
     return value
@@ -48,10 +106,24 @@ def read_json(
     label: str,
     *,
     max_bytes: int = DEFAULT_MAX_JSON_BYTES,
+    max_nesting_depth: int = DEFAULT_MAX_JSON_NESTING_DEPTH,
 ) -> Any:
     """Read one bounded JSON value without constraining its top-level shape."""
 
-    return json.loads(read_text(location, label=label, max_bytes=max_bytes))
+    max_nesting_depth = _positive_limit(max_nesting_depth, "max_nesting_depth")
+    text = read_text(location, label=label, max_bytes=max_bytes)
+    _validate_json_nesting(text, max_depth=max_nesting_depth)
+    value = json.loads(
+        text,
+        object_pairs_hook=_strict_json_object,
+        parse_constant=_reject_non_finite_json_number,
+        parse_float=_strict_json_float,
+    )
+    try:
+        json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
+    except (TypeError, ValueError, UnicodeError) as exc:
+        raise ValueError(f"{label} must contain canonical Unicode JSON") from exc
+    return value
 
 
 def write_json(value: object, output: str) -> None:
@@ -64,4 +136,11 @@ def write_json(value: object, output: str) -> None:
     destination.write_text(rendered + "\n", encoding="utf-8")
 
 
-__all__ = ["DEFAULT_MAX_JSON_BYTES", "read_json", "read_mapping", "read_text", "write_json"]
+__all__ = [
+    "DEFAULT_MAX_JSON_BYTES",
+    "DEFAULT_MAX_JSON_NESTING_DEPTH",
+    "read_json",
+    "read_mapping",
+    "read_text",
+    "write_json",
+]
