@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -13,7 +13,7 @@ from .errors import PolicyViolation, StoreError, ValidationError
 from .events import EventLog
 from .experiments import ExperimentPlanner
 from .expression_evidence import RNAConsequenceEvidence
-from .hypotheses import HypothesisBuilder
+from .hypotheses import HypothesisBuilder, HypothesisWorkLimits
 from .models import (
     CaseManifest,
     Dossier,
@@ -36,9 +36,11 @@ class CaseRuntime:
         *,
         reference_retriever: PublicReferenceRetriever | None = None,
         atlas_retriever: PublicAtlasRetriever | None = None,
+        hypothesis_limits: HypothesisWorkLimits | None = None,
     ) -> None:
+        builder = HypothesisBuilder(limits=hypothesis_limits)
         self.store = RunStore(data_root)
-        self.builder = HypothesisBuilder()
+        self.builder = builder
         self.planner = ExperimentPlanner()
         self.policy = ResearchPolicy()
         self.reference_retriever = reference_retriever
@@ -50,12 +52,15 @@ class CaseRuntime:
         manifest: CaseManifest,
         *,
         live_reference: bool = False,
-        rna_consequences: tuple[RNAConsequenceEvidence, ...] = (),
+        rna_consequences: Iterable[RNAConsequenceEvidence] = (),
     ) -> Dossier:
         """Evaluate a manifest and persist its immutable output."""
 
+        rna_rows = self.builder.validate_inputs(
+            manifest,
+            rna_consequences=rna_consequences,
+        )
         self.policy.enforce_texts((manifest.case_id, manifest.requested_by))
-        rna_rows = tuple(rna_consequences)
         run_id = self._run_id(manifest, rna_rows)
         log = EventLog(run_id)
         self._logs[run_id] = log
@@ -96,6 +101,10 @@ class CaseRuntime:
             self.reference_retriever = retriever
             enrichment = retriever.enrich_manifest(manifest)
             build_manifest = enrichment.manifest
+            self.builder.validate_inputs(
+                build_manifest,
+                rna_consequences=rna_rows,
+            )
             source_bundle_addresses = tuple(
                 self.store.store.put(bundle.to_dict()) for bundle in enrichment.bundles
             )
