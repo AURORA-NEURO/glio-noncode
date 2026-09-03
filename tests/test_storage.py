@@ -59,11 +59,13 @@ def _process_blocking_run_read(
     release: Any,
     results: Any,
 ) -> None:
-    original_read_bytes = Path.read_bytes
+    from glio_noncode import storage as storage_module
+
+    original_read = storage_module._read_run_index_bytes
 
     def blocked_read(path: Path) -> bytes:
         if path.name != "run-reader-writer.json":
-            return original_read_bytes(path)
+            return original_read(path)
         with path.open("rb") as handle:
             ready.set()
             if not release.wait(timeout=20):
@@ -71,7 +73,7 @@ def _process_blocking_run_read(
             return handle.read()
 
     try:
-        with patch.object(Path, "read_bytes", blocked_read):
+        with patch.object(storage_module, "_read_run_index_bytes", blocked_read):
             record = RunStore(root).get_run("run-reader-writer")
         results.put(("ok", record["event_address"]))
     except BaseException as exc:  # pragma: no cover - parent asserts serialized result
