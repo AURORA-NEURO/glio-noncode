@@ -105,6 +105,205 @@ if not result.accepted or not result.public_summary()["replay_valid"]:
     ...
 ```
 
+## Bounded typed assay route
+
+The root package also exposes the operational contracts used below the case façade. Use these
+types when an application needs to inspect public-atlas observations, build hypotheses, rank assay
+options, or run an explicit release gate. The limit objects are downward-configurable; their module
+constants are hard ceilings, not recommended batch sizes.
+
+```python
+from glio_noncode import (
+    ContractValidator,
+    EvidenceGraph,
+    EvidenceGraphLimits,
+    ExperimentPlanner,
+    ExperimentPlanningLimits,
+    HypothesisBuilder,
+    HypothesisWorkLimits,
+    PolicyLimits,
+    PublicAtlasRetriever,
+    PublicReferenceRetriever,
+    ReferenceRetrievalLimits,
+    ReleaseGate,
+    ResearchPolicy,
+)
+
+# `retrieve()` is the opt-in network boundary. Constructing these objects does not fetch.
+reference_retriever = PublicReferenceRetriever(
+    cache_root=".glio/source-cache",
+    limits=ReferenceRetrievalLimits(
+        max_window_bp=20_000,
+        max_features_per_variant=500,
+        max_variants=32,
+        max_total_elements=5_000,
+    ),
+)
+atlas_retriever = PublicAtlasRetriever(reference_retriever=reference_retriever)
+atlas_bundle = atlas_retriever.retrieve(variant, context)
+
+built = HypothesisBuilder(
+    limits=HypothesisWorkLimits(
+        max_targets_per_element=32,
+        max_work_items=5_000,
+        max_rna_consequences=1_000,
+    )
+).build(
+    prepared.manifest,
+    prepared.run_id,
+    rna_consequences=(consequence,),
+)
+
+graph = EvidenceGraph(
+    limits=EvidenceGraphLimits(
+        max_claims=5_000,
+        max_claims_per_edge=1_000,
+        max_dependencies_per_claim=1_000,
+        max_claim_bytes=2_000_000,
+        max_graph_bytes=32_000_000,
+    )
+)
+graph.extend(built.claims)
+edge = built.hypotheses[0].edges[0]
+aggregate = graph.aggregate(edge)
+
+assay_options = ExperimentPlanner(
+    limits=ExperimentPlanningLimits(
+        max_hypotheses=1_000,
+        max_edges_per_hypothesis=256,
+        max_total_edges=5_000,
+    )
+).plan_many(built.hypotheses)
+
+manifest_report = ContractValidator().validate_manifest(prepared.manifest)
+release_report = ReleaseGate(
+    ResearchPolicy(limits=PolicyLimits(max_text_items=5_000))
+).check(dossier)  # `dossier` must be the complete typed runtime/review artifact.
+```
+
+The snippet shows the contracts, not a shortcut around the façade. Check for an empty hypothesis
+tuple before indexing it in real code, stop when `manifest_report.valid` is false, and publish only
+when the complete `release_report.valid` is true. `aggregate.score` is an evidence-strength summary,
+not a probability. `assay_options` are research validation choices with required context, controls,
+readouts, feasibility, cost class, and limitations; they do not execute an assay and are not a
+treatment menu. The planner uses typed edges to propose MPRA, CRISPR interference, contact assays,
+or an RNA-measurement fallback and bounds both per-hypothesis and aggregate edge work.
+
+### Evidence semantics and lineage
+
+`EvidenceGraph` is an in-memory, append-only, single-context graph. `extend()` stages the whole
+bounded input and commits atomically, so a malformed claim, duplicate or colliding evidence ID,
+oversized graph, edge-binding conflict, or invalid dependency leaves the graph unchanged. Internal
+dependencies must point backward to an already retained or earlier staged claim. External
+dependencies must be canonical content addresses. Reusing a later evidence ID that was previously
+named as an external dependency is rejected instead of silently changing lineage.
+
+The hard graph ceilings are 20,000 claims, 10,000 claims per edge, 10,000 dependencies per claim,
+16 MiB per canonical claim, and 128 MiB per graph. `EvidenceGraphLimits` may only lower them.
+
+Aggregation first removes superseded claims, then groups related channels so repeated correlated
+observations do not count as independent replications. The result keeps supported, negative, and
+missing/unsupported claim IDs in disjoint sorted tuples. Contradictory and measured-negative claims
+apply a bounded penalty; absent, unsupported, out-of-domain, abstained, and unresolved declared
+claims increase visible uncertainty rather than being treated as zero-valued support. Read
+`AggregateSupport.rationale`, `context_support`, channel groups, and all three claim-ID collections
+with the score.
+
+### Live-reference network, cache, and receipt boundary
+
+Live reference lookup is disabled in the reproducible example. Calling
+`PublicReferenceRetriever.retrieve()` or `enrich_manifest()` opts into bounded public GET requests
+to the configured source catalog. `SourceClient` accepts only canonical HTTP(S) source URLs without
+embedded credentials. Request paths must be relative, parameter names and values are bounded and
+encoded, the completed URL must remain on the configured origin, and the standard transport rejects
+cross-origin redirects. Timeouts, retry attempts and backoff, response bytes, query parameters,
+regional windows, variant count, feature count, and total enriched elements all have hard ceilings.
+The headline maxima are 100,000,000 response bytes, 1,000 variants per enrichment, a 5,000,000-base
+window, 100,000 enriched elements, and 128 MiB per public reference bundle. Defaults and individual
+source specifications are usually lower.
+
+The filesystem cache is a performance layer, not authority. Entries are keyed by request hash and
+are accepted only when their exact field shape, source ID/version, URL, origin, body hash, size,
+timestamps, and expiry match the current request. Malformed, expired, oversized, or mismatched
+entries become cache misses. Same-resource updates are locked across threads and processes and use
+flushed same-directory atomic replacement. A custom `HttpTransport` must still return a valid
+bounded `TransportResponse`; source-specific decoders reject duplicate JSON keys, non-finite JSON
+numbers, unexpected content types, malformed rows, and receipt/content mismatches.
+
+Every completed HTTP or cache outcome carries a canonical `FetchReceipt`. `FETCHED`, `CACHE_HIT`,
+`NOT_FOUND`,
+`RATE_LIMITED`, `FAILED`, and `ABSTAINED` are distinct states: a transport or decode failure is not
+negative biological evidence, and an explicit successful no-result is not a source failure. The
+data-source `ReferenceBundle` is exported from the root as `PublicReferenceBundle` because the
+legacy root already uses `ReferenceBundle` for an unrelated frontier contract. Construct public
+bundles through `PublicReferenceBundle.create(...)`; it requires canonical ordering, validates
+retained content, freezes nested feature mappings, requires sequence-receipt closure, and computes
+the canonical address over sequence, elements, raw features, receipts, and warnings.
+
+### Atlas honest-state behavior
+
+`AtlasObservation` preserves its source, evidence tier, context key and optional match score,
+receipt, frozen payload, and explicit limitations. `AtlasBundle` separately seals variant scope,
+context scope, query, source-bundle address, observations, receipts, sequence analysis, uncertainty,
+and track reports. Reusing a query with a different variant, a variant with a different reference
+build, or content whose declared addresses no longer close fails validation.
+
+One atlas bundle is capped at 25,000 observations and 256 MiB of canonical content. Motif scanning
+has a 50,000,000-comparison ceiling in addition to motif, potential-hit, sequence-hit, track-report,
+and track-match bounds. Crossing the preflighted sequence/motif work budget produces an honest
+abstention rather than a partial result selected by input order; structural tuple and byte caps fail
+validation.
+
+Interpret atlas states literally. `SUPPORTED` means that a bounded source observation exists; it
+does not establish a disease mechanism or causality. `ABSENT` is emitted only for a successful,
+unambiguous no-result. A source failure, missing or conflicting receipt, truncated track query,
+over-budget sequence/motif work, or unusable ENCODE response becomes `ABSTAINED` with limitations.
+A valid analysis or track report that determines the query lies outside its supported domain or
+window becomes `OUT_OF_DOMAIN`. A substituted source bundle whose declared context, contig, or
+interval conflicts with the request is rejected as an integrity error. ENCODE catalog rows and
+generic genome annotations remain reference metadata, not disease-state measurements. Converting
+an atlas bundle with `to_evidence_claims(variant=..., context=...)` rechecks exact variant/context
+scope and does not manufacture effect scores or certainty.
+
+### Event pointer closure and release policy
+
+`RuntimeEvent` freezes its JSON payload and seals the run ID, event ID/type, timestamp, previous
+hash, and payload into an event hash. `EventLog` rejects duplicate IDs, wrong-run events, broken
+previous-hash links, oversized payloads, too many events, and records that exceed the canonical byte
+ceiling. The hard caps are 10,000 events, 16 MiB per event payload, and 64 MiB for the complete
+record. When loading a record obtained through a stored pointer, close both layers:
+
+```python
+from glio_noncode import EventLog
+
+event_log = EventLog.from_record(record, expected_address=stored_event_record_address)
+if not event_log.verify():
+    raise ValueError("event chain is not a valid closed record")
+```
+
+Hash-chain verification alone proves only internal continuity. Supplying `expected_address` also
+proves that the complete record matches the external content-addressed pointer. `to_record()` returns
+a detached representation; editing that mapping does not mutate the log and produces a different
+address if persisted.
+
+`ResearchPolicy.inspect_texts()` and `validate_dossier()` inspect bounded human-facing and nested
+payload text, normalize common separator/confusable bypasses, preserve legitimate non-assertive
+limitations, and fail closed on malformed structure, unsupported characters, excessive work, or
+unsafe iteration. A `PolicyDecision` always retains its policy version and research-use warning;
+`allowed` cannot disagree with its violations. Policy approval is necessary but does not certify
+scientific validity. The hard policy ceilings are 500,000 text items, 33,554,432 total normalized
+characters, and 100,000 candidate pattern matches; production callers should normally select lower
+`PolicyLimits`.
+
+`ReleaseGate` combines the structural `ContractValidator` report with the policy decision. It checks
+typed/canonical manifest and dossier closure, evidence/edge/dependency references, review linkage,
+source receipt and bundle pointers, status/review consistency, and bounded work before policy
+approval is considered. An accepted review remains mandatory for a released-research dossier.
+Abstained evidence stays visible and can produce a release warning; neither review nor policy may
+rewrite it into support. Validation itself is capped at 128 MiB of canonical input and 100,000
+reported issues, with finer limits available through `ValidationLimits`. Keep a dossier unreleased
+whenever either structural or policy issues remain.
+
 ## Preparation request shape
 
 The Python façade, CLI `case prepare`, and HTTP preparation route share this inline-source shape.

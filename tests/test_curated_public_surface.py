@@ -14,6 +14,7 @@ import sys
 import unittest
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 
 import glio_noncode
 from glio_noncode import _public_surface
@@ -44,7 +45,13 @@ def _resolve(descriptor: tuple[str, str | None]) -> object:
     return module if attribute is None else getattr(module, attribute)
 
 
+def _root(name: str) -> object:
+    return getattr(glio_noncode, name)
+
+
 class CuratedPublicSurfaceTests(unittest.TestCase):
+    manifest: Any
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.manifest = migration.build_manifest(REPOSITORY_ROOT)
@@ -54,7 +61,7 @@ class CuratedPublicSurfaceTests(unittest.TestCase):
         self.assertEqual(_public_surface.CURATED_EXPORTS, expected)
         self.assertEqual(_public_surface.CURATED_ALL, tuple(expected))
         self.assertEqual(_public_surface.ALL[-len(expected) :], tuple(expected))
-        self.assertEqual(len(expected), 89)
+        self.assertEqual(len(expected), 160)
         for name, descriptor in expected.items():
             self.assertEqual(_public_surface.ALL.count(name), 1, name)
             self.assertEqual(_public_surface.EXPORTS[name], descriptor)
@@ -72,25 +79,111 @@ class CuratedPublicSurfaceTests(unittest.TestCase):
             self.assertIs(getattr(glio_noncode, name), _resolve(descriptor), name)
 
         self.assertIs(
-            glio_noncode.case_workflow_capabilities,
+            _root("case_workflow_capabilities"),
             importlib.import_module("glio_noncode.case_workflow").capabilities,
         )
         self.assertIs(
-            glio_noncode.expression_evidence_public_projection,
+            _root("expression_evidence_public_projection"),
             importlib.import_module("glio_noncode.expression_evidence").public_projection,
         )
         self.assertIs(
-            glio_noncode.expression_claim_public_projection,
+            _root("expression_claim_public_projection"),
             importlib.import_module("glio_noncode.expression_claims").public_projection,
         )
         self.assertEqual(
-            glio_noncode.EXPRESSION_EVIDENCE_SCHEMA_VERSION,
+            _root("EXPRESSION_EVIDENCE_SCHEMA_VERSION"),
             importlib.import_module("glio_noncode.expression_evidence").SCHEMA_VERSION,
         )
         self.assertEqual(
-            glio_noncode.EXPRESSION_CLAIMS_SCHEMA_VERSION,
+            _root("EXPRESSION_CLAIMS_SCHEMA_VERSION"),
             importlib.import_module("glio_noncode.expression_claims").SCHEMA_VERSION,
         )
+
+    def test_operational_contracts_keep_canonical_module_identity(self) -> None:
+        expected_identities = {
+            "AtlasObservation": ("glio_noncode.atlas", "AtlasObservation"),
+            "ReferenceBundleProvider": (
+                "glio_noncode.atlas",
+                "ReferenceBundleProvider",
+            ),
+            "EncodeProvider": ("glio_noncode.atlas", "EncodeProvider"),
+            "EvidenceGraph": ("glio_noncode.evidence", "EvidenceGraph"),
+            "AggregateSupport": ("glio_noncode.evidence", "AggregateSupport"),
+            "EvidenceGraphLimits": (
+                "glio_noncode.evidence",
+                "EvidenceGraphLimits",
+            ),
+            "FetchReceipt": ("glio_noncode.data_sources", "FetchReceipt"),
+            "ReferenceRetrievalLimits": (
+                "glio_noncode.data_sources",
+                "ReferenceRetrievalLimits",
+            ),
+            "PublicReferenceRetriever": (
+                "glio_noncode.data_sources",
+                "PublicReferenceRetriever",
+            ),
+            "PolicyDecision": ("glio_noncode.policy", "PolicyDecision"),
+            "PolicyLimits": ("glio_noncode.policy", "PolicyLimits"),
+            "ResearchPolicy": ("glio_noncode.policy", "ResearchPolicy"),
+            "ExperimentPlanningLimits": (
+                "glio_noncode.experiments",
+                "ExperimentPlanningLimits",
+            ),
+            "ExperimentPlanner": (
+                "glio_noncode.experiments",
+                "ExperimentPlanner",
+            ),
+            "BuiltHypotheses": ("glio_noncode.hypotheses", "BuiltHypotheses"),
+            "HypothesisWorkLimits": (
+                "glio_noncode.hypotheses",
+                "HypothesisWorkLimits",
+            ),
+            "HypothesisBuilder": (
+                "glio_noncode.hypotheses",
+                "HypothesisBuilder",
+            ),
+            "RuntimeEvent": ("glio_noncode.events", "RuntimeEvent"),
+            "EventLog": ("glio_noncode.events", "EventLog"),
+            "ValidationLimits": (
+                "glio_noncode.validation",
+                "ValidationLimits",
+            ),
+            "ValidationReport": (
+                "glio_noncode.validation",
+                "ValidationReport",
+            ),
+            "ContractValidator": (
+                "glio_noncode.validation",
+                "ContractValidator",
+            ),
+            "ReleaseGate": ("glio_noncode.validation", "ReleaseGate"),
+        }
+        for public_name, descriptor in expected_identities.items():
+            self.assertEqual(migration.CURATED_EXPORTS[public_name], descriptor)
+            self.assertIs(getattr(glio_noncode, public_name), _resolve(descriptor))
+
+    def test_public_reference_bundle_alias_does_not_replace_legacy_name(self) -> None:
+        public_reference = importlib.import_module("glio_noncode.data_sources").ReferenceBundle
+        legacy_reference = importlib.import_module(
+            "glio_noncode.frontier_data_alpha"
+        ).ReferenceBundle
+
+        self.assertEqual(
+            migration.CURATED_EXPORTS["PublicReferenceBundle"],
+            ("glio_noncode.data_sources", "ReferenceBundle"),
+        )
+        self.assertIs(_root("PublicReferenceBundle"), public_reference)
+        self.assertIs(_root("ReferenceBundle"), legacy_reference)
+        self.assertIsNot(
+            _root("PublicReferenceBundle"),
+            _root("ReferenceBundle"),
+        )
+
+    def test_existing_atlas_root_bindings_are_not_reclassified_as_curated(self) -> None:
+        atlas = importlib.import_module("glio_noncode.atlas")
+        for name in ("AtlasQuery", "AtlasBundle", "PublicAtlasRetriever"):
+            self.assertNotIn(name, migration.CURATED_EXPORTS)
+            self.assertIs(getattr(glio_noncode, name), getattr(atlas, name))
 
     def test_static_stub_declares_every_curated_name(self) -> None:
         stub_path = REPOSITORY_ROOT / "src" / "glio_noncode" / "__init__.pyi"

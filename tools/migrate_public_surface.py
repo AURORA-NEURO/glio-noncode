@@ -321,6 +321,194 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
         "glio_noncode.expression_claims",
         "public_projection",
     ),
+    "MAX_ATLAS_OBSERVATIONS": (
+        "glio_noncode.atlas",
+        "MAX_ATLAS_OBSERVATIONS",
+    ),
+    "MAX_ATLAS_BUNDLE_BYTES": (
+        "glio_noncode.atlas",
+        "MAX_ATLAS_BUNDLE_BYTES",
+    ),
+    "MAX_ATLAS_MOTIF_COMPARISONS": (
+        "glio_noncode.atlas",
+        "MAX_ATLAS_MOTIF_COMPARISONS",
+    ),
+    "ReferenceBundleProvider": (
+        "glio_noncode.atlas",
+        "ReferenceBundleProvider",
+    ),
+    "EncodeProvider": ("glio_noncode.atlas", "EncodeProvider"),
+    "AtlasObservation": ("glio_noncode.atlas", "AtlasObservation"),
+    "MAX_EVIDENCE_CLAIMS": (
+        "glio_noncode.evidence",
+        "MAX_EVIDENCE_CLAIMS",
+    ),
+    "MAX_EVIDENCE_GRAPH_BYTES": (
+        "glio_noncode.evidence",
+        "MAX_EVIDENCE_GRAPH_BYTES",
+    ),
+    "EvidenceGraphLimits": (
+        "glio_noncode.evidence",
+        "EvidenceGraphLimits",
+    ),
+    "DEFAULT_EVIDENCE_GRAPH_LIMITS": (
+        "glio_noncode.evidence",
+        "DEFAULT_EVIDENCE_GRAPH_LIMITS",
+    ),
+    "AggregateSupport": ("glio_noncode.evidence", "AggregateSupport"),
+    "EvidenceGraph": ("glio_noncode.evidence", "EvidenceGraph"),
+    "MAX_SOURCE_RESPONSE_BYTES": (
+        "glio_noncode.data_sources",
+        "MAX_SOURCE_RESPONSE_BYTES",
+    ),
+    "MAX_REFERENCE_VARIANTS": (
+        "glio_noncode.data_sources",
+        "MAX_REFERENCE_VARIANTS",
+    ),
+    "MAX_REFERENCE_WINDOW_BP": (
+        "glio_noncode.data_sources",
+        "MAX_REFERENCE_WINDOW_BP",
+    ),
+    "MAX_REFERENCE_BUNDLE_BYTES": (
+        "glio_noncode.data_sources",
+        "MAX_REFERENCE_BUNDLE_BYTES",
+    ),
+    "MAX_ENRICHED_ELEMENTS": (
+        "glio_noncode.data_sources",
+        "MAX_ENRICHED_ELEMENTS",
+    ),
+    "ReferenceRetrievalLimits": (
+        "glio_noncode.data_sources",
+        "ReferenceRetrievalLimits",
+    ),
+    "DEFAULT_REFERENCE_RETRIEVAL_LIMITS": (
+        "glio_noncode.data_sources",
+        "DEFAULT_REFERENCE_RETRIEVAL_LIMITS",
+    ),
+    "SourceKind": ("glio_noncode.data_sources", "SourceKind"),
+    "SourceAccess": ("glio_noncode.data_sources", "SourceAccess"),
+    "FetchStatus": ("glio_noncode.data_sources", "FetchStatus"),
+    "SourceSpec": ("glio_noncode.data_sources", "SourceSpec"),
+    "RetryPolicy": ("glio_noncode.data_sources", "RetryPolicy"),
+    "TransportResponse": (
+        "glio_noncode.data_sources",
+        "TransportResponse",
+    ),
+    "HttpTransport": ("glio_noncode.data_sources", "HttpTransport"),
+    "FetchReceipt": ("glio_noncode.data_sources", "FetchReceipt"),
+    "SourcePayload": ("glio_noncode.data_sources", "SourcePayload"),
+    "SourceCatalog": ("glio_noncode.data_sources", "SourceCatalog"),
+    "default_source_catalog": (
+        "glio_noncode.data_sources",
+        "default_source_catalog",
+    ),
+    "SourceClient": ("glio_noncode.data_sources", "SourceClient"),
+    "SequenceSlice": ("glio_noncode.data_sources", "SequenceSlice"),
+    "PublicReferenceBundle": (
+        "glio_noncode.data_sources",
+        "ReferenceBundle",
+    ),
+    "EnrichmentResult": ("glio_noncode.data_sources", "EnrichmentResult"),
+    "EnsemblRestClient": (
+        "glio_noncode.data_sources",
+        "EnsemblRestClient",
+    ),
+    "UcscRestClient": ("glio_noncode.data_sources", "UcscRestClient"),
+    "EncodeRestClient": ("glio_noncode.data_sources", "EncodeRestClient"),
+    "PublicReferenceRetriever": (
+        "glio_noncode.data_sources",
+        "PublicReferenceRetriever",
+    ),
+    "LiveReferenceAdapter": (
+        "glio_noncode.data_sources",
+        "LiveReferenceAdapter",
+    ),
+    "MAX_POLICY_TEXT_ITEMS": (
+        "glio_noncode.policy",
+        "MAX_POLICY_TEXT_ITEMS",
+    ),
+    "MAX_POLICY_TOTAL_CHARACTERS": (
+        "glio_noncode.policy",
+        "MAX_POLICY_TOTAL_CHARACTERS",
+    ),
+    "MAX_POLICY_PATTERN_MATCHES": (
+        "glio_noncode.policy",
+        "MAX_POLICY_PATTERN_MATCHES",
+    ),
+    "PolicyLimits": ("glio_noncode.policy", "PolicyLimits"),
+    "DEFAULT_POLICY_LIMITS": (
+        "glio_noncode.policy",
+        "DEFAULT_POLICY_LIMITS",
+    ),
+    "PolicyDecision": ("glio_noncode.policy", "PolicyDecision"),
+    "ResearchPolicy": ("glio_noncode.policy", "ResearchPolicy"),
+    "MAX_EXPERIMENT_HYPOTHESES": (
+        "glio_noncode.experiments",
+        "MAX_EXPERIMENT_HYPOTHESES",
+    ),
+    "MAX_EXPERIMENT_TOTAL_EDGES": (
+        "glio_noncode.experiments",
+        "MAX_EXPERIMENT_TOTAL_EDGES",
+    ),
+    "ExperimentPlanningLimits": (
+        "glio_noncode.experiments",
+        "ExperimentPlanningLimits",
+    ),
+    "DEFAULT_EXPERIMENT_PLANNING_LIMITS": (
+        "glio_noncode.experiments",
+        "DEFAULT_EXPERIMENT_PLANNING_LIMITS",
+    ),
+    "ExperimentPlanner": ("glio_noncode.experiments", "ExperimentPlanner"),
+    "MAX_HYPOTHESIS_WORK_ITEMS": (
+        "glio_noncode.hypotheses",
+        "MAX_HYPOTHESIS_WORK_ITEMS",
+    ),
+    "MAX_HYPOTHESIS_RNA_CONSEQUENCES": (
+        "glio_noncode.hypotheses",
+        "MAX_HYPOTHESIS_RNA_CONSEQUENCES",
+    ),
+    "HypothesisWorkLimits": (
+        "glio_noncode.hypotheses",
+        "HypothesisWorkLimits",
+    ),
+    "DEFAULT_HYPOTHESIS_WORK_LIMITS": (
+        "glio_noncode.hypotheses",
+        "DEFAULT_HYPOTHESIS_WORK_LIMITS",
+    ),
+    "BuiltHypotheses": ("glio_noncode.hypotheses", "BuiltHypotheses"),
+    "HypothesisBuilder": ("glio_noncode.hypotheses", "HypothesisBuilder"),
+    "MAX_EVENT_LOG_ENTRIES": (
+        "glio_noncode.events",
+        "MAX_EVENT_LOG_ENTRIES",
+    ),
+    "MAX_EVENT_PAYLOAD_BYTES": (
+        "glio_noncode.events",
+        "MAX_EVENT_PAYLOAD_BYTES",
+    ),
+    "MAX_EVENT_RECORD_BYTES": (
+        "glio_noncode.events",
+        "MAX_EVENT_RECORD_BYTES",
+    ),
+    "RuntimeEvent": ("glio_noncode.events", "RuntimeEvent"),
+    "EventLog": ("glio_noncode.events", "EventLog"),
+    "MAX_VALIDATION_CANONICAL_BYTES": (
+        "glio_noncode.validation",
+        "MAX_VALIDATION_CANONICAL_BYTES",
+    ),
+    "MAX_VALIDATION_ISSUES": (
+        "glio_noncode.validation",
+        "MAX_VALIDATION_ISSUES",
+    ),
+    "ValidationLimits": ("glio_noncode.validation", "ValidationLimits"),
+    "DEFAULT_VALIDATION_LIMITS": (
+        "glio_noncode.validation",
+        "DEFAULT_VALIDATION_LIMITS",
+    ),
+    "IssueSeverity": ("glio_noncode.validation", "IssueSeverity"),
+    "ValidationIssue": ("glio_noncode.validation", "ValidationIssue"),
+    "ValidationReport": ("glio_noncode.validation", "ValidationReport"),
+    "ContractValidator": ("glio_noncode.validation", "ContractValidator"),
+    "ReleaseGate": ("glio_noncode.validation", "ReleaseGate"),
 }
 
 
@@ -806,9 +994,9 @@ def build_manifest(repo_root: Path | None = None) -> SurfaceManifest:
     exports: dict[str, Descriptor] = {}
     for name in sorted(canonical_names):
         if name in STALE_EXPORT_REPAIRS:
-            descriptor = STALE_EXPORT_REPAIRS[name]
-            _resolve(descriptor)
-            exports[name] = descriptor
+            repair_descriptor = STALE_EXPORT_REPAIRS[name]
+            _resolve(repair_descriptor)
+            exports[name] = repair_descriptor
             continue
         if name in runtime:
             exports[name] = _descriptor_for_runtime_value(
@@ -819,9 +1007,9 @@ def build_manifest(repo_root: Path | None = None) -> SurfaceManifest:
             )
             continue
         if name in replay.bindings:
-            descriptor = replay.bindings[name]
-            _resolve(descriptor)
-            exports[name] = descriptor
+            replay_descriptor = replay.bindings[name]
+            _resolve(replay_descriptor)
+            exports[name] = replay_descriptor
             continue
         raise SurfaceMigrationError(f"untraceable declared root name {name!r}")
 
@@ -839,7 +1027,9 @@ def build_manifest(repo_root: Path | None = None) -> SurfaceManifest:
         for name, descriptor in sorted(replay.assigned_aliases.items())
         if exports.get(name) == descriptor
     }
-    repaired_exports = dict(sorted(STALE_EXPORT_REPAIRS.items()))
+    repaired_exports: dict[str, Descriptor] = dict(
+        sorted(STALE_EXPORT_REPAIRS.items())
+    )
     lazy_modules = tuple(
         sorted(
             {module for module, _attribute in exports.values()}
