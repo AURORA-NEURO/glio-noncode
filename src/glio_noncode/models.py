@@ -1457,11 +1457,26 @@ class Dossier:
 
     @property
     def is_releasable(self) -> bool:
-        return (
-            self.research_use_only
-            and self.review is not None
-            and self.review.state == ReviewState.ACCEPTED
-        )
+        try:
+            eligible = (
+                type(self) is Dossier
+                and self.status is ResearchStatus.RELEASED_RESEARCH
+                and type(self.research_use_only) is bool
+                and self.research_use_only
+                and type(self.review) is ReviewDecision
+                and self.review.state is ReviewState.ACCEPTED
+            )
+            if not eligible:
+                return False
+            self._validate_structure()
+            payload = self.to_dict()
+            supplied_address = payload.pop("content_address", None)
+            return (
+                type(supplied_address) is str
+                and supplied_address == content_hash(payload)
+            )
+        except Exception:  # noqa: BLE001 - this summary property must fail closed
+            return False
 
 
 def enum_values(enum_type: type[ValueEnum]) -> list[str]:
