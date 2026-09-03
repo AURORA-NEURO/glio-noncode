@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import unittest
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
 
 from glio_noncode.errors import ValidationError
 from glio_noncode.evidence import EvidenceGraph
@@ -22,6 +22,7 @@ from glio_noncode.expression_claims import (
     matches_rna_consequence,
     public_projection,
     rna_consequence_to_claim,
+    validate_rna_consequence,
 )
 from glio_noncode.expression_evidence import (
     AllelicDirection,
@@ -281,6 +282,75 @@ class ClaimDerivationTests(unittest.TestCase):
         self.assertEqual(first.depends_on, tuple(sorted(first.depends_on)))
         with self.assertRaises(FrozenInstanceError):
             first.score = 0.99  # type: ignore[misc]
+
+    def test_retained_owner_is_explicit_deterministic_and_round_trips(self) -> None:
+        evidence = consequence()
+        destination = target()
+        owner = content_hash({"kind": "retained-rna-consequence-batch"})
+        standalone = rna_consequence_to_claim(evidence, destination)
+        owned = rna_consequence_to_claim(
+            evidence,
+            destination,
+            retained_owner_address=owner,
+        )
+
+        self.assertNotIn("retained_owner_address", standalone.payload)
+        self.assertEqual(standalone.depends_on, tuple(standalone.payload["source_addresses"]))
+        self.assertEqual(owned.depends_on, (owner,))
+        self.assertEqual(owned.payload["retained_owner_address"], owner)
+        self.assertEqual(owned.payload["source_addresses"], standalone.payload["source_addresses"])
+        self.assertNotEqual(owned.evidence_id, standalone.evidence_id)
+        self.assertEqual(public_projection(owned), owned.to_dict())
+
+        batch = match_rna_consequences(
+            (evidence,),
+            (destination,),
+            retained_owner_address=owner,
+        )
+        self.assertEqual(batch.claims, (owned,))
+        self.assertEqual(RNAClaimBatch.from_json(batch.to_json()), batch)
+
+        tampered = owned.to_dict()
+        tampered["payload"]["retained_owner_address"] = content_hash(
+            {"kind": "different-retained-batch"}
+        )
+        with self.assertRaisesRegex(ValidationError, "evidence_id"):
+            public_projection(EvidenceClaim.from_dict(tampered))
+
+    def test_retained_owner_requires_an_exact_canonical_sha256_address(self) -> None:
+        class StringSubclass(str):
+            pass
+
+        invalid = (
+            "sha256:" + "A" * 64,
+            "sha256:" + "a" * 63,
+            "rna-consequence-evidence:" + "a" * 64,
+            StringSubclass("sha256:" + "a" * 64),
+            1,
+        )
+        for owner in invalid:
+            with self.subTest(owner=owner):
+                with self.assertRaisesRegex(ValidationError, "canonical sha256"):
+                    rna_consequence_to_claim(
+                        consequence(),
+                        target(),
+                        retained_owner_address=owner,  # type: ignore[arg-type]
+                    )
+
+    def test_public_consequence_validator_closes_leaf_address_namespaces(self) -> None:
+        evidence = consequence(allelic_log2_ratio=1.2, allelic_q_value=0.01)
+        self.assertIs(validate_rna_consequence(evidence), evidence)
+        malformed = {
+            "prediction_address": "sha256:" + "a" * 64,
+            "expression_result_address": "expression-outlier:" + "A" * 64,
+            "allelic_result_address": "allelic-imbalance:" + "a" * 63,
+        }
+        for field_name, address in malformed.items():
+            with self.subTest(field_name=field_name):
+                with self.assertRaisesRegex(ValidationError, field_name):
+                    validate_rna_consequence(replace(evidence, **{field_name: address}))
+        with self.assertRaisesRegex(ValidationError, "exact RNAConsequenceEvidence"):
+            validate_rna_consequence(object())
 
     def test_score_is_bounded_transparent_and_does_not_sum_components(self) -> None:
         evidence = consequence(
@@ -550,6 +620,11 @@ class SurfaceContractTests(unittest.TestCase):
         self.assertTrue(first["privacy"]["sample_free_payloads"])
         self.assertIn("exact_three_key_matching", first["operations"])
         self.assertIn("bounded_batch_matching", first["operations"])
+        self.assertIn("retained_owner_dependency_binding", first["operations"])
+        self.assertEqual(
+            set(first["dependency_modes"]),
+            {"standalone", "retained_owner"},
+        )
         self.assertEqual(
             first["limits"],
             {
@@ -568,6 +643,10 @@ class SurfaceContractTests(unittest.TestCase):
         rendered = json.dumps(contract, sort_keys=True)
         self.assertNotIn("sample_key", rendered)
         self.assertNotIn("patient_id", rendered)
+        owner_schema = contract["$defs"]["EvidenceClaim"]["properties"]["payload"]["properties"][
+            "retained_owner_address"
+        ]
+        self.assertEqual(owner_schema["pattern"], "^sha256:[0-9a-f]{64}$")
         batch_properties = contract["$defs"]["RNAClaimBatch"]["properties"]
         for field_name in (
             "evidence_addresses",
@@ -578,9 +657,7 @@ class SurfaceContractTests(unittest.TestCase):
             "unmatched_target_addresses",
             "claims",
         ):
-            self.assertEqual(
-                batch_properties[field_name]["maxItems"], MAX_RNA_CLAIM_BATCH_ITEMS
-            )
+            self.assertEqual(batch_properties[field_name]["maxItems"], MAX_RNA_CLAIM_BATCH_ITEMS)
             if field_name != "claims":
                 self.assertTrue(batch_properties[field_name]["uniqueItems"])
 

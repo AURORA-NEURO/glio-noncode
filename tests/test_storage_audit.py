@@ -108,7 +108,7 @@ class StorageAuditTests(unittest.TestCase):
             self.assertIn(run_record["dossier_address"], missing.missing_addresses)
             self.assertGreaterEqual(missing.missing_reference_count, 1)
 
-            runtime, _ = self._runtime(directory)
+            runtime.store.store.put_at(dossier.content_address, dossier.to_dict())
             orphan_address = runtime.store.store.put({"orphan": True})
             orphan = build_storage_audit(runtime)
             self.assertFalse(orphan.accepted)

@@ -252,8 +252,14 @@ class ExpressionRuntimeIdentityTests(unittest.TestCase):
             rna_batch = runtime.store.store.get(received["rna_input_address"])
             self.assertEqual(rna_batch["kind"], "rna_consequence_batch")
             self.assertEqual(rna_batch["consequences"], [rna.to_dict()])
-            self.assertTrue(
-                any(claim.channel == RNA_CONSEQUENCE_CHANNEL for claim in dossier.evidence)
+            self.assertIn(received["rna_input_address"], dossier.source_bundle_addresses)
+            rna_claim = next(
+                claim for claim in dossier.evidence if claim.channel == RNA_CONSEQUENCE_CHANNEL
+            )
+            self.assertEqual(rna_claim.depends_on, (received["rna_input_address"],))
+            self.assertEqual(
+                rna_claim.payload["retained_owner_address"],
+                received["rna_input_address"],
             )
 
 

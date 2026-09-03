@@ -1469,6 +1469,20 @@ class Dossier:
             if not eligible:
                 return False
             self._validate_structure()
+            review = self.review
+            if type(review) is not ReviewDecision:  # pragma: no cover - narrowed above
+                return False
+            hypothesis_ids = tuple(item.hypothesis_id for item in self.hypotheses)
+            claim_ids = tuple(item.evidence_id for item in self.evidence)
+            if (
+                type(review.reviewed_hypothesis_ids) is not tuple
+                or type(review.checked_claim_ids) is not tuple
+                or len(review.reviewed_hypothesis_ids) != len(hypothesis_ids)
+                or len(review.checked_claim_ids) != len(claim_ids)
+                or set(review.reviewed_hypothesis_ids) != set(hypothesis_ids)
+                or set(review.checked_claim_ids) != set(claim_ids)
+            ):
+                return False
             payload = self.to_dict()
             supplied_address = payload.pop("content_address", None)
             return (

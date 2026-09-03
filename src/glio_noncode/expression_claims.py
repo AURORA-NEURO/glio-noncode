@@ -41,6 +41,7 @@ DETERMINISTIC_CREATED_AT = "1970-01-01T00:00:00+00:00"
 MAX_RNA_CLAIM_BATCH_ITEMS = 10_000
 
 _REASON_CODE_RE = re.compile(r"[a-z][a-z0-9_]{0,127}\Z")
+_ADDRESS_DIGEST_RE = re.compile(r"[0-9a-f]{64}\Z")
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
         "cohort_values",
@@ -74,6 +75,29 @@ def _text(value: object, field_name: str) -> str:
     return normalized
 
 
+def _typed_content_address(value: object, *, prefix: str, field_name: str) -> str:
+    """Require one exact, lower-case content address in the expected namespace."""
+
+    expected_prefix = f"{prefix}:"
+    if (
+        type(value) is not str
+        or not value.startswith(expected_prefix)
+        or _ADDRESS_DIGEST_RE.fullmatch(value[len(expected_prefix) :]) is None
+    ):
+        raise ValidationError(f"{field_name} must be a canonical {prefix} content address")
+    return value
+
+
+def _retained_owner_address(value: object) -> str | None:
+    if value is None:
+        return None
+    return _typed_content_address(
+        value,
+        prefix="sha256",
+        field_name="retained_owner_address",
+    )
+
+
 def _finite(value: object, field_name: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ValidationError(f"{field_name} must be numeric")
@@ -103,9 +127,7 @@ def _bounded_batch_rows(values: Iterable[Any], label: str) -> tuple[Any, ...]:
     except TypeError as error:
         raise ValidationError(f"{label} must be iterable") from error
     if len(rows) > MAX_RNA_CLAIM_BATCH_ITEMS:
-        raise ValidationError(
-            f"{label} exceeds the maximum of {MAX_RNA_CLAIM_BATCH_ITEMS} items"
-        )
+        raise ValidationError(f"{label} exceeds the maximum of {MAX_RNA_CLAIM_BATCH_ITEMS} items")
     return rows
 
 
@@ -336,13 +358,22 @@ class RNAClaimDerivation:
         }
 
 
-def _validate_consequence(evidence: RNAConsequenceEvidence) -> None:
-    if not isinstance(evidence, RNAConsequenceEvidence):
-        raise ValidationError("evidence must be RNAConsequenceEvidence")
+def validate_rna_consequence(evidence: object) -> RNAConsequenceEvidence:
+    """Validate one exact canonical consequence before claim or replay use."""
+
+    if type(evidence) is not RNAConsequenceEvidence:
+        raise ValidationError("evidence must be an exact RNAConsequenceEvidence")
+    try:
+        raw = evidence.to_dict()
+        canonical = RNAConsequenceEvidence.from_mapping(raw)
+    except Exception as error:  # noqa: BLE001 - forged frozen objects fail closed
+        raise ValidationError("RNA consequence evidence is not canonical") from error
+    if canonical != evidence or canonical.to_dict() != raw:
+        raise ValidationError("RNA consequence evidence does not round-trip exactly")
     if evidence.state not in _STATE_MAP:
         raise ValidationError(f"unsupported RNA evidence state: {evidence.state!r}")
     for code in evidence.reason_codes:
-        if not isinstance(code, str) or not _REASON_CODE_RE.fullmatch(code):
+        if type(code) is not str or not _REASON_CODE_RE.fullmatch(code):
             raise ValidationError("RNA reason_codes must be stable lower-case opaque codes")
 
     expression_values = (
@@ -378,11 +409,30 @@ def _validate_consequence(evidence: RNAConsequenceEvidence) -> None:
     ):
         raise ValidationError(f"{evidence.state.value} consequence has no measured RNA component")
 
+    _typed_content_address(
+        evidence.prediction_address,
+        prefix="regulatory-effect-prediction",
+        field_name="prediction_address",
+    )
+    if evidence.expression_result_address is not None:
+        _typed_content_address(
+            evidence.expression_result_address,
+            prefix="expression-outlier",
+            field_name="expression_result_address",
+        )
+    if evidence.allelic_result_address is not None:
+        _typed_content_address(
+            evidence.allelic_result_address,
+            prefix="allelic-imbalance",
+            field_name="allelic_result_address",
+        )
+    return evidence
+
 
 def matches_rna_consequence(evidence: RNAConsequenceEvidence, target: RNAElementGeneTarget) -> bool:
     """Return whether all three scientific scope keys match exactly."""
 
-    _validate_consequence(evidence)
+    validate_rna_consequence(evidence)
     if not isinstance(target, RNAElementGeneTarget):
         raise ValidationError("target must be RNAElementGeneTarget")
     return (
@@ -487,10 +537,12 @@ def rna_consequence_to_claim(
     target: RNAElementGeneTarget,
     *,
     policy: RNAClaimPolicy = DEFAULT_RNA_CLAIM_POLICY,
+    retained_owner_address: str | None = None,
 ) -> EvidenceClaim:
     """Build one deterministic native claim after exact three-key matching."""
 
-    _validate_consequence(evidence)
+    owner_address = _retained_owner_address(retained_owner_address)
+    validate_rna_consequence(evidence)
     if not isinstance(target, RNAElementGeneTarget):
         raise ValidationError("target must be RNAElementGeneTarget")
     if not isinstance(policy, RNAClaimPolicy):
@@ -560,6 +612,8 @@ def rna_consequence_to_claim(
             "cohort_vectors_excluded": True,
         },
     }
+    if owner_address is not None:
+        payload["retained_owner_address"] = owner_address
     _assert_sample_free(payload)
     action = {
         RNAEvidenceState.SUPPORTED: "supports",
@@ -583,7 +637,7 @@ def rna_consequence_to_claim(
             f"{target.gene_id} regulatory link for {target.variant_id}."
         ),
         payload=payload,
-        depends_on=source_addresses,
+        depends_on=(owner_address,) if owner_address is not None else source_addresses,
         produced_by=PRODUCED_BY,
         created_at=DETERMINISTIC_CREATED_AT,
     )
@@ -635,6 +689,7 @@ def _validate_bridge_claim(claim: EvidenceClaim) -> None:
                 "privacy",
             }
         ),
+        optional=frozenset({"retained_owner_address"}),
         label="claim payload",
     )
     if payload.get("schema_version") != SCHEMA_VERSION:
@@ -685,7 +740,17 @@ def _validate_bridge_claim(claim: EvidenceClaim) -> None:
         single_component_confidence=policy_raw.get("single_component_confidence"),
         multi_component_confidence=policy_raw.get("multi_component_confidence"),
     )
-    expected = rna_consequence_to_claim(consequence, target, policy=policy)
+    owner_address = (
+        _retained_owner_address(payload["retained_owner_address"])
+        if "retained_owner_address" in payload
+        else None
+    )
+    expected = rna_consequence_to_claim(
+        consequence,
+        target,
+        policy=policy,
+        retained_owner_address=owner_address,
+    )
     if claim.to_dict() != expected.to_dict():
         raise ValidationError(
             "claim content or evidence_id does not match its consequence, target, and policy"
@@ -887,9 +952,7 @@ class RNAClaimBatch:
             evidence_addresses=_bounded_batch_rows(
                 (
                     _text(item, "evidence address")
-                    for item in _sequence(
-                        value.get("evidence_addresses"), "evidence_addresses"
-                    )
+                    for item in _sequence(value.get("evidence_addresses"), "evidence_addresses")
                 ),
                 "evidence_addresses",
             ),
@@ -946,6 +1009,7 @@ def match_rna_consequences(
     *,
     policy: RNAClaimPolicy = DEFAULT_RNA_CLAIM_POLICY,
     require_complete: bool = False,
+    retained_owner_address: str | None = None,
 ) -> RNAClaimBatch:
     """Match by variant, gene/feature, and context; never guess ambiguity.
 
@@ -960,9 +1024,10 @@ def match_rna_consequences(
         raise ValidationError("policy must be RNAClaimPolicy")
     if not isinstance(require_complete, bool):
         raise ValidationError("require_complete must be boolean")
+    owner_address = _retained_owner_address(retained_owner_address)
     evidence_rows = _bounded_batch_rows(evidence, "evidence")
     for item in evidence_rows:
-        _validate_consequence(item)
+        validate_rna_consequence(item)
     evidence_addresses = tuple(item.content_address for item in evidence_rows)
     if len(evidence_addresses) != len(set(evidence_addresses)):
         raise ValidationError("evidence contains duplicate RNA consequences")
@@ -989,7 +1054,14 @@ def match_rna_consequences(
         elif len(candidates) > 1:
             ambiguous.append(item.content_address)
         else:
-            claims.append(rna_consequence_to_claim(item, candidates[0], policy=policy))
+            claims.append(
+                rna_consequence_to_claim(
+                    item,
+                    candidates[0],
+                    policy=policy,
+                    retained_owner_address=owner_address,
+                )
+            )
 
     batch = RNAClaimBatch(
         evidence_addresses=evidence_addresses,
@@ -1021,6 +1093,7 @@ def expression_claims_capabilities() -> dict[str, Any]:
             "bounded_batch_matching",
             "native_evidence_claim_projection",
             "deterministic_batch_round_trip",
+            "retained_owner_dependency_binding",
         ],
         "match_dimensions": ["variant_id", "feature_id/gene_id", "ReferenceContext.key"],
         "channel": RNA_CONSEQUENCE_CHANNEL,
@@ -1041,6 +1114,13 @@ def expression_claims_capabilities() -> dict[str, Any]:
             "cohort_vectors_excluded": True,
         },
         "ambiguity_policy": "emit no claim until exactly one element target matches",
+        "dependency_modes": {
+            "standalone": "depends_on contains the typed leaf source addresses",
+            "retained_owner": (
+                "depends_on contains exactly the canonical sha256 retained_owner_address; "
+                "typed leaf addresses remain in payload.source_addresses"
+            ),
+        },
         "limits": {
             "max_evidence_items": MAX_RNA_CLAIM_BATCH_ITEMS,
             "max_target_items": MAX_RNA_CLAIM_BATCH_ITEMS,
@@ -1104,7 +1184,19 @@ def expression_claims_schema() -> dict[str, Any]:
                     "confidence": {"type": "number", "minimum": 0, "maximum": 1},
                     "context": {"type": "object"},
                     "summary": {"type": "string", "minLength": 1},
-                    "payload": {"type": "object"},
+                    "payload": {
+                        "type": "object",
+                        "properties": {
+                            "retained_owner_address": {
+                                "type": "string",
+                                "pattern": "^sha256:[0-9a-f]{64}$",
+                                "description": (
+                                    "When present, depends_on contains exactly this retained "
+                                    "RNA batch address."
+                                ),
+                            }
+                        },
+                    },
                     "depends_on": {"type": "array", "items": {"type": "string"}},
                     "produced_by": {"const": PRODUCED_BY},
                     "created_at": {"const": DETERMINISTIC_CREATED_AT},
@@ -1268,4 +1360,5 @@ __all__ = [
     "rna_consequence_to_claim",
     "schema",
     "schema_contract",
+    "validate_rna_consequence",
 ]

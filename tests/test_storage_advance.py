@@ -61,6 +61,34 @@ class _StringSubclass(str):
 
 
 class RunStoreAdvanceTests(unittest.TestCase):
+    def test_verified_object_reads_are_bounded_canonical_and_address_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = ObjectStore(directory)
+            value = {"items": [1, 2, 3], "kind": "verified"}
+            address = store.put(value)
+            path = Path(directory) / "objects" / f"{address.removeprefix('sha256:')}.json"
+            canonical = path.read_bytes()
+
+            self.assertEqual(store.get_verified(address, max_bytes=len(canonical)), value)
+            with self.assertRaisesRegex(StoreError, "positive integer"):
+                store.get_verified(address, max_bytes=True)
+
+            path.write_bytes(canonical + b" ")
+            with self.assertRaisesRegex(StoreError, "exceeds"):
+                store.get_verified(address, max_bytes=len(canonical))
+            with self.assertRaisesRegex(StoreError, "not canonical JSON"):
+                store.get_verified(address, max_bytes=len(canonical) + 1)
+
+            path.write_bytes(b'{"items":[1,2,4],"kind":"verified"}')
+            with self.assertRaisesRegex(StoreError, "does not match its content address"):
+                store.get_verified(address, max_bytes=1_024)
+
+            domain_address = _address(501)
+            store.put_at(domain_address, value)
+            self.assertEqual(store.get_canonical(domain_address, max_bytes=1_024), value)
+            with self.assertRaisesRegex(StoreError, "does not match its content address"):
+                store.get_verified(domain_address, max_bytes=1_024)
+
     def test_object_store_rejects_ambiguous_json_without_rewriting_it(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             store = ObjectStore(directory)

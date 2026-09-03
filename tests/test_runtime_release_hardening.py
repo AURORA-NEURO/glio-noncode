@@ -1,0 +1,1021 @@
+"""Adversarial coverage for transactional runtime review and release."""
+
+from __future__ import annotations
+
+import json
+import tempfile
+import threading
+import unittest
+from dataclasses import replace
+from pathlib import Path
+from queue import Queue
+from typing import cast
+from unittest.mock import patch
+
+from glio_noncode.errors import StoreError, ValidationError
+from glio_noncode.expression_evidence import (
+    AllelicDirection,
+    ExpressionDirection,
+    RegulatoryDirection,
+    RNAConsequenceEvidence,
+    RNAEvidenceState,
+)
+from glio_noncode.models import (
+    Dossier,
+    ResearchStatus,
+    ReviewDecision,
+    ReviewState,
+)
+from glio_noncode.policy import ResearchPolicy
+from glio_noncode.runtime import CaseRuntime
+from glio_noncode.serialization import content_hash
+from glio_noncode.validation import (
+    ContractValidator,
+    IssueSeverity,
+    ReleaseGate,
+    ValidationIssue,
+    ValidationReport,
+)
+
+from .helpers import fixture_manifest
+
+
+def _review(
+    dossier: Dossier,
+    *,
+    state: ReviewState = ReviewState.ACCEPTED,
+    review_id: str = "review-runtime-hardening",
+    hypothesis_ids: tuple[str, ...] | None = None,
+    claim_ids: tuple[str, ...] | None = None,
+) -> ReviewDecision:
+    return ReviewDecision(
+        review_id=review_id,
+        case_id=dossier.case_id,
+        reviewer="scientific-reviewer",
+        state=state,
+        reviewed_hypothesis_ids=(
+            tuple(item.hypothesis_id for item in dossier.hypotheses)
+            if hypothesis_ids is None
+            else hypothesis_ids
+        ),
+        rationale="Reviewed the snapshot while retaining uncertainty and research-only use.",
+        checked_claim_ids=(
+            tuple(item.evidence_id for item in dossier.evidence) if claim_ids is None else claim_ids
+        ),
+    )
+
+
+def _runtime_state(runtime: CaseRuntime, dossier: Dossier) -> tuple[object, object, frozenset[str]]:
+    run_record = runtime.get_run(dossier.run_id)
+    cached_log = runtime._logs[dossier.run_id].to_record()
+    object_names = frozenset(path.name for path in runtime.store.store.objects.glob("*.json"))
+    return run_record, cached_log, object_names
+
+
+def _rna_consequence() -> RNAConsequenceEvidence:
+    manifest = fixture_manifest()
+    prediction_id = "prediction:runtime:hardening"
+    return RNAConsequenceEvidence(
+        prediction_id=prediction_id,
+        prediction_address=content_hash(
+            {"prediction_id": prediction_id},
+            prefix="regulatory-effect-prediction",
+        ),
+        variant_id=manifest.variants[0].variant_id,
+        feature_id=manifest.candidate_elements[0].target_genes[0],
+        context_key=manifest.context.key,
+        predicted_direction=RegulatoryDirection.GAIN,
+        state=RNAEvidenceState.SUPPORTED,
+        expression_state=RNAEvidenceState.SUPPORTED,
+        expression_direction=ExpressionDirection.UP,
+        expression_robust_z=7.0,
+        expression_result_address=content_hash(
+            {"prediction_id": prediction_id, "component": "expression"},
+            prefix="expression-outlier",
+        ),
+        allelic_state=RNAEvidenceState.SUPPORTED,
+        allelic_direction=AllelicDirection.ALT_ENRICHED,
+        allelic_log2_ratio=2.0,
+        allelic_q_value=0.001,
+        allelic_result_address=content_hash(
+            {"prediction_id": prediction_id, "component": "allelic"},
+            prefix="allelic-imbalance",
+        ),
+        reason_codes=("runtime_hardening_supported",),
+    )
+
+
+class RuntimeReleaseHardeningTests(unittest.TestCase):
+    def test_partial_hypothesis_acceptance_cannot_release_current_snapshot(self) -> None:
+        manifest = fixture_manifest()
+        first_variant = manifest.variants[0]
+        second_variant = replace(
+            first_variant,
+            variant_id="var-demo-002",
+            start=first_variant.start + 10,
+            end=first_variant.end + 10,
+            reference="C",
+            alternate="T",
+        )
+        manifest = replace(manifest, variants=(first_variant, second_variant))
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(manifest)
+            self.assertGreater(len(dossier.hypotheses), 1)
+            before = _runtime_state(runtime, dossier)
+
+            with self.assertRaisesRegex(ValidationError, "cover every hypothesis"):
+                runtime.review(
+                    dossier,
+                    _review(
+                        dossier,
+                        review_id="review-partial-hypotheses",
+                        hypothesis_ids=(dossier.hypotheses[0].hypothesis_id,),
+                    ),
+                )
+
+            self.assertEqual(_runtime_state(runtime, dossier), before)
+
+    def test_partial_accepted_review_is_atomic_and_retryable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            self.assertGreater(len(dossier.evidence), 1)
+            before = _runtime_state(runtime, dossier)
+            partial = _review(
+                dossier,
+                review_id="review-partial-atomic",
+                claim_ids=tuple(item.evidence_id for item in dossier.evidence[:-1]),
+            )
+
+            with self.assertRaisesRegex(ValidationError, "cover every evidence claim"):
+                runtime.review(dossier, partial)
+
+            self.assertEqual(_runtime_state(runtime, dossier), before)
+            released = runtime.review(
+                dossier,
+                _review(dossier, review_id=partial.review_id),
+            )
+            self.assertIs(released.status, ResearchStatus.RELEASED_RESEARCH)
+            self.assertTrue(released.is_releasable)
+
+    def test_store_valid_but_unpersisted_forged_source_is_rejected_atomically(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            forged = runtime._readdress(
+                replace(dossier, warnings=(*dossier.warnings, "forged-current-snapshot"))
+            )
+            self.assertTrue(ContractValidator().validate_dossier(forged).valid)
+            before = _runtime_state(runtime, dossier)
+
+            with self.assertRaisesRegex(ValidationError, "current persisted run snapshot"):
+                runtime.review(forged, _review(forged))
+
+            self.assertEqual(_runtime_state(runtime, dossier), before)
+
+    def test_failed_release_gate_does_not_advance_log_or_store(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            before = _runtime_state(runtime, dossier)
+            denied = ValidationReport(
+                False,
+                (
+                    ValidationIssue(
+                        "test_gate_denied",
+                        IssueSeverity.ERROR,
+                        "Synthetic release denial.",
+                        "release",
+                        "Keep the dossier unreleased.",
+                    ),
+                ),
+            )
+
+            with patch.object(ReleaseGate, "check", return_value=denied):
+                with self.assertRaisesRegex(ValidationError, "test_gate_denied"):
+                    runtime.review(dossier, _review(dossier, review_id="review-gate-denied"))
+
+            self.assertEqual(_runtime_state(runtime, dossier), before)
+
+    def test_review_commit_uses_atomic_current_pointer_advance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            before = runtime.get_run(dossier.run_id)
+
+            with patch.object(
+                runtime.store,
+                "advance_run",
+                wraps=runtime.store.advance_run,
+            ) as advance:
+                released = runtime.review_run(dossier.run_id, _review(dossier))
+
+            advance.assert_called_once()
+            self.assertEqual(
+                advance.call_args.kwargs["expected_run"],
+                before,
+            )
+            self.assertEqual(
+                runtime.get_run(dossier.run_id)["dossier_address"],
+                released.content_address,
+            )
+
+    def test_two_runtime_release_race_has_one_closed_winner(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            seed = CaseRuntime(directory)
+            dossier = seed.evaluate(fixture_manifest())
+            initial = seed.get_run(dossier.run_id)
+            runtimes = (CaseRuntime(directory), CaseRuntime(directory))
+            reviews = (
+                _review(dossier, review_id="review-race-left"),
+                _review(dossier, review_id="review-race-right"),
+            )
+            barrier = threading.Barrier(2)
+            results: Queue[tuple[str, CaseRuntime, object]] = Queue()
+
+            def guarded_advance(original, *args: object, **kwargs: object) -> object:
+                barrier.wait(timeout=10)
+                return original(*args, **kwargs)
+
+            def run_review(runtime: CaseRuntime, review: ReviewDecision) -> None:
+                try:
+                    results.put(("ok", runtime, runtime.review_run(dossier.run_id, review)))
+                except BaseException as exc:  # pragma: no cover - asserted below
+                    results.put(("error", runtime, exc))
+
+            originals = tuple(runtime.store.advance_run for runtime in runtimes)
+            with (
+                patch.object(
+                    runtimes[0].store,
+                    "advance_run",
+                    side_effect=lambda *args, **kwargs: guarded_advance(
+                        originals[0], *args, **kwargs
+                    ),
+                ),
+                patch.object(
+                    runtimes[1].store,
+                    "advance_run",
+                    side_effect=lambda *args, **kwargs: guarded_advance(
+                        originals[1], *args, **kwargs
+                    ),
+                ),
+            ):
+                threads = tuple(
+                    threading.Thread(target=run_review, args=(runtime, review))
+                    for runtime, review in zip(runtimes, reviews, strict=True)
+                )
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join(timeout=15)
+
+            self.assertFalse(any(thread.is_alive() for thread in threads))
+            outcomes = [results.get(timeout=2) for _ in runtimes]
+            winners = [item for item in outcomes if item[0] == "ok"]
+            losers = [item for item in outcomes if item[0] == "error"]
+            self.assertEqual(len(winners), 1, outcomes)
+            self.assertEqual(len(losers), 1, outcomes)
+            loser_error = cast(BaseException, losers[0][2])
+            self.assertIsInstance(loser_error, ValidationError)
+            self.assertIsInstance(loser_error.__cause__, StoreError)
+            self.assertEqual(losers[0][1]._logs, {})
+
+            winner = winners[0][2]
+            self.assertIsInstance(winner, Dossier)
+            current = seed.get_run(dossier.run_id)
+            self.assertNotEqual(current["dossier_address"], initial["dossier_address"])
+            self.assertEqual(len(current["dossier_history"]), 2)
+            self.assertEqual(len(current["event_history"]), 2)
+            current_dossier = seed.get_dossier(current["dossier_address"])
+            current_events = seed.store.store.get(current["event_address"])["events"]
+            winner_id = current_dossier["review"]["review_id"]
+            self.assertIn(winner_id, {review.review_id for review in reviews})
+            self.assertEqual(current_events[-1]["event_id"], winner_id)
+            self.assertEqual(
+                {event["event_id"] for event in current_events}
+                & {review.review_id for review in reviews},
+                {winner_id},
+            )
+
+    def test_stale_assignment_loses_cas_without_poisoning_cached_log(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            primary = CaseRuntime(directory)
+            dossier = primary.evaluate(fixture_manifest())
+            competitor = CaseRuntime(directory)
+            before_cached = primary._logs[dossier.run_id].to_record()
+            original_advance = primary.store.advance_run
+
+            def advance_after_competitor(*args: object, **kwargs: object) -> object:
+                competitor.assign_review(
+                    dossier.run_id,
+                    assignment_id="assignment-cas-winner",
+                    reviewer="reviewer-winner",
+                )
+                return original_advance(*args, **kwargs)  # type: ignore[arg-type]
+
+            with patch.object(
+                primary.store,
+                "advance_run",
+                side_effect=advance_after_competitor,
+            ):
+                with self.assertRaisesRegex(ValidationError, "expected current state") as raised:
+                    primary.assign_review(
+                        dossier.run_id,
+                        assignment_id="assignment-cas-loser",
+                        reviewer="reviewer-loser",
+                    )
+
+            self.assertIsInstance(raised.exception.__cause__, StoreError)
+            self.assertEqual(primary._logs[dossier.run_id].to_record(), before_cached)
+            current = primary.get_run(dossier.run_id)
+            current_events = primary.store.store.get(current["event_address"])["events"]
+            current_ids = {item["event_id"] for item in current_events}
+            self.assertIn("assignment-cas-winner", current_ids)
+            self.assertNotIn("assignment-cas-loser", current_ids)
+
+    def test_assignment_rejects_non_exact_strings_before_mutation(self) -> None:
+        class StringSubclass(str):
+            pass
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            before = _runtime_state(runtime, dossier)
+
+            with self.assertRaisesRegex(ValidationError, "exact strings"):
+                runtime.assign_review(
+                    dossier.run_id,
+                    assignment_id=StringSubclass("assignment-subclass"),
+                    reviewer="reviewer",
+                )
+
+            self.assertEqual(_runtime_state(runtime, dossier), before)
+
+    def test_assignment_response_binds_the_snapshot_that_won_publication(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            original_get_run = runtime.get_run
+            read_count = 0
+
+            def simulate_immediate_later_advance(run_id: str):
+                nonlocal read_count
+                read_count += 1
+                current = original_get_run(run_id)
+                if read_count == 1:
+                    return current
+                return {**current, "event_address": f"sha256:{'0' * 64}"}
+
+            with patch.object(runtime, "get_run", side_effect=simulate_immediate_later_advance):
+                response = runtime.assign_review(
+                    dossier.run_id,
+                    assignment_id="assignment-response-snapshot",
+                    reviewer="reviewer",
+                )
+
+            persisted = original_get_run(dossier.run_id)
+            self.assertEqual(read_count, 1)
+            self.assertEqual(response["event_address"], persisted["event_address"])
+            self.assertEqual(
+                runtime.store.store.get(response["event_address"])["events"][-1]["event_id"],
+                "assignment-response-snapshot",
+            )
+
+    def test_is_releasable_matches_exhaustive_release_gate_coverage(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            released = runtime.review(dossier, _review(dossier))
+            self.assertTrue(released.is_releasable)
+            self.assertTrue(ReleaseGate().check(released).valid)
+
+            partial_review = _review(
+                dossier,
+                review_id="review-partial-summary",
+                claim_ids=tuple(item.evidence_id for item in dossier.evidence[:-1]),
+            )
+            partial = runtime._readdress(replace(released, review=partial_review))
+            self.assertFalse(partial.is_releasable)
+            self.assertFalse(ReleaseGate().check(partial).valid)
+
+    def test_rejected_and_returned_review_run_flows_remain_valid(self) -> None:
+        for state in (ReviewState.REJECTED, ReviewState.RETURNED):
+            with self.subTest(state=state.value), tempfile.TemporaryDirectory() as directory:
+                runtime = CaseRuntime(directory)
+                dossier = runtime.evaluate(fixture_manifest())
+                reviewed = runtime.review_run(
+                    dossier.run_id,
+                    _review(
+                        dossier,
+                        state=state,
+                        review_id=f"review-{state.value}",
+                        hypothesis_ids=(dossier.hypotheses[0].hypothesis_id,),
+                        claim_ids=(),
+                    ),
+                )
+
+                self.assertIs(reviewed.status, ResearchStatus.REVIEWED)
+                attached_review = reviewed.review
+                self.assertIsNotNone(attached_review)
+                assert attached_review is not None
+                self.assertIs(attached_review.state, state)
+                self.assertFalse(reviewed.is_releasable)
+                self.assertTrue(ContractValidator().validate_dossier(reviewed).valid)
+                self.assertEqual(
+                    runtime.get_run(dossier.run_id)["dossier_address"],
+                    reviewed.content_address,
+                )
+
+    def test_review_run_replay_failure_does_not_install_a_log(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            writer = CaseRuntime(directory)
+            dossier = writer.evaluate(fixture_manifest())
+            run_record = writer.get_run(dossier.run_id)
+            dossier_path = (
+                writer.store.store.objects
+                / f"{run_record['dossier_address'].split(':', 1)[1]}.json"
+            )
+            stored = json.loads(dossier_path.read_text(encoding="utf-8"))
+            stored["case_id"] = "forged-persisted-case"
+            dossier_path.write_text(json.dumps(stored), encoding="utf-8")
+            reader = CaseRuntime(directory)
+
+            with self.assertRaises(ValidationError):
+                reader.review_run(dossier.run_id, _review(dossier))
+
+            self.assertEqual(reader._logs, {})
+            self.assertEqual(reader.get_run(dossier.run_id), run_record)
+
+    def test_tampered_input_object_blocks_review_without_installing_log(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            writer = CaseRuntime(directory)
+            dossier = writer.evaluate(fixture_manifest())
+            run_record = writer.get_run(dossier.run_id)
+            run_path = writer.store.runs / f"{dossier.run_id}.json"
+            before_run_bytes = run_path.read_bytes()
+            input_path = (
+                writer.store.store.objects / f"{run_record['input_address'].split(':', 1)[1]}.json"
+            )
+            input_record = json.loads(input_path.read_text(encoding="utf-8"))
+            input_record["case_id"] = "tampered-input-case"
+            input_path.write_text(json.dumps(input_record), encoding="utf-8")
+            reader = CaseRuntime(directory)
+
+            with self.assertRaisesRegex(ValidationError, "input"):
+                reader.review_run(dossier.run_id, _review(dossier))
+
+            self.assertEqual(reader._logs, {})
+            self.assertEqual(run_path.read_bytes(), before_run_bytes)
+            self.assertEqual(reader.get_run(dossier.run_id), run_record)
+
+    def test_noncanonical_review_fails_before_any_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            review = _review(dossier, review_id="review-forged-state")
+            object.__setattr__(review, "state", "accepted")
+            before = _runtime_state(runtime, dossier)
+
+            with self.assertRaisesRegex(ValidationError, "exact ReviewState"):
+                runtime.review(dossier, review)
+
+            self.assertEqual(_runtime_state(runtime, dossier), before)
+
+    def test_replaced_dependencies_and_mutated_reports_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            runtime.validator = object()  # type: ignore[assignment]
+            with self.assertRaisesRegex(ValidationError, "exact ContractValidator"):
+                runtime.evaluate(fixture_manifest())
+            self.assertEqual(tuple(Path(directory).joinpath("runs").glob("*.json")), ())
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            issue = ValidationIssue(
+                "mutated_report",
+                IssueSeverity.ERROR,
+                "The report was mutated after construction.",
+                "validation",
+                "Reject the report.",
+            )
+            report = ValidationReport(False, (issue,))
+            object.__setattr__(report, "valid", True)
+            with self.assertRaisesRegex(ValidationError, "invalid validation report"):
+                runtime._require_valid(report, "case manifest")
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            manifest = fixture_manifest()
+            object.__setattr__(manifest, "variants", list(manifest.variants))
+            with patch.object(
+                runtime.validator,
+                "validate_manifest",
+                return_value=ValidationReport(True, ()),
+            ):
+                with self.assertRaisesRegex(ValidationError, "non-canonical instance state"):
+                    runtime.evaluate(manifest)
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            before = _runtime_state(runtime, dossier)
+            with patch.object(
+                runtime.release_gate,
+                "check",
+                return_value=ValidationReport(True, ()),
+            ):
+                with self.assertRaisesRegex(ValidationError, "non-canonical instance state"):
+                    runtime.review(dossier, _review(dossier, review_id="review-shadowed-gate"))
+            self.assertEqual(_runtime_state(runtime, dossier), before)
+
+    def test_permissive_policy_replacement_fails_before_persistence(self) -> None:
+        class PermissivePolicy:
+            version = "research-boundary-2026.09"
+
+            @staticmethod
+            def inspect_texts(texts: object) -> object:
+                return object()
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            runtime.policy = PermissivePolicy()  # type: ignore[assignment]
+
+            with self.assertRaisesRegex(ValidationError, "exact ResearchPolicy"):
+                runtime.evaluate(fixture_manifest())
+
+            self.assertEqual(runtime._logs, {})
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            object.__setattr__(runtime.policy, "version", "forged-policy-version")
+            with self.assertRaisesRegex(ValidationError, "non-canonical instance state"):
+                runtime.evaluate(fixture_manifest())
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            decision = runtime.policy.inspect_texts(("safe research text",))
+            object.__setattr__(decision, "_integrity", "forged-integrity")
+            with patch.object(ResearchPolicy, "inspect_texts", return_value=decision):
+                with self.assertRaisesRegex(ValidationError, "invalid policy decision"):
+                    runtime.evaluate(fixture_manifest())
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+
+    def test_noncanonical_manifest_fails_before_runtime_persistence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            manifest = fixture_manifest()
+            object.__setattr__(manifest, "variants", list(manifest.variants))
+
+            with self.assertRaises(ValidationError):
+                runtime.evaluate(manifest)
+
+            self.assertEqual(runtime._logs, {})
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+
+    def test_live_reference_requires_an_exact_boolean_before_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+
+            with self.assertRaisesRegex(ValidationError, "exact boolean"):
+                runtime.evaluate(fixture_manifest(), live_reference=1)  # type: ignore[arg-type]
+
+            self.assertEqual(runtime._logs, {})
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+
+    def test_repeated_untouched_offline_evaluate_reuses_without_writes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            writer = CaseRuntime(directory)
+            original = writer.evaluate(fixture_manifest())
+            run_path = writer.store.runs / f"{original.run_id}.json"
+            run_bytes = run_path.read_bytes()
+            objects = {
+                path.name: path.read_bytes() for path in writer.store.store.objects.glob("*.json")
+            }
+            run_record = writer.get_run(original.run_id)
+            reader = CaseRuntime(directory)
+
+            with (
+                patch.object(reader.store.store, "put", wraps=reader.store.store.put) as put,
+                patch.object(
+                    reader.store.store,
+                    "put_at",
+                    wraps=reader.store.store.put_at,
+                ) as put_at,
+                patch.object(
+                    reader.store,
+                    "create_run",
+                    wraps=reader.store.create_run,
+                ) as create_run,
+            ):
+                reused = reader.evaluate(fixture_manifest())
+
+            put.assert_not_called()
+            put_at.assert_not_called()
+            create_run.assert_not_called()
+            self.assertIsNot(reused, original)
+            self.assertEqual(reused.to_dict(), original.to_dict())
+            self.assertEqual(run_path.read_bytes(), run_bytes)
+            self.assertEqual(
+                {
+                    path.name: path.read_bytes()
+                    for path in writer.store.store.objects.glob("*.json")
+                },
+                objects,
+            )
+            self.assertEqual(run_record["event_history"], [run_record["event_address"]])
+            self.assertEqual(run_record["dossier_history"], [run_record["dossier_address"]])
+            self.assertEqual(
+                reader._logs[original.run_id].to_record(),
+                reader.store.store.get(run_record["event_address"]),
+            )
+
+    def test_repeated_offline_evaluate_rejects_different_output_without_writes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            writer = CaseRuntime(directory)
+            original = writer.evaluate(fixture_manifest())
+            self.assertGreater(len(original.experiments), 1)
+            run_path = writer.store.runs / f"{original.run_id}.json"
+            run_bytes = run_path.read_bytes()
+            objects = {
+                path.name: path.read_bytes() for path in writer.store.store.objects.glob("*.json")
+            }
+            retry = CaseRuntime(directory)
+
+            with (
+                patch.object(
+                    retry.planner,
+                    "plan_many",
+                    return_value=original.experiments[:-1],
+                ),
+                patch.object(retry.store.store, "put", wraps=retry.store.store.put) as put,
+                patch.object(
+                    retry.store,
+                    "create_run",
+                    wraps=retry.store.create_run,
+                ) as create_run,
+            ):
+                with self.assertRaisesRegex(ValidationError, "run already exists") as raised:
+                    retry.evaluate(fixture_manifest())
+
+            put.assert_not_called()
+            create_run.assert_not_called()
+            self.assertIsInstance(raised.exception.__cause__, StoreError)
+            self.assertEqual(retry._logs, {})
+            self.assertEqual(run_path.read_bytes(), run_bytes)
+            self.assertEqual(
+                {
+                    path.name: path.read_bytes()
+                    for path in writer.store.store.objects.glob("*.json")
+                },
+                objects,
+            )
+
+    def test_repeated_offline_evaluate_rejects_corrupt_input_without_writes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            writer = CaseRuntime(directory)
+            dossier = writer.evaluate(fixture_manifest())
+            run_record = writer.get_run(dossier.run_id)
+            run_path = writer.store.runs / f"{dossier.run_id}.json"
+            run_bytes = run_path.read_bytes()
+            input_path = (
+                writer.store.store.objects / f"{run_record['input_address'].split(':', 1)[1]}.json"
+            )
+            input_record = json.loads(input_path.read_text(encoding="utf-8"))
+            input_record["case_id"] = "tampered-evaluate-input"
+            input_path.write_text(json.dumps(input_record), encoding="utf-8")
+            tampered_bytes = input_path.read_bytes()
+            reader = CaseRuntime(directory)
+
+            with (
+                patch.object(reader.store.store, "put", wraps=reader.store.store.put) as put,
+                patch.object(
+                    reader.store,
+                    "create_run",
+                    wraps=reader.store.create_run,
+                ) as create_run,
+            ):
+                with self.assertRaisesRegex(ValidationError, "input"):
+                    reader.evaluate(fixture_manifest())
+
+            put.assert_not_called()
+            create_run.assert_not_called()
+            self.assertEqual(reader._logs, {})
+            self.assertEqual(run_path.read_bytes(), run_bytes)
+            self.assertEqual(input_path.read_bytes(), tampered_bytes)
+
+    def test_repeated_offline_evaluate_rejects_a_missing_current_object(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            writer = CaseRuntime(directory)
+            dossier = writer.evaluate(fixture_manifest())
+            run_record = writer.get_run(dossier.run_id)
+            run_path = writer.store.runs / f"{dossier.run_id}.json"
+            run_bytes = run_path.read_bytes()
+            dossier_path = (
+                writer.store.store.objects
+                / f"{run_record['dossier_address'].split(':', 1)[1]}.json"
+            )
+            dossier_path.unlink()
+            remaining_objects = frozenset(writer.store.store.objects.glob("*.json"))
+            reader = CaseRuntime(directory)
+
+            with (
+                patch.object(reader.store.store, "put", wraps=reader.store.store.put) as put,
+                patch.object(
+                    reader.store,
+                    "create_run",
+                    wraps=reader.store.create_run,
+                ) as create_run,
+            ):
+                with self.assertRaisesRegex(ValidationError, "invalid persisted artifacts"):
+                    reader.evaluate(fixture_manifest())
+
+            put.assert_not_called()
+            create_run.assert_not_called()
+            self.assertEqual(reader._logs, {})
+            self.assertEqual(run_path.read_bytes(), run_bytes)
+            self.assertEqual(
+                frozenset(writer.store.store.objects.glob("*.json")),
+                remaining_objects,
+            )
+
+    def test_repeated_rna_evaluate_rejects_a_missing_recorded_input_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            rna = _rna_consequence()
+            writer = CaseRuntime(directory)
+            dossier = writer.evaluate(fixture_manifest(), rna_consequences=(rna,))
+            run_record = writer.get_run(dossier.run_id)
+            run_path = writer.store.runs / f"{dossier.run_id}.json"
+            run_bytes = run_path.read_bytes()
+            event_record = writer.store.store.get(run_record["event_address"])
+            rna_address = event_record["events"][0]["payload"]["rna_input_address"]
+            rna_path = writer.store.store.objects / f"{rna_address.split(':', 1)[1]}.json"
+            rna_path.unlink()
+            remaining_objects = frozenset(writer.store.store.objects.glob("*.json"))
+            reader = CaseRuntime(directory)
+
+            with (
+                patch.object(reader.store.store, "put", wraps=reader.store.store.put) as put,
+                patch.object(
+                    reader.store,
+                    "create_run",
+                    wraps=reader.store.create_run,
+                ) as create_run,
+            ):
+                with self.assertRaisesRegex(ValidationError, "RNA input object"):
+                    reader.evaluate(fixture_manifest(), rna_consequences=(rna,))
+
+            put.assert_not_called()
+            create_run.assert_not_called()
+            self.assertEqual(reader._logs, {})
+            self.assertEqual(run_path.read_bytes(), run_bytes)
+            self.assertEqual(
+                frozenset(writer.store.store.objects.glob("*.json")),
+                remaining_objects,
+            )
+
+    def test_review_rejects_rna_claim_absent_from_recorded_input_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            manifest = fixture_manifest()
+            recorded = _rna_consequence()
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(manifest, rna_consequences=(recorded,))
+            current_run = runtime.get_run(dossier.run_id)
+            event_record = runtime.store.store.get(current_run["event_address"])
+            rna_address = event_record["events"][0]["payload"]["rna_input_address"]
+
+            rogue_prediction_id = "prediction:runtime:not-in-recorded-batch"
+            rogue = replace(
+                recorded,
+                prediction_id=rogue_prediction_id,
+                prediction_address=content_hash(
+                    {"prediction_id": rogue_prediction_id},
+                    prefix="regulatory-effect-prediction",
+                ),
+                expression_result_address=content_hash(
+                    {"prediction_id": rogue_prediction_id, "component": "expression"},
+                    prefix="expression-outlier",
+                ),
+                allelic_result_address=content_hash(
+                    {"prediction_id": rogue_prediction_id, "component": "allelic"},
+                    prefix="allelic-imbalance",
+                ),
+                reason_codes=("not_in_recorded_batch",),
+            )
+            self.assertNotEqual(rogue.content_address, recorded.content_address)
+            forged_build = runtime.builder.build(
+                manifest,
+                dossier.run_id,
+                rna_consequences=(rogue,),
+                retained_owner_address=rna_address,
+            )
+            forged = runtime._make_dossier(
+                manifest=manifest,
+                run_id=dossier.run_id,
+                input_address=dossier.input_address,
+                hypotheses=forged_build.hypotheses,
+                claims=forged_build.claims,
+                experiments=runtime.planner.plan_many(forged_build.hypotheses),
+                review=None,
+                status=ResearchStatus.REVIEW_REQUIRED,
+                event_head=dossier.event_head,
+                warnings=forged_build.warnings,
+                created_at=dossier.created_at,
+                source_receipts=dossier.source_receipts,
+                source_bundle_addresses=dossier.source_bundle_addresses,
+            )
+            runtime._validate_dossier_contract(forged, "forged persisted dossier")
+            forged_address = runtime.store.store.put_at(
+                forged.content_address,
+                forged.to_dict(),
+            )
+            runtime.store.advance_run(
+                dossier.run_id,
+                expected_run=current_run,
+                event_address=current_run["event_address"],
+                dossier_address=forged_address,
+            )
+            before = runtime.get_run(dossier.run_id)
+            object_names = frozenset(runtime.store.store.objects.glob("*.json"))
+
+            with self.assertRaisesRegex(ValidationError, "not present in its recorded input"):
+                runtime.review_run(dossier.run_id, _review(forged))
+
+            self.assertEqual(runtime.get_run(dossier.run_id), before)
+            self.assertEqual(
+                frozenset(runtime.store.store.objects.glob("*.json")),
+                object_names,
+            )
+
+    def test_rna_persistence_limits_fail_before_publication(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValidationError, "positive integer"):
+                CaseRuntime(directory, rna_input_max_bytes=True)  # type: ignore[arg-type]
+
+            runtime = CaseRuntime(directory, rna_input_max_bytes=1)
+            with self.assertRaisesRegex(ValidationError, "persisted byte ceiling"):
+                runtime.evaluate(
+                    fixture_manifest(),
+                    rna_consequences=(_rna_consequence(),),
+                )
+            self.assertEqual(runtime._logs, {})
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            oversized_reasons = replace(
+                _rna_consequence(),
+                reason_codes=tuple(f"reason_{index}" for index in range(257)),
+            )
+            with self.assertRaisesRegex(ValidationError, "reason_codes"):
+                runtime.evaluate(
+                    fixture_manifest(),
+                    rna_consequences=(oversized_reasons,),
+                )
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+
+    def test_known_live_reference_collision_fails_before_retrieval_or_writes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            before = _runtime_state(runtime, dossier)
+
+            with (
+                patch(
+                    "glio_noncode.runtime.PublicReferenceRetriever",
+                    side_effect=AssertionError("live retrieval must not start"),
+                ) as retriever_type,
+                patch.object(runtime.store.store, "put", wraps=runtime.store.store.put) as put,
+                patch.object(
+                    runtime.store,
+                    "create_run",
+                    wraps=runtime.store.create_run,
+                ) as create_run,
+            ):
+                with self.assertRaisesRegex(ValidationError, "run already exists") as raised:
+                    runtime.evaluate(fixture_manifest(), live_reference=True)
+
+            retriever_type.assert_not_called()
+            put.assert_not_called()
+            create_run.assert_not_called()
+            self.assertIsInstance(raised.exception.__cause__, StoreError)
+            self.assertEqual(_runtime_state(runtime, dossier), before)
+
+    def test_two_runtime_identical_evaluate_race_reuses_create_winner(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtimes = (CaseRuntime(directory), CaseRuntime(directory))
+            barrier = threading.Barrier(2)
+            results: Queue[object] = Queue()
+            originals = tuple(runtime.store.create_run for runtime in runtimes)
+
+            def guarded_create(original, *args: object, **kwargs: object) -> object:
+                barrier.wait(timeout=10)
+                return original(*args, **kwargs)
+
+            def run_evaluate(runtime: CaseRuntime) -> None:
+                try:
+                    results.put(runtime.evaluate(fixture_manifest()))
+                except BaseException as exc:  # pragma: no cover - asserted below
+                    results.put(exc)
+
+            with (
+                patch.object(
+                    runtimes[0].store,
+                    "create_run",
+                    side_effect=lambda *args, **kwargs: guarded_create(
+                        originals[0], *args, **kwargs
+                    ),
+                ),
+                patch.object(
+                    runtimes[1].store,
+                    "create_run",
+                    side_effect=lambda *args, **kwargs: guarded_create(
+                        originals[1], *args, **kwargs
+                    ),
+                ),
+            ):
+                threads = tuple(
+                    threading.Thread(target=run_evaluate, args=(runtime,)) for runtime in runtimes
+                )
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join(timeout=15)
+
+            self.assertFalse(any(thread.is_alive() for thread in threads))
+            outcomes = [results.get(timeout=2) for _ in runtimes]
+            self.assertTrue(all(isinstance(item, Dossier) for item in outcomes), outcomes)
+            dossiers = tuple(cast(Dossier, item) for item in outcomes)
+            self.assertEqual(dossiers[0].to_dict(), dossiers[1].to_dict())
+            run_record = runtimes[0].get_run(dossiers[0].run_id)
+            self.assertEqual(run_record["event_history"], [run_record["event_address"]])
+            self.assertEqual(run_record["dossier_history"], [run_record["dossier_address"]])
+            self.assertEqual(run_record["dossier_address"], dossiers[0].content_address)
+            persisted_events = runtimes[0].store.store.get(run_record["event_address"])
+            for runtime in runtimes:
+                self.assertEqual(
+                    runtime._logs[dossiers[0].run_id].to_record(),
+                    persisted_events,
+                )
+
+    def test_repeated_evaluate_cannot_reuse_an_assigned_draft(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            runtime.assign_review(
+                dossier.run_id,
+                assignment_id="assignment-before-repeat",
+                reviewer="assigned-reviewer",
+            )
+            before = _runtime_state(runtime, dossier)
+
+            with (
+                patch.object(runtime.store.store, "put", wraps=runtime.store.store.put) as put,
+                patch.object(
+                    runtime.store,
+                    "create_run",
+                    wraps=runtime.store.create_run,
+                ) as create_run,
+            ):
+                with self.assertRaisesRegex(ValidationError, "run already exists") as raised:
+                    runtime.evaluate(fixture_manifest())
+
+            put.assert_not_called()
+            create_run.assert_not_called()
+            self.assertIsInstance(raised.exception.__cause__, StoreError)
+            self.assertEqual(_runtime_state(runtime, dossier), before)
+
+    def test_repeated_deterministic_evaluate_cannot_rewind_reviewed_run(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            released = runtime.review(dossier, _review(dossier))
+            before_run = runtime.get_run(dossier.run_id)
+            before_cached = runtime._logs[dossier.run_id].to_record()
+            run_path = runtime.store.runs / f"{dossier.run_id}.json"
+            before_run_bytes = run_path.read_bytes()
+
+            with self.assertRaisesRegex(ValidationError, "run already exists") as raised:
+                runtime.evaluate(fixture_manifest())
+
+            self.assertIsInstance(raised.exception.__cause__, StoreError)
+            self.assertEqual(run_path.read_bytes(), before_run_bytes)
+            self.assertEqual(runtime.get_run(dossier.run_id), before_run)
+            self.assertEqual(
+                runtime._logs[dossier.run_id].to_record(),
+                before_cached,
+            )
+            self.assertEqual(before_run["dossier_address"], released.content_address)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -24,6 +24,7 @@ _FILESYSTEM_LOCK_TIMEOUT_SECONDS = 30.0
 _FILESYSTEM_LOCK_POLL_SECONDS = 0.01
 MAX_RUN_HISTORY_ENTRIES = 1_000
 _MAX_RUN_INDEX_BYTES = 1 << 20
+_MAX_VERIFIED_OBJECT_BYTES = 128 * 1024 * 1024
 _RUN_RECORD_FIELDS = frozenset(
     {
         "run_id",
@@ -261,7 +262,7 @@ def _decode_run_record(
             object_pairs_hook=_unique_json_object,
             parse_constant=_invalid_json_constant,
         )
-    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as exc:
         raise StoreError(f"invalid run record: {path.name}") from exc
     return _validated_run_record(value, expected_run_id=expected_run_id)
 
@@ -337,6 +338,44 @@ class ObjectStore:
         except OSError as exc:
             raise StoreError(f"stored object could not be read: {address}") from exc
         return _decode_stored_object(payload, address=address)
+
+    def get_canonical(self, address: str, *, max_bytes: int) -> Any:
+        """Read one canonical JSON object within an explicit byte ceiling."""
+
+        digest = _address_digest(address)
+        if type(max_bytes) is not int or max_bytes <= 0:
+            raise StoreError("verified object max_bytes must be a positive integer")
+        if max_bytes > _MAX_VERIFIED_OBJECT_BYTES:
+            raise StoreError(
+                "verified object max_bytes exceeds the hard ceiling of "
+                f"{_MAX_VERIFIED_OBJECT_BYTES} bytes"
+            )
+        path = self.objects / f"{digest}.json"
+        if not path.exists():
+            raise StoreError(f"object not found: {address}")
+        try:
+            with path.open("rb") as handle:
+                payload = handle.read(max_bytes + 1)
+        except OSError as exc:
+            raise StoreError(f"stored object could not be read: {address}") from exc
+        if len(payload) > max_bytes:
+            raise StoreError(f"stored object exceeds {max_bytes} bytes: {address}")
+        value = _decode_stored_object(payload, address=address)
+        try:
+            canonical_payload = canonical_json(value).encode("utf-8")
+        except (RecursionError, TypeError, ValueError) as exc:
+            raise StoreError(f"invalid stored object: {address}") from exc
+        if canonical_payload != payload:
+            raise StoreError(f"stored object is not canonical JSON: {address}")
+        return value
+
+    def get_verified(self, address: str, *, max_bytes: int) -> Any:
+        """Read one bounded generic object and verify its full content address."""
+
+        value = self.get_canonical(address, max_bytes=max_bytes)
+        if content_hash(value) != address:
+            raise StoreError(f"stored object does not match its content address: {address}")
+        return value
 
     def exists(self, address: str) -> bool:
         try:

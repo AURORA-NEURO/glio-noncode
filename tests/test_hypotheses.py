@@ -14,6 +14,7 @@ from glio_noncode.case_workflow import (
 )
 from glio_noncode.errors import ValidationError
 from glio_noncode.evidence import EvidenceGraph
+from glio_noncode.expression_claims import RNA_CONSEQUENCE_CHANNEL
 from glio_noncode.expression_evidence import (
     RegulatoryDirection,
     RNAConsequenceEvidence,
@@ -29,6 +30,7 @@ from glio_noncode.hypotheses import (
 from glio_noncode.models import Dossier, EdgeType
 from glio_noncode.replay import ReplayVerifier
 from glio_noncode.runtime import CaseRuntime
+from glio_noncode.serialization import content_hash
 
 from .helpers import fixture_manifest
 
@@ -60,7 +62,10 @@ def rna_row(index: int) -> RNAConsequenceEvidence:
     manifest = fixture_manifest()
     return RNAConsequenceEvidence(
         prediction_id=f"prediction-bounds-{index}",
-        prediction_address=f"prediction-address-{index}",
+        prediction_address=content_hash(
+            {"prediction_id": f"prediction-bounds-{index}"},
+            prefix="regulatory-effect-prediction",
+        ),
         variant_id=manifest.variants[0].variant_id,
         feature_id=manifest.candidate_elements[0].target_genes[0],
         context_key=manifest.context.key,
@@ -188,9 +193,7 @@ class HypothesisWorkLimitTests(unittest.TestCase):
                     builder.build(over, f"run-{field_name}-over")
 
     def test_work_limit_accepts_below_and_at_boundary_then_rejects_before_scanning(self) -> None:
-        builder = HypothesisBuilder(
-            limits=HypothesisWorkLimits(max_work_items=6)
-        )
+        builder = HypothesisBuilder(limits=HypothesisWorkLimits(max_work_items=6))
 
         below = builder.build(manifest_with_elements(1), "run-work-below")
         at = builder.build(manifest_with_elements(2), "run-work-at")
@@ -388,6 +391,60 @@ class HypothesisWorkLimitTests(unittest.TestCase):
             builder.validate_inputs(
                 manifest_with_elements(3),
                 rna_consequences=MustNotIterate(),
+            )
+
+    def test_retained_rna_owner_reaches_claim_and_causal_path_identity(self) -> None:
+        manifest = fixture_manifest()
+        row = rna_row(0)
+        owner = content_hash({"kind": "runtime-rna-consequence-batch"})
+        owned = HypothesisBuilder().build(
+            manifest,
+            "run-retained-rna-owner",
+            rna_consequences=(row,),
+            retained_owner_address=owner,
+        )
+        standalone = HypothesisBuilder().build(
+            manifest,
+            "run-retained-rna-owner",
+            rna_consequences=(row,),
+        )
+        owned_claim = next(
+            claim for claim in owned.claims if claim.channel == RNA_CONSEQUENCE_CHANNEL
+        )
+        standalone_claim = next(
+            claim for claim in standalone.claims if claim.channel == RNA_CONSEQUENCE_CHANNEL
+        )
+
+        self.assertEqual(owned_claim.depends_on, (owner,))
+        self.assertEqual(owned_claim.payload["retained_owner_address"], owner)
+        self.assertEqual(
+            owned_claim.payload["source_addresses"],
+            standalone_claim.payload["source_addresses"],
+        )
+        self.assertNotEqual(owned_claim.evidence_id, standalone_claim.evidence_id)
+        causal_edge = next(
+            edge
+            for hypothesis in owned.hypotheses
+            for edge in hypothesis.edges
+            if edge.edge_type is EdgeType.CAUSAL_PATH
+        )
+        path_claim = next(
+            claim for claim in owned.claims if claim.evidence_id in causal_edge.claim_ids
+        )
+        self.assertIn(owned_claim.evidence_id, path_claim.depends_on)
+
+        with self.assertRaisesRegex(ValidationError, "canonical sha256"):
+            HypothesisBuilder().build(
+                manifest,
+                "run-invalid-retained-rna-owner",
+                rna_consequences=(row,),
+                retained_owner_address="sha256:not-a-digest",
+            )
+        with self.assertRaisesRegex(ValidationError, "requires at least one RNA"):
+            HypothesisBuilder().build(
+                manifest,
+                "run-unused-retained-rna-owner",
+                retained_owner_address=owner,
             )
 
     def test_default_and_explicit_default_limits_preserve_complete_output(self) -> None:

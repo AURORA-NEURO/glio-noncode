@@ -108,9 +108,7 @@ class HypothesisBuilder:
         if isinstance(rna_consequences, (str, bytes, bytearray, Mapping)):
             raise ValidationError("rna_consequences must be an iterable of RNA consequences")
         try:
-            rows = tuple(
-                islice(iter(rna_consequences), self.limits.max_rna_consequences + 1)
-            )
+            rows = tuple(islice(iter(rna_consequences), self.limits.max_rna_consequences + 1))
         except TypeError as error:
             raise ValidationError("rna_consequences must be iterable") from error
         if len(rows) > self.limits.max_rna_consequences:
@@ -148,11 +146,7 @@ class HypothesisBuilder:
                         "configured maximum of "
                         f"{self.limits.max_targets_per_element} items"
                     )
-            per_variant = (
-                1
-                + max(1, len(element.target_genes))
-                + max(1, len(element.state_ids))
-            )
+            per_variant = 1 + max(1, len(element.target_genes)) + max(1, len(element.state_ids))
             contribution = variant_count * per_variant
             if contribution > self.limits.max_work_items - work_items:
                 raise ValidationError(
@@ -168,6 +162,7 @@ class HypothesisBuilder:
         run_id: str,
         *,
         rna_consequences: Iterable[RNAConsequenceEvidence] = (),
+        retained_owner_address: str | None = None,
     ) -> BuiltHypotheses:
         rna_rows = self.validate_inputs(
             manifest,
@@ -197,7 +192,11 @@ class HypothesisBuilder:
                 for variant, element in eligible_pairs
                 for gene_id in element.target_genes or ("unresolved_gene",)
             )
-            batch = match_rna_consequences(rna_rows, targets)
+            batch = match_rna_consequences(
+                rna_rows,
+                targets,
+                retained_owner_address=retained_owner_address,
+            )
             grouped: dict[str, list[EvidenceClaim]] = {}
             for claim in batch.claims:
                 grouped.setdefault(claim.edge_id, []).append(claim)
@@ -212,6 +211,8 @@ class HypothesisBuilder:
                     f"{len(batch.ambiguous_evidence_addresses)} RNA consequence item(s) matched "
                     "multiple eligible elements and were not attached."
                 )
+        elif retained_owner_address is not None:
+            raise ValidationError("retained_owner_address requires at least one RNA consequence")
 
         state_claims_by_edge = self._prepare_state_claims(manifest, eligible_pairs)
 
@@ -264,11 +265,7 @@ class HypothesisBuilder:
         grouped: dict[str, list[EvidenceClaim]] = {}
         for _, element in eligible_pairs:
             element_context = context_for_element(manifest.context, element)
-            source_id = (
-                element.target_genes[0]
-                if element.target_genes
-                else element.element_id
-            )
+            source_id = element.target_genes[0] if element.target_genes else element.element_id
             for state_id in element.state_ids or ("unresolved_state",):
                 edge_id = self._edge_id(source_id, state_id, EdgeType.GENE_TO_STATE)
                 reading = reading_from_feature(
@@ -368,9 +365,7 @@ class HypothesisBuilder:
                     payload={
                         "element_id": element.element_id,
                         "gene_id": gene_id,
-                        "link_method": element.annotations.get(
-                            "link_method", "adapter_input"
-                        ),
+                        "link_method": element.annotations.get("link_method", "adapter_input"),
                     },
                 ),
             )
@@ -408,9 +403,7 @@ class HypothesisBuilder:
             staged_claims = state_claims_by_edge[edge_id]
             for state_claim in staged_claims:
                 self._record_claim(graph, state_claim)
-            staged_claim_ids = tuple(
-                dict.fromkeys(claim.evidence_id for claim in staged_claims)
-            )
+            staged_claim_ids = tuple(dict.fromkeys(claim.evidence_id for claim in staged_claims))
             aggregate = graph.aggregate(
                 HypothesisEdge(
                     edge_id=edge_id,
@@ -488,11 +481,7 @@ class HypothesisBuilder:
                 aggregate=path_aggregate,
             ),
         )
-        edge_claims = tuple(
-            claim
-            for edge in edges
-            for claim in graph.for_edge(edge.edge_id)
-        )
+        edge_claims = tuple(claim for edge in edges for claim in graph.for_edge(edge.edge_id))
         missing = tuple(
             sorted(
                 {
@@ -512,8 +501,7 @@ class HypothesisBuilder:
                 {
                     claim.evidence_id
                     for claim in edge_claims
-                    if claim.state
-                    in (EvidenceState.MEASURED_NEGATIVE, EvidenceState.CONTRADICTORY)
+                    if claim.state in (EvidenceState.MEASURED_NEGATIVE, EvidenceState.CONTRADICTORY)
                 }
             )
         )
