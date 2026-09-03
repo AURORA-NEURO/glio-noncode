@@ -3,7 +3,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 
-from glio_noncode.atlas import AtlasBundle, AtlasObservation
+from glio_noncode.atlas import AtlasBundle, AtlasObservation, AtlasQuery
 from glio_noncode.data_sources import EnrichmentResult, ReferenceBundle
 from glio_noncode.models import EvidenceState, EvidenceTier, ReviewDecision, ReviewState
 from glio_noncode.replay import ReplayVerifier
@@ -131,13 +131,14 @@ class RuntimeTests(unittest.TestCase):
                     context_score=None,
                     receipt=None,
                 )
-                return AtlasBundle(
-                    variant_id=variant.variant_id,
-                    context_key=context.key,
+                return AtlasBundle.create(
+                    variant=variant,
+                    context=context,
+                    query=AtlasQuery(variant_id=variant.variant_id),
+                    source_bundle_address="sha256:" + "3" * 64,
                     observations=(observation,),
                     receipts=(),
                     warnings=(),
-                    content_address="sha256:" + "3" * 64,
                 )
 
         with tempfile.TemporaryDirectory() as directory:
