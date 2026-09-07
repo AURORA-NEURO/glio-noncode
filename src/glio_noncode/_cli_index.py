@@ -18731,6 +18731,14 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'expression',
         'analyze expression and allele-specific RNA evidence',
     ),
+    (
+        'report-capabilities',
+        'inspect supported report audiences, formats, and limits',
+    ),
+    (
+        'run-report',
+        'render one replay-verified persisted run',
+    ),
 )
 
 COMMANDS: tuple[tuple[str, str], ...] = tuple(sorted(LEGACY_COMMANDS + SHELL_COMMANDS))

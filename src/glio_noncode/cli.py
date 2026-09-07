@@ -15,6 +15,8 @@ Inspectable research hypothesis runtime.
 Focused commands:
   case                 prepare and run a case from source manifests
   expression           analyze expression and allele-specific RNA evidence
+  report-capabilities  inspect supported report audiences, formats, and limits
+  run-report           render one replay-verified persisted run
   commands list        list every available command
   commands search TERM search command names and summaries
   commands show NAME   show the summary for one command
@@ -112,6 +114,8 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_case").main(command_argv)
     if command == "expression":
         return importlib.import_module(f"{__package__}._cli_expression").main(command_argv)
+    if command in {"report-capabilities", "run-report"}:
+        return importlib.import_module(f"{__package__}._cli_report").main(arguments)
 
     # The generated index is intentionally not an allowlist. An unindexed token
     # always reaches the compatibility parser so index lag cannot remove commands.

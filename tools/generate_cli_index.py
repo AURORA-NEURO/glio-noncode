@@ -13,6 +13,8 @@ OUTPUT_PATH = SOURCE_ROOT / "glio_noncode" / "_cli_index.py"
 SHELL_COMMANDS = (
     ("case", "prepare and run a case from source manifests"),
     ("expression", "analyze expression and allele-specific RNA evidence"),
+    ("report-capabilities", "inspect supported report audiences, formats, and limits"),
+    ("run-report", "render one replay-verified persisted run"),
 )
 
 
