@@ -23,7 +23,7 @@ from .errors import GlioError, StoreError, ValidationError
 from .models import CaseManifest
 from .module_fabric_support import contains_private_key
 from .runtime import CaseRuntime
-from .serialization import canonical_json, content_hash, utc_now
+from .serialization import canonical_bytes, canonical_json, content_hash, utc_now
 from .storage import _address_digest, _atomic_write_text, _filesystem_lock, _run_lock
 
 BATCH_RUNTIME_VERSION = "batch-runtime-v1"
@@ -32,6 +32,14 @@ BATCH_HARD_MAX_ITEMS = 1000
 BATCH_CATALOG_DEFAULT_LIMIT = 25
 BATCH_CATALOG_MAX_LIMIT = 100
 BATCH_ITEM_STATES = ("accepted", "failed")
+_HARD_MAX_BATCH_INDEX_BYTES = 64 * 1024
+_HARD_MAX_BATCH_INPUT_BYTES = 128 * 1024 * 1024
+_HARD_MAX_BATCH_RESULT_BYTES = 32 * 1024 * 1024
+_HARD_MAX_BATCH_ITEM_INPUT_BYTES = 128 * 1024 * 1024
+MAX_BATCH_INDEX_BYTES = _HARD_MAX_BATCH_INDEX_BYTES
+MAX_BATCH_INPUT_BYTES = _HARD_MAX_BATCH_INPUT_BYTES
+MAX_BATCH_RESULT_BYTES = _HARD_MAX_BATCH_RESULT_BYTES
+MAX_BATCH_ITEM_INPUT_BYTES = _HARD_MAX_BATCH_ITEM_INPUT_BYTES
 _BATCH_LOCK_ATTEMPTS = 20
 _BATCH_RUN_ID_RE = re.compile(r"run-[0-9a-f]{24}\Z")
 _BATCH_ITEM_FIELDS = frozenset(
@@ -73,9 +81,20 @@ _BATCH_INPUT_FIELDS = frozenset(
 )
 
 
-def _require_exact_fields(
-    raw: Mapping[str, Any], expected: frozenset[str], label: str
-) -> None:
+def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError(f"duplicate JSON object field: {key}")
+        value[key] = item
+    return value
+
+
+def _invalid_json_constant(value: str) -> None:
+    raise ValueError(f"non-finite JSON number: {value}")
+
+
+def _require_exact_fields(raw: Mapping[str, Any], expected: frozenset[str], label: str) -> None:
     actual = frozenset(raw)
     if actual != expected:
         missing = ", ".join(sorted(expected - actual)) or "none"
@@ -93,7 +112,7 @@ def _required_field(raw: Mapping[str, Any], field: str) -> Any:
 
 def _required_string(raw: Mapping[str, Any], field: str, *, allow_empty: bool = False) -> str:
     value = _required_field(raw, field)
-    if not isinstance(value, str) or (not allow_empty and not value.strip()):
+    if type(value) is not str or (not allow_empty and not value.strip()):
         raise ValidationError(f"batch {field} must be a string")
     return value
 
@@ -102,7 +121,7 @@ def _optional_string(raw: Mapping[str, Any], field: str) -> str | None:
     value = _required_field(raw, field)
     if value is None:
         return None
-    if not isinstance(value, str):
+    if type(value) is not str:
         raise ValidationError(f"batch {field} must be a string or null")
     return value
 
@@ -116,7 +135,7 @@ def _required_integer(raw: Mapping[str, Any], field: str) -> int:
 
 def _required_boolean(raw: Mapping[str, Any], field: str) -> bool:
     value = _required_field(raw, field)
-    if not isinstance(value, bool):
+    if type(value) is not bool:
         raise ValidationError(f"batch {field} must be a boolean")
     return value
 
@@ -261,7 +280,17 @@ class BatchItemResult:
         expected_address = content_hash(body, prefix="batch-item")
         if serialized_address != expected_address:
             raise ValidationError("batch item content address does not match its fields")
-        item = cls(**body, content_address=serialized_address)
+        item = cls(
+            index=index,
+            case_id=case_id,
+            state=state,
+            input_address=input_address,
+            run_id=run_id,
+            dossier_address=dossier_address,
+            error_code=error_code,
+            error_message=error_message,
+            content_address=serialized_address,
+        )
         if serialized_accepted != item.accepted:
             raise ValidationError("batch item accepted state does not match its fields")
         return item
@@ -487,7 +516,17 @@ def _item(
         "error_code": error_code,
         "error_message": error_message,
     }
-    return BatchItemResult(**body, content_address=content_hash(body, prefix="batch-item"))
+    return BatchItemResult(
+        index=index,
+        case_id=case_id,
+        state=state,
+        input_address=input_address,
+        run_id=run_id,
+        dossier_address=dossier_address,
+        error_code=error_code,
+        error_message=error_message,
+        content_address=content_hash(body, prefix="batch-item"),
+    )
 
 
 def _error_fields(exc: Exception) -> tuple[str, str]:
@@ -522,14 +561,21 @@ class BatchRuntime:
         if not path.exists():
             raise StoreError("batch not found")
         try:
-            payload = path.read_bytes()
+            with path.open("rb") as handle:
+                payload = handle.read(_HARD_MAX_BATCH_INDEX_BYTES + 1)
         except OSError as exc:
             raise StoreError("batch index could not be read") from exc
+        if len(payload) > _HARD_MAX_BATCH_INDEX_BYTES:
+            raise StoreError("batch index exceeds its byte ceiling")
         try:
-            raw = json.loads(payload.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raw = json.loads(
+                payload.decode("utf-8"),
+                object_pairs_hook=_unique_json_object,
+                parse_constant=_invalid_json_constant,
+            )
+        except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as exc:
             raise StoreError("invalid batch index") from exc
-        if not isinstance(raw, Mapping):
+        if type(raw) is not dict:
             raise StoreError("invalid batch index")
         try:
             if canonical_json(raw).encode("utf-8") != payload:
@@ -558,23 +604,26 @@ class BatchRuntime:
     def _get_unlocked(self, batch_id: str, path: Path) -> BatchResult:
         index = self._read_index_unlocked(path, batch_id)
         try:
-            input_payload = self.runtime.store.store.get(index.input_address)
-        except (OSError, UnicodeError) as exc:
+            input_payload = self.runtime.store.store.get_verified(
+                index.input_address,
+                max_bytes=_HARD_MAX_BATCH_INPUT_BYTES,
+            )
+        except (OSError, StoreError, UnicodeError) as exc:
             raise StoreError("batch input object could not be read") from exc
-        if (
-            not isinstance(input_payload, Mapping)
-            or content_hash(input_payload) != index.input_address
-        ):
+        if type(input_payload) is not dict:
             raise StoreError("batch input address mismatch")
         try:
             _require_exact_fields(input_payload, _BATCH_INPUT_FIELDS, "batch input")
         except ValidationError as exc:
             raise StoreError("invalid batch input payload") from exc
         try:
-            payload = self.runtime.store.store.get(index.result_address)
-        except (OSError, UnicodeError) as exc:
+            payload = self.runtime.store.store.get_verified(
+                index.result_address,
+                max_bytes=_HARD_MAX_BATCH_RESULT_BYTES,
+            )
+        except (OSError, StoreError, UnicodeError) as exc:
             raise StoreError("batch result object could not be read") from exc
-        if not isinstance(payload, Mapping) or content_hash(payload) != index.result_address:
+        if type(payload) is not dict:
             raise StoreError("batch result address mismatch")
         try:
             result = BatchResult.from_payload(payload, result_address=index.result_address)
@@ -608,8 +657,11 @@ class BatchRuntime:
             if item.input_address != expected_item_address:
                 raise StoreError("batch item input pointer mismatch")
             try:
-                stored_item_input = self.runtime.store.store.get(expected_item_address)
-            except (OSError, UnicodeError) as exc:
+                stored_item_input = self.runtime.store.store.get_verified(
+                    expected_item_address,
+                    max_bytes=_HARD_MAX_BATCH_ITEM_INPUT_BYTES,
+                )
+            except (OSError, StoreError, UnicodeError) as exc:
                 raise StoreError("batch item input object could not be read") from exc
             if stored_item_input != item_input:
                 raise StoreError("batch item input object mismatch")
@@ -621,26 +673,20 @@ class BatchRuntime:
                 raise StoreError("accepted batch item manifest must be an object")
             try:
                 manifest = CaseManifest.from_dict(raw_manifest)
-                run_record = self.runtime.get_run(item.run_id or "")
-                dossier = self.runtime.get_dossier(item.dossier_address or "")
+                snapshot = self.runtime.load_run_snapshot(item.run_id or "")
             except (GlioError, OSError, KeyError, TypeError, ValueError) as exc:
                 raise StoreError("accepted batch item closure could not be reopened") from exc
-            dossier_body = (
-                {key: value for key, value in dossier.items() if key != "content_address"}
-                if isinstance(dossier, Mapping)
-                else {}
-            )
+            run_record = snapshot.run_record
+            dossier = snapshot.dossier
             if (
                 item.case_id != manifest.case_id
                 or item.run_id != CaseRuntime._run_id(manifest)
                 or run_record.get("run_id") != item.run_id
                 or run_record.get("input_address") != manifest.content_address
-                or not isinstance(dossier, Mapping)
-                or dossier.get("content_address") != item.dossier_address
-                or content_hash(dossier_body) != item.dossier_address
-                or dossier.get("run_id") != item.run_id
-                or dossier.get("case_id") != item.case_id
-                or dossier.get("input_address") != manifest.content_address
+                or dossier.content_address != item.dossier_address
+                or dossier.run_id != item.run_id
+                or dossier.case_id != item.case_id
+                or dossier.input_address != manifest.content_address
             ):
                 raise StoreError("accepted batch item run closure mismatch")
         return result
@@ -719,9 +765,10 @@ class BatchRuntime:
         results: list[BatchItemResult] = []
         for index, raw_manifest in enumerate(rows):
             case_id = _case_id(raw_manifest)
-            item_input_address = self.runtime.store.store.put(
-                {"batch_id": batch_id, "index": index, "manifest": raw_manifest}
-            )
+            item_input = {"batch_id": batch_id, "index": index, "manifest": raw_manifest}
+            if len(canonical_bytes(item_input)) > _HARD_MAX_BATCH_ITEM_INPUT_BYTES:
+                raise ValidationError("batch item input exceeds its byte ceiling")
+            item_input_address = self.runtime.store.store.put(item_input)
             try:
                 if not isinstance(raw_manifest, Mapping):
                     raise ValidationError("manifest item must be an object")
@@ -786,7 +833,10 @@ class BatchRuntime:
             accepted=accepted_count == len(rows),
             content_address="",
         )
-        result_address = self.runtime.store.store.put(payload._payload())
+        result_payload = payload._payload()
+        if len(canonical_bytes(result_payload)) > _HARD_MAX_BATCH_RESULT_BYTES:
+            raise ValidationError("batch result exceeds its byte ceiling")
+        result_address = self.runtime.store.store.put(result_payload)
         final = BatchResult(
             batch_id=payload.batch_id,
             label=payload.label,
@@ -837,6 +887,8 @@ class BatchRuntime:
             "window_bp": effective_window,
             "max_items": effective_max,
         }
+        if len(canonical_bytes(raw_document)) > _HARD_MAX_BATCH_INPUT_BYTES:
+            raise ValidationError("batch input exceeds its byte ceiling")
         input_address = self.runtime.store.store.put(raw_document)
         batch_id = f"batch-{input_address.split(':', 1)[1]}"
         index_path = self._index_path(batch_id)
@@ -895,7 +947,16 @@ class BatchRuntime:
                     "error": None,
                 }
                 row = BatchCatalogRow(
-                    **row_body,
+                    batch_id=result.batch_id,
+                    label=result.label,
+                    created_at=result.created_at,
+                    requested_count=result.requested_count,
+                    accepted_count=result.accepted_count,
+                    failed_count=result.failed_count,
+                    partial=result.partial,
+                    result_address=result.result_address,
+                    accepted=result.accepted,
+                    error=None,
                     content_address=content_hash(row_body, prefix="batch-catalog-row"),
                 )
             except (GlioError, OSError, ValueError, TypeError, KeyError):
@@ -912,7 +973,16 @@ class BatchRuntime:
                     "error": "batch could not be reopened or verified",
                 }
                 row = BatchCatalogRow(
-                    **row_body,
+                    batch_id=batch_id,
+                    label=None,
+                    created_at="",
+                    requested_count=0,
+                    accepted_count=0,
+                    failed_count=0,
+                    partial=False,
+                    result_address=None,
+                    accepted=False,
+                    error="batch could not be reopened or verified",
                     content_address=content_hash(row_body, prefix="batch-catalog-row"),
                 )
             haystack = " ".join((row.batch_id, row.label or "", row.error or "")).lower()
@@ -921,12 +991,13 @@ class BatchRuntime:
             rows.append(row)
         rows.sort(key=lambda row: (row.created_at, row.batch_id))
         selected = tuple(rows[offset : offset + limit])
+        has_more = offset + len(selected) < len(rows)
         body = {
             "rows": selected,
             "total_count": len(rows),
             "offset": offset,
             "limit": limit,
-            "has_more": offset + len(selected) < len(rows),
+            "has_more": has_more,
             "text": text,
         }
         public_body = body | {"rows": [row.to_dict() for row in selected]}
@@ -936,7 +1007,7 @@ class BatchRuntime:
             total_count=len(rows),
             offset=offset,
             limit=limit,
-            has_more=body["has_more"],
+            has_more=has_more,
             accepted=accepted,
             content_address=content_hash(
                 body | {"accepted": accepted}, prefix="batch-catalog-page"

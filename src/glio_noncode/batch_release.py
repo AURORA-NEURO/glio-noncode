@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .batch_runtime import BatchResult, BatchRuntime
+from .batch_runtime import MAX_BATCH_INPUT_BYTES, BatchResult, BatchRuntime
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .runtime import CaseRuntime
@@ -112,7 +112,9 @@ class BatchReleaseBundle:
             "failed_check_ids": list(self.failed_check_ids),
             "gate": self.gate,
             "checks": [item.to_dict() for item in self.checks],
-            "artifacts": [item.to_dict(include_payload=include_payloads) for item in self.artifacts],
+            "artifacts": [
+                item.to_dict(include_payload=include_payloads) for item in self.artifacts
+            ],
             "content_address": self.content_address,
         }
 
@@ -150,7 +152,9 @@ class BatchReleaseVerification:
         }
 
 
-def _check(check_id: str, passed: bool, observed: Any, required: Any, detail: str) -> BatchReleaseCheck:
+def _check(
+    check_id: str, passed: bool, observed: Any, required: Any, detail: str
+) -> BatchReleaseCheck:
     body = {
         "check_id": check_id,
         "passed": passed,
@@ -158,7 +162,9 @@ def _check(check_id: str, passed: bool, observed: Any, required: Any, detail: st
         "required": required,
         "detail": detail,
     }
-    return BatchReleaseCheck(**body, content_address=content_hash(body, prefix="batch-release-check"))
+    return BatchReleaseCheck(
+        **body, content_address=content_hash(body, prefix="batch-release-check")
+    )
 
 
 def _csv_payload(headers: tuple[str, ...], rows: tuple[tuple[Any, ...], ...]) -> str:
@@ -169,7 +175,9 @@ def _csv_payload(headers: tuple[str, ...], rows: tuple[tuple[Any, ...], ...]) ->
     return output.getvalue()
 
 
-def _artifact(artifact_id: str, filename: str, media_type: str, payload: str) -> BatchReleaseArtifact:
+def _artifact(
+    artifact_id: str, filename: str, media_type: str, payload: str
+) -> BatchReleaseArtifact:
     encoded = payload.encode("utf-8")
     return BatchReleaseArtifact(
         artifact_id=artifact_id,
@@ -295,7 +303,9 @@ def _payloads(
         "accepted",
     )
     item_rows = _item_rows(result)
-    failure_rows = tuple(row for row, item in zip(item_rows, result.items, strict=True) if not item.accepted)
+    failure_rows = tuple(
+        row for row, item in zip(item_rows, result.items, strict=True) if not item.accepted
+    )
     run_rows = tuple(
         (item.index, item.case_id, item.run_id or "", item.dossier_address or "")
         for item in result.items
@@ -329,7 +339,11 @@ def _payloads(
         ),
         "batch-summary": ("batch-summary.json", "application/json", canonical_json(summary)),
         "batch-items-csv": ("batch-items.csv", "text/csv", _csv_payload(headers, item_rows)),
-        "batch-failures-csv": ("batch-failures.csv", "text/csv", _csv_payload(headers, failure_rows)),
+        "batch-failures-csv": (
+            "batch-failures.csv",
+            "text/csv",
+            _csv_payload(headers, failure_rows),
+        ),
         "batch-runs-csv": (
             "batch-runs.csv",
             "text/csv",
@@ -359,13 +373,55 @@ def build_batch_release_bundle(result: BatchResult, input_payload: Any) -> Batch
     }
     release_id = f"batch-release-{result.batch_id.split('-', 1)[-1][:24]}"
     preliminary_checks = (
-        _check("input-address", input_address_valid, input_address_valid, True, "the canonical batch input matches its stored address"),
-        _check("result-address", result_address_valid, result_address_valid, True, "the canonical batch result matches its stored address"),
-        _check("items-complete", result.completed_count == result.requested_count, result.completed_count, result.requested_count, "every requested item has a terminal outcome"),
-        _check("item-counts", result.accepted_count + result.failed_count == result.completed_count, result.accepted_count + result.failed_count, result.completed_count, "accepted and failed counts reconcile with completed items"),
-        _check("batch-accepted", result.accepted, result.accepted, True, "release requires every batch item to succeed"),
-        _check("input-public-boundary", not contains_private_key(public_input), not contains_private_key(public_input), True, "the portable input projection omits private subject keys"),
-        _check("public-boundary", not contains_private_key(public_body), not contains_private_key(public_body), True, "release metadata contains no private projection key"),
+        _check(
+            "input-address",
+            input_address_valid,
+            input_address_valid,
+            True,
+            "the canonical batch input matches its stored address",
+        ),
+        _check(
+            "result-address",
+            result_address_valid,
+            result_address_valid,
+            True,
+            "the canonical batch result matches its stored address",
+        ),
+        _check(
+            "items-complete",
+            result.completed_count == result.requested_count,
+            result.completed_count,
+            result.requested_count,
+            "every requested item has a terminal outcome",
+        ),
+        _check(
+            "item-counts",
+            result.accepted_count + result.failed_count == result.completed_count,
+            result.accepted_count + result.failed_count,
+            result.completed_count,
+            "accepted and failed counts reconcile with completed items",
+        ),
+        _check(
+            "batch-accepted",
+            result.accepted,
+            result.accepted,
+            True,
+            "release requires every batch item to succeed",
+        ),
+        _check(
+            "input-public-boundary",
+            not contains_private_key(public_input),
+            not contains_private_key(public_input),
+            True,
+            "the portable input projection omits private subject keys",
+        ),
+        _check(
+            "public-boundary",
+            not contains_private_key(public_body),
+            not contains_private_key(public_body),
+            True,
+            "release metadata contains no private projection key",
+        ),
     )
     raw_payloads = _payloads(result, public_input, preliminary_checks, release_id)
     artifacts = tuple(
@@ -374,13 +430,16 @@ def build_batch_release_bundle(result: BatchResult, input_payload: Any) -> Batch
     )
     artifact_check = _check(
         "artifact-addresses",
-        all(artifact.content_address.startswith("batch-release-artifact:") for artifact in artifacts),
+        all(
+            artifact.content_address.startswith("batch-release-artifact:") for artifact in artifacts
+        ),
         len(artifacts),
         len(artifacts),
         "every release artifact is addressed by its exact UTF-8 bytes",
     )
     checks = preliminary_checks + (artifact_check,)
     accepted = all(item.passed for item in checks)
+    state = "ready" if accepted else "blocked"
     gate = {
         "release_id": release_id,
         "batch_id": result.batch_id,
@@ -393,7 +452,7 @@ def build_batch_release_bundle(result: BatchResult, input_payload: Any) -> Batch
         "batch_id": result.batch_id,
         "input_address": result.input_address,
         "result_address": result.result_address,
-        "state": "ready" if accepted else "blocked",
+        "state": state,
         "accepted": accepted,
         "artifact_count": len(artifacts),
         "failed_check_ids": [item.check_id for item in checks if not item.passed],
@@ -406,7 +465,7 @@ def build_batch_release_bundle(result: BatchResult, input_payload: Any) -> Batch
         batch_id=result.batch_id,
         input_address=result.input_address,
         result_address=result.result_address,
-        state=body["state"],
+        state=state,
         accepted=accepted,
         gate=gate,
         checks=checks,
@@ -420,9 +479,12 @@ def build_persisted_batch_release(runtime: CaseRuntime, batch_id: str) -> BatchR
 
     batch_runtime = BatchRuntime(runtime=runtime)
     result = batch_runtime.get(batch_id)
-    input_payload = runtime.store.store.get(result.input_address)
-    if content_hash(input_payload) != result.input_address:
-        raise ValidationError("cannot release a batch with an invalid input address")
+    input_payload = runtime.store.store.get_verified(
+        result.input_address,
+        max_bytes=MAX_BATCH_INPUT_BYTES,
+    )
+    if type(input_payload) is not dict:
+        raise ValidationError("cannot release a batch with an invalid input object")
     return build_batch_release_bundle(result, input_payload)
 
 
@@ -495,7 +557,9 @@ def verify_batch_release_bundle(destination: str | Path) -> BatchReleaseVerifica
             failed.append(artifact_id)
             continue
         payload = path.read_bytes()
-        if hash_bytes(payload, prefix="batch-release-artifact") != str(artifact.get("content_address", "")):
+        if hash_bytes(payload, prefix="batch-release-artifact") != str(
+            artifact.get("content_address", "")
+        ):
             failed.append(artifact_id)
             continue
         try:
@@ -528,10 +592,14 @@ def verify_batch_release_bundle(destination: str | Path) -> BatchReleaseVerifica
             continue
         copy = dict(artifact)
         path = safe_path(str(copy.get("filename", "")))
-        copy["payload"] = path.read_text(encoding="utf-8", errors="replace") if path and path.is_file() else ""
+        copy["payload"] = (
+            path.read_text(encoding="utf-8", errors="replace") if path and path.is_file() else ""
+        )
         reconstructed_artifacts.append(copy)
     reconstructed["artifacts"] = reconstructed_artifacts
-    manifest_address_valid = content_hash(reconstructed, prefix="batch-release") == manifest.get("content_address")
+    manifest_address_valid = content_hash(reconstructed, prefix="batch-release") == manifest.get(
+        "content_address"
+    )
     if not manifest_address_valid:
         warnings.append("manifest content address mismatch")
     accepted = (
@@ -552,7 +620,14 @@ def verify_batch_release_bundle(destination: str | Path) -> BatchReleaseVerifica
         "warnings": tuple(warnings),
     }
     return BatchReleaseVerification(
-        **body,
+        path=str(root),
+        release_id=str(manifest.get("release_id", "")),
+        accepted=accepted,
+        manifest_address_valid=manifest_address_valid,
+        artifact_count=len(artifacts),
+        verified_artifact_count=verified,
+        failed_artifact_ids=tuple(failed),
+        warnings=tuple(warnings),
         content_address=content_hash(body, prefix="batch-release-verification"),
     )
 
