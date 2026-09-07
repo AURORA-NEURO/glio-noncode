@@ -61,7 +61,7 @@ class CuratedPublicSurfaceTests(unittest.TestCase):
         self.assertEqual(_public_surface.CURATED_EXPORTS, expected)
         self.assertEqual(_public_surface.CURATED_ALL, tuple(expected))
         self.assertEqual(_public_surface.ALL[-len(expected) :], tuple(expected))
-        self.assertEqual(len(expected), 160)
+        self.assertEqual(len(expected), 224)
         for name, descriptor in expected.items():
             self.assertEqual(_public_surface.ALL.count(name), 1, name)
             self.assertEqual(_public_surface.EXPORTS[name], descriptor)
@@ -184,6 +184,32 @@ class CuratedPublicSurfaceTests(unittest.TestCase):
         for name in ("AtlasQuery", "AtlasBundle", "PublicAtlasRetriever"):
             self.assertNotIn(name, migration.CURATED_EXPORTS)
             self.assertIs(getattr(glio_noncode, name), getattr(atlas, name))
+
+    def test_existing_runtime_root_bindings_are_not_reclassified_as_curated(self) -> None:
+        expected_identities = {
+            "CaseRuntime": ("glio_noncode.runtime", "CaseRuntime"),
+            "RunInspection": ("glio_noncode.run_catalog", "RunInspection"),
+            "inspect_run": ("glio_noncode.run_catalog", "inspect_run"),
+        }
+        for name, descriptor in expected_identities.items():
+            self.assertNotIn(name, migration.CURATED_EXPORTS)
+            self.assertEqual(_public_surface.EXPORTS[name], descriptor)
+            self.assertIs(getattr(glio_noncode, name), _resolve(descriptor))
+
+    def test_report_aliases_preserve_canonical_callable_identity(self) -> None:
+        reports = importlib.import_module("glio_noncode.reports")
+        expected_aliases = {
+            "summarize_report_dossier": "summarize",
+            "build_dossier_report": "build_report",
+            "render_dossier_markdown": "render_markdown",
+            "render_dossier_json": "render_json",
+            "render_dossier_report": "render_report",
+            "render_dossier_report_json": "render_report_json",
+            "render_dossier_report_markdown": "render_report_markdown",
+            "dossier_report_capabilities": "report_capabilities",
+        }
+        for public_name, canonical_name in expected_aliases.items():
+            self.assertIs(getattr(glio_noncode, public_name), getattr(reports, canonical_name))
 
     def test_static_stub_declares_every_curated_name(self) -> None:
         stub_path = REPOSITORY_ROOT / "src" / "glio_noncode" / "__init__.pyi"

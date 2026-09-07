@@ -509,6 +509,181 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
     "ValidationReport": ("glio_noncode.validation", "ValidationReport"),
     "ContractValidator": ("glio_noncode.validation", "ContractValidator"),
     "ReleaseGate": ("glio_noncode.validation", "ReleaseGate"),
+    "MAX_QUALITY_HYPOTHESES": (
+        "glio_noncode.quality",
+        "MAX_QUALITY_HYPOTHESES",
+    ),
+    "MAX_QUALITY_EVIDENCE_CLAIMS": (
+        "glio_noncode.quality",
+        "MAX_QUALITY_EVIDENCE_CLAIMS",
+    ),
+    "MAX_QUALITY_METRICS": (
+        "glio_noncode.quality",
+        "MAX_QUALITY_METRICS",
+    ),
+    "MAX_QUALITY_LIMITATIONS": (
+        "glio_noncode.quality",
+        "MAX_QUALITY_LIMITATIONS",
+    ),
+    "MAX_QUALITY_GATE_ISSUE_CODES": (
+        "glio_noncode.quality",
+        "MAX_QUALITY_GATE_ISSUE_CODES",
+    ),
+    "MAX_QUALITY_TEXT_CHARACTERS": (
+        "glio_noncode.quality",
+        "MAX_QUALITY_TEXT_CHARACTERS",
+    ),
+    "MAX_QUALITY_TOTAL_TEXT_CHARACTERS": (
+        "glio_noncode.quality",
+        "MAX_QUALITY_TOTAL_TEXT_CHARACTERS",
+    ),
+    "MAX_QUALITY_REPORT_BYTES": (
+        "glio_noncode.quality",
+        "MAX_QUALITY_REPORT_BYTES",
+    ),
+    "QUALITY_METRIC_IDS": ("glio_noncode.quality", "QUALITY_METRIC_IDS"),
+    "QUALITY_THRESHOLD_VERSION": (
+        "glio_noncode.quality",
+        "QUALITY_THRESHOLD_VERSION",
+    ),
+    "QUALITY_REPORT_VERSION": (
+        "glio_noncode.quality",
+        "QUALITY_REPORT_VERSION",
+    ),
+    "QualityLimits": ("glio_noncode.quality", "QualityLimits"),
+    "DEFAULT_QUALITY_LIMITS": (
+        "glio_noncode.quality",
+        "DEFAULT_QUALITY_LIMITS",
+    ),
+    "QualityThresholds": ("glio_noncode.quality", "QualityThresholds"),
+    "DEFAULT_QUALITY_THRESHOLDS": (
+        "glio_noncode.quality",
+        "DEFAULT_QUALITY_THRESHOLDS",
+    ),
+    "QualityBand": ("glio_noncode.quality", "QualityBand"),
+    "QualityMetric": ("glio_noncode.quality", "QualityMetric"),
+    "QualityReport": ("glio_noncode.quality", "QualityReport"),
+    "QualityEvaluator": ("glio_noncode.quality", "QualityEvaluator"),
+    "validate_rna_consequence": (
+        "glio_noncode.expression_claims",
+        "validate_rna_consequence",
+    ),
+    "ADAPTER_METADATA_VERSION": (
+        "glio_noncode.adapters",
+        "ADAPTER_METADATA_VERSION",
+    ),
+    "ADAPTER_REGISTRY_VERSION": (
+        "glio_noncode.adapters",
+        "ADAPTER_REGISTRY_VERSION",
+    ),
+    "ADAPTER_RESOLUTION_VERSION": (
+        "glio_noncode.adapters",
+        "ADAPTER_RESOLUTION_VERSION",
+    ),
+    "ADAPTER_HARD_MAX_REGISTERED": (
+        "glio_noncode.adapters",
+        "ADAPTER_HARD_MAX_REGISTERED",
+    ),
+    "ADAPTER_HARD_MAX_SELECTED": (
+        "glio_noncode.adapters",
+        "ADAPTER_HARD_MAX_SELECTED",
+    ),
+    "ADAPTER_HARD_MAX_VARIANTS": (
+        "glio_noncode.adapters",
+        "ADAPTER_HARD_MAX_VARIANTS",
+    ),
+    "ADAPTER_HARD_MAX_ELEMENTS_PER_VARIANT": (
+        "glio_noncode.adapters",
+        "ADAPTER_HARD_MAX_ELEMENTS_PER_VARIANT",
+    ),
+    "ADAPTER_HARD_MAX_ELEMENTS_TOTAL": (
+        "glio_noncode.adapters",
+        "ADAPTER_HARD_MAX_ELEMENTS_TOTAL",
+    ),
+    "ADAPTER_HARD_MAX_CLAIMS_PER_ELEMENT": (
+        "glio_noncode.adapters",
+        "ADAPTER_HARD_MAX_CLAIMS_PER_ELEMENT",
+    ),
+    "ADAPTER_HARD_MAX_ITEM_BYTES": (
+        "glio_noncode.adapters",
+        "ADAPTER_HARD_MAX_ITEM_BYTES",
+    ),
+    "ADAPTER_HARD_MAX_MANIFEST_BYTES": (
+        "glio_noncode.adapters",
+        "ADAPTER_HARD_MAX_MANIFEST_BYTES",
+    ),
+    "ADAPTER_HARD_MAX_REPORT_BYTES": (
+        "glio_noncode.adapters",
+        "ADAPTER_HARD_MAX_REPORT_BYTES",
+    ),
+    "AdapterLimits": ("glio_noncode.adapters", "AdapterLimits"),
+    "AdapterMetadata": ("glio_noncode.adapters", "AdapterMetadata"),
+    "AdapterRegistry": ("glio_noncode.adapters", "AdapterRegistry"),
+    "AdapterRegistrySnapshot": (
+        "glio_noncode.adapters",
+        "AdapterRegistrySnapshot",
+    ),
+    "AdapterRegistrySnapshotEntry": (
+        "glio_noncode.adapters",
+        "AdapterRegistrySnapshotEntry",
+    ),
+    "AdapterResolutionItem": (
+        "glio_noncode.adapters",
+        "AdapterResolutionItem",
+    ),
+    "AdapterResolutionReport": (
+        "glio_noncode.adapters",
+        "AdapterResolutionReport",
+    ),
+    "EvidenceAdapter": ("glio_noncode.adapters", "EvidenceAdapter"),
+    "VariantAwareEvidenceAdapter": (
+        "glio_noncode.adapters",
+        "VariantAwareEvidenceAdapter",
+    ),
+    "RegistryEntry": ("glio_noncode.adapters", "RegistryEntry"),
+    "StaticElementAdapter": (
+        "glio_noncode.adapters",
+        "StaticElementAdapter",
+    ),
+    "REPORT_SUMMARY_VERSION": (
+        "glio_noncode.reports",
+        "REPORT_SUMMARY_VERSION",
+    ),
+    "REPORT_VERSION": ("glio_noncode.reports", "REPORT_VERSION"),
+    "RENDERED_REPORT_VERSION": (
+        "glio_noncode.reports",
+        "RENDERED_REPORT_VERSION",
+    ),
+    "ReportLimits": ("glio_noncode.reports", "ReportLimits"),
+    "DEFAULT_REPORT_LIMITS": (
+        "glio_noncode.reports",
+        "DEFAULT_REPORT_LIMITS",
+    ),
+    "ReportAudience": ("glio_noncode.reports", "ReportAudience"),
+    "ReportFormat": ("glio_noncode.reports", "ReportFormat"),
+    "DossierSummary": ("glio_noncode.reports", "DossierSummary"),
+    "DossierReport": ("glio_noncode.reports", "DossierReport"),
+    "RenderedReport": ("glio_noncode.reports", "RenderedReport"),
+    "summarize_report_dossier": ("glio_noncode.reports", "summarize"),
+    "build_dossier_report": ("glio_noncode.reports", "build_report"),
+    "render_dossier_markdown": ("glio_noncode.reports", "render_markdown"),
+    "render_dossier_json": ("glio_noncode.reports", "render_json"),
+    "render_dossier_report": ("glio_noncode.reports", "render_report"),
+    "render_dossier_report_json": (
+        "glio_noncode.reports",
+        "render_report_json",
+    ),
+    "render_dossier_report_markdown": (
+        "glio_noncode.reports",
+        "render_report_markdown",
+    ),
+    "dossier_report_capabilities": (
+        "glio_noncode.reports",
+        "report_capabilities",
+    ),
+    "VerifiedRunSnapshot": ("glio_noncode.runtime", "VerifiedRunSnapshot"),
+    "ObjectStore": ("glio_noncode.storage", "ObjectStore"),
+    "RunStore": ("glio_noncode.storage", "RunStore"),
 }
 
 
