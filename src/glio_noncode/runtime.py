@@ -7,7 +7,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
-from .atlas import AtlasQuery, PublicAtlasRetriever
+from .atlas import AtlasBundle, AtlasQuery, PublicAtlasRetriever
 from .data_sources import EnrichmentResult, PublicReferenceRetriever
 from .errors import PolicyViolation, StoreError, ValidationError
 from .events import MAX_EVENT_RECORD_BYTES, EventLog
@@ -24,6 +24,7 @@ from .hypotheses import HypothesisBuilder, HypothesisWorkLimits
 from .models import (
     CaseManifest,
     Dossier,
+    EdgeType,
     EvidenceClaim,
     ResearchStatus,
     ReviewDecision,
@@ -31,6 +32,7 @@ from .models import (
 )
 from .policy import PolicyDecision, ResearchPolicy
 from .replay import ReplayReport, ReplayVerifier
+from .scoring import element_relevance
 from .serialization import canonical_bytes, content_hash, freeze_json, jsonable, utc_now
 from .storage import RunStore
 from .validation import (
@@ -103,7 +105,9 @@ class VerifiedRunSnapshot:
 
     def __post_init__(self) -> None:
         if type(self.run_record) is not dict or set(self.run_record) != _VERIFIED_RUN_RECORD_FIELDS:
-            raise ValidationError("verified snapshot run_record must be an exact current run object")
+            raise ValidationError(
+                "verified snapshot run_record must be an exact current run object"
+            )
         if type(self.manifest) is not CaseManifest:
             raise ValidationError("verified snapshot manifest must be an exact CaseManifest")
         if type(self.event_record) is not dict:
@@ -246,6 +250,62 @@ class CaseRuntime:
         self._rna_input_max_bytes = rna_input_max_bytes
         self._logs: dict[str, EventLog] = {}
 
+    def _link_atlas_claims(
+        self,
+        manifest: CaseManifest,
+        bundles: tuple[AtlasBundle, ...],
+    ) -> tuple[tuple[EvidenceClaim, ...], tuple[str, ...]]:
+        """Bind variant-scoped atlas observations once to the best eligible element edge."""
+
+        if type(manifest) is not CaseManifest:
+            raise ValidationError("atlas claim linking requires an exact CaseManifest")
+        if type(bundles) is not tuple or any(type(bundle) is not AtlasBundle for bundle in bundles):
+            raise ValidationError("atlas claim linking requires exact AtlasBundle values")
+        if len(bundles) != len(manifest.variants):
+            raise ValidationError("atlas bundles must cover every manifest variant exactly once")
+        claims: list[EvidenceClaim] = []
+        warnings: list[str] = []
+        for variant, bundle in zip(manifest.variants, bundles, strict=True):
+            if bundle.variant_id != variant.variant_id:
+                raise ValidationError("atlas bundle order does not match manifest variants")
+            eligible = self.builder._eligible_elements(  # noqa: SLF001 - one runtime/builder seam
+                variant,
+                manifest.candidate_elements,
+            )
+            if not eligible:
+                if bundle.observations:
+                    warnings.append(
+                        f"Atlas observations for {variant.variant_id} were retained in their "
+                        "source bundle but not promoted to claims because no eligible element "
+                        "edge exists."
+                    )
+                continue
+            selected = min(
+                eligible,
+                key=lambda element: (
+                    -element_relevance(variant, element)[0],
+                    element.element_id,
+                ),
+            )
+            edge_id = self.builder._edge_id(  # noqa: SLF001 - deterministic builder contract
+                variant.variant_id,
+                selected.element_id,
+                EdgeType.VARIANT_TO_ELEMENT,
+            )
+            linked = bundle.to_evidence_claims(
+                variant=variant,
+                context=manifest.context,
+                edge_id=edge_id,
+            )
+            claims.extend(linked)
+            if linked and len(eligible) > 1:
+                warnings.append(
+                    f"Atlas observations for {variant.variant_id} were linked once to "
+                    f"highest-relevance element {selected.element_id}; {len(eligible) - 1} "
+                    "additional eligible element edge(s) were not duplicated."
+                )
+        return tuple(claims), tuple(warnings)
+
     def evaluate(
         self,
         manifest: CaseManifest,
@@ -263,12 +323,80 @@ class CaseRuntime:
             rna_consequences=rna_consequences,
         )
         self._enforce_policy_texts((manifest.case_id, manifest.requested_by), "manifest")
-        run_id = self._run_id(manifest, rna_rows)
+        submitted_input_address = manifest.content_address
+        build_manifest = manifest
+        source_records: dict[str, Mapping[str, Any]] = {}
+        source_receipts: tuple[Mapping[str, Any], ...] = ()
+        source_bundle_addresses: tuple[str, ...] = ()
+        reference_bundle_addresses: tuple[str, ...] = ()
+        reference_receipt_count = 0
+        atlas_bundle_addresses: tuple[str, ...] = ()
+        atlas_event_warnings: tuple[str, ...] = ()
+        runtime_warnings: tuple[str, ...] = ()
+        atlas_claims: tuple[EvidenceClaim, ...] = ()
+        enrichment: EnrichmentResult | None = None
+        if live_reference:
+            retriever = self.reference_retriever or PublicReferenceRetriever(
+                cache_root=Path(self.store.root) / "source-cache"
+            )
+            self.reference_retriever = retriever
+            enrichment = retriever.enrich_manifest(manifest)
+            build_manifest = enrichment.manifest
+            self._validate_manifest_contract(build_manifest, "enriched case manifest")
+            self.builder.validate_inputs(
+                build_manifest,
+                rna_consequences=rna_rows,
+            )
+            reference_records = tuple(bundle.to_dict() for bundle in enrichment.bundles)
+            reference_bundle_addresses = tuple(content_hash(record) for record in reference_records)
+            source_records.update(zip(reference_bundle_addresses, reference_records, strict=True))
+            source_receipts = tuple(
+                receipt.to_dict() for bundle in enrichment.bundles for receipt in bundle.receipts
+            )
+            reference_receipt_count = len(source_receipts)
+            runtime_warnings = enrichment.warnings
+            if self.atlas_retriever is not None or isinstance(retriever, PublicReferenceRetriever):
+                atlas_retriever = self.atlas_retriever or PublicAtlasRetriever(retriever)
+                atlas_bundles = tuple(
+                    (
+                        atlas_retriever.retrieve(
+                            variant,
+                            build_manifest.context,
+                            query=AtlasQuery(
+                                variant_id=variant.variant_id,
+                                window_bp=getattr(retriever, "window_bp", 2_000),
+                            ),
+                        )
+                        if isinstance(atlas_retriever, PublicAtlasRetriever)
+                        else atlas_retriever.retrieve(variant, build_manifest.context)
+                    )
+                    for variant in build_manifest.variants
+                )
+                atlas_records = tuple(bundle.to_dict() for bundle in atlas_bundles)
+                atlas_bundle_addresses = tuple(content_hash(record) for record in atlas_records)
+                source_records.update(zip(atlas_bundle_addresses, atlas_records, strict=True))
+                source_receipts += tuple(
+                    receipt.to_dict() for bundle in atlas_bundles for receipt in bundle.receipts
+                )
+                atlas_claims, atlas_link_warnings = self._link_atlas_claims(
+                    build_manifest,
+                    atlas_bundles,
+                )
+                atlas_warnings = tuple(
+                    warning for bundle in atlas_bundles for warning in bundle.warnings
+                )
+                atlas_event_warnings = tuple(dict.fromkeys(atlas_warnings + atlas_link_warnings))
+                runtime_warnings = tuple(
+                    dict.fromkeys(runtime_warnings + atlas_event_warnings)
+                )
+            source_bundle_addresses = tuple(source_records)
+
+        run_id = self._run_id(build_manifest, rna_rows)
         if live_reference and (self.store.runs / f"{run_id}.json").exists():
             conflict = StoreError(f"run already exists: {run_id}")
             raise ValidationError(f"run publication failed: {conflict}") from conflict
         log = EventLog(run_id)
-        input_record = manifest.to_dict()
+        input_record = build_manifest.to_dict()
         input_address = content_hash(input_record)
         rna_input: dict[str, Any] | None = None
         rna_input_address: str | None = None
@@ -307,81 +435,27 @@ class CaseRuntime:
             case_received_payload,
             event_id=f"evt-{run_id}-received",
         )
-        build_manifest = manifest
-        enrichment: EnrichmentResult | None = None
-        source_receipts: tuple[Mapping[str, Any], ...] = ()
-        source_bundle_addresses: tuple[str, ...] = ()
-        runtime_warnings: tuple[str, ...] = ()
-        atlas_claims: tuple[EvidenceClaim, ...] = ()
         if live_reference:
-            retriever = self.reference_retriever or PublicReferenceRetriever(
-                cache_root=Path(self.store.root) / "source-cache"
-            )
-            self.reference_retriever = retriever
-            enrichment = retriever.enrich_manifest(manifest)
-            build_manifest = enrichment.manifest
-            self.builder.validate_inputs(
-                build_manifest,
-                rna_consequences=rna_rows,
-            )
-            source_bundle_addresses = tuple(
-                self.store.store.put(bundle.to_dict()) for bundle in enrichment.bundles
-            )
-            source_receipts = tuple(
-                receipt.to_dict() for bundle in enrichment.bundles for receipt in bundle.receipts
-            )
-            runtime_warnings = enrichment.warnings
+            if enrichment is None:  # pragma: no cover - guarded by live preparation
+                raise ValidationError("live reference preparation is incomplete")
             log.append(
                 "public_reference_enriched",
                 {
-                    "bundle_addresses": list(source_bundle_addresses),
-                    "receipt_count": len(source_receipts),
-                    "warnings": list(runtime_warnings),
+                    "submitted_input_address": submitted_input_address,
+                    "effective_input_address": input_address,
+                    "bundle_addresses": list(reference_bundle_addresses),
+                    "receipt_count": reference_receipt_count,
+                    "warnings": list(enrichment.warnings),
                 },
                 event_id=f"evt-{run_id}-reference",
             )
-            if self.atlas_retriever is not None or isinstance(retriever, PublicReferenceRetriever):
-                atlas_retriever = self.atlas_retriever or PublicAtlasRetriever(retriever)
-                atlas_bundles = tuple(
-                    (
-                        atlas_retriever.retrieve(
-                            variant,
-                            build_manifest.context,
-                            query=AtlasQuery(
-                                variant_id=variant.variant_id,
-                                window_bp=getattr(retriever, "window_bp", 2_000),
-                            ),
-                        )
-                        if isinstance(atlas_retriever, PublicAtlasRetriever)
-                        else atlas_retriever.retrieve(variant, build_manifest.context)
-                    )
-                    for variant in build_manifest.variants
-                )
-                atlas_claims = tuple(
-                    claim
-                    for variant, bundle in zip(build_manifest.variants, atlas_bundles, strict=True)
-                    for claim in bundle.to_evidence_claims(
-                        variant=variant,
-                        context=build_manifest.context,
-                        edge_id=f"atlas:{variant.variant_id}",
-                    )
-                )
-                source_bundle_addresses += tuple(
-                    self.store.store.put(bundle.to_dict()) for bundle in atlas_bundles
-                )
-                source_receipts += tuple(
-                    receipt.to_dict() for bundle in atlas_bundles for receipt in bundle.receipts
-                )
-                atlas_warnings = tuple(
-                    warning for bundle in atlas_bundles for warning in bundle.warnings
-                )
-                runtime_warnings = tuple(dict.fromkeys(runtime_warnings + atlas_warnings))
+            if atlas_bundle_addresses:
                 log.append(
                     "public_atlas_collected",
                     {
-                        "bundle_addresses": list(source_bundle_addresses),
+                        "bundle_addresses": list(atlas_bundle_addresses),
                         "claim_count": len(atlas_claims),
-                        "warnings": list(atlas_warnings),
+                        "warnings": list(atlas_event_warnings),
                     },
                     event_id=f"evt-{run_id}-atlas",
                 )
@@ -390,6 +464,7 @@ class CaseRuntime:
             run_id,
             rna_consequences=rna_rows,
             retained_owner_address=rna_input_address,
+            external_claims=atlas_claims,
         )
         all_warnings = tuple(dict.fromkeys(tuple(built.warnings) + runtime_warnings))
         log.append(
@@ -417,7 +492,7 @@ class CaseRuntime:
             run_id=run_id,
             input_address=input_address,
             hypotheses=built.hypotheses,
-            claims=tuple(built.claims) + tuple(atlas_claims),
+            claims=built.claims,
             experiments=experiments,
             review=None,
             status=ResearchStatus.REVIEW_REQUIRED,
@@ -439,6 +514,9 @@ class CaseRuntime:
             reused = self._reuse_untouched_offline_draft(dossier, log)
             if reused is not None:
                 return reused
+        for address, record in source_records.items():
+            if self.store.store.put_at(address, record) != address:
+                raise ValidationError("source bundle address changed during evaluation")
         if self.store.store.put(input_record) != input_address:
             raise ValidationError("manifest input address changed during evaluation")
         if rna_input is not None:
@@ -446,7 +524,7 @@ class CaseRuntime:
             if self.store.store.put(rna_input) != expected_rna_address:
                 raise ValidationError("RNA input address changed during evaluation")
         try:
-            self._persist(manifest, log, dossier, input_address)
+            self._persist(build_manifest, log, dossier, input_address)
         except ValidationError as exc:
             cause = exc.__cause__
             exact_create_conflict = (
@@ -682,7 +760,9 @@ class CaseRuntime:
         except Exception as exc:  # noqa: BLE001 - stored dossiers are hostile
             if isinstance(exc, ValidationError):
                 raise
-            raise ValidationError("persisted dossier is missing or invalid") from exc
+            raise ValidationError(
+                "persisted dossier is missing or invalid; run has invalid persisted artifacts"
+            ) from exc
 
     def load_run_snapshot(self, run_id: str) -> VerifiedRunSnapshot:
         """Load the current typed run closure and require complete replay integrity."""

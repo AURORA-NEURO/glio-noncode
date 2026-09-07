@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from dataclasses import replace
 
 from glio_noncode.atlas import AtlasBundle, AtlasObservation, AtlasQuery
 from glio_noncode.data_sources import EnrichmentResult, ReferenceBundle
@@ -75,6 +76,17 @@ class RuntimeTests(unittest.TestCase):
 
     def test_live_reference_enrichment_is_persisted_with_dossier_provenance(self) -> None:
         manifest = fixture_manifest()
+        live_element = replace(
+            manifest.candidate_elements[0],
+            element_id="element-live-added",
+            start=manifest.candidate_elements[0].start + 100,
+            end=manifest.candidate_elements[0].end + 100,
+        )
+        effective = replace(
+            manifest,
+            candidate_elements=manifest.candidate_elements + (live_element,),
+            input_versions=dict(manifest.input_versions) | {"live_stub": "2026.09"},
+        )
 
         class StubRetriever:
             def enrich_manifest(self, value):
@@ -82,17 +94,30 @@ class RuntimeTests(unittest.TestCase):
                     variant_id=value.variants[0].variant_id,
                     context_key=value.context.key,
                     sequence=None,
-                    elements=value.candidate_elements,
+                    elements=(live_element,),
                     raw_features=(),
                     receipts=(),
                     warnings=(),
                 )
-                return EnrichmentResult(value, (bundle,), ())
+                return EnrichmentResult(effective, (bundle,), ())
 
         with tempfile.TemporaryDirectory() as directory:
-            dossier = CaseRuntime(directory, reference_retriever=StubRetriever()).evaluate(
+            runtime = CaseRuntime(directory, reference_retriever=StubRetriever())
+            dossier = runtime.evaluate(
                 manifest,
                 live_reference=True,
+            )
+            snapshot = runtime.load_run_snapshot(dossier.run_id)
+            run = runtime.get_run(dossier.run_id)
+            self.assertEqual(snapshot.manifest, effective)
+            self.assertEqual(run["input_address"], effective.content_address)
+            self.assertEqual(dossier.input_address, effective.content_address)
+            self.assertNotEqual(dossier.input_address, manifest.content_address)
+            self.assertTrue(
+                all(
+                    dossier.input_address in hypothesis.provenance
+                    for hypothesis in dossier.hypotheses
+                )
             )
             self.assertEqual(len(dossier.source_bundle_addresses), 1)
             self.assertTrue(dossier.source_bundle_addresses[0].startswith("sha256:"))
@@ -151,3 +176,15 @@ class RuntimeTests(unittest.TestCase):
             self.assertTrue(
                 any(claim.channel == "reference_annotation" for claim in dossier.evidence)
             )
+            atlas_claim = next(
+                claim for claim in dossier.evidence if claim.channel == "reference_annotation"
+            )
+            matching_edges = tuple(
+                edge
+                for hypothesis in dossier.hypotheses
+                for edge in hypothesis.edges
+                if atlas_claim.evidence_id in edge.claim_ids
+            )
+            self.assertEqual(len(matching_edges), 1)
+            self.assertEqual(matching_edges[0].edge_id, atlas_claim.edge_id)
+            self.assertEqual(summarize(dossier).orphan_claim_count, 0)

@@ -12,6 +12,7 @@ from queue import Queue
 from typing import cast
 from unittest.mock import patch
 
+from glio_noncode.data_sources import EnrichmentResult, ReferenceBundle
 from glio_noncode.errors import StoreError, ValidationError
 from glio_noncode.expression_evidence import (
     AllelicDirection,
@@ -883,17 +884,44 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
             self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
             self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
 
-    def test_known_live_reference_collision_fails_before_retrieval_or_writes(self) -> None:
+    def test_live_identity_is_resolved_before_collision_and_repeat_writes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            runtime = CaseRuntime(directory)
-            dossier = runtime.evaluate(fixture_manifest())
-            before = _runtime_state(runtime, dossier)
+            manifest = fixture_manifest()
+
+            class VersioningRetriever:
+                def __init__(self) -> None:
+                    self.calls = 0
+
+                def enrich_manifest(self, value):
+                    self.calls += 1
+                    effective = replace(
+                        value,
+                        input_versions=dict(value.input_versions) | {"live_stub": "2026.09"},
+                    )
+                    bundle = ReferenceBundle.create(
+                        variant_id=value.variants[0].variant_id,
+                        context_key=value.context.key,
+                        sequence=None,
+                        elements=(),
+                        raw_features=(),
+                        receipts=(),
+                        warnings=(),
+                    )
+                    return EnrichmentResult(effective, (bundle,), ())
+
+            retriever = VersioningRetriever()
+            runtime = CaseRuntime(directory, reference_retriever=retriever)
+            offline = runtime.evaluate(manifest)
+            live = runtime.evaluate(manifest, live_reference=True)
+            self.assertNotEqual(live.run_id, offline.run_id)
+            self.assertNotEqual(live.input_address, offline.input_address)
+            self.assertEqual(
+                runtime.load_run_snapshot(live.run_id).manifest.content_address,
+                live.input_address,
+            )
+            before = _runtime_state(runtime, live)
 
             with (
-                patch(
-                    "glio_noncode.runtime.PublicReferenceRetriever",
-                    side_effect=AssertionError("live retrieval must not start"),
-                ) as retriever_type,
                 patch.object(runtime.store.store, "put", wraps=runtime.store.store.put) as put,
                 patch.object(
                     runtime.store,
@@ -902,13 +930,13 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
                 ) as create_run,
             ):
                 with self.assertRaisesRegex(ValidationError, "run already exists") as raised:
-                    runtime.evaluate(fixture_manifest(), live_reference=True)
+                    runtime.evaluate(manifest, live_reference=True)
 
-            retriever_type.assert_not_called()
             put.assert_not_called()
             create_run.assert_not_called()
+            self.assertEqual(retriever.calls, 2)
             self.assertIsInstance(raised.exception.__cause__, StoreError)
-            self.assertEqual(_runtime_state(runtime, dossier), before)
+            self.assertEqual(_runtime_state(runtime, live), before)
 
     def test_two_runtime_identical_evaluate_race_reuses_create_winner(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
