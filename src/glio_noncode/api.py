@@ -2710,6 +2710,13 @@ from .run_workspace import (
     build_persisted_run_workspace_closure,
     workspace_query_from_filters,
 )
+from .reports import (
+    ReportAudience as DossierReportAudience,
+    ReportFormat as DossierReportFormat,
+    build_report as build_dossier_report,
+    render_report as render_dossier_report,
+    report_capabilities as dossier_report_capabilities,
+)
 from .case_workflow import (
     PreparedCase,
     capabilities as case_workflow_capabilities,
@@ -5030,6 +5037,19 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/expression-claims/capabilities":
             self._write(HTTPStatus.OK, expression_claims_capabilities())
+            return
+        if path == "/v1/reports/capabilities":
+            query = parse_qs(parsed.query, keep_blank_values=True)
+            if query:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {
+                        "error": "invalid_query",
+                        "message": "report capabilities does not accept query parameters",
+                    },
+                )
+                return
+            self._write(HTTPStatus.OK, dossier_report_capabilities())
             return
         downloaded_data_prefix = "/v1/downloaded-data"
         if path == downloaded_data_prefix or path.startswith(downloaded_data_prefix + "/"):
@@ -21094,6 +21114,40 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if len(segments) == 4 and segments[3] == "history":
                     self._write(HTTPStatus.OK, build_run_history(runtime, run_id).to_dict())
                     return
+                if len(segments) == 4 and segments[3] == "report":
+                    query = parse_qs(parsed.query, keep_blank_values=True)
+                    unknown = set(query) - {"audience", "format"}
+                    if unknown:
+                        raise ValueError(
+                            f"run report contains unknown query parameters: {sorted(unknown)}"
+                        )
+                    raw_audience = self._query_value(query, "audience")
+                    audience = DossierReportAudience(
+                        DossierReportAudience.PUBLIC.value
+                        if raw_audience is None
+                        else raw_audience
+                    )
+                    raw_format = self._query_value(query, "format")
+                    report_format = DossierReportFormat(
+                        DossierReportFormat.JSON.value if raw_format is None else raw_format
+                    )
+                    snapshot = runtime.load_run_snapshot(run_id)
+                    report = build_dossier_report(snapshot.dossier, audience=audience)
+                    rendered = render_dossier_report(report, format=report_format)
+                    self._write_bytes(
+                        HTTPStatus.OK,
+                        rendered.payload.encode("utf-8"),
+                        content_type=rendered.media_type,
+                        headers={
+                            "X-Glio-Report-Address": rendered.report_address,
+                            "X-Glio-Dossier-Address": rendered.dossier_address,
+                            "X-Glio-Summary-Address": report.summary_address,
+                            "X-Glio-Payload-Address": rendered.payload_address,
+                            "X-Glio-Rendered-Report-Address": rendered.content_address,
+                            "X-Glio-Report-Audience": rendered.audience,
+                        },
+                    )
+                    return
                 is_workspace = len(segments) == 4 and segments[3] == "workspace"
                 is_review_workspace = len(segments) == 4 and segments[3] == "review-workspace"
                 is_review_workspace_export = (
@@ -21929,7 +21983,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if path == "/v1/case-workflow/run":
             try:
                 payload = self._read_json(strict=True)
-                unknown = set(payload) - {"prepared", "rna_consequences", "data_root"}
+                unknown = set(payload) - {"prepared", "rna_consequences"}
                 if unknown:
                     raise ValueError(
                         f"case workflow execution contains unknown fields: {sorted(unknown)}"

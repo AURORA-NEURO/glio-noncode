@@ -165,7 +165,7 @@ class CaseExpressionApiTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertTrue(prepared["accepted"])
         status, result = self._post(
-            "/v1/case-workflow/run", {"prepared": prepared, "data_root": "ignored"}
+            "/v1/case-workflow/run", {"prepared": prepared}
         )
         self.assertEqual(status, 200)
         self.assertTrue(result["accepted"])
@@ -345,6 +345,11 @@ class CaseExpressionApiTests(unittest.TestCase):
             (
                 "/v1/case-workflow/run",
                 {"unexpected": True},
+                "invalid_case_workflow_execution",
+            ),
+            (
+                "/v1/case-workflow/run",
+                {"prepared": {}, "data_root": "caller-controlled"},
                 "invalid_case_workflow_execution",
             ),
             (
