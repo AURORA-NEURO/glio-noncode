@@ -1525,6 +1525,7 @@ from .review_workspace_execution_transitions import (
     review_workspace_execution_transitions_schema,
 )
 from .review_workspace_plan import review_workspace_plan_capabilities, review_workspace_plan_schema
+from .reports import report_capabilities as dossier_report_capabilities
 from .run_workspace import _has_forbidden_key
 from .schema import schema_document
 from .serialization import content_hash, jsonable
@@ -1554,7 +1555,7 @@ from .workbench_release_frontier_offline_bundle import build_workbench_release_o
 from .workbench_release_frontier_offline_schema import workbench_release_offline_bundle_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 2170
+PUBLIC_SURFACE_EXPECTED_COUNT = 2171
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -4829,6 +4830,7 @@ def default_public_surface_inventory(
         "expression-evidence-capabilities": expression_evidence_public_capabilities(),
         "expression-claims-schema": expression_claims_public_schema(),
         "expression-claims-capabilities": expression_claims_public_capabilities(),
+        "dossier-report-capabilities": dossier_report_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

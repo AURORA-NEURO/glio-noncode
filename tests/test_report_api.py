@@ -5,9 +5,15 @@ import tempfile
 import threading
 import unittest
 from http.client import HTTPConnection
+from unittest.mock import patch
 
 from glio_noncode.api import create_server
-from glio_noncode.reports import DossierReport, build_report, render_report
+from glio_noncode.reports import (
+    DossierReport,
+    build_report,
+    render_report,
+    report_capabilities,
+)
 from glio_noncode.runtime import CaseRuntime
 
 from .helpers import fixture_manifest
@@ -45,6 +51,7 @@ class ReportApiTests(unittest.TestCase):
 
         self.assertEqual(status, 200)
         self.assertEqual(headers["content-type"], "application/json; charset=utf-8")
+        self.assertEqual(payload, report_capabilities())
         self.assertEqual(payload["audiences"], ["review", "public"])
         self.assertEqual(payload["formats"], ["json", "markdown"])
         self.assertIn("rendered_report_bytes", payload["hard_limits"])
@@ -54,9 +61,16 @@ class ReportApiTests(unittest.TestCase):
         self.assertEqual(json.loads(body)["error"], "invalid_query")
 
     def test_default_run_report_is_exact_public_json_with_address_headers(self) -> None:
-        status, body, headers = self._get(f"/v1/runs/{self.dossier.run_id}/report")
+        server_runtime = self.server.glio_runtime
+        with patch.object(
+            server_runtime,
+            "load_run_snapshot",
+            wraps=server_runtime.load_run_snapshot,
+        ) as load_snapshot:
+            status, body, headers = self._get(f"/v1/runs/{self.dossier.run_id}/report")
 
         self.assertEqual(status, 200)
+        load_snapshot.assert_called_once_with(self.dossier.run_id)
         report = DossierReport.from_dict(json.loads(body))
         expected = render_report(build_report(self.dossier, audience="public"), format="json")
         self.assertEqual(body, expected.payload.encode("utf-8"))
@@ -112,6 +126,11 @@ class ReportApiTests(unittest.TestCase):
                 f"/v1/runs/{self.dossier.run_id}/report?data_root=elsewhere",
                 400,
                 "invalid_query",
+            ),
+            (
+                f"/v1/runs/{self.dossier.run_id}/report/extra",
+                404,
+                "not_found",
             ),
             ("/v1/runs/run-000000000000000000000000/report", 404, "not_found"),
         )

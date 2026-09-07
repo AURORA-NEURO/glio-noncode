@@ -553,6 +553,17 @@ glio-noncode serve --host 127.0.0.1 --port 8765 --data-root .glio-case-expressio
 
 The examples below assume `Content-Type: application/json`.
 
+Discovery is available without submitting scientific content:
+
+```text
+GET /v1/case-workflow/schema
+GET /v1/case-workflow/capabilities
+GET /v1/expression-evidence/schema
+GET /v1/expression-evidence/capabilities
+GET /v1/expression-claims/schema
+GET /v1/expression-claims/capabilities
+```
+
 Prepare the case:
 
 ```console
@@ -572,6 +583,9 @@ POST /v1/expression-evidence/outlier
 
 POST /v1/expression-evidence/allelic
 {"observation": {...}, "expected_direction": "gain", "context_key": "..."}
+
+POST /v1/expression-evidence/allelic-batch
+{"batch": {...}, "expected_directions": {"variant-id": "gain"}, "context_key": "..."}
 
 POST /v1/expression-evidence/integrate
 {"prediction": {...}, "expression_result": {...}, "allelic_result": {...}}
@@ -597,11 +611,12 @@ curl -sS -X POST http://127.0.0.1:8765/v1/case-workflow/run \
   -o run-result-http.json
 ```
 
-The HTTP server ignores the optional client `data_root` field and always uses its configured
-server-side runtime. Clients cannot select server-local paths. A successful execution responds
-`200`; blocked scientific or integrity inputs respond `422`; malformed transport input responds
-`400`. The focused case/expression routes reject duplicate JSON keys, non-finite JSON numbers,
-unknown request-envelope fields, and simultaneous use of both names of an accepted alias.
+The HTTP server always uses its configured server-side runtime. A client `data_root` field is
+rejected as an unknown field with HTTP 400; clients cannot select server-local paths. A successful
+execution responds `200`; blocked scientific or integrity inputs respond `422`; malformed
+transport input responds `400`. The focused case/expression routes reject duplicate JSON keys,
+non-finite JSON numbers, unknown request-envelope fields, and simultaneous use of both names of
+an accepted alias.
 
 The optional claim endpoints expose the same exact matching logic separately:
 

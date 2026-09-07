@@ -57,8 +57,8 @@ class ReportCliTests(unittest.TestCase):
             root = Path(temporary)
             data_root = root / "data"
             dossier = CaseRuntime(data_root).evaluate(fixture_manifest())
-            review_path = root / "review.json"
             public_path = root / "public.json"
+            review_path = root / "review.json"
             opened: list[str] = []
             original = CaseRuntime.load_run_snapshot
 
@@ -75,7 +75,7 @@ class ReportCliTests(unittest.TestCase):
                             "--data-root",
                             str(data_root),
                             "--output",
-                            str(review_path),
+                            str(public_path),
                         ]
                     ),
                     0,
@@ -88,11 +88,11 @@ class ReportCliTests(unittest.TestCase):
                             "--data-root",
                             str(data_root),
                             "--audience",
-                            "public",
+                            "review",
                             "--format",
                             "markdown",
                             "--output",
-                            str(public_path),
+                            str(review_path),
                         ]
                     ),
                     0,
@@ -100,24 +100,25 @@ class ReportCliTests(unittest.TestCase):
 
             self.assertEqual(opened, [dossier.run_id, dossier.run_id])
 
-            review = RenderedReport.from_dict(
-                json.loads(review_path.read_text(encoding="utf-8"))
-            )
-            self.assertEqual((review.audience, review.format), ("review", "json"))
-            embedded = DossierReport.from_dict(json.loads(review.payload))
-            expected_review = build_report(dossier, audience="review")
-            self.assertEqual(embedded, expected_review)
-            self.assertTrue(review.verify(expected_review))
-
             public = RenderedReport.from_dict(
                 json.loads(public_path.read_text(encoding="utf-8"))
             )
             expected_public = build_report(dossier, audience="public")
-            self.assertEqual((public.audience, public.format), ("public", "markdown"))
+            self.assertEqual((public.audience, public.format), ("public", "json"))
             self.assertTrue(public.verify(expected_public))
-            self.assertTrue(public.payload.startswith("# Public Dossier Report\n"))
+            embedded = DossierReport.from_dict(json.loads(public.payload))
+            self.assertEqual(embedded, expected_public)
             self.assertNotIn(dossier.case_id, public.payload)
             self.assertNotIn(dossier.run_id, public.payload)
+
+            review = RenderedReport.from_dict(
+                json.loads(review_path.read_text(encoding="utf-8"))
+            )
+            expected_review = build_report(dossier, audience="review")
+            self.assertEqual((review.audience, review.format), ("review", "markdown"))
+            self.assertTrue(review.verify(expected_review))
+            self.assertTrue(review.payload.startswith("# Review Dossier Report\n"))
+            self.assertIn(dossier.case_id, review.payload)
 
     def test_missing_run_fails_closed_without_writing_an_artifact(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

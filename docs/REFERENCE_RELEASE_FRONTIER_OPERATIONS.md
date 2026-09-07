@@ -106,7 +106,7 @@ review state with a guessed source value.
 $env:PYTHONPATH = 'src'
 python -m unittest tests.test_reference_release_frontier tests.test_reference_release_frontier_cli -v
 ruff check src/glio_noncode/reference_release_frontier_*.py tests/test_reference_release_frontier*.py
-python -m compileall -q src tests
+python tools/check_python_syntax.py src tests
 python -m glio_noncode reference-release-pipeline
 ```
 

@@ -315,7 +315,7 @@ counts are appended.
 ## Local verification
 
 ```powershell
-python -m compileall -q src tests
+python tools/check_python_syntax.py src tests
 python -m glio_noncode audit-structural-data examples/structural-public-aggregate.json
 python -m glio_noncode evaluate-structural-fixture examples/structural-public-aggregate.json
 python -m glio_noncode replay-structural-fixtures examples/structural-public-aggregate.json

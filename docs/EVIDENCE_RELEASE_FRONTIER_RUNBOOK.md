@@ -3,7 +3,7 @@
 ## Prepare
 
 1. Check out the public repository and install no external runtime dependency.
-2. Run `python -m compileall -q src tests`.
+2. Run `python tools/check_python_syntax.py src tests`.
 3. Run the data audit and inspect its source count, record count, role balance,
    HTTPS receipt, and sensitive-marker checks.
 4. Load `examples/evidence-release-public-aggregate.json` through the fixture

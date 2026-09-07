@@ -94,7 +94,7 @@ evaluation before it can pass.
 $env:PYTHONPATH = 'src'
 python -m unittest tests.test_reference_release_frontier tests.test_reference_release_frontier_cli tests.test_capability_registry -v
 ruff check src/glio_noncode/reference_release_frontier_*.py tests/test_reference_release_frontier*.py
-python -m compileall -q src tests
+python tools/check_python_syntax.py src tests
 ```
 
 The full repository command remains:

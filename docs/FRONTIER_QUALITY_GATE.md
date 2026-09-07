@@ -179,7 +179,7 @@ passes while the combined gate fails.
 For a local reproduction of the CI order:
 
 ```powershell
-python -m compileall -q src tests
+python tools/check_python_syntax.py src tests
 python -m unittest discover -s tests -t . -q
 python -m glio_noncode evaluate-frontier-fixture examples/frontier-glioma-case.json
 python -m glio_noncode audit-frontier-data examples/frontier-glioma-case.json

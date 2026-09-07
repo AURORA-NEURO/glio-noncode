@@ -1,9 +1,12 @@
 # Local service surface
 
 The local service exposes the certified product surfaces through a dependency-free
-HTTP API. The service constructs one deterministic snapshot lazily and reuses it
-for the lifetime of the server. Every projection carries the address of the
-report or runtime from which it was derived.
+HTTP API. Certified repository projections share one deterministic snapshot that
+is constructed lazily and reused for the lifetime of the server. Persisted case,
+batch, workflow, and report routes instead use the configured server-owned
+`CaseRuntime`; they never accept a client-selected storage path. Every derived
+artifact carries or returns the address of the report or runtime from which it
+was produced.
 
 ## Endpoints
 
@@ -11,6 +14,13 @@ report or runtime from which it was derived.
 | --- | --- | --- |
 | GET | `/healthz` | Cheap process health response |
 | GET | `/v1/schema` | Existing case contract summary |
+| GET | `/v1/case-workflow/schema` | Return focused case preparation and execution request schemas |
+| GET | `/v1/case-workflow/capabilities` | Return case workflow limits, stages, and provenance capabilities |
+| GET | `/v1/expression-evidence/schema` | Return public expression and allelic evidence schemas |
+| GET | `/v1/expression-evidence/capabilities` | Return expression evidence analysis capabilities and limits |
+| GET | `/v1/expression-claims/schema` | Return deterministic RNA claim matching schemas |
+| GET | `/v1/expression-claims/capabilities` | Return RNA claim derivation and matching capabilities |
+| GET | `/v1/reports/capabilities` | Return report versions, audiences, formats, public fields, and hard limits |
 | GET | `/v1/public-surface/audit` | Audit the complete repository-wide public service and bundle projection inventory |
 | GET | `/v1/module-inventory` | Return aggregate module, symbol, dependency, index, and source-depth counts |
 | GET | `/v1/module-inventory/query` | Page static module, symbol, dependency, or index rows |
@@ -346,6 +356,7 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/workspace/compare` | Compare two historical workspace snapshots by public record identity |
 | GET | `/v1/runs/{run_id}/workspace/release` | Build a gated portable workspace handoff bundle |
 | GET | `/v1/runs/{run_id}/history` | List content-addressed dossier snapshots for one run |
+| GET | `/v1/runs/{run_id}/report?audience=public\|review&format=json\|markdown` | Return exact bytes for a bounded audience-scoped report with provenance address headers |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}` | Compare current or selected snapshots from two runs |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}/release` | Build a gated portable comparison handoff bundle |
 | GET | `/v1/runs/{run_id}/summary` | Aggregate evidence, review, and validation counters |
@@ -361,6 +372,14 @@ report or runtime from which it was derived.
 | GET | `/v1/review-operations` | Return an as-of SLA, aging, and reviewer workload projection |
 | GET | `/v1/review-operations/closure` | Return the complete SLA and workload closure |
 | POST | `/v1/runs/{run_id}/assignment` | Append a durable reviewer assignment and create a new dossier snapshot |
+| POST | `/v1/case-workflow/prepare` | Prepare, validate, and address a focused case request |
+| POST | `/v1/case-workflow/run` | Execute an exact prepared case with optional RNA consequences in the server runtime |
+| POST | `/v1/expression-evidence/outlier` | Analyze one expression observation against bounded references |
+| POST | `/v1/expression-evidence/allelic` | Analyze one allele-specific observation |
+| POST | `/v1/expression-evidence/allelic-batch` | Analyze a bounded allele-specific observation batch |
+| POST | `/v1/expression-evidence/integrate` | Integrate prediction, expression, and allelic evidence into one RNA consequence |
+| POST | `/v1/expression-claims/derive` | Derive one exact element-to-gene claim from matched RNA evidence |
+| POST | `/v1/expression-claims/match` | Match bounded RNA evidence and targets with optional completeness enforcement |
 | POST | `/v1/evaluate` | Existing case evaluation endpoint |
 | POST | `/v1/evaluate-batch` | Evaluate a manifest list with independent item outcomes |
 
@@ -386,6 +405,19 @@ The limit is bounded to 100 rows. Run identifiers are validated before they are
 used as filesystem paths. Missing runs return HTTP 404; an existing run can be
 accepted only when its input object, event chain, dossier address, and stored
 object links all verify.
+
+The server owns the configured `data_root`. `/v1/case-workflow/run` accepts only
+`prepared` and optional `rna_consequences`; a client `data_root` is rejected with
+HTTP 400. The run-report route reopens one complete persisted closure through the
+bounded replay verifier before building any projection. `audience=public` is the
+default and contains aggregate counts, state conservation, release-gate status,
+and content addresses only. `audience=review` must be explicit and exposes the
+full summary identifiers. `format=json` (default) and `format=markdown` return
+the exact authenticated payload bytes. `X-Glio-Report-Address`,
+`X-Glio-Dossier-Address`, `X-Glio-Summary-Address`,
+`X-Glio-Payload-Address`, and `X-Glio-Rendered-Report-Address` bind the response
+to its typed report, source dossier, summary, exact bytes, and rendered artifact.
+Unknown, blank, or repeated report query parameters return HTTP 400.
 
 Cross-run search accepts `q` or its `text` alias, `resource` (`all`, `runs`,
 `hypotheses`, `evidence`, `experiments`, or `reviews`), `case_id`, `status`,
@@ -567,7 +599,7 @@ Run the repository-wide public-boundary audit:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The audit covers 110 named projections across the service, capability
+The audit covers the complete named projection inventory across the service, capability
 certification bundle, module-fabric bundle, schemas, service-release registry,
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and closures. Runtime

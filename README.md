@@ -61,9 +61,14 @@ probability. See the [case and expression workflow](docs/CASE_EXPRESSION_WORKFLO
 for exact Python, CLI, and HTTP request shapes, identity and provenance semantics,
 fail-closed gates, privacy boundaries, and a reproducible walkthrough.
 
-Package-root exports resolve lazily, and help, version, discovery, `case`, and
-`expression` stay on focused startup paths. Selecting an older command remains
-compatible and intentionally opts into the complete legacy command surface.
+Package-root exports resolve lazily, and help, version, discovery, `case`,
+`expression`, and report commands stay on focused startup paths. The curated
+root surface includes the typed quality evaluator/report contracts, adapter
+registry and resolution artifacts, audience-scoped dossier reports,
+`VerifiedRunSnapshot`, and bounded `ObjectStore`/`RunStore` APIs. Collision-safe
+report helpers use explicit names such as `build_dossier_report` and
+`render_dossier_report`. Selecting an older command remains compatible and
+intentionally opts into the complete legacy command surface.
 
 To inspect a downloaded ZIP as bounded data, with explicit member selection,
 lineage, replay, audits, queries, and snapshot diffs, run
@@ -115,10 +120,11 @@ and a 12-check query audit. See
 The same runtime can be served locally:
 
 ```powershell
-glio-noncode serve --host 127.0.0.1 --port 8765
+glio-noncode serve --host 127.0.0.1 --port 8765 --data-root .glio
 ```
 
-Loopback is the safe default. For an institutional or private-network bind,
+The configured data root is server-owned; request bodies cannot select a local
+path. Loopback is the safe default. For an institutional or private-network bind,
 generate an explicit authenticated deployment profile and keep credentials in
 a separate file:
 
@@ -135,7 +141,28 @@ restart/replay verification and retention enforcement remain available. Both
 the profile and profile schema are included in the repository-wide
 public-surface audit. See [deployment profiles](docs/DEPLOYMENT_PROFILES.md).
 
-Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate` or a manifest list to `POST http://127.0.0.1:8765/v1/evaluate-batch`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted case runs can be listed, reopened, verified, queried, searched across runs, assigned, and reviewed through the `/v1/runs/{run_id}` projections, `GET /v1/search`, `GET /v1/search/closure`, `GET /v1/batches`, `GET /v1/batches/{batch_id}`, `GET /v1/review-queue`, `GET /v1/review-queue/closure`, `GET /v1/review-operations`, `GET /v1/review-operations/closure`, `POST /v1/runs/{run_id}/assignment`, and `POST /v1/runs/{run_id}/review`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and offline closures.
+Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate` or a
+manifest list to `POST http://127.0.0.1:8765/v1/evaluate-batch`. `GET /healthz`
+reports service health and `GET /v1/schema` returns the contract summary. The
+focused workflow routes are:
+
+- Case workflow: `GET /v1/case-workflow/schema`, `GET /v1/case-workflow/capabilities`, `POST /v1/case-workflow/prepare`, and `POST /v1/case-workflow/run`.
+- Expression evidence: `GET /v1/expression-evidence/schema`, `GET /v1/expression-evidence/capabilities`, `POST /v1/expression-evidence/outlier`, `POST /v1/expression-evidence/allelic`, `POST /v1/expression-evidence/allelic-batch`, and `POST /v1/expression-evidence/integrate`.
+- Expression claims: `GET /v1/expression-claims/schema`, `GET /v1/expression-claims/capabilities`, `POST /v1/expression-claims/derive`, and `POST /v1/expression-claims/match`.
+- Reports: `GET /v1/reports/capabilities` and `GET /v1/runs/{run_id}/report?audience=public|review&format=json|markdown`.
+
+The certified capability and architecture surfaces are available from
+`GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`,
+`GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted
+case runs can be listed, reopened, verified, queried, searched across runs,
+assigned, reviewed, and rendered through the `/v1/runs/{run_id}` projections,
+`GET /v1/search`, `GET /v1/search/closure`, `GET /v1/batches`,
+`GET /v1/batches/{batch_id}`, `GET /v1/review-queue`,
+`GET /v1/review-queue/closure`, `GET /v1/review-operations`,
+`GET /v1/review-operations/closure`, `POST /v1/runs/{run_id}/assignment`, and
+`POST /v1/runs/{run_id}/review`; see
+[docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and
+offline closures.
 
 To enrich a manifest from bounded live public references, use:
 
@@ -186,6 +213,9 @@ glio-noncode run-query run-<run-id> evidence --state supported --data-root .glio
 glio-noncode run-query run-<run-id> lineage --data-root .glio --output run-lineage.json
 glio-noncode run-query run-<run-id> closure --data-root .glio --output dossier-query-closure.json
 glio-noncode run-history run-<run-id> --data-root .glio --output run-history.json
+glio-noncode report-capabilities --output report-capabilities.json
+glio-noncode run-report run-<run-id> --data-root .glio --audience public --format markdown --output public-report.json
+glio-noncode run-report run-<run-id> --data-root .glio --audience review --format json --output review-report.json
 glio-noncode run-compare run-<run-id> run-<run-id> --source-snapshot 0 --target-snapshot 1 --data-root .glio --output review-transition.json
 glio-noncode run-compare-release run-<run-id> run-<run-id> --source-snapshot 0 --target-snapshot 1 --data-root .glio --output comparison-release
 glio-noncode review-queue --data-root .glio --scope open --output review-queue.json
@@ -194,6 +224,13 @@ glio-noncode review-operations --data-root .glio --as-of 2026-09-01T12:00:00Z --
 glio-noncode review-operations --data-root .glio --closure --as-of 2026-09-01T12:00:00Z --output review-operations-closure.json
 glio-noncode review-assign run-<run-id> assignment.json --data-root .glio --output assignment-result.json
 ```
+
+`run-report` defaults to the aggregate-only `public` audience. Its output is a
+JSON `RenderedReport` envelope containing the chosen exact JSON or Markdown
+payload plus report, dossier, payload, and rendered-artifact addresses. The HTTP
+route returns those exact payload bytes directly and exposes the same provenance
+through `X-Glio-*` response headers. The fuller review projection must be
+requested explicitly.
 
 The review queue is a deterministic operational projection over persisted runs.
 It prioritizes integrity blocks, pending or returned reviews, missing reviews,
@@ -914,7 +951,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 110-surface audit, including the
+schema fields. The result is a deterministic complete-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and portable execution-release contracts,
 suitable for local release checks and CI.
@@ -1255,7 +1292,7 @@ docs/                   architecture, contribution, and release-boundary notes
 
 ```powershell
 python -m unittest discover -s tests -t . -v
-python -m compileall -q src tests
+python tools/check_python_syntax.py src tests
 ```
 
 The project uses only the Python standard library at runtime. Optional development tools may be added later behind explicit lockfiles and reproducibility checks.

@@ -59,7 +59,7 @@ class PublicSurfaceAuditTests(unittest.TestCase):
         cls.audit = build_default_public_surface_audit()
 
     def test_default_inventory_is_closed_and_accepted(self) -> None:
-        self.assertEqual(PUBLIC_SURFACE_EXPECTED_COUNT, 2170)
+        self.assertEqual(PUBLIC_SURFACE_EXPECTED_COUNT, 2171)
         self.assertTrue(self.audit.accepted)
         self.assertEqual(self.audit.surface_count, PUBLIC_SURFACE_EXPECTED_COUNT)
         self.assertEqual(self.audit.passed_surface_count, PUBLIC_SURFACE_EXPECTED_COUNT)

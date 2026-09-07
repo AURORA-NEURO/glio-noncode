@@ -18,9 +18,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --no-deps -e .
       - name: Compile observatory surface
         run: >-
-          python -m py_compile
+          python tools/check_python_syntax.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_transfer.py
@@ -388,7 +390,7 @@ jobs:
           python -c "from glio_noncode.cli import main; raise SystemExit(main(['module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decision-ledger-assurance-history-observatory-archive-registry-history-release-gate-release-evidence-pipeline-observability-bundle-catalog-promotion-gate-release-packet-query-query-capabilities']))"
       - name: Verify certificate observatory archive registry module compilation
         run: >-
-          python -m py_compile
+          python tools/check_python_syntax.py
           examples/registry_federation_certificate_observatory_archive_registry_demo.py
           examples/registry_federation_real_downloaded_data_demo.py
           src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry.py
@@ -433,7 +435,7 @@ jobs:
           src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_audit.py
       - name: Verify certificate observatory archive registry public schemas
         run: >-
-          python -c "from glio_noncode.public_surface_audit import build_default_public_surface_audit; value = build_default_public_surface_audit(); assert value.accepted and len(value.checks) == 1125"
+          python -c "from glio_noncode.public_surface_audit import PUBLIC_SURFACE_EXPECTED_COUNT, build_default_public_surface_audit; value = build_default_public_surface_audit(); assert value.accepted and value.surface_count == PUBLIC_SURFACE_EXPECTED_COUNT and len(value.checks) == PUBLIC_SURFACE_EXPECTED_COUNT"
       - name: Verify certificate observatory archive registry focused contracts
         run: >-
           python -m unittest tests.test_registry_federation_consensus_gate_certificate_observatory_archive_registry -q

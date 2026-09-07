@@ -323,7 +323,7 @@ may describe input shapes in their own schema plane, but the service-release
 registry itself contains aggregate release values only.
 
 The service snapshot, registry, and durable handoff are included in the
-repository-wide `public-surface-audit`. The inventory now certifies 110 named
+repository-wide `public-surface-audit`. The inventory certifies the complete named
 projections, including the service-release snapshot, schema, default bounded
 query, handoff metadata packet, authenticated deployment profile/schema, and
 versioned reference manifest/schema.
@@ -344,7 +344,7 @@ export verifier for repeated filesystem checks.
 Before promoting a service release, run:
 
 ```text
-python -m compileall -q src tests
+python tools/check_python_syntax.py src tests
 python -m unittest tests.test_service_surface tests.test_service_release -q
 python -m unittest tests.test_public_surface_audit -q
 glio-noncode service-release --plane runtime --output /tmp/service-release-runtime.json

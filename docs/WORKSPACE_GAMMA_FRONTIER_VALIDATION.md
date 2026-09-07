@@ -113,7 +113,7 @@ direct caller for local verification.
 ```powershell
 $env:PYTHONPATH = "src"
 python -m unittest tests.test_workspace_gamma_frontier tests.test_workspace_gamma_frontier_cli -v
-python -m compileall -q src/glio_noncode
+python tools/check_python_syntax.py src/glio_noncode
 ruff check src/glio_noncode/workspace_gamma_frontier_*.py tests/test_workspace_gamma_frontier*.py
 ```
 

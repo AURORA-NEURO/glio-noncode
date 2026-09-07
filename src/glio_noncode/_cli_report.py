@@ -32,7 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_report.add_argument(
         "--audience",
         choices=("review", "public"),
-        default="review",
+        default="public",
     )
     run_report.add_argument(
         "--format",

@@ -21,6 +21,9 @@ classifiers = [
 ]
 dependencies = []
 
+[project.optional-dependencies]
+test = ["jsonschema>=4.23,<5"]
+
 [project.scripts]
 glio-noncode = "glio_noncode.cli:main"
 
@@ -28,7 +31,7 @@ glio-noncode = "glio_noncode.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-glio_noncode = ["schemas/*.json"]
+glio_noncode = ["schemas/*.json", "py.typed"]
 
 [tool.setuptools.data-files]
 schemas = ["schemas/capability_catalog.csv", "schemas/case_manifest.schema.json"]

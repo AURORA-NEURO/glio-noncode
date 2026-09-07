@@ -159,7 +159,7 @@ A depth failure indicates shallow module coverage.
 Run package compile.
 
 ```powershell
-python -m compileall -q src
+python tools/check_python_syntax.py src
 ```
 
 Run focused tests.

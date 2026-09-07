@@ -18,9 +18,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --no-deps -e .
       - name: Compile history surface
         run: >-
-          python -m py_compile
+          python tools/check_python_syntax.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history.py
           src/glio_noncode/api.py
           src/glio_noncode/cli.py

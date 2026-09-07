@@ -7,7 +7,7 @@ paths.
 ## Preflight
 
 ```text
-python -m compileall -q src/glio_noncode
+python tools/check_python_syntax.py src/glio_noncode
 python -m glio_noncode structural-architecture-data-audit --output /tmp/d02-data.json
 python -m glio_noncode structural-architecture-plan --output /tmp/d02-plan.json
 ```
