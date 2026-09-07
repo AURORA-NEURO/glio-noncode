@@ -70,6 +70,32 @@ class VerifiedRunAssessmentTests(unittest.TestCase):
         self.assertEqual(first["assessment_version"], RUN_ASSESSMENT_VERSION)
         self.assertEqual((first["default_audience"], first["default_format"]), ("public", "json"))
 
+    def test_nominally_typed_mutated_snapshot_is_revalidated_before_use(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            snapshot = runtime.load_run_snapshot(dossier.run_id)
+            assessment = build_run_assessment(snapshot)
+
+            object.__setattr__(snapshot, "event_record", {})
+
+            with self.assertRaisesRegex(ValidationError, "snapshot"):
+                build_run_assessment(snapshot)
+            self.assertFalse(assessment.verify(snapshot))
+            self.assertFalse(assessment.verify_without_rebuild(snapshot))
+
+    def test_verifiers_revalidate_the_assessment_envelope_itself(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            snapshot = runtime.load_run_snapshot(dossier.run_id)
+            assessment = build_run_assessment(snapshot)
+
+            object.__setattr__(assessment, "assessment_version", "forged-version")
+
+            self.assertFalse(assessment.verify(snapshot))
+            self.assertFalse(assessment.verify_without_rebuild(snapshot))
+
 
 if __name__ == "__main__":
     unittest.main()

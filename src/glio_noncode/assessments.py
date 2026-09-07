@@ -16,7 +16,7 @@ from .reports import (
     build_report,
     render_report,
 )
-from .serialization import canonical_bytes, content_hash
+from .serialization import canonical_bytes, content_hash, jsonable
 
 if TYPE_CHECKING:
     from .runtime import VerifiedRunSnapshot
@@ -60,6 +60,55 @@ def _assessment_body(value: VerifiedRunAssessment) -> dict[str, object]:
         "dossier_report": value.dossier_report.to_dict(),
         "rendered_report": value.rendered_report.to_dict(),
     }
+
+
+def _validated_snapshot(snapshot: VerifiedRunSnapshot) -> VerifiedRunSnapshot:
+    """Detach and replay-validate every field of a nominal verified snapshot."""
+
+    from .models import CaseManifest, Dossier
+    from .replay import ReplayVerifier
+    from .runtime import VerifiedRunSnapshot
+
+    if type(snapshot) is not VerifiedRunSnapshot:
+        raise ValidationError("run assessment requires an exact VerifiedRunSnapshot")
+    try:
+        run_record = jsonable(snapshot.run_record)
+        event_record = jsonable(snapshot.event_record)
+        manifest_record = snapshot.manifest.to_dict()
+        dossier_record = snapshot.dossier.to_dict()
+        replay_record = snapshot.replay.to_dict()
+        if type(run_record) is not dict or type(event_record) is not dict:
+            raise ValidationError("run assessment snapshot records must be exact objects")
+        manifest = CaseManifest.from_dict(manifest_record)
+        dossier = Dossier.from_dict(dossier_record)
+        replay = ReplayVerifier().verify(run_record, event_record, dossier_record)
+        canonical = VerifiedRunSnapshot(
+            run_record=run_record,
+            manifest=manifest,
+            event_record=event_record,
+            dossier=dossier,
+            replay=replay,
+        )
+        source_records = (
+            manifest_record,
+            dossier_record,
+            replay_record,
+        )
+        canonical_records = (
+            canonical.manifest.to_dict(),
+            canonical.dossier.to_dict(),
+            canonical.replay.to_dict(),
+        )
+        if any(
+            canonical_bytes(source) != canonical_bytes(expected)
+            for source, expected in zip(source_records, canonical_records, strict=True)
+        ):
+            raise ValidationError("run assessment snapshot fields are not canonical")
+        return canonical
+    except Exception as exc:  # noqa: BLE001 - hostile nominal snapshots fail closed
+        if isinstance(exc, ValidationError):
+            raise
+        raise ValidationError("run assessment snapshot is invalid") from exc
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,13 +198,15 @@ class VerifiedRunAssessment:
         """Recompute every derived artifact against one replay-verified snapshot."""
 
         try:
+            canonical_self = VerifiedRunAssessment.from_dict(self.to_dict())
+            canonical_snapshot = _validated_snapshot(snapshot)
             expected = build_run_assessment(
-                snapshot,
-                audience=self.dossier_report.audience,
-                format=self.rendered_report.format,
-                quality_thresholds=self.quality_report.thresholds,
+                canonical_snapshot,
+                audience=canonical_self.dossier_report.audience,
+                format=canonical_self.rendered_report.format,
+                quality_thresholds=canonical_self.quality_report.thresholds,
             )
-            return canonical_bytes(self.to_dict()) == canonical_bytes(expected.to_dict())
+            return canonical_bytes(canonical_self.to_dict()) == canonical_bytes(expected.to_dict())
         except Exception:  # noqa: BLE001 - verification intentionally fails closed
             return False
 
@@ -163,19 +214,18 @@ class VerifiedRunAssessment:
         """Verify direct provenance and each report against an already verified snapshot."""
 
         try:
-            from .runtime import VerifiedRunSnapshot
-
-            if type(snapshot) is not VerifiedRunSnapshot:
-                return False
-            record = snapshot.run_record
+            canonical_self = VerifiedRunAssessment.from_dict(self.to_dict())
+            canonical_snapshot = _validated_snapshot(snapshot)
+            record = canonical_snapshot.run_record
             return (
-                self.run_id == snapshot.dossier.run_id
-                and self.input_address == record["input_address"]
-                and self.event_address == record["event_address"]
-                and self.dossier_address == snapshot.dossier.content_address
-                and self.quality_report.verify(snapshot.dossier)
-                and self.dossier_report.verify(snapshot.dossier)
-                and self.rendered_report.verify(self.dossier_report)
+                canonical_self.run_id == canonical_snapshot.dossier.run_id
+                and canonical_self.input_address == record["input_address"]
+                and canonical_self.event_address == record["event_address"]
+                and canonical_self.dossier_address
+                == canonical_snapshot.dossier.content_address
+                and canonical_self.quality_report.verify(canonical_snapshot.dossier)
+                and canonical_self.dossier_report.verify(canonical_snapshot.dossier)
+                and canonical_self.rendered_report.verify(canonical_self.dossier_report)
             )
         except Exception:  # noqa: BLE001 - verification intentionally fails closed
             return False
@@ -214,25 +264,26 @@ def build_run_assessment(
 ) -> VerifiedRunAssessment:
     """Derive one quality-and-rendering closure from a single verified run read."""
 
-    from .runtime import VerifiedRunSnapshot
-
-    if type(snapshot) is not VerifiedRunSnapshot:
-        raise ValidationError("run assessment requires an exact VerifiedRunSnapshot")
-    quality = QualityEvaluator(thresholds=quality_thresholds).evaluate(snapshot.dossier)
-    report = build_report(snapshot.dossier, audience=audience)
+    canonical_snapshot = _validated_snapshot(snapshot)
+    quality = QualityEvaluator(thresholds=quality_thresholds).evaluate(
+        canonical_snapshot.dossier
+    )
+    report = build_report(canonical_snapshot.dossier, audience=audience)
     rendered = render_report(report, format=format)
-    run_record = snapshot.run_record
+    run_record = canonical_snapshot.run_record
     value = VerifiedRunAssessment(
         assessment_version=RUN_ASSESSMENT_VERSION,
-        run_id=snapshot.dossier.run_id,
+        run_id=canonical_snapshot.dossier.run_id,
         input_address=run_record["input_address"],
         event_address=run_record["event_address"],
-        dossier_address=snapshot.dossier.content_address,
+        dossier_address=canonical_snapshot.dossier.content_address,
         quality_report=quality,
         dossier_report=report,
         rendered_report=rendered,
     )
-    if not value.verify_without_rebuild(snapshot):  # pragma: no cover - construction invariant
+    if not value.verify_without_rebuild(
+        canonical_snapshot
+    ):  # pragma: no cover - construction invariant
         raise ValidationError("constructed run assessment does not close over its snapshot")
     return value
 
