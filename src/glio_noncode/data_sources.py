@@ -2378,6 +2378,7 @@ class LiveReferenceAdapter:
             ),
             validation_status="integration-tested",
             documentation_url="docs/OPERATIONS.md",
+            source_ids=("SRC-ENSEMBL-REST", "SRC-UCSC-REST"),
         )
 
     def resolve_elements(
@@ -2391,6 +2392,13 @@ class LiveReferenceAdapter:
         self, variant: VariantIdentity, context: ReferenceContext
     ) -> ReferenceBundle:
         return self.retriever.retrieve(variant, context)
+
+    def resolve_variant_elements(
+        self, variant: VariantIdentity, context: ReferenceContext
+    ) -> tuple[CandidateElement, ...]:
+        """Resolve elements through the registry's typed variant-aware path."""
+
+        return self.resolve_variant(variant, context).elements
 
     def enrich_manifest(self, manifest: CaseManifest) -> EnrichmentResult:
         return self.retriever.enrich_manifest(manifest)

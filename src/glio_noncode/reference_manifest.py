@@ -943,7 +943,7 @@ def conform_adapter(
     if len(probes) > ADAPTER_CONFORMANCE_MAX_PROBES:
         raise ValidationError("adapter conformance probe count exceeds its ceiling")
     metadata = adapter.metadata
-    metadata_address = content_hash(metadata.to_dict(), prefix="adapter-metadata")
+    metadata_address = metadata.content_address
     artifact = next((item for item in manifest.artifacts if item.adapter_id == metadata.adapter_id), None)
     checks: list[AdapterConformanceCheck] = []
     checks.append(
@@ -1170,18 +1170,7 @@ def adapter_conformance_input_from_dict(
     metadata_raw = value.get("metadata")
     if not isinstance(metadata_raw, Mapping):
         raise ValidationError("adapter conformance input requires adapter metadata")
-    metadata = AdapterMetadata(
-        adapter_id=str(metadata_raw.get("adapter_id", "")),
-        display_name=str(metadata_raw.get("display_name", "")),
-        version=str(metadata_raw.get("version", "")),
-        license=str(metadata_raw.get("license", "")),
-        data_access=str(metadata_raw.get("data_access", "")),
-        supported_contexts=tuple(str(item) for item in metadata_raw.get("supported_contexts", ())),
-        channels=tuple(str(item) for item in metadata_raw.get("channels", ())),
-        failure_modes=tuple(str(item) for item in metadata_raw.get("failure_modes", ())),
-        validation_status=str(metadata_raw.get("validation_status", "unvalidated")),
-        documentation_url=None if metadata_raw.get("documentation_url") is None else str(metadata_raw.get("documentation_url")),
-    )
+    metadata = AdapterMetadata.from_dict(metadata_raw)
     probe_raw = value.get("probes", ())
     if not isinstance(probe_raw, list):
         raise ValidationError("adapter conformance probes must be an array")
