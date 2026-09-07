@@ -386,7 +386,10 @@ def build_run_history(runtime: CaseRuntime, run_id: str) -> RunHistory:
     snapshots: list[RunSnapshot] = []
     for index, address in enumerate(addresses):
         try:
-            stored = runtime.store.store.get(address)
+            stored = runtime.store.store.get_bounded(
+                address,
+                max_bytes=runtime.persisted_object_max_bytes,
+            )
         except StoreError:
             stored = None
         snapshots.append(
@@ -430,13 +433,7 @@ def _selected_snapshot(history: RunHistory, index: int | None) -> RunSnapshot:
 
 
 def _load_snapshot(runtime: CaseRuntime, snapshot: RunSnapshot) -> Dossier:
-    raw = runtime.store.store.get(snapshot.dossier_address)
-    if not isinstance(raw, dict):
-        raise ValidationError("stored dossier snapshot must be an object")
-    dossier = Dossier.from_dict(raw)
-    if dossier.content_address != snapshot.dossier_address:
-        raise ValidationError("stored dossier snapshot address changed during load")
-    return dossier
+    return runtime.load_dossier(snapshot.dossier_address)
 
 
 def _semantic_metadata(dossier: Dossier) -> dict[str, Any]:

@@ -20,7 +20,6 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from .errors import ValidationError
-from .models import CaseManifest, Dossier
 from .module_fabric_support import contains_private_key
 from .run_catalog import RunInspection, inspect_run
 from .runtime import CaseRuntime
@@ -330,11 +329,8 @@ def _load_workspace(
     if not inspection.accepted:
         return inspection, None
     input_address = str(inspection.summary.input_address)
-    input_payload = runtime.store.store.get(input_address)
-    if not isinstance(input_payload, Mapping):
-        raise ValidationError("persisted run input must be an object")
-    manifest = CaseManifest.from_dict(input_payload)
-    dossier = Dossier.from_dict(inspection.dossier_record)
+    manifest = runtime.load_manifest(input_address)
+    dossier = runtime.load_dossier(inspection.summary.dossier_address)
     if manifest.case_id != dossier.case_id:
         raise ValidationError("workspace input and dossier case IDs do not match")
     if dossier.run_id != inspection.summary.run_id:

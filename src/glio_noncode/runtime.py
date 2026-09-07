@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -30,11 +30,10 @@ from .models import (
     ReviewState,
 )
 from .policy import PolicyDecision, ResearchPolicy
-from .replay import ReplayVerifier
-from .serialization import canonical_bytes, content_hash, utc_now
+from .replay import ReplayReport, ReplayVerifier
+from .serialization import canonical_bytes, content_hash, freeze_json, jsonable, utc_now
 from .storage import RunStore
 from .validation import (
-    MAX_VALIDATION_CANONICAL_BYTES,
     ContractValidator,
     ReleaseGate,
     ValidationIssue,
@@ -69,6 +68,149 @@ _RNA_CONSEQUENCE_RECORD_FIELDS = frozenset(
         "content_address",
     }
 )
+_VERIFIED_RUN_RECORD_FIELDS = frozenset(
+    {
+        "run_id",
+        "input_address",
+        "event_address",
+        "event_history",
+        "dossier_address",
+        "dossier_history",
+    }
+)
+
+
+def _runtime_sha256_address(value: object, label: str) -> str:
+    if (
+        type(value) is not str
+        or len(value) != 71
+        or not value.startswith("sha256:")
+        or any(character not in "0123456789abcdef" for character in value[7:])
+    ):
+        raise ValidationError(f"{label} must be a canonical sha256 content address")
+    return value
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedRunSnapshot:
+    """Detached, typed closure over one replay-verified current run."""
+
+    run_record: Mapping[str, Any]
+    manifest: CaseManifest
+    event_record: Mapping[str, Any]
+    dossier: Dossier
+    replay: ReplayReport
+
+    def __post_init__(self) -> None:
+        if type(self.run_record) is not dict or set(self.run_record) != _VERIFIED_RUN_RECORD_FIELDS:
+            raise ValidationError("verified snapshot run_record must be an exact current run object")
+        if type(self.manifest) is not CaseManifest:
+            raise ValidationError("verified snapshot manifest must be an exact CaseManifest")
+        if type(self.event_record) is not dict:
+            raise ValidationError("verified snapshot event_record must be an exact object")
+        if type(self.dossier) is not Dossier:
+            raise ValidationError("verified snapshot dossier must be an exact Dossier")
+        if type(self.replay) is not ReplayReport:
+            raise ValidationError("verified snapshot replay must be an exact ReplayReport")
+        record = dict(self.run_record)
+        run_id = record["run_id"]
+        input_address = record["input_address"]
+        event_address = record["event_address"]
+        dossier_address = record["dossier_address"]
+        if type(run_id) is not str or not run_id.startswith("run-") or len(run_id) > 128:
+            raise ValidationError("verified snapshot run_id must be a bounded run identifier")
+        for field, value in (
+            ("input_address", input_address),
+            ("event_address", event_address),
+            ("dossier_address", dossier_address),
+        ):
+            _runtime_sha256_address(value, f"verified snapshot {field}")
+        for history_field, current in (
+            ("event_history", event_address),
+            ("dossier_history", dossier_address),
+        ):
+            history = record[history_field]
+            if (
+                type(history) is not list
+                or not history
+                or any(type(item) is not str for item in history)
+                or any(
+                    _runtime_sha256_address(item, f"verified snapshot {history_field} entry")
+                    != item
+                    for item in history
+                )
+                or len(history) != len(set(history))
+                or history[-1] != current
+            ):
+                raise ValidationError(
+                    f"verified snapshot {history_field} must be a unique current-ended address list"
+                )
+        try:
+            log = EventLog.from_record(
+                self.event_record,
+                expected_address=event_address,
+            )
+        except (TypeError, ValueError) as exc:
+            raise ValidationError("verified snapshot event record is invalid") from exc
+        if not log.verify():
+            raise ValidationError("verified snapshot event record must contain a valid chain")
+        event_record = log.to_record()
+        dossier_record = self.dossier.to_dict()
+        dossier_body = {
+            key: value for key, value in dossier_record.items() if key != "content_address"
+        }
+        expected_replay = ReplayVerifier().verify(record, event_record, dossier_record)
+        if (
+            run_id != self.dossier.run_id
+            or log.run_id != run_id
+            or self.dossier.case_id != self.manifest.case_id
+            or self.dossier.input_address != self.manifest.content_address
+            or input_address != self.manifest.content_address
+            or event_address != content_hash(event_record)
+            or dossier_address != content_hash(dossier_body)
+            or self.dossier.content_address != dossier_address
+            or self.dossier.event_head != log.head
+            or not expected_replay.event_chain_valid
+            or not expected_replay.stored_dossier_matches_address
+            or canonical_bytes(self.replay.to_dict()) != canonical_bytes(expected_replay.to_dict())
+        ):
+            raise ValidationError("verified snapshot artifacts do not form one replay-closed run")
+        frozen_record = freeze_json(record, field="verified snapshot run_record")
+        if not isinstance(frozen_record, Mapping):  # pragma: no cover - guarded above
+            raise ValidationError("verified snapshot run_record must remain an object")
+        object.__setattr__(self, "run_record", frozen_record)
+        frozen_events = freeze_json(event_record, field="verified snapshot event_record")
+        if not isinstance(frozen_events, Mapping):  # pragma: no cover - exact dict above
+            raise ValidationError("verified snapshot event_record must remain an object")
+        object.__setattr__(self, "event_record", frozen_events)
+
+    @property
+    def run_id(self) -> str:
+        return self.dossier.run_id
+
+    @property
+    def event_log(self) -> EventLog:
+        """Return a fresh mutable log detached from the verified snapshot."""
+
+        raw = jsonable(self.event_record)
+        if type(raw) is not dict:  # pragma: no cover - constructor invariant
+            raise ValidationError("verified snapshot event_record copy must be an object")
+        event_address = self.run_record.get("event_address")
+        try:
+            return EventLog.from_record(
+                raw,
+                expected_address=event_address if type(event_address) is str else None,
+            )
+        except (TypeError, ValueError) as exc:  # pragma: no cover - constructor invariant
+            raise ValidationError("verified snapshot event log could not be detached") from exc
+
+    def run_record_dict(self) -> dict[str, Any]:
+        """Return a mutable canonical copy for compare-and-swap persistence."""
+
+        value = jsonable(self.run_record)
+        if type(value) is not dict:  # pragma: no cover - frozen mapping is guaranteed above
+            raise ValidationError("verified snapshot run_record copy must be an object")
+        return value
 
 
 class CaseRuntime:
@@ -464,64 +606,132 @@ class CaseRuntime:
                     "accepted review must cover every evidence claim in the current snapshot"
                 )
 
-    def _load_current_snapshot(
-        self,
-        run_id: str,
-    ) -> tuple[Dossier, EventLog, dict[str, Any]]:
-        """Load a detached, replay-verified current snapshot without touching `_logs`."""
+    def _persisted_object_max_bytes(self) -> int:
+        validator = self._require_exact_validator(self.validator, "runtime validator")
+        return validator.limits.max_canonical_bytes
+
+    @property
+    def persisted_object_max_bytes(self) -> int:
+        """Return the revalidated canonical-object ceiling used by runtime loaders."""
+
+        return self._persisted_object_max_bytes()
+
+    def load_manifest(self, input_address: str) -> CaseManifest:
+        """Load one bounded, address-closed, exact persisted case manifest."""
 
         try:
-            run_record = self.get_run(run_id)
+            raw = self.store.store.get_verified(
+                input_address,
+                max_bytes=self._persisted_object_max_bytes(),
+            )
+            if type(raw) is not dict:
+                raise ValidationError("persisted manifest input must be an exact object")
+            manifest = CaseManifest.from_dict(raw)
+            if (
+                manifest.content_address != input_address
+                or canonical_bytes(manifest.to_dict()) != canonical_bytes(raw)
+            ):
+                raise ValidationError("persisted manifest input does not round-trip exactly")
+            self._validate_manifest_contract(manifest, "persisted manifest input")
+            return manifest
+        except Exception as exc:  # noqa: BLE001 - stored inputs are hostile
+            if isinstance(exc, ValidationError):
+                raise
+            raise ValidationError(
+                "persisted manifest input object is missing or invalid"
+            ) from exc
+
+    def load_event_log(self, event_address: str) -> EventLog:
+        """Load one bounded, address-closed, exact persisted event log."""
+
+        try:
+            raw = self.store.store.get_verified(
+                event_address,
+                max_bytes=MAX_EVENT_RECORD_BYTES,
+            )
+            if type(raw) is not dict:
+                raise ValidationError("persisted event record must be an exact object")
+            log = EventLog.from_record(raw, expected_address=event_address)
+            if not log.verify() or canonical_bytes(log.to_record()) != canonical_bytes(raw):
+                raise ValidationError("persisted event record does not round-trip exactly")
+            return log
+        except Exception as exc:  # noqa: BLE001 - stored events are hostile
+            if isinstance(exc, ValidationError):
+                raise
+            raise ValidationError("persisted event record is missing or invalid") from exc
+
+    def load_dossier(self, dossier_address: str) -> Dossier:
+        """Load one bounded, canonical, exact persisted dossier snapshot."""
+
+        try:
+            raw = self.store.store.get_canonical(
+                dossier_address,
+                max_bytes=self._persisted_object_max_bytes(),
+            )
+            if type(raw) is not dict:
+                raise ValidationError("persisted dossier must be an exact object")
+            dossier = Dossier.from_dict(raw)
+            if (
+                dossier.content_address != dossier_address
+                or self._dossier_address(dossier) != dossier_address
+                or canonical_bytes(dossier.to_dict()) != canonical_bytes(raw)
+            ):
+                raise ValidationError("persisted dossier does not round-trip exactly")
+            self._validate_dossier_contract(dossier, "persisted dossier")
+            return dossier
+        except Exception as exc:  # noqa: BLE001 - stored dossiers are hostile
+            if isinstance(exc, ValidationError):
+                raise
+            raise ValidationError("persisted dossier is missing or invalid") from exc
+
+    def load_run_snapshot(self, run_id: str) -> VerifiedRunSnapshot:
+        """Load the current typed run closure and require complete replay integrity."""
+
+        # Keep an absent/invalid run index distinguishable from corruption of an
+        # existing run's referenced immutable objects.
+        run_record = self.get_run(run_id)
+        try:
             event_address = run_record["event_address"]
             dossier_address = run_record["dossier_address"]
             input_address = run_record["input_address"]
-            try:
-                event_record = self.store.store.get_verified(
-                    event_address,
-                    max_bytes=MAX_EVENT_RECORD_BYTES,
-                )
-            except StoreError as exc:
-                raise ValidationError("cannot continue a run with an invalid event record") from exc
-            stored = self.store.store.get_canonical(
-                dossier_address,
-                max_bytes=MAX_VALIDATION_CANONICAL_BYTES,
-            )
-            try:
-                input_record = self.store.store.get_verified(
-                    input_address,
-                    max_bytes=MAX_VALIDATION_CANONICAL_BYTES,
-                )
-            except StoreError as exc:
-                raise ValidationError(
-                    "persisted manifest input object is missing or invalid"
-                ) from exc
-            replay = ReplayVerifier().verify(run_record, event_record, stored)
-            if (
-                not replay.event_chain_valid
-                or not replay.stored_dossier_matches_address
-                or content_hash(input_record) != input_address
-            ):
-                raise ValidationError(
-                    "persisted run has an invalid event record, input record, or replay integrity"
-                )
-            dossier = Dossier.from_dict(stored)
-            self._validate_dossier_contract(dossier, "persisted dossier")
-            log = EventLog.from_record(event_record, expected_address=event_address)
-            if dossier.run_id != run_id or log.run_id != run_id:
+            log = self.load_event_log(event_address)
+            dossier = self.load_dossier(dossier_address)
+            manifest = self.load_manifest(input_address)
+            event_record = log.to_record()
+            dossier_record = dossier.to_dict()
+            replay = ReplayVerifier().verify(run_record, event_record, dossier_record)
+            if not replay.event_chain_valid or not replay.stored_dossier_matches_address:
+                raise ValidationError("persisted run failed replay integrity")
+            if dossier.run_id != run_id or log.run_id != run_id or replay.run_id != run_id:
                 raise ValidationError("persisted run identifier is inconsistent")
             if dossier.event_head != log.head:
                 raise ValidationError("persisted dossier does not close over the event log")
             self._validate_persisted_run_inputs(
                 dossier=dossier,
                 log=log,
-                input_record=input_record,
+                input_record=manifest.to_dict(),
                 input_address=input_address,
+            )
+            return VerifiedRunSnapshot(
+                run_record=run_record,
+                manifest=manifest,
+                event_record=event_record,
+                dossier=dossier,
+                replay=replay,
             )
         except Exception as exc:  # noqa: BLE001 - persisted hostile data must fail closed
             if isinstance(exc, ValidationError):
                 raise
-            raise ValidationError("cannot review a run with invalid persisted artifacts") from exc
-        return dossier, log, run_record
+            raise ValidationError("cannot load a run with invalid persisted artifacts") from exc
+
+    def _load_current_snapshot(
+        self,
+        run_id: str,
+    ) -> tuple[Dossier, EventLog, dict[str, Any]]:
+        """Load a detached, replay-verified current snapshot without touching `_logs`."""
+
+        snapshot = self.load_run_snapshot(run_id)
+        return snapshot.dossier, snapshot.event_log, snapshot.run_record_dict()
 
     def _validate_persisted_run_inputs(
         self,
@@ -1032,10 +1242,7 @@ class CaseRuntime:
     def get_dossier(self, dossier_address: str) -> dict[str, Any]:
         """Read an immutable dossier by its content address."""
 
-        return self.store.store.get_canonical(
-            dossier_address,
-            max_bytes=MAX_VALIDATION_CANONICAL_BYTES,
-        )
+        return self.load_dossier(dossier_address).to_dict()
 
     @staticmethod
     def _run_id(

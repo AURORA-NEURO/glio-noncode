@@ -276,7 +276,7 @@ def _decode_stored_object(payload: bytes, *, address: str) -> Any:
             object_pairs_hook=_unique_json_object,
             parse_constant=_invalid_json_constant,
         )
-    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as exc:
         raise StoreError(f"invalid stored object: {address}") from exc
 
 
@@ -339,8 +339,8 @@ class ObjectStore:
             raise StoreError(f"stored object could not be read: {address}") from exc
         return _decode_stored_object(payload, address=address)
 
-    def get_canonical(self, address: str, *, max_bytes: int) -> Any:
-        """Read one canonical JSON object within an explicit byte ceiling."""
+    def _read_bounded_payload(self, address: str, *, max_bytes: int) -> bytes:
+        """Read one object payload without allocating beyond a declared ceiling."""
 
         digest = _address_digest(address)
         if type(max_bytes) is not int or max_bytes <= 0:
@@ -360,6 +360,24 @@ class ObjectStore:
             raise StoreError(f"stored object could not be read: {address}") from exc
         if len(payload) > max_bytes:
             raise StoreError(f"stored object exceeds {max_bytes} bytes: {address}")
+        return payload
+
+    def get_bounded(self, address: str, *, max_bytes: int) -> Any:
+        """Decode one bounded object for integrity diagnostics.
+
+        This deliberately does not assert canonical spelling or content-address
+        identity.  It exists so diagnostic surfaces can classify corruption
+        without an unbounded read; callers must validate the returned value
+        before exposing it as trusted content.
+        """
+
+        payload = self._read_bounded_payload(address, max_bytes=max_bytes)
+        return _decode_stored_object(payload, address=address)
+
+    def get_canonical(self, address: str, *, max_bytes: int) -> Any:
+        """Read one canonical JSON object within an explicit byte ceiling."""
+
+        payload = self._read_bounded_payload(address, max_bytes=max_bytes)
         value = _decode_stored_object(payload, address=address)
         try:
             canonical_payload = canonical_json(value).encode("utf-8")

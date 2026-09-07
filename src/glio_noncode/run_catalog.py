@@ -12,10 +12,12 @@ from dataclasses import dataclass
 from typing import Any
 
 from .errors import StoreError, ValidationError
+from .events import MAX_EVENT_RECORD_BYTES
 from .models import Dossier
 from .replay import ReplayReport, ReplayVerifier
 from .runtime import CaseRuntime
 from .serialization import content_hash
+from .validation import MAX_VALIDATION_CANONICAL_BYTES
 
 RUN_CATALOG_VERSION = "run-catalog-v1"
 RUN_CATALOG_DEFAULT_LIMIT = 25
@@ -249,25 +251,37 @@ def inspect_run(runtime: CaseRuntime, run_id: str) -> RunInspection:
 
     selected_run_id = _require_run_id(run_id)
     run_record = runtime.get_run(selected_run_id)
-    event_record = runtime.store.store.get(run_record["event_address"])
-    dossier_record = runtime.store.store.get(run_record["dossier_address"])
-    if not isinstance(event_record, dict):
+    event_record = runtime.store.store.get_bounded(
+        run_record["event_address"],
+        max_bytes=MAX_EVENT_RECORD_BYTES,
+    )
+    dossier_record = runtime.store.store.get_bounded(
+        run_record["dossier_address"],
+        max_bytes=MAX_VALIDATION_CANONICAL_BYTES,
+    )
+    if type(event_record) is not dict:
         raise StoreError("persisted event record must be an object")
-    if not isinstance(dossier_record, dict):
+    if type(dossier_record) is not dict:
         raise StoreError("persisted dossier record must be an object")
     summary, replay = _build_summary(runtime, run_record, event_record, dossier_record)
+    safe_event_record = (
+        event_record
+        if replay.event_chain_valid
+        else {"run_id": selected_run_id, "events": []}
+    )
+    safe_dossier_record = dossier_record if replay.stored_dossier_matches_address else {}
     body = {
         "summary": summary,
         "run": run_record,
-        "events": event_record.get("events", []),
-        "dossier": dossier_record,
+        "events": safe_event_record.get("events", []),
+        "dossier": safe_dossier_record,
         "replay": replay,
     }
     return RunInspection(
         summary=summary,
         run_record=run_record,
-        event_record=event_record,
-        dossier_record=dossier_record,
+        event_record=safe_event_record,
+        dossier_record=safe_dossier_record,
         replay=replay,
         content_address=content_hash(body, prefix="run-inspection"),
     )

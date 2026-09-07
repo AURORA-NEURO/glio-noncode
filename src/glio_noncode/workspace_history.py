@@ -428,20 +428,11 @@ def _snapshot_with_manifest(
 def _load_manifest(runtime: CaseRuntime, run_id: str) -> CaseManifest:
     inspection = inspect_run(runtime, run_id)
     input_address = str(inspection.summary.input_address)
-    raw = runtime.store.store.get(input_address)
-    if not isinstance(raw, Mapping):
-        raise ValidationError("persisted run input must be an object")
-    return CaseManifest.from_dict(raw)
+    return runtime.load_manifest(input_address)
 
 
 def _load_dossier(runtime: CaseRuntime, snapshot: RunSnapshot) -> Dossier:
-    raw = runtime.store.store.get(snapshot.dossier_address)
-    if not isinstance(raw, Mapping):
-        raise ValidationError("historical dossier snapshot must be an object")
-    dossier = Dossier.from_dict(raw)
-    if dossier.content_address != snapshot.dossier_address:
-        raise ValidationError("historical dossier address changed during workspace reconstruction")
-    return dossier
+    return runtime.load_dossier(snapshot.dossier_address)
 
 
 def _history_body(

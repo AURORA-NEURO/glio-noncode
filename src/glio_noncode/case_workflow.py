@@ -61,7 +61,7 @@ from .regulatory_tracks import (
     RegulatoryTrackParser,
     TrackIssueSeverity,
 )
-from .replay import ReplayReport, ReplayVerifier
+from .replay import ReplayReport
 from .runtime import CaseRuntime
 from .serialization import content_hash, hash_bytes, jsonable, utc_now
 from .storage import MAX_RUN_HISTORY_ENTRIES
@@ -3347,11 +3347,11 @@ def run_case(
             live_reference=value.live_reference,
             rna_consequences=rna_rows,
         )
-        run_record = engine.get_run(dossier.run_id)
-        event_record = engine.store.store.get(str(run_record["event_address"]))
+        snapshot = engine.load_run_snapshot(dossier.run_id)
+        run_record = snapshot.run_record_dict()
+        event_record = snapshot.event_record
         rna_input_address = _runtime_rna_input_address(event_record)
-        stored_dossier = engine.get_dossier(str(run_record["dossier_address"]))
-        replay = ReplayVerifier().verify(dict(run_record), event_record, stored_dossier)
+        replay = snapshot.replay
         if dossier.run_id != evaluation_run_id:
             issues.append(
                 WorkflowIssue(
