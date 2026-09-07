@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 from glio_noncode.link_graph_foundation_frontier_accessibility import evaluate_link_graph_foundation_frontier_accessibility
-from glio_noncode.link_graph_foundation_frontier_adapters import build_link_graph_foundation_frontier_adapters
+from glio_noncode.link_graph_foundation_frontier_adapters import build_link_graph_foundation_frontier_adapters, execute_link_graph_foundation_frontier_record
 from glio_noncode.link_graph_foundation_frontier_artifacts import build_link_graph_foundation_frontier_artifacts
 from glio_noncode.link_graph_foundation_frontier_bundle import build_link_graph_foundation_frontier_bundle
 from glio_noncode.link_graph_foundation_frontier_checks import run_link_graph_foundation_frontier_invariants
@@ -49,6 +49,16 @@ def test_replay_all_operations():
     assert evaluation.by_operation("nearest_gene")[2].observed_state == "abstained"
     assert evaluation.by_operation("ccre_assignment")[2].observed_state == "absent"
     assert evaluation.by_operation("enhancer_gene_consensus")[2].observed_state == "contradictory"
+
+
+def test_context_envelope_is_not_forwarded_to_strict_core_parsers():
+    fixture = default_link_graph_foundation_frontier_fixture()
+    record = fixture.operation_records("coordinate_overlap")[0]
+    assert record.payload["variant"]["context_key"] == record.context_key
+    assert record.payload["elements"][0]["context_key"] == record.context_key
+    result = execute_link_graph_foundation_frontier_record(record)
+    assert result.state == "supported"
+    assert not result.issue_codes
 
 
 def test_adapter_registry_is_closed():

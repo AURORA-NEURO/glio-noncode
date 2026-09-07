@@ -70,12 +70,16 @@ def _context(value: str) -> ReferenceContext:
 
 
 def _variant(value: dict[str, Any]) -> VariantIdentity:
-    return VariantIdentity.from_dict(value)
+    payload = dict(value)
+    payload.pop("context_key", None)
+    return VariantIdentity.from_dict(payload)
 
 
 def _element(value: dict[str, Any], context: ReferenceContext) -> CandidateElement:
     selected = _context(str(value.get("context_key", context.key)))
-    return CandidateElement.from_dict(value, selected)
+    payload = dict(value)
+    payload.pop("context_key", None)
+    return CandidateElement.from_dict(payload, selected)
 
 
 def _gene(value: dict[str, Any]) -> GeneFeature:
