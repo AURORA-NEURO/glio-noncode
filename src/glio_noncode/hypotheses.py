@@ -40,6 +40,7 @@ from .serialization import content_hash
 MAX_HYPOTHESIS_TARGETS_PER_ELEMENT = 128
 MAX_HYPOTHESIS_WORK_ITEMS = 10_000
 MAX_HYPOTHESIS_RNA_CONSEQUENCES = MAX_RNA_CLAIM_BATCH_ITEMS
+_MAX_HYPOTHESIS_EXTERNAL_CLAIMS = 10_000
 
 
 def _bounded_positive_integer(value: object, field_name: str, ceiling: int) -> int:
@@ -59,12 +60,14 @@ class HypothesisWorkLimits:
     max_targets_per_element: int = MAX_HYPOTHESIS_TARGETS_PER_ELEMENT
     max_work_items: int = MAX_HYPOTHESIS_WORK_ITEMS
     max_rna_consequences: int = MAX_HYPOTHESIS_RNA_CONSEQUENCES
+    max_external_claims: int = _MAX_HYPOTHESIS_EXTERNAL_CLAIMS
 
     def __post_init__(self) -> None:
         for field_name, ceiling in (
             ("max_targets_per_element", MAX_HYPOTHESIS_TARGETS_PER_ELEMENT),
             ("max_work_items", MAX_HYPOTHESIS_WORK_ITEMS),
             ("max_rna_consequences", MAX_HYPOTHESIS_RNA_CONSEQUENCES),
+            ("max_external_claims", _MAX_HYPOTHESIS_EXTERNAL_CLAIMS),
         ):
             object.__setattr__(
                 self,
@@ -163,12 +166,12 @@ class HypothesisBuilder:
         *,
         rna_consequences: Iterable[RNAConsequenceEvidence] = (),
         retained_owner_address: str | None = None,
+        external_claims: Iterable[EvidenceClaim] = (),
     ) -> BuiltHypotheses:
         rna_rows = self.validate_inputs(
             manifest,
             rna_consequences=rna_consequences,
         )
-        graph = EvidenceGraph()
         hypotheses: list[Hypothesis] = []
         warnings: list[str] = []
         if not manifest.candidate_elements:
@@ -179,6 +182,15 @@ class HypothesisBuilder:
             if not elements:
                 warnings.append(f"No eligible elements for {variant.variant_id}.")
             eligible_pairs.extend((variant, element) for element in elements)
+
+        graph = EvidenceGraph()
+        external_claims_by_edge = self._prepare_external_claims(
+            manifest,
+            eligible_pairs,
+            external_claims,
+            graph,
+        )
+        unconsumed_external_edges = set(external_claims_by_edge)
 
         rna_claims_by_edge: dict[str, tuple[EvidenceClaim, ...]] = {}
         if rna_rows:
@@ -225,10 +237,23 @@ class HypothesisBuilder:
                 graph,
                 rna_claims_by_edge,
                 state_claims_by_edge,
+                unconsumed_external_edges,
             )
             hypotheses.append(built)
         if not hypotheses and manifest.variants:
             hypotheses.extend(self._abstentions(manifest, run_id, graph))
+        if unconsumed_external_edges:
+            unconsumed_claim_ids = tuple(
+                sorted(
+                    claim.evidence_id
+                    for edge_id in unconsumed_external_edges
+                    for claim in external_claims_by_edge[edge_id]
+                )
+            )
+            raise ValidationError(
+                "external evidence claims were not consumed by hypothesis edges: "
+                f"{list(unconsumed_claim_ids)}"
+            )
         return BuiltHypotheses(
             hypotheses=tuple(
                 sorted(hypotheses, key=lambda item: (-item.support, item.hypothesis_id))
@@ -236,6 +261,98 @@ class HypothesisBuilder:
             claims=graph.all_claims(),
             warnings=tuple(dict.fromkeys(warnings)),
         )
+
+    def _prepare_external_claims(
+        self,
+        manifest: CaseManifest,
+        eligible_pairs: tuple[tuple[VariantIdentity, CandidateElement], ...]
+        | list[tuple[VariantIdentity, CandidateElement]],
+        external_claims: Iterable[EvidenceClaim],
+        graph: EvidenceGraph,
+    ) -> dict[str, tuple[EvidenceClaim, ...]]:
+        """Validate and stage bounded external claims before any edge aggregation."""
+
+        if isinstance(external_claims, (str, bytes, bytearray, Mapping)):
+            raise ValidationError("external_claims must be an iterable of EvidenceClaim objects")
+        try:
+            rows = tuple(islice(iter(external_claims), self.limits.max_external_claims + 1))
+        except TypeError as error:
+            raise ValidationError("external_claims must be iterable") from error
+        if len(rows) > self.limits.max_external_claims:
+            raise ValidationError(
+                "external_claims exceeds the configured maximum of "
+                f"{self.limits.max_external_claims} items"
+            )
+        if any(type(item) is not EvidenceClaim for item in rows):
+            raise ValidationError("external_claims must contain only exact EvidenceClaim objects")
+
+        # EvidenceGraph provides the canonical typed round-trip, finite-number,
+        # duplicate-ID, dependency-order, and byte-budget checks. Staging the
+        # validated claims now also guarantees that every later aggregation sees
+        # its complete same-edge evidence set.
+        graph.extend(rows)
+        known_edge_ids = self._eligible_edge_ids(eligible_pairs)
+        grouped: dict[str, list[EvidenceClaim]] = {}
+        for claim in rows:
+            if claim.context.key != manifest.context.key:
+                raise ValidationError(
+                    f"external evidence claim {claim.evidence_id} context does not match "
+                    "the case manifest"
+                )
+            if claim.edge_id not in known_edge_ids:
+                raise ValidationError(
+                    f"external evidence claim {claim.evidence_id} targets unknown or "
+                    f"ineligible edge {claim.edge_id}"
+                )
+            grouped.setdefault(claim.edge_id, []).append(claim)
+        return {edge_id: tuple(claims) for edge_id, claims in grouped.items()}
+
+    def _eligible_edge_ids(
+        self,
+        eligible_pairs: Iterable[tuple[VariantIdentity, CandidateElement]],
+    ) -> frozenset[str]:
+        """Return the exact deterministic edge IDs emitted for eligible pairs."""
+
+        edge_ids: set[str] = set()
+        for variant, element in eligible_pairs:
+            edge_ids.add(
+                self._edge_id(
+                    variant.variant_id,
+                    element.element_id,
+                    EdgeType.VARIANT_TO_ELEMENT,
+                )
+            )
+            gene_ids = element.target_genes or ("unresolved_gene",)
+            state_ids = element.state_ids or ("unresolved_state",)
+            for gene_id in gene_ids:
+                edge_ids.add(
+                    self._edge_id(
+                        element.element_id,
+                        gene_id,
+                        EdgeType.ELEMENT_TO_GENE,
+                    )
+                )
+            state_source_id = gene_ids[0] if element.target_genes else element.element_id
+            for state_id in state_ids:
+                edge_ids.add(
+                    self._edge_id(
+                        state_source_id,
+                        state_id,
+                        EdgeType.GENE_TO_STATE,
+                    )
+                )
+            edge_ids.add(
+                self._edge_id(
+                    variant.variant_id,
+                    f"{element.element_id}:{gene_ids[0]}:{state_ids[0]}",
+                    EdgeType.CAUSAL_PATH,
+                )
+            )
+        return frozenset(edge_ids)
+
+    @staticmethod
+    def _consume_external_edge(edge_id: str, pending_edge_ids: set[str]) -> None:
+        pending_edge_ids.discard(edge_id)
 
     def _eligible_elements(
         self,
@@ -302,6 +419,7 @@ class HypothesisBuilder:
         graph: EvidenceGraph,
         rna_claims_by_edge: dict[str, tuple[EvidenceClaim, ...]],
         state_claims_by_edge: dict[str, tuple[EvidenceClaim, ...]],
+        unconsumed_external_edges: set[str],
     ) -> Hypothesis:
         variant_element_id = self._edge_id(
             variant.variant_id, element.element_id, EdgeType.VARIANT_TO_ELEMENT
@@ -329,6 +447,7 @@ class HypothesisBuilder:
                     ),
                 )
             )
+        self._consume_external_edge(variant_element_id, unconsumed_external_edges)
         variant_edge_aggregate = graph.aggregate(
             HypothesisEdge(
                 edge_id=variant_element_id,
@@ -371,6 +490,7 @@ class HypothesisBuilder:
             )
             for rna_claim in rna_claims_by_edge.get(edge_id, ()):
                 self._record_claim(graph, rna_claim)
+            self._consume_external_edge(edge_id, unconsumed_external_edges)
             aggregate = graph.aggregate(
                 HypothesisEdge(
                     edge_id=edge_id,
@@ -404,6 +524,7 @@ class HypothesisBuilder:
             for state_claim in staged_claims:
                 self._record_claim(graph, state_claim)
             staged_claim_ids = tuple(dict.fromkeys(claim.evidence_id for claim in staged_claims))
+            self._consume_external_edge(edge_id, unconsumed_external_edges)
             aggregate = graph.aggregate(
                 HypothesisEdge(
                     edge_id=edge_id,
@@ -450,6 +571,7 @@ class HypothesisBuilder:
             run_id,
         )
         path_claim = self._record_claim(graph, path_claim)
+        self._consume_external_edge(causal_edge_id, unconsumed_external_edges)
         path_aggregate = graph.aggregate(
             HypothesisEdge(
                 edge_id=causal_edge_id,
