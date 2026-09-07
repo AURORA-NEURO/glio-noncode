@@ -156,9 +156,7 @@ class ReportCliTests(unittest.TestCase):
             assessment = VerifiedRunAssessment.from_dict(
                 json.loads(assessment_path.read_text(encoding="utf-8"))
             )
-            self.assertTrue(
-                assessment.verify(CaseRuntime(data_root).load_run_snapshot(dossier.run_id))
-            )
+            self.assertTrue(assessment.verify(CaseRuntime(data_root)))
             self.assertEqual(assessment.dossier_report.audience, "public")
             self.assertEqual(assessment.rendered_report.format, "json")
 

@@ -529,10 +529,6 @@ from . import history_observatory_archive_transfer_recovery_execution_runtime_re
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model
-from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_model
-from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_audit_model
-from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_model
-from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_audit as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_audit_model
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query as downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_model
@@ -1063,6 +1059,11 @@ from . import registry_federation_matrix_audit as registry_federation_matrix_aud
 from . import registry_federation_observatory as registry_federation_observatory_model
 from . import registry_federation_query as registry_federation_query_model
 from . import registry_federation_runtime as registry_federation_runtime_model
+from .adapters import AdapterRegistry
+from .assessments import (
+    assessment_capabilities as run_assessment_capabilities,
+    build_run_assessment as build_verified_run_assessment,
+)
 from .assurance_history_series_release_registry import (
     capabilities as assurance_history_series_release_registry_capabilities,
 )
@@ -1097,6 +1098,13 @@ from .capability_certification_bundle_observability import (
 from .capability_certification_bundle_query import query_capability_certification_bundle
 from .capability_certification_bundle_runtime import run_capability_certification_bundle_runtime
 from .capability_certification_bundle_schema import capability_certification_bundle_schema
+from .case_workflow import (
+    PreparedCase,
+    capabilities as case_workflow_capabilities,
+    case_workflow_schema,
+    prepare_case,
+    run_case,
+)
 from .cohort_benchmarks import (
     CohortBenchmarkConfig,
     cohort_benchmark_capabilities,
@@ -1217,6 +1225,29 @@ from .evidence_lifecycle_frontier_offline_schema import evidence_lifecycle_offli
 from .evidence_lifecycle_frontier_offline_summary import (
     audit_evidence_lifecycle_offline_summary,
     build_evidence_lifecycle_offline_summary,
+)
+from .expression_claims import (
+    RNAElementGeneTarget,
+    expression_claims_capabilities,
+    expression_claims_schema,
+    match_rna_consequences,
+    public_projection as expression_claim_public_projection,
+    rna_consequence_to_claim,
+)
+from .expression_evidence import (
+    AllelicCountBatch,
+    AllelicCountObservation,
+    AllelicImbalanceAnalyzer,
+    AllelicImbalanceResult,
+    ExpressionBatch,
+    ExpressionObservation,
+    ExpressionOutlierResult,
+    PredictedRegulatoryEffect,
+    RNAConsequenceEvidence,
+    RNAConsequenceIntegrator,
+    RobustExpressionOutlierAnalyzer,
+    expression_evidence_capabilities,
+    expression_evidence_schema,
 )
 from .frontier_release_closure_boundary import audit_frontier_release_boundary
 from .frontier_release_closure_bundle import build_frontier_release_snapshot
@@ -2614,6 +2645,11 @@ from .release_assurance_thresholds import (
     release_assurance_threshold_status,
 )
 from .release_assurance_views import audit_release_assurance_views, build_release_assurance_views
+from .reports import (
+    ReportAudience as DossierReportAudience,
+    ReportFormat as DossierReportFormat,
+    report_capabilities as dossier_report_capabilities,
+)
 from .review_operations import (
     REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
     build_review_operations_closure,
@@ -2709,45 +2745,6 @@ from .run_workspace import (
     build_persisted_run_workspace,
     build_persisted_run_workspace_closure,
     workspace_query_from_filters,
-)
-from .reports import (
-    ReportAudience as DossierReportAudience,
-    ReportFormat as DossierReportFormat,
-    report_capabilities as dossier_report_capabilities,
-)
-from .assessments import (
-    assessment_capabilities as run_assessment_capabilities,
-    build_run_assessment as build_verified_run_assessment,
-)
-from .case_workflow import (
-    PreparedCase,
-    capabilities as case_workflow_capabilities,
-    case_workflow_schema,
-    prepare_case,
-    run_case,
-)
-from .expression_evidence import (
-    AllelicCountBatch,
-    AllelicCountObservation,
-    AllelicImbalanceAnalyzer,
-    AllelicImbalanceResult,
-    ExpressionBatch,
-    ExpressionObservation,
-    ExpressionOutlierResult,
-    PredictedRegulatoryEffect,
-    RNAConsequenceEvidence,
-    RNAConsequenceIntegrator,
-    RobustExpressionOutlierAnalyzer,
-    expression_evidence_capabilities,
-    expression_evidence_schema,
-)
-from .expression_claims import (
-    RNAElementGeneTarget,
-    expression_claims_capabilities,
-    expression_claims_schema,
-    match_rna_consequences,
-    public_projection as expression_claim_public_projection,
-    rna_consequence_to_claim,
 )
 from .runtime import CaseRuntime
 from .schema import schema_document
@@ -5027,6 +5024,22 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/case-workflow/capabilities":
             self._write(HTTPStatus.OK, case_workflow_capabilities())
+            return
+        if path == "/v1/case-workflow/adapters":
+            registry = self._runtime().adapter_registry
+            snapshot = None if registry is None else registry.snapshot()
+            self._write(
+                HTTPStatus.OK,
+                {
+                    "configured": snapshot is not None,
+                    "adapter_ids": (
+                        []
+                        if snapshot is None
+                        else [item.adapter_id for item in snapshot.adapters]
+                    ),
+                    "registry_snapshot": None if snapshot is None else snapshot.to_dict(),
+                },
+            )
             return
         if path == "/v1/expression-evidence/schema":
             self._write(HTTPStatus.OK, expression_evidence_schema(public=True))
@@ -21147,9 +21160,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                     report_format = DossierReportFormat(
                         DossierReportFormat.JSON.value if raw_format is None else raw_format
                     )
-                    snapshot = runtime.load_run_snapshot(run_id)
                     assessment = build_verified_run_assessment(
-                        snapshot,
+                        runtime,
+                        run_id,
                         audience=audience,
                         format=report_format,
                     )
@@ -22016,7 +22029,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if path == "/v1/case-workflow/run":
             try:
                 payload = self._read_json(strict=True)
-                unknown = set(payload) - {"prepared", "rna_consequences"}
+                unknown = set(payload) - {"prepared", "rna_consequences", "adapter_ids"}
                 if unknown:
                     raise ValueError(
                         f"case workflow execution contains unknown fields: {sorted(unknown)}"
@@ -22031,10 +22044,16 @@ class ApiHandler(BaseHTTPRequestHandler):
                     raise ValueError("rna_consequences must be an array")
                 if any(not isinstance(item, Mapping) for item in rna_raw):
                     raise ValueError("every RNA consequence must be an object")
+                adapter_ids_raw = payload.get("adapter_ids", [])
+                if type(adapter_ids_raw) is not list or any(
+                    type(item) is not str for item in adapter_ids_raw
+                ):
+                    raise ValueError("adapter_ids must be an exact array of strings")
                 result = run_case(
                     PreparedCase.from_mapping(prepared_raw),
                     runtime=self._runtime(),
                     rna_consequences=rna_raw,
+                    adapter_ids=tuple(adapter_ids_raw),
                 )
                 self._write(
                     HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
@@ -23728,6 +23747,7 @@ def create_server(
     credentials: Mapping[str, str] | None = None,
     audit_root: str | None = None,
     audit_retention_limit: int = DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT,
+    adapter_registry: AdapterRegistry | None = None,
 ) -> ThreadingHTTPServer:
     """Create a threaded server with an explicit deployment policy."""
 
@@ -23745,6 +23765,10 @@ def create_server(
     )
     guard = DeploymentGuard(profile, credentials, audit_store=audit_store)
     server = ThreadingHTTPServer((host, port), ApiHandler)
-    setattr(server, "glio_runtime", CaseRuntime(data_root))  # noqa: B010 - server-local runtime attachment
+    setattr(  # noqa: B010 - server-local runtime attachment
+        server,
+        "glio_runtime",
+        CaseRuntime(data_root, adapter_registry=adapter_registry),
+    )
     setattr(server, "glio_deployment_guard", guard)  # noqa: B010 - server-local policy attachment
     return server

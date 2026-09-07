@@ -62,7 +62,9 @@ class ReviewQueueTests(unittest.TestCase):
             self.assertEqual([item.queue_state for item in page.rows], ["unassigned", "unassigned"])
             self.assertTrue(page.rows[0].priority_score >= page.rows[1].priority_score)
             self.assertTrue(all("review_missing" in item.priority_reasons for item in page.rows))
-            self.assertTrue(all("no_active_assignment" in item.priority_reasons for item in page.rows))
+            self.assertTrue(
+                all("no_active_assignment" in item.priority_reasons for item in page.rows)
+            )
             self.assertEqual(
                 {item.run_id for item in build_review_queue_page(runtime, scope="unassigned").rows},
                 {first_id, second_id},
@@ -92,10 +94,21 @@ class ReviewQueueTests(unittest.TestCase):
             self.assertTrue(result["assignment"]["content_address"].startswith("review-assignment:"))
             after = inspect_run(runtime, dossier.run_id)
             self.assertTrue(after.accepted)
-            self.assertEqual(len(after.event_record["events"]), len(before.event_record["events"]) + 1)
+            self.assertEqual(
+                len(after.event_record["events"]),
+                len(before.event_record["events"]) + 2,
+            )
             self.assertEqual(after.event_record["events"][-1]["event_type"], "review_assigned")
-            self.assertGreater(len(runtime.get_run(dossier.run_id).get("dossier_history", ())), before_snapshot_count)
-            page = build_review_queue_page(runtime, scope="assigned", reviewer="reviewer-alpha", queue_id="neuro-oncology")
+            self.assertGreater(
+                len(runtime.get_run(dossier.run_id).get("dossier_history", ())),
+                before_snapshot_count,
+            )
+            page = build_review_queue_page(
+                runtime,
+                scope="assigned",
+                reviewer="reviewer-alpha",
+                queue_id="neuro-oncology",
+            )
             self.assertTrue(page.accepted)
             self.assertEqual(page.total_count, 1)
             self.assertEqual(page.rows[0].assignment.assignment_id, "assignment-001")

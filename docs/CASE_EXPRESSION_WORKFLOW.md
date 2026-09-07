@@ -93,6 +93,46 @@ canonical mappings produced by `RNAConsequenceEvidence.to_dict()`. Mappings with
 unsupported schema versions, invalid values, or mismatched declared content addresses fail closed.
 Passing `()` is exactly the legacy manifest-only execution path.
 
+## Host-configured evidence adapters
+
+Evidence adapters are an untrusted host extension boundary, not request-supplied
+code. An adapter implements `EvidenceAdapter` (or the variant-aware protocol),
+publishes immutable `AdapterMetadata`, and returns exact typed
+`CandidateElement` and `EvidenceClaim` tuples. Register it before constructing
+the runtime:
+
+```python
+from glio_noncode import AdapterRegistry, CaseRuntime
+
+registry = AdapterRegistry()
+registry.register(institution_adapter)  # host-owned EvidenceAdapter implementation
+runtime = CaseRuntime(".glio-case-expression-demo", adapter_registry=registry)
+
+result = run_case(
+    prepared,
+    runtime=runtime,
+    rna_consequences=(consequence,),
+    adapter_ids=("institution-regulatory-v1",),
+)
+```
+
+For HTTP use, inject the same registry with
+`create_server(..., adapter_registry=registry)`. Clients can discover the
+addressed snapshot at `GET /v1/case-workflow/adapters` and submit only its
+canonical IDs. The command-line `case run` path does not load executable
+adapters; use the Python host or configured HTTP service when adapters are
+required.
+
+Selection is part of scientific identity. Before dossier persistence, the
+runtime freezes the base manifest, full registry snapshot, adapter-resolution
+report, and attributed claim-collection report. It then materializes an
+effective manifest whose address replaces the preparation manifest address in
+the evaluation run identity. Replay requires those source objects in their
+declared order and verifies adapter, variant, element, context, source, channel,
+and hypothesis-edge closure. Missing adapters, metadata drift, malformed output,
+resource-limit violations, or conflicting elements fail atomically without a
+partial run record.
+
 Always check both layers:
 
 ```python
@@ -597,7 +637,8 @@ Finally submit the complete prepared response and consequence response:
 POST /v1/case-workflow/run
 {
   "prepared": <complete PreparedCase object>,
-  "rna_consequences": [<complete RNAConsequenceEvidence object>]
+  "rna_consequences": [<complete RNAConsequenceEvidence object>],
+  "adapter_ids": ["institution-regulatory-v1"]
 }
 ```
 
@@ -611,8 +652,10 @@ curl -sS -X POST http://127.0.0.1:8765/v1/case-workflow/run \
   -o run-result-http.json
 ```
 
-The HTTP server always uses its configured server-side runtime. A client `data_root` field is
-rejected as an unknown field with HTTP 400; clients cannot select server-local paths. A successful
+The HTTP server always uses its configured server-side runtime and adapter registry. A client
+`data_root` field or adapter implementation is rejected as an unknown field with HTTP 400; clients
+cannot select server-local paths or executable code. Omit `adapter_ids` when the server has no
+configured adapters. A successful
 execution responds `200`; blocked scientific or integrity inputs respond `422`; malformed
 transport input responds `400`. The focused case/expression routes reject duplicate JSON keys,
 non-finite JSON numbers, unknown request-envelope fields, and simultaneous use of both names of

@@ -9,7 +9,7 @@ import math
 from collections.abc import Iterable, Mapping
 from datetime import UTC, date, datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Never, Self, SupportsIndex, overload
 
 
 def utc_now() -> datetime:
@@ -91,7 +91,7 @@ class _FrozenJsonObject(dict[str, Any]):
     """A JSON-native object that rejects ordinary mutation paths."""
 
     @staticmethod
-    def _immutable() -> None:
+    def _immutable() -> Never:
         raise TypeError("canonical metadata is immutable")
 
     def __setitem__(self, _key: str, _value: Any) -> None:
@@ -115,7 +115,7 @@ class _FrozenJsonObject(dict[str, Any]):
     def update(self, *args: Any, **kwargs: Any) -> None:
         self._immutable()
 
-    def __ior__(self, _other: object) -> _FrozenJsonObject:
+    def __ior__(self, _other: object) -> Self:  # type: ignore[override, misc]
         self._immutable()
 
     def __copy__(self) -> _FrozenJsonObject:
@@ -129,13 +129,33 @@ class _FrozenJsonArray(list[Any]):
     """A JSON-native array that rejects ordinary mutation paths."""
 
     @staticmethod
-    def _immutable() -> None:
+    def _immutable() -> Never:
         raise TypeError("canonical metadata is immutable")
 
-    def __setitem__(self, _key: int | slice, _value: Any) -> None:
+    @overload
+    def __setitem__(self, _key: SupportsIndex, _value: Any, /) -> None: ...
+
+    @overload
+    def __setitem__(
+        self,
+        _key: slice[SupportsIndex | None],
+        _value: Iterable[Any],
+        /,
+    ) -> None: ...
+
+    def __setitem__(
+        self,
+        _key: SupportsIndex | slice[SupportsIndex | None],
+        _value: Any,
+        /,
+    ) -> None:
         self._immutable()
 
-    def __delitem__(self, _key: int | slice) -> None:
+    def __delitem__(
+        self,
+        _key: SupportsIndex | slice[SupportsIndex | None],
+        /,
+    ) -> None:
         self._immutable()
 
     def append(self, _value: Any) -> None:
@@ -147,10 +167,10 @@ class _FrozenJsonArray(list[Any]):
     def extend(self, _values: Iterable[Any]) -> None:
         self._immutable()
 
-    def insert(self, _index: int, _value: Any) -> None:
+    def insert(self, _index: SupportsIndex, _value: Any, /) -> None:
         self._immutable()
 
-    def pop(self, _index: int = -1) -> Any:
+    def pop(self, _index: SupportsIndex = -1, /) -> Any:
         self._immutable()
 
     def remove(self, _value: Any) -> None:
@@ -162,10 +182,10 @@ class _FrozenJsonArray(list[Any]):
     def sort(self, *, key: Any = None, reverse: bool = False) -> None:
         self._immutable()
 
-    def __iadd__(self, _values: Iterable[Any]) -> _FrozenJsonArray:
+    def __iadd__(self, _values: Iterable[Any], /) -> Self:  # type: ignore[misc]
         self._immutable()
 
-    def __imul__(self, _count: int) -> _FrozenJsonArray:
+    def __imul__(self, _count: SupportsIndex, /) -> Self:
         self._immutable()
 
     def __copy__(self) -> _FrozenJsonArray:

@@ -80,9 +80,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.report_command in {"run-report", "run-assessment"}:
             from .runtime import CaseRuntime
 
-            snapshot = CaseRuntime(args.data_root).load_run_snapshot(args.run_id)
+            runtime = CaseRuntime(args.data_root)
             assessment = build_run_assessment(
-                snapshot,
+                runtime,
+                args.run_id,
                 audience=args.audience,
                 format=args.format,
             )

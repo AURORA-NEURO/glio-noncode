@@ -64,7 +64,7 @@ fail-closed gates, privacy boundaries, and a reproducible walkthrough.
 Package-root exports resolve lazily, and help, version, discovery, `case`,
 `expression`, and report commands stay on focused startup paths. The curated
 root surface includes the typed quality evaluator/report contracts, adapter
-registry and resolution artifacts, audience-scoped dossier reports,
+registry, resolution, and attributed claim-collection artifacts, audience-scoped dossier reports,
 `VerifiedRunSnapshot`, and bounded `ObjectStore`/`RunStore` APIs. Collision-safe
 report helpers use explicit names such as `build_dossier_report` and
 `render_dossier_report`. Selecting an older command remains compatible and
@@ -146,10 +146,10 @@ manifest list to `POST http://127.0.0.1:8765/v1/evaluate-batch`. `GET /healthz`
 reports service health and `GET /v1/schema` returns the contract summary. The
 focused workflow routes are:
 
-- Case workflow: `GET /v1/case-workflow/schema`, `GET /v1/case-workflow/capabilities`, `POST /v1/case-workflow/prepare`, and `POST /v1/case-workflow/run`.
+- Case workflow: `GET /v1/case-workflow/schema`, `GET /v1/case-workflow/capabilities`, `GET /v1/case-workflow/adapters`, `POST /v1/case-workflow/prepare`, and `POST /v1/case-workflow/run`.
 - Expression evidence: `GET /v1/expression-evidence/schema`, `GET /v1/expression-evidence/capabilities`, `POST /v1/expression-evidence/outlier`, `POST /v1/expression-evidence/allelic`, `POST /v1/expression-evidence/allelic-batch`, and `POST /v1/expression-evidence/integrate`.
 - Expression claims: `GET /v1/expression-claims/schema`, `GET /v1/expression-claims/capabilities`, `POST /v1/expression-claims/derive`, and `POST /v1/expression-claims/match`.
-- Reports: `GET /v1/reports/capabilities` and `GET /v1/runs/{run_id}/report?audience=public|review&format=json|markdown`.
+- Reports and assessments: `GET /v1/reports/capabilities`, `GET /v1/assessments/capabilities`, `GET /v1/runs/{run_id}/report?audience=public|review&format=json|markdown`, and `GET /v1/runs/{run_id}/assessment?audience=public|review&format=json|markdown`.
 
 The certified capability and architecture surfaces are available from
 `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`,
@@ -238,7 +238,24 @@ requested explicitly.
 audience-scoped dossier projection, and exact rendered bytes into one canonical,
 content-addressed artifact. Its verifier rebuilds every derived component from the
 same persisted snapshot, so downstream review and automation can consume a single
-object without trusting independently assembled report outputs.
+object without trusting independently assembled report outputs. Current snapshots
+are always supported. A historical snapshot is accepted only when its immediate
+successor contains the canonical `snapshot_predecessor_bound` event that binds both
+of its stored addresses; legacy history without that successor binding fails closed,
+and this cutoff is machine-readable through the assessment capability response.
+The runtime detects deletion, insertion, reordering, or substitution inside the
+retained authenticated suffix; detecting rollback of the complete mutable run
+index requires an external monotonic anchor and is advertised as such.
+
+Runtime evidence adapters are host-configured, never supplied as executable request
+content. A host registers adapters in an `AdapterRegistry`, injects that registry into
+`CaseRuntime` or `create_server(...)`, and clients select bounded canonical IDs through
+`adapter_ids`. `GET /v1/case-workflow/adapters` returns the exact configured registry
+snapshot. A selected run persists the base manifest, registry snapshot, resolution
+report, and attributed claim-collection report before materializing one effective
+manifest. That effective manifest address participates in the evaluation run ID, and
+adapter claims can support only the exact hypothesis edges for which they were
+collected.
 
 The review queue is a deterministic operational projection over persisted runs.
 It prioritizes integrity blocks, pending or returned reviews, missing reviews,

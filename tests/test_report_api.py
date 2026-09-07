@@ -69,16 +69,18 @@ class ReportApiTests(unittest.TestCase):
         self.assertEqual(json.loads(body)["error"], "invalid_query")
 
     def test_default_run_report_is_exact_public_json_with_address_headers(self) -> None:
-        server_runtime = self.server.glio_runtime
-        with patch.object(
-            server_runtime,
-            "load_run_snapshot",
-            wraps=server_runtime.load_run_snapshot,
-        ) as load_snapshot:
+        opened: list[str] = []
+        original = CaseRuntime.load_run_snapshot
+
+        def tracked(runtime: CaseRuntime, run_id: str):
+            opened.append(run_id)
+            return original(runtime, run_id)
+
+        with patch.object(CaseRuntime, "load_run_snapshot", new=tracked):
             status, body, headers = self._get(f"/v1/runs/{self.dossier.run_id}/report")
 
         self.assertEqual(status, 200)
-        load_snapshot.assert_called_once_with(self.dossier.run_id)
+        self.assertEqual(opened, [self.dossier.run_id])
         report = DossierReport.from_dict(json.loads(body))
         expected = render_report(build_report(self.dossier, audience="public"), format="json")
         self.assertEqual(body, expected.payload.encode("utf-8"))
@@ -118,8 +120,7 @@ class ReportApiTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(headers["content-type"], "application/json; charset=utf-8")
         assessment = VerifiedRunAssessment.from_dict(json.loads(body))
-        snapshot = self.runtime.load_run_snapshot(self.dossier.run_id)
-        self.assertTrue(assessment.verify(snapshot))
+        self.assertTrue(assessment.verify(self.runtime))
         self.assertEqual(headers["x-glio-assessment-address"], assessment.content_address)
         self.assertEqual(
             headers["x-glio-quality-report-address"],

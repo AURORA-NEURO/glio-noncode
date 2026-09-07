@@ -19,7 +19,7 @@ from .reports import (
 from .serialization import canonical_bytes, content_hash, jsonable
 
 if TYPE_CHECKING:
-    from .runtime import VerifiedRunSnapshot
+    from .runtime import CaseRuntime, VerifiedRunSnapshot
 
 
 RUN_ASSESSMENT_VERSION = "run-assessment-v1"
@@ -111,6 +111,53 @@ def _validated_snapshot(snapshot: VerifiedRunSnapshot) -> VerifiedRunSnapshot:
         raise ValidationError("run assessment snapshot is invalid") from exc
 
 
+def _load_runtime_snapshot(
+    runtime: CaseRuntime,
+    run_id: str,
+    *,
+    event_address: str | None = None,
+    dossier_address: str | None = None,
+) -> VerifiedRunSnapshot:
+    """Load through the runtime boundary that verifies persisted source semantics."""
+
+    from .runtime import CaseRuntime
+    from .storage import ObjectStore, RunStore
+
+    if type(runtime) is not CaseRuntime:
+        raise ValidationError("run assessment requires an exact CaseRuntime")
+    if type(runtime.store) is not RunStore or type(runtime.store.store) is not ObjectStore:
+        raise ValidationError("run assessment requires an exact runtime storage boundary")
+    for boundary, label in (
+        (runtime, "CaseRuntime"),
+        (runtime.store, "RunStore"),
+        (runtime.store.store, "ObjectStore"),
+    ):
+        shadowed = sorted(
+            name
+            for name in vars(boundary)
+            if callable(getattr(type(boundary), name, None))
+        )
+        if shadowed:
+            raise ValidationError(
+                f"run assessment rejects {label} instance method overrides: {shadowed}"
+            )
+    if type(run_id) is not str or not run_id.startswith("run-") or len(run_id) > 128:
+        raise ValidationError("run assessment run_id is invalid")
+    if (event_address is None) != (dossier_address is None):
+        raise ValidationError("run assessment historical addresses must be supplied together")
+    snapshot = (
+        CaseRuntime.load_run_snapshot(runtime, run_id)
+        if event_address is None or dossier_address is None
+        else CaseRuntime.load_run_snapshot_at(
+            runtime,
+            run_id,
+            event_address=event_address,
+            dossier_address=dossier_address,
+        )
+    )
+    return _validated_snapshot(snapshot)
+
+
 @dataclass(frozen=True, slots=True)
 class VerifiedRunAssessment:
     """One addressed closure over a verified run and every report-stage artifact."""
@@ -154,7 +201,7 @@ class VerifiedRunAssessment:
         ):
             raise ValidationError("run assessment report artifacts do not share one dossier")
         expected = content_hash(_assessment_body(self), prefix="run-assessment")
-        if self.content_address:
+        if self.content_address != "":
             supplied = _address(
                 self.content_address,
                 "run assessment content_address",
@@ -194,39 +241,48 @@ class VerifiedRunAssessment:
             raise ValidationError("run assessment is not an exact canonical representation")
         return value
 
-    def verify(self, snapshot: VerifiedRunSnapshot) -> bool:
-        """Recompute every derived artifact against one replay-verified snapshot."""
+    def _matches_snapshot(self, snapshot: VerifiedRunSnapshot) -> bool:
+        record = snapshot.run_record
+        return (
+            self.run_id == snapshot.dossier.run_id
+            and self.input_address == record["input_address"]
+            and self.event_address == record["event_address"]
+            and self.dossier_address == snapshot.dossier.content_address
+            and self.quality_report.verify(snapshot.dossier)
+            and self.dossier_report.verify(snapshot.dossier)
+            and self.rendered_report.verify(self.dossier_report)
+        )
+
+    def verify(self, runtime: CaseRuntime) -> bool:
+        """Recompute every artifact through the persisted-runtime verification boundary."""
 
         try:
             canonical_self = VerifiedRunAssessment.from_dict(self.to_dict())
-            canonical_snapshot = _validated_snapshot(snapshot)
             expected = build_run_assessment(
-                canonical_snapshot,
+                runtime,
+                canonical_self.run_id,
                 audience=canonical_self.dossier_report.audience,
                 format=canonical_self.rendered_report.format,
                 quality_thresholds=canonical_self.quality_report.thresholds,
+                event_address=canonical_self.event_address,
+                dossier_address=canonical_self.dossier_address,
             )
             return canonical_bytes(canonical_self.to_dict()) == canonical_bytes(expected.to_dict())
         except Exception:  # noqa: BLE001 - verification intentionally fails closed
             return False
 
-    def verify_without_rebuild(self, snapshot: VerifiedRunSnapshot) -> bool:
-        """Verify direct provenance and each report against an already verified snapshot."""
+    def verify_without_rebuild(self, runtime: CaseRuntime) -> bool:
+        """Verify the envelope and components without rebuilding the outer assessment."""
 
         try:
             canonical_self = VerifiedRunAssessment.from_dict(self.to_dict())
-            canonical_snapshot = _validated_snapshot(snapshot)
-            record = canonical_snapshot.run_record
-            return (
-                canonical_self.run_id == canonical_snapshot.dossier.run_id
-                and canonical_self.input_address == record["input_address"]
-                and canonical_self.event_address == record["event_address"]
-                and canonical_self.dossier_address
-                == canonical_snapshot.dossier.content_address
-                and canonical_self.quality_report.verify(canonical_snapshot.dossier)
-                and canonical_self.dossier_report.verify(canonical_snapshot.dossier)
-                and canonical_self.rendered_report.verify(canonical_self.dossier_report)
+            canonical_snapshot = _load_runtime_snapshot(
+                runtime,
+                canonical_self.run_id,
+                event_address=canonical_self.event_address,
+                dossier_address=canonical_self.dossier_address,
             )
+            return canonical_self._matches_snapshot(canonical_snapshot)
         except Exception:  # noqa: BLE001 - verification intentionally fails closed
             return False
 
@@ -256,15 +312,23 @@ class VerifiedRunAssessment:
 
 
 def build_run_assessment(
-    snapshot: VerifiedRunSnapshot,
+    runtime: CaseRuntime,
+    run_id: str,
     *,
     audience: ReportAudience | str = ReportAudience.PUBLIC,
     format: ReportFormat | str = ReportFormat.JSON,
     quality_thresholds: QualityThresholds | None = None,
+    event_address: str | None = None,
+    dossier_address: str | None = None,
 ) -> VerifiedRunAssessment:
-    """Derive one quality-and-rendering closure from a single verified run read."""
+    """Derive one closure from a single full persisted-runtime verification read."""
 
-    canonical_snapshot = _validated_snapshot(snapshot)
+    canonical_snapshot = _load_runtime_snapshot(
+        runtime,
+        run_id,
+        event_address=event_address,
+        dossier_address=dossier_address,
+    )
     quality = QualityEvaluator(thresholds=quality_thresholds).evaluate(
         canonical_snapshot.dossier
     )
@@ -281,9 +345,7 @@ def build_run_assessment(
         dossier_report=report,
         rendered_report=rendered,
     )
-    if not value.verify_without_rebuild(
-        canonical_snapshot
-    ):  # pragma: no cover - construction invariant
+    if not value._matches_snapshot(canonical_snapshot):  # pragma: no cover - invariant
         raise ValidationError("constructed run assessment does not close over its snapshot")
     return value
 
@@ -298,12 +360,21 @@ def assessment_capabilities() -> dict[str, object]:
         "audiences": [item.value for item in ReportAudience],
         "formats": [item.value for item in ReportFormat],
         "features": [
-            "single verified run read",
+            "single runtime-backed verified run read",
+            "authenticated historical snapshot verification",
             "recomputed quality report",
             "audience-scoped dossier projection",
             "byte-addressed rendering",
             "cross-artifact provenance verification",
         ],
+        "history_authentication": {
+            "scheme": "snapshot-predecessor-v1",
+            "current_snapshot_supported": True,
+            "historical_snapshot_requires_successor_binding": True,
+            "retained_modern_suffix_validated": True,
+            "unbound_legacy_history_supported": False,
+            "complete_index_rollback_requires_external_anchor": True,
+        },
         "hard_limits": {"assessment_bytes": _HARD_MAX_RUN_ASSESSMENT_BYTES},
     }
 

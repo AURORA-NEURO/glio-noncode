@@ -11,14 +11,16 @@ from __future__ import annotations
 
 import base64
 import math
+import re
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 from itertools import islice
 from pathlib import Path
-from typing import Any
+from typing import Any, Never, Self, SupportsIndex, overload
 
+from .adapters import ADAPTER_HARD_MAX_SELECTED
 from .errors import GlioError, ValidationError
 from .expression_evidence import (
     SCHEMA_VERSION as EXPRESSION_EVIDENCE_SCHEMA_VERSION,
@@ -74,6 +76,7 @@ MAX_CASE_TARGET_GENE_KEYS = 32
 MAX_CASE_TARGET_GENE_KEY_LENGTH = 128
 MAX_CASE_TARGETS_PER_ELEMENT = MAX_HYPOTHESIS_TARGETS_PER_ELEMENT
 MAX_CASE_RUNTIME_WORK_ITEMS = MAX_HYPOTHESIS_WORK_ITEMS
+_ADAPTER_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]*$")
 _CONTEXT_FIELDS = {
     "genome_build",
     "disease_class",
@@ -202,7 +205,7 @@ class _FrozenJsonObject(dict[str, Any]):
     """A JSON-serializable mapping that rejects normal mutation paths."""
 
     @staticmethod
-    def _immutable() -> None:
+    def _immutable() -> Never:
         raise TypeError("canonical metadata is immutable")
 
     def __setitem__(self, _key: str, _value: Any) -> None:
@@ -226,7 +229,7 @@ class _FrozenJsonObject(dict[str, Any]):
     def update(self, *args: Any, **kwargs: Any) -> None:
         self._immutable()
 
-    def __ior__(self, _other: object) -> _FrozenJsonObject:
+    def __ior__(self, _other: object) -> Self:  # type: ignore[override, misc]
         self._immutable()
 
     def __copy__(self) -> _FrozenJsonObject:
@@ -240,13 +243,33 @@ class _FrozenJsonArray(list[Any]):
     """A list-compatible JSON array that rejects normal mutation paths."""
 
     @staticmethod
-    def _immutable() -> None:
+    def _immutable() -> Never:
         raise TypeError("canonical metadata is immutable")
 
-    def __setitem__(self, _key: int | slice, _value: Any) -> None:
+    @overload
+    def __setitem__(self, _key: SupportsIndex, _value: Any, /) -> None: ...
+
+    @overload
+    def __setitem__(
+        self,
+        _key: slice[SupportsIndex | None],
+        _value: Iterable[Any],
+        /,
+    ) -> None: ...
+
+    def __setitem__(
+        self,
+        _key: SupportsIndex | slice[SupportsIndex | None],
+        _value: Any,
+        /,
+    ) -> None:
         self._immutable()
 
-    def __delitem__(self, _key: int | slice) -> None:
+    def __delitem__(
+        self,
+        _key: SupportsIndex | slice[SupportsIndex | None],
+        /,
+    ) -> None:
         self._immutable()
 
     def append(self, _value: Any) -> None:
@@ -258,10 +281,10 @@ class _FrozenJsonArray(list[Any]):
     def extend(self, _values: Iterable[Any]) -> None:
         self._immutable()
 
-    def insert(self, _index: int, _value: Any) -> None:
+    def insert(self, _index: SupportsIndex, _value: Any, /) -> None:
         self._immutable()
 
-    def pop(self, _index: int = -1) -> Any:
+    def pop(self, _index: SupportsIndex = -1, /) -> Any:
         self._immutable()
 
     def remove(self, _value: Any) -> None:
@@ -273,10 +296,10 @@ class _FrozenJsonArray(list[Any]):
     def sort(self, *, key: Any = None, reverse: bool = False) -> None:
         self._immutable()
 
-    def __iadd__(self, _values: Iterable[Any]) -> _FrozenJsonArray:
+    def __iadd__(self, _values: Iterable[Any], /) -> Self:  # type: ignore[misc]
         self._immutable()
 
-    def __imul__(self, _count: int) -> _FrozenJsonArray:
+    def __imul__(self, _count: SupportsIndex, /) -> Self:
         self._immutable()
 
     def __copy__(self) -> _FrozenJsonArray:
@@ -2268,6 +2291,13 @@ class CaseRunResult:
         expected_runtime_input = manifest_address or self.prepared.content_address
         if runtime_receipt.input_address != expected_runtime_input:
             raise ValidationError("runtime receipt input_address does not match preparation")
+        metadata = runtime_receipt.metadata
+        persisted_input_address = manifest_address
+        if "effective_manifest_address" in metadata:
+            persisted_input_address = _sha256_address(
+                metadata["effective_manifest_address"],
+                "runtime effective_manifest_address",
+            )
         dossier_address: str | None = None
         run_id: str | None = None
         if self.dossier is not None:
@@ -2277,15 +2307,17 @@ class CaseRunResult:
                 raise ValidationError("a run dossier requires a prepared manifest")
             if self.dossier.case_id != manifest.case_id:
                 raise ValidationError("dossier case_id does not match the prepared manifest")
-            if self.dossier.input_address != manifest_address:
-                raise ValidationError("dossier input_address does not match the prepared manifest")
+            if self.dossier.input_address != persisted_input_address:
+                raise ValidationError("dossier input_address does not match the effective manifest")
 
         if self.run_record is not None:
             record_run_id = self.run_record["run_id"]
             record_input = self.run_record["input_address"]
             record_dossier = self.run_record["dossier_address"]
-            if manifest_address is None or record_input != manifest_address:
-                raise ValidationError("run record input_address does not match preparation")
+            if persisted_input_address is None or record_input != persisted_input_address:
+                raise ValidationError(
+                    "run record input_address does not match the effective manifest"
+                )
             if run_id is not None and record_run_id != run_id:
                 raise ValidationError("run record run_id does not match the dossier")
             if dossier_address is not None and record_dossier != dossier_address:
@@ -2294,8 +2326,8 @@ class CaseRunResult:
 
         if self.replay_report is not None:
             replay = self.replay_report
-            if manifest_address is None or replay.input_address != manifest_address:
-                raise ValidationError("replay input_address does not match preparation")
+            if persisted_input_address is None or replay.input_address != persisted_input_address:
+                raise ValidationError("replay input_address does not match the effective manifest")
             if run_id is not None and replay.run_id != run_id:
                 raise ValidationError("replay run_id does not match the run bundle")
             if dossier_address is not None and replay.dossier_address != dossier_address:
@@ -2354,26 +2386,58 @@ class CaseRunResult:
             ):
                 raise ValidationError("runtime receipt counts do not match the accepted dossier")
 
-            metadata = runtime_receipt.metadata
             if metadata.get("persisted") is not True or metadata.get("replay_valid") is not True:
                 raise ValidationError(
                     "accepted runtime receipt requires persisted replay-valid metadata"
                 )
-            rna_fields = {
+            identity_fields = {
                 "prepared_run_id",
                 "evaluation_run_id",
+                "effective_manifest_address",
+            }
+            rna_fields = {
                 "rna_consequence_count",
                 "rna_consequence_addresses",
                 "rna_input_address",
             }
             has_rna = any(field_name in metadata for field_name in rna_fields)
+            has_adapters = "adapter_ids" in metadata
+            has_dynamic_manifest = self.prepared.live_reference or has_adapters
+            expected_metadata_fields = {"persisted", "replay_valid"}
+            if has_rna or has_dynamic_manifest:
+                expected_metadata_fields.update(identity_fields)
             if has_rna:
-                if set(metadata) != {"persisted", "replay_valid", *rna_fields}:
-                    raise ValidationError("accepted RNA runtime metadata is incomplete or unknown")
+                expected_metadata_fields.update(rna_fields)
+            if has_adapters:
+                expected_metadata_fields.add("adapter_ids")
+            if set(metadata) != expected_metadata_fields:
+                raise ValidationError("accepted runtime metadata is incomplete or unknown")
+            if has_rna or has_dynamic_manifest:
                 if metadata["prepared_run_id"] != self.prepared.run_id:
                     raise ValidationError("runtime prepared_run_id does not match preparation")
                 if metadata["evaluation_run_id"] != self.dossier.run_id:
                     raise ValidationError("runtime evaluation_run_id does not match dossier")
+                if metadata["effective_manifest_address"] != self.dossier.input_address:
+                    raise ValidationError(
+                        "runtime effective_manifest_address does not match dossier"
+                    )
+            if has_adapters:
+                adapter_ids = _text_sequence(
+                    metadata["adapter_ids"],
+                    "runtime adapter_ids",
+                    allow_empty=False,
+                    max_items=ADAPTER_HARD_MAX_SELECTED,
+                )
+                if (
+                    adapter_ids != tuple(sorted(adapter_ids))
+                    or len(adapter_ids) != len(set(adapter_ids))
+                    or any(
+                        len(item) > 128 or _ADAPTER_ID_PATTERN.fullmatch(item) is None
+                        for item in adapter_ids
+                    )
+                ):
+                    raise ValidationError("runtime adapter_ids metadata is not canonical")
+            if has_rna:
                 count = _integer(
                     metadata["rna_consequence_count"],
                     "runtime rna_consequence_count",
@@ -2391,24 +2455,23 @@ class CaseRunResult:
                 if count != len(addresses) or addresses != tuple(sorted(addresses)):
                     raise ValidationError("runtime RNA consequence metadata is not canonical")
                 assert manifest is not None
-                digest = content_hash(
-                    {
-                        "input": manifest.content_address,
-                        "requested_by": manifest.requested_by,
-                        "rna_consequences": list(addresses),
-                    }
-                ).split(":", 1)[1]
+                _sha256_address(metadata["rna_input_address"], "runtime rna_input_address")
+            if has_rna or has_dynamic_manifest:
+                assert manifest is not None
+                run_identity: dict[str, Any] = {
+                    "input": self.dossier.input_address,
+                    "requested_by": manifest.requested_by,
+                }
+                if has_rna:
+                    run_identity["rna_consequences"] = list(addresses)
+                digest = content_hash(run_identity).split(":", 1)[1]
                 expected_evaluation = f"run-{digest[:24]}"
                 if self.dossier.run_id != expected_evaluation:
                     raise ValidationError(
-                        "runtime RNA addresses do not derive the evaluation run_id"
+                        "runtime evidence addresses do not derive the evaluation run_id"
                     )
-                _sha256_address(metadata["rna_input_address"], "runtime rna_input_address")
-            else:
-                if set(metadata) != {"persisted", "replay_valid"}:
-                    raise ValidationError("accepted runtime metadata contains unknown fields")
-                if self.dossier.run_id != self.prepared.run_id:
-                    raise ValidationError("non-RNA run_id does not match preparation")
+            elif self.dossier.run_id != self.prepared.run_id:
+                raise ValidationError("static run_id does not match preparation")
 
     @property
     def accepted(self) -> bool:
@@ -3263,8 +3326,9 @@ def run_case(
     data_root: str | Path = ".glio",
     runtime: CaseRuntime | None = None,
     rna_consequences: Iterable[RNAConsequenceEvidence | Mapping[str, Any]] = (),
+    adapter_ids: tuple[str, ...] = (),
 ) -> CaseRunResult:
-    """Execute accepted preparation with optional matched-RNA consequences."""
+    """Execute accepted preparation with optional RNA and registered adapter evidence."""
 
     value = PreparedCase.from_mapping(
         prepared.to_dict() if isinstance(prepared, PreparedCase) else prepared
@@ -3275,6 +3339,7 @@ def run_case(
     manifest_address = value.manifest_address or value.content_address
     rna_rows: tuple[RNAConsequenceEvidence, ...] = ()
     rna_input_blocked = False
+    adapter_input_blocked = False
     try:
         rna_rows = _normalize_rna_consequences(rna_consequences)
     except (GlioError, OverflowError, TypeError, ValueError) as exc:
@@ -3292,14 +3357,55 @@ def run_case(
             )
         )
 
+    if (
+        type(adapter_ids) is not tuple
+        or any(type(item) is not str for item in adapter_ids)
+        or any(
+            not item
+            or len(item) > 128
+            or _ADAPTER_ID_PATTERN.fullmatch(item) is None
+            for item in adapter_ids
+        )
+        or len(adapter_ids) > ADAPTER_HARD_MAX_SELECTED
+        or len(adapter_ids) != len(set(adapter_ids))
+    ):
+        adapter_input_blocked = True
+        issues.append(
+            WorkflowIssue(
+                code="invalid_adapter_selection",
+                severity=WorkflowSeverity.ERROR,
+                stage=WorkflowStage.CASE_RUNTIME,
+                message="adapter_ids must be a bounded exact tuple of unique strings",
+                remediation=(
+                    "Select unique registered adapter IDs within the advertised hard limit."
+                ),
+            )
+        )
+
     evaluation_run_id = value.run_id
-    if value.manifest is not None and not rna_input_blocked:
+    dynamic_manifest = value.live_reference or bool(adapter_ids)
+    if value.manifest is not None and not rna_input_blocked and not dynamic_manifest:
         evaluation_run_id = CaseRuntime._run_id(value.manifest, rna_rows)
 
-    if not value.accepted or value.manifest is None or value.run_id is None or rna_input_blocked:
+    if (
+        not value.accepted
+        or value.manifest is None
+        or value.run_id is None
+        or rna_input_blocked
+        or adapter_input_blocked
+    ):
+        blocked_reason = (
+            "invalid_rna_consequence"
+            if rna_input_blocked
+            else (
+                "invalid_adapter_selection"
+                if adapter_input_blocked
+                else "preparation_blocked"
+            )
+        )
         blocked_metadata: dict[str, Any] = {
             "executed": False,
-            "reason": ("invalid_rna_consequence" if rna_input_blocked else "preparation_blocked"),
+            "reason": blocked_reason,
         }
         if rna_rows:
             blocked_metadata.update(
@@ -3308,6 +3414,8 @@ def run_case(
                     "rna_consequence_addresses": [item.content_address for item in rna_rows],
                 }
             )
+        if adapter_ids and not adapter_input_blocked:
+            blocked_metadata["adapter_ids"] = list(sorted(adapter_ids))
         receipts.append(
             StageReceipt(
                 stage=WorkflowStage.CASE_RUNTIME,
@@ -3346,13 +3454,16 @@ def run_case(
             value.manifest,
             live_reference=value.live_reference,
             rna_consequences=rna_rows,
+            adapter_ids=adapter_ids,
         )
         snapshot = engine.load_run_snapshot(dossier.run_id)
         run_record = snapshot.run_record_dict()
         event_record = snapshot.event_record
         rna_input_address = _runtime_rna_input_address(event_record)
         replay = snapshot.replay
-        if dossier.run_id != evaluation_run_id:
+        if dynamic_manifest:
+            evaluation_run_id = dossier.run_id
+        elif dossier.run_id != evaluation_run_id:
             issues.append(
                 WorkflowIssue(
                     code="run_identity_mismatch",
@@ -3368,7 +3479,10 @@ def run_case(
                     ),
                 )
             )
-        if str(run_record.get("input_address")) != runtime_manifest_address:
+        if (
+            not dynamic_manifest
+            and str(run_record.get("input_address")) != runtime_manifest_address
+        ):
             issues.append(
                 WorkflowIssue(
                     code="persisted_input_mismatch",
@@ -3411,17 +3525,26 @@ def run_case(
             and replay.stored_dossier_matches_address
         ),
     }
-    if rna_rows:
+    if dynamic_manifest or rna_rows:
         runtime_metadata.update(
             {
                 "prepared_run_id": value.run_id,
                 "evaluation_run_id": evaluation_run_id,
+            }
+        )
+        if run_record is not None:
+            runtime_metadata["effective_manifest_address"] = str(run_record["input_address"])
+    if rna_rows:
+        runtime_metadata.update(
+            {
                 "rna_consequence_count": len(rna_rows),
                 "rna_consequence_addresses": [item.content_address for item in rna_rows],
             }
         )
-        if rna_input_address is not None:
-            runtime_metadata["rna_input_address"] = rna_input_address
+    if adapter_ids:
+        runtime_metadata["adapter_ids"] = list(sorted(adapter_ids))
+    if rna_input_address is not None:
+        runtime_metadata["rna_input_address"] = rna_input_address
     receipts.append(
         StageReceipt(
             stage=WorkflowStage.CASE_RUNTIME,
@@ -4163,6 +4286,18 @@ def run_request_schema() -> dict[str, Any]:
         "properties": {
             "prepared": _schema_fragment(prepared_case_schema()),
             "rna_consequences": rna_consequences,
+            "adapter_ids": {
+                "type": "array",
+                "default": [],
+                "maxItems": ADAPTER_HARD_MAX_SELECTED,
+                "uniqueItems": True,
+                "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+                },
+            },
         },
     }
 
@@ -4230,12 +4365,14 @@ def capabilities() -> dict[str, Any]:
                 "max(1, state_id_count)))"
             ),
             "max_run_history_items": MAX_RUN_HISTORY_ENTRIES,
+            "max_adapter_ids": ADAPTER_HARD_MAX_SELECTED,
         },
         "canonical_track_order": True,
         "canonical_rna_order": "RNAConsequenceEvidence.content_address",
         "observational_timestamps_in_scientific_identity": False,
         "deterministic_outputs": [
             "manifest_address",
+            "effective_manifest_address",
             "run_id",
             "evaluation_run_id",
             "rna_input_address",
@@ -4252,14 +4389,37 @@ def capabilities() -> dict[str, Any]:
                     "rna_input_address",
                 ],
                 "raw_values_in_receipts": False,
-            }
+            },
+            "adapter_ids": {
+                "python_input": "exact tuple of unique canonical adapter IDs",
+                "schema": run_request_schema()["$id"],
+                "request_property": "adapter_ids",
+                "max_items": ADAPTER_HARD_MAX_SELECTED,
+                "requires_configured_registry": True,
+                "registry_discovery": "/v1/case-workflow/adapters",
+                "persisted_source_records": [
+                    "adapter_registry_snapshot",
+                    "adapter_resolution_report",
+                    "adapter_claim_collection_report",
+                ],
+                "receipt_provenance": [
+                    "adapter_ids",
+                    "prepared_run_id",
+                    "evaluation_run_id",
+                    "effective_manifest_address",
+                ],
+                "raw_claims_in_receipts": False,
+            },
         },
         "identity_semantics": {
             "prepared_run_id": "manifest-only preparation identity",
             "evaluation_run_id": (
-                "manifest identity plus sorted RNA consequence content addresses when non-empty"
+                "the effective manifest identity plus sorted RNA consequence content addresses"
             ),
-            "empty_rna_preserves_prepared_run_id": True,
+            "empty_rna_preserves_prepared_run_id": False,
+            "empty_rna_preserves_prepared_run_id_without_manifest_enrichment": True,
+            "adapter_selection_materializes_manifest": True,
+            "adapter_evidence_changes_evaluation_run_id": True,
         },
         "fail_closed_gates": [
             "intake_error",
@@ -4269,6 +4429,7 @@ def capabilities() -> dict[str, Any]:
             "no_candidate_elements_unless_live_reference",
             "case_runtime_work_limit_exceeded",
             "invalid_rna_consequence",
+            "invalid_adapter_selection",
             "replay_integrity_error",
         ],
         "persistence": "CaseRuntime content-addressed dossier and event replay",

@@ -75,7 +75,8 @@ class RunCatalogTests(unittest.TestCase):
             runtime = CaseRuntime(directory)
             dossier = runtime.evaluate(fixture_manifest())
             run_record = runtime.get_run(dossier.run_id)
-            event_path = runtime.store.store.objects / f"{run_record['event_address'].split(':', 1)[1]}.json"
+            event_digest = run_record["event_address"].split(":", 1)[1]
+            event_path = runtime.store.store.objects / f"{event_digest}.json"
             event_record = json.loads(event_path.read_text(encoding="utf-8"))
             event_record["events"][1]["event_hash"] = "sha256:corrupted"
             event_path.write_text(json.dumps(event_record), encoding="utf-8")
@@ -109,7 +110,9 @@ class RunCatalogTests(unittest.TestCase):
                 reviewer="scientific-reviewer",
                 state=ReviewState.ACCEPTED,
                 reviewed_hypothesis_ids=(original.hypotheses[0].hypothesis_id,),
-                rationale="Reviewed the persisted evidence and retained the research-only boundary.",
+                rationale=(
+                    "Reviewed the persisted evidence and retained the research-only boundary."
+                ),
                 checked_claim_ids=tuple(item.evidence_id for item in original.evidence),
             )
             released = runtime.review_run(original.run_id, review)
@@ -118,7 +121,7 @@ class RunCatalogTests(unittest.TestCase):
             inspection = inspect_run(runtime, original.run_id)
             self.assertTrue(inspection.summary.is_releasable)
             self.assertEqual(inspection.dossier_record["review"]["review_id"], review.review_id)
-            self.assertEqual(inspection.summary.event_count, initial_events + 1)
+            self.assertEqual(inspection.summary.event_count, initial_events + 2)
             self.assertEqual(inspection.event_record["events"][0]["event_type"], "case_received")
             self.assertEqual(inspection.event_record["events"][-1]["event_type"], "review_recorded")
             second_review = ReviewDecision(
@@ -132,9 +135,13 @@ class RunCatalogTests(unittest.TestCase):
             )
             runtime.review_run(original.run_id, second_review)
             second_inspection = inspect_run(runtime, original.run_id)
-            self.assertEqual(second_inspection.summary.event_count, initial_events + 2)
+            self.assertEqual(second_inspection.summary.event_count, initial_events + 4)
             self.assertEqual(
-                [item["event_type"] for item in second_inspection.event_record["events"][-2:]],
+                [
+                    item["event_type"]
+                    for item in second_inspection.event_record["events"]
+                    if item["event_type"] == "review_recorded"
+                ][-2:],
                 ["review_recorded", "review_recorded"],
             )
 
@@ -266,7 +273,10 @@ class RunCatalogTests(unittest.TestCase):
                 connection.request("GET", f"/v1/runs/{run_id}/dossier")
                 stored_dossier = connection.getresponse()
                 self.assertEqual(stored_dossier.status, 200)
-                self.assertEqual(json.loads(stored_dossier.read())["content_address"], dossier["content_address"])
+                self.assertEqual(
+                    json.loads(stored_dossier.read())["content_address"],
+                    dossier["content_address"],
+                )
 
                 connection.request("GET", f"/v1/runs/{run_id}/replay")
                 replay = connection.getresponse()
@@ -287,7 +297,10 @@ class RunCatalogTests(unittest.TestCase):
                         "reviewer": "scientific-reviewer",
                         "state": "accepted",
                         "reviewed_hypothesis_ids": [dossier["hypotheses"][0]["hypothesis_id"]],
-                        "rationale": "The persisted research object was reviewed with its limitations retained.",
+                        "rationale": (
+                            "The persisted research object was reviewed with its limitations "
+                            "retained."
+                        ),
                         "checked_claim_ids": [item["evidence_id"] for item in dossier["evidence"]],
                     }
                 ).encode("utf-8")

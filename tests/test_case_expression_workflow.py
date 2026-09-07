@@ -314,7 +314,12 @@ class CaseExpressionWorkflowTests(unittest.TestCase):
             advertised["canonical_rna_order"],
             "RNAConsequenceEvidence.content_address",
         )
-        self.assertTrue(advertised["identity_semantics"]["empty_rna_preserves_prepared_run_id"])
+        self.assertFalse(advertised["identity_semantics"]["empty_rna_preserves_prepared_run_id"])
+        self.assertTrue(
+            advertised["identity_semantics"][
+                "empty_rna_preserves_prepared_run_id_without_manifest_enrichment"
+            ]
+        )
         self.assertFalse(
             advertised["optional_execution_inputs"]["rna_consequences"][
                 "raw_values_in_receipts"

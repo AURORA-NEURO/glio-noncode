@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, replace
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from .adapters import (
+    AdapterClaimCollectionReport,
+    AdapterRegistry,
+    AdapterRegistrySnapshot,
+    AdapterResolutionReport,
+)
 from .atlas import AtlasBundle, AtlasQuery, PublicAtlasRetriever
 from .data_sources import EnrichmentResult, PublicReferenceRetriever
 from .errors import PolicyViolation, StoreError, ValidationError
@@ -26,6 +34,8 @@ from .models import (
     Dossier,
     EdgeType,
     EvidenceClaim,
+    ExperimentOption,
+    Hypothesis,
     ResearchStatus,
     ReviewDecision,
     ReviewState,
@@ -34,7 +44,7 @@ from .policy import PolicyDecision, ResearchPolicy
 from .replay import ReplayReport, ReplayVerifier
 from .scoring import element_relevance
 from .serialization import canonical_bytes, content_hash, freeze_json, jsonable, utc_now
-from .storage import RunStore
+from .storage import MAX_RUN_HISTORY_ENTRIES, RunStore
 from .validation import (
     ContractValidator,
     ReleaseGate,
@@ -47,6 +57,53 @@ _MAX_RUNTIME_RNA_CONSEQUENCES = 10_000
 _MAX_RUNTIME_RNA_ROW_BYTES = 64 * 1024
 _MAX_RUNTIME_RNA_REASON_CODES = 256
 _MAX_RUNTIME_RNA_REASON_CODE_CHARACTERS = 128
+_ADAPTER_INPUT_VERSION_KEYS = (
+    "adapter_input_manifest",
+    "adapter_registry_snapshot",
+    "adapter_resolution_report",
+    "adapter_claim_collection_report",
+)
+_ADAPTER_EVENT_FIELDS = frozenset(
+    {
+        "adapter_ids",
+        "base_input_address",
+        "effective_input_address",
+        "registry_bundle_address",
+        "registry_address",
+        "resolution_bundle_address",
+        "resolution_address",
+        "claim_collection_bundle_address",
+        "claim_collection_address",
+        "resolved_element_count",
+        "attribution_count",
+        "claim_count",
+        "source_bundle_addresses",
+    }
+)
+_SNAPSHOT_PREDECESSOR_VERSION = "snapshot-predecessor-v1"
+_SNAPSHOT_PREDECESSOR_FIELDS = frozenset(
+    {
+        "version",
+        "run_id",
+        "previous_event_address",
+        "previous_dossier_address",
+        "binding_address",
+    }
+)
+_SNAPSHOT_SUCCESSOR_EVENT_TYPES = frozenset({"review_assigned", "review_recorded"})
+_REVIEW_ASSIGNMENT_FIELDS = frozenset(
+    {
+        "assignment_id",
+        "run_id",
+        "case_id",
+        "reviewer",
+        "queue_id",
+        "due_at",
+        "note",
+        "created_at",
+        "content_address",
+    }
+)
 _RNA_CONSEQUENCE_RECORD_FIELDS = frozenset(
     {
         "schema_version",
@@ -137,6 +194,7 @@ class VerifiedRunSnapshot:
             if (
                 type(history) is not list
                 or not history
+                or len(history) > MAX_RUN_HISTORY_ENTRIES
                 or any(type(item) is not str for item in history)
                 or any(
                     _runtime_sha256_address(item, f"verified snapshot {history_field} entry")
@@ -149,6 +207,10 @@ class VerifiedRunSnapshot:
                 raise ValidationError(
                     f"verified snapshot {history_field} must be a unique current-ended address list"
                 )
+        if len(record["event_history"]) > len(record["dossier_history"]):
+            raise ValidationError(
+                "verified snapshot event history cannot exceed its dossier history"
+            )
         try:
             log = EventLog.from_record(
                 self.event_record,
@@ -226,6 +288,7 @@ class CaseRuntime:
         *,
         reference_retriever: PublicReferenceRetriever | None = None,
         atlas_retriever: PublicAtlasRetriever | None = None,
+        adapter_registry: AdapterRegistry | None = None,
         hypothesis_limits: HypothesisWorkLimits | None = None,
         experiment_limits: ExperimentPlanningLimits | None = None,
         rna_input_max_bytes: int = _MAX_RUNTIME_RNA_INPUT_BYTES,
@@ -237,6 +300,8 @@ class CaseRuntime:
                 "rna_input_max_bytes must be a positive integer no greater than "
                 f"{_MAX_RUNTIME_RNA_INPUT_BYTES}"
             )
+        if adapter_registry is not None and type(adapter_registry) is not AdapterRegistry:
+            raise ValidationError("adapter_registry must be an exact AdapterRegistry")
         builder = HypothesisBuilder(limits=hypothesis_limits)
         planner = ExperimentPlanner(limits=experiment_limits)
         self.store = RunStore(data_root)
@@ -247,6 +312,7 @@ class CaseRuntime:
         self.release_gate = ReleaseGate(self.policy)
         self.reference_retriever = reference_retriever
         self.atlas_retriever = atlas_retriever
+        self.adapter_registry = adapter_registry
         self._rna_input_max_bytes = rna_input_max_bytes
         self._logs: dict[str, EventLog] = {}
 
@@ -306,17 +372,60 @@ class CaseRuntime:
                 )
         return tuple(claims), tuple(warnings)
 
+    @staticmethod
+    def _materialize_adapter_manifest(
+        manifest: CaseManifest,
+        resolution: AdapterResolutionReport,
+        source_addresses: tuple[str, ...],
+    ) -> CaseManifest:
+        """Merge resolved elements and bind every adapter input into run identity."""
+
+        if type(manifest) is not CaseManifest or type(resolution) is not AdapterResolutionReport:
+            raise ValidationError("adapter materialization requires exact typed inputs")
+        if resolution.manifest_address != manifest.content_address:
+            raise ValidationError("adapter resolution does not belong to its base manifest")
+        if len(source_addresses) != len(_ADAPTER_INPUT_VERSION_KEYS):
+            raise ValidationError("adapter materialization source closure is incomplete")
+        elements = {element.element_id: element for element in manifest.candidate_elements}
+        for element in resolution.elements:
+            existing = elements.get(element.element_id)
+            if existing is not None and canonical_bytes(existing.to_dict()) != canonical_bytes(
+                element.to_dict()
+            ):
+                raise ValidationError(
+                    "adapter element conflicts with an existing manifest element: "
+                    f"{element.element_id}"
+                )
+            elements[element.element_id] = element
+        additions = dict(zip(_ADAPTER_INPUT_VERSION_KEYS, source_addresses, strict=True))
+        versions = dict(manifest.input_versions)
+        for key, address in additions.items():
+            existing_version = versions.get(key)
+            if existing_version is not None and existing_version != address:
+                raise ValidationError(f"manifest input_versions reserves adapter key: {key}")
+            versions[key] = address
+        return replace(
+            manifest,
+            candidate_elements=tuple(elements[key] for key in sorted(elements)),
+            input_versions=dict(sorted(versions.items())),
+        )
+
     def evaluate(
         self,
         manifest: CaseManifest,
         *,
         live_reference: bool = False,
         rna_consequences: Iterable[RNAConsequenceEvidence] = (),
+        adapter_ids: tuple[str, ...] = (),
     ) -> Dossier:
         """Evaluate a manifest and persist its immutable output."""
 
         if type(live_reference) is not bool:
             raise ValidationError("live_reference must be an exact boolean")
+        if type(adapter_ids) is not tuple or any(type(item) is not str for item in adapter_ids):
+            raise ValidationError("adapter_ids must be an exact tuple of strings")
+        if adapter_ids and self.adapter_registry is None:
+            raise ValidationError("adapter_ids require a configured AdapterRegistry")
         self._validate_manifest_contract(manifest, "case manifest")
         rna_rows = self.builder.validate_inputs(
             manifest,
@@ -334,6 +443,10 @@ class CaseRuntime:
         atlas_event_warnings: tuple[str, ...] = ()
         runtime_warnings: tuple[str, ...] = ()
         atlas_claims: tuple[EvidenceClaim, ...] = ()
+        adapter_claims: tuple[EvidenceClaim, ...] = ()
+        adapter_resolution: AdapterResolutionReport | None = None
+        adapter_claim_report: AdapterClaimCollectionReport | None = None
+        adapter_source_addresses: tuple[str, ...] = ()
         enrichment: EnrichmentResult | None = None
         if live_reference:
             retriever = self.reference_retriever or PublicReferenceRetriever(
@@ -389,7 +502,44 @@ class CaseRuntime:
                 runtime_warnings = tuple(
                     dict.fromkeys(runtime_warnings + atlas_event_warnings)
                 )
-            source_bundle_addresses = tuple(source_records)
+        if adapter_ids:
+            registry = self.adapter_registry
+            if registry is None or type(registry) is not AdapterRegistry:
+                raise ValidationError("adapter registry configuration is invalid")
+            adapter_base_manifest = build_manifest
+            adapter_resolution = registry.resolve_manifest(adapter_base_manifest, adapter_ids)
+            adapter_claim_report = registry.collect_claims(
+                adapter_base_manifest,
+                adapter_resolution,
+            )
+            adapter_records = (
+                adapter_base_manifest.to_dict(),
+                adapter_claim_report.registry_snapshot.to_dict(),
+                adapter_resolution.to_dict(),
+                adapter_claim_report.to_dict(),
+            )
+            adapter_source_addresses = tuple(content_hash(record) for record in adapter_records)
+            for address, record in zip(
+                adapter_source_addresses,
+                adapter_records,
+                strict=True,
+            ):
+                existing = source_records.get(address)
+                if existing is not None and canonical_bytes(existing) != canonical_bytes(record):
+                    raise ValidationError("adapter source address collides with another source")
+                source_records[address] = record
+            build_manifest = self._materialize_adapter_manifest(
+                adapter_base_manifest,
+                adapter_resolution,
+                adapter_source_addresses,
+            )
+            self._validate_manifest_contract(build_manifest, "adapter-enriched case manifest")
+            self.builder.validate_inputs(
+                build_manifest,
+                rna_consequences=rna_rows,
+            )
+            adapter_claims = adapter_claim_report.claims
+        source_bundle_addresses = tuple(source_records)
 
         run_id = self._run_id(build_manifest, rna_rows)
         if live_reference and (self.store.runs / f"{run_id}.json").exists():
@@ -459,12 +609,32 @@ class CaseRuntime:
                     },
                     event_id=f"evt-{run_id}-atlas",
                 )
+        if adapter_resolution is not None and adapter_claim_report is not None:
+            log.append(
+                "adapter_evidence_collected",
+                {
+                    "adapter_ids": list(adapter_resolution.adapter_ids),
+                    "base_input_address": adapter_resolution.manifest_address,
+                    "effective_input_address": input_address,
+                    "registry_bundle_address": adapter_source_addresses[1],
+                    "registry_address": adapter_resolution.registry_address,
+                    "resolution_bundle_address": adapter_source_addresses[2],
+                    "resolution_address": adapter_resolution.content_address,
+                    "claim_collection_bundle_address": adapter_source_addresses[3],
+                    "claim_collection_address": adapter_claim_report.content_address,
+                    "resolved_element_count": adapter_resolution.element_count,
+                    "attribution_count": adapter_claim_report.attribution_count,
+                    "claim_count": adapter_claim_report.claim_count,
+                    "source_bundle_addresses": list(adapter_source_addresses),
+                },
+                event_id=f"evt-{run_id}-adapters",
+            )
         built = self.builder.build(
             build_manifest,
             run_id,
             rna_consequences=rna_rows,
             retained_owner_address=rna_input_address,
-            external_claims=atlas_claims,
+            external_claims=atlas_claims + adapter_claims,
         )
         all_warnings = tuple(dict.fromkeys(tuple(built.warnings) + runtime_warnings))
         log.append(
@@ -514,8 +684,8 @@ class CaseRuntime:
             reused = self._reuse_untouched_offline_draft(dossier, log)
             if reused is not None:
                 return reused
-        for address, record in source_records.items():
-            if self.store.store.put_at(address, record) != address:
+        for address, source_record in source_records.items():
+            if self.store.store.put_at(address, source_record) != address:
                 raise ValidationError("source bundle address changed during evaluation")
         if self.store.store.put(input_record) != input_address:
             raise ValidationError("manifest input address changed during evaluation")
@@ -578,6 +748,7 @@ class CaseRuntime:
 
         self._require_exact_policy()
         self._validate_review_input(dossier, review)
+        self._append_snapshot_predecessor_binding(staged_log, expected_run)
         staged_log.append("review_recorded", review.to_dict(), event_id=review.review_id)
         status = (
             ResearchStatus.RELEASED_RESEARCH
@@ -770,6 +941,352 @@ class CaseRuntime:
         # Keep an absent/invalid run index distinguishable from corruption of an
         # existing run's referenced immutable objects.
         run_record = self.get_run(run_id)
+        return self._load_run_snapshot_record(run_id, run_record)
+
+    def load_run_snapshot_at(
+        self,
+        run_id: str,
+        *,
+        event_address: str,
+        dossier_address: str,
+    ) -> VerifiedRunSnapshot:
+        """Reopen one paired immutable snapshot retained in a run's append-only history."""
+
+        selected_event = _runtime_sha256_address(
+            event_address,
+            "historical snapshot event_address",
+        )
+        selected_dossier = _runtime_sha256_address(
+            dossier_address,
+            "historical snapshot dossier_address",
+        )
+        current = self.get_run(run_id)
+        current_snapshot = self._load_run_snapshot_record(run_id, current)
+        current_record = current_snapshot.run_record_dict()
+        event_history = current_record["event_history"]
+        dossier_history = current_record["dossier_history"]
+        if type(event_history) is not list or type(dossier_history) is not list:
+            raise ValidationError("run history must contain exact address arrays")
+        if (
+            not event_history
+            or not dossier_history
+            or len(event_history) != len(set(event_history))
+            or len(dossier_history) != len(set(dossier_history))
+            or event_history[-1] != current_record["event_address"]
+            or dossier_history[-1] != current_record["dossier_address"]
+        ):
+            raise ValidationError("run histories must be unique and current-ended")
+        if len(event_history) > len(dossier_history):
+            raise ValidationError("run event and dossier histories cannot be paired")
+        # Supported legacy indexes may retain dossiers that predate event-history
+        # persistence. Every recorded event still pairs unambiguously with the
+        # same-position item in the right-aligned dossier suffix; older dossier-only
+        # entries intentionally remain unavailable through this API.
+        dossier_offset = len(dossier_history) - len(event_history)
+        try:
+            event_index = event_history.index(selected_event)
+            dossier_index = dossier_history.index(selected_dossier)
+        except ValueError as exc:
+            raise ValidationError("requested snapshot is absent from the run history") from exc
+        if dossier_index != event_index + dossier_offset:
+            raise ValidationError("requested event and dossier addresses are not a paired snapshot")
+        if (
+            selected_event == current_record["event_address"]
+            and selected_dossier == current_record["dossier_address"]
+        ):
+            return current_snapshot
+        historical = dict(current_record)
+        historical["event_address"] = selected_event
+        historical["dossier_address"] = selected_dossier
+        historical["event_history"] = event_history[: event_index + 1]
+        historical["dossier_history"] = dossier_history[: dossier_index + 1]
+        selected_snapshot = self._load_run_snapshot_record(run_id, historical)
+        selected_events = selected_snapshot.event_log.to_record()["events"]
+        current_events = current_snapshot.event_log.to_record()["events"]
+        if (
+            len(selected_events) >= len(current_events)
+            or canonical_bytes(selected_events)
+            != canonical_bytes(current_events[: len(selected_events)])
+        ):
+            raise ValidationError(
+                "requested historical event log is not an ancestor of the current run"
+            )
+        successor = current_events[len(selected_events)]
+        if type(successor) is not dict or successor.get(
+            "event_type"
+        ) != "snapshot_predecessor_bound":
+            raise ValidationError(
+                "requested historical snapshot has no authenticated successor binding"
+            )
+        bound_pair = self._snapshot_predecessor_pair(successor, run_id=run_id)
+        if bound_pair != (selected_event, selected_dossier):
+            raise ValidationError(
+                "requested historical snapshot does not match its successor binding"
+            )
+        return selected_snapshot
+
+    @staticmethod
+    def _snapshot_predecessor_pair(
+        event: Mapping[str, Any],
+        *,
+        run_id: str,
+        expected_event_address: str | None = None,
+    ) -> tuple[str, str]:
+        """Validate one canonical predecessor event and return its bound pair."""
+
+        if (
+            type(event) is not dict
+            or event.get("event_type") != "snapshot_predecessor_bound"
+            or type(event.get("payload")) is not dict
+        ):
+            raise ValidationError("snapshot predecessor binding has a non-canonical shape")
+        payload = event["payload"]
+        if set(payload) != _SNAPSHOT_PREDECESSOR_FIELDS:
+            raise ValidationError("snapshot predecessor binding has a non-canonical shape")
+        previous_event = _runtime_sha256_address(
+            payload.get("previous_event_address"),
+            "snapshot predecessor previous_event_address",
+        )
+        previous_dossier = _runtime_sha256_address(
+            payload.get("previous_dossier_address"),
+            "snapshot predecessor previous_dossier_address",
+        )
+        body = {
+            "version": _SNAPSHOT_PREDECESSOR_VERSION,
+            "run_id": run_id,
+            "previous_event_address": previous_event,
+            "previous_dossier_address": previous_dossier,
+        }
+        expected_binding = content_hash(body, prefix="snapshot-predecessor")
+        binding_digest = expected_binding.rsplit(":", 1)[1]
+        expected_event_id = f"evt-{run_id}-predecessor-{binding_digest[:20]}"
+        if (
+            payload.get("version") != _SNAPSHOT_PREDECESSOR_VERSION
+            or payload.get("run_id") != run_id
+            or payload.get("binding_address") != expected_binding
+            or event.get("event_id") != expected_event_id
+        ):
+            raise ValidationError("snapshot predecessor binding does not verify")
+        if (
+            expected_event_address is not None
+            and previous_event != expected_event_address
+        ):
+            raise ValidationError(
+                "snapshot predecessor binding does not address its exact event prefix"
+            )
+        return previous_event, previous_dossier
+
+    def _validate_retained_snapshot_history(
+        self,
+        run_id: str,
+        run_record: Mapping[str, Any],
+        log: EventLog,
+    ) -> None:
+        """Authenticate the retained modern history suffix from binding events."""
+
+        event_history = run_record["event_history"]
+        dossier_history = run_record["dossier_history"]
+        dossier_offset = len(dossier_history) - len(event_history)
+        retained_pairs = tuple(
+            zip(event_history, dossier_history[dossier_offset:], strict=True)
+        )
+        event_rows = log.to_record()["events"]
+        empty_record = canonical_bytes({"events": [], "run_id": run_id})
+        record_prefix, marker, record_suffix = empty_record.partition(b"[]")
+        if marker != b"[]":  # pragma: no cover - canonical serializer invariant
+            raise ValidationError("cannot derive the canonical event-record envelope")
+        prefix_hasher = hashlib.sha256(record_prefix + b"[")
+        record_tail = b"]" + record_suffix
+
+        bindings: list[tuple[str, str]] = []
+        binding_indexes: list[int] = []
+        for index, event in enumerate(event_rows):
+            if event.get("event_type") == "snapshot_predecessor_bound":
+                prefix_probe = prefix_hasher.copy()
+                prefix_probe.update(record_tail)
+                expected_prefix_address = f"sha256:{prefix_probe.hexdigest()}"
+                pair = self._snapshot_predecessor_pair(
+                    event,
+                    run_id=run_id,
+                    expected_event_address=expected_prefix_address,
+                )
+                if index + 1 >= len(event_rows) or event_rows[index + 1].get(
+                    "event_type"
+                ) not in _SNAPSHOT_SUCCESSOR_EVENT_TYPES:
+                    raise ValidationError(
+                        "snapshot predecessor binding must immediately precede one transition"
+                    )
+                if binding_indexes and index != binding_indexes[-1] + 2:
+                    raise ValidationError(
+                        "modern snapshot transitions must form one contiguous event suffix"
+                    )
+                bindings.append(pair)
+                binding_indexes.append(index)
+            if index:
+                prefix_hasher.update(b",")
+            prefix_hasher.update(canonical_bytes(event))
+
+        if not bindings:
+            return
+        if binding_indexes[-1] != len(event_rows) - 2:
+            raise ValidationError(
+                "modern snapshot transitions must end at the current event head"
+            )
+        modern_pairs = (*bindings, (run_record["event_address"], run_record["dossier_address"]))
+        if len(modern_pairs) != len(set(modern_pairs)):
+            raise ValidationError("modern snapshot predecessor pairs must be unique")
+
+        overlap = min(len(retained_pairs), len(modern_pairs))
+        if retained_pairs[-overlap:] != modern_pairs[-overlap:]:
+            raise ValidationError(
+                "retained run history does not match its authenticated modern suffix"
+            )
+
+    def _validate_persisted_review_events(
+        self,
+        dossier: Dossier,
+        log: EventLog,
+    ) -> None:
+        """Close typed review and assignment events over the current dossier."""
+
+        latest_review: ReviewDecision | None = None
+        for event in log.all():
+            if event.event_type == "review_recorded":
+                raw_review = event.to_dict()["payload"]
+                try:
+                    review = ReviewDecision.from_dict(raw_review, persisted=True)
+                except (TypeError, ValueError, ValidationError) as exc:
+                    raise ValidationError(
+                        "persisted review event payload is not a canonical ReviewDecision"
+                    ) from exc
+                if (
+                    canonical_bytes(review.to_dict()) != canonical_bytes(raw_review)
+                    or event.event_id != review.review_id
+                    or review.case_id != dossier.case_id
+                ):
+                    raise ValidationError(
+                        "persisted review event does not match its canonical identity"
+                    )
+                self._validate_review_input(dossier, review)
+                latest_review = review
+            elif event.event_type == "review_assigned":
+                if latest_review is not None and latest_review.state in {
+                    ReviewState.ACCEPTED,
+                    ReviewState.REJECTED,
+                }:
+                    raise ValidationError(
+                        "persisted assignment cannot follow a terminal review decision"
+                    )
+                self._validate_persisted_assignment_event(dossier, event.to_dict())
+
+        if (latest_review is None) != (dossier.review is None):
+            raise ValidationError(
+                "persisted dossier review presence does not match its event history"
+            )
+        if latest_review is not None and (
+            dossier.review is None
+            or canonical_bytes(latest_review.to_dict())
+            != canonical_bytes(dossier.review.to_dict())
+        ):
+            raise ValidationError(
+                "persisted dossier review does not match the latest review event"
+            )
+
+    def _validate_persisted_assignment_event(
+        self,
+        dossier: Dossier,
+        event: Mapping[str, Any],
+    ) -> None:
+        """Validate the complete addressed payload of one assignment event."""
+
+        if type(event) is not dict or type(event.get("payload")) is not dict:
+            raise ValidationError("persisted assignment event must be an exact object")
+        payload = event["payload"]
+        if set(payload) != _REVIEW_ASSIGNMENT_FIELDS or any(
+            type(payload.get(field)) is not str for field in _REVIEW_ASSIGNMENT_FIELDS
+        ):
+            raise ValidationError("persisted assignment event has a non-canonical payload")
+        required = ("assignment_id", "run_id", "case_id", "reviewer", "queue_id", "created_at")
+        if any(not payload[field].strip() for field in required):
+            raise ValidationError("persisted assignment event has an empty required field")
+        if any(fragment in payload["assignment_id"] for fragment in ("/", "\\", "..")):
+            raise ValidationError("persisted assignment event has an unsafe identifier")
+        try:
+            created_at = datetime.fromisoformat(payload["created_at"])
+        except ValueError as exc:
+            raise ValidationError(
+                "persisted assignment created_at must be an ISO 8601 timestamp"
+            ) from exc
+        if (
+            created_at.tzinfo is None
+            or created_at.utcoffset() != timedelta(0)
+            or created_at.isoformat() != payload["created_at"]
+        ):
+            raise ValidationError(
+                "persisted assignment created_at must use canonical UTC spelling"
+            )
+        body = {key: value for key, value in payload.items() if key != "content_address"}
+        if (
+            event.get("event_id") != payload["assignment_id"]
+            or payload["run_id"] != dossier.run_id
+            or payload["case_id"] != dossier.case_id
+            or payload["content_address"]
+            != content_hash(body, prefix="review-assignment")
+        ):
+            raise ValidationError(
+                "persisted assignment event does not match its canonical identity"
+            )
+        self._enforce_policy_texts(tuple(body.values()), "persisted review assignment")
+
+    @staticmethod
+    def _append_snapshot_predecessor_binding(
+        log: EventLog,
+        expected_run: Mapping[str, Any],
+    ) -> None:
+        """Bind the predecessor event/dossier pair into the immutable successor log."""
+
+        if type(log) is not EventLog or type(expected_run) is not dict:
+            raise ValidationError("snapshot predecessor binding requires exact runtime inputs")
+        run_id = expected_run.get("run_id")
+        if type(run_id) is not str or log.run_id != run_id:
+            raise ValidationError("snapshot predecessor binding run_id is inconsistent")
+        event_address = _runtime_sha256_address(
+            expected_run.get("event_address"),
+            "snapshot predecessor event_address",
+        )
+        dossier_address = _runtime_sha256_address(
+            expected_run.get("dossier_address"),
+            "snapshot predecessor dossier_address",
+        )
+        if log.record_address != event_address:
+            raise ValidationError(
+                "snapshot predecessor event address does not match the staged log"
+            )
+        body = {
+            "version": _SNAPSHOT_PREDECESSOR_VERSION,
+            "run_id": run_id,
+            "previous_event_address": event_address,
+            "previous_dossier_address": dossier_address,
+        }
+        binding_address = content_hash(body, prefix="snapshot-predecessor")
+        log.append(
+            "snapshot_predecessor_bound",
+            body | {"binding_address": binding_address},
+            event_id=(
+                f"evt-{run_id}-predecessor-"
+                f"{binding_address.rsplit(':', 1)[1][:20]}"
+            ),
+        )
+
+    def _load_run_snapshot_record(
+        self,
+        run_id: str,
+        run_record: Mapping[str, Any],
+    ) -> VerifiedRunSnapshot:
+        """Hydrate and semantically verify one current-ended run record."""
+
+        if type(run_record) is not dict:
+            raise ValidationError("verified run record must be an exact object")
         try:
             event_address = run_record["event_address"]
             dossier_address = run_record["dossier_address"]
@@ -792,13 +1309,15 @@ class CaseRuntime:
                 input_record=manifest.to_dict(),
                 input_address=input_address,
             )
-            return VerifiedRunSnapshot(
+            snapshot = VerifiedRunSnapshot(
                 run_record=run_record,
                 manifest=manifest,
                 event_record=event_record,
                 dossier=dossier,
                 replay=replay,
             )
+            self._validate_retained_snapshot_history(run_id, snapshot.run_record, log)
+            return snapshot
         except Exception as exc:  # noqa: BLE001 - persisted hostile data must fail closed
             if isinstance(exc, ValidationError):
                 raise
@@ -856,6 +1375,8 @@ class CaseRuntime:
             or manifest.case_id != dossier.case_id
         ):
             raise ValidationError("persisted case receipt does not match its manifest and dossier")
+
+        self._validate_persisted_review_events(dossier, log)
 
         rna_rows: tuple[RNAConsequenceEvidence, ...] = ()
         rna_address: str | None = None
@@ -956,8 +1477,214 @@ class CaseRuntime:
                         "persisted RNA claim consequence is not present in its recorded input"
                     )
 
+        self._validate_persisted_source_closure(
+            manifest=manifest,
+            dossier=dossier,
+            events=events,
+            rna_address=rna_address,
+        )
+
         if self._run_id(manifest, rna_rows) != dossier.run_id:
             raise ValidationError("persisted inputs do not reproduce the run identifier")
+
+    @staticmethod
+    def _source_event_addresses(
+        payload: Mapping[str, Any],
+        field_name: str,
+        label: str,
+    ) -> tuple[str, ...]:
+        raw = payload.get(field_name)
+        if not isinstance(raw, list):
+            raise ValidationError(f"{label} source addresses must be an exact array")
+        values = tuple(
+            _runtime_sha256_address(item, f"{label} source address") for item in raw
+        )
+        if len(values) != len(set(values)):
+            raise ValidationError(f"{label} source addresses must be unique")
+        return values
+
+    def _validate_persisted_source_closure(
+        self,
+        *,
+        manifest: CaseManifest,
+        dossier: Dossier,
+        events: tuple[Any, ...],
+        rna_address: str | None,
+    ) -> None:
+        """Require every declared source object and adapter derivation to replay exactly."""
+
+        records: dict[str, dict[str, Any]] = {}
+        for address in dossier.source_bundle_addresses:
+            try:
+                raw = self.store.store.get_verified(
+                    address,
+                    max_bytes=self._persisted_object_max_bytes(),
+                )
+            except StoreError as exc:
+                raise ValidationError(
+                    f"persisted source object is missing or invalid: {address}"
+                ) from exc
+            if type(raw) is not dict:
+                raise ValidationError("persisted source objects must be exact JSON objects")
+            records[address] = raw
+
+        declared: list[str] = []
+        if rna_address is not None:
+            declared.append(rna_address)
+        event_specs = (
+            ("public_reference_enriched", "bundle_addresses", "reference"),
+            ("public_atlas_collected", "bundle_addresses", "atlas"),
+            ("adapter_evidence_collected", "source_bundle_addresses", "adapter"),
+        )
+        selected_events: dict[str, Any] = {}
+        for event_type, address_field, label in event_specs:
+            matching = tuple(event for event in events if event.event_type == event_type)
+            if len(matching) > 1:
+                raise ValidationError(f"persisted run contains duplicate {label} source events")
+            if not matching:
+                continue
+            event = matching[0]
+            event_suffix = "adapters" if label == "adapter" else label
+            expected_event_id = f"evt-{dossier.run_id}-{event_suffix}"
+            if event.event_id != expected_event_id:
+                raise ValidationError(f"persisted {label} source event identity is invalid")
+            selected_events[event_type] = event
+            declared.extend(
+                self._source_event_addresses(event.payload, address_field, label)
+            )
+        if tuple(declared) != dossier.source_bundle_addresses:
+            raise ValidationError(
+                "persisted dossier source bundle declarations do not match its event lineage"
+            )
+
+        adapter_event = selected_events.get("adapter_evidence_collected")
+        has_adapter_versions = any(
+            key in manifest.input_versions for key in _ADAPTER_INPUT_VERSION_KEYS
+        )
+        if adapter_event is None:
+            if has_adapter_versions:
+                raise ValidationError(
+                    "persisted manifest declares adapter inputs without an adapter event"
+                )
+            return
+        if not has_adapter_versions:
+            raise ValidationError("persisted adapter event is absent from manifest identity")
+        self._validate_persisted_adapter_closure(
+            manifest=manifest,
+            dossier=dossier,
+            event=adapter_event,
+            records=records,
+        )
+
+    def _validate_persisted_adapter_closure(
+        self,
+        *,
+        manifest: CaseManifest,
+        dossier: Dossier,
+        event: Any,
+        records: Mapping[str, dict[str, Any]],
+    ) -> None:
+        payload = event.payload
+        if set(payload) != _ADAPTER_EVENT_FIELDS:
+            raise ValidationError("persisted adapter event has a non-canonical payload shape")
+        source_addresses = self._source_event_addresses(
+            payload,
+            "source_bundle_addresses",
+            "adapter",
+        )
+        if len(source_addresses) != len(_ADAPTER_INPUT_VERSION_KEYS):
+            raise ValidationError("persisted adapter source closure is incomplete")
+        base_address, registry_address, resolution_address, claims_address = source_addresses
+        expected_version_addresses = dict(
+            zip(_ADAPTER_INPUT_VERSION_KEYS, source_addresses, strict=True)
+        )
+        if any(
+            manifest.input_versions.get(key) != address
+            for key, address in expected_version_addresses.items()
+        ):
+            raise ValidationError("persisted adapter sources are not bound into manifest identity")
+        scalar_addresses = (
+            ("base_input_address", base_address),
+            ("effective_input_address", manifest.content_address),
+            ("registry_bundle_address", registry_address),
+            ("resolution_bundle_address", resolution_address),
+            ("claim_collection_bundle_address", claims_address),
+        )
+        if any(payload.get(field) != expected for field, expected in scalar_addresses):
+            raise ValidationError("persisted adapter event source addresses are inconsistent")
+        try:
+            base_record = records[base_address]
+            registry_record = records[registry_address]
+            resolution_record = records[resolution_address]
+            claims_record = records[claims_address]
+            base_manifest = CaseManifest.from_dict(base_record)
+            registry_snapshot = AdapterRegistrySnapshot.from_dict(registry_record)
+            resolution = AdapterResolutionReport.from_dict(resolution_record)
+            claim_report = AdapterClaimCollectionReport.from_dict(claims_record)
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValidationError("persisted adapter source records are invalid") from exc
+        typed_records = (
+            (base_manifest.to_dict(), base_record),
+            (registry_snapshot.to_dict(), registry_record),
+            (resolution.to_dict(), resolution_record),
+            (claim_report.to_dict(), claims_record),
+        )
+        if any(
+            canonical_bytes(typed) != canonical_bytes(raw) for typed, raw in typed_records
+        ):
+            raise ValidationError("persisted adapter source records do not round-trip exactly")
+        adapter_ids = payload.get("adapter_ids")
+        if not isinstance(adapter_ids, list) or any(
+            type(item) is not str for item in adapter_ids
+        ):
+            raise ValidationError("persisted adapter event adapter_ids must be an exact array")
+        if (
+            tuple(adapter_ids) != resolution.adapter_ids
+            or claim_report.adapter_ids != resolution.adapter_ids
+            or resolution.manifest_address != base_address
+            or claim_report.manifest_address != base_address
+            or resolution.registry_address != registry_snapshot.content_address
+            or claim_report.registry_snapshot != registry_snapshot
+            or claim_report.registry_address != resolution.registry_address
+            or claim_report.resolution_address != resolution.content_address
+            or payload.get("registry_address") != resolution.registry_address
+            or payload.get("resolution_address") != resolution.content_address
+            or payload.get("claim_collection_address") != claim_report.content_address
+        ):
+            raise ValidationError("persisted adapter reports do not form one provenance closure")
+        counters = (
+            ("resolved_element_count", resolution.element_count),
+            ("attribution_count", claim_report.attribution_count),
+            ("claim_count", claim_report.claim_count),
+        )
+        if any(type(payload.get(field)) is not int for field, _expected in counters) or any(
+            payload.get(field) != expected for field, expected in counters
+        ):
+            raise ValidationError("persisted adapter event counters are inconsistent")
+        expected_manifest = self._materialize_adapter_manifest(
+            base_manifest,
+            resolution,
+            source_addresses,
+        )
+        if canonical_bytes(expected_manifest.to_dict()) != canonical_bytes(manifest.to_dict()):
+            raise ValidationError("persisted adapter resolution does not reproduce the manifest")
+        evidence_by_id = {claim.evidence_id: claim for claim in dossier.evidence}
+        edge_claims = {
+            claim_id
+            for hypothesis in dossier.hypotheses
+            for edge in hypothesis.edges
+            for claim_id in edge.claim_ids
+        }
+        for claim in claim_report.claims:
+            persisted = evidence_by_id.get(claim.evidence_id)
+            if (
+                persisted is None
+                or canonical_bytes(persisted.to_dict()) != canonical_bytes(claim.to_dict())
+                or claim.evidence_id not in edge_claims
+            ):
+                raise ValidationError(
+                    "persisted adapter claim is absent from the dossier hypothesis graph"
+                )
 
     @staticmethod
     def _preflight_rna_input_rows(
@@ -1274,6 +2001,7 @@ class CaseRuntime:
             raise ValidationError("cannot assign a completed review")
         if any(event.event_id == assignment_id for event in log.all()):
             raise ValidationError("assignment_id already exists in the run event chain")
+        self._append_snapshot_predecessor_binding(log, run_record)
         assignment_body = {
             "assignment_id": assignment_id,
             "run_id": run_id,
@@ -1351,13 +2079,13 @@ class CaseRuntime:
         manifest: CaseManifest | None,
         run_id: str,
         input_address: str,
-        hypotheses,
-        claims,
-        experiments,
-        review,
+        hypotheses: Iterable[Hypothesis],
+        claims: Iterable[EvidenceClaim],
+        experiments: Iterable[ExperimentOption],
+        review: ReviewDecision | None,
         status: ResearchStatus,
         event_head: str,
-        warnings,
+        warnings: Iterable[str],
         case_id: str | None = None,
         created_at: str | None = None,
         source_receipts: tuple[Mapping[str, Any], ...] = (),
@@ -1395,7 +2123,7 @@ class CaseRuntime:
 
     def _persist(
         self,
-        manifest,
+        manifest: CaseManifest | None,
         log: EventLog,
         dossier: Dossier,
         input_address: str,

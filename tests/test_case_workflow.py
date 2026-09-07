@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 from jsonschema import Draft202012Validator
 
+from glio_noncode.adapters import ADAPTER_HARD_MAX_SELECTED
 from glio_noncode.case_workflow import (
     MAX_CASE_CANDIDATE_ELEMENTS,
     MAX_CASE_REGULATORY_TRACKS,
@@ -1436,6 +1437,11 @@ class CaseWorkflowTests(unittest.TestCase):
         self.assertFalse(advertised["server_local_paths"])
         self.assertIn("inline_bytes", advertised["source_transport"])
         self.assertIn("manifest_address", advertised["deterministic_outputs"])
+        self.assertIn("effective_manifest_address", advertised["deterministic_outputs"])
+        self.assertEqual(
+            advertised["runtime_work_limits"]["max_adapter_ids"],
+            ADAPTER_HARD_MAX_SELECTED,
+        )
         self.assertEqual(
             advertised["preparation_inputs"]["regulatory_tracks"]["max_items"],
             MAX_CASE_REGULATORY_TRACKS,
@@ -1527,7 +1533,10 @@ class CaseWorkflowTests(unittest.TestCase):
 
         self.assertFalse(run_schema["additionalProperties"])
         self.assertEqual(run_schema["required"], ["prepared"])
-        self.assertEqual(set(run_schema["properties"]), {"prepared", "rna_consequences"})
+        self.assertEqual(
+            set(run_schema["properties"]),
+            {"prepared", "rna_consequences", "adapter_ids"},
+        )
         self.assertNotIn("$id", run_schema["properties"]["prepared"])
         self.assertNotIn("$id", run_schema["properties"]["rna_consequences"])
         self.assertEqual(
@@ -1535,6 +1544,12 @@ class CaseWorkflowTests(unittest.TestCase):
             MAX_CASE_RNA_CONSEQUENCES,
         )
         self.assertTrue(run_schema["properties"]["rna_consequences"]["uniqueItems"])
+        self.assertEqual(
+            run_schema["properties"]["adapter_ids"]["maxItems"],
+            capabilities()["optional_execution_inputs"]["adapter_ids"]["max_items"],
+        )
+        self.assertTrue(run_schema["properties"]["adapter_ids"]["uniqueItems"])
+        self.assertIn("invalid_adapter_selection", advertised["fail_closed_gates"])
         self.assertNotIn("data_root", run_schema["properties"])
 
         self.assertEqual(workflow["$defs"]["prepare_request"], prepare_schema)

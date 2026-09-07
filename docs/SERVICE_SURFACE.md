@@ -16,6 +16,7 @@ was produced.
 | GET | `/v1/schema` | Existing case contract summary |
 | GET | `/v1/case-workflow/schema` | Return focused case preparation and execution request schemas |
 | GET | `/v1/case-workflow/capabilities` | Return case workflow limits, stages, and provenance capabilities |
+| GET | `/v1/case-workflow/adapters` | Return the server-owned addressed adapter-registry snapshot and selectable IDs |
 | GET | `/v1/expression-evidence/schema` | Return public expression and allelic evidence schemas |
 | GET | `/v1/expression-evidence/capabilities` | Return expression evidence analysis capabilities and limits |
 | GET | `/v1/expression-claims/schema` | Return deterministic RNA claim matching schemas |
@@ -375,7 +376,7 @@ was produced.
 | GET | `/v1/review-operations/closure` | Return the complete SLA and workload closure |
 | POST | `/v1/runs/{run_id}/assignment` | Append a durable reviewer assignment and create a new dossier snapshot |
 | POST | `/v1/case-workflow/prepare` | Prepare, validate, and address a focused case request |
-| POST | `/v1/case-workflow/run` | Execute an exact prepared case with optional RNA consequences in the server runtime |
+| POST | `/v1/case-workflow/run` | Execute an exact prepared case with optional RNA consequences and configured adapter IDs in the server runtime |
 | POST | `/v1/expression-evidence/outlier` | Analyze one expression observation against bounded references |
 | POST | `/v1/expression-evidence/allelic` | Analyze one allele-specific observation |
 | POST | `/v1/expression-evidence/allelic-batch` | Analyze a bounded allele-specific observation batch |
@@ -408,14 +409,22 @@ used as filesystem paths. Missing runs return HTTP 404; an existing run can be
 accepted only when its input object, event chain, dossier address, and stored
 object links all verify.
 
-The server owns the configured `data_root`. `/v1/case-workflow/run` accepts only
-`prepared` and optional `rna_consequences`; a client `data_root` is rejected with
-HTTP 400. The run-report route reopens one complete persisted closure through the
-bounded replay verifier before building any projection. `audience=public` is the
-default and contains aggregate counts, state conservation, release-gate status,
-and content addresses only. `audience=review` must be explicit and exposes the
-full summary identifiers. `format=json` (default) and `format=markdown` return
-the exact authenticated payload bytes. `X-Glio-Report-Address`,
+The server owns the configured `data_root` and adapter registry.
+`/v1/case-workflow/run` accepts only `prepared`, optional `rna_consequences`, and
+optional canonical `adapter_ids`; a client `data_root` or executable adapter is
+rejected with HTTP 400. `/v1/case-workflow/adapters` lists the exact server-owned
+registry snapshot. Adapter selection persists the registry, resolution, and
+attributed claim-collection records, materializes an effective manifest, and binds
+that manifest address into the evaluation run identity. The run-report and
+run-assessment routes reopen one complete persisted closure through the bounded
+replay verifier before building any projection. `audience=public` is the default
+and contains aggregate counts, state conservation, release-gate status, and content
+addresses only. `audience=review` must be explicit and exposes the full summary
+identifiers. `format=json` (default) and `format=markdown` return the exact
+authenticated payload bytes. An assessment additionally closes the recomputed
+quality result, audience report, and rendered bytes; historical assessments require
+an authenticated successor binding and unbound legacy history fails closed.
+`X-Glio-Report-Address`,
 `X-Glio-Dossier-Address`, `X-Glio-Summary-Address`,
 `X-Glio-Payload-Address`, and `X-Glio-Rendered-Report-Address` bind the response
 to its typed report, source dossier, summary, exact bytes, and rendered artifact.
