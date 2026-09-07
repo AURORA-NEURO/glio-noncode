@@ -2713,9 +2713,11 @@ from .run_workspace import (
 from .reports import (
     ReportAudience as DossierReportAudience,
     ReportFormat as DossierReportFormat,
-    build_report as build_dossier_report,
-    render_report as render_dossier_report,
     report_capabilities as dossier_report_capabilities,
+)
+from .assessments import (
+    assessment_capabilities as run_assessment_capabilities,
+    build_run_assessment as build_verified_run_assessment,
 )
 from .case_workflow import (
     PreparedCase,
@@ -5050,6 +5052,19 @@ class ApiHandler(BaseHTTPRequestHandler):
                 )
                 return
             self._write(HTTPStatus.OK, dossier_report_capabilities())
+            return
+        if path == "/v1/assessments/capabilities":
+            query = parse_qs(parsed.query, keep_blank_values=True)
+            if query:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {
+                        "error": "invalid_query",
+                        "message": "assessment capabilities does not accept query parameters",
+                    },
+                )
+                return
+            self._write(HTTPStatus.OK, run_assessment_capabilities())
             return
         downloaded_data_prefix = "/v1/downloaded-data"
         if path == downloaded_data_prefix or path.startswith(downloaded_data_prefix + "/"):
@@ -21114,12 +21129,13 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if len(segments) == 4 and segments[3] == "history":
                     self._write(HTTPStatus.OK, build_run_history(runtime, run_id).to_dict())
                     return
-                if len(segments) == 4 and segments[3] == "report":
+                if len(segments) == 4 and segments[3] in {"report", "assessment"}:
+                    surface = segments[3]
                     query = parse_qs(parsed.query, keep_blank_values=True)
                     unknown = set(query) - {"audience", "format"}
                     if unknown:
                         raise ValueError(
-                            f"run report contains unknown query parameters: {sorted(unknown)}"
+                            f"run {surface} contains unknown query parameters: {sorted(unknown)}"
                         )
                     raw_audience = self._query_value(query, "audience")
                     audience = DossierReportAudience(
@@ -21132,20 +21148,37 @@ class ApiHandler(BaseHTTPRequestHandler):
                         DossierReportFormat.JSON.value if raw_format is None else raw_format
                     )
                     snapshot = runtime.load_run_snapshot(run_id)
-                    report = build_dossier_report(snapshot.dossier, audience=audience)
-                    rendered = render_dossier_report(report, format=report_format)
+                    assessment = build_verified_run_assessment(
+                        snapshot,
+                        audience=audience,
+                        format=report_format,
+                    )
+                    report = assessment.dossier_report
+                    rendered = assessment.rendered_report
+                    headers = {
+                        "X-Glio-Assessment-Address": assessment.content_address,
+                        "X-Glio-Quality-Report-Address": (
+                            assessment.quality_report.content_address
+                        ),
+                        "X-Glio-Report-Address": rendered.report_address,
+                        "X-Glio-Dossier-Address": rendered.dossier_address,
+                        "X-Glio-Summary-Address": report.summary_address,
+                        "X-Glio-Payload-Address": rendered.payload_address,
+                        "X-Glio-Rendered-Report-Address": rendered.content_address,
+                        "X-Glio-Report-Audience": rendered.audience,
+                    }
+                    if surface == "assessment":
+                        self._write(
+                            HTTPStatus.OK,
+                            assessment.to_dict(),
+                            headers=headers,
+                        )
+                        return
                     self._write_bytes(
                         HTTPStatus.OK,
                         rendered.payload.encode("utf-8"),
                         content_type=rendered.media_type,
-                        headers={
-                            "X-Glio-Report-Address": rendered.report_address,
-                            "X-Glio-Dossier-Address": rendered.dossier_address,
-                            "X-Glio-Summary-Address": report.summary_address,
-                            "X-Glio-Payload-Address": rendered.payload_address,
-                            "X-Glio-Rendered-Report-Address": rendered.content_address,
-                            "X-Glio-Report-Audience": rendered.audience,
-                        },
+                        headers=headers,
                     )
                     return
                 is_workspace = len(segments) == 4 and segments[3] == "workspace"

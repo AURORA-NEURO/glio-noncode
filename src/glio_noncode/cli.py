@@ -16,7 +16,9 @@ Focused commands:
   case                 prepare and run a case from source manifests
   expression           analyze expression and allele-specific RNA evidence
   report-capabilities  inspect supported report audiences, formats, and limits
+  assessment-capabilities  inspect verified-run assessment contracts and limits
   run-report           render one replay-verified persisted run
+  run-assessment       build one replay, quality, report, and rendering closure
   commands list        list every available command
   commands search TERM search command names and summaries
   commands show NAME   show the summary for one command
@@ -114,7 +116,12 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_case").main(command_argv)
     if command == "expression":
         return importlib.import_module(f"{__package__}._cli_expression").main(command_argv)
-    if command in {"report-capabilities", "run-report"}:
+    if command in {
+        "assessment-capabilities",
+        "report-capabilities",
+        "run-assessment",
+        "run-report",
+    }:
         return importlib.import_module(f"{__package__}._cli_report").main(arguments)
 
     # The generated index is intentionally not an allowlist. An unindexed token

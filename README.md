@@ -214,8 +214,10 @@ glio-noncode run-query run-<run-id> lineage --data-root .glio --output run-linea
 glio-noncode run-query run-<run-id> closure --data-root .glio --output dossier-query-closure.json
 glio-noncode run-history run-<run-id> --data-root .glio --output run-history.json
 glio-noncode report-capabilities --output report-capabilities.json
+glio-noncode assessment-capabilities --output assessment-capabilities.json
 glio-noncode run-report run-<run-id> --data-root .glio --audience public --format markdown --output public-report.json
 glio-noncode run-report run-<run-id> --data-root .glio --audience review --format json --output review-report.json
+glio-noncode run-assessment run-<run-id> --data-root .glio --audience public --format json --output assessment.json
 glio-noncode run-compare run-<run-id> run-<run-id> --source-snapshot 0 --target-snapshot 1 --data-root .glio --output review-transition.json
 glio-noncode run-compare-release run-<run-id> run-<run-id> --source-snapshot 0 --target-snapshot 1 --data-root .glio --output comparison-release
 glio-noncode review-queue --data-root .glio --scope open --output review-queue.json
@@ -231,6 +233,12 @@ payload plus report, dossier, payload, and rendered-artifact addresses. The HTTP
 route returns those exact payload bytes directly and exposes the same provenance
 through `X-Glio-*` response headers. The fuller review projection must be
 requested explicitly.
+
+`run-assessment` closes the replay-verified run, recomputed quality result,
+audience-scoped dossier projection, and exact rendered bytes into one canonical,
+content-addressed artifact. Its verifier rebuilds every derived component from the
+same persisted snapshot, so downstream review and automation can consume a single
+object without trusting independently assembled report outputs.
 
 The review queue is a deterministic operational projection over persisted runs.
 It prioritizes integrity blocks, pending or returned reviews, missing reviews,

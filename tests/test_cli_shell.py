@@ -81,10 +81,12 @@ print(json.dumps(results))
             self.assertEqual(cli.main(["case", "prepare", "--input", "case.json"]), 17)
             self.assertEqual(cli.main(["expression", "allelic", "--input", "rna.json"]), 17)
             self.assertEqual(cli.main(["report-capabilities", "--output", "-"]), 17)
+            self.assertEqual(cli.main(["assessment-capabilities", "--output", "-"]), 17)
             self.assertEqual(
                 cli.main(["run-report", "run-1", "--audience", "public"]),
                 17,
             )
+            self.assertEqual(cli.main(["run-assessment", "run-1"]), 17)
 
         self.assertEqual(
             calls,
@@ -92,7 +94,9 @@ print(json.dumps(results))
                 ("_cli_case", ["prepare", "--input", "case.json"]),
                 ("_cli_expression", ["allelic", "--input", "rna.json"]),
                 ("_cli_report", ["report-capabilities", "--output", "-"]),
+                ("_cli_report", ["assessment-capabilities", "--output", "-"]),
                 ("_cli_report", ["run-report", "run-1", "--audience", "public"]),
+                ("_cli_report", ["run-assessment", "run-1"]),
             ],
         )
 

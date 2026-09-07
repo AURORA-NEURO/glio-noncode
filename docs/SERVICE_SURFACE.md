@@ -21,6 +21,7 @@ was produced.
 | GET | `/v1/expression-claims/schema` | Return deterministic RNA claim matching schemas |
 | GET | `/v1/expression-claims/capabilities` | Return RNA claim derivation and matching capabilities |
 | GET | `/v1/reports/capabilities` | Return report versions, audiences, formats, public fields, and hard limits |
+| GET | `/v1/assessments/capabilities` | Return replay-closed run assessment versions, formats, and limits |
 | GET | `/v1/public-surface/audit` | Audit the complete repository-wide public service and bundle projection inventory |
 | GET | `/v1/module-inventory` | Return aggregate module, symbol, dependency, index, and source-depth counts |
 | GET | `/v1/module-inventory/query` | Page static module, symbol, dependency, or index rows |
@@ -357,6 +358,7 @@ was produced.
 | GET | `/v1/runs/{run_id}/workspace/release` | Build a gated portable workspace handoff bundle |
 | GET | `/v1/runs/{run_id}/history` | List content-addressed dossier snapshots for one run |
 | GET | `/v1/runs/{run_id}/report?audience=public\|review&format=json\|markdown` | Return exact bytes for a bounded audience-scoped report with provenance address headers |
+| GET | `/v1/runs/{run_id}/assessment?audience=public\|review&format=json\|markdown` | Return one addressed replay, quality, report, and exact-rendering closure |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}` | Compare current or selected snapshots from two runs |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}/release` | Build a gated portable comparison handoff bundle |
 | GET | `/v1/runs/{run_id}/summary` | Aggregate evidence, review, and validation counters |

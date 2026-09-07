@@ -61,7 +61,7 @@ class CuratedPublicSurfaceTests(unittest.TestCase):
         self.assertEqual(_public_surface.CURATED_EXPORTS, expected)
         self.assertEqual(_public_surface.CURATED_ALL, tuple(expected))
         self.assertEqual(_public_surface.ALL[-len(expected) :], tuple(expected))
-        self.assertEqual(len(expected), 224)
+        self.assertEqual(len(expected), 233)
         for name, descriptor in expected.items():
             self.assertEqual(_public_surface.ALL.count(name), 1, name)
             self.assertEqual(_public_surface.EXPORTS[name], descriptor)
@@ -157,6 +157,22 @@ class CuratedPublicSurfaceTests(unittest.TestCase):
                 "ContractValidator",
             ),
             "ReleaseGate": ("glio_noncode.validation", "ReleaseGate"),
+            "ADAPTER_CLAIM_COLLECTION_VERSION": (
+                "glio_noncode.adapters",
+                "ADAPTER_CLAIM_COLLECTION_VERSION",
+            ),
+            "ADAPTER_HARD_MAX_CLAIMS_TOTAL": (
+                "glio_noncode.adapters",
+                "ADAPTER_HARD_MAX_CLAIMS_TOTAL",
+            ),
+            "AdapterClaimAttribution": (
+                "glio_noncode.adapters",
+                "AdapterClaimAttribution",
+            ),
+            "AdapterClaimCollectionReport": (
+                "glio_noncode.adapters",
+                "AdapterClaimCollectionReport",
+            ),
         }
         for public_name, descriptor in expected_identities.items():
             self.assertEqual(migration.CURATED_EXPORTS[public_name], descriptor)
@@ -210,6 +226,21 @@ class CuratedPublicSurfaceTests(unittest.TestCase):
         }
         for public_name, canonical_name in expected_aliases.items():
             self.assertIs(getattr(glio_noncode, public_name), getattr(reports, canonical_name))
+
+    def test_run_assessment_exports_preserve_canonical_identity(self) -> None:
+        assessments = importlib.import_module("glio_noncode.assessments")
+        expected = {
+            "RUN_ASSESSMENT_VERSION": "RUN_ASSESSMENT_VERSION",
+            "MAX_RUN_ASSESSMENT_BYTES": "MAX_RUN_ASSESSMENT_BYTES",
+            "VerifiedRunAssessment": "VerifiedRunAssessment",
+            "build_run_assessment": "build_run_assessment",
+            "run_assessment_capabilities": "assessment_capabilities",
+        }
+        for public_name, canonical_name in expected.items():
+            self.assertIs(
+                getattr(glio_noncode, public_name),
+                getattr(assessments, canonical_name),
+            )
 
     def test_static_stub_declares_every_curated_name(self) -> None:
         stub_path = REPOSITORY_ROOT / "src" / "glio_noncode" / "__init__.pyi"

@@ -23,7 +23,7 @@ import importlib
 import json
 import sys
 import types
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 MANIFEST_VERSION = 2
@@ -616,6 +616,22 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
         "glio_noncode.adapters",
         "ADAPTER_HARD_MAX_REPORT_BYTES",
     ),
+    "ADAPTER_CLAIM_COLLECTION_VERSION": (
+        "glio_noncode.adapters",
+        "ADAPTER_CLAIM_COLLECTION_VERSION",
+    ),
+    "ADAPTER_HARD_MAX_CLAIMS_TOTAL": (
+        "glio_noncode.adapters",
+        "ADAPTER_HARD_MAX_CLAIMS_TOTAL",
+    ),
+    "AdapterClaimAttribution": (
+        "glio_noncode.adapters",
+        "AdapterClaimAttribution",
+    ),
+    "AdapterClaimCollectionReport": (
+        "glio_noncode.adapters",
+        "AdapterClaimCollectionReport",
+    ),
     "AdapterLimits": ("glio_noncode.adapters", "AdapterLimits"),
     "AdapterMetadata": ("glio_noncode.adapters", "AdapterMetadata"),
     "AdapterRegistry": ("glio_noncode.adapters", "AdapterRegistry"),
@@ -680,6 +696,26 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
     "dossier_report_capabilities": (
         "glio_noncode.reports",
         "report_capabilities",
+    ),
+    "RUN_ASSESSMENT_VERSION": (
+        "glio_noncode.assessments",
+        "RUN_ASSESSMENT_VERSION",
+    ),
+    "MAX_RUN_ASSESSMENT_BYTES": (
+        "glio_noncode.assessments",
+        "MAX_RUN_ASSESSMENT_BYTES",
+    ),
+    "VerifiedRunAssessment": (
+        "glio_noncode.assessments",
+        "VerifiedRunAssessment",
+    ),
+    "build_run_assessment": (
+        "glio_noncode.assessments",
+        "build_run_assessment",
+    ),
+    "run_assessment_capabilities": (
+        "glio_noncode.assessments",
+        "assessment_capabilities",
     ),
     "VerifiedRunSnapshot": ("glio_noncode.runtime", "VerifiedRunSnapshot"),
     "ObjectStore": ("glio_noncode.storage", "ObjectStore"),
@@ -1131,7 +1167,12 @@ def build_manifest(repo_root: Path | None = None) -> SurfaceManifest:
     if source_root_text not in sys.path:
         sys.path.insert(0, source_root_text)
     if _is_lazy_initializer(tree):
-        return _apply_curated_exports(_manifest_from_generated(source_root))
+        generated = _manifest_from_generated(source_root)
+        generated = replace(
+            generated,
+            child_modules=_discover_child_modules(package_dir),
+        )
+        return _apply_curated_exports(generated)
 
     package = importlib.import_module(PACKAGE_NAME)
     replay = replay_initializer(tree)

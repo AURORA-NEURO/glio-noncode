@@ -8,6 +8,7 @@ from http.client import HTTPConnection
 from unittest.mock import patch
 
 from glio_noncode.api import create_server
+from glio_noncode.assessments import VerifiedRunAssessment, assessment_capabilities
 from glio_noncode.reports import (
     DossierReport,
     build_report,
@@ -60,6 +61,13 @@ class ReportApiTests(unittest.TestCase):
         self.assertEqual(status, 400)
         self.assertEqual(json.loads(body)["error"], "invalid_query")
 
+        status, body, _ = self._get("/v1/assessments/capabilities")
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body), assessment_capabilities())
+        status, body, _ = self._get("/v1/assessments/capabilities?format=json")
+        self.assertEqual(status, 400)
+        self.assertEqual(json.loads(body)["error"], "invalid_query")
+
     def test_default_run_report_is_exact_public_json_with_address_headers(self) -> None:
         server_runtime = self.server.glio_runtime
         with patch.object(
@@ -83,6 +91,8 @@ class ReportApiTests(unittest.TestCase):
             headers["x-glio-rendered-report-address"], expected.content_address
         )
         self.assertEqual(headers["x-glio-report-audience"], "public")
+        self.assertTrue(headers["x-glio-assessment-address"].startswith("run-assessment:"))
+        self.assertTrue(headers["x-glio-quality-report-address"].startswith("sha256:"))
         self.assertNotIn("case_id", report.projection)
         self.assertNotIn("run_id", report.projection)
         self.assertTrue(report.verify(self.dossier))
@@ -99,6 +109,24 @@ class ReportApiTests(unittest.TestCase):
         self.assertEqual(headers["x-glio-report-audience"], "review")
         self.assertIn(self.dossier.case_id, body.decode("utf-8"))
         self.assertIn("# Review Dossier Report", body.decode("utf-8"))
+
+    def test_run_assessment_binds_quality_report_and_rendered_payload(self) -> None:
+        status, body, headers = self._get(
+            f"/v1/runs/{self.dossier.run_id}/assessment?audience=review&format=markdown"
+        )
+
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["content-type"], "application/json; charset=utf-8")
+        assessment = VerifiedRunAssessment.from_dict(json.loads(body))
+        snapshot = self.runtime.load_run_snapshot(self.dossier.run_id)
+        self.assertTrue(assessment.verify(snapshot))
+        self.assertEqual(headers["x-glio-assessment-address"], assessment.content_address)
+        self.assertEqual(
+            headers["x-glio-quality-report-address"],
+            assessment.quality_report.content_address,
+        )
+        self.assertEqual(assessment.dossier_report.audience, "review")
+        self.assertEqual(assessment.rendered_report.format, "markdown")
 
     def test_report_query_is_exact_and_missing_runs_are_not_rendered(self) -> None:
         cases = (

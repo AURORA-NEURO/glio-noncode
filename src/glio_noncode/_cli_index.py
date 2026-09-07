@@ -18724,6 +18724,10 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
 
 SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
     (
+        'assessment-capabilities',
+        'inspect verified-run assessment contracts and limits',
+    ),
+    (
         'case',
         'prepare and run a case from source manifests',
     ),
@@ -18734,6 +18738,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
     (
         'report-capabilities',
         'inspect supported report audiences, formats, and limits',
+    ),
+    (
+        'run-assessment',
+        'build one replay, quality, report, and rendering closure',
     ),
     (
         'run-report',

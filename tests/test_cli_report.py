@@ -10,6 +10,10 @@ from unittest.mock import patch
 
 from glio_noncode._cli_index import COMMAND_BY_NAME, LEGACY_COMMANDS, SHELL_COMMANDS
 from glio_noncode._cli_report import build_parser
+from glio_noncode.assessments import (
+    VerifiedRunAssessment,
+    assessment_capabilities,
+)
 from glio_noncode.cli import main
 from glio_noncode.reports import (
     DossierReport,
@@ -25,12 +29,18 @@ from .helpers import fixture_manifest
 class ReportCliTests(unittest.TestCase):
     def test_parser_and_static_index_expose_exact_top_level_commands(self) -> None:
         choices = build_parser()._subparsers._group_actions[0].choices
-        self.assertEqual(set(choices), {"report-capabilities", "run-report"})
+        expected = {
+            "assessment-capabilities",
+            "report-capabilities",
+            "run-assessment",
+            "run-report",
+        }
+        self.assertEqual(set(choices), expected)
         shell_names = {name for name, _ in SHELL_COMMANDS}
         legacy_names = {name for name, _ in LEGACY_COMMANDS}
-        self.assertTrue({"report-capabilities", "run-report"}.issubset(shell_names))
-        self.assertTrue({"report-capabilities", "run-report"}.issubset(COMMAND_BY_NAME))
-        self.assertTrue({"report-capabilities", "run-report"}.isdisjoint(legacy_names))
+        self.assertTrue(expected.issubset(shell_names))
+        self.assertTrue(expected.issubset(COMMAND_BY_NAME))
+        self.assertTrue(expected.isdisjoint(legacy_names))
 
     def test_capabilities_are_deterministic_and_machine_readable(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -49,6 +59,15 @@ class ReportCliTests(unittest.TestCase):
                 json.loads(first_path.read_text(encoding="utf-8")),
                 report_capabilities(),
             )
+            assessment_path = Path(temporary) / "assessment-capabilities.json"
+            self.assertEqual(
+                main(["assessment-capabilities", "--output", str(assessment_path)]),
+                0,
+            )
+            self.assertEqual(
+                json.loads(assessment_path.read_text(encoding="utf-8")),
+                assessment_capabilities(),
+            )
 
     def test_run_report_reopens_verified_snapshot_and_emits_addressed_envelopes(
         self,
@@ -59,6 +78,7 @@ class ReportCliTests(unittest.TestCase):
             dossier = CaseRuntime(data_root).evaluate(fixture_manifest())
             public_path = root / "public.json"
             review_path = root / "review.json"
+            assessment_path = root / "assessment.json"
             opened: list[str] = []
             original = CaseRuntime.load_run_snapshot
 
@@ -97,8 +117,21 @@ class ReportCliTests(unittest.TestCase):
                     ),
                     0,
                 )
+                self.assertEqual(
+                    main(
+                        [
+                            "run-assessment",
+                            dossier.run_id,
+                            "--data-root",
+                            str(data_root),
+                            "--output",
+                            str(assessment_path),
+                        ]
+                    ),
+                    0,
+                )
 
-            self.assertEqual(opened, [dossier.run_id, dossier.run_id])
+            self.assertEqual(opened, [dossier.run_id, dossier.run_id, dossier.run_id])
 
             public = RenderedReport.from_dict(
                 json.loads(public_path.read_text(encoding="utf-8"))
@@ -119,6 +152,15 @@ class ReportCliTests(unittest.TestCase):
             self.assertTrue(review.verify(expected_review))
             self.assertTrue(review.payload.startswith("# Review Dossier Report\n"))
             self.assertIn(dossier.case_id, review.payload)
+
+            assessment = VerifiedRunAssessment.from_dict(
+                json.loads(assessment_path.read_text(encoding="utf-8"))
+            )
+            self.assertTrue(
+                assessment.verify(CaseRuntime(data_root).load_run_snapshot(dossier.run_id))
+            )
+            self.assertEqual(assessment.dossier_report.audience, "public")
+            self.assertEqual(assessment.rendered_report.format, "json")
 
     def test_missing_run_fails_closed_without_writing_an_artifact(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
