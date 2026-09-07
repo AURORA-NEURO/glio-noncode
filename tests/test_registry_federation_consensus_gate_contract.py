@@ -27,7 +27,7 @@ from glio_noncode import registry_federation_consensus_gate_runtime as runtime_m
 from glio_noncode.api import create_server
 from glio_noncode.cli import build_parser, main
 from glio_noncode.errors import ValidationError
-from glio_noncode.public_surface_audit import build_default_public_surface_audit
+from glio_noncode.public_surface_audit import PUBLIC_SURFACE_EXPECTED_COUNT, build_default_public_surface_audit
 from tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package import DurableCatalogPromotionPackageFixture
 
 
@@ -193,8 +193,8 @@ class RegistryFederationConsensusGateContractTests(DurableCatalogPromotionPackag
     def test_public_surface_inventory_contains_gate_schemas_and_capabilities(self):
         value = build_default_public_surface_audit()
         self.assertTrue(value.accepted)
-        self.assertEqual(value.surface_count, 916)
-        self.assertEqual(value.passed_surface_count, 916)
+        self.assertEqual(value.surface_count, PUBLIC_SURFACE_EXPECTED_COUNT)
+        self.assertEqual(value.passed_surface_count, PUBLIC_SURFACE_EXPECTED_COUNT)
         self.assertEqual(value.failed_surface_count, 0)
         names = {item.surface_id for item in value.checks}
         self.assertIn("registry-federation-consensus-gate-schema", names)

@@ -14,6 +14,8 @@ from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+from glio_noncode import registry_federation_consensus_gate_certificate as certificate_model
+from glio_noncode import registry_federation_consensus_gate_certificate_audit as certificate_audit_model
 from glio_noncode import registry_federation_consensus_gate_certificate_observatory as observatory_model
 from glio_noncode import registry_federation_consensus_gate_certificate_observatory_audit as observatory_audit_model
 from glio_noncode import registry_federation_consensus_gate_certificate_observatory_package as package_model
@@ -108,6 +110,35 @@ class CertificateObservatoryTests(CertificateFixture):
             self.assertEqual(report_model.report_from_mapping(report.to_dict()).to_dict(), report.to_dict())
             self.assertEqual(report_audit_model.audit_from_mapping(report_audit.to_dict()).to_dict(), report_audit.to_dict())
             self.assertEqual(tuple(item.check_id for item in report_audit.checks), report_audit_model.CHECK_IDS)
+
+    def test_no_accepted_alert_deduplicates_history_evidence_only(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            runtime = self.certificate_runtime(Path(temporary), "primary", "held")
+            certificates = tuple(
+                certificate_model.evaluate_certificate(runtime.gate_runtime, certificate_id=certificate_id)
+                for certificate_id in ("held-one", "held-two", "held-three")
+            )
+            pairs = tuple((certificate, certificate_audit_model.audit_certificate(certificate)) for certificate in certificates)
+            first = history_model.build_history(pairs[:2], history_id="held-history-one")
+            second = history_model.build_history(pairs[2:], history_id="held-history-two")
+            observatory = observatory_model.build_observatory((first, second), observatory_id="held-observatory")
+
+            report = report_model.build_report(observatory)
+            alert = next(item for item in report.alerts if item.kind == "no-accepted-decision")
+
+            self.assertEqual(report.accepted_count, 0)
+            self.assertEqual(alert.count, 3)
+            self.assertEqual(alert.evidence_addresses, tuple(sorted((first.content_address, second.content_address))))
+            with self.assertRaisesRegex(ValidationError, "evidence addresses must be unique"):
+                report_model.RegistryFederationConsensusGateCertificateObservatoryAlert(
+                    "duplicate-evidence",
+                    "duplicate-evidence",
+                    "critical",
+                    2,
+                    "duplicate evidence remains invalid outside canonical report aggregation",
+                    (first.content_address, first.content_address),
+                    report_model.ALERT_PREFIX + ":pending",
+                )
 
     def test_exact_eight_file_package_replays_and_audits(self):
         with tempfile.TemporaryDirectory() as temporary:
