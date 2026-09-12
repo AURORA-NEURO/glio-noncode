@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +9,7 @@ from .errors import ValidationError
 from .module_inventory_packet import load_module_inventory_packet, verify_module_inventory_packet
 from .module_inventory_packet_contracts import ModuleInventoryPacket
 from .module_inventory_query import inventory_from_mapping, query_module_inventory
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 def _packet(value: ModuleInventoryPacket | str | Path) -> ModuleInventoryPacket:
@@ -24,8 +23,8 @@ def _artifact_payload(packet: ModuleInventoryPacket, artifact_id: str) -> Any:
     if artifact is None or artifact.payload is None:
         raise ValidationError(f"packet artifact is unavailable: {artifact_id}")
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError as exc:
+        return _strict_json_loads(artifact.payload)
+    except ValueError as exc:
         raise ValidationError(f"packet artifact is not JSON: {artifact_id}") from exc
 
 

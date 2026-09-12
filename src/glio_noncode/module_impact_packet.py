@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import tempfile
 from collections.abc import Mapping
@@ -42,7 +41,7 @@ from .module_impact_runtime import run_module_impact
 from .module_impact_verification import build_module_impact_verification_plan
 from .module_inventory_exports import module_inventory_json
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable
 
 _JSON = "application/json"
 _CSV = "text/csv"
@@ -399,8 +398,8 @@ def verify_module_impact_packet(directory: str | Path) -> ModuleImpactPacketVeri
     if not target.exists() or not target.is_dir() or not manifest_path.is_file():
         raise ValidationError("module impact packet directory or manifest is missing")
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("module impact packet manifest is unreadable") from exc
     packet_id = str(manifest.get("packet_id", "unknown"))
     raw_artifacts = manifest.get("artifacts", ())
@@ -455,8 +454,8 @@ def verify_module_impact_packet(directory: str | Path) -> ModuleImpactPacketVeri
             )
             exact = exact and row_ok
             if row.get("media_type") == _JSON:
-                public = public and not _has_forbidden_key(json.loads(text))
-        except (OSError, UnicodeDecodeError, ValueError, json.JSONDecodeError):
+                public = public and not _has_forbidden_key(_strict_json_loads(text))
+        except (OSError, UnicodeDecodeError, ValueError):
             exact = False
             public = False
     checks.append(
@@ -514,7 +513,7 @@ def load_module_impact_packet(directory: str | Path) -> ModuleImpactPacket:
     if not verification.accepted:
         raise ValidationError("module impact packet verification failed")
     target = Path(directory)
-    manifest = json.loads((target / MODULE_IMPACT_PACKET_MANIFEST).read_text(encoding="utf-8"))
+    manifest = _strict_json_loads((target / MODULE_IMPACT_PACKET_MANIFEST).read_text(encoding="utf-8"))
     artifacts = tuple(
         ModuleImpactPacketArtifact(
             **{

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import tempfile
 from collections.abc import Mapping
@@ -40,7 +39,7 @@ from .module_inventory_packet_contracts import (
 )
 from .module_inventory_runtime import module_inventory_runtime_json, run_module_inventory
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, hash_bytes, jsonable
+from .serialization import _strict_json_loads, canonical_json, hash_bytes, jsonable
 
 _JSON = "application/json"
 _CSV = "text/csv"
@@ -380,8 +379,8 @@ def write_module_inventory_packet(
 def _manifest_mapping(directory: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(directory)
     try:
-        raw = json.loads((root / MODULE_INVENTORY_PACKET_MANIFEST).read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raw = _strict_json_loads((root / MODULE_INVENTORY_PACKET_MANIFEST).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"cannot load module inventory packet manifest: {exc}") from exc
     if not isinstance(raw, Mapping):
         raise ValidationError("module inventory packet manifest must be an object")

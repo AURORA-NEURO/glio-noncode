@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -19,14 +18,14 @@ from .module_impact_query import (
     query_module_impact,
 )
 from .module_impact_verification import query_module_impact_tasks
-from .serialization import content_hash
+from .serialization import _strict_json_loads, content_hash
 
 
 def _json_artifact(directory: str | Path, filename: str) -> dict[str, Any]:
     path = Path(directory) / filename
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"impact packet artifact is unreadable: {filename}") from exc
     if not isinstance(value, dict):
         raise ValidationError(f"impact packet artifact is not an object: {filename}")

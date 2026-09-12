@@ -324,6 +324,19 @@ class ModuleInventoryPacketTests(ModuleInventoryFixture):
         verification = verify_module_inventory_packet(second)
         self.assertFalse(verification.accepted)
 
+    def test_packet_rejects_ambiguous_manifest(self) -> None:
+        inventory = self.build()
+        packet = build_module_inventory_packet(
+            inventory, run_module_inventory(inventory=inventory), packet_id="ambiguous-packet"
+        )
+        destination = Path(self.directory.name) / "ambiguous"
+        write_module_inventory_packet(packet, destination)
+        (destination / "manifest.json").write_text(
+            '{"packet_id":"one","packet_id":"two"}', encoding="utf-8"
+        )
+        with self.assertRaises(ValidationError):
+            verify_module_inventory_packet(destination)
+
     def test_packet_diff_is_address_based(self) -> None:
         inventory = self.build()
         left = build_module_inventory_packet(

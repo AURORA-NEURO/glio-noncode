@@ -341,6 +341,16 @@ class TestModuleImpactPacket(ModuleImpactFixture):
         with self.assertRaises(ValidationError):
             load_module_impact_packet(destination)
 
+    def test_packet_rejects_ambiguous_manifest(self) -> None:
+        packet = build_module_impact_packet(self.left, self.right)
+        destination = Path(self.temp.name) / "ambiguous"
+        write_module_impact_packet(packet, destination)
+        (destination / "manifest.json").write_text(
+            '{"packet_id":"one","packet_id":"two"}', encoding="utf-8"
+        )
+        with self.assertRaises(ValidationError):
+            verify_module_impact_packet(destination)
+
     def test_packet_diff_is_stable(self) -> None:
         first = build_module_impact_packet(self.left, self.right, packet_id="first")
         second = build_module_impact_packet(self.left, self.right, packet_id="second")
