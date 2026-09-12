@@ -4390,6 +4390,7 @@ from .service_release_views import audit_service_release_views, build_service_re
 from .service_surface import (
     build_service_surface_closure,
     build_service_surface_snapshot,
+    service_module_certification_status,
     service_surface_status,
 )
 from .specimen_architecture_access import specimen_architecture_access_policy
@@ -7954,6 +7955,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit the certified local service status or a complete offline closure",
     )
     service_surface.add_argument("--closure", action="store_true")
+    service_surface.add_argument(
+        "--module-certification",
+        action="store_true",
+        help="include the linked static module-certification health projection",
+    )
     service_surface.add_argument("--output", default=None)
     service_release = subparsers.add_parser(
         "service-release",
@@ -41884,7 +41890,26 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "service-surface":
             snapshot = build_service_surface_snapshot()
-            payload = build_service_surface_closure(snapshot) if args.closure else service_surface_status(snapshot)
+            module_certification = None
+            if args.module_certification:
+                inventory = build_module_inventory()
+                matrix = build_module_certification(inventory)
+                plan = build_module_certification_task_plan(matrix)
+                gate = evaluate_module_certification_gate(matrix, plan)
+                runtime = run_module_certification(inventory=inventory)
+                module_certification = service_module_certification_status(
+                    matrix, plan, gate, runtime
+                )
+            if args.closure:
+                payload = build_service_surface_closure(
+                    snapshot, module_certification=module_certification
+                )
+            elif module_certification is not None:
+                payload = service_surface_status(
+                    snapshot, module_certification=module_certification
+                )
+            else:
+                payload = service_surface_status(snapshot)
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
         if args.command == "service-release":

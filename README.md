@@ -152,7 +152,7 @@ focused workflow routes are:
 - Reports and assessments: `GET /v1/reports/capabilities`, `GET /v1/assessments/capabilities`, `GET /v1/runs/{run_id}/report?audience=public|review&format=json|markdown`, and `GET /v1/runs/{run_id}/assessment?audience=public|review&format=json|markdown`.
 
 The certified capability and architecture surfaces are available from
-`GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`,
+`GET /v1/status`, `GET /v1/status?module_certification=true`, `GET /v1/capabilities`, `GET /v1/architecture/program`,
 `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted
 case runs can be listed, reopened, verified, queried, searched across runs,
 assigned, reviewed, and rendered through the `/v1/runs/{run_id}` projections,

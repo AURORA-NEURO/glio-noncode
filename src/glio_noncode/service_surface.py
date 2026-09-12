@@ -8,6 +8,7 @@ exposing case payloads or mutable runtime internals.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -22,6 +23,12 @@ from .capability_certification_contracts import (
     CapabilityCertificationState,
 )
 from .module_fabric_support import contains_private_key
+from .module_certification_contracts import (
+    ModuleCertificationGate,
+    ModuleCertificationMatrix,
+    ModuleCertificationRuntime,
+    ModuleCertificationTaskPlan,
+)
 from .program_runtime import (
     architecture_program_domain_matrix,
     architecture_program_percent,
@@ -149,6 +156,72 @@ def _program_release_status(snapshot: ProgramReleaseSnapshot) -> dict[str, Any]:
     }
 
 
+def service_module_certification_status(
+    matrix: ModuleCertificationMatrix,
+    plan: ModuleCertificationTaskPlan,
+    gate: ModuleCertificationGate,
+    runtime: ModuleCertificationRuntime,
+) -> dict[str, Any]:
+    """Return a compact, linked module-certification health projection.
+
+    The full certification matrix is intentionally kept on its dedicated
+    module-certification routes because it can contain thousands of rows.
+    This projection carries only conserved counters and the four immutable
+    addresses needed by status, dashboard, and release clients.  Linking is
+    checked here so a caller cannot accidentally publish a status assembled
+    from different certification runs.
+    """
+
+    typed = (matrix, plan, gate, runtime)
+    if not all(
+        isinstance(item, expected)
+        for item, expected in zip(
+            typed,
+            (
+                ModuleCertificationMatrix,
+                ModuleCertificationTaskPlan,
+                ModuleCertificationGate,
+                ModuleCertificationRuntime,
+            ),
+            strict=True,
+        )
+    ):
+        raise TypeError("module certification status requires typed certification artifacts")
+    if plan.matrix_address != matrix.content_address:
+        raise ValueError("module certification plan does not reference the matrix")
+    if gate.matrix_address != matrix.content_address or gate.plan_address != plan.content_address:
+        raise ValueError("module certification gate does not reference the matrix and plan")
+    if (
+        runtime.inventory_address != matrix.inventory_address
+        or runtime.matrix_address != matrix.content_address
+        or runtime.plan_address != plan.content_address
+        or runtime.gate_address != gate.content_address
+    ):
+        raise ValueError("module certification runtime does not reference the certification closure")
+    return {
+        "matrix_address": matrix.content_address,
+        "plan_address": plan.content_address,
+        "gate_address": gate.content_address,
+        "runtime_address": runtime.content_address,
+        "accepted": matrix.accepted and plan.accepted and gate.accepted and runtime.accepted,
+        "state": gate.state.value,
+        "module_count": matrix.module_count,
+        "check_kind_count": matrix.check_kind_count,
+        "gap_count": matrix.gap_count,
+        "task_count": plan.task_count,
+        "certified_count": matrix.certified_count,
+        "review_count": matrix.review_count,
+        "blocked_count": matrix.blocked_count,
+        "uncovered_count": matrix.uncovered_count,
+        "overall_score": matrix.overall_score,
+        "overall_percent": matrix.overall_percent,
+        "gate_check_count": len(gate.checks),
+        "gate_passed_count": gate.passed_count,
+        "runtime_stage_count": len(runtime.stages),
+        "runtime_issue_count": sum(item.issue_count for item in runtime.stages),
+    }
+
+
 def _status_without_address(snapshot: ServiceSurfaceSnapshot) -> dict[str, Any]:
     return {
         "service": SERVICE_NAME,
@@ -185,10 +258,18 @@ def build_service_surface_snapshot() -> ServiceSurfaceSnapshot:
     )
 
 
-def service_surface_status(snapshot: ServiceSurfaceSnapshot) -> dict[str, Any]:
+def service_surface_status(
+    snapshot: ServiceSurfaceSnapshot,
+    *,
+    module_certification: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     """Return the compact status document used by health and dashboard clients."""
 
     status = _status_without_address(snapshot)
+    if module_certification is not None:
+        if not isinstance(module_certification, Mapping):
+            raise TypeError("module certification status must be a mapping")
+        status["module_certification"] = dict(module_certification)
     status["content_address"] = snapshot.content_address
     status["public_boundary"] = {
         "safe": not contains_private_key(status),
@@ -309,13 +390,28 @@ def service_diff_projection(snapshot: ServiceSurfaceSnapshot, control: str = "no
     }
 
 
-def build_service_surface_closure(snapshot: ServiceSurfaceSnapshot | None = None) -> dict[str, Any]:
-    """Build a self-contained offline closure for release review and archival."""
+def build_service_surface_closure(
+    snapshot: ServiceSurfaceSnapshot | None = None,
+    *,
+    module_certification: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build a self-contained offline closure for release review and archival.
+
+    A caller may attach the compact module-certification projection produced by
+    :func:`service_module_certification_status`.  The optional projection is
+    included in the closure status and participates in closure acceptance; the
+    default closure remains byte-compatible for existing consumers.
+    """
 
     selected = snapshot or build_service_surface_snapshot()
+    status = service_surface_status(selected, module_certification=module_certification)
     closure = {
-        "accepted": selected.accepted,
-        "status": service_surface_status(selected),
+        "accepted": selected.accepted
+        and (
+            module_certification is None
+            or bool(module_certification.get("accepted", False))
+        ),
+        "status": status,
         "capability_certification": selected.capability_report.to_dict(),
         "architecture_program_runtime": selected.program_runtime.to_dict(),
         "operational_trace": selected.operational_trace.to_dict(),
@@ -349,6 +445,7 @@ __all__ = [
     "service_capability_projection",
     "service_diff_projection",
     "service_operational_projection",
+    "service_module_certification_status",
     "service_program_release_projection",
     "service_program_projection",
     "service_surface_status",

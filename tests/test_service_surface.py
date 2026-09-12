@@ -14,15 +14,85 @@ from glio_noncode.service_surface import (
     build_service_surface_closure,
     build_service_surface_snapshot,
     service_capability_projection,
+    service_module_certification_status,
     service_program_projection,
     service_surface_status,
 )
+from glio_noncode.module_certification import build_module_certification
+from glio_noncode.module_certification_policy import evaluate_module_certification_gate
+from glio_noncode.module_certification_runtime import run_module_certification
+from glio_noncode.module_certification_tasks import build_module_certification_task_plan
+from glio_noncode.module_inventory import build_module_inventory
 
 
 class ServiceSurfaceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.snapshot = build_service_surface_snapshot()
+        cls.module_inventory = build_module_inventory()
+        cls.module_matrix = build_module_certification(cls.module_inventory)
+        cls.module_plan = build_module_certification_task_plan(cls.module_matrix)
+        cls.module_gate = evaluate_module_certification_gate(cls.module_matrix, cls.module_plan)
+        cls.module_runtime = run_module_certification(inventory=cls.module_inventory)
+
+    def test_module_certification_status_is_linked_and_conserved(self) -> None:
+        projection = service_module_certification_status(
+            self.module_matrix,
+            self.module_plan,
+            self.module_gate,
+            self.module_runtime,
+        )
+        self.assertTrue(projection["accepted"])
+        self.assertEqual(projection["module_count"], self.module_matrix.module_count)
+        self.assertEqual(projection["gap_count"], 0)
+        self.assertEqual(projection["task_count"], 0)
+        self.assertEqual(projection["gate_passed_count"], projection["gate_check_count"])
+        self.assertEqual(projection["runtime_stage_count"], 7)
+        self.assertEqual(
+            service_surface_status(self.snapshot, module_certification=projection)[
+                "module_certification"
+            ],
+            projection,
+        )
+        closure = build_service_surface_closure(
+            self.snapshot, module_certification=projection
+        )
+        self.assertTrue(closure["accepted"])
+        self.assertEqual(
+            closure["status"]["module_certification"]["runtime_address"],
+            self.module_runtime.content_address,
+        )
+
+    def test_http_status_can_opt_into_module_certification(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            server = create_server("127.0.0.1", 0, directory)
+            server.glio_service_surface = self.snapshot
+            server.glio_module_certification_context = (
+                self.module_inventory,
+                self.module_matrix,
+                self.module_plan,
+                self.module_gate,
+                self.module_runtime,
+            )
+            thread = Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                connection = HTTPConnection(host, port, timeout=30)
+                connection.request("GET", "/v1/status?module_certification=true")
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                payload = json.loads(response.read())
+                self.assertEqual(
+                    payload["module_certification"]["matrix_address"],
+                    self.module_matrix.content_address,
+                )
+                self.assertTrue(payload["module_certification"]["accepted"])
+                connection.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=3)
 
     def test_snapshot_closes_all_published_planes(self) -> None:
         self.assertTrue(self.snapshot.accepted)

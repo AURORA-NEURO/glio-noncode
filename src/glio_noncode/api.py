@@ -2781,6 +2781,7 @@ from .service_surface import (
     build_service_surface_snapshot,
     service_capability_projection,
     service_diff_projection,
+    service_module_certification_status,
     service_operational_projection,
     service_program_projection,
     service_surface_status,
@@ -21986,7 +21987,15 @@ class ApiHandler(BaseHTTPRequestHandler):
                 query = parse_qs(parsed.query, keep_blank_values=False)
                 snapshot = self._service_surface()
                 if path == "/v1/status":
-                    payload = service_surface_status(snapshot)
+                    module_certification = None
+                    if self._query_bool(query, "module_certification"):
+                        _, matrix, plan, gate, runtime = self._module_certification_context()
+                        module_certification = service_module_certification_status(
+                            matrix, plan, gate, runtime
+                        )
+                    payload = service_surface_status(
+                        snapshot, module_certification=module_certification
+                    )
                 elif path == "/v1/capabilities":
                     payload = service_capability_projection(
                         snapshot,

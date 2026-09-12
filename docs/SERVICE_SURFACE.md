@@ -333,7 +333,7 @@ was produced.
 | GET | `/v1/batches` | Paginated catalog of persisted batch evaluations |
 | GET | `/v1/batches/{batch_id}` | Reopen and verify one batch result |
 | GET | `/v1/batches/{batch_id}/release` | Build a gated portable batch handoff bundle |
-| GET | `/v1/status` | Compact capability, program, operational, D01-D16, and boundary status |
+| GET | `/v1/status` | Compact capability, program, operational, D01-D16, and boundary status; add `module_certification=true` for linked module-certification counters |
 | GET | `/v1/capabilities` | Certified capability query |
 | GET | `/v1/architecture/program` | Architecture receipt query |
 | GET | `/v1/architecture/operational` | Full stage, artifact, and check handoff trace |
@@ -388,6 +388,13 @@ was produced.
 
 Capability queries accept `capability_id`, `domain_id`, `mvp_only`, `state`, and
 `text`. Architecture queries accept `domain_id`, `accepted_only`, and `text`.
+
+The status projection stays fast by default. Passing
+`/v1/status?module_certification=true` adds the bounded module-certification
+health projection: matrix, remediation-plan, policy-gate, and runtime
+addresses plus conserved module, gap, task, gate, and stage counters. The
+first request computes the static certification closure and subsequent
+requests reuse the server-local immutable result.
 Boolean values accept `true`, `false`, `1`, `0`, `yes`, and `no`. Diff controls
 are `none`, `missing-fixture`, and `missing-runtime`. Invalid query values return
 HTTP 400 with the `invalid_query` error code.
@@ -638,6 +645,17 @@ The service snapshot status includes:
 | `program_release.domain_percent` | Accepted domain coverage |
 | `program_release.gate_percent` | Passed gate coverage |
 
+When requested with `module_certification=true`, status additionally includes:
+
+| Field | Meaning |
+| --- | --- |
+| `module_certification.matrix_address` | Complete static module matrix address |
+| `module_certification.module_count` | Discovered package module denominator |
+| `module_certification.overall_percent` | Static certification score |
+| `module_certification.gap_count` / `task_count` | Remaining remediation work |
+| `module_certification.gate_passed_count` / `gate_check_count` | Policy-gate result |
+| `module_certification.runtime_stage_count` | Seven-stage certification runtime denominator |
+
 The registry is available through `/v1/service-release/*` and the
 `service-release` CLI command. Its API query is bounded to surfaces, artifacts,
 dependencies, and gates and returns a deterministic `has_more` pagination
@@ -651,11 +669,21 @@ Run the compact status projection:
 glio-noncode service-surface --output service-status.json
 ```
 
+Include the repository-wide certification counters when a deeper health
+check is needed:
+
+```text
+glio-noncode service-surface --module-certification --output service-status.json
+```
+
 Run the detailed archival projection:
 
 ```text
 glio-noncode service-surface --closure --output service-surface-closure.json
 ```
+
+`--module-certification` can be combined with `--closure` to bind the same
+health projection into the archival closure and its content address.
 
 Run the repository-wide public-boundary audit:
 
