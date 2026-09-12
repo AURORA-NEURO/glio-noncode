@@ -68,6 +68,43 @@ _REQUEST_FIELDS = frozenset(
 )
 _REPORT_STAGE_IDS = ("consent", "anomaly", "completeness", "export")
 _ADDRESS_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
+_STAGE_STATES = frozenset({"accepted", "review", "published", "blocked"})
+_STAGE_FIELDS = frozenset(
+    {
+        "stage_id",
+        "capability_id",
+        "operation",
+        "state",
+        "input_count",
+        "accepted_count",
+        "review_count",
+        "issue_codes",
+        "output_address",
+        "detail",
+    }
+)
+_REPORT_FIELDS = frozenset(
+    {
+        "request_id",
+        "bundle_id",
+        "context_key",
+        "state",
+        "stage_receipts",
+        "accepted_record_ids",
+        "review_record_ids",
+        "blocked_record_ids",
+        "issues",
+        "bundle",
+        "content_address",
+        # Derived fields emitted by to_dict; checked against the reconstructed report.
+        "accepted",
+        "published",
+        "stage_count",
+        "accepted_count",
+        "review_count",
+        "blocked_count",
+    }
+)
 
 
 def _canonical_text(value: Any, field: str) -> str:
@@ -283,13 +320,55 @@ class IntakeStageReceipt:
             "output_address",
             "detail",
         ):
-            require_non_empty(str(getattr(self, field_name)), field_name)
-        if self.input_count < 0 or self.accepted_count < 0 or self.review_count < 0:
-            raise ValidationError("stage counts must not be negative")
+            value = getattr(self, field_name)
+            if type(value) is not str:
+                raise ValidationError(f"{field_name} must be a string")
+            require_non_empty(value, field_name)
+        if self.state not in _STAGE_STATES:
+            raise ValidationError("stage state is unsupported")
+        for field_name in ("input_count", "accepted_count", "review_count"):
+            value = getattr(self, field_name)
+            if type(value) is not int or value < 0:
+                raise ValidationError(f"{field_name} must be a non-negative integer")
         if self.accepted_count + self.review_count != self.input_count:
             raise ValidationError("stage accepted and review counts must sum to input count")
-        if not self.output_address.startswith("sha256:"):
-            raise ValidationError("stage output_address must be content-addressed")
+        if not _ADDRESS_RE.fullmatch(self.output_address):
+            raise ValidationError("stage output_address must be a sha256 content address")
+        if not isinstance(self.issue_codes, Sequence) or isinstance(
+            self.issue_codes, (str, bytes)
+        ):
+            raise ValidationError("issue_codes must be an array")
+        if any(type(code) is not str or not code.strip() for code in self.issue_codes):
+            raise ValidationError("issue_codes must contain non-empty strings")
+        if tuple(self.issue_codes) != tuple(sorted(set(self.issue_codes))):
+            raise ValidationError("issue_codes must be unique and sorted")
+
+    @classmethod
+    def from_mapping(cls, raw: Mapping[str, Any]) -> IntakeStageReceipt:
+        """Rehydrate one receipt while rejecting unknown or derived fields."""
+
+        if not isinstance(raw, Mapping):
+            raise ValidationError("intake stage receipt must be an object")
+        unknown = set(raw) - _STAGE_FIELDS
+        if unknown:
+            raise ValidationError(
+                f"intake stage receipt contains unknown fields: {sorted(unknown)}"
+            )
+        issue_codes = raw.get("issue_codes", ())
+        if not isinstance(issue_codes, Sequence) or isinstance(issue_codes, (str, bytes)):
+            raise ValidationError("issue_codes must be an array")
+        return cls(
+            raw.get("stage_id"),
+            raw.get("capability_id"),
+            raw.get("operation"),
+            raw.get("state"),
+            raw.get("input_count"),
+            raw.get("accepted_count"),
+            raw.get("review_count"),
+            tuple(issue_codes),
+            raw.get("output_address"),
+            raw.get("detail"),
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -318,6 +397,8 @@ class IntakePipelineReport:
             raise ValidationError("intake pipeline report state is unsupported")
         if not isinstance(self.stage_receipts, Sequence) or isinstance(self.stage_receipts, (str, bytes)):
             raise ValidationError("stage_receipts must be an array")
+        if not self.stage_receipts:
+            raise ValidationError("stage_receipts must not be empty")
         if any(not isinstance(item, IntakeStageReceipt) for item in self.stage_receipts):
             raise ValidationError("stage_receipts must contain typed receipts")
         if tuple(item.stage_id for item in self.stage_receipts) != _REPORT_STAGE_IDS:
@@ -330,8 +411,17 @@ class IntakePipelineReport:
             tuple(self.review_record_ids),
             tuple(self.blocked_record_ids),
         )
+        for group_name, group in zip(
+            ("accepted_record_ids", "review_record_ids", "blocked_record_ids"), partitions
+        ):
+            if not isinstance(getattr(self, group_name), Sequence) or isinstance(
+                getattr(self, group_name), (str, bytes)
+            ):
+                raise ValidationError(f"{group_name} must be an array")
         if any(not isinstance(item, str) or not item.strip() for group in partitions for item in group):
             raise ValidationError("intake pipeline report IDs must be non-empty text")
+        if any(item != item.strip() for group in partitions for item in group):
+            raise ValidationError("intake pipeline report IDs must be trimmed")
         flattened = tuple(item for group in partitions for item in group)
         if len(set(flattened)) != len(flattened) or len(flattened) != input_count:
             raise ValidationError("intake pipeline report IDs do not form a partition")
@@ -362,6 +452,61 @@ class IntakePipelineReport:
         }
         if content_hash(body) != self.content_address:
             raise ValidationError("intake pipeline report address does not replay")
+
+    @classmethod
+    def from_mapping(cls, raw: Mapping[str, Any]) -> IntakePipelineReport:
+        """Rehydrate and independently verify a report returned by a surface."""
+
+        if not isinstance(raw, Mapping):
+            raise ValidationError("intake pipeline report must be an object")
+        unknown = set(raw) - _REPORT_FIELDS
+        if unknown:
+            raise ValidationError(
+                f"intake pipeline report contains unknown fields: {sorted(unknown)}"
+            )
+        stage_raw = raw.get("stage_receipts", ())
+        if not isinstance(stage_raw, Sequence) or isinstance(stage_raw, (str, bytes)):
+            raise ValidationError("stage_receipts must be an array")
+        stages = tuple(IntakeStageReceipt.from_mapping(item) for item in stage_raw)
+        def _ids(field_name: str) -> tuple[str, ...]:
+            values = raw.get(field_name, ())
+            if not isinstance(values, Sequence) or isinstance(values, (str, bytes)):
+                raise ValidationError(f"{field_name} must be an array")
+            return tuple(values)
+
+        state_raw = raw.get("state")
+        try:
+            state = IntakePipelineState(state_raw)
+        except (TypeError, ValueError) as error:
+            raise ValidationError("intake pipeline report state is unsupported") from error
+        bundle_raw = raw.get("bundle")
+        if bundle_raw is not None and not isinstance(bundle_raw, Mapping):
+            raise ValidationError("intake pipeline bundle must be an object or null")
+        report = cls(
+            raw.get("request_id"),
+            raw.get("bundle_id"),
+            raw.get("context_key"),
+            state,
+            stages,
+            _ids("accepted_record_ids"),
+            _ids("review_record_ids"),
+            _ids("blocked_record_ids"),
+            tuple(raw.get("issues", ())) if isinstance(raw.get("issues", ()), Sequence) and not isinstance(raw.get("issues", ()), (str, bytes)) else raw.get("issues"),
+            None if bundle_raw is None else dict(bundle_raw),
+            raw.get("content_address"),
+        )
+        derived = report.to_dict()
+        for field_name in (
+            "accepted",
+            "published",
+            "stage_count",
+            "accepted_count",
+            "review_count",
+            "blocked_count",
+        ):
+            if field_name in raw and raw[field_name] != derived[field_name]:
+                raise ValidationError(f"intake pipeline derived field {field_name} does not replay")
+        return report
 
     @property
     def accepted(self) -> bool:

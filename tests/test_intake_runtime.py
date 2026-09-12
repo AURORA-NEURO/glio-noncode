@@ -15,6 +15,7 @@ from glio_noncode.errors import ValidationError
 from glio_noncode.api import create_server
 from glio_noncode.intake_runtime import (
     IntakePipeline,
+    IntakePipelineReport,
     IntakePipelineRequest,
     IntakePipelineState,
     IntakeStageReceipt,
@@ -201,12 +202,44 @@ class IntakeRuntimeTests(unittest.TestCase):
                 "not-addressed",
                 "detail",
             )
+        report = run_intake_pipeline(valid_request())
+        stage = report.stage_receipts[0]
+        with self.assertRaisesRegex(ValidationError, "non-negative integer"):
+            replace(stage, input_count=True)
+        with self.assertRaisesRegex(ValidationError, "unknown fields"):
+            IntakeStageReceipt.from_mapping(stage.to_dict() | {"extra": True})
 
     def test_pipeline_is_deterministic_for_same_request(self) -> None:
         first = run_intake_pipeline(valid_request())
         second = run_intake_pipeline(valid_request())
         self.assertEqual(first.content_address, second.content_address)
         self.assertEqual(first.to_dict(), second.to_dict())
+
+    def test_report_rehydrates_from_surface_mapping_and_checks_derived_fields(self) -> None:
+        report = run_intake_pipeline(valid_request())
+        restored = IntakePipelineReport.from_mapping(report.to_dict())
+        self.assertEqual(restored, report)
+        self.assertEqual(restored.content_address, report.content_address)
+
+        payload = report.to_dict()
+        payload["accepted_count"] += 1
+        with self.assertRaisesRegex(ValidationError, "derived field"):
+            IntakePipelineReport.from_mapping(payload)
+        payload = report.to_dict()
+        payload["unexpected"] = True
+        with self.assertRaisesRegex(ValidationError, "unknown fields"):
+            IntakePipelineReport.from_mapping(payload)
+
+    def test_report_rehydration_rejects_untyped_receipts_and_empty_stage_sets(self) -> None:
+        report = run_intake_pipeline(valid_request())
+        payload = report.to_dict()
+        payload["stage_receipts"] = []
+        with self.assertRaisesRegex(ValidationError, "stage_receipts"):
+            IntakePipelineReport.from_mapping(payload)
+        payload = report.to_dict()
+        payload["stage_receipts"][0]["issue_codes"] = ["z", "a"]
+        with self.assertRaisesRegex(ValidationError, "sorted"):
+            IntakePipelineReport.from_mapping(payload)
 
     def test_report_does_not_copy_an_extra_raw_field_into_bundle_receipt(self) -> None:
         raw = valid_request()
