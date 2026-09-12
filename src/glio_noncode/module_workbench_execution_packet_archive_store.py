@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import shutil
 import tempfile
@@ -48,7 +47,7 @@ from .module_workbench_execution_packet_archive_store_contracts import (
     address_module_workbench_execution_packet_archive_store_verification,
 )
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_bytes, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, hash_bytes
 
 
 def _archive(
@@ -368,8 +367,8 @@ def _read_store(path: str | Path) -> ModuleWorkbenchExecutionPacketArchiveStore:
         raise ValidationError("archive store manifest is missing")
     raw = manifest_path.read_bytes()
     try:
-        mapping = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        mapping = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("archive store manifest is not valid UTF-8 JSON") from exc
     if not isinstance(mapping, Mapping):
         raise ValidationError("archive store manifest must be a JSON object")

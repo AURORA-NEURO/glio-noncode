@@ -263,6 +263,26 @@ class ModuleWorkbenchExecutionPacketArchiveStoreTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 load_module_workbench_execution_packet_archive_store(destination)
 
+    def test_ambiguous_or_nonfinite_manifest_is_blocked(self) -> None:
+        store = self.store()
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "store"
+            write_module_workbench_execution_packet_archive_store(store, destination)
+            manifest = destination / "manifest.json"
+            manifest.write_text('{"store_id":"one","store_id":"two"}', encoding="utf-8")
+            receipt = verify_module_workbench_execution_packet_archive_store(destination)
+            self.assertFalse(receipt.accepted)
+            with self.assertRaises(ValidationError):
+                load_module_workbench_execution_packet_archive_store(destination)
+
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "store"
+            write_module_workbench_execution_packet_archive_store(store, destination)
+            manifest = destination / "manifest.json"
+            manifest.write_text('{"archive_count":1e1000000}', encoding="utf-8")
+            receipt = verify_module_workbench_execution_packet_archive_store(destination)
+            self.assertFalse(receipt.accepted)
+
     def test_object_tamper_extra_object_and_traversal_are_blocked(self) -> None:
         store = self.store()
         with tempfile.TemporaryDirectory() as directory:
