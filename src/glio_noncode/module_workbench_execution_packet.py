@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import tempfile
 from collections.abc import Iterable, Mapping
@@ -70,7 +69,7 @@ from .module_workbench_portfolio import (
 )
 from .module_workbench_portfolio_contracts import ModuleWorkbenchPortfolio
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes
 
 _JSON = "application/json"
 _CSV = "text/csv"
@@ -601,12 +600,12 @@ def verify_module_workbench_execution_packet(
     manifest: Mapping[str, Any] = {}
     try:
         raw = (root / MODULE_WORKBENCH_EXECUTION_PACKET_MANIFEST).read_text(encoding=_UTF8)
-        loaded = json.loads(raw)
+        loaded = _strict_json_loads(raw)
         if isinstance(loaded, Mapping):
             manifest = loaded
         else:
             raise ValueError("manifest must be an object")
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         checks.append(
             _check(
                 "manifest-readable",
@@ -817,9 +816,9 @@ def _canonical_json_artifacts(
         if payload is None:
             return False
         try:
-            if canonical_json(json.loads(payload)) + "\n" != payload:
+            if canonical_json(_strict_json_loads(payload)) + "\n" != payload:
                 return False
-        except (json.JSONDecodeError, TypeError):
+        except (TypeError, ValueError):
             return False
     return True
 
@@ -909,10 +908,10 @@ def verify_module_workbench_execution_packet_value(
 def _manifest_mapping(directory: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(directory)
     try:
-        loaded = json.loads(
+        loaded = _strict_json_loads(
             (root / MODULE_WORKBENCH_EXECUTION_PACKET_MANIFEST).read_text(encoding=_UTF8)
         )
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"cannot load execution packet manifest: {exc}") from exc
     if not isinstance(loaded, Mapping):
         raise ValidationError("execution packet manifest must be an object")

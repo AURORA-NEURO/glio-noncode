@@ -217,6 +217,24 @@ class ModuleWorkbenchExecutionPacketTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             load_module_workbench_execution_packet(clean_path)
 
+    def test_ambiguous_json_manifest_and_artifact_are_blocked(self) -> None:
+        packet = self.packet()
+        path = self.write_packet(packet)
+        (path / MODULE_WORKBENCH_EXECUTION_PACKET_MANIFEST).write_text(
+            '{"packet_id":"one","packet_id":"two"}', encoding="utf-8"
+        )
+        verification = verify_module_workbench_execution_packet(path)
+        self.assertFalse(verification.accepted)
+        self.assertTrue(any(item.check_id == "manifest-readable" for item in verification.checks))
+
+        path = self.write_packet(packet)
+        (path / "ledger.json").write_text(
+            '{"ledger_address":"one","ledger_address":"two"}', encoding="utf-8"
+        )
+        verification = verify_module_workbench_execution_packet(path)
+        self.assertFalse(verification.accepted)
+        self.assertTrue(any(item.check_id == "canonical-json" and not item.passed for item in verification.checks))
+
     def test_missing_artifact_is_blocked_without_crashing(self) -> None:
         packet = self.packet()
         path = self.write_packet(packet)
