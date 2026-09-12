@@ -175,6 +175,22 @@ class ReleaseAssuranceAttestationRegistryTests(unittest.TestCase):
             self.assertFalse(unexpected.accepted)
             self.assertIn("extra.txt", unexpected.unexpected_paths)
 
+    def test_registry_packet_rejects_ambiguous_manifest_json(self) -> None:
+        registry = build_release_assurance_attestation_registry(
+            [self.first], registry_id="registry-ambiguous-manifest"
+        )
+        packet = build_release_assurance_attestation_registry_packet(registry)
+        with tempfile.TemporaryDirectory() as directory:
+            write_release_assurance_attestation_registry_packet(packet, directory)
+            manifest = (Path(directory) / "manifest.json").read_text(encoding="utf-8")
+            (Path(directory) / "manifest.json").write_text(
+                manifest[:-1] + ',"registry_id":"shadow"}\n', encoding="utf-8"
+            )
+            verification = verify_release_assurance_attestation_registry_packet(directory)
+            self.assertFalse(verification.accepted)
+            with self.assertRaises(ValidationError):
+                load_release_assurance_attestation_registry_packet(directory)
+
     def test_api_and_cli_registry_surfaces(self) -> None:
         server = create_server("127.0.0.1", 0, ".")
         server.glio_release_assurance_attestations = {

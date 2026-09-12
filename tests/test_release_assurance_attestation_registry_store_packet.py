@@ -153,6 +153,20 @@ class ReleaseAssuranceAttestationRegistryStorePacketTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 load_release_assurance_attestation_registry_store_packet(directory)
 
+    def test_store_packet_rejects_ambiguous_manifest_json(self) -> None:
+        packet = build_release_assurance_attestation_registry_store_packet(self.store)
+        with tempfile.TemporaryDirectory() as directory:
+            write_release_assurance_attestation_registry_store_packet(packet, directory)
+            manifest_path = Path(directory) / "manifest.json"
+            manifest = manifest_path.read_text(encoding="utf-8")
+            manifest_path.write_text(
+                manifest[:-1] + ',"store_id":"shadow"}\n', encoding="utf-8"
+            )
+            verification = verify_release_assurance_attestation_registry_store_packet(directory)
+            self.assertFalse(verification.accepted)
+            with self.assertRaises(ValidationError):
+                load_release_assurance_attestation_registry_store_packet(directory)
+
     def test_api_and_cli_packet_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             packet = build_release_assurance_attestation_registry_store_packet(self.store)

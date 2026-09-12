@@ -161,6 +161,20 @@ class ReleaseAssuranceAttestationRegistryStoreGatePacketTests(unittest.TestCase)
             self.assertFalse(unexpected.accepted)
             self.assertIn("extra.txt", unexpected.unexpected_paths)
 
+    def test_gate_packet_rejects_ambiguous_manifest_json(self) -> None:
+        packet = build_release_assurance_attestation_registry_store_gate_packet(self.gate)
+        with tempfile.TemporaryDirectory() as directory:
+            write_release_assurance_attestation_registry_store_gate_packet(packet, directory)
+            manifest_path = Path(directory) / "manifest.json"
+            manifest = manifest_path.read_text(encoding="utf-8")
+            manifest_path.write_text(
+                manifest[:-1] + ',"gate_id":"shadow"}\n', encoding="utf-8"
+            )
+            verification = verify_release_assurance_attestation_registry_store_gate_packet(directory)
+            self.assertFalse(verification.accepted)
+            with self.assertRaises(ValidationError):
+                load_release_assurance_attestation_registry_store_gate_packet(directory)
+
     def test_api_packet_capabilities_schema_packet_and_verification(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             packet = build_release_assurance_attestation_registry_store_gate_packet(self.gate)

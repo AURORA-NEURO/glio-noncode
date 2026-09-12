@@ -10,7 +10,6 @@ rule; and hydration is refused until all checks pass.
 from __future__ import annotations
 
 import csv
-import json
 import os
 import tempfile
 from collections.abc import Iterable, Mapping
@@ -52,7 +51,7 @@ from .release_assurance_support import (
     line_count,
     safe_relative_path,
 )
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 def _artifact(
@@ -321,8 +320,8 @@ def _read_manifest(
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -511,9 +510,9 @@ def verify_release_assurance_attestation_registry_store_packet(
             tampered.append(path)
         if item.get("media_type") == "application/json":
             try:
-                decoded = json.loads(payload.decode("utf-8"))
+                decoded = _strict_json_loads(payload.decode("utf-8"))
                 boundary.extend(f"{path}:{value}" for value in forbidden_keys(decoded))
-            except (UnicodeError, json.JSONDecodeError):
+            except (UnicodeError, ValueError):
                 tampered.append(path)
         else:
             boundary.extend(f"{path}:{value}" for value in _text_boundary(payload))
@@ -580,8 +579,8 @@ def load_release_assurance_attestation_registry_store_packet(
         raise ValidationError("store packet is not accepted")
     path = root / "store" / "store.json"
     try:
-        store_payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        store_payload = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError("store packet store payload is not valid JSON") from exc
     store = ReleaseAssuranceAttestationRegistryStore.from_mapping(store_payload)
     if store.store_id != manifest.get("store_id"):

@@ -10,7 +10,6 @@ every load is gated by exact-byte verification.
 from __future__ import annotations
 
 import csv
-import json
 import os
 import tempfile
 from collections.abc import Iterable, Mapping
@@ -47,7 +46,7 @@ from .release_assurance_support import (
     line_count,
     safe_relative_path,
 )
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 def _as_gate(
@@ -322,8 +321,8 @@ def _read_manifest(
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -520,11 +519,11 @@ def verify_release_assurance_attestation_registry_store_gate_packet(
             tampered.append(path)
         if item.get("media_type") == "application/json":
             try:
-                decoded = json.loads(payload.decode("utf-8"))
+                decoded = _strict_json_loads(payload.decode("utf-8"))
                 boundary.extend(f"{path}:{value}" for value in forbidden_keys(decoded))
                 if artifact_id == "gate-json" and isinstance(decoded, Mapping):
                     gate_payload = decoded
-            except (UnicodeError, json.JSONDecodeError):
+            except (UnicodeError, ValueError):
                 tampered.append(path)
         else:
             boundary.extend(f"{path}:{value}" for value in _text_boundary(payload))
@@ -611,8 +610,8 @@ def load_release_assurance_attestation_registry_store_gate_packet(
         raise ValidationError("gate packet is not accepted")
     path = root / "gate" / "gate.json"
     try:
-        gate_payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        gate_payload = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError("gate packet gate payload is not valid JSON") from exc
     gate = ReleaseAssuranceAttestationRegistryStoreGate.from_mapping(gate_payload)
     if gate.gate_id != manifest.get("gate_id"):
