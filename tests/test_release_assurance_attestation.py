@@ -213,6 +213,16 @@ class ReleaseAssuranceAttestationTests(unittest.TestCase):
             self.assertFalse(unexpected.accepted)
             self.assertIn("unexpected.txt", unexpected.unexpected_paths)
 
+    def test_packet_rejects_ambiguous_json(self) -> None:
+        packet = build_release_assurance_attestation_packet(self.runtime)
+        with tempfile.TemporaryDirectory() as directory:
+            write_release_assurance_attestation_packet(packet, directory)
+            manifest = Path(directory) / "manifest.json"
+            manifest.write_text('{"packet_id":"one","packet_id":"two"}', encoding="utf-8")
+            verification = verify_release_assurance_attestation_packet(directory)
+            self.assertFalse(verification.accepted)
+            self.assertEqual(verification.missing_paths, ("manifest.json",))
+
     def test_api_get_post_and_cli_capability_paths(self) -> None:
         server = create_server("127.0.0.1", 0, ".")
         server.glio_release_assurance_attestations = {("attestation-api-bundle", "attestation-api-run"): self.attestation}

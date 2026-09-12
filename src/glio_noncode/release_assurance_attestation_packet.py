@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import tempfile
 from pathlib import Path
@@ -36,7 +35,7 @@ from .release_assurance_support import (
     line_count,
     safe_relative_path,
 )
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 def _artifact(
@@ -323,8 +322,8 @@ def _read_manifest(directory: str | Path) -> tuple[Path, dict[str, Any], tuple[s
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -473,8 +472,8 @@ def verify_release_assurance_attestation_packet(
             tampered.append(path)
         if item.get("media_type") == "application/json":
             try:
-                boundary.extend(forbidden_keys(json.loads(payload.decode("utf-8"))))
-            except (UnicodeError, json.JSONDecodeError):
+                boundary.extend(forbidden_keys(_strict_json_loads(payload.decode("utf-8"))))
+            except (UnicodeError, ValueError):
                 tampered.append(path)
         else:
             boundary.extend(f"{path}:{value}" for value in _text_boundary(payload))
@@ -527,9 +526,9 @@ def load_release_assurance_attestation_packet(
     path = root / "attestation" / "attestation.json"
     try:
         attestation = ReleaseAssuranceAttestation.from_mapping(
-            json.loads(path.read_text(encoding="utf-8"))
+            _strict_json_loads(path.read_text(encoding="utf-8"))
         )
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError("attestation packet attestation payload is invalid") from exc
     body = {
         "packet_id": str(manifest.get("packet_id", "")),
