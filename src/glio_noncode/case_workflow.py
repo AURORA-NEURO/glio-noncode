@@ -20,7 +20,7 @@ from itertools import islice
 from pathlib import Path
 from typing import Any, Never, Self, SupportsIndex, overload
 
-from .adapters import ADAPTER_HARD_MAX_SELECTED
+from .adapters import ADAPTER_HARD_MAX_SELECTED, AdapterLimits
 from .errors import GlioError, ValidationError
 from .expression_evidence import (
     SCHEMA_VERSION as EXPRESSION_EVIDENCE_SCHEMA_VERSION,
@@ -4201,8 +4201,25 @@ def run_result_schema() -> dict[str, Any]:
             },
         ],
         "x-runtime-relations": [
-            "prepared, dossier, run_record, replay_report, and runtime receipt IDs must agree",
-            "all input and dossier addresses must agree across the accepted run bundle",
+            (
+                "for accepted executions, prepared.run_id and runtime receipt metadata "
+                "prepared_run_id, when present, bind the base preparation identity; "
+                "dossier, run_record, replay_report, runtime receipt source_id, and "
+                "metadata evaluation_run_id, when present, bind the effective evaluation "
+                "identity"
+            ),
+            (
+                "prepared.stage_receipts remain the base-manifest preparation receipt "
+                "prefix; for accepted executions the runtime receipt input_address binds "
+                "prepared.manifest_address, while a blocked pre-execution outcome without "
+                "a manifest binds prepared.content_address"
+            ),
+            (
+                "dossier.input_address, run_record.input_address, and "
+                "replay_report.input_address bind runtime receipt metadata "
+                "effective_manifest_address when adapter or live-reference enrichment "
+                "materializes an effective manifest"
+            ),
             "run-record current addresses must occur in their corresponding histories",
             "content_address must equal the canonical case-run-result identity address",
         ],
@@ -4335,6 +4352,7 @@ def case_workflow_schema() -> dict[str, Any]:
 def capabilities() -> dict[str, Any]:
     """Describe behavior clients can rely on without exposing local configuration."""
 
+    default_registry_max_items = AdapterLimits().max_selected_adapters
     return {
         "version": WORKFLOW_VERSION,
         "apis": ["prepare_case", "run_case"],
@@ -4366,6 +4384,8 @@ def capabilities() -> dict[str, Any]:
             ),
             "max_run_history_items": MAX_RUN_HISTORY_ENTRIES,
             "max_adapter_ids": ADAPTER_HARD_MAX_SELECTED,
+            "hard_max_adapter_ids": ADAPTER_HARD_MAX_SELECTED,
+            "default_registry_max_adapter_ids": default_registry_max_items,
         },
         "canonical_track_order": True,
         "canonical_rna_order": "RNAConsequenceEvidence.content_address",
@@ -4395,9 +4415,13 @@ def capabilities() -> dict[str, Any]:
                 "schema": run_request_schema()["$id"],
                 "request_property": "adapter_ids",
                 "max_items": ADAPTER_HARD_MAX_SELECTED,
+                "hard_max_items": ADAPTER_HARD_MAX_SELECTED,
+                "default_registry_max_items": default_registry_max_items,
                 "requires_configured_registry": True,
                 "registry_discovery": "/v1/case-workflow/adapters",
+                "execution_registry_scope": "selected_execution",
                 "persisted_source_records": [
+                    "adapter_input_manifest",
                     "adapter_registry_snapshot",
                     "adapter_resolution_report",
                     "adapter_claim_collection_report",

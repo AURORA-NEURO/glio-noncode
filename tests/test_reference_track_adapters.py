@@ -11,6 +11,7 @@ from glio_noncode.api import create_server
 from glio_noncode.atlas import PublicAtlasRetriever
 from glio_noncode.cli import main
 from glio_noncode.data_sources import ReferenceBundle
+from glio_noncode.errors import ValidationError
 from glio_noncode.identity import parse_variant
 from glio_noncode.models import EvidenceState, ReferenceContext
 from glio_noncode.reference_interval_index import ReferenceIndexQuery
@@ -26,7 +27,6 @@ from glio_noncode.reference_track_adapters import (
     ReferenceTrackQueryState,
     conform_reference_track_adapter,
 )
-
 
 CONTEXT = "GRCh38|glioma|adult|stem_like|unknown|unknown"
 GENERAL = "GRCh38|all|all|all|unknown|unknown"
@@ -81,7 +81,7 @@ class EmptyReference:
     def retrieve(self, variant, context, *, window_bp=None):
         return ReferenceBundle.create(
             variant_id=variant.variant_id,
-            context_key=context.key,
+            context=context,
             sequence=None,
             elements=(),
             raw_features=(),
@@ -146,7 +146,7 @@ class ReferenceTrackAdapterTests(unittest.TestCase):
         self.assertEqual(reopened.to_dict(), self.adapter.to_dict())
         tampered = self.adapter.to_dict()
         tampered["metadata"]["license"] = "changed"
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValidationError):
             DeclaredReferenceTrackAdapter.from_dict(tampered)
 
     def test_unavailable_source_abstains_without_becoming_absent(self) -> None:
@@ -212,7 +212,10 @@ class ReferenceTrackAdapterTests(unittest.TestCase):
                 "context_key": CONTEXT,
             }
         )
-        self.assertEqual([report.adapter_id for report in reports], ["declared-atac", "declared-histone"])
+        self.assertEqual(
+            [report.adapter_id for report in reports],
+            ["declared-atac", "declared-histone"],
+        )
         manifest = registry.manifest()
         self.assertTrue(manifest.accepted)
         self.assertEqual(manifest.artifact_count, 2)
@@ -227,7 +230,9 @@ class ReferenceTrackAdapterTests(unittest.TestCase):
             track_adapters=registry,
         ).retrieve(variant, context)
         track_observation = next(
-            item for item in bundle.observations if item.feature_type == "reference_track:open_chromatin"
+            item
+            for item in bundle.observations
+            if item.feature_type == "reference_track:open_chromatin"
         )
         self.assertEqual(track_observation.state, EvidenceState.SUPPORTED)
         self.assertEqual(track_observation.source_id, "SRC-ATAC-PUBLIC")

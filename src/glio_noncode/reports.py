@@ -7,7 +7,7 @@ they never substitute for dossier validation or the release gate.
 from __future__ import annotations
 
 import unicodedata
-from collections.abc import Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
@@ -43,13 +43,16 @@ _HARD_MAX_REPORT_EXPERIMENTS = 10_000
 _HARD_MAX_REPORT_EDGES_PER_HYPOTHESIS = 1_024
 _HARD_MAX_REPORT_TOTAL_EDGES = 20_000
 _HARD_MAX_REPORT_SEQUENCE_ITEMS = 20_000
+_HARD_MAX_REPORT_SOURCE_RECEIPTS = 256_000
+_HARD_MAX_REPORT_SOURCE_BUNDLES = 3_006
 _HARD_MAX_REPORT_ISSUE_CODES = 256
 _HARD_MAX_REPORT_TEXT_CHARACTERS = 1_048_576
-_HARD_MAX_REPORT_TOTAL_CHARACTERS = 16_777_216
+_HARD_MAX_REPORT_TOTAL_CHARACTERS = 134_217_728
 _HARD_MAX_REPORT_DOSSIER_BYTES = 134_217_728
 _HARD_MAX_REPORT_SUMMARY_BYTES = 262_144
 _HARD_MAX_REPORT_MARKDOWN_BYTES = 33_554_432
 _HARD_MAX_RENDERED_REPORT_BYTES = 33_554_432
+_HARD_MAX_REPORT_STRUCTURED_NODES = 1_000_000
 
 # Public aliases advertise the supported maxima. The private copies above stay
 # authoritative if a caller rebinds a module attribute.
@@ -59,6 +62,8 @@ MAX_REPORT_EXPERIMENTS = _HARD_MAX_REPORT_EXPERIMENTS
 MAX_REPORT_EDGES_PER_HYPOTHESIS = _HARD_MAX_REPORT_EDGES_PER_HYPOTHESIS
 MAX_REPORT_TOTAL_EDGES = _HARD_MAX_REPORT_TOTAL_EDGES
 MAX_REPORT_SEQUENCE_ITEMS = _HARD_MAX_REPORT_SEQUENCE_ITEMS
+MAX_REPORT_SOURCE_RECEIPTS = _HARD_MAX_REPORT_SOURCE_RECEIPTS
+MAX_REPORT_SOURCE_BUNDLES = _HARD_MAX_REPORT_SOURCE_BUNDLES
 MAX_REPORT_ISSUE_CODES = _HARD_MAX_REPORT_ISSUE_CODES
 MAX_REPORT_TEXT_CHARACTERS = _HARD_MAX_REPORT_TEXT_CHARACTERS
 MAX_REPORT_TOTAL_CHARACTERS = _HARD_MAX_REPORT_TOTAL_CHARACTERS
@@ -66,6 +71,7 @@ MAX_REPORT_DOSSIER_BYTES = _HARD_MAX_REPORT_DOSSIER_BYTES
 MAX_REPORT_SUMMARY_BYTES = _HARD_MAX_REPORT_SUMMARY_BYTES
 MAX_REPORT_MARKDOWN_BYTES = _HARD_MAX_REPORT_MARKDOWN_BYTES
 MAX_RENDERED_REPORT_BYTES = _HARD_MAX_RENDERED_REPORT_BYTES
+MAX_REPORT_STRUCTURED_NODES = _HARD_MAX_REPORT_STRUCTURED_NODES
 
 _STATE_ORDER = tuple(state.value for state in EvidenceState)
 _NEGATIVE_STATES = frozenset({EvidenceState.MEASURED_NEGATIVE, EvidenceState.CONTRADICTORY})
@@ -138,7 +144,12 @@ def _positive_integer(value: object, field: str, ceiling: int) -> int:
 
 @dataclass(frozen=True, slots=True)
 class ReportLimits:
-    """Downward-configurable work and serialization limits for reports."""
+    """Downward-configurable work and serialization limits for reports.
+
+    ``max_source_receipts=None`` preserves the legacy coupling to
+    ``max_sequence_items``. Public report functions use ``DEFAULT_REPORT_LIMITS``,
+    which explicitly enables the supported 256,000-receipt capacity.
+    """
 
     max_hypotheses: int = MAX_REPORT_HYPOTHESES
     max_evidence_claims: int = MAX_REPORT_EVIDENCE_CLAIMS
@@ -153,6 +164,8 @@ class ReportLimits:
     max_summary_bytes: int = MAX_REPORT_SUMMARY_BYTES
     max_markdown_bytes: int = MAX_REPORT_MARKDOWN_BYTES
     max_rendered_report_bytes: int = MAX_RENDERED_REPORT_BYTES
+    max_structured_nodes: int = MAX_REPORT_STRUCTURED_NODES
+    max_source_receipts: int | None = None
 
     def __post_init__(self) -> None:
         for field, ceiling in (
@@ -169,15 +182,22 @@ class ReportLimits:
             ("max_summary_bytes", _HARD_MAX_REPORT_SUMMARY_BYTES),
             ("max_markdown_bytes", _HARD_MAX_REPORT_MARKDOWN_BYTES),
             ("max_rendered_report_bytes", _HARD_MAX_RENDERED_REPORT_BYTES),
+            ("max_structured_nodes", _HARD_MAX_REPORT_STRUCTURED_NODES),
         ):
             _positive_integer(getattr(self, field), field, ceiling)
+        if self.max_source_receipts is not None:
+            _positive_integer(
+                self.max_source_receipts,
+                "max_source_receipts",
+                _HARD_MAX_REPORT_SOURCE_RECEIPTS,
+            )
         if self.max_edges_per_hypothesis > self.max_total_edges:
             raise ValidationError("max_edges_per_hypothesis cannot exceed max_total_edges")
         if self.max_text_characters > self.max_total_characters:
             raise ValidationError("max_text_characters cannot exceed max_total_characters")
 
 
-DEFAULT_REPORT_LIMITS = ReportLimits()
+DEFAULT_REPORT_LIMITS = ReportLimits(max_source_receipts=MAX_REPORT_SOURCE_RECEIPTS)
 
 
 def _validated_limits(value: object) -> ReportLimits:
@@ -197,6 +217,8 @@ def _validated_limits(value: object) -> ReportLimits:
         max_summary_bytes=value.max_summary_bytes,
         max_markdown_bytes=value.max_markdown_bytes,
         max_rendered_report_bytes=value.max_rendered_report_bytes,
+        max_structured_nodes=value.max_structured_nodes,
+        max_source_receipts=value.max_source_receipts,
     )
 
 
@@ -213,9 +235,17 @@ def _validation_limits(limits: ReportLimits) -> ValidationLimits:
             10_000,
         ),
         max_dependencies_per_claim=min(limits.max_sequence_items, 10_000),
-        max_source_receipts=min(limits.max_sequence_items, 256_000),
-        max_source_bundles=min(limits.max_sequence_items, 2_000),
+        max_source_receipts=(
+            min(limits.max_sequence_items, _HARD_MAX_REPORT_SOURCE_RECEIPTS)
+            if limits.max_source_receipts is None
+            else limits.max_source_receipts
+        ),
+        max_source_bundles=min(
+            limits.max_sequence_items,
+            _HARD_MAX_REPORT_SOURCE_BUNDLES,
+        ),
         max_sequence_items=limits.max_sequence_items,
+        max_structured_nodes=limits.max_structured_nodes,
         max_string_characters=limits.max_text_characters,
         max_total_characters=limits.max_total_characters,
         max_canonical_bytes=limits.max_dossier_bytes,
@@ -526,35 +556,35 @@ class DossierSummary:
         if type(raw_codes) is not list or len(raw_codes) > _HARD_MAX_REPORT_ISSUE_CODES:
             raise ValidationError("release_gate_issue_codes must be a bounded JSON array")
         summary = cls(
-            case_id=value["case_id"],  # type: ignore[arg-type]
-            run_id=value["run_id"],  # type: ignore[arg-type]
-            status=value["status"],  # type: ignore[arg-type]
-            hypothesis_count=value["hypothesis_count"],  # type: ignore[arg-type]
-            evidence_count=value["evidence_count"],  # type: ignore[arg-type]
-            supported_claim_count=value["supported_claim_count"],  # type: ignore[arg-type]
-            negative_claim_count=value["negative_claim_count"],  # type: ignore[arg-type]
-            missing_claim_count=value["missing_claim_count"],  # type: ignore[arg-type]
-            top_hypothesis_id=value["top_hypothesis_id"],  # type: ignore[arg-type]
-            top_support=value["top_support"],  # type: ignore[arg-type]
-            top_uncertainty=value["top_uncertainty"],  # type: ignore[arg-type]
-            recommended_experiment_id=value["recommended_experiment_id"],  # type: ignore[arg-type]
-            warning_count=value["warning_count"],  # type: ignore[arg-type]
-            report_version=value["report_version"],  # type: ignore[arg-type]
-            dossier_address=value["dossier_address"],  # type: ignore[arg-type]
-            input_address=value["input_address"],  # type: ignore[arg-type]
-            event_head=value["event_head"],  # type: ignore[arg-type]
-            policy_version=value["policy_version"],  # type: ignore[arg-type]
-            research_use_only=value["research_use_only"],  # type: ignore[arg-type]
-            is_releasable=value["is_releasable"],  # type: ignore[arg-type]
-            edge_count=value["edge_count"],  # type: ignore[arg-type]
-            experiment_count=value["experiment_count"],  # type: ignore[arg-type]
+            case_id=value["case_id"],
+            run_id=value["run_id"],
+            status=value["status"],
+            hypothesis_count=value["hypothesis_count"],
+            evidence_count=value["evidence_count"],
+            supported_claim_count=value["supported_claim_count"],
+            negative_claim_count=value["negative_claim_count"],
+            missing_claim_count=value["missing_claim_count"],
+            top_hypothesis_id=value["top_hypothesis_id"],
+            top_support=value["top_support"],
+            top_uncertainty=value["top_uncertainty"],
+            recommended_experiment_id=value["recommended_experiment_id"],
+            warning_count=value["warning_count"],
+            report_version=value["report_version"],
+            dossier_address=value["dossier_address"],
+            input_address=value["input_address"],
+            event_head=value["event_head"],
+            policy_version=value["policy_version"],
+            research_use_only=value["research_use_only"],
+            is_releasable=value["is_releasable"],
+            edge_count=value["edge_count"],
+            experiment_count=value["experiment_count"],
             evidence_state_counts=_state_counts_from_json(value["evidence_state_counts"]),
-            active_claim_count=value["active_claim_count"],  # type: ignore[arg-type]
-            superseded_claim_count=value["superseded_claim_count"],  # type: ignore[arg-type]
-            orphan_claim_count=value["orphan_claim_count"],  # type: ignore[arg-type]
-            release_gate_valid=value["release_gate_valid"],  # type: ignore[arg-type]
-            release_gate_issue_codes=tuple(raw_codes),  # type: ignore[arg-type]
-            content_address=value["content_address"],  # type: ignore[arg-type]
+            active_claim_count=value["active_claim_count"],
+            superseded_claim_count=value["superseded_claim_count"],
+            orphan_claim_count=value["orphan_claim_count"],
+            release_gate_valid=value["release_gate_valid"],
+            release_gate_issue_codes=tuple(raw_codes),
+            content_address=value["content_address"],
         )
         if canonical_bytes(value) != canonical_bytes(summary.to_dict()):
             raise ValidationError("dossier summary is not an exact canonical typed representation")
@@ -700,29 +730,98 @@ def summarize(
     return summary
 
 
-def _markdown_text(value: str) -> str:
-    """Escape untrusted input into one safe Markdown text run."""
+def _markdown_text_parts(value: str) -> Iterator[str]:
+    """Yield the legacy Markdown escaping one bounded fragment at a time."""
 
-    output: list[str] = []
+    first = 0
+    while first < len(value):
+        character = value[first]
+        if not (
+            character in "\r\n\t"
+            or unicodedata.category(character).startswith("C")
+            or character.isspace()
+        ):
+            break
+        first += 1
+    if first == len(value):
+        return
+
+    last = len(value)
+    while last > first:
+        character = value[last - 1]
+        if not (
+            character in "\r\n\t"
+            or unicodedata.category(character).startswith("C")
+            or character.isspace()
+        ):
+            break
+        last -= 1
+
     previous_space = False
-    for character in value:
+    for index in range(first, last):
+        character = value[index]
         if character in "\r\n\t" or unicodedata.category(character).startswith("C"):
             if not previous_space:
-                output.append(" ")
+                yield " "
                 previous_space = True
             continue
         previous_space = character.isspace()
         if character == "&":
-            output.append("&amp;")
+            yield "&amp;"
         elif character == "<":
-            output.append("&lt;")
+            yield "&lt;"
         elif character == ">":
-            output.append("&gt;")
+            yield "&gt;"
         elif character in "\\`*_{}[]()#!|":
-            output.extend(("\\", character))
+            yield "\\" + character
         else:
-            output.append(character)
-    return "".join(output).strip()
+            yield character
+
+
+def _markdown_text(value: str) -> str:
+    """Escape untrusted input into one safe Markdown text run."""
+
+    return "".join(_markdown_text_parts(value))
+
+
+class _BoundedMarkdownWriter:
+    """Accumulate UTF-8 Markdown only after each fragment fits its byte budget."""
+
+    __slots__ = ("_maximum", "_payload")
+
+    def __init__(self, maximum: int) -> None:
+        self._maximum = maximum
+        self._payload = bytearray()
+
+    def write(self, value: str) -> None:
+        try:
+            encoded = value.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValidationError("dossier Markdown report must be valid UTF-8") from exc
+        if len(encoded) > self._maximum - len(self._payload):
+            raise ValidationError(
+                "dossier Markdown report exceeds the configured maximum of "
+                f"{self._maximum} bytes"
+            )
+        self._payload.extend(encoded)
+
+    def write_text(self, value: str) -> None:
+        for part in _markdown_text_parts(value):
+            self.write(part)
+
+    def write_joined_text(self, values: Iterable[str], separator: str = ", ") -> None:
+        first = True
+        for value in values:
+            if not first:
+                self.write(separator)
+            self.write_text(value)
+            first = False
+
+    def newline(self, count: int = 1) -> None:
+        self.write("\n" * count)
+
+    def finish(self) -> str:
+        return self._payload.decode("utf-8")
 
 
 def _bounded_utf8(payload: str, maximum: int, field: str) -> bytes:
@@ -745,97 +844,150 @@ def render_markdown(
     selected = _validated_limits(DEFAULT_REPORT_LIMITS if limits is None else limits)
     summary = summarize(dossier, limits=selected)
     lifecycle, _ = _lifecycle(dossier)
-    lines = [
-        f"# Research Dossier: {_markdown_text(dossier.case_id)}",
-        "",
-        f"- Status: {_markdown_text(dossier.status.value)}",
-        f"- Run: {_markdown_text(dossier.run_id)}",
-        f"- Research-use only: {str(dossier.research_use_only).lower()}",
-        f"- Policy: {_markdown_text(dossier.policy_version)}",
-        f"- Input: {_markdown_text(dossier.input_address)}",
-        f"- Content: {_markdown_text(dossier.content_address)}",
-        f"- Summary: {_markdown_text(summary.content_address)}",
-        f"- Release gate valid: {str(summary.release_gate_valid).lower()}",
-        "",
-        "## Evidence state summary",
-        "",
-    ]
-    lines.extend(
-        f"- {_markdown_text(state)}: {count}" for state, count in summary.evidence_state_counts
-    )
-    lines.extend(
-        [
-            f"- Active: {summary.active_claim_count}",
-            f"- Superseded: {summary.superseded_claim_count}",
-            f"- Orphan: {summary.orphan_claim_count}",
-            "",
-            "## Hypotheses",
-            "",
-        ]
-    )
+    writer = _BoundedMarkdownWriter(selected.max_markdown_bytes)
+    writer.write("# Research Dossier: ")
+    writer.write_text(dossier.case_id)
+    writer.newline(2)
+    writer.write("- Status: ")
+    writer.write_text(dossier.status.value)
+    writer.newline()
+    writer.write("- Run: ")
+    writer.write_text(dossier.run_id)
+    writer.newline()
+    writer.write("- Research-use only: ")
+    writer.write(str(dossier.research_use_only).lower())
+    writer.newline()
+    writer.write("- Policy: ")
+    writer.write_text(dossier.policy_version)
+    writer.newline()
+    writer.write("- Input: ")
+    writer.write_text(dossier.input_address)
+    writer.newline()
+    writer.write("- Content: ")
+    writer.write_text(dossier.content_address)
+    writer.newline()
+    writer.write("- Summary: ")
+    writer.write_text(summary.content_address)
+    writer.newline()
+    writer.write("- Release gate valid: ")
+    writer.write(str(summary.release_gate_valid).lower())
+    writer.newline(2)
+    writer.write("## Evidence state summary")
+    writer.newline(2)
+    for state, count in summary.evidence_state_counts:
+        writer.write("- ")
+        writer.write_text(state)
+        writer.write(": ")
+        writer.write(str(count))
+        writer.newline()
+    writer.write("- Active: ")
+    writer.write(str(summary.active_claim_count))
+    writer.newline()
+    writer.write("- Superseded: ")
+    writer.write(str(summary.superseded_claim_count))
+    writer.newline()
+    writer.write("- Orphan: ")
+    writer.write(str(summary.orphan_claim_count))
+    writer.newline(2)
+    writer.write("## Hypotheses")
+    writer.newline(2)
     hypotheses = sorted(
         dossier.hypotheses,
         key=lambda item: (-item.support, item.uncertainty, item.hypothesis_id),
     )
     for index, hypothesis in enumerate(hypotheses, start=1):
-        lines.extend(
-            [
-                f"### {index}. {_markdown_text(hypothesis.hypothesis_id)}",
-                f"- Variant: {_markdown_text(hypothesis.variant_id)}",
-                f"- Element: {_markdown_text(hypothesis.element_id)}",
-                f"- Gene: {_markdown_text(hypothesis.gene_id)}",
-                f"- State: {_markdown_text(hypothesis.state_id)}",
-                f"- Support: {canonical_json(hypothesis.support)}",
-                f"- Uncertainty: {canonical_json(hypothesis.uncertainty)}",
-                f"- Mechanism: {_markdown_text(hypothesis.mechanism)}",
-                f"- Missing evidence: {len(hypothesis.missing_evidence)}",
-                f"- Negative evidence: {len(hypothesis.negative_evidence)}",
-                "",
-            ]
-        )
+        writer.write("### ")
+        writer.write(str(index))
+        writer.write(". ")
+        writer.write_text(hypothesis.hypothesis_id)
+        writer.newline()
+        writer.write("- Variant: ")
+        writer.write_text(hypothesis.variant_id)
+        writer.newline()
+        writer.write("- Element: ")
+        writer.write_text(hypothesis.element_id)
+        writer.newline()
+        writer.write("- Gene: ")
+        writer.write_text(hypothesis.gene_id)
+        writer.newline()
+        writer.write("- State: ")
+        writer.write_text(hypothesis.state_id)
+        writer.newline()
+        writer.write("- Support: ")
+        writer.write(canonical_json(hypothesis.support))
+        writer.newline()
+        writer.write("- Uncertainty: ")
+        writer.write(canonical_json(hypothesis.uncertainty))
+        writer.newline()
+        writer.write("- Mechanism: ")
+        writer.write_text(hypothesis.mechanism)
+        writer.newline()
+        writer.write("- Missing evidence: ")
+        writer.write(str(len(hypothesis.missing_evidence)))
+        writer.newline()
+        writer.write("- Negative evidence: ")
+        writer.write(str(len(hypothesis.negative_evidence)))
+        writer.newline(2)
         for edge in hypothesis.edges:
-            lines.append(
-                "  - "
-                f"{_markdown_text(edge.edge_type.value)} "
-                f"{_markdown_text(edge.source_id)} → {_markdown_text(edge.target_id)}; "
-                f"support {canonical_json(edge.support)}; "
-                f"uncertainty {canonical_json(edge.uncertainty)}"
-            )
-        lines.append("")
-    lines.extend(["## Evidence ledger", ""])
+            writer.write("  - ")
+            writer.write_text(edge.edge_type.value)
+            writer.write(" ")
+            writer.write_text(edge.source_id)
+            writer.write(" → ")
+            writer.write_text(edge.target_id)
+            writer.write("; support ")
+            writer.write(canonical_json(edge.support))
+            writer.write("; uncertainty ")
+            writer.write(canonical_json(edge.uncertainty))
+            writer.newline()
+        writer.newline()
+    writer.write("## Evidence ledger")
+    writer.newline(2)
     for claim in dossier.evidence:
-        lines.append(
-            "- "
-            f"{_markdown_text(claim.evidence_id)} "
-            f"[{lifecycle[claim.evidence_id]}] "
-            f"{_markdown_text(claim.state.value)} "
-            f"{_markdown_text(claim.channel)}: {_markdown_text(claim.summary)}"
-        )
-    lines.extend(["", "## Validation routes", ""])
+        writer.write("- ")
+        writer.write_text(claim.evidence_id)
+        writer.write(" [")
+        writer.write(lifecycle[claim.evidence_id])
+        writer.write("] ")
+        writer.write_text(claim.state.value)
+        writer.write(" ")
+        writer.write_text(claim.channel)
+        writer.write(": ")
+        writer.write_text(claim.summary)
+        writer.newline()
+    writer.newline()
+    writer.write("## Validation routes")
+    writer.newline(2)
     experiments = sorted(
         dossier.experiments,
         key=lambda item: (-item.priority, item.option_id),
     )
     for option in experiments:
-        lines.extend(
-            [
-                "- "
-                f"{_markdown_text(option.option_id)} "
-                f"{_markdown_text(option.assay.value)} priority "
-                f"{canonical_json(option.priority)}",
-                "  - Readouts: " + ", ".join(_markdown_text(item) for item in option.readouts),
-                "  - Controls: " + ", ".join(_markdown_text(item) for item in option.controls),
-                "  - Limitations: "
-                + ", ".join(_markdown_text(item) for item in option.limitations),
-            ]
-        )
+        writer.write("- ")
+        writer.write_text(option.option_id)
+        writer.write(" ")
+        writer.write_text(option.assay.value)
+        writer.write(" priority ")
+        writer.write(canonical_json(option.priority))
+        writer.newline()
+        writer.write("  - Readouts: ")
+        writer.write_joined_text(option.readouts)
+        writer.newline()
+        writer.write("  - Controls: ")
+        writer.write_joined_text(option.controls)
+        writer.newline()
+        writer.write("  - Limitations: ")
+        writer.write_joined_text(option.limitations)
+        writer.newline()
     if dossier.warnings:
-        lines.extend(["", "## Warnings", ""])
-        lines.extend(f"- {_markdown_text(warning)}" for warning in dossier.warnings)
-    lines.append("")
-    payload = "\n".join(lines)
-    _bounded_utf8(payload, selected.max_markdown_bytes, "dossier Markdown report")
-    return payload
+        writer.newline()
+        writer.write("## Warnings")
+        writer.newline(2)
+        for warning in dossier.warnings:
+            writer.write("- ")
+            writer.write_text(warning)
+            writer.newline()
+    return writer.finish()
 
 
 def render_json(
@@ -1111,12 +1263,12 @@ class DossierReport:
         if type(projection) is not dict:
             raise ValidationError("dossier report projection must be an exact JSON object")
         report = cls(
-            report_version=value["report_version"],  # type: ignore[arg-type]
-            audience=value["audience"],  # type: ignore[arg-type]
-            dossier_address=value["dossier_address"],  # type: ignore[arg-type]
-            summary_address=value["summary_address"],  # type: ignore[arg-type]
+            report_version=value["report_version"],
+            audience=value["audience"],
+            dossier_address=value["dossier_address"],
+            summary_address=value["summary_address"],
             projection=projection,
-            content_address=value["content_address"],  # type: ignore[arg-type]
+            content_address=value["content_address"],
         )
         if canonical_bytes(value) != canonical_bytes(report.to_dict()):
             raise ValidationError("dossier report is not an exact canonical representation")
@@ -1331,17 +1483,17 @@ class RenderedReport:
             fields=_RENDERED_REPORT_FIELDS,
         )
         rendered = cls(
-            rendered_report_version=value["rendered_report_version"],  # type: ignore[arg-type]
-            report_address=value["report_address"],  # type: ignore[arg-type]
-            dossier_address=value["dossier_address"],  # type: ignore[arg-type]
-            audience=value["audience"],  # type: ignore[arg-type]
-            format=value["format"],  # type: ignore[arg-type]
-            media_type=value["media_type"],  # type: ignore[arg-type]
-            byte_count=value["byte_count"],  # type: ignore[arg-type]
-            line_count=value["line_count"],  # type: ignore[arg-type]
-            payload_address=value["payload_address"],  # type: ignore[arg-type]
-            payload=value["payload"],  # type: ignore[arg-type]
-            content_address=value["content_address"],  # type: ignore[arg-type]
+            rendered_report_version=value["rendered_report_version"],
+            report_address=value["report_address"],
+            dossier_address=value["dossier_address"],
+            audience=value["audience"],
+            format=value["format"],
+            media_type=value["media_type"],
+            byte_count=value["byte_count"],
+            line_count=value["line_count"],
+            payload_address=value["payload_address"],
+            payload=value["payload"],
+            content_address=value["content_address"],
         )
         if canonical_bytes(value) != canonical_bytes(rendered.to_dict()):
             raise ValidationError("rendered report is not an exact canonical representation")
@@ -1459,6 +1611,10 @@ def report_capabilities() -> dict[str, object]:
             "evidence_claims": _HARD_MAX_REPORT_EVIDENCE_CLAIMS,
             "experiments": _HARD_MAX_REPORT_EXPERIMENTS,
             "total_edges": _HARD_MAX_REPORT_TOTAL_EDGES,
+            "source_receipts": _HARD_MAX_REPORT_SOURCE_RECEIPTS,
+            "source_bundles": _HARD_MAX_REPORT_SOURCE_BUNDLES,
+            "structured_nodes": _HARD_MAX_REPORT_STRUCTURED_NODES,
+            "total_characters": _HARD_MAX_REPORT_TOTAL_CHARACTERS,
             "summary_bytes": _HARD_MAX_REPORT_SUMMARY_BYTES,
             "rendered_report_bytes": _HARD_MAX_RENDERED_REPORT_BYTES,
         },

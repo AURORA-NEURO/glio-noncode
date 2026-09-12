@@ -54,16 +54,24 @@ def claim(
     label: str,
     *,
     context: ReferenceContext | None = None,
+    edge_id: str | None = None,
     source_id: str = "fixture-atlas-001",
     channel: str = "external_signal",
     evidence_id: str | None = None,
     depends_on: tuple[str, ...] = (),
+    produced_by: str = "claim-adapter",
 ) -> EvidenceClaim:
     manifest = fixture_manifest()
+    element = manifest.candidate_elements[0]
+    gene_id = element.target_genes[0] if element.target_genes else element.element_id
+    state_id = element.state_ids[0] if element.state_ids else "unresolved_state"
+    shared_edge_digest = content_hash(
+        {"source": gene_id, "target": state_id, "type": "gene_to_state"}
+    ).split(":", 1)[1]
     return EvidenceClaim(
         evidence_id=evidence_id
         or content_hash({"kind": "adapter-claim", "label": label}, prefix="claim"),
-        edge_id=f"edge-{content_hash(label).split(':', 1)[1][:20]}",
+        edge_id=edge_id or f"edge-{shared_edge_digest[:20]}",
         source_id=source_id,
         channel=channel,
         state=EvidenceState.SUPPORTED,
@@ -74,7 +82,7 @@ def claim(
         summary=f"External adapter evidence for {label}.",
         payload={"label": label},
         depends_on=depends_on,
-        produced_by="fixture-claim-adapter",
+        produced_by=produced_by,
         created_at="2026-09-03T12:00:00+00:00",
     )
 
@@ -145,6 +153,36 @@ def registered(
 
 
 class AdapterClaimCollectionTests(unittest.TestCase):
+    def test_factorized_gene_state_edge_can_belong_to_multiple_resolution_items(
+        self,
+    ) -> None:
+        manifest = fixture_manifest()
+        first = manifest.candidate_elements[0]
+        second = replace(
+            first,
+            element_id="shared-gene-state-element",
+            start=first.start + 1,
+            end=first.end + 1,
+        )
+        gene_id = first.target_genes[0] if first.target_genes else first.element_id
+        state_id = first.state_ids[0] if first.state_ids else "unresolved_state"
+        digest = content_hash(
+            {"source": gene_id, "target": state_id, "type": "gene_to_state"}
+        ).split(":", 1)[1]
+        shared_edge_id = f"edge-{digest[:20]}"
+        evidence = claim("shared-gene-state", edge_id=shared_edge_id)
+        adapter = ClaimAdapter(
+            metadata(),
+            (first, second),
+            {first.element_id: (evidence,), second.element_id: ()},
+        )
+        manifest, registry, resolution = registered(adapter)
+
+        report = registry.collect_claims(manifest, resolution)
+        report.validate_claim_ownership(resolution)
+        self.assertEqual(report.claims, (evidence,))
+        self.assertEqual(len(resolution.items), 2)
+
     def test_report_is_addressed_strict_and_fully_attributed(self) -> None:
         manifest = fixture_manifest()
         element = manifest.candidate_elements[0]
@@ -155,6 +193,7 @@ class AdapterClaimCollectionTests(unittest.TestCase):
         report = registry.collect_claims(manifest, resolution)
 
         self.assertEqual(report.registry_snapshot, registry.snapshot())
+        self.assertEqual(report.adapter_metadata, (adapter.metadata,))
         self.assertEqual(report.registry_address, resolution.registry_address)
         self.assertEqual(report.manifest_address, manifest.content_address)
         self.assertEqual(report.context, manifest.context)
@@ -203,6 +242,14 @@ class AdapterClaimCollectionTests(unittest.TestCase):
         unknown["unexpected"] = True
         with self.assertRaisesRegex(ValidationError, "fields are not exact"):
             AdapterClaimCollectionReport.from_dict(unknown)
+        missing_metadata = copy.deepcopy(report.to_dict())
+        missing_metadata["adapter_metadata"] = []
+        with self.assertRaisesRegex(ValidationError, "exactly cover selected adapter IDs"):
+            AdapterClaimCollectionReport.from_dict(missing_metadata)
+        forged_metadata = copy.deepcopy(report.to_dict())
+        forged_metadata["adapter_metadata"][0]["license"] = "forged-license"
+        with self.assertRaisesRegex(ValidationError, "content address does not match"):
+            AdapterClaimCollectionReport.from_dict(forged_metadata)
 
     def test_collectors_are_called_only_for_their_attributed_resolution_items(self) -> None:
         manifest = fixture_manifest()
@@ -210,7 +257,7 @@ class AdapterClaimCollectionTests(unittest.TestCase):
         first = ClaimAdapter(
             metadata("first"),
             (element,),
-            {element.element_id: (claim("first"),)},
+            {element.element_id: (claim("first", produced_by="first"),)},
         )
         second = ClaimAdapter(metadata("second"), ())
         registry = AdapterRegistry()
@@ -269,6 +316,24 @@ class AdapterClaimCollectionTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValidationError, "total claim ceiling"):
             registry.collect_claims(manifest, resolution)
+        self.assertEqual(len(over_total.collect_calls), 1)
+
+        over_total.collect_calls.clear()
+        with self.assertRaisesRegex(ValidationError, "total claim ceiling"):
+            registry.collect_claims(manifest, resolution, max_claims=0)
+        self.assertEqual(over_total.collect_calls, [])
+
+        for malformed in (True, -1, 1.0, "1", ADAPTER_HARD_MAX_CLAIMS_TOTAL + 1):
+            with self.subTest(max_claims=malformed), self.assertRaisesRegex(
+                ValidationError,
+                "adapter max_claims",
+            ):
+                registry.collect_claims(  # type: ignore[arg-type]
+                    manifest,
+                    resolution,
+                    max_claims=malformed,
+                )
+        self.assertEqual(over_total.collect_calls, [])
 
     def test_total_claim_limit_is_exact_and_downward_only(self) -> None:
         for malformed in (True, 0, 1.0, "1", ADAPTER_HARD_MAX_CLAIMS_TOTAL + 1):
@@ -292,6 +357,7 @@ class AdapterClaimCollectionTests(unittest.TestCase):
             ),
             ((claim("wrong-source", source_id="undeclared-source"),), "declared sources"),
             ((claim("wrong-channel", channel="undeclared_channel"),), "declared channels"),
+            ((claim("wrong-producer", produced_by="other-adapter"),), "producer"),
         )
         for result, message in malformed_results:
             with self.subTest(message=message):
@@ -358,7 +424,7 @@ class AdapterClaimCollectionTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValidationError, message):
                     registry.collect_claims(manifest, resolution)
 
-    def test_stale_resolution_manifest_mismatch_and_report_byte_limit_fail_closed(self) -> None:
+    def test_selected_snapshot_manifest_mismatch_and_report_byte_limit_fail_closed(self) -> None:
         manifest = fixture_manifest()
         element = manifest.candidate_elements[0]
         adapter = ClaimAdapter(
@@ -367,15 +433,48 @@ class AdapterClaimCollectionTests(unittest.TestCase):
             {element.element_id: (claim("stale"),)},
         )
         manifest, registry, resolution = registered(adapter)
-        registry.register(ClaimAdapter(metadata("later"), ()))
-        with self.assertRaisesRegex(ValidationError, "no longer current"):
-            registry.collect_claims(manifest, resolution)
-        self.assertEqual(adapter.collect_calls, [])
+        unrelated = ClaimAdapter(metadata("later"), ())
+        registry.register(unrelated)
+        report = registry.collect_claims(manifest, resolution)
+        with self.assertRaisesRegex(ValidationError, "exactly cover selected adapter IDs"):
+            replace(
+                report,
+                registry_snapshot=registry.snapshot(),
+                registry_address="",
+                content_address="",
+            )
+        unrelated.metadata = replace(
+            unrelated.metadata,
+            version="2026.10",
+            content_address="",
+        )
+        report = registry.collect_claims(manifest, resolution)
+        self.assertEqual(report.adapter_ids, (adapter.metadata.adapter_id,))
+        self.assertEqual(
+            tuple(item.adapter_id for item in report.registry_snapshot.adapters),
+            (adapter.metadata.adapter_id,),
+        )
+        self.assertEqual(len(adapter.collect_calls), 2)
+        with self.assertRaisesRegex(ValidationError, "metadata drift"):
+            registry.snapshot()
+
+        forged_item = replace(
+            resolution.items[0],
+            variant_address="adapter-variant:" + "0" * 64,
+            content_address="",
+        )
+        forged_resolution = replace(
+            resolution,
+            items=(forged_item,),
+            content_address="",
+        )
+        with self.assertRaisesRegex(ValidationError, "variant address"):
+            forged_resolution.validate_manifest(manifest)
 
         fresh_adapter = ClaimAdapter(metadata(), (element,))
         manifest, registry, resolution = registered(fresh_adapter)
         different_manifest = replace(manifest, case_id="different-case")
-        with self.assertRaisesRegex(ValidationError, "does not belong"):
+        with self.assertRaisesRegex(ValidationError, "does not bind"):
             registry.collect_claims(different_manifest, resolution)
         self.assertEqual(fresh_adapter.collect_calls, [])
 

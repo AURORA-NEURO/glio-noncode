@@ -44,6 +44,22 @@ class IdentityBetaState(StrEnum):
     ABSTAINED = "abstained"
 
 
+_FLAT_VARIANT_RECORD_FIELDS = frozenset(
+    {
+        "record_id",
+        "id",
+        "source_id",
+        "source_version",
+        "version",
+        "raw_hash",
+        "aliases",
+        "batch_id",
+        "context_key",
+        "attributes",
+    }
+)
+
+
 @dataclass(frozen=True, slots=True)
 class VariantIdentityRecord:
     """One source-qualified variant record presented to identity resolution."""
@@ -71,7 +87,15 @@ class VariantIdentityRecord:
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> VariantIdentityRecord:
-        raw_variant = value.get("variant", value)
+        raw_variant = (
+            value["variant"]
+            if "variant" in value
+            else {
+                key: item
+                for key, item in value.items()
+                if key not in _FLAT_VARIANT_RECORD_FIELDS
+            }
+        )
         if not isinstance(raw_variant, Mapping):
             raise ValidationError("variant identity record variant must be an object")
         variant = VariantIdentity.from_dict(raw_variant)

@@ -23,16 +23,23 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import contextmanager
-from dataclasses import dataclass, replace
+from dataclasses import Field, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 from errno import EACCES, EAGAIN
 from itertools import islice
 from pathlib import Path
+from types import FunctionType
 from typing import Any, Protocol, cast
 
+from . import _callback_isolation
+from ._callback_isolation import (
+    detached_callback_guard,
+    source_callback_scope,
+    source_manifest_callback_scope,
+)
 from .adapters import AdapterMetadata
 from .errors import SourceError, SourceNotFoundError, SourceRateLimitError, ValidationError
 from .identity import normalize_chromosome, variant_interval
@@ -63,6 +70,11 @@ MAX_REFERENCE_RECEIPTS = 128
 MAX_REFERENCE_WARNINGS = 2 * MAX_REFERENCE_VARIANTS
 MAX_REFERENCE_WINDOW_BP = 5_000_000
 MAX_ENRICHED_ELEMENTS = 100_000
+MAX_ENRICHMENT_CANONICAL_BYTES = 256 * 1024 * 1024
+MAX_ENRICHMENT_SEQUENCE_BP = 10_000_000
+
+_REFERENCE_CONTEXT_IDENTITY_SCHEMA = "glio-noncode/reference-context"
+_REFERENCE_CONTEXT_IDENTITY_VERSION = 1
 
 _SOURCE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
 _SHA256_ADDRESS = re.compile(r"sha256:[0-9a-f]{64}\Z")
@@ -81,6 +93,71 @@ _CACHE_FIELDS = frozenset(
 )
 _CACHE_LOCKS: dict[str, threading.RLock] = {}
 _CACHE_LOCKS_GUARD = threading.Lock()
+_RLOCK_TYPE = type(threading.RLock())
+
+
+class _SourceCallbackMutationError(ValidationError):
+    """A callback altered semantic state owned by a public-source invocation."""
+
+
+def _validated_utf8(value: str, label: str) -> str:
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValidationError(f"{label} must be valid UTF-8") from exc
+    return value
+
+
+def _validated_canonical_bytes(value: Any, label: str) -> bytes:
+    try:
+        return canonical_bytes(value)
+    except UnicodeError as exc:
+        raise ValidationError(f"{label} must contain valid UTF-8 text") from exc
+    except Exception as exc:  # noqa: BLE001 - canonical JSON is a trust boundary
+        raise ValidationError(f"{label} must be representable as canonical JSON") from exc
+
+
+def _validated_canonical_json(value: Any, label: str) -> str:
+    return _validated_canonical_bytes(value, label).decode("utf-8")
+
+
+def _canonical_reference_context(
+    value: object,
+    label: str,
+) -> ReferenceContext:
+    """Detach and validate a complete persisted reference context."""
+
+    if type(value) is not ReferenceContext:
+        raise ValidationError(f"{label} must be a ReferenceContext")
+    try:
+        raw = value.to_dict()
+        detached = ReferenceContext.from_dict(raw, persisted=True)
+        detached_raw = detached.to_dict()
+    except ValidationError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - forged exact dataclass trust boundary
+        raise ValidationError(f"{label} is malformed") from exc
+    if _validated_canonical_bytes(raw, label) != _validated_canonical_bytes(
+        detached_raw,
+        label,
+    ):
+        raise ValidationError(f"{label} is not an exact canonical representation")
+    return detached
+
+
+def _reference_context_address(context: ReferenceContext) -> str:
+    """Address every context field under an explicit identity-schema version."""
+
+    payload = {
+        "schema": _REFERENCE_CONTEXT_IDENTITY_SCHEMA,
+        "version": _REFERENCE_CONTEXT_IDENTITY_VERSION,
+        "context": context.to_dict(),
+    }
+    canonical_payload = _validated_canonical_bytes(
+        payload,
+        "reference context identity",
+    )
+    return f"sha256:{hashlib.sha256(canonical_payload).hexdigest()}"
 
 
 def _cache_thread_lock(path: Path) -> threading.RLock:
@@ -147,6 +224,7 @@ def _required_text(value: object, label: str, *, maximum: int = MAX_SOURCE_TEXT_
         raise ValidationError(f"{label} must be a non-empty string")
     if len(value) > maximum:
         raise ValidationError(f"{label} exceeds the maximum length of {maximum}")
+    _validated_utf8(value, label)
     if any(ord(character) < 32 or ord(character) == 127 for character in value):
         raise ValidationError(f"{label} must not contain control characters")
     return value
@@ -227,6 +305,7 @@ def _sha256_address(value: object, label: str) -> str:
 def _content_type(value: object, label: str) -> str:
     if type(value) is not str or len(value) > 256:
         raise ValidationError(f"{label} must be a string of at most 256 characters")
+    _validated_utf8(value, label)
     if any(ord(character) < 32 or ord(character) == 127 for character in value):
         raise ValidationError(f"{label} must not contain control characters")
     return value
@@ -235,7 +314,13 @@ def _content_type(value: object, label: str) -> str:
 def _safe_error_message(value: object) -> str:
     text = str(value)
     normalized = "".join(
-        " " if ord(character) < 32 or ord(character) == 127 else character
+        (
+            " "
+            if ord(character) < 32 or ord(character) == 127
+            else "\ufffd"
+            if 0xD800 <= ord(character) <= 0xDFFF
+            else character
+        )
         for character in text
     ).strip()
     return normalized[:MAX_SOURCE_TEXT_LENGTH].rstrip() or "unknown source failure"
@@ -256,12 +341,18 @@ def _invalid_json_constant(value: str) -> None:
 
 @dataclass(frozen=True, slots=True)
 class ReferenceRetrievalLimits:
-    """Downward-configurable work ceilings for live reference enrichment."""
+    """Downward-configurable work ceilings for live reference enrichment.
+
+    The aggregate defaults cap one complete enrichment closure at 256 MiB of
+    canonical JSON and ten million retained reference-sequence bases.
+    """
 
     max_window_bp: int = MAX_REFERENCE_WINDOW_BP
     max_features_per_variant: int = MAX_REFERENCE_FEATURES
     max_variants: int = MAX_REFERENCE_VARIANTS
     max_total_elements: int = MAX_ENRICHED_ELEMENTS
+    max_total_canonical_bytes: int = MAX_ENRICHMENT_CANONICAL_BYTES
+    max_total_sequence_bp: int = MAX_ENRICHMENT_SEQUENCE_BP
 
     def __post_init__(self) -> None:
         for field_name, ceiling in (
@@ -269,6 +360,8 @@ class ReferenceRetrievalLimits:
             ("max_features_per_variant", MAX_REFERENCE_FEATURES),
             ("max_variants", MAX_REFERENCE_VARIANTS),
             ("max_total_elements", MAX_ENRICHED_ELEMENTS),
+            ("max_total_canonical_bytes", MAX_ENRICHMENT_CANONICAL_BYTES),
+            ("max_total_sequence_bp", MAX_ENRICHMENT_SEQUENCE_BP),
         ):
             _bounded_int(
                 getattr(self, field_name),
@@ -334,6 +427,7 @@ class SourceSpec:
             raise ValidationError(
                 f"source terms must be a string of at most {MAX_SOURCE_TEXT_LENGTH} characters"
             )
+        _validated_utf8(self.terms, "source terms")
         if any(ord(character) < 32 or ord(character) == 127 for character in self.terms):
             raise ValidationError("source terms must not contain control characters")
         if not isinstance(self.kind, SourceKind) or not isinstance(self.access, SourceAccess):
@@ -363,7 +457,7 @@ class SourceSpec:
             raise ValidationError("source enabled must be a boolean")
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self)
+        return cast(dict[str, Any], jsonable(self))
 
 
 @dataclass(frozen=True, slots=True)
@@ -420,7 +514,12 @@ class RetryPolicy:
             minimum=0,
             maximum=self.attempts - 1,
         )
-        return min(self.maximum_backoff_seconds, self.initial_backoff_seconds * (2**retry_number))
+        return float(
+            min(
+                self.maximum_backoff_seconds,
+                self.initial_backoff_seconds * (2**retry_number),
+            )
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -718,7 +817,64 @@ class FetchReceipt:
             raise ValidationError("rate-limited receipt HTTP status must be 429")
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self)
+        return cast(dict[str, Any], jsonable(self))
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> FetchReceipt:
+        """Rehydrate one exact persisted receipt through all source invariants."""
+
+        expected_fields = frozenset(
+            {
+                "source_id",
+                "source_version",
+                "url",
+                "request_hash",
+                "response_hash",
+                "status",
+                "http_status",
+                "attempts",
+                "retrieved_at",
+                "elapsed_seconds",
+                "cache_expires_at",
+                "warnings",
+                "error_type",
+                "error_message",
+            }
+        )
+        if not isinstance(raw, Mapping) or any(type(key) is not str for key in raw):
+            raise ValidationError("fetch receipt must be an exact JSON object")
+        if frozenset(raw) != expected_fields:
+            raise ValidationError("fetch receipt fields are not exact")
+        if type(raw["status"]) is not str:
+            raise ValidationError("fetch receipt status must be a string")
+        if type(raw["warnings"]) is not list:
+            raise ValidationError("fetch receipt warnings must be an exact array")
+        if len(raw["warnings"]) > MAX_SOURCE_QUERY_PARAMETERS:
+            raise ValidationError("fetch receipt warnings exceed their hard ceiling")
+        try:
+            result = cls(
+                source_id=raw["source_id"],
+                source_version=raw["source_version"],
+                url=raw["url"],
+                request_hash=raw["request_hash"],
+                response_hash=raw["response_hash"],
+                status=FetchStatus(raw["status"]),
+                http_status=raw["http_status"],
+                attempts=raw["attempts"],
+                retrieved_at=raw["retrieved_at"],
+                elapsed_seconds=raw["elapsed_seconds"],
+                cache_expires_at=raw["cache_expires_at"],
+                warnings=tuple(raw["warnings"]),
+                error_type=raw["error_type"],
+                error_message=raw["error_message"],
+            )
+        except (TypeError, ValueError) as exc:
+            raise ValidationError("fetch receipt is invalid") from exc
+        if _validated_canonical_bytes(
+            result.to_dict(), "fetch receipt"
+        ) != _validated_canonical_bytes(raw, "fetch receipt"):
+            raise ValidationError("fetch receipt is not an exact canonical representation")
+        return result
 
 
 @dataclass(frozen=True, slots=True)
@@ -733,10 +889,12 @@ class SourcePayload:
         if type(self.receipt) is not FetchReceipt:
             raise ValidationError("source payload receipt must be a FetchReceipt")
         _content_type(self.content_type, "source payload content_type")
+        frozen_value = freeze_json(self.value, field="source payload value")
+        _validated_canonical_bytes(frozen_value, "source payload value")
         object.__setattr__(
             self,
             "value",
-            freeze_json(self.value, field="source payload value"),
+            frozen_value,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -856,13 +1014,7 @@ class SourceCache:
                 or re.fullmatch(r"[0-9a-f]{64}", response_hash) is None
             ):
                 return None
-            content_type = raw["content_type"]
-            if (
-                type(content_type) is not str
-                or len(content_type) > 256
-                or any(ord(character) < 32 or ord(character) == 127 for character in content_type)
-            ):
-                return None
+            content_type = _content_type(raw["content_type"], "cache content_type")
             body_hex = raw["body_hex"]
             if type(body_hex) is not str or len(body_hex) > maximum * 2:
                 return None
@@ -920,12 +1072,7 @@ class SourceCache:
         _http_url(url, "cache URL")
         if _url_origin(url) != _url_origin(source.base_url):
             raise ValidationError("cache URL must remain on the configured source origin")
-        if (
-            type(content_type) is not str
-            or len(content_type) > 256
-            or any(ord(character) < 32 or ord(character) == 127 for character in content_type)
-        ):
-            raise ValidationError("cache content_type must be a bounded string")
+        content_type = _content_type(content_type, "cache content_type")
         ttl_seconds = _bounded_int(
             ttl_seconds,
             "cache TTL",
@@ -1205,9 +1352,16 @@ class SourceClient:
         *,
         allow_not_found: bool = False,
         cache: bool = True,
+        _integrity_guard: Callable[[], None] | None = None,
     ) -> SourcePayload:
         return self._fetch(
-            source_id, path, params, expect_json=True, allow_not_found=allow_not_found, cache=cache
+            source_id,
+            path,
+            params,
+            expect_json=True,
+            allow_not_found=allow_not_found,
+            cache=cache,
+            _integrity_guard=_integrity_guard,
         )
 
     def fetch_text(
@@ -1218,9 +1372,16 @@ class SourceClient:
         *,
         allow_not_found: bool = False,
         cache: bool = True,
+        _integrity_guard: Callable[[], None] | None = None,
     ) -> SourcePayload:
         return self._fetch(
-            source_id, path, params, expect_json=False, allow_not_found=allow_not_found, cache=cache
+            source_id,
+            path,
+            params,
+            expect_json=False,
+            allow_not_found=allow_not_found,
+            cache=cache,
+            _integrity_guard=_integrity_guard,
         )
 
     def _fetch(
@@ -1232,6 +1393,7 @@ class SourceClient:
         expect_json: bool,
         allow_not_found: bool,
         cache: bool,
+        _integrity_guard: Callable[[], None] | None,
     ) -> SourcePayload:
         for value, label in (
             (expect_json, "expect_json"),
@@ -1240,6 +1402,8 @@ class SourceClient:
         ):
             if type(value) is not bool:
                 raise ValidationError(f"source {label} must be a boolean")
+        if _integrity_guard is not None and not callable(_integrity_guard):
+            raise ValidationError("source integrity guard must be callable or None")
         source = self.catalog.get(source_id)
         if not source.enabled:
             raise SourceError(f"source is disabled: {source_id}")
@@ -1288,6 +1452,10 @@ class SourceClient:
             "Accept": "application/json" if expect_json else "text/plain,application/json",
             "User-Agent": self.user_agent,
         }
+        source_rate_limit_error_type = SourceRateLimitError
+        validation_error_type = ValidationError
+        source_error_type = SourceError
+        exception_type = Exception
         last_response: TransportResponse | None = None
         last_error: Exception | None = None
         attempts_made = 0
@@ -1299,19 +1467,82 @@ class SourceClient:
                 last_error = error
                 break
             attempts_made = attempt
+            callback_mutation_error = _SourceCallbackMutationError
+            limiter_states = (
+                tuple(
+                    (
+                        candidate,
+                        object.__getattribute__(candidate, "_next_allowed"),
+                    )
+                    for candidate in self._limiters.values()
+                )
+                if _integrity_guard is not None
+                else ()
+            )
+
+            def check_transport_integrity(
+                limiter_states: tuple[tuple[RateLimiter, float], ...] = limiter_states,
+                callback_mutation_error: type[
+                    _SourceCallbackMutationError
+                ] = callback_mutation_error,
+                integrity_guard: Callable[[], None] | None = _integrity_guard,
+            ) -> None:
+                if integrity_guard is None:
+                    return
+                limiter_mutated = False
+                for candidate, expected_next_allowed in limiter_states:
+                    try:
+                        current_next_allowed = object.__getattribute__(
+                            candidate,
+                            "_next_allowed",
+                        )
+                    except Exception:  # noqa: BLE001 - callback mutation boundary
+                        current_next_allowed = None
+                    if (
+                        type(current_next_allowed) is not type(expected_next_allowed)
+                        or current_next_allowed != expected_next_allowed
+                    ):
+                        limiter_mutated = True
+                        try:
+                            object.__setattr__(
+                                candidate,
+                                "_next_allowed",
+                                expected_next_allowed,
+                            )
+                        except Exception:  # noqa: BLE001 - outer restoration reports failure
+                            pass
+                if limiter_mutated:
+                    raise callback_mutation_error(
+                        "public reference callback mutated invocation scope or retriever "
+                        "configuration"
+                    )
+                integrity_guard()
+
+            check_transport_integrity = cast(
+                Any,
+                detached_callback_guard(check_transport_integrity),
+            )
+
             try:
                 response = self.transport.request("GET", url, headers, self.timeout_seconds)
-            except SourceRateLimitError as error:
+            except source_rate_limit_error_type as error:
+                check_transport_integrity()
                 last_error = error
                 break
-            except ValidationError as error:
-                last_error = SourceError(f"transport returned an invalid response: {error}")
+            except validation_error_type as error:
+                check_transport_integrity()
+                last_error = source_error_type(
+                    f"transport returned an invalid response: {error}"
+                )
                 break
-            except SourceError as error:
+            except source_error_type as error:
+                check_transport_integrity()
                 last_error = error
-            except Exception as error:  # pragma: no cover - defensive transport boundary
-                last_error = SourceError(_safe_error_message(error))
+            except exception_type as error:  # pragma: no cover - defensive transport boundary
+                check_transport_integrity()
+                last_error = source_error_type(_safe_error_message(error))
             else:
+                check_transport_integrity()
                 if not isinstance(response, TransportResponse):
                     last_error = SourceError("transport did not return a TransportResponse")
                     break
@@ -1402,7 +1633,13 @@ class SourceClient:
                         cache_expires_at=None,
                     )
                     if allow_not_found:
-                        return SourcePayload(None, receipt, content_type)
+                        try:
+                            return SourcePayload(None, receipt, content_type)
+                        except ValidationError:
+                            last_error = SourceError(
+                                f"source returned invalid response metadata for {url}"
+                            )
+                            break
                     raise SourceNotFoundError(
                         f"source object was not found: {url}",
                         receipt=receipt,
@@ -1468,14 +1705,19 @@ class SourceClient:
                     parse_constant=_invalid_json_constant,
                 )
                 value = freeze_json(value, field="source JSON response")
+                return SourcePayload(value, receipt, content_type)
             except (RecursionError, UnicodeDecodeError, ValueError, ValidationError) as error:
                 raise SourceError(f"source returned invalid JSON for {receipt.url}") from error
         else:
             try:
                 value = body.decode("utf-8")
+                return SourcePayload(value, receipt, content_type)
             except UnicodeDecodeError as error:
                 raise SourceError(f"source returned non-UTF8 text for {receipt.url}") from error
-        return SourcePayload(value, receipt, content_type)
+            except ValidationError as error:
+                raise SourceError(
+                    f"source returned invalid text metadata for {receipt.url}"
+                ) from error
 
     @staticmethod
     def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -1531,7 +1773,36 @@ class SequenceSlice:
             raise ValidationError("sequence receipt must describe retrieved source content")
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self)
+        return cast(dict[str, Any], jsonable(self))
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> SequenceSlice:
+        """Rehydrate one exact persisted sequence window and its receipt."""
+
+        expected_fields = frozenset(
+            {"assembly", "chromosome", "start", "end", "sequence", "source_id", "receipt"}
+        )
+        if not isinstance(raw, Mapping) or any(type(key) is not str for key in raw):
+            raise ValidationError("sequence slice must be an exact JSON object")
+        if frozenset(raw) != expected_fields:
+            raise ValidationError("sequence slice fields are not exact")
+        receipt_raw = raw["receipt"]
+        if type(receipt_raw) is not dict:
+            raise ValidationError("sequence slice receipt must be an exact JSON object")
+        result = cls(
+            assembly=raw["assembly"],
+            chromosome=raw["chromosome"],
+            start=raw["start"],
+            end=raw["end"],
+            sequence=raw["sequence"],
+            source_id=raw["source_id"],
+            receipt=FetchReceipt.from_dict(receipt_raw),
+        )
+        if _validated_canonical_bytes(
+            result.to_dict(), "sequence slice"
+        ) != _validated_canonical_bytes(raw, "sequence slice"):
+            raise ValidationError("sequence slice is not an exact canonical representation")
+        return result
 
 
 @dataclass(frozen=True, slots=True)
@@ -1540,6 +1811,7 @@ class ReferenceBundle:
 
     variant_id: str
     context_key: str
+    context_address: str
     sequence: SequenceSlice | None
     elements: tuple[CandidateElement, ...]
     raw_features: tuple[Mapping[str, Any], ...]
@@ -1552,6 +1824,7 @@ class ReferenceBundle:
         *,
         variant_id: str,
         context_key: str,
+        context_address: str,
         sequence: SequenceSlice | None,
         elements: tuple[CandidateElement, ...],
         raw_features: tuple[Mapping[str, Any], ...],
@@ -1561,6 +1834,7 @@ class ReferenceBundle:
         return {
             "variant_id": variant_id,
             "context_key": context_key,
+            "context_address": context_address,
             "sequence": sequence.to_dict() if sequence else None,
             "elements": [element.to_dict() for element in elements],
             "raw_features": list(raw_features),
@@ -1573,7 +1847,7 @@ class ReferenceBundle:
         cls,
         *,
         variant_id: str,
-        context_key: str,
+        context: ReferenceContext,
         sequence: SequenceSlice | None,
         elements: tuple[CandidateElement, ...],
         raw_features: tuple[Mapping[str, Any], ...],
@@ -1582,6 +1856,11 @@ class ReferenceBundle:
     ) -> ReferenceBundle:
         """Create a bundle with its canonical payload address closed automatically."""
 
+        selected_context = _canonical_reference_context(
+            context,
+            "reference bundle context",
+        )
+        context_address = _reference_context_address(selected_context)
         if sequence is not None and type(sequence) is not SequenceSlice:
             raise ValidationError("reference bundle sequence must be a SequenceSlice or None")
         if (
@@ -1618,17 +1897,18 @@ class ReferenceBundle:
             )
         payload = cls._content_payload(
             variant_id=variant_id,
-            context_key=context_key,
+            context_key=selected_context.key,
+            context_address=context_address,
             sequence=sequence,
             elements=elements,
             raw_features=raw_features,
             receipts=receipts,
             warnings=warnings,
         )
-        try:
-            canonical_payload = canonical_bytes(payload)
-        except (OverflowError, RecursionError, TypeError, UnicodeError, ValueError) as exc:
-            raise ValidationError(f"reference bundle payload is invalid: {exc}") from exc
+        canonical_payload = _validated_canonical_bytes(
+            payload,
+            "reference bundle payload",
+        )
         if len(canonical_payload) > MAX_REFERENCE_BUNDLE_BYTES:
             raise ValidationError(
                 "reference bundle exceeds the maximum canonical size of "
@@ -1636,7 +1916,8 @@ class ReferenceBundle:
             )
         return cls(
             variant_id=variant_id,
-            context_key=context_key,
+            context_key=selected_context.key,
+            context_address=context_address,
             sequence=sequence,
             elements=elements,
             raw_features=raw_features,
@@ -1648,6 +1929,7 @@ class ReferenceBundle:
     def __post_init__(self) -> None:
         _required_text(self.variant_id, "reference bundle variant_id", maximum=1_024)
         _required_text(self.context_key, "reference bundle context_key", maximum=4_096)
+        _sha256_address(self.context_address, "reference bundle context_address")
         if self.sequence is not None and type(self.sequence) is not SequenceSlice:
             raise ValidationError("reference bundle sequence must be a SequenceSlice or None")
         if (
@@ -1673,7 +1955,9 @@ class ReferenceBundle:
         for item in self.elements:
             raw = item.to_dict()
             canonical = CandidateElement.from_dict(raw, item.context).to_dict()
-            if canonical_bytes(raw) != canonical_bytes(canonical):
+            if _validated_canonical_bytes(
+                raw, "reference bundle element"
+            ) != _validated_canonical_bytes(canonical, "reference bundle element"):
                 raise ValidationError(
                     f"reference bundle element is not canonical: {item.element_id}"
                 )
@@ -1682,11 +1966,18 @@ class ReferenceBundle:
                 f"reference bundle raw_features must be a tuple of at most {MAX_REFERENCE_FEATURES}"
             )
         frozen_features: list[Mapping[str, Any]] = []
+        feature_keys_list: list[str] = []
         for feature in self.raw_features:
             if not isinstance(feature, Mapping):
                 raise ValidationError("reference bundle raw_features entries must be objects")
-            frozen_features.append(freeze_json(feature, field="reference bundle raw feature"))
-        feature_keys = tuple(canonical_json(feature) for feature in frozen_features)
+            frozen_feature = freeze_json(feature, field="reference bundle raw feature")
+            feature_key = _validated_canonical_json(
+                frozen_feature,
+                "reference bundle raw feature",
+            )
+            frozen_features.append(frozen_feature)
+            feature_keys_list.append(feature_key)
+        feature_keys = tuple(feature_keys_list)
         if len(feature_keys) != len(set(feature_keys)):
             raise ValidationError("reference bundle raw_features must be unique")
         if feature_keys != tuple(sorted(feature_keys)):
@@ -1722,13 +2013,17 @@ class ReferenceBundle:
         content_payload = self._content_payload(
             variant_id=self.variant_id,
             context_key=self.context_key,
+            context_address=self.context_address,
             sequence=self.sequence,
             elements=self.elements,
             raw_features=self.raw_features,
             receipts=self.receipts,
             warnings=self.warnings,
         )
-        canonical_payload = canonical_bytes(content_payload)
+        canonical_payload = _validated_canonical_bytes(
+            content_payload,
+            "reference bundle payload",
+        )
         if len(canonical_payload) > MAX_REFERENCE_BUNDLE_BYTES:
             raise ValidationError(
                 "reference bundle exceeds the maximum canonical size of "
@@ -1739,7 +2034,209 @@ class ReferenceBundle:
             raise ValidationError("reference bundle content_address does not match its payload")
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self)
+        return cast(dict[str, Any], jsonable(self))
+
+    @staticmethod
+    def _preflight_dict(raw: Mapping[str, Any]) -> tuple[int, int, int, int]:
+        """Validate persisted container shape and return bounded item counts."""
+
+        expected_fields = frozenset(
+            {
+                "variant_id",
+                "context_key",
+                "context_address",
+                "sequence",
+                "elements",
+                "raw_features",
+                "receipts",
+                "warnings",
+                "content_address",
+            }
+        )
+        if not isinstance(raw, Mapping) or any(type(key) is not str for key in raw):
+            raise ValidationError("reference bundle must be an exact JSON object")
+        if frozenset(raw) != expected_fields:
+            raise ValidationError("reference bundle fields are not exact")
+        limits = (
+            ("elements", MAX_REFERENCE_FEATURES),
+            ("raw_features", MAX_REFERENCE_FEATURES),
+            ("receipts", MAX_REFERENCE_RECEIPTS),
+            ("warnings", MAX_REFERENCE_WARNINGS),
+        )
+        counts: list[int] = []
+        for field_name, limit in limits:
+            items = raw[field_name]
+            if type(items) is not list:
+                raise ValidationError(f"reference bundle {field_name} must be an exact array")
+            if len(items) > limit:
+                label = field_name.replace("_", " ")
+                raise ValidationError(
+                    f"reference bundle {label} exceed their hard ceiling"
+                )
+            counts.append(len(items))
+        sequence_raw = raw["sequence"]
+        if sequence_raw is not None and type(sequence_raw) is not dict:
+            raise ValidationError("reference bundle sequence must be an object or null")
+        for field_name in ("elements", "raw_features", "receipts"):
+            if any(type(item) is not dict for item in raw[field_name]):
+                label = field_name.replace("_", " ")
+                raise ValidationError(
+                    f"reference bundle {label} must be exact JSON objects"
+                )
+        return counts[0], counts[1], counts[2], counts[3]
+
+    @classmethod
+    def from_dict(
+        cls,
+        raw: Mapping[str, Any],
+        context: ReferenceContext,
+    ) -> ReferenceBundle:
+        """Rehydrate an exact persisted bundle through every nested invariant."""
+
+        selected_context = _canonical_reference_context(
+            context,
+            "reference bundle context",
+        )
+        cls._preflight_dict(raw)
+        if (
+            type(raw["context_key"]) is not str
+            or raw["context_key"] != selected_context.key
+        ):
+            raise ValidationError(
+                "reference bundle context_key does not match the supplied context"
+            )
+        expected_context_address = _reference_context_address(selected_context)
+        raw_context_address = _sha256_address(
+            raw["context_address"],
+            "reference bundle context_address",
+        )
+        if raw_context_address != expected_context_address:
+            raise ValidationError(
+                "reference bundle context_address does not match the supplied context"
+            )
+        sequence_raw = raw["sequence"]
+        result = cls(
+            variant_id=raw["variant_id"],
+            context_key=raw["context_key"],
+            context_address=raw_context_address,
+            sequence=(
+                None if sequence_raw is None else SequenceSlice.from_dict(sequence_raw)
+            ),
+            elements=tuple(
+                CandidateElement.from_dict(item, selected_context)
+                for item in raw["elements"]
+            ),
+            raw_features=tuple(raw["raw_features"]),
+            receipts=tuple(FetchReceipt.from_dict(item) for item in raw["receipts"]),
+            warnings=tuple(raw["warnings"]),
+            content_address=raw["content_address"],
+        )
+        if _validated_canonical_bytes(
+            result.to_dict(), "reference bundle"
+        ) != _validated_canonical_bytes(raw, "reference bundle"):
+            raise ValidationError("reference bundle is not an exact canonical representation")
+        return result
+
+
+_ENRICHMENT_ADDRESS_PLACEHOLDER = "sha256:" + "0" * 64
+_ENRICHMENT_RESULT_FIXED_BYTES = len(
+    b'{"bundles":'
+    b',"content_address":'
+    b',"manifest":'
+    b',"warnings":'
+    b"}"
+)
+_ENRICHMENT_ADDRESS_CANONICAL_BYTES = len(
+    canonical_bytes(_ENRICHMENT_ADDRESS_PLACEHOLDER)
+)
+
+
+def _canonical_array_size(*, item_bytes: int, item_count: int) -> int:
+    """Return the exact canonical JSON size of an array from encoded item sizes."""
+
+    return 2 + item_bytes + max(0, item_count - 1)
+
+
+def _enrichment_result_size(
+    *,
+    manifest_bytes: int,
+    bundle_bytes: int,
+    bundle_count: int,
+    warning_bytes: int,
+    warning_count: int,
+) -> int:
+    """Return the exact canonical size of one serialized enrichment result."""
+
+    return (
+        _ENRICHMENT_RESULT_FIXED_BYTES
+        + _canonical_array_size(item_bytes=bundle_bytes, item_count=bundle_count)
+        + _ENRICHMENT_ADDRESS_CANONICAL_BYTES
+        + manifest_bytes
+        + _canonical_array_size(item_bytes=warning_bytes, item_count=warning_count)
+    )
+
+
+def _enrichment_content_address(
+    *,
+    manifest_raw: Mapping[str, Any],
+    bundles: Iterable[ReferenceBundle],
+    warnings: tuple[str, ...],
+    maximum_canonical_bytes: int,
+    over_limit_message: str,
+) -> str:
+    """Hash an enrichment closure incrementally and reject before whole-result encoding."""
+
+    manifest_encoded = _validated_canonical_bytes(
+        manifest_raw,
+        "enrichment manifest",
+    )
+    warning_bytes = sum(
+        len(_validated_canonical_bytes(warning, "enrichment warning"))
+        for warning in warnings
+    )
+    result_size = _enrichment_result_size(
+        manifest_bytes=len(manifest_encoded),
+        bundle_bytes=0,
+        bundle_count=0,
+        warning_bytes=warning_bytes,
+        warning_count=len(warnings),
+    )
+    if result_size > maximum_canonical_bytes:
+        raise ValidationError(over_limit_message)
+
+    digest = hashlib.sha256()
+    digest.update(b'{"bundles":[')
+    bundle_count = 0
+    bundle_bytes = 0
+    for bundle in bundles:
+        encoded = _validated_canonical_bytes(
+            bundle.to_dict(),
+            "enrichment reference bundle",
+        )
+        if bundle_count:
+            digest.update(b",")
+        digest.update(encoded)
+        bundle_count += 1
+        bundle_bytes += len(encoded)
+        result_size = _enrichment_result_size(
+            manifest_bytes=len(manifest_encoded),
+            bundle_bytes=bundle_bytes,
+            bundle_count=bundle_count,
+            warning_bytes=warning_bytes,
+            warning_count=len(warnings),
+        )
+        if result_size > maximum_canonical_bytes:
+            raise ValidationError(over_limit_message)
+
+    digest.update(b'],"manifest":')
+    digest.update(manifest_encoded)
+    digest.update(b',"warnings":[')
+    for index, warning in enumerate(warnings):
+        if index:
+            digest.update(b",")
+        digest.update(_validated_canonical_bytes(warning, "enrichment warning"))
+    digest.update(b"]}")
+    return f"sha256:{digest.hexdigest()}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -1753,9 +2250,16 @@ class EnrichmentResult:
     def __post_init__(self) -> None:
         if type(self.manifest) is not CaseManifest:
             raise ValidationError("enrichment manifest must be a CaseManifest")
+        if len(self.manifest.candidate_elements) > MAX_ENRICHED_ELEMENTS:
+            raise ValidationError(
+                "enrichment manifest candidate elements exceed their hard ceiling"
+            )
         manifest_raw = self.manifest.to_dict()
-        if canonical_bytes(manifest_raw) != canonical_bytes(
-            CaseManifest.from_dict(manifest_raw).to_dict()
+        if _validated_canonical_bytes(
+            manifest_raw, "enrichment manifest"
+        ) != _validated_canonical_bytes(
+            CaseManifest.from_dict(manifest_raw).to_dict(),
+            "enrichment manifest",
         ):
             raise ValidationError("enrichment manifest is not canonical")
         if type(self.bundles) is not tuple or len(self.bundles) > MAX_REFERENCE_VARIANTS:
@@ -1764,6 +2268,24 @@ class EnrichmentResult:
             )
         if any(type(item) is not ReferenceBundle for item in self.bundles):
             raise ValidationError("enrichment bundles must contain ReferenceBundle objects")
+        if sum(len(item.elements) for item in self.bundles) > MAX_ENRICHED_ELEMENTS:
+            raise ValidationError(
+                "enrichment aggregate bundle element occurrences exceed their hard ceiling"
+            )
+        if sum(len(item.raw_features) for item in self.bundles) > MAX_ENRICHED_ELEMENTS:
+            raise ValidationError(
+                "enrichment aggregate bundle raw feature occurrences exceed their hard ceiling"
+            )
+        if sum(len(item.receipts) for item in self.bundles) > (
+            MAX_REFERENCE_VARIANTS * MAX_REFERENCE_RECEIPTS
+        ):
+            raise ValidationError(
+                "enrichment aggregate bundle receipt occurrences exceed their hard ceiling"
+            )
+        if sum(len(item.warnings) for item in self.bundles) > MAX_REFERENCE_WARNINGS:
+            raise ValidationError(
+                "enrichment aggregate bundle warning occurrences exceed their hard ceiling"
+            )
         bundle_ids = tuple(item.variant_id for item in self.bundles)
         if len(bundle_ids) != len(set(bundle_ids)):
             raise ValidationError("enrichment bundle variant identifiers must be unique")
@@ -1772,13 +2294,30 @@ class EnrichmentResult:
             raise ValidationError("enrichment must contain exactly one bundle per manifest variant")
         if any(item.context_key != self.manifest.context.key for item in self.bundles):
             raise ValidationError("enrichment bundle context does not match the manifest")
+        manifest_context = _canonical_reference_context(
+            self.manifest.context,
+            "enrichment manifest context",
+        )
+        manifest_context_address = _reference_context_address(manifest_context)
+        if any(
+            item.context_address != manifest_context_address for item in self.bundles
+        ):
+            raise ValidationError(
+                "enrichment bundle context does not exactly match the manifest"
+            )
         manifest_elements = {
-            item.element_id: canonical_bytes(item.to_dict())
+            item.element_id: _validated_canonical_bytes(
+                item.to_dict(),
+                "enrichment manifest element",
+            )
             for item in self.manifest.candidate_elements
         }
         for bundle in self.bundles:
             for element in bundle.elements:
-                if manifest_elements.get(element.element_id) != canonical_bytes(element.to_dict()):
+                if manifest_elements.get(element.element_id) != _validated_canonical_bytes(
+                    element.to_dict(),
+                    "enrichment bundle element",
+                ):
                     raise ValidationError(
                         "enrichment manifest does not contain the exact bundle element "
                         f"{element.element_id}"
@@ -1799,20 +2338,251 @@ class EnrichmentResult:
         bundle_warnings = {warning for bundle in self.bundles for warning in bundle.warnings}
         if not bundle_warnings.issubset(self.warnings):
             raise ValidationError("enrichment warnings omit a bundle warning")
+        total_sequence_bp = sum(
+            len(bundle.sequence.sequence)
+            for bundle in self.bundles
+            if bundle.sequence is not None
+        )
+        if total_sequence_bp > MAX_ENRICHMENT_SEQUENCE_BP:
+            raise ValidationError(
+                "enrichment aggregate sequence work exceeds its hard base-pair ceiling"
+            )
+        _enrichment_content_address(
+            manifest_raw=manifest_raw,
+            bundles=self.bundles,
+            warnings=self.warnings,
+            maximum_canonical_bytes=MAX_ENRICHMENT_CANONICAL_BYTES,
+            over_limit_message="enrichment result exceeds its hard canonical byte ceiling",
+        )
 
     def to_dict(self) -> dict[str, Any]:
+        manifest_raw = self.manifest.to_dict()
+        content_address = _enrichment_content_address(
+            manifest_raw=manifest_raw,
+            bundles=self.bundles,
+            warnings=self.warnings,
+            maximum_canonical_bytes=MAX_ENRICHMENT_CANONICAL_BYTES,
+            over_limit_message="enrichment result exceeds its hard canonical byte ceiling",
+        )
         return {
-            "manifest": self.manifest.to_dict(),
+            "manifest": manifest_raw,
             "bundles": [bundle.to_dict() for bundle in self.bundles],
             "warnings": list(self.warnings),
-            "content_address": content_hash(
-                {
-                    "manifest": self.manifest.to_dict(),
-                    "bundles": [bundle.to_dict() for bundle in self.bundles],
-                    "warnings": list(self.warnings),
-                }
-            ),
+            "content_address": content_address,
         }
+
+    @classmethod
+    def from_dict(
+        cls,
+        raw: Mapping[str, Any],
+        *,
+        limits: ReferenceRetrievalLimits | None = None,
+    ) -> EnrichmentResult:
+        """Rehydrate one exact enrichment closure, including every nested bundle."""
+
+        selected_limits = DEFAULT_REFERENCE_RETRIEVAL_LIMITS if limits is None else limits
+        if type(selected_limits) is not ReferenceRetrievalLimits:
+            raise ValidationError("reference limits must be ReferenceRetrievalLimits")
+
+        expected_fields = frozenset(
+            {"manifest", "bundles", "warnings", "content_address"}
+        )
+        if not isinstance(raw, Mapping) or any(type(key) is not str for key in raw):
+            raise ValidationError("enrichment result must be an exact JSON object")
+        if frozenset(raw) != expected_fields:
+            raise ValidationError("enrichment result fields are not exact")
+        manifest_raw = raw["manifest"]
+        bundles_raw = raw["bundles"]
+        warnings_raw = raw["warnings"]
+        if type(manifest_raw) is not dict:
+            raise ValidationError("enrichment manifest must be an exact JSON object")
+        if type(bundles_raw) is not list:
+            raise ValidationError("enrichment bundles must be an exact array")
+        if type(warnings_raw) is not list:
+            raise ValidationError("enrichment warnings must be an exact array")
+        if len(bundles_raw) > MAX_REFERENCE_VARIANTS:
+            raise ValidationError("enrichment bundles exceed their hard ceiling")
+        if len(bundles_raw) > selected_limits.max_variants:
+            raise ValidationError("enrichment bundles exceed their configured variant ceiling")
+        if len(warnings_raw) > MAX_REFERENCE_WARNINGS:
+            raise ValidationError("enrichment warnings exceed their hard ceiling")
+        if any(type(item) is not str for item in warnings_raw):
+            raise ValidationError("enrichment warnings must contain exact strings")
+        if len(warnings_raw) != len(set(warnings_raw)):
+            raise ValidationError("enrichment warnings must be unique")
+        warning_bytes = 0
+        for warning in warnings_raw:
+            _required_text(warning, "enrichment warning")
+            warning_bytes += len(
+                _validated_canonical_bytes(warning, "enrichment warning")
+            )
+        _sha256_address(raw["content_address"], "enrichment content_address")
+        if any(type(item) is not dict for item in bundles_raw):
+            raise ValidationError("enrichment bundles must be exact JSON objects")
+
+        manifest_fields = frozenset(
+            {
+                "case_id",
+                "subject_id",
+                "context",
+                "variants",
+                "candidate_elements",
+                "metadata",
+                "input_versions",
+                "requested_by",
+            }
+        )
+        if any(type(key) is not str for key in manifest_raw):
+            raise ValidationError("enrichment manifest must be an exact JSON object")
+        if frozenset(manifest_raw) != manifest_fields:
+            raise ValidationError("enrichment manifest fields are not exact")
+        if type(manifest_raw["context"]) is not dict:
+            raise ValidationError("enrichment manifest context must be an exact JSON object")
+        if type(manifest_raw["variants"]) is not list:
+            raise ValidationError("enrichment manifest variants must be an exact array")
+        if type(manifest_raw["candidate_elements"]) is not list:
+            raise ValidationError(
+                "enrichment manifest candidate_elements must be an exact array"
+            )
+        if type(manifest_raw["metadata"]) is not dict:
+            raise ValidationError("enrichment manifest metadata must be an exact JSON object")
+        if type(manifest_raw["input_versions"]) is not dict:
+            raise ValidationError(
+                "enrichment manifest input_versions must be an exact JSON object"
+            )
+        variants_raw = manifest_raw["variants"]
+        manifest_elements_raw = manifest_raw["candidate_elements"]
+        if len(variants_raw) > MAX_REFERENCE_VARIANTS:
+            raise ValidationError("enrichment manifest variants exceed their hard ceiling")
+        if len(variants_raw) > selected_limits.max_variants:
+            raise ValidationError(
+                "enrichment manifest variants exceed their configured variant ceiling"
+            )
+        if len(manifest_elements_raw) > MAX_ENRICHED_ELEMENTS:
+            raise ValidationError(
+                "enrichment manifest candidate elements exceed their hard ceiling"
+            )
+        if len(manifest_elements_raw) > selected_limits.max_total_elements:
+            raise ValidationError(
+                "enrichment manifest candidate elements exceed their configured total ceiling"
+            )
+        if any(type(item) is not dict for item in variants_raw):
+            raise ValidationError("enrichment manifest variants must be exact JSON objects")
+        if any(type(item) is not dict for item in manifest_elements_raw):
+            raise ValidationError(
+                "enrichment manifest candidate elements must be exact JSON objects"
+            )
+        if len(bundles_raw) != len(variants_raw):
+            raise ValidationError(
+                "enrichment must contain exactly one bundle per manifest variant"
+            )
+
+        bundle_element_occurrences = 0
+        bundle_raw_feature_occurrences = 0
+        bundle_receipt_occurrences = 0
+        bundle_warning_occurrences = 0
+        aggregate_sequence_bp = 0
+        manifest_size = len(
+            _validated_canonical_bytes(manifest_raw, "enrichment manifest")
+        )
+        bundle_bytes = 0
+        if _enrichment_result_size(
+            manifest_bytes=manifest_size,
+            bundle_bytes=bundle_bytes,
+            bundle_count=0,
+            warning_bytes=warning_bytes,
+            warning_count=len(warnings_raw),
+        ) > selected_limits.max_total_canonical_bytes:
+            raise ValidationError(
+                "enrichment result exceeds its configured canonical byte ceiling"
+            )
+        for bundle_index, bundle_raw in enumerate(bundles_raw, start=1):
+            element_count, raw_feature_count, receipt_count, warning_count = (
+                ReferenceBundle._preflight_dict(bundle_raw)
+            )
+            if (
+                element_count > selected_limits.max_features_per_variant
+                or raw_feature_count > selected_limits.max_features_per_variant
+            ):
+                raise ValidationError(
+                    "enrichment reference bundle features exceed their configured per-variant "
+                    "ceiling"
+                )
+            bundle_size = len(
+                _validated_canonical_bytes(bundle_raw, "enrichment reference bundle")
+            )
+            if bundle_size > MAX_REFERENCE_BUNDLE_BYTES:
+                raise ValidationError(
+                    "enrichment reference bundle exceeds its hard canonical byte ceiling"
+                )
+            bundle_bytes += bundle_size
+            if _enrichment_result_size(
+                manifest_bytes=manifest_size,
+                bundle_bytes=bundle_bytes,
+                bundle_count=bundle_index,
+                warning_bytes=warning_bytes,
+                warning_count=len(warnings_raw),
+            ) > selected_limits.max_total_canonical_bytes:
+                raise ValidationError(
+                    "enrichment result exceeds its configured canonical byte ceiling"
+                )
+            bundle_element_occurrences += element_count
+            if bundle_element_occurrences > MAX_ENRICHED_ELEMENTS:
+                raise ValidationError(
+                    "enrichment aggregate bundle element occurrences exceed their hard ceiling"
+                )
+            bundle_raw_feature_occurrences += raw_feature_count
+            if bundle_raw_feature_occurrences > MAX_ENRICHED_ELEMENTS:
+                raise ValidationError(
+                    "enrichment aggregate bundle raw feature occurrences "
+                    "exceed their hard ceiling"
+                )
+            bundle_receipt_occurrences += receipt_count
+            if bundle_receipt_occurrences > (
+                MAX_REFERENCE_VARIANTS * MAX_REFERENCE_RECEIPTS
+            ):
+                raise ValidationError(
+                    "enrichment aggregate bundle receipt occurrences exceed their hard ceiling"
+                )
+            bundle_warning_occurrences += warning_count
+            if bundle_warning_occurrences > MAX_REFERENCE_WARNINGS:
+                raise ValidationError(
+                    "enrichment aggregate bundle warning occurrences exceed their hard ceiling"
+                )
+            sequence_raw = bundle_raw["sequence"]
+            if sequence_raw is not None:
+                sequence_value = sequence_raw.get("sequence")
+                if type(sequence_value) is not str:
+                    raise ValidationError(
+                        "enrichment bundle sequence must contain a sequence string"
+                    )
+                aggregate_sequence_bp += len(sequence_value)
+                if aggregate_sequence_bp > selected_limits.max_total_sequence_bp:
+                    raise ValidationError(
+                        "enrichment aggregate sequence work exceeds its configured "
+                        "base-pair ceiling"
+                    )
+
+        manifest = CaseManifest.from_dict(manifest_raw)
+        result = cls(
+            manifest=manifest,
+            bundles=tuple(
+                ReferenceBundle.from_dict(item, manifest.context)
+                for item in bundles_raw
+            ),
+            warnings=tuple(warnings_raw),
+        )
+        expected_address = _sha256_address(
+            raw["content_address"],
+            "enrichment content_address",
+        )
+        if result.to_dict()["content_address"] != expected_address:
+            raise ValidationError("enrichment content_address does not match its payload")
+        if _validated_canonical_bytes(
+            result.to_dict(), "enrichment result"
+        ) != _validated_canonical_bytes(raw, "enrichment result"):
+            raise ValidationError("enrichment result is not an exact canonical representation")
+        return result
 
 
 class EnsemblRestClient:
@@ -1859,6 +2629,7 @@ class EnsemblRestClient:
         *,
         features: Iterable[str],
         species: str = "homo_sapiens",
+        _integrity_guard: Callable[[], None] | None = None,
     ) -> SourcePayload:
         source = self.client.catalog.get(self.source_id)
         if (
@@ -1891,6 +2662,7 @@ class EnsemblRestClient:
             self.source_id,
             f"/overlap/region/{species}/{region}",
             {"feature": normalized_features},
+            _integrity_guard=_integrity_guard,
         )
 
 
@@ -1915,7 +2687,13 @@ class UcscRestClient:
             raise ValidationError(f"UCSC assembly is not configured for {genome_build}") from exc
 
     def sequence(
-        self, chromosome: str, start: int, end: int, *, genome_build: str
+        self,
+        chromosome: str,
+        start: int,
+        end: int,
+        *,
+        genome_build: str,
+        _integrity_guard: Callable[[], None] | None = None,
     ) -> SourcePayload:
         source = self.client.catalog.get(self.source_id)
         if (
@@ -1935,6 +2713,7 @@ class UcscRestClient:
                 "start": start - 1,
                 "end": end,
             },
+            _integrity_guard=_integrity_guard,
         )
 
     def track(
@@ -2023,6 +2802,563 @@ class EncodeRestClient:
         )
 
 
+def _capture_public_reference_semantic_guard() -> tuple[
+    Callable[[], bool],
+    Callable[[], None],
+]:
+    """Snapshot package semantics that a public-source callback could rewrite."""
+
+    error_type = ValidationError
+    source_namespace = globals()
+    function_type = FunctionType
+    field_type = Field
+    field_slots = tuple(cast(Any, Field).__slots__)
+    class_setattr = type.__setattr__
+    class_delattr = type.__delattr__
+
+    def descriptor_functions(values: tuple[object, ...]) -> tuple[FunctionType, ...]:
+        selected: list[FunctionType] = []
+        for descriptor in values:
+            if type(descriptor) is function_type:
+                selected.append(cast(FunctionType, descriptor))
+            elif type(descriptor) in {staticmethod, classmethod}:
+                selected.append(cast(Any, descriptor).__func__)
+            elif type(descriptor) is property:
+                selected.extend(
+                    cast(FunctionType, function)
+                    for function in (
+                        cast(property, descriptor).fget,
+                        cast(property, descriptor).fset,
+                        cast(property, descriptor).fdel,
+                    )
+                    if function is not None
+                )
+        return tuple(selected)
+
+    class_by_id: dict[int, type[Any]] = {}
+    module_by_id: dict[int, dict[str, object]] = {id(source_namespace): source_namespace}
+    while True:
+        previous_shape = (len(module_by_id), len(class_by_id))
+        for namespace in tuple(module_by_id.values()):
+            for candidate in namespace.values():
+                if not isinstance(candidate, type):
+                    continue
+                owner = getattr(candidate, "__module__", "")
+                if type(owner) is str and (
+                    owner == "glio_noncode" or owner.startswith("glio_noncode.")
+                ):
+                    class_by_id[id(candidate)] = candidate
+            for function in descriptor_functions(tuple(namespace.values())):
+                function_namespace = function.__globals__
+                package = function_namespace.get("__package__")
+                if type(package) is str and (
+                    package == "glio_noncode" or package.startswith("glio_noncode.")
+                ):
+                    module_by_id[id(function_namespace)] = function_namespace
+        for target in tuple(class_by_id.values()):
+            for function in descriptor_functions(tuple(vars(target).values())):
+                function_namespace = function.__globals__
+                package = function_namespace.get("__package__")
+                if type(package) is str and (
+                    package == "glio_noncode" or package.startswith("glio_noncode.")
+                ):
+                    module_by_id[id(function_namespace)] = function_namespace
+        if (len(module_by_id), len(class_by_id)) == previous_shape:
+            break
+
+    class_targets = tuple(class_by_id.values())
+    module_namespaces = tuple(module_by_id.values())
+    function_by_id: dict[int, FunctionType] = {}
+    for namespace in module_namespaces:
+        for function in descriptor_functions(tuple(namespace.values())):
+            function_by_id[id(function)] = function
+    for target in class_targets:
+        for function in descriptor_functions(tuple(vars(target).values())):
+            function_by_id[id(function)] = function
+
+    pending_functions = list(function_by_id.values())
+    function_index = 0
+    while function_index < len(pending_functions):
+        function = pending_functions[function_index]
+        function_index += 1
+        wrapped = vars(function).get("__wrapped__")
+        nested_functions: list[object] = [wrapped]
+        for cell in function.__closure__ or ():
+            try:
+                nested_functions.append(cell.cell_contents)
+            except ValueError:
+                continue
+        for candidate in nested_functions:
+            if type(candidate) is not function_type or id(candidate) in function_by_id:
+                continue
+            if len(function_by_id) >= 65_536:
+                raise error_type("public reference semantic function graph exceeds limit")
+            selected_function = cast(FunctionType, candidate)
+            function_by_id[id(selected_function)] = selected_function
+            pending_functions.append(selected_function)
+
+    while True:
+        function_graph_shape = (len(module_by_id), len(class_by_id), len(function_by_id))
+        for function in tuple(function_by_id.values()):
+            function_namespace = function.__globals__
+            package = function_namespace.get("__package__")
+            if type(package) is str and (
+                package == "glio_noncode" or package.startswith("glio_noncode.")
+            ):
+                module_by_id[id(function_namespace)] = function_namespace
+            nested_function_values: list[object] = [vars(function).get("__wrapped__")]
+            for cell in function.__closure__ or ():
+                try:
+                    nested_function_values.append(cell.cell_contents)
+                except ValueError:
+                    continue
+            for candidate in nested_function_values:
+                if type(candidate) is not function_type or id(candidate) in function_by_id:
+                    continue
+                if len(function_by_id) >= 65_536:
+                    raise error_type("public reference semantic function graph exceeds limit")
+                selected_function = cast(FunctionType, candidate)
+                function_by_id[id(selected_function)] = selected_function
+        for namespace in tuple(module_by_id.values()):
+            for candidate in namespace.values():
+                if not isinstance(candidate, type):
+                    continue
+                owner = getattr(candidate, "__module__", "")
+                if type(owner) is str and (
+                    owner == "glio_noncode" or owner.startswith("glio_noncode.")
+                ):
+                    class_by_id[id(candidate)] = candidate
+            for function in descriptor_functions(tuple(namespace.values())):
+                function_by_id[id(function)] = function
+        for target in tuple(class_by_id.values()):
+            for function in descriptor_functions(tuple(vars(target).values())):
+                function_by_id[id(function)] = function
+        if (len(module_by_id), len(class_by_id), len(function_by_id)) == function_graph_shape:
+            break
+
+    class_targets = tuple(class_by_id.values())
+    module_namespaces = tuple(module_by_id.values())
+
+    function_states: list[tuple[Any, ...]] = []
+    for function in function_by_id.values():
+        kwdefaults = function.__kwdefaults__
+        annotations = function.__annotations__
+        function_dict = vars(function)
+        if kwdefaults is not None and type(kwdefaults) is not dict:
+            raise error_type("public reference function kwdefaults are invalid")
+        if type(annotations) is not dict:
+            raise error_type("public reference function annotations are invalid")
+        closure_states: list[tuple[object, bool, object | None]] = []
+        for cell in function.__closure__ or ():
+            try:
+                closure_states.append((cell, True, cell.cell_contents))
+            except ValueError:
+                closure_states.append((cell, False, None))
+        function_states.append(
+            (
+                function,
+                function.__code__,
+                function.__defaults__,
+                kwdefaults,
+                () if kwdefaults is None else tuple(kwdefaults.items()),
+                annotations,
+                tuple(annotations.items()),
+                function_dict,
+                tuple(function_dict.items()),
+                tuple(closure_states),
+            )
+        )
+
+    module_states = tuple(
+        (namespace, tuple(namespace.items())) for namespace in module_namespaces
+    )
+    class_states: list[tuple[Any, ...]] = []
+    for target in class_targets:
+        attributes = tuple(vars(target).items())
+        mappings = tuple(
+            (value, tuple(value.items()))
+            for _name, value in attributes
+            if type(value) is dict
+        )
+        dataclass_fields = vars(target).get("__dataclass_fields__")
+        field_states: tuple[tuple[Field[Any], tuple[tuple[str, object], ...]], ...] = ()
+        if type(dataclass_fields) is dict:
+            if any(type(item) is not field_type for item in dataclass_fields.values()):
+                raise error_type("public reference dataclass field registry is invalid")
+            field_states = tuple(
+                (
+                    item,
+                    tuple((name, getattr(item, name)) for name in field_slots),
+                )
+                for item in dataclass_fields.values()
+            )
+        class_states.append((target, attributes, mappings, field_states))
+
+    def same_items(
+        mapping: Mapping[Any, Any],
+        expected: tuple[tuple[Any, Any], ...],
+    ) -> bool:
+        try:
+            current = tuple(mapping.items())
+            return len(current) == len(expected) and all(
+                current_key == expected_key and current_value is expected_value
+                for (current_key, current_value), (expected_key, expected_value) in zip(
+                    current,
+                    expected,
+                    strict=True,
+                )
+            )
+        except Exception:  # noqa: BLE001 - callback-mutated semantic mapping
+            return False
+
+    def cell_is_empty(cell: object) -> bool:
+        try:
+            _ = cast(Any, cell).cell_contents
+        except ValueError:
+            return True
+        return False
+
+    def function_unchanged(state: tuple[Any, ...]) -> bool:
+        (
+            function,
+            code,
+            defaults,
+            kwdefaults,
+            kwdefault_items,
+            annotations,
+            annotation_items,
+            function_dict,
+            function_dict_items,
+            closure_states,
+        ) = state
+        try:
+            current_closure = function.__closure__ or ()
+            return (
+                function.__code__ is code
+                and function.__defaults__ is defaults
+                and function.__kwdefaults__ is kwdefaults
+                and (kwdefaults is None or same_items(kwdefaults, kwdefault_items))
+                and function.__annotations__ is annotations
+                and same_items(annotations, annotation_items)
+                and vars(function) is function_dict
+                and same_items(function_dict, function_dict_items)
+                and len(current_closure) == len(closure_states)
+                and all(
+                    current_cell is expected_cell
+                    and (
+                        (had_value and current_cell.cell_contents is value)
+                        or (not had_value and cell_is_empty(current_cell))
+                    )
+                    for current_cell, (expected_cell, had_value, value) in zip(
+                        current_closure,
+                        closure_states,
+                        strict=True,
+                    )
+                )
+            )
+        except Exception:  # noqa: BLE001 - callback-mutated function
+            return False
+
+    # Preserve a detached helper chain for every check that can run after the
+    # transport callback has had access to package-module globals.
+    same_items = cast(Any, detached_callback_guard(same_items))
+    cell_is_empty = cast(Any, detached_callback_guard(cell_is_empty))
+    function_unchanged = cast(Any, detached_callback_guard(function_unchanged))
+
+    def unchanged() -> bool:
+        try:
+            if any(
+                not same_items(namespace, attributes)
+                for namespace, attributes in module_states
+            ):
+                return False
+            if any(not function_unchanged(state) for state in function_states):
+                return False
+            for target, attributes, mappings, field_states in class_states:
+                if not same_items(vars(target), attributes):
+                    return False
+                if any(not same_items(mapping, items) for mapping, items in mappings):
+                    return False
+                if any(
+                    any(getattr(item, name) is not value for name, value in values)
+                    for item, values in field_states
+                ):
+                    return False
+            return True
+        except Exception:  # noqa: BLE001 - unreadable package semantics
+            return False
+
+    unchanged = cast(Any, detached_callback_guard(unchanged))
+
+    def restore() -> None:
+        try:
+            for namespace, attributes in module_states:
+                expected = dict(attributes)
+                for name in set(namespace) - set(expected):
+                    del namespace[name]
+                for name, value in attributes:
+                    if name not in namespace or namespace[name] is not value:
+                        namespace[name] = value
+            for target, attributes, mappings, field_states in class_states:
+                expected = dict(attributes)
+                for name in set(vars(target)) - set(expected):
+                    class_delattr(target, name)
+                for name, value in attributes:
+                    if name not in vars(target) or vars(target)[name] is not value:
+                        class_setattr(target, name, value)
+                for mapping, items in mappings:
+                    mapping.clear()
+                    mapping.update(dict(items))
+                for item, values in field_states:
+                    for name, value in values:
+                        setattr(item, name, value)
+            for state in function_states:
+                (
+                    function,
+                    code,
+                    defaults,
+                    kwdefaults,
+                    kwdefault_items,
+                    annotations,
+                    annotation_items,
+                    function_dict,
+                    function_dict_items,
+                    closure_states,
+                ) = state
+                function.__code__ = code
+                function.__defaults__ = defaults
+                function.__kwdefaults__ = kwdefaults
+                if kwdefaults is not None:
+                    kwdefaults.clear()
+                    kwdefaults.update(dict(kwdefault_items))
+                function.__annotations__ = annotations
+                annotations.clear()
+                annotations.update(dict(annotation_items))
+                function.__dict__ = function_dict
+                function_dict.clear()
+                function_dict.update(dict(function_dict_items))
+                current_closure = function.__closure__ or ()
+                if len(current_closure) != len(closure_states):
+                    raise error_type("public reference function closure could not be restored")
+                for current_cell, (expected_cell, had_value, value) in zip(
+                    current_closure,
+                    closure_states,
+                    strict=True,
+                ):
+                    if current_cell is not expected_cell:
+                        raise error_type(
+                            "public reference function closure could not be restored"
+                        )
+                    if had_value:
+                        current_cell.cell_contents = value
+                    else:
+                        try:
+                            del current_cell.cell_contents
+                        except ValueError:
+                            pass
+        except Exception as exc:  # noqa: BLE001 - semantic restoration boundary
+            if isinstance(exc, error_type):
+                raise
+            raise error_type("public reference semantic state could not be restored") from exc
+        if not unchanged():
+            raise error_type("public reference semantic state could not be restored")
+
+    return (
+        cast(Callable[[], bool], unchanged),
+        cast(Callable[[], None], detached_callback_guard(restore)),
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class _ObjectConfigurationSnapshot:
+    target: object
+    target_type: type[Any]
+    attributes: tuple[tuple[str, object], ...]
+    namespace_names: frozenset[str] | None
+
+
+@dataclass(frozen=True, slots=True)
+class _MappingConfigurationSnapshot:
+    target: dict[Any, Any]
+    items: tuple[tuple[Any, Any], ...]
+
+
+@dataclass(frozen=True, slots=True)
+class _MutableContainerSnapshot:
+    target: dict[Any, Any] | list[Any]
+    target_type: type[Any]
+    items: tuple[Any, ...]
+    is_mapping: bool
+
+
+@dataclass(frozen=True, slots=True)
+class _PublicReferenceInvocationSnapshot:
+    object_states: tuple[_ObjectConfigurationSnapshot, ...]
+    mapping_states: tuple[_MappingConfigurationSnapshot, ...]
+    mutable_states: tuple[_MutableContainerSnapshot, ...]
+    semantic_unchanged: Callable[[], bool]
+    restore_semantics: Callable[[], None]
+
+
+def _configuration_value_is_same(current: object, original: object) -> bool:
+    if current is original:
+        return True
+    if type(original) in {str, int, float, bool, tuple, frozenset, type(None)}:
+        return type(current) is type(original) and current == original
+    return False
+
+
+def _capture_mutable_container_configuration(
+    values: Iterable[object],
+) -> tuple[_MutableContainerSnapshot, ...]:
+    """Snapshot every JSON dict/list without losing caller-visible aliases."""
+
+    pending = list(reversed(tuple(values)))
+    selected: list[_MutableContainerSnapshot] = []
+    seen: set[int] = set()
+    while pending:
+        value = pending.pop()
+        if type(value) is tuple:
+            pending.extend(reversed(value))
+            continue
+        if not isinstance(value, (dict, list)) or id(value) in seen:
+            continue
+        seen.add(id(value))
+        if isinstance(value, dict):
+            items = tuple(value.items())
+            selected.append(
+                _MutableContainerSnapshot(
+                    target=value,
+                    target_type=type(value),
+                    items=items,
+                    is_mapping=True,
+                )
+            )
+            pending.extend(reversed(tuple(item for _key, item in items)))
+        else:
+            items = tuple(value)
+            selected.append(
+                _MutableContainerSnapshot(
+                    target=value,
+                    target_type=type(value),
+                    items=items,
+                    is_mapping=False,
+                )
+            )
+            pending.extend(reversed(items))
+    return tuple(selected)
+
+
+def _mutable_container_configuration_is_unchanged(
+    states: tuple[_MutableContainerSnapshot, ...],
+) -> bool:
+    try:
+        for state in states:
+            if type(state.target) is not state.target_type:
+                return False
+            if state.is_mapping:
+                current_items = tuple(cast(dict[Any, Any], state.target).items())
+                if len(current_items) != len(state.items) or any(
+                    not _configuration_value_is_same(current_key, expected_key)
+                    or not _configuration_value_is_same(current_value, expected_value)
+                    for (current_key, current_value), (expected_key, expected_value) in zip(
+                        current_items,
+                        cast(tuple[tuple[Any, Any], ...], state.items),
+                        strict=True,
+                    )
+                ):
+                    return False
+            else:
+                current_items = tuple(cast(list[Any], state.target))
+                if len(current_items) != len(state.items) or any(
+                    not _configuration_value_is_same(current, expected)
+                    for current, expected in zip(
+                        current_items,
+                        state.items,
+                        strict=True,
+                    )
+                ):
+                    return False
+        return True
+    except Exception:  # noqa: BLE001 - callback-mutated recursive container
+        return False
+
+
+def _restore_mutable_container_configuration(
+    states: tuple[_MutableContainerSnapshot, ...],
+) -> None:
+    for state in states:
+        if type(state.target) is not state.target_type:
+            object.__setattr__(state.target, "__class__", state.target_type)
+        if state.is_mapping:
+            target_mapping = cast(dict[Any, Any], state.target)
+            dict.clear(target_mapping)
+            for key, value in cast(tuple[tuple[Any, Any], ...], state.items):
+                dict.__setitem__(target_mapping, key, value)
+        else:
+            target_list = cast(list[Any], state.target)
+            list.clear(target_list)
+            list.extend(target_list, state.items)
+
+
+def _capture_object_configuration_guard(
+    states: tuple[_ObjectConfigurationSnapshot, ...],
+    *,
+    message: str,
+) -> tuple[Callable[[], None], Callable[[], None]]:
+    """Return detached assertion/restoration callbacks for an object graph."""
+
+    error_type = _SourceCallbackMutationError
+    object_setattr = object.__setattr__
+    mutable_states = _capture_mutable_container_configuration(
+        value for state in states for _name, value in state.attributes
+    )
+
+    def assert_unchanged() -> None:
+        try:
+            for state in states:
+                if type(state.target) is not state.target_type:
+                    raise error_type
+                if state.namespace_names is not None and frozenset(vars(state.target)) != (
+                    state.namespace_names
+                ):
+                    raise error_type
+                for name, value in state.attributes:
+                    if not _configuration_value_is_same(
+                        getattr(state.target, name),
+                        value,
+                    ):
+                        raise error_type
+            if not _mutable_container_configuration_is_unchanged(mutable_states):
+                raise error_type
+        except Exception as exc:
+            if type(exc) is error_type:
+                raise error_type(message) from None
+            raise error_type(message) from exc
+
+    def restore() -> None:
+        try:
+            mutable_drifted = not _mutable_container_configuration_is_unchanged(
+                mutable_states
+            )
+            for state in states:
+                if type(state.target) is not state.target_type:
+                    object_setattr(state.target, "__class__", state.target_type)
+                if state.namespace_names is not None:
+                    namespace = vars(state.target)
+                    for name in tuple(namespace):
+                        if name not in state.namespace_names:
+                            del namespace[name]
+                for name, value in state.attributes:
+                    object_setattr(state.target, name, value)
+            if mutable_drifted:
+                _restore_mutable_container_configuration(mutable_states)
+        except Exception as exc:  # noqa: BLE001 - callback recovery boundary
+            raise ValidationError("public reference callback scope could not be restored") from exc
+
+    return assert_unchanged, restore
+
+
 class PublicReferenceRetriever:
     """Retrieve real sequence and nearby regulatory/gene features for a variant."""
 
@@ -2051,7 +3387,431 @@ class PublicReferenceRetriever:
         self.ensembl = EnsemblRestClient(self.client)
         self.ucsc = UcscRestClient(self.client)
         self.window_bp = window_bp
-        self.limits = selected_limits
+        self.limits = ReferenceRetrievalLimits(
+            max_window_bp=selected_limits.max_window_bp,
+            max_features_per_variant=selected_limits.max_features_per_variant,
+            max_variants=selected_limits.max_variants,
+            max_total_elements=selected_limits.max_total_elements,
+            max_total_canonical_bytes=selected_limits.max_total_canonical_bytes,
+            max_total_sequence_bp=selected_limits.max_total_sequence_bp,
+        )
+        self._lock = threading.RLock()
+
+    @staticmethod
+    def _object_configuration(
+        target: object,
+        names: tuple[str, ...] | None = None,
+    ) -> _ObjectConfigurationSnapshot:
+        namespace: dict[str, object] | None
+        try:
+            namespace = vars(target)
+        except TypeError:
+            namespace = None
+        selected_names = (
+            tuple(sorted(namespace))
+            if names is None and namespace is not None
+            else names
+        )
+        if selected_names is None:
+            raise ValidationError("public reference configuration fields are missing")
+        try:
+            attributes = tuple((name, getattr(target, name)) for name in selected_names)
+        except Exception as exc:  # noqa: BLE001 - mutable configuration boundary
+            raise ValidationError("public reference configuration is malformed") from exc
+        return _ObjectConfigurationSnapshot(
+            target=target,
+            target_type=type(target),
+            attributes=attributes,
+            namespace_names=None if namespace is None else frozenset(namespace),
+        )
+
+    def _capture_manifest_configuration(
+        self,
+        manifest: CaseManifest,
+    ) -> tuple[Callable[[], None], Callable[[], None]]:
+        manifest_fields = (
+            "case_id",
+            "subject_id",
+            "context",
+            "variants",
+            "candidate_elements",
+            "metadata",
+            "input_versions",
+            "requested_by",
+        )
+        context_fields = (
+            "genome_build",
+            "disease_class",
+            "age_group",
+            "cell_state",
+            "territory",
+            "treatment_phase",
+            "assay_support",
+            "source_version",
+        )
+        variant_fields = (
+            "variant_id",
+            "kind",
+            "chromosome",
+            "start",
+            "end",
+            "reference",
+            "alternate",
+            "genome_build",
+            "origin",
+            "clonality",
+            "sample_id",
+            "annotations",
+        )
+        element_fields = (
+            "element_id",
+            "chromosome",
+            "start",
+            "end",
+            "element_type",
+            "context",
+            "source_id",
+            "target_genes",
+            "state_ids",
+            "features",
+            "annotations",
+        )
+        objects: list[tuple[object, tuple[str, ...]]] = [
+            (manifest, manifest_fields),
+            (manifest.context, context_fields),
+            *((variant, variant_fields) for variant in manifest.variants),
+            *((element, element_fields) for element in manifest.candidate_elements),
+            *((element.context, context_fields) for element in manifest.candidate_elements),
+        ]
+        selected: list[_ObjectConfigurationSnapshot] = []
+        seen: set[int] = set()
+        for target, fields in objects:
+            if id(target) in seen:
+                continue
+            seen.add(id(target))
+            selected.append(self._object_configuration(target, fields))
+        return _capture_object_configuration_guard(
+            tuple(selected),
+            message="public reference callback mutated enrichment manifest scope",
+        )
+
+    def _capture_invocation_configuration(
+        self,
+        caller_variant: VariantIdentity,
+        caller_context: ReferenceContext,
+        selected_variant: VariantIdentity,
+        selected_context: ReferenceContext,
+    ) -> _PublicReferenceInvocationSnapshot:
+        client = self.client
+        ensembl = self.ensembl
+        ucsc = self.ucsc
+        limits = self.limits
+        lock = self._lock
+        if type(client) is not SourceClient:
+            raise ValidationError("public reference client configuration is invalid")
+        if type(ensembl) is not EnsemblRestClient or ensembl.client is not client:
+            raise ValidationError("public Ensembl client configuration is invalid")
+        if type(ucsc) is not UcscRestClient or ucsc.client is not client:
+            raise ValidationError("public UCSC client configuration is invalid")
+        if type(limits) is not ReferenceRetrievalLimits:
+            raise ValidationError("public reference limits configuration is invalid")
+        if type(lock) is not _RLOCK_TYPE:
+            raise ValidationError("public reference retrieval lock is invalid")
+        _bounded_int(
+            self.window_bp,
+            "window_bp",
+            minimum=1,
+            maximum=limits.max_window_bp,
+        )
+        ReferenceRetrievalLimits(
+            max_window_bp=limits.max_window_bp,
+            max_features_per_variant=limits.max_features_per_variant,
+            max_variants=limits.max_variants,
+            max_total_elements=limits.max_total_elements,
+            max_total_canonical_bytes=limits.max_total_canonical_bytes,
+            max_total_sequence_bp=limits.max_total_sequence_bp,
+        )
+
+        if frozenset(vars(client)) != frozenset(
+            {
+                "catalog",
+                "transport",
+                "retry_policy",
+                "timeout_seconds",
+                "cache_ttl_seconds",
+                "user_agent",
+                "cache",
+                "_limiters",
+            }
+        ):
+            raise ValidationError("public source client has non-canonical configuration")
+        catalog = client.catalog
+        retry_policy = client.retry_policy
+        cache = client.cache
+        limiters = client._limiters  # noqa: SLF001 - public-source integrity boundary
+        if type(catalog) is not SourceCatalog or type(catalog._specs) is not dict:  # noqa: SLF001
+            raise ValidationError("public source catalog configuration is invalid")
+        if type(retry_policy) is not RetryPolicy:
+            raise ValidationError("public source retry configuration is invalid")
+        if type(cache) is not SourceCache:
+            raise ValidationError("public source cache configuration is invalid")
+        if type(limiters) is not dict:
+            raise ValidationError("public source limiter configuration is invalid")
+        if not callable(getattr(client.transport, "request", None)):
+            raise ValidationError("public source transport configuration is invalid")
+        RetryPolicy(
+            attempts=retry_policy.attempts,
+            initial_backoff_seconds=retry_policy.initial_backoff_seconds,
+            maximum_backoff_seconds=retry_policy.maximum_backoff_seconds,
+            retry_statuses=retry_policy.retry_statuses,
+        )
+        _bounded_number(
+            client.timeout_seconds,
+            "source timeout_seconds",
+            minimum=0.001,
+            maximum=MAX_SOURCE_TIMEOUT_SECONDS,
+        )
+        _bounded_int(
+            client.cache_ttl_seconds,
+            "source cache_ttl_seconds",
+            minimum=1,
+            maximum=MAX_SOURCE_CACHE_TTL_SECONDS,
+        )
+        _required_text(client.user_agent, "source user_agent", maximum=512)
+        if frozenset(vars(cache)) != frozenset({"root", "_locks", "_lock"}):
+            raise ValidationError("public source cache has non-canonical configuration")
+        if not isinstance(cache.root, Path) or not isinstance(cache._locks, Path):  # noqa: SLF001
+            raise ValidationError("public source cache paths are invalid")
+        if type(cache._lock) is not _RLOCK_TYPE:  # noqa: SLF001
+            raise ValidationError("public source cache lock is invalid")
+        if frozenset(vars(catalog)) != frozenset({"_specs", "_lock"}):
+            raise ValidationError("public source catalog has non-canonical configuration")
+        if type(catalog._lock) is not _RLOCK_TYPE:  # noqa: SLF001
+            raise ValidationError("public source catalog lock is invalid")
+
+        source_specs = tuple(catalog._specs[key] for key in sorted(catalog._specs))  # noqa: SLF001
+        if len(source_specs) > MAX_SOURCE_CATALOG_ENTRIES or any(
+            type(item) is not SourceSpec for item in source_specs
+        ):
+            raise ValidationError("public source catalog entries are invalid")
+        source_field_names = (
+            "source_id",
+            "name",
+            "kind",
+            "access",
+            "base_url",
+            "canonical_url",
+            "version",
+            "license",
+            "rate_limit_per_minute",
+            "max_response_bytes",
+            "max_region_bp",
+            "terms",
+            "enabled",
+        )
+        for spec in source_specs:
+            SourceSpec(**{name: getattr(spec, name) for name in source_field_names})
+        if frozenset(limiters) != frozenset(spec.source_id for spec in source_specs):
+            raise ValidationError("public source limiters do not match the source catalog")
+        limiter_states: list[_ObjectConfigurationSnapshot] = []
+        for spec in source_specs:
+            limiter = limiters[spec.source_id]
+            if type(limiter) is not RateLimiter:
+                raise ValidationError("public source limiter entry is invalid")
+            if type(limiter._lock) is not type(threading.Lock()):  # noqa: SLF001
+                raise ValidationError("public source limiter lock is invalid")
+            if limiter.interval_seconds != 60.0 / spec.rate_limit_per_minute:
+                raise ValidationError("public source limiter interval does not match its catalog")
+            limiter_states.append(
+                self._object_configuration(limiter, ("interval_seconds", "_lock"))
+            )
+
+        if EnsemblRestClient.source_id != "SRC-ENSEMBL-REST":
+            raise ValidationError("public Ensembl source identity is invalid")
+        if UcscRestClient.source_id != "SRC-UCSC-REST":
+            raise ValidationError("public UCSC source identity is invalid")
+        expected_assemblies = {
+            "GRCh38": "hg38",
+            "hg38": "hg38",
+            "GRCh37": "hg19",
+            "hg19": "hg19",
+        }
+        if (
+            type(UcscRestClient._assemblies) is not dict
+            or UcscRestClient._assemblies != expected_assemblies
+        ):
+            raise ValidationError("public UCSC assembly configuration is invalid")
+
+        variant_fields = (
+            "variant_id",
+            "kind",
+            "chromosome",
+            "start",
+            "end",
+            "reference",
+            "alternate",
+            "genome_build",
+            "origin",
+            "clonality",
+            "sample_id",
+            "annotations",
+        )
+        context_fields = (
+            "genome_build",
+            "disease_class",
+            "age_group",
+            "cell_state",
+            "territory",
+            "treatment_phase",
+            "assay_support",
+            "source_version",
+        )
+        retry_fields = (
+            "attempts",
+            "initial_backoff_seconds",
+            "maximum_backoff_seconds",
+            "retry_statuses",
+        )
+        limit_fields = (
+            "max_window_bp",
+            "max_features_per_variant",
+            "max_variants",
+            "max_total_elements",
+            "max_total_canonical_bytes",
+            "max_total_sequence_bp",
+        )
+        scope_object_states = (
+            self._object_configuration(caller_variant, variant_fields),
+            self._object_configuration(caller_context, context_fields),
+            self._object_configuration(selected_variant, variant_fields),
+            self._object_configuration(selected_context, context_fields),
+        )
+        object_states = (
+            *scope_object_states,
+            self._object_configuration(self),
+            self._object_configuration(client),
+            self._object_configuration(ensembl),
+            self._object_configuration(ucsc),
+            self._object_configuration(catalog),
+            self._object_configuration(cache),
+            self._object_configuration(retry_policy, retry_fields),
+            self._object_configuration(limits, limit_fields),
+            *(
+                self._object_configuration(spec, source_field_names)
+                for spec in source_specs
+            ),
+            *limiter_states,
+        )
+        mapping_states = (
+            _MappingConfigurationSnapshot(
+                catalog._specs,  # noqa: SLF001 - public-source integrity boundary
+                tuple(catalog._specs.items()),  # noqa: SLF001
+            ),
+            _MappingConfigurationSnapshot(limiters, tuple(limiters.items())),
+            _MappingConfigurationSnapshot(
+                UcscRestClient._assemblies,
+                tuple(UcscRestClient._assemblies.items()),
+            ),
+        )
+        semantic_unchanged, restore_semantics = _capture_public_reference_semantic_guard()
+        return _PublicReferenceInvocationSnapshot(
+            object_states=object_states,
+            mapping_states=mapping_states,
+            mutable_states=_capture_mutable_container_configuration(
+                value
+                for state in scope_object_states
+                for _name, value in state.attributes
+            ),
+            semantic_unchanged=semantic_unchanged,
+            restore_semantics=restore_semantics,
+        )
+
+    @staticmethod
+    def _assert_invocation_configuration(
+        expected: _PublicReferenceInvocationSnapshot,
+    ) -> None:
+        mutation_error_type = _SourceCallbackMutationError
+
+        try:
+            if not expected.semantic_unchanged():
+                raise mutation_error_type
+            for object_state in expected.object_states:
+                if type(object_state.target) is not object_state.target_type:
+                    raise mutation_error_type
+                if object_state.namespace_names is not None and frozenset(
+                    vars(object_state.target)
+                ) != (
+                    object_state.namespace_names
+                ):
+                    raise mutation_error_type
+                for name, value in object_state.attributes:
+                    if not _configuration_value_is_same(
+                        getattr(object_state.target, name),
+                        value,
+                    ):
+                        raise mutation_error_type
+            for mapping_state in expected.mapping_states:
+                current_items = tuple(mapping_state.target.items())
+                if len(current_items) != len(mapping_state.items) or any(
+                    not _configuration_value_is_same(current_key, expected_key)
+                    or not _configuration_value_is_same(
+                        current_value,
+                        expected_value,
+                    )
+                    for (current_key, current_value), (expected_key, expected_value) in zip(
+                        current_items,
+                        mapping_state.items,
+                        strict=True,
+                    )
+                ):
+                    raise mutation_error_type
+            if not _mutable_container_configuration_is_unchanged(
+                expected.mutable_states
+            ):
+                raise mutation_error_type
+        except Exception as exc:
+            if type(exc) is mutation_error_type:
+                raise mutation_error_type(
+                    "public reference callback mutated invocation scope or "
+                    "retriever configuration"
+                ) from None
+            raise mutation_error_type(
+                "public reference callback mutated invocation scope or retriever configuration"
+            ) from exc
+
+    @staticmethod
+    def _restore_invocation_configuration(
+        expected: _PublicReferenceInvocationSnapshot,
+    ) -> None:
+        try:
+            mutable_drifted = not _mutable_container_configuration_is_unchanged(
+                expected.mutable_states
+            )
+            if not expected.semantic_unchanged():
+                expected.restore_semantics()
+            for object_state in expected.object_states:
+                if type(object_state.target) is not object_state.target_type:
+                    object.__setattr__(
+                        object_state.target,
+                        "__class__",
+                        object_state.target_type,
+                    )
+                if object_state.namespace_names is not None:
+                    object_namespace = vars(object_state.target)
+                    for name in tuple(object_namespace):
+                        if name not in object_state.namespace_names:
+                            del object_namespace[name]
+                for name, value in object_state.attributes:
+                    object.__setattr__(object_state.target, name, value)
+            for mapping_state in expected.mapping_states:
+                mapping_state.target.clear()
+                mapping_state.target.update(mapping_state.items)
+            if mutable_drifted:
+                _restore_mutable_container_configuration(expected.mutable_states)
+        except Exception as exc:  # noqa: BLE001 - callback mutation recovery boundary
+            raise ValidationError(
+                "public reference callback configuration could not be restored"
+            ) from exc
 
     def retrieve(
         self,
@@ -2059,47 +3819,169 @@ class PublicReferenceRetriever:
         context: ReferenceContext,
         *,
         window_bp: int | None = None,
+        _external_integrity_guard: Callable[[], None] | None = None,
+    ) -> ReferenceBundle:
+        if _external_integrity_guard is not None and not callable(_external_integrity_guard):
+            raise ValidationError("public reference external integrity guard must be callable")
+        selected_scope = source_callback_scope
+        if selected_scope is not _callback_isolation.source_callback_scope:
+            raise ValidationError("public reference callback scope is invalid")
+        with selected_scope():
+            return self._retrieve_invocation(
+                variant,
+                context,
+                window_bp=window_bp,
+                _external_integrity_guard=_external_integrity_guard,
+            )
+
+    def _retrieve_invocation(
+        self,
+        variant: VariantIdentity,
+        context: ReferenceContext,
+        *,
+        window_bp: int | None = None,
+        _external_integrity_guard: Callable[[], None] | None = None,
     ) -> ReferenceBundle:
         if type(variant) is not VariantIdentity:
             raise ValidationError("public reference variant must be a VariantIdentity")
         if type(context) is not ReferenceContext:
             raise ValidationError("public reference context must be a ReferenceContext")
-        variant_raw = variant.to_dict()
-        context_raw = context.to_dict()
-        if canonical_bytes(variant_raw) != canonical_bytes(
-            VariantIdentity.from_dict(variant_raw).to_dict()
-        ):
-            raise ValidationError("public reference variant is not canonical")
-        if canonical_bytes(context_raw) != canonical_bytes(
-            ReferenceContext.from_dict(context_raw, persisted=True).to_dict()
-        ):
-            raise ValidationError("public reference context is not canonical")
-        if variant.genome_build != context.genome_build:
-            raise ValidationError(
-                "variant and context genome builds must match for public retrieval"
+        retrieval_lock = self._lock
+        if type(retrieval_lock) is not _RLOCK_TYPE:
+            raise ValidationError("public reference retrieval lock is invalid")
+        with retrieval_lock:
+            variant_raw = variant.to_dict()
+            context_raw = context.to_dict()
+            selected_variant = VariantIdentity.from_dict(variant_raw)
+            selected_context = ReferenceContext.from_dict(context_raw, persisted=True)
+            if _validated_canonical_bytes(
+                variant_raw, "public reference variant"
+            ) != _validated_canonical_bytes(
+                selected_variant.to_dict(),
+                "public reference variant",
+            ):
+                raise ValidationError("public reference variant is not canonical")
+            if _validated_canonical_bytes(
+                context_raw, "public reference context"
+            ) != _validated_canonical_bytes(
+                selected_context.to_dict(),
+                "public reference context",
+            ):
+                raise ValidationError("public reference context is not canonical")
+            if selected_variant.genome_build != selected_context.genome_build:
+                raise ValidationError(
+                    "variant and context genome builds must match for public retrieval"
+                )
+            selected_window = self.window_bp if window_bp is None else window_bp
+            _bounded_int(
+                selected_window,
+                "window_bp",
+                minimum=1,
+                maximum=self.limits.max_window_bp,
             )
-        selected_window = self.window_bp if window_bp is None else window_bp
-        _bounded_int(
-            selected_window,
-            "window_bp",
-            minimum=1,
-            maximum=self.limits.max_window_bp,
-        )
+            snapshot_configuration = PublicReferenceRetriever._capture_invocation_configuration
+            assert_configuration = cast(
+                Callable[[_PublicReferenceInvocationSnapshot], None],
+                detached_callback_guard(
+                    PublicReferenceRetriever._assert_invocation_configuration
+                ),
+            )
+            restore_configuration = cast(
+                Callable[[_PublicReferenceInvocationSnapshot], None],
+                detached_callback_guard(
+                    PublicReferenceRetriever._restore_invocation_configuration
+                ),
+            )
+            expected = snapshot_configuration(
+                self,
+                variant,
+                context,
+                selected_variant,
+                selected_context,
+            )
+            semantic_unchanged = expected.semantic_unchanged
+            restore_semantics = expected.restore_semantics
+            mutation_error_type = _SourceCallbackMutationError
+            base_exception_type = BaseException
+
+            def integrity_guard() -> None:
+                if _external_integrity_guard is not None:
+                    _external_integrity_guard()
+                if not semantic_unchanged():
+                    restore_semantics()
+                    raise mutation_error_type(
+                        "public reference callback mutated invocation scope or retriever "
+                        "configuration"
+                    )
+                assert_configuration(expected)
+
+            try:
+                integrity_guard()
+                result = self._retrieve_guarded(
+                    selected_variant,
+                    selected_context,
+                    selected_window,
+                    integrity_guard,
+                )
+                integrity_guard()
+                return result
+            finally:
+                semantic_drifted = not semantic_unchanged()
+                restoration_error: BaseException | None = None
+                if semantic_drifted:
+                    try:
+                        restore_semantics()
+                    except base_exception_type as exc:  # noqa: BLE001 - recovery must continue
+                        restoration_error = exc
+                try:
+                    restore_configuration(expected)
+                except base_exception_type as exc:  # noqa: BLE001 - recovery must continue
+                    restoration_error = restoration_error or exc
+                if restoration_error is not None:
+                    raise mutation_error_type(
+                        "public reference callback configuration could not be restored"
+                    ) from restoration_error
+                if semantic_drifted:
+                    raise mutation_error_type(
+                        "public reference callback mutated invocation scope or retriever "
+                        "configuration"
+                    )
+
+    def _retrieve_guarded(
+        self,
+        variant: VariantIdentity,
+        context: ReferenceContext,
+        selected_window: int,
+        integrity_guard: Callable[[], None],
+    ) -> ReferenceBundle:
         chromosome, start, end = variant_interval(variant)
         query_start = max(1, start - selected_window)
         query_end = end + selected_window
         receipts: list[FetchReceipt] = []
         warnings: list[str] = []
         sequence: SequenceSlice | None = None
+        mutation_error_type = _SourceCallbackMutationError
+        ucsc = self.ucsc
+        ensembl = self.ensembl
+        limits = self.limits
+        sequence_type = SequenceSlice
+        bundle_create = ReferenceBundle.create
+        candidate_converter = PublicReferenceRetriever._candidate_elements
         try:
-            sequence_payload = self.ucsc.sequence(
-                chromosome, query_start, query_end, genome_build=context.genome_build
+            sequence_payload = UcscRestClient.sequence(
+                ucsc,
+                chromosome,
+                query_start,
+                query_end,
+                genome_build=context.genome_build,
+                _integrity_guard=integrity_guard,
             )
+            integrity_guard()
             receipts.append(sequence_payload.receipt)
             raw_sequence = sequence_payload.value
             if not isinstance(raw_sequence, Mapping) or type(raw_sequence.get("dna")) is not str:
                 raise SourceError("UCSC sequence response did not contain a dna string")
-            sequence = SequenceSlice(
+            sequence = sequence_type(
                 assembly=context.genome_build,
                 chromosome=normalize_chromosome(chromosome),
                 start=query_start,
@@ -2108,50 +3990,70 @@ class PublicReferenceRetriever:
                 source_id="SRC-UCSC-REST",
                 receipt=sequence_payload.receipt,
             )
+        except mutation_error_type:
+            raise
         except (SourceError, ValidationError) as error:
             error_receipt = getattr(error, "receipt", None)
             if type(error_receipt) is FetchReceipt:
                 receipts.append(error_receipt)
             warnings.append(f"sequence retrieval abstained: {error}"[:MAX_SOURCE_TEXT_LENGTH])
+        integrity_guard()
         raw_features: list[Mapping[str, Any]] = []
         elements: list[CandidateElement] = []
         try:
-            feature_payload = self.ensembl.overlap_region(
+            feature_payload = EnsemblRestClient.overlap_region(
+                ensembl,
                 chromosome,
                 query_start,
                 query_end,
                 features=("regulatory", "motif", "gene"),
+                _integrity_guard=integrity_guard,
             )
+            integrity_guard()
             receipts.append(feature_payload.receipt)
             if not isinstance(feature_payload.value, list):
                 raise SourceError("Ensembl overlap response was not an array")
-            if len(feature_payload.value) > self.limits.max_features_per_variant:
+            if len(feature_payload.value) > limits.max_features_per_variant:
                 raise SourceError(
                     "Ensembl overlap response exceeded "
-                    f"{self.limits.max_features_per_variant} features"
+                    f"{limits.max_features_per_variant} features"
                 )
             if any(not isinstance(item, Mapping) for item in feature_payload.value):
                 raise SourceError("Ensembl overlap response contained a non-object feature")
             unique_features = {
-                canonical_json(item): item for item in feature_payload.value
+                _validated_canonical_json(item, "reference feature"): item
+                for item in feature_payload.value
             }
             raw_features.extend(unique_features[key] for key in sorted(unique_features))
-            elements = self._candidate_elements(
-                raw_features,
-                context,
-                variant,
-                query_start=query_start,
-                query_end=query_end,
-                max_features=self.limits.max_features_per_variant,
-            )
+        except mutation_error_type:
+            raise
         except (SourceError, ValidationError) as error:
             error_receipt = getattr(error, "receipt", None)
             if type(error_receipt) is FetchReceipt:
                 receipts.append(error_receipt)
             warnings.append(f"feature retrieval abstained: {error}"[:MAX_SOURCE_TEXT_LENGTH])
-        return ReferenceBundle.create(
+        else:
+            try:
+                elements = candidate_converter(
+                    raw_features,
+                    context,
+                    variant,
+                    query_start=query_start,
+                    query_end=query_end,
+                    max_features=limits.max_features_per_variant,
+                )
+            except ValidationError as error:
+                # The source response and receipt remain valuable audit evidence even
+                # when it cannot safely be promoted into typed candidate elements.
+                warnings.append(
+                    f"candidate materialization abstained: {error}"[
+                        :MAX_SOURCE_TEXT_LENGTH
+                    ]
+                )
+        integrity_guard()
+        return bundle_create(
             variant_id=variant.variant_id,
-            context_key=context.key,
+            context=context,
             sequence=sequence,
             elements=tuple(elements),
             raw_features=tuple(raw_features),
@@ -2160,15 +4062,70 @@ class PublicReferenceRetriever:
         )
 
     def enrich_manifest(self, manifest: CaseManifest) -> EnrichmentResult:
+        """Augment one detached manifest while restoring callback-visible caller state."""
+
+        if type(manifest) is not CaseManifest:
+            raise ValidationError("enrichment manifest must be a CaseManifest")
+        selected_scope = source_manifest_callback_scope
+        if selected_scope is not _callback_isolation.source_manifest_callback_scope:
+            raise ValidationError("public reference manifest callback scope is invalid")
+        with selected_scope():
+            return self._enrich_manifest_entry(manifest)
+
+    def _enrich_manifest_entry(self, manifest: CaseManifest) -> EnrichmentResult:
+        """Run one source-manifest invocation inside the shared callback scope."""
+
+        manifest_raw = manifest.to_dict()
+        selected_manifest = CaseManifest.from_dict(manifest_raw)
+        if _validated_canonical_bytes(
+            manifest_raw,
+            "enrichment manifest",
+        ) != _validated_canonical_bytes(
+            selected_manifest.to_dict(),
+            "enrichment manifest",
+        ):
+            raise ValidationError("enrichment manifest is not canonical")
+        retrieval_lock = self._lock
+        if type(retrieval_lock) is not _RLOCK_TYPE:
+            raise ValidationError("public reference retrieval lock is invalid")
+        with retrieval_lock:
+            capture_manifest = PublicReferenceRetriever._capture_manifest_configuration
+            assert_manifest, restore_manifest = capture_manifest(self, manifest)
+            try:
+                assert_manifest()
+                result = self._enrich_manifest_invocation(
+                    selected_manifest,
+                    _manifest_integrity_guard=assert_manifest,
+                )
+                assert_manifest()
+                return result
+            finally:
+                restore_manifest()
+
+    def _enrich_manifest_invocation(
+        self,
+        manifest: CaseManifest,
+        *,
+        _manifest_integrity_guard: Callable[[], None],
+    ) -> EnrichmentResult:
         """Augment a manifest with live regulatory candidates without coercion."""
 
         if type(manifest) is not CaseManifest:
             raise ValidationError("enrichment manifest must be a CaseManifest")
         manifest_raw = manifest.to_dict()
-        if canonical_bytes(manifest_raw) != canonical_bytes(
-            CaseManifest.from_dict(manifest_raw).to_dict()
+        manifest_bytes = _validated_canonical_bytes(
+            manifest_raw,
+            "enrichment manifest",
+        )
+        if manifest_bytes != _validated_canonical_bytes(
+            CaseManifest.from_dict(manifest_raw).to_dict(),
+            "enrichment manifest",
         ):
             raise ValidationError("enrichment manifest is not canonical")
+        if len(manifest_bytes) > self.limits.max_total_canonical_bytes:
+            raise ValidationError(
+                "live reference enrichment exceeds its configured canonical byte ceiling"
+            )
         elements: dict[str, CandidateElement] = {
             element.element_id: element for element in manifest.candidate_elements
         }
@@ -2177,22 +4134,133 @@ class PublicReferenceRetriever:
                 "manifest candidate elements exceed the live reference total limit of "
                 f"{self.limits.max_total_elements}"
             )
+        catalog_input_versions = dict(manifest.input_versions) | {
+            "live_reference_catalog": self.client.catalog.manifest()["content_address"]
+        }
+        manifest_static_bytes = (
+            len(manifest_bytes)
+            - len(
+                _validated_canonical_bytes(
+                    manifest_raw["candidate_elements"],
+                    "enrichment manifest candidate elements",
+                )
+            )
+            - len(
+                _validated_canonical_bytes(
+                    manifest_raw["input_versions"],
+                    "enrichment manifest input versions",
+                )
+            )
+        )
+        candidate_element_bytes = sum(
+            len(
+                _validated_canonical_bytes(
+                    element.to_dict(),
+                    "live reference element",
+                )
+            )
+            for element in elements.values()
+        )
+        projected_input_version_bytes = len(
+            _validated_canonical_bytes(
+                catalog_input_versions,
+                "enrichment manifest input versions",
+            )
+        )
         bundles: list[ReferenceBundle] = []
         warnings: list[str] = []
+        bundle_bytes = 0
+        warning_bytes_by_value: dict[str, int] = {}
+        warning_bytes = 0
+        aggregate_sequence_bp = 0
+        aggregate_bundle_elements = 0
+        aggregate_raw_features = 0
+        aggregate_receipts = 0
+        aggregate_bundle_warnings = 0
         if len(manifest.variants) > self.limits.max_variants:
             raise ValidationError(
                 "live reference enrichment cannot exceed "
                 f"{self.limits.max_variants} variants"
             )
+        projected_manifest_bytes = (
+            manifest_static_bytes
+            + _canonical_array_size(
+                item_bytes=candidate_element_bytes,
+                item_count=len(elements),
+            )
+            + projected_input_version_bytes
+        )
+        if _enrichment_result_size(
+            manifest_bytes=projected_manifest_bytes,
+            bundle_bytes=0,
+            bundle_count=0,
+            warning_bytes=0,
+            warning_count=0,
+        ) > self.limits.max_total_canonical_bytes:
+            raise ValidationError(
+                "live reference enrichment exceeds its configured canonical byte ceiling"
+            )
         for variant in manifest.variants:
-            bundle = self.retrieve(variant, manifest.context)
+            bundle = self.retrieve(
+                variant,
+                manifest.context,
+                _external_integrity_guard=_manifest_integrity_guard,
+            )
+            _manifest_integrity_guard()
+            aggregate_bundle_elements += len(bundle.elements)
+            if aggregate_bundle_elements > MAX_ENRICHED_ELEMENTS:
+                raise ValidationError(
+                    "live reference aggregate bundle element occurrences exceed their hard ceiling"
+                )
+            aggregate_raw_features += len(bundle.raw_features)
+            if aggregate_raw_features > MAX_ENRICHED_ELEMENTS:
+                raise ValidationError(
+                    "live reference aggregate bundle raw feature occurrences exceed their hard "
+                    "ceiling"
+                )
+            aggregate_receipts += len(bundle.receipts)
+            if aggregate_receipts > MAX_REFERENCE_VARIANTS * MAX_REFERENCE_RECEIPTS:
+                raise ValidationError(
+                    "live reference aggregate bundle receipt occurrences exceed their hard ceiling"
+                )
+            aggregate_bundle_warnings += len(bundle.warnings)
+            if aggregate_bundle_warnings > MAX_REFERENCE_WARNINGS:
+                raise ValidationError(
+                    "live reference aggregate bundle warning occurrences exceed their hard ceiling"
+                )
+            bundle_size = len(
+                _validated_canonical_bytes(
+                    bundle.to_dict(),
+                    "live reference bundle",
+                )
+            )
+            bundle_bytes += bundle_size
+            if bundle.sequence is not None:
+                aggregate_sequence_bp += len(bundle.sequence.sequence)
+                if aggregate_sequence_bp > self.limits.max_total_sequence_bp:
+                    raise ValidationError(
+                        "live reference enrichment exceeds its configured sequence "
+                        "base-pair ceiling"
+                    )
             bundles.append(bundle)
             warnings.extend(bundle.warnings)
+            for warning in bundle.warnings:
+                if warning not in warning_bytes_by_value:
+                    encoded_warning_size = len(
+                        _validated_canonical_bytes(warning, "live reference warning")
+                    )
+                    warning_bytes_by_value[warning] = encoded_warning_size
+                    warning_bytes += encoded_warning_size
             for element in bundle.elements:
                 existing = elements.get(element.element_id)
-                if existing is not None and canonical_bytes(existing.to_dict()) != canonical_bytes(
-                    element.to_dict()
-                ):
+                element_encoded = _validated_canonical_bytes(
+                    element.to_dict(),
+                    "live reference element",
+                )
+                if existing is not None and _validated_canonical_bytes(
+                    existing.to_dict(),
+                    "live reference element",
+                ) != element_encoded:
                     raise ValidationError(
                         "live reference element conflicts with an existing manifest element: "
                         f"{element.element_id}"
@@ -2204,13 +4272,37 @@ class PublicReferenceRetriever:
                             f"{self.limits.max_total_elements} total elements"
                         )
                     elements[element.element_id] = element
+                    candidate_element_bytes += len(element_encoded)
+            projected_manifest_bytes = (
+                manifest_static_bytes
+                + _canonical_array_size(
+                    item_bytes=candidate_element_bytes,
+                    item_count=len(elements),
+                )
+                + projected_input_version_bytes
+            )
+            if _enrichment_result_size(
+                manifest_bytes=projected_manifest_bytes,
+                bundle_bytes=bundle_bytes,
+                bundle_count=len(bundles),
+                warning_bytes=warning_bytes,
+                warning_count=len(warning_bytes_by_value),
+            ) > self.limits.max_total_canonical_bytes:
+                raise ValidationError(
+                    "live reference enrichment exceeds its configured canonical byte ceiling"
+                )
         enriched = replace(
             manifest,
             candidate_elements=tuple(elements[key] for key in sorted(elements)),
-            input_versions=dict(manifest.input_versions)
-            | {"live_reference_catalog": self.client.catalog.manifest()["content_address"]},
+            input_versions=catalog_input_versions,
         )
-        return EnrichmentResult(enriched, tuple(bundles), tuple(dict.fromkeys(warnings)))
+        result = EnrichmentResult(
+            enriched,
+            tuple(bundles),
+            tuple(dict.fromkeys(warnings)),
+        )
+        _manifest_integrity_guard()
+        return result
 
     @staticmethod
     def _candidate_elements(
@@ -2251,11 +4343,21 @@ class PublicReferenceRetriever:
             )
         if any(not isinstance(feature, Mapping) for feature in feature_rows):
             raise ValidationError("reference feature entries must be objects")
+        supported_feature_types = frozenset({"gene", "regulatory", "motif"})
+        for feature in feature_rows:
+            feature_type_raw = feature.get("feature_type")
+            if (
+                type(feature_type_raw) is not str
+                or feature_type_raw.lower() not in supported_feature_types
+            ):
+                raise ValidationError(
+                    "reference feature has a missing or unsupported feature_type"
+                )
         expected_chromosome = normalize_chromosome(variant.chromosome)
         gene_identifiers: set[str] = set()
         for feature in feature_rows:
-            feature_type_raw = feature.get("feature_type")
-            if type(feature_type_raw) is not str or feature_type_raw.lower() != "gene":
+            feature_type_raw = cast(str, feature.get("feature_type"))
+            if feature_type_raw.lower() != "gene":
                 continue
             identifier = _required_text(
                 feature.get("external_name") or feature.get("id"),
@@ -2286,9 +4388,7 @@ class PublicReferenceRetriever:
         elements: list[CandidateElement] = []
         seen: dict[str, str] = {}
         for feature in feature_rows:
-            feature_type_raw = feature.get("feature_type")
-            if type(feature_type_raw) is not str:
-                continue
+            feature_type_raw = cast(str, feature.get("feature_type"))
             feature_type = feature_type_raw.lower()
             if feature_type not in {"regulatory", "motif"}:
                 continue
@@ -2314,7 +4414,7 @@ class PublicReferenceRetriever:
                 end < query_start or start > query_end
             ):
                 raise ValidationError("reference feature escaped the requested interval")
-            feature_identity = canonical_json(feature)
+            feature_identity = _validated_canonical_json(feature, "reference feature")
             previous_identity = seen.get(element_id)
             if previous_identity is not None:
                 if previous_identity != feature_identity:
@@ -2328,6 +4428,7 @@ class PublicReferenceRetriever:
             description_raw = feature.get("description") or feature.get("logic_name") or ""
             if type(description_raw) is not str or len(description_raw) > MAX_SOURCE_TEXT_LENGTH:
                 raise ValidationError("reference feature description must be a bounded string")
+            _validated_utf8(description_raw, "reference feature description")
             if any(ord(character) < 32 or ord(character) == 127 for character in description_raw):
                 raise ValidationError("reference feature description contains control characters")
             elements.append(

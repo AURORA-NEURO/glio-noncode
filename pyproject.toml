@@ -31,7 +31,7 @@ glio-noncode = "glio_noncode.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-glio_noncode = ["schemas/*.json", "py.typed"]
+glio_noncode = ["*.pyi", "schemas/*.json", "py.typed"]
 
 [tool.setuptools.data-files]
 schemas = ["schemas/capability_catalog.csv", "schemas/case_manifest.schema.json"]

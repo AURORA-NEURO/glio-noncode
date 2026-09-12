@@ -3,17 +3,38 @@
 from __future__ import annotations
 
 import json
+import math
 import tempfile
 import threading
 import unittest
 from dataclasses import replace
 from pathlib import Path
 from queue import Queue
-from typing import cast
+from typing import Any, cast
 from unittest.mock import patch
 
-from glio_noncode.data_sources import EnrichmentResult, ReferenceBundle
+import glio_noncode._callback_isolation as callback_isolation_module
+import glio_noncode.context as context_module
+import glio_noncode.data_sources as data_sources_module
+import glio_noncode.expression_claims as expression_claims_module
+import glio_noncode.hypotheses as hypotheses_module
+import glio_noncode.policy as policy_module
+import glio_noncode.runtime as runtime_module
+import glio_noncode.sequence_inference as sequence_inference_module
+import glio_noncode.storage as storage_module
+from glio_noncode.atlas import PublicAtlasRetriever
+from glio_noncode.data_sources import (
+    EnrichmentResult,
+    PublicReferenceRetriever,
+    ReferenceBundle,
+    ReferenceRetrievalLimits,
+    RetryPolicy,
+    SourceClient,
+    TransportResponse,
+    UrllibTransport,
+)
 from glio_noncode.errors import StoreError, ValidationError
+from glio_noncode.experiments import ExperimentPlanner, ExperimentPlanningLimits
 from glio_noncode.expression_evidence import (
     AllelicDirection,
     ExpressionDirection,
@@ -21,15 +42,27 @@ from glio_noncode.expression_evidence import (
     RNAConsequenceEvidence,
     RNAEvidenceState,
 )
+from glio_noncode.hypotheses import HypothesisBuilder
 from glio_noncode.models import (
+    CaseManifest,
     Dossier,
+    EvidenceState,
     ResearchStatus,
     ReviewDecision,
     ReviewState,
 )
 from glio_noncode.policy import ResearchPolicy
+from glio_noncode.reference_manifest import ReferenceAccessMode
+from glio_noncode.reference_registry import CoordinateSystem
+from glio_noncode.reference_track_adapters import (
+    DeclaredReferenceTrackAdapter,
+    ReferenceTrackAdapterRegistry,
+    ReferenceTrackMetadata,
+)
 from glio_noncode.runtime import CaseRuntime
+from glio_noncode.sequence_inference import SequenceInference
 from glio_noncode.serialization import content_hash
+from glio_noncode.storage import ObjectStore, RunStore
 from glio_noncode.validation import (
     ContractValidator,
     IssueSeverity,
@@ -532,6 +565,1088 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
                     runtime.review(dossier, _review(dossier, review_id="review-shadowed-gate"))
             self.assertEqual(_runtime_state(runtime, dossier), before)
 
+    def test_callback_cannot_replace_dependency_class_descriptors(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        cases = (
+            (ExperimentPlanner, "plan_many"),
+            (RunStore, "create_run"),
+            (ObjectStore, "put"),
+        )
+        for target, attribute in cases:
+            with self.subTest(target=target.__name__, attribute=attribute):
+                original = vars(target)[attribute]
+
+                class MutatingRetriever:
+                    def __init__(self, dependency_class, method_name) -> None:
+                        self.dependency_class = dependency_class
+                        self.method_name = method_name
+
+                    def enrich_manifest(self, value):
+                        setattr(
+                            self.dependency_class,
+                            self.method_name,
+                            lambda *_args, **_kwargs: None,
+                        )
+                        return EnrichmentResult(value, (reference_bundle,), ())
+
+                try:
+                    with tempfile.TemporaryDirectory() as directory:
+                        runtime = CaseRuntime(
+                            directory,
+                            reference_retriever=MutatingRetriever(target, attribute),
+                        )
+                        with self.assertRaisesRegex(
+                            ValidationError,
+                            "runtime evaluation configuration changed",
+                        ):
+                            runtime.evaluate(manifest, live_reference=True)
+                        self.assertIs(vars(target)[attribute], original)
+                        self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                        self.assertEqual(
+                            tuple(runtime.store.store.objects.glob("*.json")),
+                            (),
+                        )
+                        self.assertEqual(runtime.evaluate(manifest).case_id, manifest.case_id)
+                finally:
+                    setattr(target, attribute, original)
+
+    def test_callback_cannot_bypass_builder_and_validator_with_class_patches(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        original_build = vars(HypothesisBuilder)["build"]
+        original_validate_dossier = vars(ContractValidator)["validate_dossier"]
+
+        class MutatingRetriever:
+            @staticmethod
+            def enrich_manifest(value):
+                HypothesisBuilder.build = lambda *_args, **_kwargs: None
+                ContractValidator.validate_dossier = lambda *_args, **_kwargs: ValidationReport(
+                    True,
+                    (),
+                )
+                return EnrichmentResult(value, (reference_bundle,), ())
+
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                runtime = CaseRuntime(
+                    directory,
+                    reference_retriever=MutatingRetriever(),
+                )
+
+                with self.assertRaisesRegex(
+                    ValidationError,
+                    "runtime evaluation configuration changed",
+                ):
+                    runtime.evaluate(manifest, live_reference=True)
+
+                self.assertIs(vars(HypothesisBuilder)["build"], original_build)
+                self.assertIs(
+                    vars(ContractValidator)["validate_dossier"],
+                    original_validate_dossier,
+                )
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                retry = runtime.evaluate(manifest)
+                self.assertEqual(retry.case_id, manifest.case_id)
+                self.assertTrue(ContractValidator().validate_dossier(retry).valid)
+        finally:
+            setattr(HypothesisBuilder, "build", original_build)  # noqa: B010
+            setattr(  # noqa: B010
+                ContractValidator,
+                "validate_dossier",
+                original_validate_dossier,
+            )
+
+    def test_callback_cannot_replace_runtime_guard_or_module_bindings(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            captured = runtime._capture_evaluation_configuration()  # noqa: SLF001
+            configuration_type = type(captured)
+            class_snapshot_type = type(captured.dependency_class_namespaces[0])
+            original_assert = vars(CaseRuntime)["_assert_evaluation_configuration"]
+            original_restore = vars(CaseRuntime)["_restore_evaluation_configuration"]
+            original_configuration_slot = vars(configuration_type)["runtime_module_namespace"]
+            original_class_snapshot_slot = vars(class_snapshot_type)["attributes"]
+            original_canonical_bytes = runtime_module.canonical_bytes
+
+            class MutatingRetriever:
+                @staticmethod
+                def enrich_manifest(value):
+                    CaseRuntime._assert_evaluation_configuration = lambda *_args, **_kwargs: None
+                    CaseRuntime._restore_evaluation_configuration = lambda *_args, **_kwargs: False
+                    configuration_type.runtime_module_namespace = property(lambda _value: None)
+                    class_snapshot_type.attributes = property(lambda _value: ())
+                    runtime_module.canonical_bytes = lambda *_args, **_kwargs: b"{}"
+                    return EnrichmentResult(value, (reference_bundle,), ())
+
+            runtime.reference_retriever = MutatingRetriever()
+            try:
+                with self.assertRaisesRegex(
+                    ValidationError,
+                    "runtime evaluation configuration changed",
+                ):
+                    runtime.evaluate(manifest, live_reference=True)
+
+                self.assertIs(
+                    vars(CaseRuntime)["_assert_evaluation_configuration"],
+                    original_assert,
+                )
+                self.assertIs(
+                    vars(CaseRuntime)["_restore_evaluation_configuration"],
+                    original_restore,
+                )
+                self.assertIs(
+                    vars(configuration_type)["runtime_module_namespace"],
+                    original_configuration_slot,
+                )
+                self.assertIs(
+                    vars(class_snapshot_type)["attributes"],
+                    original_class_snapshot_slot,
+                )
+                self.assertIs(runtime_module.canonical_bytes, original_canonical_bytes)
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                retry = runtime.evaluate(manifest)
+                self.assertEqual(retry.case_id, manifest.case_id)
+            finally:
+                runtime_module.canonical_bytes = original_canonical_bytes
+                setattr(  # noqa: B010
+                    CaseRuntime,
+                    "_assert_evaluation_configuration",
+                    original_assert,
+                )
+                setattr(  # noqa: B010
+                    CaseRuntime,
+                    "_restore_evaluation_configuration",
+                    original_restore,
+                )
+                setattr(  # noqa: B010
+                    configuration_type,
+                    "runtime_module_namespace",
+                    original_configuration_slot,
+                )
+                setattr(  # noqa: B010
+                    class_snapshot_type,
+                    "attributes",
+                    original_class_snapshot_slot,
+                )
+
+    def test_callback_cannot_mutate_guard_or_dependency_function_code_in_place(self) -> None:
+        def replacement_scope_factory():
+            retained_scope_state = object()
+
+            def replacement_scope():
+                _ = retained_scope_state
+                yield
+
+            return replacement_scope
+
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        guard_function = vars(CaseRuntime)["_assert_evaluation_configuration"]
+        builder_function = vars(HypothesisBuilder)["build"]
+        canonical_function = runtime_module.canonical_bytes
+        original_guard_code = guard_function.__code__
+        original_builder_code = builder_function.__code__
+        original_canonical_code = canonical_function.__code__
+        runtime_scope = cast(Any, runtime_module.runtime_callback_scope)
+        runtime_scope_dict = runtime_scope.__dict__
+        runtime_scope_dict_items = tuple(runtime_scope_dict.items())
+        runtime_scope_wrapped = runtime_scope.__wrapped__
+        runtime_scope_wrapped_code = runtime_scope_wrapped.__code__
+        isolation_error_type = callback_isolation_module.ValidationError
+        replacement_scope = replacement_scope_factory()
+
+        def no_op(*_args, **_kwargs):
+            return None
+
+        def false_canonical_bytes(*_args, **_kwargs):
+            return b"{}"
+
+        class MutatingRetriever:
+            @staticmethod
+            def enrich_manifest(value):
+                result = EnrichmentResult(value, (reference_bundle,), ())
+                guard_function.__code__ = no_op.__code__
+                builder_function.__code__ = no_op.__code__
+                canonical_function.__code__ = false_canonical_bytes.__code__
+                runtime_scope.__dict__ = {"__wrapped__": replacement_scope}
+                runtime_scope_wrapped.__code__ = replacement_scope.__code__
+                vars(callback_isolation_module)["ValidationError"] = RuntimeError
+                return result
+
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                runtime = CaseRuntime(
+                    directory,
+                    reference_retriever=MutatingRetriever(),
+                )
+
+                with self.assertRaisesRegex(
+                    ValidationError,
+                    "runtime evaluation configuration changed",
+                ):
+                    runtime.evaluate(manifest, live_reference=True)
+
+                self.assertIs(guard_function.__code__, original_guard_code)
+                self.assertIs(builder_function.__code__, original_builder_code)
+                self.assertIs(canonical_function.__code__, original_canonical_code)
+                self.assertIs(runtime_scope.__dict__, runtime_scope_dict)
+                self.assertIs(runtime_scope.__wrapped__, runtime_scope_wrapped)
+                self.assertIs(runtime_scope_wrapped.__code__, runtime_scope_wrapped_code)
+                self.assertIs(callback_isolation_module.ValidationError, isolation_error_type)
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                retry = runtime.evaluate(manifest)
+                self.assertEqual(retry.case_id, manifest.case_id)
+        finally:
+            guard_function.__code__ = original_guard_code
+            builder_function.__code__ = original_builder_code
+            canonical_function.__code__ = original_canonical_code
+            runtime_scope.__dict__ = runtime_scope_dict
+            runtime_scope_dict.clear()
+            runtime_scope_dict.update(dict(runtime_scope_dict_items))
+            runtime_scope_wrapped.__code__ = runtime_scope_wrapped_code
+            vars(callback_isolation_module)["ValidationError"] = isolation_error_type
+
+    def test_callback_module_global_shadows_cannot_disable_runtime_recovery(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        runtime_namespace = vars(runtime_module)
+        missing = object()
+        poisoned_names = (
+            "BaseException",
+            "Exception",
+            "all",
+            "any",
+            "cast",
+            "CaseRuntime",
+            "delattr",
+            "detached_callback_guard",
+            "dict",
+            "fields",
+            "getattr",
+            "globals",
+            "isfinite",
+            "len",
+            "max",
+            "monotonic",
+            "object",
+            "set",
+            "setattr",
+            "type",
+            "ValidationError",
+            "vars",
+            "zip",
+        )
+        originals = {
+            name: runtime_namespace.get(name, missing)
+            for name in poisoned_names
+        }
+
+        class MutatingRetriever:
+            @staticmethod
+            def enrich_manifest(value):
+                result = EnrichmentResult(value, (reference_bundle,), ())
+                runtime_namespace.update(dict.fromkeys(poisoned_names))
+                return result
+
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                runtime = CaseRuntime(
+                    directory,
+                    reference_retriever=MutatingRetriever(),
+                )
+                with self.assertRaisesRegex(
+                    ValidationError,
+                    "runtime evaluation configuration changed",
+                ):
+                    runtime.evaluate(manifest, live_reference=True)
+
+                for name, original in originals.items():
+                    with self.subTest(name=name):
+                        if original is missing:
+                            self.assertNotIn(name, runtime_namespace)
+                        else:
+                            self.assertIs(runtime_namespace[name], original)
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                self.assertEqual(runtime.evaluate(manifest).case_id, manifest.case_id)
+        finally:
+            for name, original in originals.items():
+                if original is missing:
+                    runtime_namespace.pop(name, None)
+                else:
+                    runtime_namespace[name] = original
+
+    def test_callback_cannot_mutate_a_transitively_discovered_class_method(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        context_to_dict = vars(context_module.ContextMatch)["to_dict"]
+        original_code = context_to_dict.__code__
+
+        def poisoned_to_dict(_self):
+            return {"poisoned": True}
+
+        class MutatingRetriever:
+            @staticmethod
+            def enrich_manifest(value):
+                result = EnrichmentResult(value, (reference_bundle,), ())
+                context_to_dict.__code__ = poisoned_to_dict.__code__
+                return result
+
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                runtime = CaseRuntime(
+                    directory,
+                    reference_retriever=MutatingRetriever(),
+                )
+                with self.assertRaisesRegex(
+                    ValidationError,
+                    "runtime evaluation configuration changed",
+                ):
+                    runtime.evaluate(manifest, live_reference=True)
+
+                self.assertIs(context_to_dict.__code__, original_code)
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                self.assertEqual(runtime.evaluate(manifest).case_id, manifest.case_id)
+        finally:
+            context_to_dict.__code__ = original_code
+
+    def test_callback_cannot_shadow_runtime_methods_on_the_instance(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+
+            class MutatingRetriever:
+                @staticmethod
+                def enrich_manifest(value):
+                    vars(runtime)["_validate_event_payload_size"] = lambda *_args, **_kwargs: None
+                    return EnrichmentResult(value, (reference_bundle,), ())
+
+            runtime.reference_retriever = MutatingRetriever()
+            with self.assertRaisesRegex(
+                ValidationError,
+                "runtime evaluation configuration changed",
+            ):
+                runtime.evaluate(manifest, live_reference=True)
+
+            self.assertNotIn("_validate_event_payload_size", vars(runtime))
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+            retry = runtime.evaluate(manifest)
+            self.assertEqual(retry.case_id, manifest.case_id)
+
+    def test_callback_cannot_replace_protected_function_dependency_module_globals(
+        self,
+    ) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        original_edge_type = hypotheses_module.HypothesisEdge
+
+        class MutatingRetriever:
+            @staticmethod
+            def enrich_manifest(value):
+                result = EnrichmentResult(value, (reference_bundle,), ())
+                hypotheses_module.HypothesisEdge = object
+                return result
+
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                runtime = CaseRuntime(
+                    directory,
+                    reference_retriever=MutatingRetriever(),
+                )
+                with self.assertRaisesRegex(
+                    ValidationError,
+                    "runtime evaluation configuration changed",
+                ):
+                    runtime.evaluate(manifest, live_reference=True)
+
+                self.assertIs(hypotheses_module.HypothesisEdge, original_edge_type)
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                retry = runtime.evaluate(manifest)
+                self.assertEqual(retry.case_id, manifest.case_id)
+        finally:
+            hypotheses_module.HypothesisEdge = original_edge_type
+
+    def test_callback_cannot_mutate_builtin_retriever_configuration(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        atlas = PublicAtlasRetriever(
+            track_adapters=ReferenceTrackAdapterRegistry(),
+        )
+        original_motifs = vars(atlas)["_motifs"]
+        sequence_inference = vars(atlas)["_sequence_inference"]
+        scanner = vars(sequence_inference)["scanner"]
+        track_registry = vars(atlas)["_track_adapters"]
+        track_entries = vars(track_registry)["_adapters"]
+        original_analyze = vars(SequenceInference)["analyze"]
+        iupac = vars(sequence_inference_module)["_IUPAC"]
+        original_iupac = dict(iupac)
+
+        class MutatingRetriever:
+            @staticmethod
+            def enrich_manifest(value):
+                vars(atlas)["_motifs"] = ("forged-motif-configuration",)
+                vars(scanner)["forged_configuration"] = True
+                track_entries["forged-adapter"] = object()
+                SequenceInference.analyze = lambda *_args, **_kwargs: object()
+                iupac["A"] = frozenset("T")
+                return EnrichmentResult(value, (reference_bundle,), ())
+
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                runtime = CaseRuntime(
+                    directory,
+                    reference_retriever=MutatingRetriever(),
+                    atlas_retriever=atlas,
+                )
+
+                with self.assertRaisesRegex(
+                    ValidationError,
+                    "runtime evaluation configuration changed",
+                ):
+                    runtime.evaluate(manifest, live_reference=True)
+
+                self.assertIs(vars(atlas)["_motifs"], original_motifs)
+                self.assertEqual(vars(scanner), {})
+                self.assertEqual(track_entries, {})
+                self.assertIs(vars(SequenceInference)["analyze"], original_analyze)
+                self.assertEqual(iupac, original_iupac)
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                retry = runtime.evaluate(manifest)
+                self.assertEqual(retry.case_id, manifest.case_id)
+        finally:
+            setattr(SequenceInference, "analyze", original_analyze)  # noqa: B010
+            iupac.clear()
+            iupac.update(original_iupac)
+
+    def test_semantic_module_mapping_inventory_is_explicit_and_excludes_caches(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            snapshot = runtime._capture_evaluation_configuration()  # noqa: SLF001
+
+        protected_targets = {
+            id(mapping.target)
+            for module_state in snapshot.dependency_module_namespaces
+            for mapping in module_state.mapping_states
+        }
+        expected_targets = {
+            id(vars(context_module)["_WEIGHTS"]),
+            id(vars(expression_claims_module)["_STATE_MAP"]),
+            id(vars(policy_module)["_CONFUSABLE_ASCII"]),
+            id(vars(sequence_inference_module)["_IUPAC"]),
+        }
+        self.assertEqual(protected_targets, expected_targets)
+        self.assertNotIn(id(vars(data_sources_module)["_CACHE_LOCKS"]), protected_targets)
+        self.assertNotIn(id(vars(storage_module)["_RUN_LOCKS"]), protected_targets)
+        protected_class_targets = {
+            id(mapping.target)
+            for class_state in snapshot.dependency_class_namespaces
+            for mapping in class_state.mapping_states
+        }
+        self.assertIn(id(vars(CaseManifest)["__dataclass_fields__"]), protected_class_targets)
+        self.assertIn(
+            id(vars(data_sources_module.UcscRestClient)["_assemblies"]),
+            protected_class_targets,
+        )
+
+    def test_callback_cannot_mutate_semantic_dependency_mappings_in_place(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        cases = (
+            (
+                "context weights",
+                vars(context_module)["_WEIGHTS"],
+                "genome_build",
+                0.01,
+            ),
+            (
+                "RNA claim state map",
+                vars(expression_claims_module)["_STATE_MAP"],
+                RNAEvidenceState.SUPPORTED,
+                EvidenceState.CONTRADICTORY,
+            ),
+            (
+                "policy confusable map",
+                vars(policy_module)["_CONFUSABLE_ASCII"],
+                1040,
+                "Z",
+            ),
+            (
+                "sequence IUPAC map",
+                vars(sequence_inference_module)["_IUPAC"],
+                "A",
+                frozenset("T"),
+            ),
+        )
+        for label, mapping, key, forged_value in cases:
+            with self.subTest(label=label):
+                original = dict(mapping)
+
+                class MutatingRetriever:
+                    @staticmethod
+                    def enrich_manifest(
+                        value,
+                        selected_mapping=mapping,
+                        selected_key=key,
+                        selected_value=forged_value,
+                    ):
+                        selected_mapping[selected_key] = selected_value
+                        return EnrichmentResult(value, (reference_bundle,), ())
+
+                try:
+                    with tempfile.TemporaryDirectory() as directory:
+                        runtime = CaseRuntime(
+                            directory,
+                            reference_retriever=MutatingRetriever(),
+                        )
+                        with self.assertRaisesRegex(
+                            ValidationError,
+                            "runtime evaluation configuration changed",
+                        ):
+                            runtime.evaluate(manifest, live_reference=True)
+
+                        self.assertEqual(mapping, original)
+                        self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                        self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                        retry = runtime.evaluate(manifest)
+                        self.assertEqual(retry.case_id, manifest.case_id)
+                finally:
+                    mapping.clear()
+                    mapping.update(original)
+
+    def test_callback_cannot_mutate_semantic_class_mappings_in_place(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        cases = (
+            (
+                "dataclass field registry",
+                vars(CaseManifest)["__dataclass_fields__"],
+                None,
+                None,
+            ),
+            (
+                "UCSC assemblies",
+                vars(data_sources_module.UcscRestClient)["_assemblies"],
+                "GRCh38",
+                "hg19",
+            ),
+        )
+        for label, mapping, key, forged_value in cases:
+            with self.subTest(label=label):
+                original = dict(mapping)
+
+                class MutatingRetriever:
+                    @staticmethod
+                    def enrich_manifest(
+                        value,
+                        selected_mapping=mapping,
+                        selected_key=key,
+                        selected_value=forged_value,
+                    ):
+                        result = EnrichmentResult(value, (reference_bundle,), ())
+                        if selected_key is None:
+                            selected_mapping.clear()
+                        else:
+                            selected_mapping[selected_key] = selected_value
+                        return result
+
+                try:
+                    with tempfile.TemporaryDirectory() as directory:
+                        runtime = CaseRuntime(
+                            directory,
+                            reference_retriever=MutatingRetriever(),
+                        )
+                        with self.assertRaisesRegex(
+                            ValidationError,
+                            "runtime evaluation configuration changed",
+                        ):
+                            runtime.evaluate(manifest, live_reference=True)
+
+                        self.assertEqual(mapping, original)
+                        self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                        self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                        retry = runtime.evaluate(manifest)
+                        self.assertEqual(retry.case_id, manifest.case_id)
+                finally:
+                    mapping.clear()
+                    mapping.update(original)
+
+        field = vars(CaseManifest)["__dataclass_fields__"]["case_id"]
+        original_field_name = field.name
+
+        class MutatingFieldRetriever:
+            @staticmethod
+            def enrich_manifest(value):
+                result = EnrichmentResult(value, (reference_bundle,), ())
+                field.name = "forged_case_id"
+                return result
+
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                runtime = CaseRuntime(
+                    directory,
+                    reference_retriever=MutatingFieldRetriever(),
+                )
+                with self.assertRaisesRegex(
+                    ValidationError,
+                    "runtime evaluation configuration changed",
+                ):
+                    runtime.evaluate(manifest, live_reference=True)
+
+                self.assertEqual(field.name, original_field_name)
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                retry = runtime.evaluate(manifest)
+                self.assertEqual(retry.case_id, manifest.case_id)
+        finally:
+            field.name = original_field_name
+
+    def test_callback_cannot_mutate_declared_track_adapter_metadata_in_place(self) -> None:
+        manifest = fixture_manifest()
+        variant = manifest.variants[0]
+        metadata = ReferenceTrackMetadata(
+            adapter_id="runtime-guard-track",
+            display_name="Runtime guard track",
+            version="2026.09",
+            assembly=manifest.context.genome_build,
+            track_type="open_chromatin",
+            source_id="SRC-RUNTIME-GUARD-TRACK",
+            source_version="fixture-1",
+            license="CC-BY-4.0",
+            access_mode=ReferenceAccessMode.LOCAL_CACHE,
+            uri="urn:glio:track:runtime-guard-track:2026.09",
+            coordinate_system=CoordinateSystem.ONE_BASED_INCLUSIVE,
+            supported_contexts=(manifest.context.key,),
+            channels=("accessibility",),
+            limitations=("Reference overlap is not evidence of causality.",),
+        )
+        built = DeclaredReferenceTrackAdapter.from_rows(
+            metadata,
+            (
+                {
+                    "record_id": "runtime-guard-row",
+                    "chromosome": variant.chromosome,
+                    "start": variant.start,
+                    "end": variant.end,
+                    "context_key": manifest.context.key,
+                    "payload": {"signal": 0.75},
+                },
+            ),
+        )
+        self.assertTrue(built.accepted, built.to_dict())
+        atlas = PublicAtlasRetriever(
+            track_adapters=ReferenceTrackAdapterRegistry((built.adapter,)),
+        )
+        track_registry = vars(atlas)["_track_adapters"]
+        internal_adapter = vars(track_registry)["_adapters"][metadata.adapter_id]
+        original_record = internal_adapter.to_dict()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=variant.variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+
+        class MutatingRetriever:
+            @staticmethod
+            def enrich_manifest(value):
+                object.__setattr__(
+                    internal_adapter.metadata,
+                    "limitations",
+                    ("MUTATED DURING CALLBACK",),
+                )
+                return EnrichmentResult(value, (reference_bundle,), ())
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(
+                directory,
+                reference_retriever=MutatingRetriever(),
+                atlas_retriever=atlas,
+            )
+            with self.assertRaisesRegex(
+                ValidationError,
+                "runtime evaluation configuration changed",
+            ):
+                runtime.evaluate(manifest, live_reference=True)
+
+            self.assertEqual(internal_adapter.to_dict(), original_record)
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+            retry = runtime.evaluate(manifest)
+            self.assertEqual(retry.case_id, manifest.case_id)
+
+    def test_callback_cannot_mutate_public_source_configuration_in_place(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            cache_root = Path(directory) / "source-cache"
+            retriever = PublicReferenceRetriever(
+                cache_root=cache_root,
+                limits=ReferenceRetrievalLimits(),
+            )
+            client = retriever.client
+            transport = cast(UrllibTransport, client.transport)
+            retry_policy = client.retry_policy
+            cache = client.cache
+            specs = vars(client.catalog)["_specs"]
+            ensembl_spec = specs["SRC-ENSEMBL-REST"]
+            limiter = vars(client)["_limiters"]["SRC-ENSEMBL-REST"]
+            assemblies = vars(type(retriever.ucsc))["_assemblies"]
+            original_assemblies = dict(assemblies)
+            original_limits = ReferenceRetrievalLimits()
+            original_timeout = client.timeout_seconds
+            original_transport_limit = transport.max_response_bytes
+            original_retry = RetryPolicy(
+                attempts=retry_policy.attempts,
+                initial_backoff_seconds=retry_policy.initial_backoff_seconds,
+                maximum_backoff_seconds=retry_policy.maximum_backoff_seconds,
+                retry_statuses=retry_policy.retry_statuses,
+            )
+            original_region_limit = ensembl_spec.max_region_bp
+            original_interval = limiter.interval_seconds
+            original_cache_root = cache.root
+            original_cache_locks = cache._locks  # noqa: SLF001
+
+            def mutate_and_enrich(_retriever, value):
+                object.__setattr__(
+                    retriever.limits,
+                    "max_total_canonical_bytes",
+                    retriever.limits.max_total_canonical_bytes - 1,
+                )
+                object.__setattr__(
+                    retriever.limits,
+                    "max_total_sequence_bp",
+                    retriever.limits.max_total_sequence_bp - 1,
+                )
+                client.timeout_seconds = original_timeout / 2
+                transport.max_response_bytes = original_transport_limit - 1
+                object.__setattr__(retry_policy, "attempts", 2)
+                object.__setattr__(
+                    ensembl_spec,
+                    "max_region_bp",
+                    cast(int, original_region_limit) - 1,
+                )
+                limiter.interval_seconds = original_interval + 0.25
+                cache.root = Path(directory) / "forged-cache"
+                cache._locks = cache.root / ".locks"  # noqa: SLF001
+                assemblies["GRCh38"] = "hg19"
+                return EnrichmentResult(value, (reference_bundle,), ())
+
+            try:
+                runtime = CaseRuntime(directory, reference_retriever=retriever)
+                configuration = runtime._capture_evaluation_configuration()  # noqa: SLF001
+                source_configuration = configuration.reference_source_configuration
+                self.assertIsNotNone(source_configuration)
+                assert source_configuration is not None
+                limits_state = next(
+                    item
+                    for item in source_configuration.frozen_configurations
+                    if item.target is retriever.limits
+                )
+                self.assertEqual(
+                    tuple(name for name, _value in limits_state.attributes),
+                    (
+                        "max_window_bp",
+                        "max_features_per_variant",
+                        "max_variants",
+                        "max_total_elements",
+                        "max_total_canonical_bytes",
+                        "max_total_sequence_bp",
+                    ),
+                )
+                self.assertEqual(
+                    {id(item.target) for item in source_configuration.mappings},
+                    {
+                        id(specs),
+                        id(vars(client)["_limiters"]),
+                        id(assemblies),
+                    },
+                )
+                with patch.object(
+                    PublicReferenceRetriever,
+                    "enrich_manifest",
+                    autospec=True,
+                    side_effect=mutate_and_enrich,
+                ):
+                    with self.assertRaisesRegex(
+                        ValidationError,
+                        "runtime evaluation configuration changed",
+                    ):
+                        runtime.evaluate(manifest, live_reference=True)
+
+                self.assertEqual(retriever.limits, original_limits)
+                self.assertEqual(client.timeout_seconds, original_timeout)
+                self.assertEqual(transport.max_response_bytes, original_transport_limit)
+                self.assertEqual(retry_policy, original_retry)
+                self.assertEqual(ensembl_spec.max_region_bp, original_region_limit)
+                self.assertEqual(limiter.interval_seconds, original_interval)
+                self.assertEqual(cache.root, original_cache_root)
+                self.assertEqual(cache._locks, original_cache_locks)  # noqa: SLF001
+                self.assertEqual(assemblies, original_assemblies)
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                retry = runtime.evaluate(manifest)
+                self.assertEqual(retry.case_id, manifest.case_id)
+            finally:
+                assemblies.clear()
+                assemblies.update(original_assemblies)
+
+    def test_failed_live_evaluation_does_not_rewind_source_rate_limiters(self) -> None:
+        manifest = fixture_manifest()
+        variant = manifest.variants[0]
+        query_start = max(1, variant.start - 10)
+        query_end = variant.end + 10
+        sequence_url = (
+            "https://api.genome.ucsc.edu/getData/sequence?chrom=chr7"
+            f"&end={query_end}&genome=hg38&start={query_start - 1}"
+        )
+        overlap_url = (
+            "https://rest.ensembl.org/overlap/region/homo_sapiens/"
+            f"7:{query_start}-{query_end}?feature=gene&feature=motif&feature=regulatory"
+        )
+        responses: dict[str, object] = {
+            sequence_url: {"dna": "A" * (query_end - query_start + 1)},
+            overlap_url: [],
+        }
+        original_enrich = PublicReferenceRetriever.enrich_manifest
+
+        class RecordingTransport:
+            def __init__(self) -> None:
+                self.calls: list[str] = []
+
+            def request(
+                self,
+                method: str,
+                url: str,
+                headers: dict[str, str],
+                timeout_seconds: float,
+            ) -> TransportResponse:
+                del method, headers, timeout_seconds
+                self.calls.append(url)
+                return TransportResponse(
+                    200,
+                    url,
+                    {"content-type": "application/json"},
+                    json.dumps(responses[url]).encode("utf-8"),
+                    0.001,
+                )
+
+        for corruption in (None, 0.0, math.nan, -math.inf, math.inf, 1e308):
+            with self.subTest(corruption=corruption), tempfile.TemporaryDirectory() as directory:
+                transport = RecordingTransport()
+                client = SourceClient(
+                    cache_root=Path(directory) / "source-cache",
+                    transport=transport,
+                )
+                retriever = PublicReferenceRetriever(
+                    client,
+                    window_bp=10,
+                )
+                runtime = CaseRuntime(directory, reference_retriever=retriever)
+                original_planner = runtime.planner
+                limiters = vars(client)["_limiters"]
+                selected_limiters = {
+                    source_id: limiters[source_id]
+                    for source_id in ("SRC-UCSC-REST", "SRC-ENSEMBL-REST")
+                }
+                if corruption is not None:
+                    object.__setattr__(
+                        selected_limiters["SRC-ENSEMBL-REST"],
+                        "_next_allowed",
+                        1.0,
+                    )
+                before = {
+                    source_id: object.__getattribute__(limiter, "_next_allowed")
+                    for source_id, limiter in selected_limiters.items()
+                }
+
+                def enrich_then_invalidate(
+                    selected_retriever,
+                    value,
+                    selected_corruption=corruption,
+                    source_limiters=selected_limiters,
+                    selected_runtime=runtime,
+                ):
+                    result = original_enrich(selected_retriever, value)
+                    if selected_corruption is not None:
+                        object.__setattr__(
+                            source_limiters["SRC-ENSEMBL-REST"],
+                            "_next_allowed",
+                            selected_corruption,
+                        )
+                    selected_runtime.planner = ExperimentPlanner()
+                    return result
+
+                with patch.object(
+                    PublicReferenceRetriever,
+                    "enrich_manifest",
+                    autospec=True,
+                    side_effect=enrich_then_invalidate,
+                ):
+                    with self.assertRaisesRegex(
+                        ValidationError,
+                        "runtime evaluation configuration changed",
+                    ):
+                        runtime.evaluate(manifest, live_reference=True)
+
+                after = {
+                    source_id: object.__getattribute__(limiter, "_next_allowed")
+                    for source_id, limiter in selected_limiters.items()
+                }
+                self.assertEqual(transport.calls, [sequence_url, overlap_url])
+                self.assertGreater(
+                    after["SRC-UCSC-REST"],
+                    before["SRC-UCSC-REST"],
+                )
+                if corruption is None:
+                    self.assertGreater(
+                        after["SRC-ENSEMBL-REST"],
+                        before["SRC-ENSEMBL-REST"],
+                    )
+                else:
+                    self.assertEqual(
+                        after["SRC-ENSEMBL-REST"],
+                        before["SRC-ENSEMBL-REST"],
+                    )
+                self.assertIs(runtime.planner, original_planner)
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                self.assertEqual(runtime.evaluate(manifest).case_id, manifest.case_id)
+
+        with (
+            self.subTest(corruption="preexisting-impossible"),
+            tempfile.TemporaryDirectory() as directory,
+        ):
+            transport = RecordingTransport()
+            client = SourceClient(
+                cache_root=Path(directory) / "source-cache",
+                transport=transport,
+            )
+            retriever = PublicReferenceRetriever(client, window_bp=10)
+            runtime = CaseRuntime(directory, reference_retriever=retriever)
+            limiter = vars(client)["_limiters"]["SRC-ENSEMBL-REST"]
+            for impossible in (math.nan, -math.inf, math.inf, 1e308):
+                object.__setattr__(limiter, "_next_allowed", impossible)
+                with self.assertRaisesRegex(
+                    ValidationError,
+                    "rate limiter configuration is invalid",
+                ):
+                    runtime.evaluate(manifest)
+            self.assertEqual(transport.calls, [])
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+            object.__setattr__(limiter, "_next_allowed", 0.0)
+            self.assertEqual(runtime.evaluate(manifest).case_id, manifest.case_id)
+
     def test_permissive_policy_replacement_fails_before_persistence(self) -> None:
         class PermissivePolicy:
             version = "research-boundary-2026.09"
@@ -604,16 +1719,23 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
             reader = CaseRuntime(directory)
 
             with (
-                patch.object(reader.store.store, "put", wraps=reader.store.store.put) as put,
                 patch.object(
-                    reader.store.store,
+                    ObjectStore,
+                    "put",
+                    autospec=True,
+                    wraps=ObjectStore.put,
+                ) as put,
+                patch.object(
+                    ObjectStore,
                     "put_at",
-                    wraps=reader.store.store.put_at,
+                    autospec=True,
+                    wraps=ObjectStore.put_at,
                 ) as put_at,
                 patch.object(
-                    reader.store,
+                    RunStore,
                     "create_run",
-                    wraps=reader.store.create_run,
+                    autospec=True,
+                    wraps=RunStore.create_run,
                 ) as create_run,
             ):
                 reused = reader.evaluate(fixture_manifest())
@@ -652,15 +1774,22 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
 
             with (
                 patch.object(
-                    retry.planner,
+                    ExperimentPlanner,
                     "plan_many",
+                    autospec=True,
                     return_value=original.experiments[:-1],
                 ),
-                patch.object(retry.store.store, "put", wraps=retry.store.store.put) as put,
                 patch.object(
-                    retry.store,
+                    ObjectStore,
+                    "put",
+                    autospec=True,
+                    wraps=ObjectStore.put,
+                ) as put,
+                patch.object(
+                    RunStore,
                     "create_run",
-                    wraps=retry.store.create_run,
+                    autospec=True,
+                    wraps=RunStore.create_run,
                 ) as create_run,
             ):
                 with self.assertRaisesRegex(ValidationError, "run already exists") as raised:
@@ -696,11 +1825,17 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
             reader = CaseRuntime(directory)
 
             with (
-                patch.object(reader.store.store, "put", wraps=reader.store.store.put) as put,
                 patch.object(
-                    reader.store,
+                    ObjectStore,
+                    "put",
+                    autospec=True,
+                    wraps=ObjectStore.put,
+                ) as put,
+                patch.object(
+                    RunStore,
                     "create_run",
-                    wraps=reader.store.create_run,
+                    autospec=True,
+                    wraps=RunStore.create_run,
                 ) as create_run,
             ):
                 with self.assertRaisesRegex(ValidationError, "input"):
@@ -728,11 +1863,17 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
             reader = CaseRuntime(directory)
 
             with (
-                patch.object(reader.store.store, "put", wraps=reader.store.store.put) as put,
                 patch.object(
-                    reader.store,
+                    ObjectStore,
+                    "put",
+                    autospec=True,
+                    wraps=ObjectStore.put,
+                ) as put,
+                patch.object(
+                    RunStore,
                     "create_run",
-                    wraps=reader.store.create_run,
+                    autospec=True,
+                    wraps=RunStore.create_run,
                 ) as create_run,
             ):
                 with self.assertRaisesRegex(ValidationError, "invalid persisted artifacts"):
@@ -763,11 +1904,17 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
             reader = CaseRuntime(directory)
 
             with (
-                patch.object(reader.store.store, "put", wraps=reader.store.store.put) as put,
                 patch.object(
-                    reader.store,
+                    ObjectStore,
+                    "put",
+                    autospec=True,
+                    wraps=ObjectStore.put,
+                ) as put,
+                patch.object(
+                    RunStore,
                     "create_run",
-                    wraps=reader.store.create_run,
+                    autospec=True,
+                    wraps=RunStore.create_run,
                 ) as create_run,
             ):
                 with self.assertRaisesRegex(ValidationError, "RNA input object"):
@@ -900,7 +2047,7 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
                     )
                     bundle = ReferenceBundle.create(
                         variant_id=value.variants[0].variant_id,
-                        context_key=value.context.key,
+                        context=value.context,
                         sequence=None,
                         elements=(),
                         raw_features=(),
@@ -922,11 +2069,17 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
             before = _runtime_state(runtime, live)
 
             with (
-                patch.object(runtime.store.store, "put", wraps=runtime.store.store.put) as put,
                 patch.object(
-                    runtime.store,
+                    ObjectStore,
+                    "put",
+                    autospec=True,
+                    wraps=ObjectStore.put,
+                ) as put,
+                patch.object(
+                    RunStore,
                     "create_run",
-                    wraps=runtime.store.create_run,
+                    autospec=True,
+                    wraps=RunStore.create_run,
                 ) as create_run,
             ):
                 with self.assertRaisesRegex(ValidationError, "run already exists") as raised:
@@ -943,41 +2096,21 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
             runtimes = (CaseRuntime(directory), CaseRuntime(directory))
             barrier = threading.Barrier(2)
             results: Queue[object] = Queue()
-            originals = tuple(runtime.store.create_run for runtime in runtimes)
-
-            def guarded_create(original, *args: object, **kwargs: object) -> object:
-                barrier.wait(timeout=10)
-                return original(*args, **kwargs)
 
             def run_evaluate(runtime: CaseRuntime) -> None:
                 try:
+                    barrier.wait(timeout=10)
                     results.put(runtime.evaluate(fixture_manifest()))
                 except BaseException as exc:  # pragma: no cover - asserted below
                     results.put(exc)
 
-            with (
-                patch.object(
-                    runtimes[0].store,
-                    "create_run",
-                    side_effect=lambda *args, **kwargs: guarded_create(
-                        originals[0], *args, **kwargs
-                    ),
-                ),
-                patch.object(
-                    runtimes[1].store,
-                    "create_run",
-                    side_effect=lambda *args, **kwargs: guarded_create(
-                        originals[1], *args, **kwargs
-                    ),
-                ),
-            ):
-                threads = tuple(
-                    threading.Thread(target=run_evaluate, args=(runtime,)) for runtime in runtimes
-                )
-                for thread in threads:
-                    thread.start()
-                for thread in threads:
-                    thread.join(timeout=15)
+            threads = tuple(
+                threading.Thread(target=run_evaluate, args=(runtime,)) for runtime in runtimes
+            )
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join(timeout=15)
 
             self.assertFalse(any(thread.is_alive() for thread in threads))
             outcomes = [results.get(timeout=2) for _ in runtimes]
@@ -995,6 +2128,278 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
                     persisted_events,
                 )
 
+    def test_two_runtime_evaluations_share_callback_isolation(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        original_plan_many = vars(ExperimentPlanner)["plan_many"]
+        mutation_active = threading.Event()
+        second_attempted = threading.Event()
+        second_completed = threading.Event()
+        overlap_observed: list[bool] = []
+        results: Queue[tuple[str, object]] = Queue()
+
+        class TemporarilyConfiguredRetriever:
+            @staticmethod
+            def enrich_manifest(value):
+                ExperimentPlanner.plan_many = lambda _planner, _hypotheses: ()
+                mutation_active.set()
+                try:
+                    if not second_attempted.wait(timeout=10):
+                        raise AssertionError("second runtime did not attempt evaluation")
+                    overlap_observed.append(second_completed.wait(timeout=0.5))
+                finally:
+                    ExperimentPlanner.plan_many = original_plan_many
+                return EnrichmentResult(value, (reference_bundle,), ())
+
+        def run_first(runtime: CaseRuntime) -> None:
+            try:
+                results.put(("first", runtime.evaluate(manifest, live_reference=True)))
+            except BaseException as exc:  # pragma: no cover - asserted below
+                results.put(("first_error", exc))
+
+        def run_second(runtime: CaseRuntime) -> None:
+            second_attempted.set()
+            try:
+                results.put(("second", runtime.evaluate(manifest)))
+            except BaseException as exc:  # pragma: no cover - asserted below
+                results.put(("second_error", exc))
+            finally:
+                second_completed.set()
+
+        try:
+            with (
+                tempfile.TemporaryDirectory() as first_directory,
+                tempfile.TemporaryDirectory() as second_directory,
+            ):
+                first_runtime = CaseRuntime(
+                    first_directory,
+                    reference_retriever=TemporarilyConfiguredRetriever(),
+                )
+                second_runtime = CaseRuntime(second_directory)
+                first_thread = threading.Thread(target=run_first, args=(first_runtime,))
+                second_thread = threading.Thread(target=run_second, args=(second_runtime,))
+                first_thread.start()
+                self.assertTrue(mutation_active.wait(timeout=10))
+                second_thread.start()
+                first_thread.join(timeout=15)
+                second_thread.join(timeout=15)
+
+                self.assertFalse(first_thread.is_alive())
+                self.assertFalse(second_thread.is_alive())
+                outcomes = dict(results.get(timeout=2) for _ in range(2))
+                self.assertEqual(set(outcomes), {"first", "second"}, outcomes)
+                self.assertEqual(overlap_observed, [False])
+                self.assertGreater(len(cast(Dossier, outcomes["second"]).experiments), 0)
+                self.assertIs(vars(ExperimentPlanner)["plan_many"], original_plan_many)
+        finally:
+            ExperimentPlanner.plan_many = original_plan_many
+            second_attempted.set()
+
+    def test_callback_cannot_nest_a_second_runtime_with_substituted_configuration(
+        self,
+    ) -> None:
+        manifest = fixture_manifest()
+        variant = manifest.variants[0]
+        nested_manifest = replace(
+            manifest,
+            case_id="case-nested-runtime",
+            variants=(
+                variant,
+                replace(
+                    variant,
+                    variant_id="var-nested-runtime",
+                    start=variant.start + 1,
+                    end=variant.end + 1,
+                ),
+            ),
+        )
+        reference_bundle = ReferenceBundle.create(
+            variant_id=variant.variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+        nested_error: list[BaseException] = []
+
+        with (
+            tempfile.TemporaryDirectory() as outer_directory,
+            tempfile.TemporaryDirectory() as nested_directory,
+        ):
+            nested_runtime = CaseRuntime(
+                nested_directory,
+                experiment_limits=ExperimentPlanningLimits(max_hypotheses=1),
+            )
+            original_planner = nested_runtime.planner
+
+            class NestedRetriever:
+                @staticmethod
+                def enrich_manifest(value):
+                    nested_runtime.planner = ExperimentPlanner()
+                    vars(nested_runtime)["_validate_event_payload_size"] = (
+                        lambda *_args, **_kwargs: None
+                    )
+                    context_token = runtime_module._ACTIVE_EVALUATION_RUNTIME_IDS.set(  # noqa: SLF001
+                        frozenset()
+                    )
+                    try:
+                        nested_runtime.evaluate(nested_manifest)
+                    except BaseException as exc:
+                        nested_error.append(exc)
+                    finally:
+                        runtime_module._ACTIVE_EVALUATION_RUNTIME_IDS.reset(  # noqa: SLF001
+                            context_token
+                        )
+                        nested_runtime.planner = original_planner
+                        vars(nested_runtime).pop("_validate_event_payload_size", None)
+                    return EnrichmentResult(value, (reference_bundle,), ())
+
+            outer_runtime = CaseRuntime(
+                outer_directory,
+                reference_retriever=NestedRetriever(),
+            )
+            outer_dossier = outer_runtime.evaluate(manifest, live_reference=True)
+
+            self.assertEqual(outer_dossier.case_id, manifest.case_id)
+            self.assertEqual(len(nested_error), 1)
+            self.assertIsInstance(nested_error[0], ValidationError)
+            self.assertRegex(str(nested_error[0]), "recursive runtime evaluation")
+            self.assertIs(nested_runtime.planner, original_planner)
+            self.assertNotIn("_validate_event_payload_size", vars(nested_runtime))
+            self.assertEqual(tuple(nested_runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(nested_runtime.store.store.objects.glob("*.json")), ())
+            with self.assertRaisesRegex(ValidationError, "hypotheses exceeds"):
+                nested_runtime.evaluate(nested_manifest)
+            self.assertEqual(nested_runtime.evaluate(manifest).case_id, manifest.case_id)
+            outer_retry_manifest = replace(
+                manifest,
+                case_id="case-outer-runtime-retry",
+            )
+            self.assertEqual(
+                outer_runtime.evaluate(
+                    outer_retry_manifest,
+                    live_reference=True,
+                ).case_id,
+                outer_retry_manifest.case_id,
+            )
+            self.assertEqual(len(nested_error), 2)
+            self.assertRegex(str(nested_error[1]), "recursive runtime evaluation")
+
+    def test_runtime_rejects_a_preexisting_instance_method_shadow(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            shadow_called = False
+
+            def shadow_capture():
+                nonlocal shadow_called
+                shadow_called = True
+                raise AssertionError("instance shadow must not execute")
+
+            vars(runtime)["_capture_evaluation_configuration"] = shadow_capture
+
+            with self.assertRaisesRegex(ValidationError, "non-canonical instance state"):
+                runtime.evaluate(fixture_manifest())
+
+            self.assertFalse(shadow_called)
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+            vars(runtime).pop("_capture_evaluation_configuration")
+            self.assertEqual(runtime.evaluate(fixture_manifest()).case_id, "case-demo-001")
+
+    def test_callback_class_and_namespace_swaps_restore_before_instance_setters(self) -> None:
+        manifest = fixture_manifest()
+        reference_bundle = ReferenceBundle.create(
+            variant_id=manifest.variants[0].variant_id,
+            context=manifest.context,
+            sequence=None,
+            elements=(),
+            raw_features=(),
+            receipts=(),
+            warnings=(),
+        )
+
+        class ReconfiguredRuntime(CaseRuntime):
+            def __setattr__(self, _name, _value) -> None:
+                raise RuntimeError("runtime setter is unavailable")
+
+            def __getattribute__(self, name):
+                if name == "__dict__":
+                    raise RuntimeError("runtime namespace lookup is unavailable")
+                return object.__getattribute__(self, name)
+
+        class ReconfiguredBuilder(HypothesisBuilder):
+            def __setattr__(self, _name, _value) -> None:
+                raise RuntimeError("builder setter is unavailable")
+
+        for selected_target in ("runtime", "builder"):
+            with self.subTest(target=selected_target), tempfile.TemporaryDirectory() as directory:
+                calls = 0
+
+                class ReconfiguringRetriever:
+                    def __init__(self, target_name: str) -> None:
+                        self.target_name = target_name
+                        self.runtime: CaseRuntime | None = None
+
+                    def enrich_manifest(self, value):
+                        nonlocal calls
+                        calls += 1
+                        if calls == 1:
+                            if self.runtime is None:  # pragma: no cover - fixture invariant
+                                raise AssertionError("runtime fixture is not attached")
+                            target = (
+                                self.runtime
+                                if self.target_name == "runtime"
+                                else self.runtime.builder
+                            )
+                            replacement_namespace = dict(vars(target))
+                            replacement_namespace["temporary_marker"] = self.target_name
+                            object.__setattr__(target, "__dict__", replacement_namespace)
+                            object.__setattr__(
+                                target,
+                                "__class__",
+                                (
+                                    ReconfiguredRuntime
+                                    if self.target_name == "runtime"
+                                    else ReconfiguredBuilder
+                                ),
+                            )
+                        return EnrichmentResult(value, (reference_bundle,), ())
+
+                retriever = ReconfiguringRetriever(selected_target)
+                runtime = CaseRuntime(
+                    directory,
+                    reference_retriever=retriever,
+                )
+                retriever.runtime = runtime
+                original_runtime_namespace = vars(runtime)
+                original_builder = runtime.builder
+                original_builder_namespace = vars(original_builder)
+
+                with self.assertRaises(ValidationError):
+                    runtime.evaluate(manifest, live_reference=True)
+
+                self.assertIs(type(runtime), CaseRuntime)
+                self.assertIs(vars(runtime), original_runtime_namespace)
+                self.assertIs(runtime.builder, original_builder)
+                self.assertIs(type(runtime.builder), HypothesisBuilder)
+                self.assertIs(vars(runtime.builder), original_builder_namespace)
+                self.assertNotIn("temporary_marker", vars(runtime))
+                self.assertNotIn("temporary_marker", vars(runtime.builder))
+                self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+                self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+                retry = runtime.evaluate(manifest, live_reference=True)
+                self.assertEqual(retry.case_id, manifest.case_id)
+
     def test_repeated_evaluate_cannot_reuse_an_assigned_draft(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime = CaseRuntime(directory)
@@ -1007,11 +2412,17 @@ class RuntimeReleaseHardeningTests(unittest.TestCase):
             before = _runtime_state(runtime, dossier)
 
             with (
-                patch.object(runtime.store.store, "put", wraps=runtime.store.store.put) as put,
                 patch.object(
-                    runtime.store,
+                    ObjectStore,
+                    "put",
+                    autospec=True,
+                    wraps=ObjectStore.put,
+                ) as put,
+                patch.object(
+                    RunStore,
                     "create_run",
-                    wraps=runtime.store.create_run,
+                    autospec=True,
+                    wraps=RunStore.create_run,
                 ) as create_run,
             ):
                 with self.assertRaisesRegex(ValidationError, "run already exists") as raised:

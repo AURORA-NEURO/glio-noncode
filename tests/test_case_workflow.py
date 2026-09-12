@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from jsonschema import Draft202012Validator
 
-from glio_noncode.adapters import ADAPTER_HARD_MAX_SELECTED
+from glio_noncode.adapters import ADAPTER_HARD_MAX_SELECTED, AdapterLimits
 from glio_noncode.case_workflow import (
     MAX_CASE_CANDIDATE_ELEMENTS,
     MAX_CASE_REGULATORY_TRACKS,
@@ -1443,6 +1443,31 @@ class CaseWorkflowTests(unittest.TestCase):
             ADAPTER_HARD_MAX_SELECTED,
         )
         self.assertEqual(
+            advertised["runtime_work_limits"]["hard_max_adapter_ids"],
+            ADAPTER_HARD_MAX_SELECTED,
+        )
+        self.assertEqual(
+            advertised["runtime_work_limits"]["default_registry_max_adapter_ids"],
+            AdapterLimits().max_selected_adapters,
+        )
+        adapter_contract = advertised["optional_execution_inputs"]["adapter_ids"]
+        self.assertEqual(adapter_contract["max_items"], ADAPTER_HARD_MAX_SELECTED)
+        self.assertEqual(adapter_contract["hard_max_items"], ADAPTER_HARD_MAX_SELECTED)
+        self.assertEqual(
+            adapter_contract["default_registry_max_items"],
+            AdapterLimits().max_selected_adapters,
+        )
+        self.assertEqual(adapter_contract["execution_registry_scope"], "selected_execution")
+        self.assertEqual(
+            adapter_contract["persisted_source_records"],
+            [
+                "adapter_input_manifest",
+                "adapter_registry_snapshot",
+                "adapter_resolution_report",
+                "adapter_claim_collection_report",
+            ],
+        )
+        self.assertEqual(
             advertised["preparation_inputs"]["regulatory_tracks"]["max_items"],
             MAX_CASE_REGULATORY_TRACKS,
         )
@@ -1466,6 +1491,37 @@ class CaseWorkflowTests(unittest.TestCase):
                 "max_records": MAX_VARIANT_INTAKE_RECORDS,
                 "max_auxiliary_lines": MAX_VARIANT_INTAKE_AUXILIARY_LINES,
             },
+        )
+
+        relations = run_result_schema()["x-runtime-relations"]
+        self.assertTrue(
+            any(
+                "runtime receipt input_address binds prepared.manifest_address" in relation
+                for relation in relations
+            )
+        )
+        self.assertTrue(
+            any(
+                "blocked pre-execution outcome" in relation
+                and "binds prepared.content_address" in relation
+                for relation in relations
+            )
+        )
+        self.assertTrue(
+            any(
+                "for accepted executions" in relation
+                and "when present" in relation
+                and "effective evaluation identity" in relation
+                for relation in relations
+            )
+        )
+        self.assertTrue(
+            any(
+                "dossier.input_address, run_record.input_address, and "
+                "replay_report.input_address" in relation
+                and "effective_manifest_address" in relation
+                for relation in relations
+            )
         )
 
     def test_request_schemas_compose_canonical_bounded_inputs(self) -> None:

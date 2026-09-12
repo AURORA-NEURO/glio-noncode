@@ -61,7 +61,7 @@ class CuratedPublicSurfaceTests(unittest.TestCase):
         self.assertEqual(_public_surface.CURATED_EXPORTS, expected)
         self.assertEqual(_public_surface.CURATED_ALL, tuple(expected))
         self.assertEqual(_public_surface.ALL[-len(expected) :], tuple(expected))
-        self.assertEqual(len(expected), 233)
+        self.assertEqual(len(expected), 237)
         for name, descriptor in expected.items():
             self.assertEqual(_public_surface.ALL.count(name), 1, name)
             self.assertEqual(_public_surface.EXPORTS[name], descriptor)
@@ -107,6 +107,11 @@ class CuratedPublicSurfaceTests(unittest.TestCase):
                 "ReferenceBundleProvider",
             ),
             "EncodeProvider": ("glio_noncode.atlas", "EncodeProvider"),
+            "AtlasEncodeReplayState": (
+                "glio_noncode.atlas",
+                "AtlasEncodeReplayState",
+            ),
+            "AtlasReplayInputs": ("glio_noncode.atlas", "AtlasReplayInputs"),
             "EvidenceGraph": ("glio_noncode.evidence", "EvidenceGraph"),
             "AggregateSupport": ("glio_noncode.evidence", "AggregateSupport"),
             "EvidenceGraphLimits": (

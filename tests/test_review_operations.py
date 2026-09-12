@@ -6,9 +6,11 @@ import json
 import tempfile
 import unittest
 from dataclasses import replace
+from datetime import UTC, datetime
 from http.client import HTTPConnection
 from pathlib import Path
 from threading import Thread
+from unittest.mock import patch
 
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
@@ -25,9 +27,15 @@ from glio_noncode.runtime import CaseRuntime
 from .helpers import fixture_manifest
 
 AS_OF = "2026-09-01T12:00:00Z"
+FIXTURE_NOW = datetime(2026, 8, 1, 12, 0, 0, tzinfo=UTC)
 
 
 class ReviewOperationsTests(unittest.TestCase):
+    def setUp(self) -> None:
+        runtime_clock = patch("glio_noncode.runtime.utc_now", return_value=FIXTURE_NOW)
+        runtime_clock.start()
+        self.addCleanup(runtime_clock.stop)
+
     def _three_runs(self, directory: str) -> tuple[CaseRuntime, tuple[str, str, str]]:
         runtime = CaseRuntime(directory)
         runs = tuple(
@@ -77,7 +85,7 @@ class ReviewOperationsTests(unittest.TestCase):
             self.assertEqual(report.rows[0].run_id, runs[0])
             self.assertEqual(report.rows[0].due_state, "overdue")
             self.assertEqual(report.rows[0].operational_action, "escalate_overdue")
-            self.assertGreater(report.rows[0].age_seconds, 0)
+            self.assertEqual(report.rows[0].age_seconds, 31 * 24 * 60 * 60)
             self.assertLess(report.rows[1].due_in_seconds, 48 * 60 * 60)
             reviewer_a = next(item for item in report.workloads if item.reviewer == "reviewer-a")
             self.assertEqual(reviewer_a.total_count, 2)

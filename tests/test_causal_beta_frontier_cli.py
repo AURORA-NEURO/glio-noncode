@@ -6,12 +6,13 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
+from typing import Any
 
 from glio_noncode.cli import main
 
 
 class CausalBetaFrontierCliTests(unittest.TestCase):
-    def _run_json(self, root: Path, command: str) -> dict[str, object]:
+    def _run_json(self, root: Path, command: str) -> dict[str, Any]:
         output = root / f"{command}.json"
         self.assertEqual(main([command, "--output", str(output)]), 0)
         payload = json.loads(output.read_text(encoding="utf-8"))
@@ -96,9 +97,36 @@ class CausalBetaFrontierCliTests(unittest.TestCase):
             csv_path = root / "review.csv"
             md_path = root / "review.md"
             json_path = root / "exports.json"
-            self.assertEqual(main(["export-causal-beta-frontier-review-csv", "--output", str(csv_path)]), 0)
-            self.assertEqual(main(["export-causal-beta-frontier-review-markdown", "--output", str(md_path)]), 0)
-            self.assertEqual(main(["export-causal-beta-frontier-json", "--output", str(json_path)]), 0)
+            self.assertEqual(
+                main(
+                    [
+                        "export-causal-beta-frontier-review-csv",
+                        "--output",
+                        str(csv_path),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "export-causal-beta-frontier-review-markdown",
+                        "--output",
+                        str(md_path),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "export-causal-beta-frontier-json",
+                        "--output",
+                        str(json_path),
+                    ]
+                ),
+                0,
+            )
             csv_text = csv_path.read_text(encoding="utf-8")
             markdown = md_path.read_text(encoding="utf-8")
             exports = json.loads(json_path.read_text(encoding="utf-8"))
@@ -117,10 +145,11 @@ class CausalBetaFrontierCliTests(unittest.TestCase):
             with redirect_stderr(StringIO()):
                 self.assertEqual(main(["causal-beta-frontier-runtime", str(path)]), 2)
 
-    def test_help_lists_the_full_beta_surface(self) -> None:
-        with self.assertRaises(SystemExit) as raised, redirect_stdout(StringIO()):
-            main(["--help"])
-        self.assertEqual(raised.exception.code, 0)
+    def test_top_level_help_returns_success(self) -> None:
+        output = StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(main(["--help"]), 0)
+        self.assertIn("commands search TERM", output.getvalue())
 
 
 if __name__ == "__main__":

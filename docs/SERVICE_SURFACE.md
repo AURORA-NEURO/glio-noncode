@@ -413,9 +413,12 @@ The server owns the configured `data_root` and adapter registry.
 `/v1/case-workflow/run` accepts only `prepared`, optional `rna_consequences`, and
 optional canonical `adapter_ids`; a client `data_root` or executable adapter is
 rejected with HTTP 400. `/v1/case-workflow/adapters` lists the exact server-owned
-registry snapshot. Adapter selection persists the registry, resolution, and
-attributed claim-collection records, materializes an effective manifest, and binds
-that manifest address into the evaluation run identity. The run-report and
+full discovery-registry snapshot and its configured enforcement limits. Adapter
+selection atomically captures the selected-execution registry projection. Its event
+binds four ordered source-record roles: base manifest, selected registry snapshot,
+resolution report, and attributed claim-collection report. The claim report contains each
+selected adapter's complete addressed metadata. It materializes an effective manifest
+and binds that manifest address into the evaluation run identity. The run-report and
 run-assessment routes reopen one complete persisted closure through the bounded
 replay verifier before building any projection. `audience=public` is the default
 and contains aggregate counts, state conservation, release-gate status, and content
@@ -429,6 +432,56 @@ an authenticated successor binding and unbound legacy history fails closed.
 `X-Glio-Payload-Address`, and `X-Glio-Rendered-Report-Address` bind the response
 to its typed report, source dossier, summary, exact bytes, and rendered artifact.
 Unknown, blank, or repeated report query parameters return HTTP 400.
+
+Optional RNA, live-reference, Atlas, and adapter sources share a 256 MiB aggregate
+canonical closure. For every variant, Atlas contributes an ordered pair: an external,
+detached `AtlasReplayInputs` source record immediately followed by its `AtlasBundle`.
+No persisted source object may exceed 128 MiB. Python hosts may lower the aggregate
+limit through `CaseRuntime(source_closure_max_bytes=...)`; `create_server(...)` and the
+bundled `serve` command currently retain both byte defaults. The hard/default maximum
+for the ordered, unique source-address list remains 3,006. Up to 256,000 ordered
+reference-plus-Atlas receipt occurrences are retained,
+and up to 10,000 linked atlas-plus-adapter claims share one external-claim allowance;
+both configured limits may be lower.
+
+Admission is progressive at runtime stage boundaries, but each allowance gates only
+work that can consume it. Source byte/address capacity gates later source stages;
+receipt, accumulated source-warning, and Atlas event-payload capacity gates later atlas
+calls; and external-claim capacity gates later claim-producing atlas calls and adapter
+claim callbacks. RNA consequence iterators are detached and byte-charged one row at a
+time. Before each per-variant Atlas callback, the server reserves both source-address
+slots for the replay-input/bundle pair; it then detaches and validates both returned
+records, retains the replay input before the bundle, and requires the complete pair to
+fit the object and aggregate byte allowances before another Atlas callback. Adapter
+selection binds both metadata and exact live adapter identities, and
+per-edge evidence headroom is enforced before claim callbacks.
+The server cannot interrupt a source callback already in flight; it validates each
+returned result before later runtime work. Reference-internal work may therefore finish
+before an enrichment is rejected, and adapter resolution may precede a
+claim-allowance rejection, and an ineligible atlas variant may retain observations
+without using claim capacity. Any failure publishes no partial run.
+
+Replay verifies the exact submitted manifest, reconstructed enriched reference
+transition, and all four adapter records before serving a run-derived projection. The
+Atlas event exposes equal-length, variant-ordered `replay_input_addresses` and
+`bundle_addresses` arrays. Replay validates both arrays, their uniqueness, and pairwise
+order, interleaves each replay input immediately before its bundle in the declared
+source closure, and reconstructs the `AtlasReplayInputs` object against the exact full
+`VariantIdentity`, `ReferenceContext`, retained reference bundle, and `AtlasQuery` before
+accepting the bundle's replay-input binding. It then offline-rederives
+sequence and motif analysis, declared-track reports and observations, ENCODE projection
+or abstention, receipts and warnings, the receipt-derived timestamp, out-of-domain and
+uncertainty outputs, and evidence claims; the retained bundle and dossier claims must
+match. Every reference bundle binds a versioned hash of the complete canonical context
+rather than trusting its display key alone. The ordered reference-then-Atlas receipt
+occurrence sequence is verified. Reference events must include every bundle warning
+and keep all event warnings in the dossier; Atlas event warnings must exactly
+reconstruct from deduplicated bundle
+and claim-link warnings. Source-event order, IDs, payload fields, and counters are also
+verified.
+Unverifiable legacy live-source closures and older adapter report versions fail closed
+and should be recomputed. Immutable offline runs remain usable when current replay
+contracts verify.
 
 Cross-run search accepts `q` or its `text` alias, `resource` (`all`, `runs`,
 `hypotheses`, `evidence`, `experiments`, or `reviews`), `case_id`, `status`,

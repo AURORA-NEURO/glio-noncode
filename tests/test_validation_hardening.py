@@ -5,7 +5,9 @@ from __future__ import annotations
 import copy
 import tempfile
 import unittest
+from collections.abc import Mapping, Sequence
 from dataclasses import replace
+from typing import Any
 from unittest.mock import patch
 
 import glio_noncode.validation as validation_module
@@ -18,7 +20,7 @@ from glio_noncode.models import (
     ReviewState,
 )
 from glio_noncode.runtime import CaseRuntime
-from glio_noncode.serialization import content_hash
+from glio_noncode.serialization import canonical_bytes, content_hash
 from glio_noncode.validation import (
     ContractValidator,
     ReleaseGate,
@@ -33,6 +35,35 @@ def _readdress(dossier: Dossier) -> Dossier:
     body = pending.to_dict()
     body.pop("content_address")
     return replace(pending, content_address=content_hash(body))
+
+
+def _minimal_receipt(*, url: str = "http://a") -> dict[str, Any]:
+    return FetchReceipt(
+        source_id="A",
+        source_version="1",
+        url=url,
+        request_hash="sha256:" + "0" * 64,
+        response_hash="sha256:" + "0" * 64,
+        status=FetchStatus.FETCHED,
+        http_status=200,
+        attempts=1,
+        retrieved_at="0001-01-01T00:00:00+00:00",
+        elapsed_seconds=None,
+        cache_expires_at=None,
+    ).to_dict()
+
+
+def _json_string_characters(value: object) -> int:
+    if type(value) is str:
+        return len(value)
+    if isinstance(value, Mapping):
+        return sum(
+            _json_string_characters(key) + _json_string_characters(item)
+            for key, item in value.items()
+        )
+    if isinstance(value, Sequence):
+        return sum(_json_string_characters(item) for item in value)
+    return 0
 
 
 class ValidationHardeningTests(unittest.TestCase):
@@ -61,6 +92,11 @@ class ValidationHardeningTests(unittest.TestCase):
         self.assertTrue(validator.validate_dossier(self.draft).valid)
         self.assertTrue(validator.validate_dossier(self.released).valid)
         self.assertTrue(ReleaseGate().check(self.released).valid)
+
+    def test_source_bundle_limit_covers_every_maximal_live_stage(self) -> None:
+        expected = 3 * validation_module.MAX_VALIDATION_VARIANTS + 6
+        self.assertEqual(validation_module.MAX_VALIDATION_SOURCE_BUNDLES, expected)
+        self.assertEqual(ValidationLimits().max_source_bundles, expected)
 
     def test_exact_top_level_and_nested_types_fail_closed_without_crashing(self) -> None:
         validator = ContractValidator()
@@ -92,6 +128,9 @@ class ValidationHardeningTests(unittest.TestCase):
         with patch.object(validation_module, "MAX_VALIDATION_EVIDENCE_CLAIMS", 1_000_000):
             with self.assertRaisesRegex(ValidationError, "safety ceiling"):
                 ValidationLimits(max_evidence_claims=20_001)
+        with patch.object(validation_module, "MAX_VALIDATION_SOURCE_BUNDLES", 1_000_000):
+            with self.assertRaisesRegex(ValidationError, "safety ceiling"):
+                ValidationLimits(max_source_bundles=3_007)
 
         validator = ContractValidator(
             limits=ValidationLimits(max_evidence_claims=len(self.draft.evidence) - 1)
@@ -159,6 +198,168 @@ class ValidationHardeningTests(unittest.TestCase):
         report = ContractValidator().validate_dossier(forged)
         self.assertFalse(report.valid)
         self.assertIn("invalid_source_receipt", {item.code for item in report.issues})
+
+    def test_more_than_legacy_node_boundary_receipts_validate_by_default(self) -> None:
+        receipt_count = 34_443
+        one_receipt = replace(self.draft, source_receipts=(_minimal_receipt(),))
+        expanded = copy.copy(self.draft)
+        object.__setattr__(
+            expanded,
+            "source_receipts",
+            (one_receipt.source_receipts[0],) * receipt_count,
+        )
+        object.__setattr__(
+            expanded,
+            "source_bundle_addresses",
+            ("sha256:" + "1" * 64,),
+        )
+        body = expanded.to_dict()
+        body.pop("content_address")
+        object.__setattr__(expanded, "content_address", content_hash(body))
+
+        report = ContractValidator().validate_dossier(expanded)
+
+        self.assertGreater(receipt_count, 34_442)
+        self.assertTrue(report.valid, report.to_dict())
+
+    def test_aggregate_budget_admission_precedes_receipt_parsing(self) -> None:
+        one_receipt = replace(self.draft, source_receipts=(_minimal_receipt(),))
+        expanded = copy.copy(self.draft)
+        object.__setattr__(
+            expanded,
+            "source_receipts",
+            (one_receipt.source_receipts[0],) * 100,
+        )
+
+        with patch.object(
+            validation_module,
+            "_parse_receipt",
+            wraps=validation_module._parse_receipt,
+        ) as parse_receipt:
+            report = ContractValidator(
+                limits=ValidationLimits(max_total_characters=1)
+            ).validate_dossier(expanded)
+
+        self.assertEqual({issue.code for issue in report.issues}, {"validation_limit_exceeded"})
+        parse_receipt.assert_not_called()
+
+    def test_oversized_receipt_collections_reject_before_iteration(self) -> None:
+        oversized_mapping = validation_module._FrozenJsonObject(
+            {f"field-{index}": None for index in range(15)}
+        )
+        with patch.object(
+            validation_module,
+            "set",
+            side_effect=AssertionError("iterated oversized mapping"),
+            create=True,
+        ) as set_:
+            with self.assertRaisesRegex(ValidationError, "exactly 14 fields"):
+                validation_module._parse_receipt(oversized_mapping)
+        set_.assert_not_called()
+
+        raw = _minimal_receipt()
+        raw["warnings"] = validation_module._FrozenJsonArray(["warning"] * 257)
+        oversized_warnings = validation_module._FrozenJsonObject(raw)
+        with patch.object(
+            validation_module._FrozenJsonArray,
+            "__iter__",
+            side_effect=AssertionError("iterated oversized warnings"),
+        ) as iterate:
+            with self.assertRaisesRegex(ValidationError, "safety ceiling of 256 items"):
+                validation_module._parse_receipt(oversized_warnings)
+        iterate.assert_not_called()
+
+    def test_full_receipt_boundary_fits_joint_default_budgets(self) -> None:
+        receipt = _minimal_receipt()
+        receipt_count = validation_module.MAX_VALIDATION_SOURCE_RECEIPTS
+        base = _readdress(
+            replace(
+                self.draft,
+                source_bundle_addresses=("sha256:" + "1" * 64,),
+            )
+        )
+        raw = base.to_dict()
+        self.assertEqual(raw["source_receipts"], [])
+
+        receipt_bytes = len(canonical_bytes(receipt))
+        receipt_array_bytes = 2 + receipt_count * receipt_bytes + receipt_count - 1
+        full_payload_bytes = len(canonical_bytes(raw)) - len(b"[]") + receipt_array_bytes
+        # This is conservative: canonical JSON also spells typed-model field names,
+        # while structured validation charges mapping keys but not dataclass field names.
+        full_string_characters = (
+            _json_string_characters(raw)
+            + receipt_count * _json_string_characters(receipt)
+        )
+        limits = ValidationLimits()
+        self.assertLessEqual(full_payload_bytes, limits.max_canonical_bytes)
+        self.assertLessEqual(full_string_characters, limits.max_total_characters)
+
+        one_receipt = replace(base, source_receipts=(receipt,))
+        boundary = copy.copy(base)
+        object.__setattr__(
+            boundary,
+            "source_receipts",
+            (one_receipt.source_receipts[0],) * receipt_count,
+        )
+        validation_module._dossier_preflight(boundary, limits)
+        validation_module._measure_model(
+            boundary,
+            limits,
+            compact_source_receipts=b"\x01" * receipt_count,
+        )
+
+    def test_receipt_compaction_preserves_malformed_node_character_and_depth_limits(
+        self,
+    ) -> None:
+        malformed = _minimal_receipt()
+        malformed["unexpected"] = [None] * 64
+        stripped = replace(
+            self.draft,
+            hypotheses=(),
+            evidence=(),
+            experiments=(),
+            review=None,
+            warnings=(),
+            source_receipts=(malformed,),
+            source_bundle_addresses=(),
+        )
+        report = ContractValidator(
+            limits=ValidationLimits(max_structured_nodes=64)
+        ).validate_dossier(stripped)
+        self.assertEqual({issue.code for issue in report.issues}, {"validation_limit_exceeded"})
+        self.assertIn(".unexpected[", report.issues[0].path)
+
+        long_receipt = _minimal_receipt(url="http://a/" + "x" * 2_048)
+        compact = replace(stripped, source_receipts=(long_receipt,))
+        character_report = ContractValidator(
+            limits=ValidationLimits(max_total_characters=2_000)
+        ).validate_dossier(compact)
+        self.assertEqual(
+            {issue.code for issue in character_report.issues},
+            {"validation_limit_exceeded"},
+        )
+        self.assertEqual(character_report.issues[0].path, "Dossier.source_receipts[0].url")
+
+        string_report = ContractValidator(
+            limits=ValidationLimits(max_string_characters=2_000)
+        ).validate_dossier(compact)
+        self.assertEqual(
+            {issue.code for issue in string_report.issues},
+            {"validation_limit_exceeded"},
+        )
+        self.assertEqual(string_report.issues[0].path, "Dossier.source_receipts[0].url")
+
+        depth_report = ContractValidator(
+            limits=ValidationLimits(max_structured_depth=2)
+        ).validate_dossier(replace(stripped, source_receipts=(_minimal_receipt(),)))
+        self.assertEqual(
+            {issue.code for issue in depth_report.issues},
+            {"validation_limit_exceeded"},
+        )
+        self.assertEqual(
+            depth_report.issues[0].path,
+            "Dossier.source_receipts[0].<key>",
+        )
 
     def test_supersession_must_remain_on_the_same_edge(self) -> None:
         first = self.draft.evidence[0]

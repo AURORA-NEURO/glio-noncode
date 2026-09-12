@@ -4,10 +4,14 @@ import json
 import tempfile
 import threading
 import unittest
+from dataclasses import replace
 from pathlib import Path
+from typing import Any
+from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+from glio_noncode.adapters import AdapterLimits, AdapterMetadata, AdapterRegistry
 from glio_noncode.api import create_server
 from glio_noncode.case_workflow import PreparedCase
 from glio_noncode.expression_claims import RNAElementGeneTarget
@@ -28,6 +32,37 @@ from glio_noncode.models import ReferenceContext
 from glio_noncode.serialization import content_hash
 
 CONTEXT_KEY = "GRCh38|diffuse_glioma|adult|stem_like|tumor_core|pre_treatment"
+
+
+class _DiscoveryAdapter:
+    def __init__(self) -> None:
+        self.metadata = AdapterMetadata(
+            adapter_id="api-discovery-adapter",
+            display_name="API discovery adapter",
+            version="1",
+            license="test-only",
+            data_access="local",
+            supported_contexts=(CONTEXT_KEY,),
+            channels=("regulatory_element",),
+            failure_modes=("empty_result",),
+        )
+
+    def resolve_elements(
+        self,
+        variant_id: str,
+        context: ReferenceContext,
+    ) -> tuple[Any, ...]:
+        del variant_id, context
+        return ()
+
+    def collect_claims(
+        self,
+        variant_id: str,
+        element_id: str,
+        context: ReferenceContext,
+    ) -> tuple[Any, ...]:
+        del variant_id, element_id, context
+        return ()
 
 
 def _case_request() -> dict[str, object]:
@@ -298,6 +333,7 @@ class CaseExpressionApiTests(unittest.TestCase):
         for path in (
             "/v1/case-workflow/schema",
             "/v1/case-workflow/capabilities",
+            "/v1/case-workflow/adapters",
             "/v1/expression-evidence/schema",
             "/v1/expression-evidence/capabilities",
             "/v1/expression-claims/schema",
@@ -306,6 +342,115 @@ class CaseExpressionApiTests(unittest.TestCase):
             status, payload = self._get(path)
             self.assertEqual(status, 200)
             self.assertIsInstance(payload, dict)
+
+        _, adapters = self._get("/v1/case-workflow/adapters")
+        self.assertFalse(adapters["configured"])
+        self.assertEqual(adapters["registry_scope"], "full_discovery")
+        self.assertEqual(adapters["adapter_metadata"], [])
+        self.assertIsNone(adapters["limits"])
+
+    def test_adapter_discovery_exposes_configured_effective_limits(self) -> None:
+        registry = AdapterRegistry(AdapterLimits(max_selected_adapters=3))
+        with tempfile.TemporaryDirectory() as directory:
+            server = create_server(
+                "127.0.0.1",
+                0,
+                Path(directory) / "data",
+                adapter_registry=registry,
+            )
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                with urlopen(
+                    f"http://127.0.0.1:{server.server_port}"
+                    "/v1/case-workflow/adapters",
+                    timeout=30,
+                ) as response:
+                    self.assertEqual(response.status, 200)
+                    advertised = json.loads(response.read())
+                self.assertTrue(advertised["configured"])
+                self.assertEqual(advertised["registry_scope"], "full_discovery")
+                self.assertEqual(advertised["adapter_metadata"], [])
+                self.assertEqual(advertised["limits"], registry.limits.to_dict())
+                self.assertEqual(advertised["limits"]["max_selected_adapters"], 3)
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
+
+    def test_adapter_discovery_returns_bounded_json_when_registry_validation_fails(
+        self,
+    ) -> None:
+        registry = AdapterRegistry()
+        adapter = _DiscoveryAdapter()
+        registry.register(adapter)
+        adapter.metadata = replace(
+            adapter.metadata,
+            display_name="drifted metadata",
+            content_address="",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            server = create_server(
+                "127.0.0.1",
+                0,
+                Path(directory) / "data",
+                adapter_registry=registry,
+            )
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                with self.assertRaises(HTTPError) as caught:
+                    urlopen(
+                        f"http://127.0.0.1:{server.server_port}"
+                        "/v1/case-workflow/adapters",
+                        timeout=30,
+                    )
+                self.assertEqual(caught.exception.code, 422)
+                body = json.loads(caught.exception.read())
+                self.assertEqual(body["error"], "validation_error")
+                self.assertIn("metadata drift", body["message"])
+                self.assertLessEqual(len(body["message"]), 2_048)
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
+
+    def test_adapter_discovery_contains_unexpected_failures_as_json(self) -> None:
+        registry = AdapterRegistry()
+        with tempfile.TemporaryDirectory() as directory:
+            server = create_server(
+                "127.0.0.1",
+                0,
+                Path(directory) / "data",
+                adapter_registry=registry,
+            )
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                with patch.object(
+                    AdapterRegistry,
+                    "discovery",
+                    side_effect=RuntimeError("private adapter failure detail"),
+                ):
+                    with self.assertRaises(HTTPError) as caught:
+                        urlopen(
+                            f"http://127.0.0.1:{server.server_port}"
+                            "/v1/case-workflow/adapters",
+                            timeout=30,
+                        )
+                self.assertEqual(caught.exception.code, 500)
+                body = json.loads(caught.exception.read())
+                self.assertEqual(
+                    body,
+                    {
+                        "error": "internal_error",
+                        "message": "adapter discovery failed",
+                    },
+                )
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
 
     def test_scientific_routes_reject_ambiguous_or_non_finite_json(self) -> None:
         duplicate_routes = (

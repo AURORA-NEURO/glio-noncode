@@ -50,7 +50,11 @@ MAX_VALIDATION_TOTAL_EDGES = 20_000
 MAX_VALIDATION_CLAIMS_PER_EDGE = 10_000
 MAX_VALIDATION_DEPENDENCIES_PER_CLAIM = 10_000
 MAX_VALIDATION_SOURCE_RECEIPTS = 256_000
-MAX_VALIDATION_SOURCE_BUNDLES = 2_000
+# A maximal live run may retain one submitted manifest, one reference bundle,
+# one detached Atlas replay-input artifact, and one Atlas bundle per variant,
+# one RNA batch, and four adapter closure records.
+_HARD_MAX_VALIDATION_SOURCE_BUNDLES = 3_006
+MAX_VALIDATION_SOURCE_BUNDLES = 3 * MAX_VALIDATION_VARIANTS + 6
 MAX_VALIDATION_SEQUENCE_ITEMS = 256_000
 MAX_VALIDATION_STRUCTURED_NODES = 1_000_000
 MAX_VALIDATION_STRUCTURED_DEPTH = 64
@@ -105,7 +109,7 @@ class ValidationLimits:
             ("max_claims_per_edge", 10_000),
             ("max_dependencies_per_claim", 10_000),
             ("max_source_receipts", 256_000),
-            ("max_source_bundles", 2_000),
+            ("max_source_bundles", _HARD_MAX_VALIDATION_SOURCE_BUNDLES),
             ("max_sequence_items", 256_000),
             ("max_structured_nodes", 1_000_000),
             ("max_structured_depth", 64),
@@ -141,6 +145,7 @@ _RECEIPT_FIELDS = frozenset(
         "error_message",
     }
 )
+_HARD_MAX_VALIDATION_RECEIPT_WARNINGS = 256
 _MODEL_TYPES = frozenset(
     {
         ReferenceContext,
@@ -376,25 +381,40 @@ def _require_exact_type(value: object, expected: type[Any], path: str) -> None:
         )
 
 
-def _measure_model(value: object, limits: ValidationLimits) -> None:
+def _measure_model(
+    value: object,
+    limits: ValidationLimits,
+    *,
+    compact_source_receipts: bytes | None = None,
+) -> None:
     nodes = 0
     characters = 0
     active: set[int] = set()
 
-    def walk(item: object, path: str, depth: int) -> None:
+    def walk(
+        item: object,
+        path: str,
+        depth: int,
+        *,
+        sequence_maximum: int | None = None,
+        compact_sequence_items: bytes | None = None,
+        charge_node: bool = True,
+        charge_descendant_nodes: bool = True,
+    ) -> None:
         nonlocal nodes, characters
         if depth > limits.max_structured_depth:
             raise _BudgetFailure(
                 f"{path} exceeds the configured structured depth of {limits.max_structured_depth}.",
                 path,
             )
-        nodes += 1
-        if nodes > limits.max_structured_nodes:
-            raise _BudgetFailure(
-                "The object graph exceeds the configured maximum of "
-                f"{limits.max_structured_nodes} nodes.",
-                path,
-            )
+        if charge_node:
+            nodes += 1
+            if nodes > limits.max_structured_nodes:
+                raise _BudgetFailure(
+                    "The object graph exceeds the configured maximum of "
+                    f"{limits.max_structured_nodes} nodes.",
+                    path,
+                )
         if item is None or type(item) in {bool, int}:
             return
         if type(item) is float:
@@ -421,7 +441,13 @@ def _measure_model(value: object, limits: ValidationLimits) -> None:
                 )
             return
         if type(item) in _MODEL_ENUM_TYPES:
-            walk(cast(Enum, item).value, path, depth + 1)
+            walk(
+                cast(Enum, item).value,
+                path,
+                depth + 1,
+                charge_node=charge_descendant_nodes,
+                charge_descendant_nodes=charge_descendant_nodes,
+            )
             return
         if type(item) in _MODEL_TYPES:
             marker = id(item)
@@ -434,21 +460,41 @@ def _measure_model(value: object, limits: ValidationLimits) -> None:
             active.add(marker)
             try:
                 for model_field in fields(cast(Any, item)):
+                    is_receipt_field = (
+                        type(item) is Dossier and model_field.name == "source_receipts"
+                    )
                     walk(
                         getattr(item, model_field.name),
                         f"{path}.{model_field.name}",
                         depth + 1,
+                        sequence_maximum=(
+                            limits.max_source_receipts if is_receipt_field else None
+                        ),
+                        compact_sequence_items=(
+                            compact_source_receipts if is_receipt_field else None
+                        ),
+                        charge_node=charge_descendant_nodes,
+                        charge_descendant_nodes=charge_descendant_nodes,
                     )
             finally:
                 active.remove(marker)
             return
         if type(item) in {tuple, _FrozenJsonArray}:
             sequence = cast(tuple[Any, ...] | _FrozenJsonArray, item)
-            if len(sequence) > limits.max_sequence_items:
+            maximum = (
+                limits.max_sequence_items
+                if sequence_maximum is None
+                else sequence_maximum
+            )
+            if len(sequence) > maximum:
                 raise _BudgetFailure(
-                    f"{path} exceeds the configured maximum of {limits.max_sequence_items} items.",
+                    f"{path} exceeds the configured maximum of {maximum} items.",
                     path,
                 )
+            if compact_sequence_items is not None and len(compact_sequence_items) != len(
+                sequence
+            ):
+                raise AssertionError("source receipt measurement flags do not match the dossier")
             marker = id(item)
             if marker in active:
                 raise _PreflightFailure(
@@ -459,12 +505,24 @@ def _measure_model(value: object, limits: ValidationLimits) -> None:
             active.add(marker)
             try:
                 for index, nested in enumerate(sequence):
-                    walk(nested, f"{path}[{index}]", depth + 1)
+                    compact_item = (
+                        compact_sequence_items is not None
+                        and bool(compact_sequence_items[index])
+                    )
+                    walk(
+                        nested,
+                        f"{path}[{index}]",
+                        depth + 1,
+                        charge_node=charge_descendant_nodes,
+                        charge_descendant_nodes=(
+                            False if compact_item else charge_descendant_nodes
+                        ),
+                    )
             finally:
                 active.remove(marker)
             return
         if type(item) is _FrozenJsonObject:
-            mapping = cast(_FrozenJsonObject, item)
+            mapping = item
             if len(mapping) > limits.max_sequence_items:
                 raise _BudgetFailure(
                     f"{path} exceeds the configured maximum of {limits.max_sequence_items} fields.",
@@ -486,8 +544,20 @@ def _measure_model(value: object, limits: ValidationLimits) -> None:
                             f"{path} contains a non-string object key.",
                             path,
                         )
-                    walk(key, f"{path}.<key>", depth + 1)
-                    walk(nested, f"{path}.{key}", depth + 1)
+                    walk(
+                        key,
+                        f"{path}.<key>",
+                        depth + 1,
+                        charge_node=charge_descendant_nodes,
+                        charge_descendant_nodes=charge_descendant_nodes,
+                    )
+                    walk(
+                        nested,
+                        f"{path}.{key}",
+                        depth + 1,
+                        charge_node=charge_descendant_nodes,
+                        charge_descendant_nodes=charge_descendant_nodes,
+                    )
             finally:
                 active.remove(marker)
             return
@@ -654,8 +724,17 @@ def _dossier_preflight(dossier: Dossier, limits: ValidationLimits) -> None:
             )
 
 
-def _canonical_payload(value: CaseManifest | Dossier, limits: ValidationLimits) -> dict[str, Any]:
-    _measure_model(value, limits)
+def _canonical_payload(
+    value: CaseManifest | Dossier,
+    limits: ValidationLimits,
+    *,
+    compact_source_receipts: bytes | None = None,
+) -> dict[str, Any]:
+    _measure_model(
+        value,
+        limits,
+        compact_source_receipts=compact_source_receipts,
+    )
     raw = value.to_dict()
     encoded = canonical_bytes(raw)
     if len(encoded) > limits.max_canonical_bytes:
@@ -674,10 +753,56 @@ def _describe(values: set[str] | tuple[str, ...] | list[str], *, maximum: int = 
     return f"{displayed}{suffix}"
 
 
-def _parse_receipt(raw: Mapping[str, Any]) -> FetchReceipt:
-    if set(raw) != _RECEIPT_FIELDS:
-        unknown = sorted(set(raw) - _RECEIPT_FIELDS)
-        missing = sorted(_RECEIPT_FIELDS - set(raw))
+def _receipt_is_node_compact(raw: object) -> bool:
+    """Recognize a bounded, shallow receipt shape without constructing it."""
+
+    if type(raw) is not _FrozenJsonObject or len(raw) != len(_RECEIPT_FIELDS):
+        return False
+    if frozenset(raw) != _RECEIPT_FIELDS:
+        return False
+    required_strings = (
+        "source_id",
+        "source_version",
+        "url",
+        "request_hash",
+        "status",
+        "retrieved_at",
+    )
+    if any(type(raw[name]) is not str for name in required_strings):
+        return False
+    optional_strings = (
+        "response_hash",
+        "cache_expires_at",
+        "error_type",
+        "error_message",
+    )
+    if any(raw[name] is not None and type(raw[name]) is not str for name in optional_strings):
+        return False
+    if raw["http_status"] is not None and type(raw["http_status"]) is not int:
+        return False
+    if type(raw["attempts"]) is not int:
+        return False
+    if raw["elapsed_seconds"] is not None and type(raw["elapsed_seconds"]) not in {
+        int,
+        float,
+    }:
+        return False
+    warnings = raw["warnings"]
+    return (
+        type(warnings) is _FrozenJsonArray
+        and len(warnings) <= _HARD_MAX_VALIDATION_RECEIPT_WARNINGS
+        and all(type(item) is str for item in warnings)
+    )
+
+
+def _parse_receipt(raw: Mapping[str, Any]) -> tuple[FetchReceipt, bytes]:
+    expected_field_count = len(_RECEIPT_FIELDS)
+    if len(raw) != expected_field_count:
+        raise ValidationError(f"receipt must contain exactly {expected_field_count} fields")
+    actual_fields = set(raw)
+    if actual_fields != _RECEIPT_FIELDS:
+        unknown = sorted(actual_fields - _RECEIPT_FIELDS)
+        missing = sorted(_RECEIPT_FIELDS - actual_fields)
         raise ValidationError(
             f"receipt fields are not exact (missing={missing[:8]}, unknown={unknown[:8]})"
         )
@@ -685,9 +810,14 @@ def _parse_receipt(raw: Mapping[str, Any]) -> FetchReceipt:
     if type(status_raw) is not str:
         raise ValidationError("receipt status must be a string")
     warnings_raw = raw["warnings"]
-    if type(warnings_raw) is not _FrozenJsonArray or any(
-        type(item) is not str for item in warnings_raw
-    ):
+    if type(warnings_raw) is not _FrozenJsonArray:
+        raise ValidationError("receipt warnings must be a canonical string array")
+    if len(warnings_raw) > _HARD_MAX_VALIDATION_RECEIPT_WARNINGS:
+        raise ValidationError(
+            "receipt warnings exceed the safety ceiling of "
+            f"{_HARD_MAX_VALIDATION_RECEIPT_WARNINGS} items"
+        )
+    if any(type(item) is not str for item in warnings_raw):
         raise ValidationError("receipt warnings must be a canonical string array")
     receipt = FetchReceipt(
         source_id=raw["source_id"],
@@ -705,9 +835,10 @@ def _parse_receipt(raw: Mapping[str, Any]) -> FetchReceipt:
         error_type=raw["error_type"],
         error_message=raw["error_message"],
     )
-    if canonical_bytes(raw) != canonical_bytes(receipt.to_dict()):
+    fingerprint = canonical_bytes(raw)
+    if fingerprint != canonical_bytes(receipt.to_dict()):
         raise ValidationError("receipt is not an exact canonical FetchReceipt representation")
-    return receipt
+    return receipt, fingerprint
 
 
 def _support_level(score: float) -> SupportLevel:
@@ -905,8 +1036,44 @@ class ContractValidator:
         limits: ValidationLimits,
     ) -> ValidationReport:
         _dossier_preflight(dossier, limits)
-        raw = _canonical_payload(dossier, limits)
+        compact_source_receipts = bytes(
+            _receipt_is_node_compact(raw_receipt)
+            for raw_receipt in dossier.source_receipts
+        )
+        raw = _canonical_payload(
+            dossier,
+            limits,
+            compact_source_receipts=compact_source_receipts,
+        )
         issues = _BoundedIssueList(limits.max_issues)
+        parsed_receipts: list[FetchReceipt] = []
+        receipts_by_request: dict[str, bytes] = {}
+        for index, raw_receipt in enumerate(dossier.source_receipts):
+            try:
+                receipt, fingerprint = _parse_receipt(raw_receipt)
+            except Exception as error:  # noqa: BLE001 - malformed receipts fail closed
+                issues.append(
+                    _error(
+                        "invalid_source_receipt",
+                        f"Source receipt is not canonical: {_safe_exception(error)}.",
+                        f"source_receipts[{index}]",
+                        "Persist the exact FetchReceipt.to_dict representation.",
+                    )
+                )
+                continue
+            parsed_receipts.append(receipt)
+            previous_receipt = receipts_by_request.get(receipt.request_hash)
+            if previous_receipt is not None and previous_receipt != fingerprint:
+                issues.append(
+                    _error(
+                        "conflicting_source_receipt",
+                        "The same source request hash has conflicting receipt definitions.",
+                        f"source_receipts[{index}]",
+                        "Retain one immutable receipt definition for each exact request.",
+                    )
+                )
+            receipts_by_request[receipt.request_hash] = fingerprint
+
         canonical_body = {key: value for key, value in raw.items() if key != "content_address"}
         if not _is_sha256_address(dossier.content_address) or (
             dossier.content_address != content_hash(canonical_body)
@@ -975,34 +1142,6 @@ class ContractValidator:
                 )
             )
 
-        parsed_receipts: list[FetchReceipt] = []
-        receipts_by_request: dict[str, bytes] = {}
-        for index, raw_receipt in enumerate(dossier.source_receipts):
-            try:
-                receipt = _parse_receipt(raw_receipt)
-            except Exception as error:  # noqa: BLE001 - malformed receipts fail closed
-                issues.append(
-                    _error(
-                        "invalid_source_receipt",
-                        f"Source receipt is not canonical: {_safe_exception(error)}.",
-                        f"source_receipts[{index}]",
-                        "Persist the exact FetchReceipt.to_dict representation.",
-                    )
-                )
-                continue
-            parsed_receipts.append(receipt)
-            fingerprint = canonical_bytes(receipt.to_dict())
-            previous_receipt = receipts_by_request.get(receipt.request_hash)
-            if previous_receipt is not None and previous_receipt != fingerprint:
-                issues.append(
-                    _error(
-                        "conflicting_source_receipt",
-                        "The same source request hash has conflicting receipt definitions.",
-                        f"source_receipts[{index}]",
-                        "Retain one immutable receipt definition for each exact request.",
-                    )
-                )
-            receipts_by_request[receipt.request_hash] = fingerprint
         if dossier.source_receipts and not dossier.source_bundle_addresses:
             issues.append(
                 _error(

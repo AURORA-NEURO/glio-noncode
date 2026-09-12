@@ -91,7 +91,7 @@ class StubReferenceRetriever:
         )
         return ReferenceBundle.create(
             variant_id=variant.variant_id,
-            context_key=context.key,
+            context=context,
             sequence=sequence,
             elements=(),
             raw_features=({"feature_type": "gene", "id": "ENSG000001"},),

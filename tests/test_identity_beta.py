@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.identity_beta import (
     BatchSampleIdentityChecker,
     ChainOfCustodyCapture,
@@ -74,6 +75,35 @@ class IdentityBetaTests(unittest.TestCase):
         canonical = VariantEquivalenceResolver().resolve(records, records[0].equivalence_key)
         self.assertEqual(canonical.record_ids, ("r1", "r2"))
         self.assertEqual(canonical.state, IdentityBetaState.SUPPORTED)
+
+    def test_flat_record_mapping_separates_provenance_from_variant_fields(self) -> None:
+        raw = {
+            "record_id": "record-1",
+            "variant_id": "variant-1",
+            "kind": "snv",
+            "chromosome": "chr7",
+            "start": 100,
+            "end": 100,
+            "reference": "A",
+            "alternate": "T",
+            "genome_build": "GRCh38",
+            "source_id": "source-1",
+            "source_version": "v1",
+            "aliases": ["legacy-1"],
+            "sample_id": "sample-1",
+        }
+
+        record = VariantIdentityRecord.from_mapping(raw)
+
+        self.assertEqual(record.record_id, "record-1")
+        self.assertEqual(record.source_id, "source-1")
+        self.assertEqual(record.aliases, ("legacy-1",))
+        self.assertEqual(record.sample_id, "sample-1")
+        self.assertEqual(record.variant.variant_id, "variant-1")
+        self.assertEqual(record.variant.sample_id, "sample-1")
+
+        with self.assertRaisesRegex(ValidationError, "variant contains unknown fields"):
+            VariantIdentityRecord.from_mapping(raw | {"unexpected_variant_field": True})
 
     def test_alias_reconciliation_retains_duplicates_and_alias_collisions(self) -> None:
         result = DuplicateAliasReconciler().reconcile(

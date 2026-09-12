@@ -19,7 +19,8 @@ from glio_noncode.expression_evidence import (
 from glio_noncode.hypotheses import BuiltHypotheses, HypothesisBuilder
 from glio_noncode.models import EdgeType, EvidenceState, HypothesisEdge
 from glio_noncode.runtime import CaseRuntime
-from glio_noncode.serialization import content_hash
+from glio_noncode.serialization import canonical_bytes, content_hash
+from glio_noncode.validation import ContractValidator
 
 from .helpers import fixture_manifest
 
@@ -261,6 +262,95 @@ class ExpressionRuntimeIdentityTests(unittest.TestCase):
                 rna_claim.payload["retained_owner_address"],
                 received["rna_input_address"],
             )
+
+    def test_rna_only_source_closure_budget_fails_before_publication(self) -> None:
+        manifest = fixture_manifest()
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory, source_closure_max_bytes=1)
+            with self.assertRaisesRegex(ValidationError, "aggregate canonical byte ceiling"):
+                runtime.evaluate(manifest, rna_consequences=(consequence(),))
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+
+    def test_rna_byte_budget_stops_generator_progressively(self) -> None:
+        manifest = fixture_manifest()
+        consumed = 0
+
+        def rows():
+            nonlocal consumed
+            for index in range(100):
+                consumed += 1
+                yield consequence(
+                    prediction_id=f"prediction:runtime:progressive-{index:03d}",
+                )
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory, rna_input_max_bytes=1)
+            with self.assertRaisesRegex(
+                ValidationError,
+                "RNA input exceeds the configured persisted byte ceiling",
+            ):
+                runtime.evaluate(manifest, rna_consequences=rows())
+            self.assertEqual(consumed, 1)
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+
+    def test_rna_source_object_obeys_validator_byte_ceiling_on_write_and_reopen(self) -> None:
+        manifest = fixture_manifest()
+        rows = tuple(
+            consequence(
+                prediction_id=f"prediction:runtime:bounded-{index:03d}",
+                feature_id=f"unmatched-feature-{index:03d}",
+            )
+            for index in range(100)
+        )
+        rna_record = {
+            "schema_version": "1.0.0",
+            "kind": "rna_consequence_batch",
+            "consequences": [
+                row.to_dict() for row in sorted(rows, key=lambda item: item.content_address)
+            ],
+        }
+        object_ceiling = len(canonical_bytes(rna_record)) - 1
+        self.assertGreater(object_ceiling, len(canonical_bytes(manifest.to_dict())))
+
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            runtime.validator = ContractValidator(
+                limits=replace(
+                    runtime.validator.limits,
+                    max_canonical_bytes=object_ceiling,
+                )
+            )
+            with self.assertRaisesRegex(
+                ValidationError,
+                "RNA input exceeds the configured persisted byte ceiling",
+            ):
+                runtime.evaluate(manifest, rna_consequences=rows)
+            self.assertEqual(tuple(runtime.store.store.objects.glob("*.json")), ())
+            self.assertEqual(tuple(runtime.store.runs.glob("*.json")), ())
+
+        with tempfile.TemporaryDirectory() as directory:
+            writer = CaseRuntime(directory)
+            dossier = writer.evaluate(manifest, rna_consequences=rows)
+            run = writer.get_run(dossier.run_id)
+            for field in ("input_address", "event_address", "dossier_address"):
+                self.assertLessEqual(
+                    len(canonical_bytes(writer.store.store.get(run[field]))),
+                    object_ceiling,
+                )
+            reader = CaseRuntime(directory)
+            reader.validator = ContractValidator(
+                limits=replace(
+                    reader.validator.limits,
+                    max_canonical_bytes=object_ceiling,
+                )
+            )
+            with self.assertRaisesRegex(
+                ValidationError,
+                "persisted RNA input object exceeds its configured byte ceiling",
+            ):
+                reader.load_run_snapshot(dossier.run_id)
 
 
 if __name__ == "__main__":

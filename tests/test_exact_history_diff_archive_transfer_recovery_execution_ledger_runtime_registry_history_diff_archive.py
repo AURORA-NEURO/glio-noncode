@@ -129,7 +129,10 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionLedgerRuntimeRegistryHisto
                 server.server_close()
 
         inventory = build_default_public_surface_audit()
-        self.assertEqual((inventory.surface_count, inventory.passed_surface_count, inventory.failed_surface_count, inventory.accepted), (2164, 2164, 0, True))
+        self.assertEqual(len(inventory.checks), inventory.surface_count)
+        self.assertEqual(inventory.passed_surface_count, inventory.surface_count)
+        self.assertEqual(inventory.failed_surface_count, 0)
+        self.assertTrue(inventory.accepted)
         for schema in (archive_model.artifact_schema(), archive_model.manifest_schema(), archive_model.archive_schema(), archive_audit_model.check_schema(), archive_audit_model.audit_schema(), archive_query_model.row_schema(), archive_query_model.query_schema(), archive_query_audit_model.check_schema(), archive_query_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
 

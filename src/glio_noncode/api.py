@@ -5026,20 +5026,46 @@ class ApiHandler(BaseHTTPRequestHandler):
             self._write(HTTPStatus.OK, case_workflow_capabilities())
             return
         if path == "/v1/case-workflow/adapters":
-            registry = self._runtime().adapter_registry
-            snapshot = None if registry is None else registry.snapshot()
-            self._write(
-                HTTPStatus.OK,
-                {
-                    "configured": snapshot is not None,
-                    "adapter_ids": (
-                        []
-                        if snapshot is None
-                        else [item.adapter_id for item in snapshot.adapters]
-                    ),
-                    "registry_snapshot": None if snapshot is None else snapshot.to_dict(),
-                },
-            )
+            try:
+                registry = self._runtime().adapter_registry
+                discovery = None if registry is None else registry.discovery()
+                snapshot = None if discovery is None else discovery[0]
+                metadata = None if discovery is None else discovery[1]
+                limits = None if discovery is None else discovery[2].to_dict()
+                self._write(
+                    HTTPStatus.OK,
+                    {
+                        "configured": snapshot is not None,
+                        "registry_scope": "full_discovery",
+                        "adapter_ids": (
+                            []
+                            if snapshot is None
+                            else [item.adapter_id for item in snapshot.adapters]
+                        ),
+                        "registry_snapshot": (
+                            None if snapshot is None else snapshot.to_dict()
+                        ),
+                        "adapter_metadata": (
+                            []
+                            if metadata is None
+                            else [item.to_dict() for item in metadata]
+                        ),
+                        "limits": limits,
+                    },
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)[:2048]},
+                )
+            except Exception:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {
+                        "error": "internal_error",
+                        "message": "adapter discovery failed",
+                    },
+                )
             return
         if path == "/v1/expression-evidence/schema":
             self._write(HTTPStatus.OK, expression_evidence_schema(public=True))
@@ -12856,15 +12882,15 @@ class ApiHandler(BaseHTTPRequestHandler):
                         payload = value.to_dict()
                     self._write(HTTPStatus.OK if value.gate.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
                     return
-                assurance_diff_prefix = ledger_assurance_prefix + "/diff"
-                if path == assurance_diff_prefix + "/verify":
+                ledger_assurance_diff_prefix = ledger_assurance_prefix + "/diff"
+                if path == ledger_assurance_diff_prefix + "/verify":
                     directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_diff_directory", None)
                     if not directory:
                         raise ValueError("input or directory is required")
                     value = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.load_diff(directory)
                     self._write(HTTPStatus.OK, value.summary())
                     return
-                if path == assurance_diff_prefix + "/query":
+                if path == ledger_assurance_diff_prefix + "/query":
                     directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_diff_directory", None)
                     if not directory:
                         raise ValueError("input or directory is required")
@@ -12878,19 +12904,19 @@ class ApiHandler(BaseHTTPRequestHandler):
                     else:
                         self._write(HTTPStatus.OK, result.to_dict())
                     return
-                if path == assurance_diff_prefix + "/schema":
+                if path == ledger_assurance_diff_prefix + "/schema":
                     self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_schema())
                     return
-                if path == assurance_diff_prefix + "/item-schema":
+                if path == ledger_assurance_diff_prefix + "/item-schema":
                     self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_item_schema())
                     return
-                if path == assurance_diff_prefix + "/query-schema":
+                if path == ledger_assurance_diff_prefix + "/query-schema":
                     self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_query_schema())
                     return
-                if path == assurance_diff_prefix + "/capabilities":
+                if path == ledger_assurance_diff_prefix + "/capabilities":
                     self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.capabilities())
                     return
-                if path == assurance_diff_prefix:
+                if path == ledger_assurance_diff_prefix:
                     baseline_directory = self._query_value(query, "baseline")
                     candidate_directory = self._query_value(query, "candidate")
                     if not baseline_directory or not candidate_directory:

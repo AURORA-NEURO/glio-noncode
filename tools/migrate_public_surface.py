@@ -339,6 +339,11 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
     ),
     "EncodeProvider": ("glio_noncode.atlas", "EncodeProvider"),
     "AtlasObservation": ("glio_noncode.atlas", "AtlasObservation"),
+    "AtlasEncodeReplayState": (
+        "glio_noncode.atlas",
+        "AtlasEncodeReplayState",
+    ),
+    "AtlasReplayInputs": ("glio_noncode.atlas", "AtlasReplayInputs"),
     "MAX_EVIDENCE_CLAIMS": (
         "glio_noncode.evidence",
         "MAX_EVIDENCE_CLAIMS",
@@ -376,6 +381,14 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
     "MAX_ENRICHED_ELEMENTS": (
         "glio_noncode.data_sources",
         "MAX_ENRICHED_ELEMENTS",
+    ),
+    "MAX_ENRICHMENT_CANONICAL_BYTES": (
+        "glio_noncode.data_sources",
+        "MAX_ENRICHMENT_CANONICAL_BYTES",
+    ),
+    "MAX_ENRICHMENT_SEQUENCE_BP": (
+        "glio_noncode.data_sources",
+        "MAX_ENRICHMENT_SEQUENCE_BP",
     ),
     "ReferenceRetrievalLimits": (
         "glio_noncode.data_sources",

@@ -8,17 +8,18 @@ it, and caller-configurable limits may only tighten hard process ceilings.
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field, replace
 from pathlib import PurePosixPath
 from threading import RLock
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 from urllib.parse import urlsplit
 
 from .errors import ValidationError
 from .models import (
     CandidateElement,
     CaseManifest,
+    EdgeType,
     EvidenceClaim,
     ReferenceContext,
     VariantIdentity,
@@ -28,7 +29,7 @@ from .serialization import canonical_bytes, content_hash, jsonable
 ADAPTER_METADATA_VERSION = "adapter-metadata-v1"
 ADAPTER_REGISTRY_VERSION = "adapter-registry-v1"
 ADAPTER_RESOLUTION_VERSION = "adapter-resolution-v1"
-ADAPTER_CLAIM_COLLECTION_VERSION = "adapter-claim-collection-v1"
+ADAPTER_CLAIM_COLLECTION_VERSION = "adapter-claim-collection-v2"
 
 ADAPTER_HARD_MAX_REGISTERED = 256
 ADAPTER_HARD_MAX_SELECTED = 64
@@ -66,6 +67,9 @@ _HARD_RESOLUTION_REPORT_BYTES = 128 * 1024 * 1024
 _HARD_CLAIM_ATTRIBUTIONS = 100_000
 _HARD_CLAIMS_PER_ATTRIBUTION = 10_000
 _HARD_CLAIMS_TOTAL = 10_000
+# An allowance map can cover every edge in a maximally valid evidence graph,
+# even though collected adapter claims remain subject to the smaller total cap.
+_HARD_CLAIM_EDGE_LIMIT_ENTRIES = 20_000
 _HARD_CLAIM_BYTES = 1 * 1024 * 1024
 _HARD_CLAIM_ATTRIBUTION_BYTES = 128 * 1024 * 1024
 _HARD_CLAIM_REPORT_BYTES = 128 * 1024 * 1024
@@ -86,6 +90,35 @@ _VALIDATION_STATUSES = frozenset(
         "quarantined",
     }
 )
+
+
+def _edge_id(source_id: str, target_id: str, edge_type: EdgeType) -> str:
+    digest = content_hash(
+        {"source": source_id, "target": target_id, "type": edge_type.value}
+    ).split(":", 1)[1]
+    return f"edge-{digest[:20]}"
+
+
+def _resolution_item_edge_ids(
+    variant_id: str,
+    element: CandidateElement,
+) -> frozenset[str]:
+    """Return only hypothesis edges belonging to one adapter invocation."""
+
+    gene_ids = element.target_genes or ("unresolved_gene",)
+    state_ids = element.state_ids or ("unresolved_state",)
+    state_source = gene_ids[0] if element.target_genes else element.element_id
+    edges = {
+        _edge_id(variant_id, element.element_id, EdgeType.VARIANT_TO_ELEMENT),
+        *(_edge_id(element.element_id, gene_id, EdgeType.ELEMENT_TO_GENE) for gene_id in gene_ids),
+        *(_edge_id(state_source, state_id, EdgeType.GENE_TO_STATE) for state_id in state_ids),
+        _edge_id(
+            variant_id,
+            f"{element.element_id}:{gene_ids[0]}:{state_ids[0]}",
+            EdgeType.CAUSAL_PATH,
+        ),
+    }
+    return frozenset(edges)
 
 
 def _integer(value: object, field_name: str, hard_maximum: int) -> int:
@@ -196,6 +229,49 @@ def _bounded_bytes(value: object, field_name: str, maximum: int) -> bytes:
         raise ValidationError(f"{field_name} is not canonical JSON") from exc
     if len(result) > maximum:
         raise ValidationError(f"{field_name} exceeds its byte ceiling")
+    return result
+
+
+def _optional_after_callback(value: object) -> Callable[[], None] | None:
+    if value is None:
+        return None
+    if not callable(value):
+        raise ValidationError("adapter after_callback must be callable")
+    return cast(Callable[[], None], value)
+
+
+def _snapshot_claim_limits_by_edge(value: object) -> dict[str, int] | None:
+    if value is None:
+        return None
+    if not isinstance(value, Mapping):
+        raise ValidationError("adapter max_claims_by_edge must be a mapping")
+    try:
+        item_count = len(value)
+    except Exception as exc:
+        raise ValidationError("adapter max_claims_by_edge could not be read") from exc
+    if item_count > _HARD_CLAIM_EDGE_LIMIT_ENTRIES:
+        raise ValidationError("adapter max_claims_by_edge exceeds its item ceiling")
+    result: dict[str, int] = {}
+    try:
+        items = value.items()
+        for index, (raw_edge_id, raw_maximum) in enumerate(items):
+            if index >= _HARD_CLAIM_EDGE_LIMIT_ENTRIES:
+                raise ValidationError("adapter max_claims_by_edge exceeds its item ceiling")
+            edge_id = _token(raw_edge_id, "adapter max_claims_by_edge key")
+            if edge_id in result:
+                raise ValidationError("adapter max_claims_by_edge keys must be unique")
+            if type(raw_maximum) is not int or not 0 <= raw_maximum <= _HARD_CLAIMS_TOTAL:
+                raise ValidationError(
+                    "adapter max_claims_by_edge values must be integers between 0 and "
+                    f"{_HARD_CLAIMS_TOTAL}"
+                )
+            result[edge_id] = raw_maximum
+    except ValidationError:
+        raise
+    except Exception as exc:
+        raise ValidationError("adapter max_claims_by_edge could not be read") from exc
+    if len(result) != item_count:
+        raise ValidationError("adapter max_claims_by_edge changed while it was read")
     return result
 
 
@@ -328,7 +404,10 @@ class AdapterMetadata:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self.body() | {"content_address": self.content_address})
+        return cast(
+            dict[str, Any],
+            jsonable(self.body() | {"content_address": self.content_address}),
+        )
 
     @classmethod
     def from_dict(cls, value: Mapping[str, Any]) -> AdapterMetadata:
@@ -418,7 +497,7 @@ def _validate_context(context: object) -> ReferenceContext:
         raise ValidationError("adapter context is not canonical") from exc
     if canonical_bytes(raw) != canonical_bytes(reopened.to_dict()):
         raise ValidationError("adapter context is not an exact canonical representation")
-    return context
+    return reopened
 
 
 def _validate_variant(variant: object) -> VariantIdentity:
@@ -431,7 +510,7 @@ def _validate_variant(variant: object) -> VariantIdentity:
         raise ValidationError("adapter variant is not canonical") from exc
     if canonical_bytes(raw) != canonical_bytes(reopened.to_dict()):
         raise ValidationError("adapter variant is not an exact canonical representation")
-    return variant
+    return reopened
 
 
 def _require_supported_context(
@@ -466,7 +545,7 @@ def _validate_candidate_element(
         raise ValidationError("adapter resolution item is not an exact canonical representation")
     if element.context.key != context.key:
         raise ValidationError("adapter resolution item escaped the requested context")
-    return element
+    return reopened
 
 
 def _validate_evidence_claim(
@@ -661,7 +740,7 @@ class AdapterRegistrySnapshotEntry:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self)
+        return cast(dict[str, Any], jsonable(self))
 
     @classmethod
     def from_dict(
@@ -753,7 +832,10 @@ class AdapterRegistrySnapshot:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self.body() | {"content_address": self.content_address})
+        return cast(
+            dict[str, Any],
+            jsonable(self.body() | {"content_address": self.content_address}),
+        )
 
     @classmethod
     def from_dict(cls, value: Mapping[str, Any]) -> AdapterRegistrySnapshot:
@@ -855,7 +937,10 @@ class AdapterResolutionItem:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self.body() | {"content_address": self.content_address})
+        return cast(
+            dict[str, Any],
+            jsonable(self.body() | {"content_address": self.content_address}),
+        )
 
     @classmethod
     def from_dict(cls, value: Mapping[str, Any]) -> AdapterResolutionItem:
@@ -1011,6 +1096,45 @@ class AdapterResolutionReport:
     def attribution_count(self) -> int:
         return len(self.items)
 
+    def validate_manifest(self, manifest: CaseManifest) -> None:
+        """Rebind every resolution item to one exact canonical base manifest."""
+
+        if type(manifest) is not CaseManifest:
+            raise ValidationError("adapter resolution manifest must be an exact CaseManifest")
+        canonical_manifest = CaseManifest.from_dict(manifest.to_dict())
+        variants = {variant.variant_id: variant for variant in canonical_manifest.variants}
+        if (
+            self.manifest_address != canonical_manifest.content_address
+            or self.context_address
+            != content_hash(canonical_manifest.context.to_dict(), prefix="adapter-context")
+            or self.variant_ids != tuple(sorted(variants))
+        ):
+            raise ValidationError("adapter resolution does not bind its declared manifest")
+        invocation_counts: dict[tuple[str, str], int] = {}
+        for item in self.items:
+            variant = variants.get(item.variant_id)
+            if variant is None:
+                raise ValidationError("adapter resolution item references an unknown variant")
+            expected_variant_address = content_hash(
+                variant.to_dict(),
+                prefix="adapter-variant",
+            )
+            if item.variant_address != expected_variant_address:
+                raise ValidationError(
+                    "adapter resolution item variant address does not match the manifest"
+                )
+            # Candidate elements are context-compatible by their stable context
+            # key.  Source-version detail belongs to the element's own
+            # provenance and need not be byte-identical to the case context.
+            if item.element.context.key != canonical_manifest.context.key:
+                raise ValidationError("adapter resolution item escaped the manifest context")
+            invocation = item.adapter_id, item.variant_id
+            invocation_counts[invocation] = invocation_counts.get(invocation, 0) + 1
+            if invocation_counts[invocation] > ADAPTER_HARD_MAX_ELEMENTS_PER_VARIANT:
+                raise ValidationError(
+                    "adapter resolution exceeds its hard per-invocation item ceiling"
+                )
+
     def body(self) -> dict[str, Any]:
         return {
             "version": self.version,
@@ -1023,10 +1147,14 @@ class AdapterResolutionReport:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self.body() | {"content_address": self.content_address}) | {
-            "element_count": self.element_count,
-            "attribution_count": self.attribution_count,
-        }
+        return cast(
+            dict[str, Any],
+            jsonable(self.body() | {"content_address": self.content_address})
+            | {
+                "element_count": self.element_count,
+                "attribution_count": self.attribution_count,
+            },
+        )
 
     @classmethod
     def from_dict(cls, value: Mapping[str, Any]) -> AdapterResolutionReport:
@@ -1183,9 +1311,11 @@ class AdapterClaimAttribution:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self.body() | {"content_address": self.content_address}) | {
-            "claim_count": self.claim_count
-        }
+        return cast(
+            dict[str, Any],
+            jsonable(self.body() | {"content_address": self.content_address})
+            | {"claim_count": self.claim_count},
+        )
 
     @classmethod
     def from_dict(cls, value: Mapping[str, Any]) -> AdapterClaimAttribution:
@@ -1245,6 +1375,7 @@ class AdapterClaimCollectionReport:
     """Addressed, replayable claim collection bound to one resolution report."""
 
     registry_snapshot: AdapterRegistrySnapshot
+    adapter_metadata: tuple[AdapterMetadata, ...]
     manifest_address: str
     context: ReferenceContext
     adapter_ids: tuple[str, ...]
@@ -1331,10 +1462,37 @@ class AdapterClaimCollectionReport:
             if values != tuple(sorted(values)) or len(values) != len(set(values)):
                 raise ValidationError(f"claim collection {field_name} must be sorted and unique")
         snapshot_by_id = {entry.adapter_id: entry for entry in canonical_snapshot.adapters}
-        if any(adapter_id not in snapshot_by_id for adapter_id in self.adapter_ids):
+        if tuple(snapshot_by_id) != self.adapter_ids:
             raise ValidationError(
-                "claim collection references an adapter absent from its registry snapshot"
+                "claim collection registry snapshot must exactly cover selected adapter IDs"
             )
+        if type(self.adapter_metadata) is not tuple:
+            raise ValidationError("claim collection adapter metadata must be a tuple")
+        if len(self.adapter_metadata) > _HARD_RESOLUTION_ADAPTERS:
+            raise ValidationError("claim collection adapter metadata exceeds its hard ceiling")
+        canonical_metadata: list[AdapterMetadata] = []
+        for metadata in self.adapter_metadata:
+            if type(metadata) is not AdapterMetadata:
+                raise ValidationError(
+                    "claim collection adapter metadata must contain exact AdapterMetadata values"
+                )
+            canonical_metadata.append(AdapterMetadata.from_dict(metadata.to_dict()))
+        metadata_ids = tuple(metadata.adapter_id for metadata in canonical_metadata)
+        if metadata_ids != self.adapter_ids:
+            raise ValidationError(
+                "claim collection adapter metadata must exactly cover selected adapter IDs"
+            )
+        metadata_by_id = {metadata.adapter_id: metadata for metadata in canonical_metadata}
+        for metadata in canonical_metadata:
+            if (
+                AdapterRegistrySnapshotEntry.from_metadata(metadata)
+                != snapshot_by_id[metadata.adapter_id]
+            ):
+                raise ValidationError(
+                    "claim collection adapter metadata does not reproduce its registry projection"
+                )
+            _require_supported_context(metadata, canonical_context)
+        object.__setattr__(self, "adapter_metadata", tuple(canonical_metadata))
         if type(self.attributions) is not tuple:
             raise ValidationError("claim collection attributions must be a tuple")
         if len(self.attributions) > _HARD_CLAIM_ATTRIBUTIONS:
@@ -1364,14 +1522,18 @@ class AdapterClaimCollectionReport:
                 raise ValidationError(
                     "claim collection attribution references an undeclared variant"
                 )
-            metadata = snapshot_by_id[attribution.adapter_id]
-            if attribution.metadata_address != metadata.metadata_address:
+            metadata = metadata_by_id[attribution.adapter_id]
+            if attribution.metadata_address != metadata.content_address:
                 raise ValidationError(
                     "claim collection attribution metadata address does not match its snapshot"
                 )
             for claim in attribution.claims:
                 if claim.context != canonical_context:
                     raise ValidationError("claim collection evidence escaped the requested context")
+                if claim.produced_by != attribution.adapter_id:
+                    raise ValidationError(
+                        "claim collection evidence producer does not match its adapter attribution"
+                    )
                 if claim.source_id not in metadata.source_ids:
                     raise ValidationError(
                         "claim collection evidence escaped declared adapter sources"
@@ -1442,10 +1604,69 @@ class AdapterClaimCollectionReport:
     def claim_count(self) -> int:
         return len(self.claims)
 
+    def validate_resolution(self, resolution: AdapterResolutionReport) -> None:
+        """Require one exact attribution for every resolved adapter invocation."""
+
+        if type(resolution) is not AdapterResolutionReport:
+            raise ValidationError(
+                "claim collection resolution must be an exact AdapterResolutionReport"
+            )
+        canonical = AdapterResolutionReport.from_dict(resolution.to_dict())
+        if (
+            self.resolution_address != canonical.content_address
+            or self.registry_address != canonical.registry_address
+            or self.manifest_address != canonical.manifest_address
+            or self.context_address != canonical.context_address
+            or self.adapter_ids != canonical.adapter_ids
+            or self.variant_ids != canonical.variant_ids
+        ):
+            raise ValidationError("claim collection does not close over its declared resolution")
+        attribution_addresses = tuple(
+            attribution.resolution_item_address for attribution in self.attributions
+        )
+        resolution_addresses = tuple(item.content_address for item in canonical.items)
+        if attribution_addresses != resolution_addresses:
+            raise ValidationError(
+                "claim collection must attribute every resolution item exactly once"
+            )
+        metadata_by_id = {metadata.adapter_id: metadata for metadata in self.adapter_metadata}
+        for attribution, item in zip(self.attributions, canonical.items, strict=True):
+            if (
+                attribution.adapter_id != item.adapter_id
+                or attribution.metadata_address != item.metadata_address
+                or attribution.variant_id != item.variant_id
+                or attribution.variant_address != item.variant_address
+                or attribution.element_id != item.element.element_id
+                or attribution.element_address != item.element_address
+            ):
+                raise ValidationError("claim attribution does not match its exact resolution item")
+            metadata = metadata_by_id[item.adapter_id]
+            if item.element.source_id not in metadata.source_ids:
+                raise ValidationError(
+                    "adapter resolution element escaped its selected metadata sources"
+                )
+
+    def validate_claim_ownership(self, resolution: AdapterResolutionReport) -> None:
+        """Require each claim edge to belong to its attributed resolution item.
+
+        Factorized gene-to-state edges can intentionally belong to more than one
+        item; attribution constrains membership rather than claiming exclusivity.
+        """
+
+        self.validate_resolution(resolution)
+        canonical = AdapterResolutionReport.from_dict(resolution.to_dict())
+        for attribution, item in zip(self.attributions, canonical.items, strict=True):
+            allowed_edges = _resolution_item_edge_ids(item.variant_id, item.element)
+            if any(claim.edge_id not in allowed_edges for claim in attribution.claims):
+                raise ValidationError(
+                    "adapter claim edge does not belong to its attributed resolution item"
+                )
+
     def body(self) -> dict[str, Any]:
         return {
             "version": self.version,
             "registry_snapshot": self.registry_snapshot.to_dict(),
+            "adapter_metadata": tuple(item.to_dict() for item in self.adapter_metadata),
             "registry_address": self.registry_address,
             "manifest_address": self.manifest_address,
             "context": self.context.to_dict(),
@@ -1457,10 +1678,14 @@ class AdapterClaimCollectionReport:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self.body() | {"content_address": self.content_address}) | {
-            "attribution_count": self.attribution_count,
-            "claim_count": self.claim_count,
-        }
+        return cast(
+            dict[str, Any],
+            jsonable(self.body() | {"content_address": self.content_address})
+            | {
+                "attribution_count": self.attribution_count,
+                "claim_count": self.claim_count,
+            },
+        )
 
     @classmethod
     def from_dict(cls, value: Mapping[str, Any]) -> AdapterClaimCollectionReport:
@@ -1468,6 +1693,7 @@ class AdapterClaimCollectionReport:
             {
                 "version",
                 "registry_snapshot",
+                "adapter_metadata",
                 "registry_address",
                 "manifest_address",
                 "context",
@@ -1487,9 +1713,16 @@ class AdapterClaimCollectionReport:
             "adapter claim collection report",
             _HARD_CLAIM_REPORT_BYTES,
         )
-        for field_name in ("adapter_ids", "variant_ids", "attributions"):
+        for field_name in (
+            "adapter_metadata",
+            "adapter_ids",
+            "variant_ids",
+            "attributions",
+        ):
             if type(raw[field_name]) is not list:
                 raise ValidationError(f"adapter claim collection {field_name} must be an array")
+        if len(raw["adapter_metadata"]) > _HARD_RESOLUTION_ADAPTERS:
+            raise ValidationError("claim collection adapter metadata exceeds its hard ceiling")
         if len(raw["adapter_ids"]) > _HARD_RESOLUTION_ADAPTERS:
             raise ValidationError("claim collection exceeds its hard adapter ceiling")
         if not raw["variant_ids"] or len(raw["variant_ids"]) > _HARD_RESOLUTION_VARIANTS:
@@ -1511,10 +1744,14 @@ class AdapterClaimCollectionReport:
         attributions = tuple(
             AdapterClaimAttribution.from_dict(item) for item in raw["attributions"]
         )
+        adapter_metadata = tuple(
+            AdapterMetadata.from_dict(item) for item in raw["adapter_metadata"]
+        )
         if sum(item.claim_count for item in attributions) > _HARD_CLAIMS_TOTAL:
             raise ValidationError("claim collection exceeds its hard total claim ceiling")
         result = cls(
             registry_snapshot=AdapterRegistrySnapshot.from_dict(snapshot_raw),
+            adapter_metadata=adapter_metadata,
             registry_address=raw["registry_address"],
             manifest_address=raw["manifest_address"],
             context=ReferenceContext.from_dict(context_raw, persisted=True),
@@ -1587,9 +1824,17 @@ class AdapterRegistry:
         return _snapshot_metadata(metadata)
 
     def _assert_metadata_stable(self, entry: RegistryEntry) -> None:
+        try:
+            captured = _snapshot_metadata(entry.metadata)
+        except (TypeError, ValueError, ValidationError) as exc:
+            raise ValidationError("adapter registry metadata snapshot drift detected") from exc
+        if captured.content_address != entry.metadata_address:
+            raise ValidationError(f"adapter metadata drift detected: {captured.adapter_id}")
         current = self._read_metadata(entry.adapter)
-        if current.content_address != entry.metadata_address:
-            raise ValidationError(f"adapter metadata drift detected: {entry.metadata.adapter_id}")
+        if current.content_address != entry.metadata_address or canonical_bytes(
+            current.to_dict()
+        ) != canonical_bytes(captured.to_dict()):
+            raise ValidationError(f"adapter metadata drift detected: {captured.adapter_id}")
 
     def _snapshot_unlocked(self) -> AdapterRegistrySnapshot:
         entries = tuple(
@@ -1619,16 +1864,28 @@ class AdapterRegistry:
                 raise ValidationError(f"adapter already registered: {metadata.adapter_id}")
             if len(self._entries) >= limits.max_registered_adapters:
                 raise ValidationError("adapter registry exceeds its configured ceiling")
-            self._entries[metadata.adapter_id] = entry
-        try:
+            prospective_entries = [
+                AdapterRegistrySnapshotEntry.from_metadata(self._entries[key].metadata)
+                for key in sorted(self._entries)
+            ]
+            prospective_entries.append(AdapterRegistrySnapshotEntry.from_metadata(entry.metadata))
+            prospective_snapshot = AdapterRegistrySnapshot(
+                tuple(sorted(prospective_entries, key=lambda item: item.adapter_id))
+            )
+            _bounded_bytes(
+                prospective_snapshot.to_dict(),
+                "adapter registry snapshot",
+                limits.max_report_bytes,
+            )
             self._assert_metadata_stable(entry)
             self._current_limits()
-        except Exception:
-            with self._lock:
-                if self._entries.get(metadata.adapter_id) is entry:
-                    del self._entries[metadata.adapter_id]
-            raise
-        return entry
+            registered_entry = RegistryEntry(
+                _snapshot_metadata(entry.metadata),
+                entry.adapter,
+                entry.metadata_address,
+            )
+            self._entries[metadata.adapter_id] = entry
+        return registered_entry
 
     def get(self, adapter_id: str) -> EvidenceAdapter:
         self._current_limits()
@@ -1652,6 +1909,32 @@ class AdapterRegistry:
         self._current_limits()
         return snapshot
 
+    def selected_snapshot(
+        self,
+        adapter_ids: tuple[str, ...],
+    ) -> AdapterRegistrySnapshot:
+        """Return the exact atomic snapshot that a selected invocation will bind."""
+
+        snapshot, _entries = self.selected_entries(adapter_ids)
+        return snapshot
+
+    def selected_entries(
+        self,
+        adapter_ids: tuple[str, ...],
+    ) -> tuple[AdapterRegistrySnapshot, tuple[RegistryEntry, ...]]:
+        """Return one selected snapshot together with its exact adapter identities."""
+
+        snapshot, entries = self._capture(adapter_ids)
+        detached_entries = tuple(
+            RegistryEntry(
+                _snapshot_metadata(entry.metadata),
+                entry.adapter,
+                entry.metadata_address,
+            )
+            for entry in entries
+        )
+        return AdapterRegistrySnapshot.from_dict(snapshot.to_dict()), detached_entries
+
     def list_metadata(self) -> tuple[AdapterMetadata, ...]:
         self._current_limits()
         with self._lock:
@@ -1660,6 +1943,25 @@ class AdapterRegistry:
             self._assert_metadata_stable(entry)
         self._current_limits()
         return tuple(_snapshot_metadata(entry.metadata) for entry in entries)
+
+    def discovery(
+        self,
+    ) -> tuple[AdapterRegistrySnapshot, tuple[AdapterMetadata, ...], AdapterLimits]:
+        """Return one internally consistent full-registry discovery projection."""
+
+        limits = self._current_limits()
+        with self._lock:
+            entries = tuple(self._entries[key] for key in sorted(self._entries))
+            snapshot = self._snapshot_unlocked()
+            metadata = tuple(_snapshot_metadata(entry.metadata) for entry in entries)
+        for entry in entries:
+            self._assert_metadata_stable(entry)
+        self._current_limits()
+        if tuple(item.adapter_id for item in metadata) != tuple(
+            item.adapter_id for item in snapshot.adapters
+        ):
+            raise ValidationError("adapter discovery projection is internally inconsistent")
+        return snapshot, metadata, limits
 
     def health(self) -> dict[str, Any]:
         return self.snapshot().to_dict()
@@ -1684,11 +1986,77 @@ class AdapterRegistry:
             if missing:
                 raise ValidationError(f"adapter is not registered: {missing[0]}")
             entries = tuple(self._entries[item] for item in canonical_ids)
-            snapshot = self._snapshot_unlocked()
+            snapshot = AdapterRegistrySnapshot(
+                tuple(
+                    AdapterRegistrySnapshotEntry.from_metadata(entry.metadata) for entry in entries
+                )
+            )
         for entry in entries:
             self._assert_metadata_stable(entry)
         self._current_limits()
         return snapshot, entries
+
+    def _validate_captured_entries(
+        self,
+        snapshot: AdapterRegistrySnapshot,
+        entries: tuple[RegistryEntry, ...],
+    ) -> tuple[AdapterRegistrySnapshot, tuple[RegistryEntry, ...]]:
+        """Detach one caller-held execution capability without registry recapture.
+
+        The executable objects in ``entries`` are the authority for this
+        invocation.  Re-reading ``self._entries`` here would reintroduce the
+        capture-to-use race this path exists to close.
+        """
+
+        limits = self._current_limits()
+        if type(snapshot) is not AdapterRegistrySnapshot:
+            raise ValidationError(
+                "captured adapter snapshot must be an exact AdapterRegistrySnapshot"
+            )
+        try:
+            canonical_snapshot = AdapterRegistrySnapshot.from_dict(snapshot.to_dict())
+        except (TypeError, ValueError, OverflowError, ValidationError) as exc:
+            raise ValidationError("captured adapter snapshot is invalid") from exc
+        if type(entries) is not tuple:
+            raise ValidationError("captured adapter entries must be an exact tuple")
+        if len(entries) > limits.max_selected_adapters:
+            raise ValidationError("captured adapter entry count exceeds its configured ceiling")
+        if len(entries) != canonical_snapshot.count:
+            raise ValidationError(
+                "captured adapter entries do not exactly cover their snapshot"
+            )
+
+        pinned_entries: list[RegistryEntry] = []
+        projections: list[AdapterRegistrySnapshotEntry] = []
+        for entry in entries:
+            if type(entry) is not RegistryEntry:
+                raise ValidationError(
+                    "captured adapter entries must contain exact RegistryEntry values"
+                )
+            try:
+                metadata = _snapshot_metadata(entry.metadata)
+                adapter = entry.adapter
+            except (TypeError, ValueError, OverflowError, ValidationError) as exc:
+                raise ValidationError("captured adapter entry is invalid") from exc
+            if entry.metadata_address != metadata.content_address:
+                raise ValidationError(
+                    "captured adapter entry metadata address does not match its metadata"
+                )
+            pinned_entry = RegistryEntry(metadata, adapter, entry.metadata_address)
+            self._assert_metadata_stable(pinned_entry)
+            pinned_entries.append(pinned_entry)
+            projections.append(AdapterRegistrySnapshotEntry.from_metadata(metadata))
+
+        entry_ids = tuple(entry.metadata.adapter_id for entry in pinned_entries)
+        if entry_ids != tuple(sorted(entry_ids)) or len(entry_ids) != len(set(entry_ids)):
+            raise ValidationError("captured adapter entries must be sorted and unique")
+        snapshot_ids = tuple(item.adapter_id for item in canonical_snapshot.adapters)
+        if entry_ids != snapshot_ids or tuple(projections) != canonical_snapshot.adapters:
+            raise ValidationError(
+                "captured adapter entries do not reproduce their exact snapshot"
+            )
+        self._current_limits()
+        return canonical_snapshot, tuple(pinned_entries)
 
     def _validate_manifest(self, manifest: CaseManifest) -> None:
         limits = self._current_limits()
@@ -1734,18 +2102,30 @@ class AdapterRegistry:
         entry: RegistryEntry,
         variant: VariantIdentity,
         context: ReferenceContext,
+        *,
+        remaining_elements: int,
+        after_callback: Callable[[], None] | None,
     ) -> tuple[CandidateElement, ...]:
         limits = self._current_limits()
+        if type(remaining_elements) is not int or not 0 <= remaining_elements <= (
+            limits.max_elements_total
+        ):
+            raise ValidationError("adapter resolution remaining element allowance is invalid")
         metadata = entry.metadata
         canonical_variant = _validate_variant(variant)
         canonical_context = _validate_context(context)
+        invocation_variant_bytes = canonical_bytes(canonical_variant.to_dict())
+        invocation_context_bytes = canonical_bytes(canonical_context.to_dict())
         _require_supported_context(metadata, canonical_context)
+        self._assert_metadata_stable(entry)
         try:
             variant_resolver = getattr(entry.adapter, "resolve_variant_elements", None)
             if variant_resolver is None:
+                self._assert_metadata_stable(entry)
                 resolver = entry.adapter.resolve_elements
                 if not callable(resolver):
                     raise TypeError("resolve_elements is not callable")
+                self._assert_metadata_stable(entry)
                 result = resolver(
                     canonical_variant.variant_id,
                     canonical_context,
@@ -1753,6 +2133,7 @@ class AdapterRegistry:
             else:
                 if not callable(variant_resolver):
                     raise TypeError("resolve_variant_elements is not callable")
+                self._assert_metadata_stable(entry)
                 result = variant_resolver(
                     canonical_variant,
                     canonical_context,
@@ -1760,8 +2141,24 @@ class AdapterRegistry:
         except Exception as exc:
             self._assert_metadata_stable(entry)
             raise ValidationError(f"adapter resolution failed: {metadata.adapter_id}") from exc
+        if after_callback is not None:
+            after_callback()
         self._assert_metadata_stable(entry)
         self._current_limits()
+        try:
+            current_variant_bytes = canonical_bytes(canonical_variant.to_dict())
+            current_context_bytes = canonical_bytes(canonical_context.to_dict())
+        except (TypeError, ValueError, OverflowError, UnicodeError, RecursionError) as exc:
+            raise ValidationError(
+                f"adapter mutated its resolution invocation inputs: {metadata.adapter_id}"
+            ) from exc
+        if (
+            current_variant_bytes != invocation_variant_bytes
+            or current_context_bytes != invocation_context_bytes
+        ):
+            raise ValidationError(
+                f"adapter mutated its resolution invocation inputs: {metadata.adapter_id}"
+            )
         if type(result) is not tuple:
             raise ValidationError(
                 f"adapter resolution must return an exact tuple: {metadata.adapter_id}"
@@ -1770,6 +2167,8 @@ class AdapterRegistry:
             raise ValidationError(
                 f"adapter resolution exceeds its per-variant ceiling: {metadata.adapter_id}"
             )
+        if len(result) > remaining_elements:
+            raise ValidationError("adapter resolution exceeds its total element ceiling")
         validated: list[CandidateElement] = []
         identities: set[str] = set()
         for element in result:
@@ -1800,7 +2199,9 @@ class AdapterRegistry:
         *,
         remaining_claims: int,
         remaining_bytes: int,
-    ) -> tuple[tuple[EvidenceClaim, ...], int]:
+        remaining_claims_by_edge: Mapping[str, int] | None,
+        after_callback: Callable[[], None] | None,
+    ) -> tuple[tuple[EvidenceClaim, ...], int, dict[str, int]]:
         """Invoke one captured adapter and detach its bounded exact claim tuple."""
 
         limits = self._current_limits()
@@ -1829,6 +2230,8 @@ class AdapterRegistry:
             raise ValidationError(
                 f"adapter claim collection failed: {metadata.adapter_id}"
             ) from exc
+        if after_callback is not None:
+            after_callback()
         self._assert_metadata_stable(entry)
         self._current_limits()
         try:
@@ -1854,6 +2257,11 @@ class AdapterRegistry:
         validated: list[EvidenceClaim] = []
         identities: set[str] = set()
         used_bytes = 0
+        used_by_edge: dict[str, int] = {}
+        owned_edge_ids = _resolution_item_edge_ids(
+            resolution_item.variant_id,
+            resolution_item.element,
+        )
         for claim in result:
             canonical_claim, claim_bytes = _validate_evidence_claim(
                 claim,
@@ -1874,6 +2282,22 @@ class AdapterRegistry:
                 raise ValidationError(
                     f"adapter claim escaped declared channels: {metadata.adapter_id}"
                 )
+            if canonical_claim.produced_by != metadata.adapter_id:
+                raise ValidationError(
+                    f"adapter claim producer does not match its attribution: {metadata.adapter_id}"
+                )
+            edge_id = canonical_claim.edge_id
+            if edge_id not in owned_edge_ids:
+                raise ValidationError(
+                    "adapter claim edge does not belong to its attributed resolution item"
+                )
+            if remaining_claims_by_edge is not None:
+                edge_count = used_by_edge.get(edge_id, 0) + 1
+                if edge_count > remaining_claims_by_edge.get(edge_id, 0):
+                    raise ValidationError(
+                        "adapter claim collection exceeds its per-edge claim ceiling"
+                    )
+                used_by_edge[edge_id] = edge_count
             if claim_bytes > remaining_bytes - used_bytes:
                 raise ValidationError(
                     "adapter claim collection exceeds its configured report byte ceiling"
@@ -1882,7 +2306,7 @@ class AdapterRegistry:
             validated.append(canonical_claim)
         self._assert_metadata_stable(entry)
         self._current_limits()
-        return tuple(validated), used_bytes
+        return tuple(validated), used_bytes, used_by_edge
 
     def _validate_claim_resolution(
         self,
@@ -1897,6 +2321,7 @@ class AdapterRegistry:
                 "adapter claim collection requires an exact AdapterResolutionReport"
             )
         canonical = AdapterResolutionReport.from_dict(resolution.to_dict())
+        canonical.validate_manifest(manifest)
         if canonical.manifest_address != manifest.content_address:
             raise ValidationError(
                 "adapter claim resolution does not belong to the supplied manifest"
@@ -1957,45 +2382,136 @@ class AdapterRegistry:
         self,
         manifest: CaseManifest,
         adapter_ids: tuple[str, ...],
+        *,
+        after_callback: Callable[[], None] | None = None,
     ) -> AdapterResolutionReport:
         """Resolve a manifest against one atomic registry snapshot."""
 
         limits = self._current_limits()
+        canonical_after_callback = _optional_after_callback(after_callback)
         self._validate_manifest(manifest)
+        canonical_manifest = CaseManifest.from_dict(manifest.to_dict())
         snapshot, entries = self._capture(adapter_ids)
-        variants = tuple(sorted(manifest.variants, key=lambda item: item.variant_id))
+        return self._resolve_manifest_entries_impl(
+            canonical_manifest,
+            snapshot,
+            entries,
+            limits=limits,
+            after_callback=canonical_after_callback,
+        )
+
+    def resolve_manifest_entries(
+        self,
+        manifest: CaseManifest,
+        snapshot: AdapterRegistrySnapshot,
+        entries: tuple[RegistryEntry, ...],
+        *,
+        after_callback: Callable[[], None] | None = None,
+    ) -> AdapterResolutionReport:
+        """Resolve with caller-captured executable identities, without recapture."""
+
+        limits = self._current_limits()
+        canonical_after_callback = _optional_after_callback(after_callback)
+        self._validate_manifest(manifest)
+        canonical_manifest = CaseManifest.from_dict(manifest.to_dict())
+        canonical_snapshot, pinned_entries = self._validate_captured_entries(
+            snapshot,
+            entries,
+        )
+        return self._resolve_manifest_entries_impl(
+            canonical_manifest,
+            canonical_snapshot,
+            pinned_entries,
+            limits=limits,
+            after_callback=canonical_after_callback,
+        )
+
+    def _resolve_manifest_entries_impl(
+        self,
+        canonical_manifest: CaseManifest,
+        snapshot: AdapterRegistrySnapshot,
+        entries: tuple[RegistryEntry, ...],
+        *,
+        limits: AdapterLimits,
+        after_callback: Callable[[], None] | None,
+    ) -> AdapterResolutionReport:
+        """Execute one already validated and pinned resolution capability."""
+
+        variants = tuple(sorted(canonical_manifest.variants, key=lambda item: item.variant_id))
+        selected_adapter_ids = tuple(entry.metadata.adapter_id for entry in entries)
+        selected_variant_ids = tuple(variant.variant_id for variant in variants)
+        context_address = content_hash(
+            canonical_manifest.context.to_dict(),
+            prefix="adapter-context",
+        )
+        empty_report = AdapterResolutionReport(
+            registry_address=snapshot.content_address,
+            manifest_address=canonical_manifest.content_address,
+            context_address=context_address,
+            adapter_ids=selected_adapter_ids,
+            variant_ids=selected_variant_ids,
+            items=(),
+        )
+        report_size = len(
+            _bounded_bytes(
+                empty_report.to_dict(),
+                "adapter resolution report",
+                limits.max_report_bytes,
+            )
+        )
         items: list[AdapterResolutionItem] = []
         canonical_elements: dict[str, bytes] = {}
         for entry in entries:
             for variant in variants:
+                remaining_elements = limits.max_elements_total - len(items)
+                if remaining_elements <= 0:
+                    raise ValidationError("adapter resolution exceeds its total element ceiling")
                 variant_address = content_hash(variant.to_dict(), prefix="adapter-variant")
-                for element in self._invoke(entry, variant, manifest.context):
+                for element in self._invoke(
+                    entry,
+                    variant,
+                    canonical_manifest.context,
+                    remaining_elements=remaining_elements,
+                    after_callback=after_callback,
+                ):
                     encoded = canonical_bytes(element.to_dict())
-                    previous = canonical_elements.setdefault(element.element_id, encoded)
-                    if previous != encoded:
+                    previous = canonical_elements.get(element.element_id)
+                    if previous is not None and previous != encoded:
                         raise ValidationError(
                             "adapter resolution has conflicting element identity: "
                             f"{element.element_id}"
                         )
-                    items.append(
-                        AdapterResolutionItem(
-                            adapter_id=entry.metadata.adapter_id,
-                            metadata_address=entry.metadata_address,
-                            variant_id=variant.variant_id,
-                            variant_address=variant_address,
-                            element=element,
-                        )
+                    resolution_item = AdapterResolutionItem(
+                        adapter_id=entry.metadata.adapter_id,
+                        metadata_address=entry.metadata_address,
+                        variant_id=variant.variant_id,
+                        variant_address=variant_address,
+                        element=element,
                     )
-                    if len(items) > limits.max_elements_total:
+                    attribution_count = len(items)
+                    element_count = len(canonical_elements)
+                    prospective_size = (
+                        report_size
+                        + len(canonical_bytes(resolution_item.to_dict()))
+                        + (1 if attribution_count else 0)
+                        + len(str(attribution_count + 1))
+                        - len(str(attribution_count))
+                    )
+                    if previous is None:
+                        prospective_size += len(str(element_count + 1)) - len(str(element_count))
+                    if prospective_size > limits.max_report_bytes:
                         raise ValidationError(
-                            "adapter resolution exceeds its total element ceiling"
+                            "adapter resolution exceeds its configured report byte ceiling"
                         )
+                    report_size = prospective_size
+                    canonical_elements.setdefault(element.element_id, encoded)
+                    items.append(resolution_item)
         report = AdapterResolutionReport(
             registry_address=snapshot.content_address,
-            manifest_address=manifest.content_address,
-            context_address=content_hash(manifest.context.to_dict(), prefix="adapter-context"),
-            adapter_ids=tuple(entry.metadata.adapter_id for entry in entries),
-            variant_ids=tuple(variant.variant_id for variant in variants),
+            manifest_address=canonical_manifest.content_address,
+            context_address=context_address,
+            adapter_ids=selected_adapter_ids,
+            variant_ids=selected_variant_ids,
             items=tuple(sorted(items, key=lambda item: item.identity)),
         )
         _bounded_bytes(
@@ -2008,21 +2524,146 @@ class AdapterRegistry:
         self._current_limits()
         return report
 
-    def collect_claims(
+    def _prepare_claim_collection(
         self,
         manifest: CaseManifest,
         resolution: AdapterResolutionReport,
-    ) -> AdapterClaimCollectionReport:
-        """Collect claims only for items in one exact, current resolution report."""
+        *,
+        max_claims: int | None = None,
+        max_claims_by_edge: Mapping[str, int] | None = None,
+        after_callback: Callable[[], None] | None = None,
+    ) -> tuple[
+        AdapterLimits,
+        Callable[[], None] | None,
+        dict[str, int] | None,
+        int,
+        CaseManifest,
+        AdapterResolutionReport,
+    ]:
+        """Validate and detach the registry-independent claim inputs."""
 
         limits = self._current_limits()
+        canonical_after_callback = _optional_after_callback(after_callback)
+        edge_claim_limits = _snapshot_claim_limits_by_edge(max_claims_by_edge)
+        if max_claims is not None and (
+            type(max_claims) is not int or not 0 <= max_claims <= _HARD_CLAIMS_TOTAL
+        ):
+            raise ValidationError(
+                f"adapter max_claims must be an integer between 0 and {_HARD_CLAIMS_TOTAL}"
+            )
+        claim_ceiling = (
+            limits.max_claims_total
+            if max_claims is None
+            else min(limits.max_claims_total, max_claims)
+        )
         self._validate_manifest(manifest)
         canonical_manifest = CaseManifest.from_dict(manifest.to_dict())
         canonical_resolution = self._validate_claim_resolution(
             canonical_manifest,
             resolution,
         )
+        return (
+            limits,
+            canonical_after_callback,
+            edge_claim_limits,
+            claim_ceiling,
+            canonical_manifest,
+            canonical_resolution,
+        )
+
+    def collect_claims(
+        self,
+        manifest: CaseManifest,
+        resolution: AdapterResolutionReport,
+        *,
+        max_claims: int | None = None,
+        max_claims_by_edge: Mapping[str, int] | None = None,
+        after_callback: Callable[[], None] | None = None,
+    ) -> AdapterClaimCollectionReport:
+        """Collect claims against one snapshot captured by this call."""
+
+        (
+            limits,
+            canonical_after_callback,
+            edge_claim_limits,
+            claim_ceiling,
+            canonical_manifest,
+            canonical_resolution,
+        ) = self._prepare_claim_collection(
+            manifest,
+            resolution,
+            max_claims=max_claims,
+            max_claims_by_edge=max_claims_by_edge,
+            after_callback=after_callback,
+        )
         snapshot, entries = self._capture(canonical_resolution.adapter_ids)
+        return self._collect_claims_entries_impl(
+            canonical_manifest,
+            canonical_resolution,
+            snapshot,
+            entries,
+            limits=limits,
+            after_callback=canonical_after_callback,
+            edge_claim_limits=edge_claim_limits,
+            claim_ceiling=claim_ceiling,
+        )
+
+    def collect_claims_entries(
+        self,
+        manifest: CaseManifest,
+        resolution: AdapterResolutionReport,
+        snapshot: AdapterRegistrySnapshot,
+        entries: tuple[RegistryEntry, ...],
+        *,
+        max_claims: int | None = None,
+        max_claims_by_edge: Mapping[str, int] | None = None,
+        after_callback: Callable[[], None] | None = None,
+    ) -> AdapterClaimCollectionReport:
+        """Collect claims with caller-captured identities, without recapture."""
+
+        (
+            limits,
+            canonical_after_callback,
+            edge_claim_limits,
+            claim_ceiling,
+            canonical_manifest,
+            canonical_resolution,
+        ) = self._prepare_claim_collection(
+            manifest,
+            resolution,
+            max_claims=max_claims,
+            max_claims_by_edge=max_claims_by_edge,
+            after_callback=after_callback,
+        )
+        canonical_snapshot, pinned_entries = self._validate_captured_entries(
+            snapshot,
+            entries,
+        )
+        return self._collect_claims_entries_impl(
+            canonical_manifest,
+            canonical_resolution,
+            canonical_snapshot,
+            pinned_entries,
+            limits=limits,
+            after_callback=canonical_after_callback,
+            edge_claim_limits=edge_claim_limits,
+            claim_ceiling=claim_ceiling,
+        )
+
+    def _collect_claims_entries_impl(
+        self,
+        canonical_manifest: CaseManifest,
+        canonical_resolution: AdapterResolutionReport,
+        snapshot: AdapterRegistrySnapshot,
+        entries: tuple[RegistryEntry, ...],
+        *,
+        limits: AdapterLimits,
+        after_callback: Callable[[], None] | None,
+        edge_claim_limits: dict[str, int] | None,
+        claim_ceiling: int,
+    ) -> AdapterClaimCollectionReport:
+        """Execute one already validated and pinned claim capability."""
+
         if snapshot.content_address != canonical_resolution.registry_address:
             raise ValidationError("adapter claim resolution registry snapshot is no longer current")
         entries_by_id = {entry.metadata.adapter_id: entry for entry in entries}
@@ -2037,19 +2678,68 @@ class AdapterRegistry:
                     "adapter claim resolution element escaped declared adapter sources"
                 )
 
+        selected_metadata = tuple(_snapshot_metadata(entry.metadata) for entry in entries)
+        empty_attributions = tuple(
+            AdapterClaimAttribution(
+                adapter_id=item.adapter_id,
+                metadata_address=item.metadata_address,
+                variant_id=item.variant_id,
+                variant_address=item.variant_address,
+                element_id=item.element.element_id,
+                element_address=item.element_address,
+                resolution_item_address=item.content_address,
+                claims=(),
+            )
+            for item in canonical_resolution.items
+        )
+        minimum_report = AdapterClaimCollectionReport(
+            registry_snapshot=snapshot,
+            adapter_metadata=selected_metadata,
+            manifest_address=canonical_manifest.content_address,
+            context=canonical_manifest.context,
+            adapter_ids=canonical_resolution.adapter_ids,
+            variant_ids=canonical_resolution.variant_ids,
+            resolution_address=canonical_resolution.content_address,
+            attributions=empty_attributions,
+        )
+        minimum_report.validate_resolution(canonical_resolution)
+        report_size = len(
+            _bounded_bytes(
+                minimum_report.to_dict(),
+                "adapter claim collection report",
+                limits.max_report_bytes,
+            )
+        )
+        empty_attribution_sizes = tuple(
+            len(canonical_bytes(attribution.to_dict())) for attribution in empty_attributions
+        )
+
         attributions: list[AdapterClaimAttribution] = []
         evidence_ids: set[str] = set()
         claim_count = 0
         claim_bytes = 0
-        attribution_bytes = 0
-        for resolution_item in canonical_resolution.items:
+        remaining_edge_claims = None if edge_claim_limits is None else dict(edge_claim_limits)
+        for attribution_index, resolution_item in enumerate(canonical_resolution.items):
+            if claim_count >= claim_ceiling:
+                raise ValidationError("adapter claim collection exceeds its total claim ceiling")
+            if remaining_edge_claims is not None:
+                possible_edges = _resolution_item_edge_ids(
+                    resolution_item.variant_id,
+                    resolution_item.element,
+                )
+                if any(remaining_edge_claims.get(edge_id, 0) <= 0 for edge_id in possible_edges):
+                    raise ValidationError(
+                        "adapter claim collection exceeds its per-edge claim ceiling"
+                    )
             entry = entries_by_id[resolution_item.adapter_id]
-            claims, encoded_bytes = self._invoke_claim_collector(
+            claims, encoded_bytes, used_by_edge = self._invoke_claim_collector(
                 entry,
                 resolution_item,
                 canonical_manifest.context,
-                remaining_claims=limits.max_claims_total - claim_count,
+                remaining_claims=claim_ceiling - claim_count,
                 remaining_bytes=limits.max_report_bytes - claim_bytes,
+                remaining_claims_by_edge=remaining_edge_claims,
+                after_callback=after_callback,
             )
             duplicate_ids = tuple(
                 claim.evidence_id for claim in claims if claim.evidence_id in evidence_ids
@@ -2059,9 +2749,6 @@ class AdapterRegistry:
                     "adapter claim collection evidence IDs must be globally unique: "
                     f"{duplicate_ids[0]}"
                 )
-            evidence_ids.update(claim.evidence_id for claim in claims)
-            claim_count += len(claims)
-            claim_bytes += encoded_bytes
             attribution = AdapterClaimAttribution(
                 adapter_id=resolution_item.adapter_id,
                 metadata_address=resolution_item.metadata_address,
@@ -2077,17 +2764,32 @@ class AdapterRegistry:
                 "adapter claim attribution",
                 limits.max_report_bytes,
             )
-            if len(encoded_attribution) > limits.max_report_bytes - attribution_bytes:
+            prospective_claim_count = claim_count + len(claims)
+            prospective_size = (
+                report_size
+                + len(encoded_attribution)
+                - empty_attribution_sizes[attribution_index]
+                + len(str(prospective_claim_count))
+                - len(str(claim_count))
+            )
+            if prospective_size > limits.max_report_bytes:
                 raise ValidationError(
                     "adapter claim collection exceeds its configured report byte ceiling"
                 )
-            attribution_bytes += len(encoded_attribution)
+            report_size = prospective_size
+            evidence_ids.update(claim.evidence_id for claim in claims)
+            claim_count = prospective_claim_count
+            claim_bytes += encoded_bytes
+            if remaining_edge_claims is not None:
+                for edge_id, used in used_by_edge.items():
+                    remaining_edge_claims[edge_id] -= used
             attributions.append(attribution)
         for entry in entries:
             self._assert_metadata_stable(entry)
         self._current_limits()
         report = AdapterClaimCollectionReport(
             registry_snapshot=snapshot,
+            adapter_metadata=selected_metadata,
             manifest_address=canonical_manifest.content_address,
             context=canonical_manifest.context,
             adapter_ids=canonical_resolution.adapter_ids,
@@ -2095,6 +2797,7 @@ class AdapterRegistry:
             resolution_address=canonical_resolution.content_address,
             attributions=tuple(attributions),
         )
+        report.validate_claim_ownership(canonical_resolution)
         _bounded_bytes(
             report.to_dict(),
             "adapter claim collection report",

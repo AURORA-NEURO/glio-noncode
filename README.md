@@ -250,12 +250,89 @@ index requires an external monotonic anchor and is advertised as such.
 Runtime evidence adapters are host-configured, never supplied as executable request
 content. A host registers adapters in an `AdapterRegistry`, injects that registry into
 `CaseRuntime` or `create_server(...)`, and clients select bounded canonical IDs through
-`adapter_ids`. `GET /v1/case-workflow/adapters` returns the exact configured registry
-snapshot. A selected run persists the base manifest, registry snapshot, resolution
-report, and attributed claim-collection report before materializing one effective
-manifest. That effective manifest address participates in the evaluation run ID, and
-adapter claims can support only the exact hypothesis edges for which they were
-collected.
+`adapter_ids`. `GET /v1/case-workflow/adapters` returns the full configured discovery
+snapshot plus its effective limits. A selected run persists the base manifest, a
+selected-execution registry snapshot captured atomically, the resolution report, and
+an attributed claim-collection report containing the complete metadata preimage for
+every selected adapter before materializing one effective manifest. Unrelated registry
+changes do not invalidate or leak into that execution closure. The exact live adapter
+objects selected with that snapshot are pinned for the execution; callback-time
+implementation substitution fails closed and the selected registry slots are restored.
+The effective manifest
+address participates in the evaluation run ID, and adapter claims can support only
+graph edges belonging to their attributed resolution item. Factorized gene-to-state
+edges may intentionally belong to more than one item that shares that exact graph
+relation.
+
+Live public-reference enrichment independently bounds the complete result at 256 MiB
+of canonical JSON and 10,000,000 retained sequence bases by default; both ceilings
+are downward-configurable through `ReferenceRetrievalLimits`. Direct construction,
+persisted loading, and live retrieval charge the closure progressively; live retrieval
+projects the exact enriched-manifest, bundle, warning, wrapper, and address bytes before
+starting a later variant. If source retrieval succeeds but an annotation has a missing
+or unsupported type, invalid coordinates, or another typed-materialization failure, its
+raw row and receipt remain auditable while Atlas emits only `ABSTAINED` evidence.
+
+The runtime admits optional RNA, live-reference, Atlas, and adapter inputs into one
+bounded canonical source closure. Atlas contributes an ordered two-record pair for each
+variant: an external, detached `AtlasReplayInputs` record immediately followed by the
+`AtlasBundle` derived from it. Each persisted source object is limited to 128 MiB and
+the unique aggregate closure is limited to 256 MiB; configured runtime limits may lower
+either ceiling. The hard/default source-address maximum remains 3,006: one RNA batch,
+one submitted manifest, one reference bundle, one detached Atlas replay-input artifact,
+and one Atlas bundle for each of at most 1,000 variants, plus four adapter roles. The
+dossier keeps these addresses in first-use order and deduplicates an exact object reused
+by adjacent stages.
+
+Admission is progressive at runtime stage boundaries. The submitted manifest is
+charged before reference enrichment is invoked. The runtime cannot interrupt a source
+callback already in flight; it validates each returned result before beginning later
+runtime work. RNA consequences are detached and charged row by row, so byte exhaustion
+stops their iterator without materializing the remaining batch. Retained reference
+bundles are charged before Atlas collection. Before every per-variant Atlas callback,
+the runtime reserves both source-address slots required by the pair; after the callback,
+it detaches and validates both records and retains `AtlasReplayInputs` before its
+`AtlasBundle`. The complete pair must satisfy the object and aggregate byte allowances
+before the runtime begins another Atlas callback. The adapter base manifest and atomic
+selected snapshot are charged before adapter resolution, and the resolution report
+before claim collection. The
+256,000 receipt ceiling counts ordered reference and atlas receipt occurrences. The
+receipt ceiling and the hard/default allowance of 10,000 linked
+atlas-plus-adapter external claims can both be configured lower. Exhausting a receipt,
+warning, event-payload, or claim allowance blocks
+later work that could consume that specific allowance; exhausting one does not
+categorically suppress unrelated callbacks. In particular, unpromoted atlas
+observations use no claim slot, and adapter resolution may precede a zero-allowance
+rejection at claim collection. A failure publishes no partial run.
+
+Replay rehydrates the exact submitted manifest and per-variant reference bundles. Each
+reference bundle binds a versioned address over the complete canonical
+`ReferenceContext`, so a display-key collision or a difference in assay/source fields
+cannot alias another context. The Atlas event carries equal-length, variant-ordered
+`replay_input_addresses` and `bundle_addresses` arrays. Replay validates both arrays,
+their uniqueness, and their pairwise order, interleaves each replay-input address
+immediately before its bundle address in the declared source closure, and rejects a
+missing, substituted, or mismatched half. It reconstructs every `AtlasReplayInputs`
+record against the exact full `VariantIdentity`, `ReferenceContext`, reference bundle,
+and `AtlasQuery`, then binds the
+corresponding `AtlasBundle` to that replay-input address. From those external inputs it
+offline-rederives sequence and motif analysis, declared-track reports and observations,
+ENCODE projection or abstention, receipts and warnings, the receipt-derived timestamp,
+out-of-domain and uncertainty outputs, and evidence claims. The retained bundle and
+dossier claims must equal those derivations exactly. Adapter replay requires
+all four ordered records: base manifest, selected registry snapshot,
+resolution report, and attributed claim-collection report. Receipt replay compares the
+exact occurrence sequence—reference prefix, then atlas receipts—rather than a set;
+identical repeated receipts are allowed, while conflicting definitions for one request
+hash fail validation. Reference event warnings must be unique, include all retained
+reference-bundle warnings, and remain in the dossier, but additional enrichment-level
+warnings cannot be rederived from bundles. Atlas event warnings are stricter: they must
+exactly equal the deduplicated bundle and claim-link warnings and remain in the dossier.
+Source events also retain exact identities, order, payload shapes, and derived counters.
+Runs created with older live-source closures or adapter report versions fail closed when
+those facts cannot be verified and should be recomputed from their original inputs.
+Immutable offline runs remain usable when their current canonical, address, event, and
+cross-link checks pass.
 
 The review queue is a deterministic operational projection over persisted runs.
 It prioritizes integrity blocks, pending or returned reviews, missing reviews,
