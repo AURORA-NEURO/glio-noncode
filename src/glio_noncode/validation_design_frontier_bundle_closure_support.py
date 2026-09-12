@@ -10,14 +10,13 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections import Counter
 from collections.abc import Iterable, Mapping
 from typing import Any
 
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, jsonable
 from .validation_design_frontier_bundle_contracts import ValidationDesignBundle
 
 _DIRECT_IDENTITY_KEYS = frozenset(
@@ -42,8 +41,8 @@ def payload(bundle: ValidationDesignBundle, artifact_id: str) -> Any:
     if artifact is None or artifact.payload is None or artifact.media_type != "application/json":
         return {}
     try:
-        value = json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        value = _strict_json_loads(artifact.payload)
+    except ValueError:
         return {}
     return value
 

@@ -11,6 +11,7 @@ from threading import Thread
 
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
+from glio_noncode.errors import ValidationError
 from glio_noncode.validation_design_frontier_bundle_audit import (
     audit_validation_design_offline_bundle,
 )
@@ -86,6 +87,21 @@ class ValidationDesignFrontierBundleTests(unittest.TestCase):
             verification = verify_validation_design_offline_bundle(destination)
             self.assertFalse(verification.accepted)
             self.assertTrue(any(item.check_id == "bytes:review-csv" and not item.passed for item in verification.checks))
+
+    def test_ambiguous_manifest_json_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "bundle"
+            write_validation_design_offline_bundle(self.bundle, destination)
+            manifest = (destination / "bundle.json").read_text(encoding="utf-8")
+            (destination / "bundle.json").write_text(
+                manifest[:-1] + ',"bundle_id":"shadow"}\n',
+                encoding="utf-8",
+            )
+            verification = verify_validation_design_offline_bundle(destination)
+            self.assertFalse(verification.accepted)
+            self.assertEqual(verification.bundle_id, "invalid-manifest")
+            with self.assertRaises(ValidationError):
+                load_validation_design_offline_bundle(destination)
 
     def test_queries_cover_records_checks_sources_and_artifacts(self) -> None:
         records = query_validation_design_offline_bundle(self.bundle, resource="records", operation="gap_analysis")

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -12,7 +11,7 @@ from typing import Any
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
 from .validation_design_frontier_bundle_contracts import (
     VALIDATION_DESIGN_BUNDLE_ARTIFACT_PREFIX,
     VALIDATION_DESIGN_BUNDLE_MANIFEST,
@@ -247,7 +246,7 @@ def build_validation_design_offline_bundle(
         _check("artifact-paths-unique", ValidationDesignBundleCheckPlane.CLOSURE, len({item.relative_path for item in artifacts}) == len(artifacts), len({item.relative_path for item in artifacts}), len(artifacts), "artifact paths are unique"),
         _check("artifact-addresses-present", ValidationDesignBundleCheckPlane.ARTIFACT, all(item.content_address.startswith(f"{VALIDATION_DESIGN_BUNDLE_ARTIFACT_PREFIX}:") for item in artifacts), sum(item.content_address.startswith(f"{VALIDATION_DESIGN_BUNDLE_ARTIFACT_PREFIX}:") for item in artifacts), len(artifacts), "every artifact has an exact-byte address"),
         _check("artifact-payloads-present", ValidationDesignBundleCheckPlane.ARTIFACT, all(item.payload is not None for item in artifacts), sum(item.payload is not None for item in artifacts), len(artifacts), "every artifact is materializable"),
-        _check("public-json-boundary", ValidationDesignBundleCheckPlane.PUBLIC_BOUNDARY, all(item.media_type != VALIDATION_DESIGN_BUNDLE_JSON_MEDIA_TYPE or (item.payload is not None and not _has_forbidden_key(json.loads(item.payload)) and not contains_private_key(json.loads(item.payload))) for item in artifacts), True, True, "JSON artifacts contain no private or attribution keys"),
+        _check("public-json-boundary", ValidationDesignBundleCheckPlane.PUBLIC_BOUNDARY, all(item.media_type != VALIDATION_DESIGN_BUNDLE_JSON_MEDIA_TYPE or (item.payload is not None and not _has_forbidden_key(_strict_json_loads(item.payload)) and not contains_private_key(_strict_json_loads(item.payload))) for item in artifacts), True, True, "JSON artifacts contain no private or attribution keys"),
         _check("fixture-record-denominator", ValidationDesignBundleCheckPlane.RUNTIME, len(runtime.fixture.records) == 16, len(runtime.fixture.records), 16, "all four planning operations retain four scenario rows"),
         _check("fixture-source-denominator", ValidationDesignBundleCheckPlane.RUNTIME, len(runtime.fixture.sources) == 5, len(runtime.fixture.sources), 5, "public source receipt count is conserved"),
         _check("evaluation-check-denominator", ValidationDesignBundleCheckPlane.RUNTIME, len(runtime.evaluation.checks) == 80, len(runtime.evaluation.checks), 80, "five evaluation checks remain present per record"),
@@ -320,8 +319,8 @@ def verify_validation_design_offline_bundle(destination: str | Path) -> Validati
     checks: list[ValidationDesignBundleCheck] = []
     try:
         raw_manifest = manifest_path.read_bytes()
-        manifest = json.loads(raw_manifest.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads(raw_manifest.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         return _verification("invalid-manifest", [_check("manifest-readable", ValidationDesignBundleCheckPlane.MANIFEST, False, type(exc).__name__, "valid UTF-8 JSON", "bundle manifest cannot be decoded")])
     if not isinstance(manifest, Mapping):
         return _verification("invalid-manifest", [_check("manifest-object", ValidationDesignBundleCheckPlane.MANIFEST, False, type(manifest).__name__, "object", "bundle manifest root must be an object")])
@@ -367,9 +366,9 @@ def verify_validation_design_offline_bundle(destination: str | Path) -> Validati
             checks.append(_check(f"bytes:{artifact_id}", ValidationDesignBundleCheckPlane.ARTIFACT, exact, {"bytes": len(raw), "lines": _line_count(text), "address": address}, {"bytes": item.get("byte_count"), "lines": item.get("line_count"), "address": item.get("content_address")}, "artifact bytes and address match the manifest"))
             if item.get("media_type") == VALIDATION_DESIGN_BUNDLE_JSON_MEDIA_TYPE:
                 try:
-                    parsed = json.loads(text)
+                    parsed = _strict_json_loads(text)
                     public = not _has_forbidden_key(parsed) and not contains_private_key(parsed)
-                except json.JSONDecodeError:
+                except ValueError:
                     public = False
                 checks.append(_check(f"json-public:{artifact_id}", ValidationDesignBundleCheckPlane.PUBLIC_BOUNDARY, public, public, True, "JSON artifact is valid and public-boundary safe"))
         except (OSError, UnicodeDecodeError) as exc:
@@ -394,7 +393,7 @@ def verify_validation_design_offline_bundle(destination: str | Path) -> Validati
             loaded = load_validation_design_offline_bundle(root, include_payloads=True)
             audit = audit_validation_design_offline_bundle(loaded)
             checks.append(_check("cross-artifact-audit", ValidationDesignBundleCheckPlane.CLOSURE, audit.accepted, audit.failed_check_ids, (), "fixture, evaluation, runtime, release, replay, and projection artifacts reconcile"))
-        except (OSError, TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        except (OSError, TypeError, ValueError, UnicodeDecodeError) as exc:
             checks.append(_check("cross-artifact-audit", ValidationDesignBundleCheckPlane.CLOSURE, False, type(exc).__name__, "accepted audit", "cross-artifact reconciliation could not be completed"))
     return _verification(bundle_id, checks)
 

@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from typing import Any
 
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 from .validation_design_frontier_bundle_audit import audit_validation_design_offline_bundle
 from .validation_design_frontier_bundle_contracts import (
     ValidationDesignBundle,
@@ -103,10 +102,10 @@ def build_validation_design_bundle_observability(bundle: ValidationDesignBundle)
     payload: dict[str, Any] = {}
     if runtime_artifact is not None and runtime_artifact.payload is not None:
         try:
-            parsed = json.loads(runtime_artifact.payload)
+            parsed = _strict_json_loads(runtime_artifact.payload)
             if isinstance(parsed, dict):
                 payload = parsed
-        except json.JSONDecodeError:
+        except ValueError:
             payload = {}
     stages = payload.get("stages", ())
     stage_count = len(stages) if isinstance(stages, list) else 0

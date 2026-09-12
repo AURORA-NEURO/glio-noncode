@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from dataclasses import dataclass
 from typing import Any
 
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 from .validation_design_frontier_bundle_contracts import ValidationDesignBundle
 
 VALIDATION_DESIGN_BUNDLE_AUDIT_VERSION = "validation-design-bundle-audit-v1"
@@ -74,8 +73,8 @@ def _json_payload(bundle: ValidationDesignBundle, artifact_id: str) -> Any:
     if artifact is None or artifact.payload is None:
         return None
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return None
 
 
@@ -99,7 +98,7 @@ def audit_validation_design_offline_bundle(bundle: ValidationDesignBundle) -> Va
     checks.append(_check("artifact-count", "manifest", bundle.artifact_count == 27, bundle.artifact_count, 27, "the closed D13 artifact denominator is retained"))
     checks.append(_check("artifact-identities", "manifest", len({item.artifact_id for item in bundle.artifacts}) == bundle.artifact_count, len({item.artifact_id for item in bundle.artifacts}), bundle.artifact_count, "artifact identities are unique"))
     checks.append(_check("artifact-addresses", "manifest", all(item.payload is not None and item.content_address for item in bundle.artifacts), sum(item.payload is not None for item in bundle.artifacts), bundle.artifact_count, "every artifact has hydrated addressed bytes"))
-    public = all(item.payload is not None and (item.media_type != "application/json" or not _has_forbidden_key(json.loads(item.payload))) and (item.payload is not None and (item.media_type != "application/json" or not contains_private_key(json.loads(item.payload)))) for item in bundle.artifacts if item.payload is not None)
+    public = all(item.payload is not None and (item.media_type != "application/json" or not _has_forbidden_key(_strict_json_loads(item.payload))) and (item.payload is not None and (item.media_type != "application/json" or not contains_private_key(_strict_json_loads(item.payload)))) for item in bundle.artifacts if item.payload is not None)
     checks.append(_check("public-boundary", "public_boundary", public, public, True, "materialized JSON artifacts remain public aggregate projections"))
     checks.append(_check("fixture-object", "fixture", isinstance(fixture, dict), type(fixture).__name__, "dict", "fixture artifact is a JSON object"))
     records = fixture.get("records", ()) if isinstance(fixture, dict) else ()

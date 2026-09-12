@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 from .validation_design_frontier_bundle_closure_contracts import (
     VALIDATION_DESIGN_CLOSURE_BOUNDARY,
     ValidationDesignClosureBoundaryReport,
@@ -62,9 +61,9 @@ def _json_artifact_check(artifact: Any) -> dict[str, Any]:
     parse_ok = artifact.media_type != "application/json"
     if artifact.media_type == "application/json" and payload is not None:
         try:
-            parsed = json.loads(payload)
+            parsed = _strict_json_loads(payload)
             parse_ok = True
-        except json.JSONDecodeError:
+        except ValueError:
             parse_ok = False
     keys = discover_keys(parsed) if parse_ok and parsed is not None else ()
     direct = forbidden_keys(parsed) if parse_ok and parsed is not None else ()
@@ -153,8 +152,8 @@ def _safe_json(bundle: ValidationDesignBundle, artifact_id: str) -> Any:
     if artifact is None or artifact.payload is None or artifact.media_type != "application/json":
         return None
     try:
-        value = json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        value = _strict_json_loads(artifact.payload)
+    except ValueError:
         return None
     return value
 

@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable
 from .validation_design_frontier_bundle_closure_contracts import (
     ValidationDesignClosureRuntimeReport,
 )
@@ -213,8 +212,8 @@ def verify_validation_design_closure_export(
     manifest_path = root / VALIDATION_DESIGN_CLOSURE_EXPORT_MANIFEST
     checks: list[dict[str, Any]] = []
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         return ValidationDesignClosureExportVerification(
             bundle_id="",
             artifact_count=0,
