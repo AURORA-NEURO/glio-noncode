@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -20,7 +19,7 @@ from typing import Any
 
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 from .evidence_lifecycle_frontier_offline_bundle import verify_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_contracts import EvidenceLifecycleOfflineBundle
 from .evidence_lifecycle_frontier_offline_query import load_evidence_lifecycle_offline_bundle
@@ -170,8 +169,8 @@ def _json_payloads(bundle: EvidenceLifecycleOfflineBundle) -> tuple[tuple[str, A
         if artifact.media_type != "application/json" or artifact.payload is None:
             continue
         try:
-            values.append((artifact.artifact_id, json.loads(artifact.payload)))
-        except json.JSONDecodeError:
+            values.append((artifact.artifact_id, _strict_json_loads(artifact.payload)))
+        except ValueError:
             values.append((artifact.artifact_id, None))
     return tuple(values)
 

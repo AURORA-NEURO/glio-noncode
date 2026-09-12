@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from typing import Any
 
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 from .evidence_lifecycle_frontier_offline_contracts import EvidenceLifecycleOfflineBundle
 
 EVIDENCE_LIFECYCLE_OFFLINE_RECONCILIATION_VERSION = "evidence-lifecycle-offline-reconciliation-v1"
@@ -69,8 +68,8 @@ def _payload(bundle: EvidenceLifecycleOfflineBundle, artifact_id: str) -> Any:
     if artifact is None or artifact.payload is None:
         return None
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return None
 
 

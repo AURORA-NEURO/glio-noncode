@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from dataclasses import dataclass
 from typing import Any
 
-from .serialization import canonical_json, content_hash, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, jsonable
 from .evidence_lifecycle_frontier_offline_contracts import EvidenceLifecycleOfflineBundle
 
 EVIDENCE_LIFECYCLE_OFFLINE_SUMMARY_VERSION = "evidence-lifecycle-offline-summary-v1"
@@ -101,8 +100,8 @@ def _payload(bundle: EvidenceLifecycleOfflineBundle, artifact_id: str) -> Any:
     if artifact is None or artifact.payload is None:
         return None
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return None
 
 

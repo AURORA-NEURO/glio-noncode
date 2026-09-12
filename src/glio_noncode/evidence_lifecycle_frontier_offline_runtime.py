@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from typing import Any
 
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .evidence_lifecycle_frontier_offline_audit import audit_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_bundle import build_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_contracts import EvidenceLifecycleOfflineBundle, EvidenceLifecycleOfflineBundleState
@@ -102,10 +101,10 @@ def build_evidence_lifecycle_offline_observability(bundle: EvidenceLifecycleOffl
     payload: dict[str, Any] = {}
     if runtime_artifact is not None and runtime_artifact.payload is not None:
         try:
-            parsed = json.loads(runtime_artifact.payload)
+            parsed = _strict_json_loads(runtime_artifact.payload)
             if isinstance(parsed, dict):
                 payload = parsed
-        except json.JSONDecodeError:
+        except ValueError:
             payload = {}
     stages = payload.get("stages", ())
     stage_count = len(stages) if isinstance(stages, list) else 0

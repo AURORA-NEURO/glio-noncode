@@ -9,13 +9,12 @@ not copy operation payloads or raw text.
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .evidence_lifecycle_frontier_offline_contracts import EvidenceLifecycleOfflineBundle
 
 EVIDENCE_LIFECYCLE_OFFLINE_INDEX_VERSION = "evidence-lifecycle-offline-index-v1"
@@ -161,8 +160,8 @@ def _payload(bundle: EvidenceLifecycleOfflineBundle, artifact_id: str) -> Any:
     if artifact is None or artifact.payload is None:
         return None
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return None
 
 

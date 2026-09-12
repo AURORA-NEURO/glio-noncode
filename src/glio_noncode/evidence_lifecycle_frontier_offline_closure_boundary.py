@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +19,7 @@ from .evidence_lifecycle_frontier_offline_closure_support import (
     safe_relative_path,
 )
 from .evidence_lifecycle_frontier_offline_contracts import EvidenceLifecycleOfflineBundle
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 def _artifact_check(bundle: EvidenceLifecycleOfflineBundle, artifact: Any) -> dict[str, Any]:
@@ -28,9 +27,9 @@ def _artifact_check(bundle: EvidenceLifecycleOfflineBundle, artifact: Any) -> di
     decoded: Any = None
     if artifact.media_type == "application/json" and artifact.payload is not None:
         try:
-            decoded = json.loads(artifact.payload)
+            decoded = _strict_json_loads(artifact.payload)
             parse_ok = True
-        except json.JSONDecodeError:
+        except ValueError:
             parse_ok = False
     prohibited = forbidden_keys(decoded) if decoded is not None else ()
     return {
@@ -109,8 +108,8 @@ def _json_payload(artifact: Any) -> Any:
     if artifact.payload is None or artifact.media_type != "application/json":
         return None
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return None
 
 

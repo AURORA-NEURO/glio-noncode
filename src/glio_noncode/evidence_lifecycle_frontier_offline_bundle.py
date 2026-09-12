@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -34,7 +33,7 @@ from .evidence_lifecycle_frontier_schema import default_evidence_lifecycle_schem
 from .evidence_lifecycle_frontier_views import build_evidence_lifecycle_review_view
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
 from .evidence_lifecycle_frontier_offline_contracts import (
     EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_ARTIFACT_COUNT,
     EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_ARTIFACT_PREFIX,
@@ -358,7 +357,7 @@ def build_evidence_lifecycle_offline_bundle(
         _check("artifact-paths-unique", EvidenceLifecycleOfflineCheckPlane.CLOSURE, len({item.relative_path for item in artifacts}) == len(artifacts), len({item.relative_path for item in artifacts}), len(artifacts), "artifact paths are unique"),
         _check("artifact-addresses-present", EvidenceLifecycleOfflineCheckPlane.ARTIFACT, all(item.content_address.startswith(f"{EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_ARTIFACT_PREFIX}:") for item in artifacts), sum(item.content_address.startswith(f"{EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_ARTIFACT_PREFIX}:") for item in artifacts), len(artifacts), "every artifact has an exact-byte address"),
         _check("artifact-payloads-present", EvidenceLifecycleOfflineCheckPlane.ARTIFACT, all(item.payload is not None for item in artifacts), sum(item.payload is not None for item in artifacts), len(artifacts), "every artifact is materializable"),
-        _check("public-json-boundary", EvidenceLifecycleOfflineCheckPlane.PUBLIC_BOUNDARY, all(not _has_forbidden_key(json.loads(item.payload or "{}")) and not contains_private_key(json.loads(item.payload or "{}")) for item in json_artifacts), True, True, "JSON artifacts contain no private or attribution keys"),
+        _check("public-json-boundary", EvidenceLifecycleOfflineCheckPlane.PUBLIC_BOUNDARY, all(not _has_forbidden_key(_strict_json_loads(item.payload or "{}")) and not contains_private_key(_strict_json_loads(item.payload or "{}")) for item in json_artifacts), True, True, "JSON artifacts contain no private or attribution keys"),
         _check("fixture-record-denominator", EvidenceLifecycleOfflineCheckPlane.RUNTIME, len(selected_fixture.records) == 16, len(selected_fixture.records), 16, "sixteen lifecycle records are conserved"),
         _check("fixture-source-denominator", EvidenceLifecycleOfflineCheckPlane.RUNTIME, len(selected_fixture.sources) == 5, len(selected_fixture.sources), 5, "five public source receipts are conserved"),
         _check("fixture-positive-denominator", EvidenceLifecycleOfflineCheckPlane.RUNTIME, len(selected_fixture.positive_records) == 4, len(selected_fixture.positive_records), 4, "one positive path exists per operation"),
@@ -446,8 +445,8 @@ def verify_evidence_lifecycle_offline_bundle(destination: str | Path) -> Evidenc
         return _verification("missing-manifest", [_check("manifest-present", EvidenceLifecycleOfflineCheckPlane.MANIFEST, False, False, True, "bundle manifest is missing or is not a regular file")])
     try:
         raw_manifest = manifest_path.read_bytes()
-        manifest = json.loads(raw_manifest.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads(raw_manifest.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         return _verification("invalid-manifest", [_check("manifest-readable", EvidenceLifecycleOfflineCheckPlane.MANIFEST, False, type(exc).__name__, "canonical UTF-8 JSON", "bundle manifest cannot be decoded")])
     if not isinstance(manifest, Mapping):
         return _verification("invalid-manifest", [_check("manifest-object", EvidenceLifecycleOfflineCheckPlane.MANIFEST, False, type(manifest).__name__, "object", "bundle manifest root must be an object")])
@@ -486,9 +485,9 @@ def verify_evidence_lifecycle_offline_bundle(destination: str | Path) -> Evidenc
             checks.append(_check(f"artifact:{artifact_id}:bytes", EvidenceLifecycleOfflineCheckPlane.ARTIFACT, hash_bytes(raw_bytes, prefix=EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_ARTIFACT_PREFIX) == expected_address and len(raw_bytes) == expected_bytes, {"bytes": len(raw_bytes), "address": hash_bytes(raw_bytes, prefix=EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_ARTIFACT_PREFIX)}, {"bytes": expected_bytes, "address": expected_address}, "artifact bytes and address match manifest"))
             checks.append(_check(f"artifact:{artifact_id}:lines", EvidenceLifecycleOfflineCheckPlane.ARTIFACT, raw_bytes.decode("utf-8").count("\n") == expected_lines, raw_bytes.decode("utf-8").count("\n"), expected_lines, "artifact line count matches manifest"))
             if str(raw.get("media_type")) == EVIDENCE_LIFECYCLE_OFFLINE_JSON_MEDIA_TYPE:
-                parsed = json.loads(raw_bytes.decode("utf-8"))
+                parsed = _strict_json_loads(raw_bytes.decode("utf-8"))
                 checks.append(_check(f"artifact:{artifact_id}:public", EvidenceLifecycleOfflineCheckPlane.PUBLIC_BOUNDARY, not _has_forbidden_key(parsed) and not contains_private_key(parsed), True, True, "JSON artifact remains public"))
-        except (OSError, UnicodeDecodeError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
+        except (OSError, UnicodeDecodeError, UnicodeError, ValueError) as exc:
             checks.append(_check(f"artifact:{artifact_id}:readable", EvidenceLifecycleOfflineCheckPlane.ARTIFACT, False, type(exc).__name__, "UTF-8 regular file", "artifact cannot be read or decoded"))
     checks.append(_check("artifact-identities", EvidenceLifecycleOfflineCheckPlane.CLOSURE, len(seen_ids) == len(artifacts_value), len(seen_ids), len(artifacts_value), "artifact identifiers are unique"))
     checks.append(_check("artifact-paths", EvidenceLifecycleOfflineCheckPlane.CLOSURE, len(seen_paths) == len(artifacts_value), len(seen_paths), len(artifacts_value), "artifact paths are unique"))

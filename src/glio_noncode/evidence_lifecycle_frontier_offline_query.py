@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash, require_non_empty
+from .serialization import _strict_json_loads, canonical_json, content_hash, require_non_empty
 from .evidence_lifecycle_frontier_offline_bundle import verify_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_contracts import (
     EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_DEFAULT_LIMIT,
@@ -38,8 +37,8 @@ def _safe_relative_path(value: str) -> bool:
 def _load_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(value)
     try:
-        manifest = json.loads((root / EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST).read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads((root / EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"cannot load evidence lifecycle offline manifest: {exc}") from exc
     if not isinstance(manifest, Mapping):
         raise ValidationError("evidence lifecycle offline manifest must be an object")
@@ -119,8 +118,8 @@ def _json_payload(bundle: EvidenceLifecycleOfflineBundle, artifact_id: str) -> A
     if artifact is None or artifact.payload is None:
         return None
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return None
 
 

@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections import Counter
 from collections.abc import Iterable, Mapping
 from typing import Any
@@ -17,7 +16,7 @@ from typing import Any
 from .evidence_lifecycle_frontier_offline_contracts import EvidenceLifecycleOfflineBundle
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 _DIRECT_IDENTITY_KEYS = frozenset(
     {
@@ -61,8 +60,8 @@ def payload(bundle: EvidenceLifecycleOfflineBundle, artifact_id: str) -> Any:
     if artifact is None or artifact.payload is None or artifact.media_type != "application/json":
         return {}
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return {}
 
 
