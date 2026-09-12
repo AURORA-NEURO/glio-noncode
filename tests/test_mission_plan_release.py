@@ -968,6 +968,26 @@ class MissionPlanReleaseTests(unittest.TestCase):
             self.assertIn("extra.json", unexpected.unexpected_files)
             extra.unlink()
 
+            manifest_bytes = (destination / "manifest.json").read_bytes()
+            (destination / "manifest.json").write_text(
+                '{"packet_id":"packet-one","packet_id":"shadow"}',
+                encoding="utf-8",
+            )
+            duplicate_manifest = verify_mission_plan_release_catalog_gate_packet(destination)
+            self.assertFalse(duplicate_manifest.accepted)
+            self.assertIn("manifest.json", duplicate_manifest.tampered_files)
+            (destination / "manifest.json").write_bytes(manifest_bytes)
+
+            summary_bytes = (destination / "catalog-gate-summary.json").read_bytes()
+            (destination / "catalog-gate-summary.json").write_text(
+                '{"content_address":1e1000000}',
+                encoding="utf-8",
+            )
+            non_finite_summary = verify_mission_plan_release_catalog_gate_packet(destination)
+            self.assertFalse(non_finite_summary.accepted)
+            self.assertIn("catalog-gate-summary.json", non_finite_summary.tampered_files)
+            (destination / "catalog-gate-summary.json").write_bytes(summary_bytes)
+
             with self.assertRaises(ValidationError):
                 write_mission_plan_release_catalog_gate_packet(packet, destination)
             self.assertEqual(write_mission_plan_release_catalog_gate_packet(packet, destination, allow_existing=True), destination)

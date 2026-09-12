@@ -51,6 +51,37 @@ def canonical_json(value: Any) -> str:
     return canonical_bytes(value).decode("utf-8")
 
 
+def _strict_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Build JSON objects without silently discarding duplicate fields."""
+
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError(f"duplicate JSON object field: {key}")
+        value[key] = item
+    return value
+
+
+def _reject_non_finite_json_number(value: str) -> Never:
+    raise ValueError(f"non-finite JSON number: {value}")
+
+
+def _strict_json_float(value: str) -> float:
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError("non-finite JSON number")
+    return result
+
+
+def _strict_json_loads(value: str | bytes | bytearray, **kwargs: Any) -> Any:
+    """Decode JSON while rejecting duplicate fields and non-finite numbers."""
+
+    kwargs.setdefault("object_pairs_hook", _strict_json_object)
+    kwargs.setdefault("parse_constant", _reject_non_finite_json_number)
+    kwargs.setdefault("parse_float", _strict_json_float)
+    return json.loads(value, **kwargs)
+
+
 def content_hash(value: Any, *, prefix: str = "sha256") -> str:
     """Return a stable content address for a JSON-compatible value."""
 

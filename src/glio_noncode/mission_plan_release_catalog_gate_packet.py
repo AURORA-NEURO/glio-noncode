@@ -44,7 +44,7 @@ from .mission_plan_release_catalog_report import (
     MissionPlanReleaseCatalogReport,
     build_mission_plan_release_catalog_report,
 )
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable
+from .serialization import canonical_json, content_hash, hash_bytes, jsonable, _strict_json_loads
 
 
 MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_VERSION = "mission-plan-release-catalog-gate-packet-v1"
@@ -473,7 +473,7 @@ def verify_mission_plan_release_catalog_gate_packet(destination: str | Path) -> 
     public_boundary_valid = True
     exact_bytes = not missing and not unexpected
     try:
-        manifest = json.loads((root / MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_MANIFEST_FILE).read_text(encoding="utf-8"))
+        manifest = _strict_json_loads((root / MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_MANIFEST_FILE).read_text(encoding="utf-8"))
         packet_id = _text(manifest.get("packet_id"), "packet.packet_id", maximum=120)
         public_boundary_valid = not bool(_private_paths(manifest))
         manifest_address_valid = manifest.get("manifest_address") == content_hash(
@@ -494,18 +494,18 @@ def verify_mission_plan_release_catalog_gate_packet(destination: str | Path) -> 
             else:
                 verified_count += 1
             if filename.endswith(".json"):
-                public_boundary_valid = public_boundary_valid and not bool(_private_paths(json.loads(payload.decode("utf-8"))))
-        catalog = MissionPlanReleaseCatalog.from_mapping(json.loads((root / "mission-plan-release-catalog.json").read_text(encoding="utf-8")))
-        gate = MissionPlanReleaseCatalogGate.from_mapping(json.loads((root / "catalog-gate.json").read_text(encoding="utf-8")))
-        report = MissionPlanReleaseCatalogReport.from_mapping(json.loads((root / "catalog-gate-report.json").read_text(encoding="utf-8")))
-        runtime = MissionPlanReleaseCatalogGateRuntime.from_mapping(json.loads((root / "catalog-gate-runtime.json").read_text(encoding="utf-8")))
+                public_boundary_valid = public_boundary_valid and not bool(_private_paths(_strict_json_loads(payload.decode("utf-8"))))
+        catalog = MissionPlanReleaseCatalog.from_mapping(_strict_json_loads((root / "mission-plan-release-catalog.json").read_text(encoding="utf-8")))
+        gate = MissionPlanReleaseCatalogGate.from_mapping(_strict_json_loads((root / "catalog-gate.json").read_text(encoding="utf-8")))
+        report = MissionPlanReleaseCatalogReport.from_mapping(_strict_json_loads((root / "catalog-gate-report.json").read_text(encoding="utf-8")))
+        runtime = MissionPlanReleaseCatalogGateRuntime.from_mapping(_strict_json_loads((root / "catalog-gate-runtime.json").read_text(encoding="utf-8")))
         catalog_address_valid = manifest.get("catalog_address") == catalog.content_address
         gate_address_valid = manifest.get("gate_address") == gate.content_address
         report_address_valid = manifest.get("report_address") == report.content_address
         runtime_address_valid = manifest.get("runtime_address") == runtime.content_address
-        audit_payload = json.loads((root / "catalog-gate-audit.json").read_text(encoding="utf-8"))
+        audit_payload = _strict_json_loads((root / "catalog-gate-audit.json").read_text(encoding="utf-8"))
         audit_address_valid = audit_payload.get("catalog_address") == catalog.content_address and audit_payload.get("accepted") is True
-        summary = json.loads((root / "catalog-gate-summary.json").read_text(encoding="utf-8"))
+        summary = _strict_json_loads((root / "catalog-gate-summary.json").read_text(encoding="utf-8"))
         summary_address_valid = summary.get("content_address") == content_hash(
             {key: value for key, value in summary.items() if key != "content_address"},
             prefix="mission-plan-release-catalog-gate-packet-summary",
@@ -564,12 +564,12 @@ def load_mission_plan_release_catalog_gate_packet(destination: str | Path) -> Mi
     if not verification.accepted:
         raise ValidationError("catalog gate packet verification failed: " + canonical_json(verification.to_dict()))
     root = Path(destination)
-    catalog = MissionPlanReleaseCatalog.from_mapping(json.loads((root / "mission-plan-release-catalog.json").read_text(encoding="utf-8")))
-    gate = MissionPlanReleaseCatalogGate.from_mapping(json.loads((root / "catalog-gate.json").read_text(encoding="utf-8")))
-    report = MissionPlanReleaseCatalogReport.from_mapping(json.loads((root / "catalog-gate-report.json").read_text(encoding="utf-8")))
-    runtime = MissionPlanReleaseCatalogGateRuntime.from_mapping(json.loads((root / "catalog-gate-runtime.json").read_text(encoding="utf-8")))
-    audit = MissionPlanReleaseCatalogAudit.from_mapping(json.loads((root / "catalog-gate-audit.json").read_text(encoding="utf-8")))
-    manifest = json.loads((root / MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_MANIFEST_FILE).read_text(encoding="utf-8"))
+    catalog = MissionPlanReleaseCatalog.from_mapping(_strict_json_loads((root / "mission-plan-release-catalog.json").read_text(encoding="utf-8")))
+    gate = MissionPlanReleaseCatalogGate.from_mapping(_strict_json_loads((root / "catalog-gate.json").read_text(encoding="utf-8")))
+    report = MissionPlanReleaseCatalogReport.from_mapping(_strict_json_loads((root / "catalog-gate-report.json").read_text(encoding="utf-8")))
+    runtime = MissionPlanReleaseCatalogGateRuntime.from_mapping(_strict_json_loads((root / "catalog-gate-runtime.json").read_text(encoding="utf-8")))
+    audit = MissionPlanReleaseCatalogAudit.from_mapping(_strict_json_loads((root / "catalog-gate-audit.json").read_text(encoding="utf-8")))
+    manifest = _strict_json_loads((root / MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_MANIFEST_FILE).read_text(encoding="utf-8"))
     body = {"catalog": catalog, "gate": gate, "report": report, "audit": audit, "runtime": runtime, "manifest": manifest, "verification": verification, "accepted": True}
     return MissionPlanReleaseCatalogGatePacketOffline(
         **body,
