@@ -373,8 +373,12 @@ def _test_reference_counts(test_root: Path | None, module_ids: Iterable[str]) ->
     known = set(counts)
     for text in test_payloads:
         references = set(_MODULE_REFERENCE.findall(text))
-        for module_id in references & known:
-            counts[module_id] += 1
+        for reference in references:
+            parts = reference.split(".")
+            for end in range(2, len(parts) + 1):
+                module_id = ".".join(parts[:end])
+                if module_id in known:
+                    counts[module_id] += 1
     return counts
 
 

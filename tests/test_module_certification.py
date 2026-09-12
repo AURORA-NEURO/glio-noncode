@@ -13,6 +13,9 @@ from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
 from glio_noncode.module_certification import (
+    _contains_module_reference,
+    _exported_modules,
+    _module_evidence,
     build_module_certification,
     module_certification_capabilities,
     module_certification_schema,
@@ -70,6 +73,7 @@ from glio_noncode.module_certification_tasks import (
     verify_module_certification_tasks,
 )
 from glio_noncode.module_inventory import build_module_inventory
+from glio_noncode.module_inventory_contracts import ModuleState
 
 
 class ModuleCertificationFixture(unittest.TestCase):
@@ -164,6 +168,61 @@ class ModuleCertificationFixture(unittest.TestCase):
 
 
 class ModuleCertificationConstructionTests(ModuleCertificationFixture):
+    def test_dotted_symbol_references_count_as_module_evidence(self) -> None:
+        row = type(
+            "InventoryRow",
+            (),
+            {
+                "public_symbol_count": 1,
+                "import_count": 0,
+                "local_dependency_count": 0,
+                "state": ModuleState.PARSED,
+                "test_reference_count": 0,
+                "relative_path": "alpha.py",
+                "physical_lines": 10,
+            },
+        )()
+        evidence = _module_evidence(
+            "glio_noncode.alpha",
+            row,
+            {"glio_noncode.alpha.public_alpha"},
+            {"glio_noncode.alpha.Alpha"},
+            set(),
+            {"glio_noncode.alpha.Alpha"},
+        )
+        self.assertTrue(
+            _contains_module_reference("glio_noncode.alpha", {"glio_noncode.alpha.Alpha"})
+        )
+        self.assertEqual(
+            evidence[CertificationCheckKind.TEST][0], CertificationCheckState.PASSED
+        )
+        self.assertEqual(
+            evidence[CertificationCheckKind.DOCUMENTATION][0], CertificationCheckState.PASSED
+        )
+        self.assertEqual(evidence[CertificationCheckKind.EXPORT][0], CertificationCheckState.PASSED)
+
+    def test_exported_modules_reads_lazy_manifest_and_stub_without_importing(self) -> None:
+        (self.source / "_public_surface.py").write_text(
+            "EXPORTS = {\n"
+            "    'Alpha': ('glio_noncode.alpha', 'Alpha'),\n"
+            "    'Beta': ('glio_noncode.beta', 'Beta'),\n"
+            "}\n"
+            "LAZY_MODULES = {'gamma': 'glio_noncode.gamma'}\n",
+            encoding="utf-8",
+        )
+        (self.source / "__init__.pyi").write_text(
+            "from .delta import Delta\nfrom glio_noncode.epsilon import Epsilon\n",
+            encoding="utf-8",
+        )
+        exported = _exported_modules(self.source)
+        self.assertTrue({
+            "glio_noncode.alpha",
+            "glio_noncode.beta",
+            "glio_noncode.gamma",
+            "glio_noncode.delta",
+            "glio_noncode.epsilon",
+        }.issubset(exported))
+
     def test_matrix_has_one_row_per_inventory_module(self) -> None:
         inventory = self.inventory()
         matrix = self.matrix()

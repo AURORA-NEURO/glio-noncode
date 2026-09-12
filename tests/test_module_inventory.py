@@ -127,6 +127,14 @@ class ModuleInventoryConstructionTests(ModuleInventoryFixture):
         broken = next(item for item in inventory.modules if item.module_id.endswith(".broken"))
         self.assertEqual(broken.state.value, "parse_error")
 
+    def test_fully_qualified_symbol_reference_counts_for_its_module(self) -> None:
+        (self.tests / "test_symbol.py").write_text(
+            "# glio_noncode.gamma.gamma is exercised by this contract\n", encoding="utf-8"
+        )
+        inventory = self.build()
+        gamma = next(item for item in inventory.modules if item.module_id.endswith(".gamma"))
+        self.assertEqual(gamma.test_reference_count, 1)
+
     def test_local_imports_keep_resolved_and_unresolved_forms(self) -> None:
         inventory = self.build()
         alpha_edges = [

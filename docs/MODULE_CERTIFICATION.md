@@ -11,8 +11,10 @@ and what work should happen next?
 The implementation is deliberately static. It does not import discovered
 modules, call discovered functions, inspect runtime globals, or require a
 private dataset. Source bytes are inspected through the existing AST inventory;
-test and Markdown evidence is tokenized once per file; package exposure is
-inspected from the package initializer AST.
+test and Markdown evidence is tokenized once per file, and source module
+docstrings are parsed as documentation evidence; package exposure is inspected
+from the package initializer, generated lazy public-surface manifest, and
+typing stub ASTs. No source module is imported while collecting evidence.
 
 ## Matrix model
 
@@ -53,10 +55,12 @@ Every module receives these checks in the same order:
    reference. Public modules without evidence fail this check; internal modules
    are N/A.
 5. `documentation` — Markdown evidence contains the module identifier or its
-   source filename. Public modules without evidence fail; internal modules are
-   N/A.
-6. `export` — the package initializer statically exposes the module, or the
-   module is an initializer. Public modules without evidence fail; internal
+   source filename, or the source module has a non-empty module-level
+   docstring. Public modules without evidence fail; internal modules are N/A.
+6. `export` — the package initializer, generated `_public_surface.py` manifest,
+   or `__init__.pyi` stub statically exposes the module, or the module is an
+   initializer. Fully-qualified public symbol references count as evidence for
+   their containing module. Public modules without evidence fail; internal
    modules are N/A.
 7. `boundary` — the module identifier contains no forbidden identity or
    attribution token.
@@ -252,11 +256,13 @@ into acceptance.
 
 The follow-on lineage projection explains the origin of each matrix signal.
 Every module receives a source row; explicit references found in Python tests
-and Markdown documentation become digest-addressed evidence rows; package
-initializer AST inspection produces export rows; and inventory dependencies
-become resolved or unresolved module edges. The graph retains relative paths,
-line counts, and content digests only. It does not embed source contents,
-absolute paths, or execution results.
+and Markdown documentation become digest-addressed evidence rows (including
+fully-qualified public symbols); non-empty source module docstrings become
+documentation evidence; package initializer, lazy manifest, and typing stub
+AST inspection produce export rows; and inventory dependencies become resolved
+or unresolved module edges. The graph retains relative paths, line counts, and
+content digests only. It does not embed source contents, absolute paths, or
+execution results.
 
 ```powershell
 glio-noncode module-certification-lineage --format markdown --output lineage.md

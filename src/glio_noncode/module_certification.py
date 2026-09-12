@@ -19,6 +19,7 @@ from .module_certification_contracts import (
     ModuleCertificationMatrix,
     ModuleCertificationRow,
 )
+from .module_inventory import _public_surface_literal_rows
 from .module_inventory_contracts import ModuleInventory, ModuleRole, ModuleState
 from .module_inventory_query import inventory_from_mapping
 from .serialization import canonical_json, content_hash, jsonable
@@ -30,6 +31,19 @@ _FORBIDDEN_WORDS = frozenset(
     {"agent", "assistant", "author", "email", "language", "model", "patient", "subject"}
 )
 _CHECK_ORDER = tuple(CertificationCheckKind)
+
+
+def _contains_module_reference(module_id: str, references: set[str]) -> bool:
+    """Return whether a reference names a module or one of its public symbols.
+
+    Documentation and test code commonly refer to ``glio_noncode.mod.Symbol``
+    rather than repeating the bare module path.  Treating the module prefix as
+    evidence preserves the package boundary while avoiding false negatives for
+    those fully-qualified symbol references.
+    """
+
+    prefix = f"{module_id}."
+    return any(reference == module_id or reference.startswith(prefix) for reference in references)
 
 
 def _inventory(value: ModuleInventory | dict[str, Any]) -> ModuleInventory:
@@ -69,30 +83,80 @@ def _text_tokens(root: Path, *, markdown: bool = False) -> tuple[set[str], set[s
     return module_tokens, file_tokens
 
 
-def _exported_modules(source_root: Path) -> set[str]:
-    """Statically inspect package imports, never importing the package."""
+def _source_docstring_modules(root: Path) -> set[str]:
+    """Return package module IDs with a non-empty module-level docstring."""
 
-    init_path = source_root / "__init__.py"
-    try:
-        tree = ast.parse(init_path.read_text(encoding="utf-8"), filename=str(init_path))
-    except (OSError, UnicodeDecodeError, SyntaxError):
-        return set()
+    documented: set[str] = set()
+    if not root.exists() or not root.is_dir():
+        return documented
+    for path in sorted(root.rglob("*.py"), key=lambda item: item.as_posix().casefold()):
+        if path.is_symlink() or not path.is_file():
+            continue
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            relative = path.resolve().relative_to(root.resolve()).with_suffix("")
+        except (OSError, UnicodeDecodeError, SyntaxError, ValueError):
+            continue
+        parts = relative.parts
+        if parts and parts[-1] == "__init__":
+            parts = parts[:-1]
+        module_id = ".".join((_PACKAGE, *parts)) if parts else _PACKAGE
+        if ast.get_docstring(tree, clean=False):
+            documented.add(module_id)
+    return documented
+
+
+def _exported_modules(source_root: Path) -> set[str]:
+    """Statically inspect every package public-surface declaration.
+
+    The runtime package is intentionally lazy: the initializer delegates to a
+    generated ``_public_surface.py`` manifest, while ``__init__.pyi`` carries
+    the static typing surface.  Parse all three files as data and never import
+    or execute package code.
+    """
+
     exported: set[str] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom):
-            if node.level and node.module:
-                base = _PACKAGE
-                if node.level > 1:
-                    base = _PACKAGE + "." * (node.level - 1)
-                exported.add(f"{base}.{node.module}")
-            elif node.level and not node.module:
+
+    def add_imports(tree: ast.AST) -> None:
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom):
+                if node.level and node.module:
+                    base = _PACKAGE
+                    if node.level > 1:
+                        base = _PACKAGE + "." * (node.level - 1)
+                    exported.add(f"{base}.{node.module}")
+                elif node.level and not node.module:
+                    for alias in node.names:
+                        if alias.name != "*":
+                            exported.add(f"{_PACKAGE}.{alias.name}")
+                elif node.module and (
+                    node.module == _PACKAGE or node.module.startswith(f"{_PACKAGE}.")
+                ):
+                    exported.add(node.module)
+            elif isinstance(node, ast.Import):
                 for alias in node.names:
-                    if alias.name != "*":
-                        exported.add(f"{_PACKAGE}.{alias.name}")
-        elif isinstance(node, ast.Import):
-            for alias in node.names:
-                if alias.name == _PACKAGE or alias.name.startswith(f"{_PACKAGE}."):
-                    exported.add(alias.name)
+                    if alias.name == _PACKAGE or alias.name.startswith(f"{_PACKAGE}."):
+                        exported.add(alias.name)
+
+    def add_manifest_exports(tree: ast.AST) -> None:
+        # Reuse the bounded literal walker already used by module inventory;
+        # it accepts only package-qualified string literals from EXPORTS and
+        # LAZY_MODULES, so arbitrary manifest expressions are never evaluated.
+        exported.update(row[0] for row in _public_surface_literal_rows(tree))
+
+    for filename, manifest in (
+        ("__init__.py", False),
+        ("_public_surface.py", True),
+        ("__init__.pyi", False),
+    ):
+        path = source_root / filename
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        except (OSError, UnicodeDecodeError, SyntaxError):
+            continue
+        add_imports(tree)
+        if manifest:
+            add_manifest_exports(tree)
     return exported
 
 
@@ -103,13 +167,18 @@ def _module_evidence(
     doc_modules: set[str],
     doc_files: set[str],
     exported: set[str],
+    source_docstring_modules: set[str] | None = None,
 ) -> dict[CertificationCheckKind, tuple[CertificationCheckState, Any, Any, str, tuple[str, ...]]]:
     public = inventory_row.public_symbol_count > 0
     dependency_required = inventory_row.import_count > 0
-    doc_reference = module_id in doc_modules or f"{module_id.rsplit('.', 1)[-1]}.py" in doc_files
-    exported_reference = module_id in exported or inventory_row.relative_path.endswith(
-        "__init__.py"
-    )
+    source_docstrings = source_docstring_modules or set()
+    module_doc_reference = _contains_module_reference(module_id, doc_modules)
+    source_docstring_reference = _contains_module_reference(module_id, source_docstrings)
+    source_file_reference = f"{module_id.rsplit('.', 1)[-1]}.py" in doc_files
+    doc_reference = module_doc_reference or source_docstring_reference or source_file_reference
+    exported_reference = _contains_module_reference(
+        module_id, exported
+    ) or inventory_row.relative_path.endswith("__init__.py")
     return {
         CertificationCheckKind.PARSE: (
             CertificationCheckState.PASSED
@@ -142,7 +211,8 @@ def _module_evidence(
         ),
         CertificationCheckKind.TEST: (
             CertificationCheckState.PASSED
-            if module_id in test_modules or inventory_row.test_reference_count > 0
+            if _contains_module_reference(module_id, test_modules)
+            or inventory_row.test_reference_count > 0
             else (
                 CertificationCheckState.FAILED if public else CertificationCheckState.NOT_APPLICABLE
             ),
@@ -159,12 +229,14 @@ def _module_evidence(
             ),
             doc_reference,
             True,
-            "documentation references the module ID or source file",
+            "documentation references the module ID, source file, or module docstring",
             (
                 "module_id"
-                if module_id in doc_modules
+                if module_doc_reference
                 else "source_file"
-                if doc_reference
+                if source_file_reference
+                else "module_docstring"
+                if source_docstring_reference
                 else "no_reference",
             ),
         ),
@@ -279,12 +351,19 @@ def build_module_certification(
     docs = Path(docs_root) if docs_root is not None else source.parent.parent / "docs"
     test_modules, _ = _text_tokens(tests)
     doc_modules, doc_files = _text_tokens(docs, markdown=True)
+    source_docstring_modules = _source_docstring_modules(source)
     exported = _exported_modules(source)
     rows: list[ModuleCertificationRow] = []
     gaps: list[ModuleCertificationGap] = []
     for module in inventory.modules:
         evidence = _module_evidence(
-            module.module_id, module, test_modules, doc_modules, doc_files, exported
+            module.module_id,
+            module,
+            test_modules,
+            doc_modules,
+            doc_files,
+            exported,
+            source_docstring_modules,
         )
         checks = tuple(_check(kind, *evidence[kind]) for kind in _CHECK_ORDER)
         passed = sum(item.state is CertificationCheckState.PASSED for item in checks)
@@ -463,7 +542,10 @@ def module_certification_schema() -> dict[str, Any]:
             "inventory_row",
             "test_reference_tokens",
             "documentation_tokens",
+            "source_module_docstrings",
             "package_import_ast",
+            "package_export_manifest_ast",
+            "package_stub_ast",
         ],
     }
 
