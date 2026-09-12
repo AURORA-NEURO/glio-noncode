@@ -81,6 +81,14 @@ class ModuleFabricBundleTests(unittest.TestCase):
             self.assertTrue(
                 any(item.check_id == "bytes:summary" and not item.passed for item in broken.checks)
             )
+            (Path(directory) / "summary.json").write_text(
+                '{"value":NaN}\n', encoding="utf-8"
+            )
+            non_finite = verify_module_fabric_bundle(directory)
+            self.assertFalse(non_finite.accepted)
+            self.assertTrue(
+                any(item.check_id == "bytes:summary" and not item.passed for item in non_finite.checks)
+            )
 
     def test_unexpected_files_and_symlinks_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

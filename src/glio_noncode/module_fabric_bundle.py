@@ -58,7 +58,14 @@ from .module_fabric_schema import default_module_fabric_schema, validate_module_
 from .module_fabric_source_registry import build_module_fabric_source_registry
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key, _public_projection
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
+from .serialization import (
+    _strict_json_loads,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+    jsonable,
+    require_non_empty,
+)
 
 MODULE_FABRIC_BUNDLE_BOUNDARY = "public_aggregate_module_fabric_bundle"
 MODULE_FABRIC_BUNDLE_JSON_MEDIA_TYPE = "application/json"
@@ -353,8 +360,8 @@ def build_module_fabric_bundle(
                 item.media_type != MODULE_FABRIC_BUNDLE_JSON_MEDIA_TYPE
                 or (
                     item.payload is not None
-                    and not _has_forbidden_key(json.loads(item.payload))
-                    and not contains_private_key(json.loads(item.payload))
+                    and not _has_forbidden_key(_strict_json_loads(item.payload))
+                    and not contains_private_key(_strict_json_loads(item.payload))
                 )
                 for item in artifacts
             ),
@@ -507,7 +514,7 @@ def verify_module_fabric_bundle(destination: str | Path) -> FabricBundleVerifica
         )
     try:
         raw_manifest = manifest_path.read_bytes()
-        manifest = json.loads(raw_manifest.decode("utf-8"))
+        manifest = _strict_json_loads(raw_manifest.decode("utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         return _verification(
             "invalid-manifest",
@@ -700,9 +707,9 @@ def verify_module_fabric_bundle(destination: str | Path) -> FabricBundleVerifica
             )
             if item.get("media_type") == MODULE_FABRIC_BUNDLE_JSON_MEDIA_TYPE:
                 try:
-                    parsed = json.loads(text)
+                    parsed = _strict_json_loads(text)
                     public = not _has_forbidden_key(parsed) and not contains_private_key(parsed)
-                except json.JSONDecodeError:
+                except (ValueError, json.JSONDecodeError):
                     public = False
                 checks.append(
                     _check(
