@@ -144,6 +144,8 @@
 
 126. Add exact execution receipts above deterministic recovery checkpoints. **Implemented:** applied/pending/rejected outcome receipts; conserved plan, current-state, index, and byte partitions; planned/in-progress/complete/blocked state replay; resume/assemble/block decisions; assembler and directory builders; independent 18-check execution audits; nine bounded execution-query resources with 12-check query audits; canonical JSON/CSV/Markdown projections; CLI/API/schema/capability/public inventory integration; Actions coverage; focused negative, HTTP, tamper, and reload tests; and downloaded-ZIP evidence for in-progress, complete, and blocked execution branches. See [HISTORY_DIFF_RUNTIME_REGISTRY_HISTORY_DIFF_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_LEDGER_RUNTIME_REGISTRY_HISTORY_DIFF_ARCHIVE_TRANSFER_RECOVERY_EXECUTION.md](HISTORY_DIFF_RUNTIME_REGISTRY_HISTORY_DIFF_ARCHIVE_TRANSFER_RECOVERY_EXECUTION_LEDGER_RUNTIME_REGISTRY_HISTORY_DIFF_ARCHIVE_TRANSFER_RECOVERY_EXECUTION.md).
 
+127. Complete the typed intake-pipeline service boundary. **Implemented:** bounded and canonical request validation; strict unknown-field and numeric handling; replay-validated stage/report partitions; shared adapter ceilings; local HTTP POST execution with accepted/review/blocked status semantics; schema and capability discovery routes; path-free reports; and focused CLI, HTTP, and regression coverage. See [INTAKE_EVIDENCE_GATE.md](INTAKE_EVIDENCE_GATE.md).
+
 Every wave should preserve the same contracts, add fixtures and failure cases, and distinguish implemented behavior from externally evaluated science.
 
 ## Change acceptance checklist
