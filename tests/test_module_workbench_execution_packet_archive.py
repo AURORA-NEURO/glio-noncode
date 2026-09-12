@@ -294,6 +294,36 @@ class ModuleWorkbenchExecutionPacketArchiveTests(unittest.TestCase):
             )
         )
 
+    def test_ambiguous_json_manifest_and_member_are_blocked(self) -> None:
+        archive = self.archive()
+        with zipfile.ZipFile(io.BytesIO(archive.archive_bytes), mode="r") as source:
+            rebuilt = io.BytesIO()
+            with zipfile.ZipFile(rebuilt, mode="w", compression=zipfile.ZIP_STORED) as target:
+                for info in source.infolist():
+                    payload = source.read(info)
+                    if info.filename == MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_MANIFEST:
+                        payload = b'{"packet_id":"one","packet_id":"two"}'
+                    target.writestr(info, payload)
+        receipt = verify_module_workbench_execution_packet_archive(rebuilt.getvalue())
+        self.assertFalse(receipt.accepted)
+        self.assertTrue(
+            any(check.check_id == "manifest-present" and not check.passed for check in receipt.checks)
+        )
+
+        with zipfile.ZipFile(io.BytesIO(archive.archive_bytes), mode="r") as source:
+            rebuilt = io.BytesIO()
+            with zipfile.ZipFile(rebuilt, mode="w", compression=zipfile.ZIP_STORED) as target:
+                for info in source.infolist():
+                    payload = source.read(info)
+                    if info.filename == "ledger.json":
+                        payload = b'{"ledger_address":"one","ledger_address":"two"}'
+                    target.writestr(info, payload)
+        receipt = verify_module_workbench_execution_packet_archive(rebuilt.getvalue())
+        self.assertFalse(receipt.accepted)
+        self.assertTrue(
+            any(check.check_id == "public-boundary" and not check.passed for check in receipt.checks)
+        )
+
     def test_traversal_and_duplicate_members_are_blocked(self) -> None:
         traversal = io.BytesIO()
         with zipfile.ZipFile(traversal, mode="w", compression=zipfile.ZIP_STORED) as handle:

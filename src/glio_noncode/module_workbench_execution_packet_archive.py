@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import stat
@@ -52,7 +51,7 @@ from .module_workbench_execution_packet_contracts import (
     ModuleWorkbenchExecutionPacketState,
 )
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes
 
 _UTF8 = "utf-8"
 
@@ -335,8 +334,8 @@ def _manifest_payload(members: Mapping[str, bytes]) -> Mapping[str, Any] | None:
     if payload is None:
         return None
     try:
-        parsed = json.loads(payload.decode(_UTF8))
-    except (UnicodeDecodeError, json.JSONDecodeError):
+        parsed = _strict_json_loads(payload.decode(_UTF8))
+    except (UnicodeDecodeError, ValueError):
         return None
     return parsed if isinstance(parsed, Mapping) else None
 
@@ -569,9 +568,9 @@ def verify_module_workbench_execution_packet_archive(
             if relative_path.endswith(".json"):
                 try:
                     public_ok = public_ok and not _has_forbidden_key(
-                        json.loads(payload.decode(_UTF8))
+                        _strict_json_loads(payload.decode(_UTF8))
                     )
-                except (UnicodeDecodeError, json.JSONDecodeError):
+                except (UnicodeDecodeError, ValueError):
                     public_ok = False
     checks.append(
         _archive_check(
