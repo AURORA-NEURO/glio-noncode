@@ -84,6 +84,16 @@ class ProgramRuntimeBundleTests(unittest.TestCase):
             self.assertFalse(verification.accepted)
             self.assertTrue(any(item.check_id == "manifest-self-address" for item in verification.checks if not item.passed))
 
+            path.write_text(
+                '{"release_id":"one","release_id":"shadow"}\n',
+                encoding="utf-8",
+            )
+            duplicate = verify_program_release(directory, release=self.release)
+            self.assertFalse(duplicate.accepted)
+            self.assertTrue(
+                any(item.check_id == "manifest-address" for item in duplicate.checks if not item.passed)
+            )
+
     def test_manifest_and_descriptor_are_json_reopenable(self) -> None:
         with tempfile.TemporaryDirectory(prefix="glio-program-release-") as directory:
             write_program_release(directory, self.runtime, release=self.release)

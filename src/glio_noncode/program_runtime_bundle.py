@@ -36,7 +36,7 @@ from .program_runtime_replay import (
     replay_architecture_program,
     run_program_runtime_failure_injections,
 )
-from .serialization import hash_bytes
+from .serialization import _strict_json_loads, hash_bytes
 
 PROGRAM_RELEASE_ARTIFACT_COUNT = 11
 PROGRAM_RELEASE_CHECK_COUNT = 18
@@ -138,8 +138,8 @@ def _json_payloads_are_public(payloads: dict[str, str]) -> bool:
         if not filename.endswith(".json"):
             continue
         try:
-            value = json.loads(text)
-        except json.JSONDecodeError:
+            value = _strict_json_loads(text)
+        except (ValueError, json.JSONDecodeError):
             return False
         if contains_private_key(value):
             return False
@@ -426,7 +426,7 @@ def load_program_release_manifest(output_dir: str | Path) -> ProgramReleaseManif
     """Load only the portable manifest from a release directory."""
 
     root = Path(output_dir)
-    value = json.loads((root / PROGRAM_RELEASE_MANIFEST_FILENAME).read_text(encoding="utf-8"))
+    value = _strict_json_loads((root / PROGRAM_RELEASE_MANIFEST_FILENAME).read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise ValueError("program release manifest must be an object")
     return ProgramReleaseManifest.from_mapping(value)
@@ -447,7 +447,7 @@ def _artifact_from_mapping(value: dict[str, Any]) -> ProgramReleaseArtifact:
 
 
 def _loaded_inventory(root: Path) -> tuple[ProgramReleaseManifest, tuple[ProgramReleaseArtifact, ...]]:
-    descriptor = json.loads((root / PROGRAM_RELEASE_DESCRIPTOR_FILENAME).read_text(encoding="utf-8"))
+    descriptor = _strict_json_loads((root / PROGRAM_RELEASE_DESCRIPTOR_FILENAME).read_text(encoding="utf-8"))
     if not isinstance(descriptor, dict) or not isinstance(descriptor.get("manifest"), dict):
         raise ValueError("program release descriptor is malformed")
     manifest = ProgramReleaseManifest.from_mapping(descriptor["manifest"])
@@ -505,7 +505,10 @@ def verify_program_release(
         )
         manifest_path = root / PROGRAM_RELEASE_MANIFEST_FILENAME
         if manifest_path.exists():
-            loaded = json.loads(manifest_path.read_text(encoding="utf-8"))
+            try:
+                loaded = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, ValueError):
+                loaded = None
             try:
                 loaded_manifest = (
                     ProgramReleaseManifest.from_mapping(loaded)
@@ -596,7 +599,7 @@ def verify_program_release(
             )
             if artifact.filename.endswith(".json"):
                 try:
-                    value = json.loads(text)
+                    value = _strict_json_loads(text)
                     public = not contains_private_key(value)
                 except (UnicodeDecodeError, json.JSONDecodeError):
                     public = False
