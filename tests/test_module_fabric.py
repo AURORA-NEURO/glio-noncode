@@ -6,6 +6,7 @@ import json
 import unittest
 from dataclasses import replace
 from pathlib import Path
+from unittest.mock import patch
 
 from glio_noncode.module_fabric_catalog import (
     default_module_fabric_catalog,
@@ -65,6 +66,7 @@ from glio_noncode.module_fabric_source_registry import (
     build_module_fabric_source_registry,
     source_registry_for,
 )
+from glio_noncode.errors import ValidationError
 from glio_noncode.module_fabric_support import (
     all_resolved,
     contains_private_key,
@@ -108,6 +110,16 @@ class ModuleFabricTests(unittest.TestCase):
         self.assertEqual(parse_reference("glio_noncode.module_fabric_operations.evaluate_module_fabric_record").symbol_name, "evaluate_module_fabric_record")
         self.assertIsNone(resolve_reference("tests.test_module_fabric").parsed.symbol_name)
         self.assertEqual(resolve_reference("glio_noncode.module_fabric_operations.evaluate_module_fabric_record").state.value, "resolved")
+
+    def test_reference_inputs_are_bounded_and_import_failures_become_receipts(self) -> None:
+        with self.assertRaisesRegex(ValidationError, "reference"):
+            parse_reference(None)  # type: ignore[arg-type]
+        with self.assertRaisesRegex(ValidationError, "reference"):
+            parse_reference("a" * 1025)
+        with patch("glio_noncode.module_fabric_support.importlib.import_module", side_effect=RuntimeError("broken import")):
+            resolution = resolve_reference("glio_noncode.module_fabric_operations.evaluate_module_fabric_record")
+        self.assertEqual(resolution.state.value, "failed")
+        self.assertIn("RuntimeError", resolution.detail)
 
     def test_all_declared_references_resolve(self) -> None:
         receipts = []

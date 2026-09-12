@@ -25,6 +25,7 @@ from .serialization import content_hash, jsonable, require_non_empty
 
 _CAPABILITY_RE = re.compile(r"^GNC-(D\d{2})-C(\d{2})$")
 _REFERENCE_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$")
+_MAX_REFERENCE_LENGTH = 1024
 _PRIVATE_KEYS = frozenset(
     {
         "patient_id",
@@ -81,7 +82,9 @@ class ReferenceResolution:
 def parse_reference(reference: str) -> ParsedReference:
     """Split a module or module-symbol reference at its longest valid boundary."""
 
-    value = require_non_empty(str(reference), "reference")
+    value = require_non_empty(reference, "reference")
+    if len(value) > _MAX_REFERENCE_LENGTH:
+        raise ValidationError("reference exceeds its length bound")
     if not _REFERENCE_RE.fullmatch(value):
         raise ValidationError(f"invalid dotted reference: {value!r}")
     parts = value.split(".")
@@ -93,14 +96,16 @@ def parse_reference(reference: str) -> ParsedReference:
 def resolve_reference(reference: str) -> ReferenceResolution:
     """Resolve a module or module attribute without executing arbitrary code."""
 
-    value = require_non_empty(str(reference), "reference")
+    value = require_non_empty(reference, "reference")
+    if len(value) > _MAX_REFERENCE_LENGTH:
+        raise ValidationError("reference exceeds its length bound")
     if not _REFERENCE_RE.fullmatch(value):
         raise ValidationError(f"invalid dotted reference: {value!r}")
     try:
         module = importlib.import_module(value)
         parsed = ParsedReference(value, value, None)
         return ReferenceResolution(parsed, FabricReferenceState.RESOLVED, f"imported module {value}", module, module)
-    except (ImportError, ModuleNotFoundError, SyntaxError, TypeError, ValueError):
+    except Exception:  # noqa: BLE001 - import-time failures become failed receipts
         pass
     parsed = parse_reference(value)
     module: ModuleType | None = None
@@ -122,7 +127,7 @@ def resolve_reference(reference: str) -> ReferenceResolution:
         symbol = getattr(module, symbol_name)
         detail = f"resolved {symbol_name} from {module_name}"
         return ReferenceResolution(parsed, FabricReferenceState.RESOLVED, detail, module, symbol)
-    except (ImportError, ModuleNotFoundError, AttributeError, SyntaxError, TypeError, ValueError) as exc:
+    except Exception as exc:  # noqa: BLE001 - hostile import hooks fail closed
         return ReferenceResolution(
             parsed,
             FabricReferenceState.FAILED,
