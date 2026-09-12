@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -55,7 +54,7 @@ from .module_workbench_execution_packet_archive_store_replication_runtime import
 from .module_workbench_execution_packet_archive_store_replication_runtime_contracts import (
     ModuleWorkbenchExecutionPacketArchiveStoreReplicationRuntime,
 )
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_VERSION = (
     "module-workbench-execution-packet-archive-store-replication-packet-v1"
@@ -1170,8 +1169,8 @@ def _read_packet(
         raise ValidationError("replication packet manifest is missing or unsafe")
     raw = manifest_path.read_bytes()
     try:
-        mapping = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        mapping = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("replication packet manifest is not valid UTF-8 JSON") from exc
     if not isinstance(mapping, Mapping) or canonical_bytes(mapping) != raw:
         raise ValidationError("replication packet manifest is not canonical")

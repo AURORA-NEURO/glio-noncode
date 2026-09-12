@@ -233,6 +233,19 @@ class ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketTests(unittest.
             with self.assertRaises(ValidationError):
                 load_module_workbench_execution_packet_archive_store_replication_packet(destination)
 
+    def test_persisted_packet_rejects_ambiguous_manifest(self) -> None:
+        packet, payloads, _ = self.typed_packet(with_runtime=False)
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "packet"
+            write_module_workbench_execution_packet_archive_store_replication_packet(
+                packet, payloads, destination
+            )
+            (destination / "packet.json").write_text(
+                '{"packet_id":"one","packet_id":"two"}', encoding="utf-8"
+            )
+            with self.assertRaises(ValidationError):
+                load_module_workbench_execution_packet_archive_store_replication_packet(destination)
+
     def test_atomic_writer_requires_explicit_existing_override(self) -> None:
         packet, payloads, _ = self.typed_packet(with_runtime=False)
         with tempfile.TemporaryDirectory() as temporary:
