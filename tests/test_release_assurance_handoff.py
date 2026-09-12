@@ -140,6 +140,20 @@ class ReleaseAssuranceHandoffTests(unittest.TestCase):
             self.assertFalse(drift.accepted)
             self.assertIn("manifest.artifact_count", drift.manifest_drift)
 
+    def test_handoff_rejects_ambiguous_manifest_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            write_release_assurance_handoff(self.packet, directory)
+            manifest_path = Path(directory) / "manifest.json"
+            manifest = manifest_path.read_text(encoding="utf-8")
+            manifest_path.write_text(
+                manifest.rstrip()[:-1] + ',"bundle_id":"shadow"}\n', encoding="utf-8"
+            )
+            verification = verify_release_assurance_handoff(directory)
+            self.assertFalse(verification.accepted)
+            inspection = inspect_release_assurance_handoff(directory)
+            self.assertFalse(inspection.accepted)
+            self.assertEqual(inspection.state.value, "missing")
+
     def test_manifest_diff_detects_changed_run_without_source_rebuild(self) -> None:
         other_runtime = run_release_assurance(
             self.service,

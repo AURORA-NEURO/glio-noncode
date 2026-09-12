@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from .errors import ValidationError
@@ -25,7 +24,7 @@ from .release_assurance_support import (
     line_count,
     safe_relative_path,
 )
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 def _artifact_values(runtime: ReleaseAssuranceRuntimeReport):
@@ -141,8 +140,8 @@ def verify_release_assurance_export(
         missing.append("manifest.json")
     else:
         try:
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError):
+            manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, ValueError):
             tampered.append("manifest.json")
     expected_paths: list[str] = []
     listed = manifest.get("artifacts", ()) if isinstance(manifest, dict) else ()
@@ -172,8 +171,8 @@ def verify_release_assurance_export(
             tampered.append(path)
         try:
             if item.get("media_type") == "application/json":
-                boundary.extend(forbidden_keys(json.loads(payload.decode("utf-8"))))
-        except (UnicodeError, json.JSONDecodeError):
+                boundary.extend(forbidden_keys(_strict_json_loads(payload.decode("utf-8"))))
+        except (UnicodeError, ValueError):
             tampered.append(path)
     actual_paths = sorted(
         path.relative_to(root).as_posix()

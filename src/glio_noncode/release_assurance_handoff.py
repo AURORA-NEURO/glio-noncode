@@ -9,7 +9,6 @@ case record or a private source payload.
 
 from __future__ import annotations
 
-import json
 import os
 import tempfile
 from collections.abc import Iterable, Mapping
@@ -54,7 +53,7 @@ from .release_assurance_support import (
 )
 from .release_assurance_summary import release_assurance_status
 from .release_assurance_thresholds import evaluate_release_assurance_thresholds
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 _TEXT_PRIVATE_TOKENS = (
     "agent",
@@ -310,8 +309,8 @@ def _read_manifest(directory: str | Path) -> tuple[Path, dict[str, Any], tuple[s
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -463,8 +462,8 @@ def verify_release_assurance_handoff(
         media_type = str(item.get("media_type", ""))
         if media_type == "application/json":
             try:
-                boundary.extend(forbidden_keys(json.loads(payload.decode("utf-8"))))
-            except (UnicodeError, json.JSONDecodeError):
+                boundary.extend(forbidden_keys(_strict_json_loads(payload.decode("utf-8"))))
+            except (UnicodeError, ValueError):
                 tampered.append(path)
         elif media_type in {"text/csv", "text/markdown"}:
             boundary.extend(f"{path}:{item}" for item in _text_boundary(payload))
