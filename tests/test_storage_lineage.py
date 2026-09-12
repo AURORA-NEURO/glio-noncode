@@ -541,6 +541,27 @@ class StorageLineageTests(unittest.TestCase):
             self.assertTrue(result2.boundary_violations)
             self.assertTrue(any("assistant" in value for value in result2.boundary_violations))
 
+    def test_packet_rejects_ambiguous_or_nonfinite_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            graph = build_storage_lineage(CaseRuntime(directory))
+            packet = build_storage_lineage_packet(graph)
+
+            duplicate_manifest = Path(directory) / "duplicate-manifest"
+            write_storage_lineage_packet(packet, duplicate_manifest)
+            (duplicate_manifest / "manifest.json").write_text(
+                '{"packet_id":"original","packet_id":"shadow"}', encoding="utf-8"
+            )
+            result = verify_storage_lineage_packet(duplicate_manifest)
+            self.assertFalse(result.accepted)
+            self.assertEqual(result.missing_paths, ("manifest.json",))
+
+            nonfinite_graph = Path(directory) / "nonfinite-graph"
+            write_storage_lineage_packet(packet, nonfinite_graph)
+            (nonfinite_graph / "lineage" / "graph.json").write_bytes(b'{"value":1e1000000}')
+            result = verify_storage_lineage_packet(nonfinite_graph)
+            self.assertFalse(result.accepted)
+            self.assertIn("lineage/graph.json", result.tampered_paths)
+
     def test_packet_capabilities_and_schemas_are_closed(self) -> None:
         graph_schema = storage_lineage_schema()
         graph_caps = storage_lineage_capabilities()

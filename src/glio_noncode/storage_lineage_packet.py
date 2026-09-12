@@ -25,7 +25,7 @@ from .release_assurance_support import (
     line_count,
     safe_relative_path,
 )
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 from .storage_lineage import (
     build_storage_lineage,
     storage_lineage_edges_csv,
@@ -267,8 +267,8 @@ def _read_manifest(directory: str | Path) -> tuple[Path, dict[str, Any], tuple[s
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError, json.JSONDecodeError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -407,7 +407,7 @@ def verify_storage_lineage_packet(directory: str | Path) -> StorageLineagePacket
             tampered.append(path)
         if item.get("media_type") == "application/json":
             try:
-                decoded = json.loads(payload.decode("utf-8"))
+                decoded = _strict_json_loads(payload.decode("utf-8"))
                 boundary.extend(f"{path}:{value}" for value in forbidden_keys(decoded))
                 if artifact_id == "graph-json" and isinstance(decoded, Mapping):
                     graph_payload = decoded
@@ -415,7 +415,7 @@ def verify_storage_lineage_packet(directory: str | Path) -> StorageLineagePacket
                     observation_payload = decoded
                 if artifact_id == "review-queue-json" and isinstance(decoded, Mapping):
                     review_payload = decoded
-            except (UnicodeError, json.JSONDecodeError):
+            except (UnicodeError, ValueError, json.JSONDecodeError):
                 tampered.append(path)
         else:
             boundary.extend(f"{path}:{value}" for value in _text_boundary(payload))
@@ -493,10 +493,10 @@ def load_storage_lineage_packet(directory: str | Path) -> StorageLineagePacketOf
     if not verification.accepted:
         raise ValidationError("storage lineage packet is not accepted")
     try:
-        graph_payload = json.loads((root / "lineage" / "graph.json").read_text(encoding="utf-8"))
-        observation_payload = json.loads((root / "lineage" / "observability.json").read_text(encoding="utf-8"))
-        review_payload = json.loads((root / "lineage" / "review-queue.json").read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        graph_payload = _strict_json_loads((root / "lineage" / "graph.json").read_text(encoding="utf-8"))
+        observation_payload = _strict_json_loads((root / "lineage" / "observability.json").read_text(encoding="utf-8"))
+        review_payload = _strict_json_loads((root / "lineage" / "review-queue.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
         raise ValidationError("storage lineage packet JSON payload is not valid") from exc
     graph = StorageLineageGraph.from_mapping(graph_payload)
     observation = StorageLineageObservability.from_mapping(observation_payload)
