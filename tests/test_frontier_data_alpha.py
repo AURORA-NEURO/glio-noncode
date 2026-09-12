@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import unittest
+from itertools import repeat
+from unittest.mock import patch
 
 from glio_noncode.frontier_data_alpha import (
     AnnotationDriftDetector,
@@ -21,6 +23,7 @@ from glio_noncode.frontier_data_alpha import (
     StructuralVariantEvidenceExporter,
     TandemRepeatInterpreter,
 )
+from glio_noncode.errors import ValidationError
 
 CONTEXT = "GRCh38|glioma|adult|stem_like|core|untreated"
 
@@ -97,6 +100,37 @@ class FrontierDataAlphaTests(unittest.TestCase):
         )
         self.assertEqual(bundle.record_count, 1)
         self.assertTrue(bundle.content_address.startswith("sha256:"))
+
+    def test_intake_adapters_reject_ambiguous_types_and_unbounded_iterators(self) -> None:
+        with self.assertRaisesRegex(ValidationError, "permitted_uses"):
+            ConsentPolicyAttacher().attach(
+                (),
+                context_key=CONTEXT,
+                policy_id="policy",
+                policy_version="1",
+                purpose="research",
+                permitted_uses=(None,),  # type: ignore[arg-type]
+                source_id="source",
+            )
+        with self.assertRaisesRegex(ValidationError, "allowed_bases"):
+            InputAnomalyQuarantine().inspect(
+                (), context_key=CONTEXT, source_id="source", allowed_bases="AC GT"
+            )
+        with self.assertRaisesRegex(ValidationError, "required_fields"):
+            DataCompletenessScorer().score(
+                (), context_key=CONTEXT, required_fields=(None,)  # type: ignore[arg-type]
+            )
+        with patch("glio_noncode.frontier_data_alpha._MAX_INTAKE_RECORDS", 2):
+            with self.assertRaisesRegex(ValidationError, "exceeds its bound"):
+                ConsentPolicyAttacher().attach(
+                    repeat({"record_id": "r", "consent_status": "granted"}),
+                    context_key=CONTEXT,
+                    policy_id="policy",
+                    policy_version="1",
+                    purpose="research",
+                    permitted_uses=("research",),
+                    source_id="source",
+                )
 
     def test_structural_repeat_haplotype_and_breakpoint_receipts(self) -> None:
         repeats = TandemRepeatInterpreter().interpret(

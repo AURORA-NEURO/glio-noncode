@@ -19,6 +19,18 @@ from .errors import ValidationError
 from .serialization import content_hash, jsonable, require_non_empty
 
 
+_MAX_INTAKE_RECORDS = 100_000
+_MAX_POLICY_USES = 128
+_MAX_ALLOWED_BASES = 64
+
+
+def _bounded_records(records: Iterable[Mapping[str, Any]], *, label: str) -> Iterable[Mapping[str, Any]]:
+    for index, record in enumerate(records, start=1):
+        if index > _MAX_INTAKE_RECORDS:
+            raise ValidationError(f"{label} exceeds its bound")
+        yield record
+
+
 class FrontierState(StrEnum):
     """Shared state vocabulary for bounded frontier outputs."""
 
@@ -159,12 +171,20 @@ class ConsentPolicyAttacher:
         policy_version = require_non_empty(policy_version, "policy_version")
         purpose = require_non_empty(purpose, "purpose")
         source_id = require_non_empty(source_id, "source_id")
-        uses = tuple(require_non_empty(str(item), "permitted_use") for item in permitted_uses)
+        if isinstance(permitted_uses, (str, bytes)) or not isinstance(permitted_uses, Sequence):
+            raise ValidationError("permitted_uses must be an array")
+        if len(permitted_uses) > _MAX_POLICY_USES:
+            raise ValidationError("permitted_uses exceeds its bound")
+        if any(not isinstance(item, str) for item in permitted_uses):
+            raise ValidationError("permitted_uses must contain strings")
+        uses = tuple(require_non_empty(item, "permitted_use") for item in permitted_uses)
         if not uses:
             raise ValidationError("permitted_uses must not be empty")
+        if len(set(uses)) != len(uses):
+            raise ValidationError("permitted_uses must be unique")
         attachments: list[ConsentAttachment] = []
         issues: list[FrontierIssue] = []
-        for index, raw in enumerate(records, start=1):
+        for index, raw in enumerate(_bounded_records(records, label="consent records"), start=1):
             row = _mapping(raw, label=f"record {index}")
             record_id = _text(row.get("record_id", row.get("id")), field="record_id")
             local: list[FrontierIssue] = []
@@ -270,13 +290,15 @@ class InputAnomalyQuarantine:
     ) -> AnomalyQuarantineReport:
         context_key = require_non_empty(context_key, "context_key")
         source_id = require_non_empty(source_id, "source_id")
+        if not isinstance(allowed_bases, str) or not allowed_bases or allowed_bases != allowed_bases.strip() or any(character.isspace() for character in allowed_bases) or len(allowed_bases) > _MAX_ALLOWED_BASES:
+            raise ValidationError("allowed_bases must be bounded non-whitespace text")
         allowed = set(allowed_bases.upper())
         if not allowed:
             raise ValidationError("allowed_bases must not be empty")
         observations: list[AnomalyObservation] = []
         issues: list[FrontierIssue] = []
         seen: set[str] = set()
-        for index, raw in enumerate(records, start=1):
+        for index, raw in enumerate(_bounded_records(records, label="anomaly records"), start=1):
             row = _mapping(raw, label=f"record {index}")
             record_id = _text(row.get("record_id", row.get("id")), field="record_id")
             if not record_id:
@@ -380,9 +402,21 @@ class DataCompletenessScorer:
         source_id: str = "completeness",
     ) -> CompletenessReport:
         context_key = require_non_empty(context_key, "context_key")
-        fields = tuple(require_non_empty(str(field), "required_field") for field in required_fields)
+        if isinstance(required_fields, (str, bytes)) or not isinstance(required_fields, Sequence):
+            raise ValidationError("required_fields must be an array")
+        if len(required_fields) > _MAX_ALLOWED_BASES:
+            raise ValidationError("required_fields exceeds its bound")
+        if any(not isinstance(field, str) for field in required_fields):
+            raise ValidationError("required_fields must contain strings")
+        fields = tuple(require_non_empty(field, "required_field") for field in required_fields)
         if not fields:
             raise ValidationError("required_fields must not be empty")
+        if len(set(fields)) != len(fields):
+            raise ValidationError("required_fields must be unique")
+        if weights is not None and set(weights) != set(fields):
+            raise ValidationError("weights must declare exactly the required fields")
+        if isinstance(minimum_score, bool):
+            raise ValidationError("minimum_score must be numeric")
         minimum_score = _bounded(minimum_score, field="minimum_score")
         weight_map = {
             field: _float((weights or {}).get(field, 1.0), field=field) for field in fields
@@ -391,7 +425,7 @@ class DataCompletenessScorer:
             raise ValidationError("field weights must be positive")
         total_weight = sum(weight_map.values())
         scores: list[CompletenessScore] = []
-        for index, raw in enumerate(records, start=1):
+        for index, raw in enumerate(_bounded_records(records, label="completeness records"), start=1):
             row = _mapping(raw, label=f"record {index}")
             record_id = (
                 _text(row.get("record_id", row.get("id")), field="record_id") or f"row:{index}"
