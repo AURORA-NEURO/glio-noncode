@@ -46,6 +46,25 @@ _MAX_PIPELINE_RECORDS = 100_000
 _MAX_PIPELINE_SOURCES = 256
 _MAX_PIPELINE_FIELDS = 512
 _MAX_PIPELINE_USES = 128
+_REQUEST_FIELDS = frozenset(
+    {
+        "request_id",
+        "bundle_id",
+        "context_key",
+        "policy_id",
+        "policy_version",
+        "purpose",
+        "permitted_uses",
+        "records",
+        "policy_source_id",
+        "source_ids",
+        "required_fields",
+        "weights",
+        "minimum_score",
+        "allowed_bases",
+        "require_accepted",
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,6 +166,11 @@ class IntakePipelineRequest:
 
         if not isinstance(raw, Mapping):
             raise ValidationError("intake pipeline request must be an object")
+        unknown = set(raw) - _REQUEST_FIELDS
+        if unknown:
+            raise ValidationError(
+                f"intake pipeline request contains unknown fields: {sorted(unknown)}"
+            )
         records_raw = raw.get("records", ())
         if not isinstance(records_raw, Sequence) or isinstance(records_raw, (str, bytes)):
             raise ValidationError("intake pipeline records must be an array")

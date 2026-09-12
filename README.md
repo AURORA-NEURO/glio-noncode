@@ -444,6 +444,11 @@ the streaming receipt. The matching raw-body API is `POST /v1/intake/stream`;
 see [docs/STREAMING_VARIANT_IMPORT.md](docs/STREAMING_VARIANT_IMPORT.md) for
 the full CLI, API, and limitation contract.
 
+The typed four-stage batch runtime is also available at `POST /v1/intake/pipeline`.
+It uses the same strict request contract as `run-intake-pipeline`, returns a
+path-free report, and preserves `accepted`, `review`, and `blocked` outcomes
+instead of collapsing partial exports into success.
+
 The product denominator and evidence-backed implementation ledger are documented
 in [docs/CAPABILITIES.md](docs/CAPABILITIES.md). Regulatory tracks can be
 parsed with `parse-track`, and supported small variants can be normalized with

@@ -279,6 +279,13 @@ python -m glio_noncode run-intake-pipeline examples/intake-pipeline-accepted.jso
 python -m glio_noncode run-intake-pipeline examples/intake-pipeline-batch.json --output intake-pipeline-review.json
 ```
 
+The same request contract is available as a strict local HTTP surface at
+`POST /v1/intake/pipeline`. It accepts the JSON request body, returns the full
+path-free report for an accepted request, and uses HTTP 422 for a valid request
+whose aggregate state is `review` or `blocked`. Malformed JSON, unknown fields,
+and invalid collection or numeric types return HTTP 400/422 without invoking
+the adapter stages.
+
 The accepted fixture is a one-row success case for CI. The batch fixture has a
 valid ClinVar-backed row and a deliberately invalid sequence row; it produces
 a partial manifest, exposes the blocked row, and exits with status two because

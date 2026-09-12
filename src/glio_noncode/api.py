@@ -2976,6 +2976,7 @@ from .workspace_history import (
     compare_persisted_workspace_snapshots,
 )
 from .workspace_release import build_persisted_workspace_release
+from .intake_runtime import run_intake_pipeline
 
 
 MAX_JSON_REQUEST_BYTES = 5_000_000
@@ -22059,6 +22060,25 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(
                     HTTPStatus.BAD_REQUEST,
                     {"error": "invalid_case_workflow_request", "message": str(exc)},
+                )
+            return
+        if path == "/v1/intake/pipeline":
+            try:
+                payload = self._read_json(strict=True)
+                report = run_intake_pipeline(payload)
+                self._write(
+                    HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    report.to_dict(),
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_intake_pipeline_request", "message": str(exc)},
                 )
             return
         if path == "/v1/case-workflow/run":

@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import copy
 import json
+import threading
 import unittest
 from pathlib import Path
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 from glio_noncode.errors import ValidationError
+from glio_noncode.api import create_server
 from glio_noncode.intake_runtime import (
     IntakePipeline,
     IntakePipelineRequest,
@@ -198,6 +202,46 @@ class IntakeRuntimeTests(unittest.TestCase):
         raw["records"][0]["raw_private_payload_marker"] = "must-not-be-copied"
         report = run_intake_pipeline(raw)
         self.assertNotIn("raw_private_payload_marker", json.dumps(report.to_dict()))
+
+    def test_http_pipeline_surface_preserves_status_semantics_and_strict_input(self) -> None:
+        with self.subTest("accepted"):
+            server = create_server("127.0.0.1", 0, ROOT)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                request = Request(
+                    f"http://127.0.0.1:{server.server_port}/v1/intake/pipeline",
+                    data=json.dumps(valid_request()).encode("utf-8"),
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with urlopen(request, timeout=20) as response:
+                    payload = json.loads(response.read())
+                self.assertEqual((response.status, payload["state"], payload["published"]), (200, "accepted", True))
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
+        raw = valid_request()
+        raw["unknown"] = True
+        server = create_server("127.0.0.1", 0, ROOT)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            request = Request(
+                f"http://127.0.0.1:{server.server_port}/v1/intake/pipeline",
+                data=json.dumps(raw).encode("utf-8"),
+                method="POST",
+                headers={"Content-Type": "application/json"},
+            )
+            with self.assertRaises(HTTPError) as context:
+                urlopen(request, timeout=20)
+            self.assertEqual(context.exception.code, 422)
+            self.assertEqual(json.loads(context.exception.read())["error"], "validation_error")
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
 
 
 if __name__ == "__main__":
