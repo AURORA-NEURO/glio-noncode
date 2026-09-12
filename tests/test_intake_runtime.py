@@ -155,6 +155,16 @@ class IntakeRuntimeTests(unittest.TestCase):
         raw["minimum_score"] = True
         with self.assertRaisesRegex(ValidationError, "numeric"):
             IntakePipelineRequest.from_mapping(raw)
+        with self.assertRaisesRegex(ValidationError, "typed request"):
+            IntakePipeline().run({})  # type: ignore[arg-type]
+        raw = valid_request()
+        raw["allowed_bases"] = "ACGT N"
+        with self.assertRaisesRegex(ValidationError, "whitespace"):
+            IntakePipelineRequest.from_mapping(raw)
+        raw = valid_request()
+        raw["required_fields"][0] = " start"
+        with self.assertRaisesRegex(ValidationError, "trimmed"):
+            IntakePipelineRequest.from_mapping(raw)
         raw = valid_request()
         raw["weights"]["start"] = True
         with self.assertRaisesRegex(ValidationError, "numeric"):

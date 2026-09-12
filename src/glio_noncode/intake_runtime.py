@@ -70,6 +70,13 @@ _REPORT_STAGE_IDS = ("consent", "anomaly", "completeness", "export")
 _ADDRESS_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
+def _canonical_text(value: Any, field: str) -> str:
+    normalized = require_non_empty(value, field)
+    if normalized != value:
+        raise ValidationError(f"{field} must be trimmed")
+    return normalized
+
+
 @dataclass(frozen=True, slots=True)
 class IntakePipelineRequest:
     """Validated batch input for the four-stage intake runtime."""
@@ -101,7 +108,7 @@ class IntakePipelineRequest:
             "policy_source_id",
             "allowed_bases",
         ):
-            require_non_empty(getattr(self, field_name), field_name)
+            _canonical_text(getattr(self, field_name), field_name)
         if not isinstance(self.permitted_uses, Sequence) or isinstance(self.permitted_uses, (str, bytes)):
             raise ValidationError("permitted_uses must be an array")
         if not self.permitted_uses:
@@ -109,7 +116,7 @@ class IntakePipelineRequest:
         if len(self.permitted_uses) > _MAX_PIPELINE_USES:
             raise ValidationError("permitted_uses exceeds its bound")
         for value in self.permitted_uses:
-            require_non_empty(value, "permitted_use")
+            _canonical_text(value, "permitted_use")
         if not self.records:
             raise ValidationError("records must not be empty")
         if len(self.records) > _MAX_PIPELINE_RECORDS:
@@ -121,7 +128,7 @@ class IntakePipelineRequest:
         if len(self.source_ids) > _MAX_PIPELINE_SOURCES:
             raise ValidationError("source_ids exceeds its bound")
         for value in self.source_ids:
-            require_non_empty(value, "source_id")
+            _canonical_text(value, "source_id")
         if not isinstance(self.required_fields, Sequence) or isinstance(self.required_fields, (str, bytes)):
             raise ValidationError("required_fields must be an array")
         if not self.required_fields:
@@ -129,7 +136,7 @@ class IntakePipelineRequest:
         if len(self.required_fields) > _MAX_PIPELINE_FIELDS:
             raise ValidationError("required_fields exceeds its bound")
         for value in self.required_fields:
-            require_non_empty(value, "required_field")
+            _canonical_text(value, "required_field")
         if len(self.required_fields) != len(set(self.required_fields)):
             raise ValidationError("required_fields must be unique")
         if isinstance(self.minimum_score, bool) or not isinstance(self.minimum_score, (int, float)) or not math.isfinite(float(self.minimum_score)):
@@ -141,11 +148,13 @@ class IntakePipelineRequest:
         if len(self.weights) > _MAX_PIPELINE_FIELDS:
             raise ValidationError("weights exceeds its bound")
         for key, value in self.weights.items():
-            require_non_empty(key, "weight field")
+            _canonical_text(key, "weight field")
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)) or float(value) <= 0:
                 raise ValidationError("weights must be positive finite numbers")
         if not isinstance(self.require_accepted, bool):
             raise ValidationError("require_accepted must be boolean")
+        if not isinstance(self.allowed_bases, str) or not self.allowed_bases or self.allowed_bases != self.allowed_bases.strip() or any(character.isspace() for character in self.allowed_bases):
+            raise ValidationError("allowed_bases must be trimmed non-whitespace text")
         record_ids: list[str] = []
         for index, row in enumerate(self.records, start=1):
             if not isinstance(row, Mapping):
@@ -377,6 +386,8 @@ class IntakePipeline:
     """Run C13-C16 in order and propagate the weakest row state."""
 
     def run(self, request: IntakePipelineRequest) -> IntakePipelineReport:
+        if not isinstance(request, IntakePipelineRequest):
+            raise ValidationError("intake pipeline requires a typed request")
         record_ids = request.record_ids
         consent = ConsentPolicyAttacher().attach(
             request.records,
