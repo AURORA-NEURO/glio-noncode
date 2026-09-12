@@ -127,6 +127,20 @@ class IntakeRuntimeTests(unittest.TestCase):
         raw["records"] = ["not-a-row"]
         with self.assertRaises(ValidationError):
             IntakePipelineRequest.from_mapping(raw)
+
+    def test_request_rejects_non_finite_weights_and_typed_field_coercion(self) -> None:
+        raw = valid_request()
+        raw["weights"]["start"] = float("nan")
+        with self.assertRaisesRegex(ValidationError, "finite"):
+            IntakePipelineRequest.from_mapping(raw)
+        raw = valid_request()
+        raw["require_accepted"] = "false"
+        with self.assertRaisesRegex(ValidationError, "boolean"):
+            IntakePipelineRequest.from_mapping(raw)
+        raw = valid_request()
+        raw["context_key"] = None
+        with self.assertRaises(ValidationError):
+            IntakePipelineRequest.from_mapping(raw)
         raw = valid_request()
         raw["minimum_score"] = 1.5
         with self.assertRaises(ValidationError):

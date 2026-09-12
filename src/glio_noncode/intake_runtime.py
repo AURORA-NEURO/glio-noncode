@@ -17,6 +17,7 @@ reported.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -39,6 +40,12 @@ class IntakePipelineState(StrEnum):
     ACCEPTED = "accepted"
     REVIEW = "review"
     BLOCKED = "blocked"
+
+
+_MAX_PIPELINE_RECORDS = 100_000
+_MAX_PIPELINE_SOURCES = 256
+_MAX_PIPELINE_FIELDS = 512
+_MAX_PIPELINE_USES = 128
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,27 +79,59 @@ class IntakePipelineRequest:
             "policy_source_id",
             "allowed_bases",
         ):
-            require_non_empty(str(getattr(self, field_name)), field_name)
+            require_non_empty(getattr(self, field_name), field_name)
+        if not isinstance(self.permitted_uses, Sequence) or isinstance(self.permitted_uses, (str, bytes)):
+            raise ValidationError("permitted_uses must be an array")
         if not self.permitted_uses:
             raise ValidationError("permitted_uses must not be empty")
+        if len(self.permitted_uses) > _MAX_PIPELINE_USES:
+            raise ValidationError("permitted_uses exceeds its bound")
+        for value in self.permitted_uses:
+            require_non_empty(value, "permitted_use")
         if not self.records:
             raise ValidationError("records must not be empty")
+        if len(self.records) > _MAX_PIPELINE_RECORDS:
+            raise ValidationError("records exceeds its bound")
+        if not isinstance(self.source_ids, Sequence) or isinstance(self.source_ids, (str, bytes)):
+            raise ValidationError("source_ids must be an array")
         if not self.source_ids:
             raise ValidationError("source_ids must not be empty")
+        if len(self.source_ids) > _MAX_PIPELINE_SOURCES:
+            raise ValidationError("source_ids exceeds its bound")
+        for value in self.source_ids:
+            require_non_empty(value, "source_id")
+        if not isinstance(self.required_fields, Sequence) or isinstance(self.required_fields, (str, bytes)):
+            raise ValidationError("required_fields must be an array")
         if not self.required_fields:
             raise ValidationError("required_fields must not be empty")
+        if len(self.required_fields) > _MAX_PIPELINE_FIELDS:
+            raise ValidationError("required_fields exceeds its bound")
+        for value in self.required_fields:
+            require_non_empty(value, "required_field")
         if len(self.required_fields) != len(set(self.required_fields)):
             raise ValidationError("required_fields must be unique")
+        if isinstance(self.minimum_score, bool) or not isinstance(self.minimum_score, (int, float)) or not math.isfinite(float(self.minimum_score)):
+            raise ValidationError("minimum_score must be finite numeric")
         if self.minimum_score < 0.0 or self.minimum_score > 1.0:
             raise ValidationError("minimum_score must be between 0 and 1")
+        if not isinstance(self.weights, Mapping):
+            raise ValidationError("weights must be an object")
+        if len(self.weights) > _MAX_PIPELINE_FIELDS:
+            raise ValidationError("weights exceeds its bound")
+        for key, value in self.weights.items():
+            require_non_empty(key, "weight field")
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)) or float(value) <= 0:
+                raise ValidationError("weights must be positive finite numbers")
+        if not isinstance(self.require_accepted, bool):
+            raise ValidationError("require_accepted must be boolean")
         record_ids: list[str] = []
         for index, row in enumerate(self.records, start=1):
             if not isinstance(row, Mapping):
                 raise ValidationError(f"records[{index - 1}] must be an object")
-            record_id = str(row.get("record_id", row.get("id", ""))).strip()
-            if not record_id:
+            record_id = row.get("record_id", row.get("id", ""))
+            if not isinstance(record_id, str) or not record_id.strip():
                 raise ValidationError(f"records[{index - 1}] requires record_id")
-            record_ids.append(record_id)
+            record_ids.append(record_id.strip())
         if len(record_ids) != len(set(record_ids)):
             raise ValidationError("records must have unique record_id values")
         if len(self.source_ids) != len(set(self.source_ids)):
@@ -120,8 +159,13 @@ class IntakePipelineRequest:
         weights_raw = raw.get("weights", {})
         if not isinstance(weights_raw, Mapping):
             raise ValidationError("intake pipeline weights must be an object")
-        weights = {str(key): float(value) for key, value in weights_raw.items()}
-        source_ids = tuple(str(item) for item in raw.get("source_ids", ()))
+        try:
+            weights = {str(key): float(value) for key, value in weights_raw.items()}
+        except (TypeError, ValueError, OverflowError) as error:
+            raise ValidationError("intake pipeline weights must be numeric") from error
+        if any(not math.isfinite(value) for value in weights.values()):
+            raise ValidationError("intake pipeline weights must be finite")
+        source_ids = tuple(raw.get("source_ids", ()))
         if not source_ids:
             source_ids = tuple(
                 sorted(
@@ -132,22 +176,26 @@ class IntakePipelineRequest:
                     }
                 )
             )
+        try:
+            minimum_score = float(raw.get("minimum_score", 0.8))
+        except (TypeError, ValueError, OverflowError) as error:
+            raise ValidationError("minimum_score must be numeric") from error
         return cls(
-            request_id=str(raw.get("request_id", "intake-pipeline-request")),
-            bundle_id=str(raw.get("bundle_id", "intake-pipeline-bundle")),
-            context_key=str(raw.get("context_key", "")),
-            policy_id=str(raw.get("policy_id", "")),
-            policy_version=str(raw.get("policy_version", "")),
-            purpose=str(raw.get("purpose", "")),
-            permitted_uses=tuple(str(item) for item in raw.get("permitted_uses", ())),
+            request_id=raw.get("request_id", "intake-pipeline-request"),
+            bundle_id=raw.get("bundle_id", "intake-pipeline-bundle"),
+            context_key=raw.get("context_key", ""),
+            policy_id=raw.get("policy_id", ""),
+            policy_version=raw.get("policy_version", ""),
+            purpose=raw.get("purpose", ""),
+            permitted_uses=tuple(raw.get("permitted_uses", ())),
             records=tuple(records),
-            policy_source_id=str(raw.get("policy_source_id", "")),
+            policy_source_id=raw.get("policy_source_id", ""),
             source_ids=source_ids,
             required_fields=fields,
             weights=weights,
-            minimum_score=float(raw.get("minimum_score", 0.8)),
-            allowed_bases=str(raw.get("allowed_bases", "ACGTN")),
-            require_accepted=bool(raw.get("require_accepted", True)),
+            minimum_score=minimum_score,
+            allowed_bases=raw.get("allowed_bases", "ACGTN"),
+            require_accepted=raw.get("require_accepted", True),
         )
 
     @property
