@@ -290,6 +290,13 @@ The request schema and capability declaration are available at
 `GET /v1/intake/pipeline/schema` and
 `GET /v1/intake/pipeline/capabilities`.
 
+An emitted path-free report can be independently rehydrated and checked at
+`POST /v1/intake/pipeline/verify`. The verifier replays stage order, row
+partitions, derived counters, and the report content address without rerunning
+the adapters. Its report schema is available at
+`GET /v1/intake/pipeline/verify/schema`; a tampered or structurally invalid
+report returns HTTP 422.
+
 The accepted fixture is a one-row success case for CI. The batch fixture has a
 valid ClinVar-backed row and a deliberately invalid sequence row; it produces
 a partial manifest, exposes the blocked row, and exits with status two because

@@ -2977,7 +2977,7 @@ from .workspace_history import (
     compare_persisted_workspace_snapshots,
 )
 from .workspace_release import build_persisted_workspace_release
-from .intake_runtime import run_intake_pipeline
+from .intake_runtime import IntakePipelineReport, run_intake_pipeline
 
 
 MAX_JSON_REQUEST_BYTES = 5_000_000
@@ -3036,6 +3036,88 @@ def _intake_pipeline_capabilities() -> dict[str, Any]:
         "strict_request": True,
         "public_report": True,
         "raw_records_in_report": False,
+        "verification": {
+            "method": "POST",
+            "path": "/v1/intake/pipeline/verify",
+            "schema_path": "/v1/intake/pipeline/verify/schema",
+            "replays_content_address": True,
+        },
+    }
+
+
+def _intake_pipeline_report_schema() -> dict[str, Any]:
+    """Describe the path-free report accepted by the verification surface."""
+
+    address = {"type": "string", "pattern": r"^sha256:[0-9a-f]{64}$"}
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "GLIO-NONCODE intake pipeline report",
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "request_id",
+            "bundle_id",
+            "context_key",
+            "state",
+            "stage_receipts",
+            "accepted_record_ids",
+            "review_record_ids",
+            "blocked_record_ids",
+            "issues",
+            "bundle",
+            "content_address",
+        ],
+        "properties": {
+            "request_id": {"type": "string", "minLength": 1},
+            "bundle_id": {"type": "string", "minLength": 1},
+            "context_key": {"type": "string", "minLength": 1},
+            "state": {"enum": ["accepted", "review", "blocked"]},
+            "stage_receipts": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": [
+                        "stage_id",
+                        "capability_id",
+                        "operation",
+                        "state",
+                        "input_count",
+                        "accepted_count",
+                        "review_count",
+                        "issue_codes",
+                        "output_address",
+                        "detail",
+                    ],
+                    "properties": {
+                        "stage_id": {"type": "string", "minLength": 1},
+                        "capability_id": {"type": "string", "minLength": 1},
+                        "operation": {"type": "string", "minLength": 1},
+                        "state": {"enum": ["accepted", "review", "published", "blocked"]},
+                        "input_count": {"type": "integer", "minimum": 0},
+                        "accepted_count": {"type": "integer", "minimum": 0},
+                        "review_count": {"type": "integer", "minimum": 0},
+                        "issue_codes": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                        "output_address": address,
+                        "detail": {"type": "string", "minLength": 1},
+                    },
+                },
+            },
+            "accepted_record_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "review_record_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "blocked_record_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "issues": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "bundle": {"type": ["object", "null"]},
+            "content_address": address,
+            "accepted": {"type": "boolean", "readOnly": True},
+            "published": {"type": "boolean", "readOnly": True},
+            "stage_count": {"type": "integer", "readOnly": True},
+            "accepted_count": {"type": "integer", "readOnly": True},
+            "review_count": {"type": "integer", "readOnly": True},
+            "blocked_count": {"type": "integer", "readOnly": True},
+        },
     }
 
 
@@ -16539,6 +16621,9 @@ class ApiHandler(BaseHTTPRequestHandler):
         if path == "/v1/intake/pipeline/capabilities":
             self._write(HTTPStatus.OK, _intake_pipeline_capabilities())
             return
+        if path == "/v1/intake/pipeline/verify/schema":
+            self._write(HTTPStatus.OK, _intake_pipeline_report_schema())
+            return
         if path == "/v1/intake/streaming/schema":
             self._write(HTTPStatus.OK, streaming_intake_schema())
             return
@@ -22150,6 +22235,32 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(
                     HTTPStatus.BAD_REQUEST,
                     {"error": "invalid_intake_pipeline_request", "message": str(exc)},
+                )
+            return
+        if path == "/v1/intake/pipeline/verify":
+            try:
+                payload = self._read_json(strict=True)
+                report = IntakePipelineReport.from_mapping(payload)
+                self._write(
+                    HTTPStatus.OK,
+                    {
+                        "verified": True,
+                        "content_address": report.content_address,
+                        "state": report.state,
+                        "accepted": report.accepted,
+                        "published": report.published,
+                        "report": report.to_dict(),
+                    },
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_intake_pipeline_report", "message": str(exc)},
                 )
             return
         if path == "/v1/case-workflow/run":

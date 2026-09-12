@@ -287,6 +287,35 @@ class IntakeRuntimeTests(unittest.TestCase):
                 with urlopen(request, timeout=20) as response:
                     payload = json.loads(response.read())
                 self.assertEqual((response.status, payload["state"], payload["published"]), (200, "accepted", True))
+                verify_request = Request(
+                    f"http://127.0.0.1:{server.server_port}/v1/intake/pipeline/verify",
+                    data=json.dumps(payload).encode("utf-8"),
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with urlopen(verify_request, timeout=20) as verify_response:
+                    verification = json.loads(verify_response.read())
+                self.assertEqual(
+                    (verification["verified"], verification["content_address"]),
+                    (True, payload["content_address"]),
+                )
+                with urlopen(
+                    f"http://127.0.0.1:{server.server_port}/v1/intake/pipeline/verify/schema",
+                    timeout=20,
+                ) as schema_response:
+                    report_schema = json.loads(schema_response.read())
+                self.assertFalse(report_schema["additionalProperties"])
+                tampered = dict(payload)
+                tampered["content_address"] = "sha256:" + "0" * 64
+                tamper_request = Request(
+                    f"http://127.0.0.1:{server.server_port}/v1/intake/pipeline/verify",
+                    data=json.dumps(tampered).encode("utf-8"),
+                    method="POST",
+                    headers={"Content-Type": "application/json"},
+                )
+                with self.assertRaises(HTTPError) as context:
+                    urlopen(tamper_request, timeout=20)
+                self.assertEqual(context.exception.code, 422)
             finally:
                 server.shutdown()
                 server.server_close()

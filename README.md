@@ -448,6 +448,9 @@ The typed four-stage batch runtime is also available at `POST /v1/intake/pipelin
 It uses the same strict request contract as `run-intake-pipeline`, returns a
 path-free report, and preserves `accepted`, `review`, and `blocked` outcomes
 instead of collapsing partial exports into success.
+Reports can be independently replay-verified at
+`POST /v1/intake/pipeline/verify`; the verifier exposes its contract at
+`GET /v1/intake/pipeline/verify/schema`.
 
 The product denominator and evidence-backed implementation ledger are documented
 in [docs/CAPABILITIES.md](docs/CAPABILITIES.md). Regulatory tracks can be
