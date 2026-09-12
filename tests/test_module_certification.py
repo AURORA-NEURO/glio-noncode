@@ -562,6 +562,28 @@ class ModuleCertificationPacketTests(ModuleCertificationFixture):
         with self.assertRaises(ValidationError):
             write_module_certification_packet(packet, destination)
 
+    def test_packet_rejects_ambiguous_manifest_and_json_artifacts(self) -> None:
+        _, matrix, plan, gate, runtime, audit, observation = self.closure()
+        packet = build_module_certification_packet(matrix, plan, gate, runtime, audit, observation)
+
+        duplicate_manifest = Path(self.directory.name) / "duplicate-manifest"
+        write_module_certification_packet(packet, duplicate_manifest)
+        (duplicate_manifest / "manifest.json").write_text(
+            '{"packet_id":"original","packet_id":"shadow"}', encoding="utf-8"
+        )
+        verification = verify_module_certification_packet(duplicate_manifest)
+        self.assertFalse(verification.accepted)
+        self.assertEqual(verification.checks[0].check_id, "manifest-readable")
+
+        duplicate_artifact = Path(self.directory.name) / "duplicate-artifact"
+        write_module_certification_packet(packet, duplicate_artifact)
+        matrix_path = duplicate_artifact / "matrix.json"
+        matrix_path.write_text('{"matrix_address":"one","matrix_address":"two"}', encoding="utf-8")
+        verification = verify_module_certification_packet(duplicate_artifact)
+        self.assertFalse(verification.accepted)
+        failed = {item.check_id for item in verification.checks if not item.passed}
+        self.assertIn("artifact-json-matrix", failed)
+
 
 class ModuleCertificationBoundaryTests(ModuleCertificationFixture):
     def test_cli_schema_and_capabilities_commands(self) -> None:

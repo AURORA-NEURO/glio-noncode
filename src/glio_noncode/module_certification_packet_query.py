@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +13,7 @@ from .module_certification_packet import (
     verify_module_certification_packet,
 )
 from .module_certification_packet_contracts import ModuleCertificationPacket
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 def _packet(value: ModuleCertificationPacket | str | Path) -> ModuleCertificationPacket:
@@ -30,8 +29,8 @@ def _artifact_payload(packet: ModuleCertificationPacket, artifact_id: str) -> An
     if artifact is None or artifact.payload is None:
         raise ValidationError(f"certification packet artifact is unavailable: {artifact_id}")
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError as exc:
+        return _strict_json_loads(artifact.payload)
+    except ValueError as exc:
         raise ValidationError(f"certification packet artifact is not JSON: {artifact_id}") from exc
 
 

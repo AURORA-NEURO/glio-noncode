@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import tempfile
 from collections.abc import Mapping
@@ -47,7 +46,7 @@ from .module_certification_tasks import (
     module_certification_tasks_json,
 )
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, hash_bytes, jsonable
+from .serialization import _strict_json_loads, canonical_json, hash_bytes, jsonable
 
 _JSON = "application/json"
 _CSV = "text/csv"
@@ -478,9 +477,9 @@ def verify_module_certification_packet(
     manifest_path = target / MODULE_CERTIFICATION_PACKET_MANIFEST
     checks: list[ModuleCertificationPacketCheck] = []
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
         packet_id = str(manifest["packet_id"])
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError, KeyError, TypeError) as exc:
         packet_id = target.name or "unknown"
         checks.append(
             _check(
@@ -535,6 +534,22 @@ def verify_module_certification_packet(
         if item.is_file() and not item.is_symlink()
     }
     expected_paths = set(paths) | {MODULE_CERTIFICATION_PACKET_MANIFEST}
+    for artifact in artifacts:
+        if artifact.media_type != _JSON or artifact.payload is None:
+            continue
+        try:
+            _strict_json_loads(artifact.payload)
+        except (UnicodeError, ValueError) as exc:
+            checks.append(
+                _check(
+                    f"artifact-json-{artifact.artifact_id}",
+                    ModuleCertificationPacketCheckPlane.BYTES,
+                    False,
+                    str(exc),
+                    "valid JSON",
+                    "JSON artifact is valid and unambiguous",
+                )
+            )
     checks.extend(
         (
             _check(
@@ -699,7 +714,7 @@ def load_module_certification_packet(directory: str | Path) -> ModuleCertificati
     if not verification.accepted:
         raise ValidationError("cannot load an unverified certification packet")
     target = Path(directory)
-    manifest = json.loads(
+    manifest = _strict_json_loads(
         (target / MODULE_CERTIFICATION_PACKET_MANIFEST).read_text(encoding="utf-8")
     )
     artifacts = []
