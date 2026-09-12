@@ -11,6 +11,7 @@ from threading import Thread
 
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
+from glio_noncode.errors import ValidationError
 from glio_noncode.workbench_release_frontier_offline_audit import (
     audit_workbench_release_offline_bundle,
 )
@@ -114,6 +115,20 @@ class WorkbenchReleaseOfflineBundleTests(unittest.TestCase):
                     for item in verification.checks
                 )
             )
+
+    def test_ambiguous_manifest_json_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "bundle"
+            write_workbench_release_offline_bundle(self.bundle, destination)
+            manifest = (destination / "bundle.json").read_text(encoding="utf-8")
+            (destination / "bundle.json").write_text(
+                manifest[:-1] + ',"bundle_id":"shadow"}\n',
+                encoding="utf-8",
+            )
+            with self.assertRaises(ValidationError):
+                verify_workbench_release_offline_bundle(destination)
+            with self.assertRaises(ValidationError):
+                load_workbench_release_offline_bundle(destination)
 
     def test_queries_cover_runtime_resources_and_filters(self) -> None:
         records = query_workbench_release_offline_bundle(

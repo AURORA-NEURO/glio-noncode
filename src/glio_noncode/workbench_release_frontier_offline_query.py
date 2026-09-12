@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 from .workbench_release_frontier_offline_contracts import (
     WORKBENCH_RELEASE_OFFLINE_DEFAULT_LIMIT,
     WORKBENCH_RELEASE_OFFLINE_MANIFEST,
@@ -45,8 +44,8 @@ def _manifest_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     if not manifest_path.is_file():
         raise ValidationError(f"workbench offline manifest is missing: {manifest_path}")
     try:
-        parsed = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        parsed = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"workbench offline manifest cannot be read: {exc}") from exc
     if not isinstance(parsed, Mapping):
         raise ValidationError("workbench offline manifest root must be an object")
@@ -164,8 +163,8 @@ def _payload(bundle: WorkbenchReleaseOfflineBundle, artifact_id: str) -> Any:
     if artifact.media_type != "application/json":
         return artifact.payload
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError as exc:
+        return _strict_json_loads(artifact.payload)
+    except ValueError as exc:
         raise ValidationError(f"workbench artifact {artifact_id!r} is not valid JSON") from exc
 
 

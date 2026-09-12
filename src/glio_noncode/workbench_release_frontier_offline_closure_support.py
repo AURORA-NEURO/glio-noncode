@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Iterable, Mapping
 from typing import Any
 
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 from .workbench_release_frontier_offline_contracts import WorkbenchReleaseOfflineBundle
 
 _DIRECT_IDENTITY_KEYS = frozenset(
@@ -49,8 +48,8 @@ def payload(bundle: WorkbenchReleaseOfflineBundle, artifact_id: str) -> Any:
     if artifact.media_type != "application/json":
         return artifact.payload
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return {}
 
 

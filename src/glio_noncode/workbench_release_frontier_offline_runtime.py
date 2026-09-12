@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from typing import Any
 
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .workbench_release_frontier_offline_audit import audit_workbench_release_offline_bundle
 from .workbench_release_frontier_offline_bundle import build_workbench_release_offline_bundle
 from .workbench_release_frontier_offline_contracts import (
@@ -117,8 +116,8 @@ def _runtime_payload(bundle: WorkbenchReleaseOfflineBundle) -> dict[str, Any]:
     if runtime.payload is None:
         return {}
     try:
-        value = json.loads(runtime.payload)
-    except json.JSONDecodeError:
+        value = _strict_json_loads(runtime.payload)
+    except ValueError:
         return {}
     return value if isinstance(value, dict) else {}
 

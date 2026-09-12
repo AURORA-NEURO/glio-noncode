@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 from .workbench_release_frontier_offline_boundary import audit_workbench_release_offline_boundary
 from .workbench_release_frontier_offline_closure_contracts import (
     WORKBENCH_RELEASE_CLOSURE_ARTIFACT_COUNT,
@@ -23,8 +22,8 @@ def _json_payload(artifact: Any) -> Any:
     if artifact.payload is None or artifact.media_type != "application/json":
         return {}
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return {}
 
 

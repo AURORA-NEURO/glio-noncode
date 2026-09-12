@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 from .workbench_release_frontier_offline_contracts import (
     WORKBENCH_RELEASE_OFFLINE_MANIFEST,
     WorkbenchReleaseOfflineBundle,
@@ -88,8 +87,8 @@ def workbench_release_offline_key_inventory(
         if artifact.payload is None or artifact.media_type != "application/json":
             continue
         try:
-            found.update(_keys(json.loads(artifact.payload)))
-        except json.JSONDecodeError:
+            found.update(_keys(_strict_json_loads(artifact.payload)))
+        except ValueError:
             continue
     forbidden = tuple(
         sorted(

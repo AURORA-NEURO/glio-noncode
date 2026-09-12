@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -20,7 +19,7 @@ from typing import Any
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
 from .workbench_release_frontier_offline_contracts import (
     WORKBENCH_RELEASE_OFFLINE_ARTIFACT_COUNT,
     WORKBENCH_RELEASE_OFFLINE_ARTIFACT_PREFIX,
@@ -727,8 +726,8 @@ def build_workbench_release_offline_bundle(
             "public-json-boundary",
             WorkbenchReleaseOfflineCheckPlane.PUBLIC_BOUNDARY,
             all(
-                not _has_forbidden_key(json.loads(item.payload or "{}"))
-                and not contains_private_key(json.loads(item.payload or "{}"))
+                not _has_forbidden_key(_strict_json_loads(item.payload or "{}"))
+                and not contains_private_key(_strict_json_loads(item.payload or "{}"))
                 for item in artifacts
                 if item.media_type == WORKBENCH_RELEASE_OFFLINE_JSON_MEDIA_TYPE
             ),
