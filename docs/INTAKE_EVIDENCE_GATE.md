@@ -286,6 +286,10 @@ whose aggregate state is `review` or `blocked`. Malformed JSON, unknown fields,
 and invalid collection or numeric types return HTTP 400/422 without invoking
 the adapter stages.
 
+The request schema and capability declaration are available at
+`GET /v1/intake/pipeline/schema` and
+`GET /v1/intake/pipeline/capabilities`.
+
 The accepted fixture is a one-row success case for CI. The batch fixture has a
 valid ClinVar-backed row and a deliberately invalid sequence row; it produces
 a partial manifest, exposes the blocked row, and exits with status two because

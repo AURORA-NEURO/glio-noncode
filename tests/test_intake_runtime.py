@@ -243,6 +243,29 @@ class IntakeRuntimeTests(unittest.TestCase):
             server.server_close()
             thread.join(timeout=5)
 
+        server = create_server("127.0.0.1", 0, ROOT)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with urlopen(
+                f"http://127.0.0.1:{server.server_port}/v1/intake/pipeline/schema",
+                timeout=20,
+            ) as response:
+                schema = json.loads(response.read())
+            with urlopen(
+                f"http://127.0.0.1:{server.server_port}/v1/intake/pipeline/capabilities",
+                timeout=20,
+            ) as response:
+                capabilities = json.loads(response.read())
+            self.assertFalse(schema["additionalProperties"])
+            self.assertEqual(
+                capabilities["states"], ["accepted", "review", "blocked"]
+            )
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+
 
 if __name__ == "__main__":
     unittest.main()

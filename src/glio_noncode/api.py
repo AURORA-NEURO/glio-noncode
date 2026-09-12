@@ -2981,6 +2981,61 @@ from .intake_runtime import run_intake_pipeline
 
 MAX_JSON_REQUEST_BYTES = 5_000_000
 MAX_JSON_NESTING_DEPTH = 100
+_INTAKE_PIPELINE_REQUIRED_FIELDS = (
+    "request_id",
+    "bundle_id",
+    "context_key",
+    "policy_id",
+    "policy_version",
+    "purpose",
+    "permitted_uses",
+    "records",
+    "policy_source_id",
+    "required_fields",
+    "minimum_score",
+    "allowed_bases",
+)
+
+
+def _intake_pipeline_schema() -> dict[str, Any]:
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "GLIO-NONCODE intake pipeline request",
+        "type": "object",
+        "additionalProperties": False,
+        "required": list(_INTAKE_PIPELINE_REQUIRED_FIELDS),
+        "properties": {
+            "request_id": {"type": "string", "minLength": 1},
+            "bundle_id": {"type": "string", "minLength": 1},
+            "context_key": {"type": "string", "minLength": 1},
+            "policy_id": {"type": "string", "minLength": 1},
+            "policy_version": {"type": "string", "minLength": 1},
+            "purpose": {"type": "string", "minLength": 1},
+            "permitted_uses": {"type": "array", "minItems": 1, "maxItems": 128, "items": {"type": "string", "minLength": 1}},
+            "records": {"type": "array", "minItems": 1, "maxItems": 100000, "items": {"type": "object"}},
+            "policy_source_id": {"type": "string", "minLength": 1},
+            "source_ids": {"type": "array", "maxItems": 256, "items": {"type": "string", "minLength": 1}},
+            "required_fields": {"type": "array", "minItems": 1, "maxItems": 512, "items": {"type": "string", "minLength": 1}},
+            "weights": {"type": "object", "minProperties": 1, "maxProperties": 512, "additionalProperties": {"type": "number", "exclusiveMinimum": 0}},
+            "minimum_score": {"type": "number", "minimum": 0, "maximum": 1},
+            "allowed_bases": {"type": "string", "minLength": 1},
+            "require_accepted": {"type": "boolean"},
+        },
+    }
+
+
+def _intake_pipeline_capabilities() -> dict[str, Any]:
+    return {
+        "version": "intake-pipeline-v1",
+        "boundary": "public_intake_pipeline",
+        "method": "POST",
+        "path": "/v1/intake/pipeline",
+        "states": ["accepted", "review", "blocked"],
+        "limits": {"max_records": 100000, "max_permitted_uses": 128, "max_sources": 256, "max_fields": 512},
+        "strict_request": True,
+        "public_report": True,
+        "raw_records_in_report": False,
+    }
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -16467,6 +16522,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/review-workspace/plan/execution-release/capabilities":
             self._write(HTTPStatus.OK, review_workspace_execution_release_capabilities())
+            return
+        if path == "/v1/intake/pipeline/schema":
+            self._write(HTTPStatus.OK, _intake_pipeline_schema())
+            return
+        if path == "/v1/intake/pipeline/capabilities":
+            self._write(HTTPStatus.OK, _intake_pipeline_capabilities())
             return
         if path == "/v1/intake/streaming/schema":
             self._write(HTTPStatus.OK, streaming_intake_schema())
