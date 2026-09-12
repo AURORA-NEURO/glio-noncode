@@ -16,7 +16,7 @@ from . import downloaded_data_ingestion_audit as ingestion_audit_model
 from . import downloaded_data_ingestion_query as query_model
 from . import downloaded_data_ingestion_query_audit as query_audit_model
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 VERSION = "downloaded-data-ingestion-runtime-v1"
 BOUNDARY = "public_downloaded_data_ingestion_runtime"
@@ -297,8 +297,8 @@ def persist_runtime(value: DownloadedDataIngestionRuntime, destination: str | Pa
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        return _mapping(json.loads(path.read_text(encoding="utf-8")), str(path))
-    except (OSError, json.JSONDecodeError) as error:
+        return _mapping(_strict_json_loads(path.read_text(encoding="utf-8")), str(path))
+    except (OSError, ValueError) as error:
         raise ValidationError(f"runtime member {path.name} is not valid JSON") from error
 
 
@@ -313,7 +313,11 @@ def load_runtime(destination: str | Path) -> DownloadedDataIngestionRuntime:
     value = runtime_from_mapping(raw_runtime)
     persisted = {"manifest.json": value.manifest.to_dict(), "catalog.json": value.catalog.to_dict(), "selection.json": value.selection.to_dict(), "batch.json": value.batch.to_dict(), "audit.json": value.audit.to_dict(), "query.json": value.query.to_dict(), "query-audit.json": value.query_audit.to_dict(), "runtime.json": value.to_dict()}
     for filename, expected in persisted.items():
-        actual = root.joinpath(filename).read_text(encoding="utf-8")
+        path = root.joinpath(filename)
+        decoded = _read_json(path)
+        if canonical_json(decoded) != canonical_json(expected):
+            raise ValidationError(f"runtime member {filename} does not replay its typed value")
+        actual = path.read_text(encoding="utf-8")
         if actual != canonical_json(expected):
             raise ValidationError(f"runtime member {filename} is not canonical")
     return value

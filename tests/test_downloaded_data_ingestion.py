@@ -129,6 +129,14 @@ class DownloadedDataIngestionTests(unittest.TestCase):
             self.assertTrue(runtime_audit_model.audit_runtime(loaded).accepted)
             self.assertEqual(runtime_model.runtime_from_mapping(json.loads(runtime_model.runtime_json(runtime))).content_address, runtime.content_address)
 
+    def test_runtime_rejects_ambiguous_or_nonfinite_persisted_json(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            runtime_model.run_runtime(self._zip(), runtime_id="strict-runtime", destination=root / "runtime")
+            (root / "runtime" / "catalog.json").write_text('{"member_count":1e1000000}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                runtime_model.load_runtime(root / "runtime")
+
     def test_diff_classifies_record_change_and_audits_query(self):
         left = ingestion_model.build_ingest(self._zip(), batch_id="left-batch", record_limit=100)
         right = ingestion_model.build_ingest(self._zip(changed=True), batch_id="right-batch", record_limit=100)
