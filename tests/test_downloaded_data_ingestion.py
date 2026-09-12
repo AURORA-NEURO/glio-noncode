@@ -84,6 +84,14 @@ class DownloadedDataIngestionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "duplicate member names"):
             ingestion_model.build_ingest(raw, batch_id="duplicate-member-batch")
 
+    def test_cross_surface_member_name_collisions_are_rejected_before_parsing(self):
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("data/Rows.json", '[{"id":"upper"}]')
+            archive.writestr("data/rows.JSON", '[{"id":"lower"}]')
+        with self.assertRaisesRegex(ValidationError, "duplicate member names"):
+            ingestion_model.build_ingest(stream.getvalue(), batch_id="case-collision-batch")
+
     def test_duplicate_json_fields_are_rejected_without_last_value_wins(self):
         stream = io.BytesIO()
         with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:

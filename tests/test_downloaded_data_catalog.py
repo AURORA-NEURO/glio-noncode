@@ -76,6 +76,14 @@ class DownloadedDataCatalogTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             catalog_model.build_catalog(stream.getvalue())
 
+    def test_cross_surface_member_name_collisions_are_rejected(self):
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("data/Rows.json", '{"id":"upper"}')
+            archive.writestr("data/rows.JSON", '{"id":"lower"}')
+        with self.assertRaisesRegex(ValidationError, "duplicate member names"):
+            catalog_model.build_catalog(stream.getvalue(), catalog_id="case-collision")
+
     def test_disk_source_and_public_schemas(self):
         with tempfile.TemporaryDirectory() as temporary:
             source = Path(temporary) / "download.zip"

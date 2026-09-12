@@ -12,6 +12,7 @@ import csv
 import io
 import json
 import mimetypes
+import unicodedata
 import zipfile
 from collections.abc import Mapping, Sequence
 from pathlib import Path, PurePosixPath
@@ -107,6 +108,12 @@ def _regular_member(info: zipfile.ZipInfo) -> bool:
     if info.create_system == 3 and (info.external_attr >> 16) & 0o170000 == 0o120000:
         return False
     return True
+
+
+def _member_identity(name: str) -> str:
+    """Return the cross-platform identity used to detect archive collisions."""
+
+    return unicodedata.normalize("NFC", name).casefold()
 
 
 def _suffix(name: str) -> str:
@@ -295,6 +302,8 @@ class DownloadedDataCatalog:
             raise ValidationError("downloaded data catalog member counts do not replay")
         if tuple(item.ordinal for item in self.members) != tuple(range(1, self.member_count + 1)) or len({item.member_name for item in self.members}) != self.member_count:
             raise ValidationError("downloaded data catalog member order is not canonical")
+        if len({_member_identity(item.member_name) for item in self.members}) != self.member_count:
+            raise ValidationError("downloaded data catalog member names collide across surfaces")
         if self.total_data_bytes != sum(item.byte_size for item in self.members) or self.json_count != sum(item.data_kind == "json" for item in self.members) or self.delimited_count != sum(item.data_kind == "delimited" for item in self.members) or self.yaml_count != sum(item.data_kind == "yaml" for item in self.members):
             raise ValidationError("downloaded data catalog aggregates do not replay")
         if self.source_size <= 0 or not _public(self.to_dict()):
@@ -353,7 +362,8 @@ def build_catalog(source: str | Path | bytes, *, catalog_id: str = "glio-noncode
         if any(not _regular_member(info) for info in infos):
             raise ValidationError("downloaded data source contains an unsafe member")
         names = tuple(info.filename for info in infos)
-        if len(set(names)) != len(names):
+        identities = tuple(_member_identity(name) for name in names)
+        if len(set(identities)) != len(identities):
             raise ValidationError("downloaded data source contains duplicate member names")
         total_uncompressed = sum(info.file_size for info in infos)
         if total_uncompressed > MAX_TOTAL_BYTES or any(info.file_size > MAX_MEMBER_BYTES for info in infos):

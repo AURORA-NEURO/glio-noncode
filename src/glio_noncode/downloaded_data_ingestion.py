@@ -769,7 +769,8 @@ def build_ingest(
     with archive:
         infos = archive.infolist()
         names = tuple(info.filename for info in infos)
-        if len(set(names)) != len(names):
+        identities = tuple(catalog_model._member_identity(name) for name in names)
+        if len(set(identities)) != len(identities):
             raise ValidationError("downloaded data source contains duplicate member names")
         info_by_name = {info.filename: info for info in infos}
         for member in selected:
