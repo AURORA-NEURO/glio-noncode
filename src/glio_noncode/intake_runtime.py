@@ -18,6 +18,7 @@ reported.
 from __future__ import annotations
 
 import math
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -65,6 +66,8 @@ _REQUEST_FIELDS = frozenset(
         "require_accepted",
     }
 )
+_REPORT_STAGE_IDS = ("consent", "anomaly", "completeness", "export")
+_ADDRESS_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -238,7 +241,10 @@ class IntakePipelineRequest:
 
     @property
     def record_ids(self) -> tuple[str, ...]:
-        return tuple(str(row.get("record_id", row.get("id", ""))) for row in self.records)
+        return tuple(
+            row.get("record_id", row.get("id", "")).strip()
+            for row in self.records
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -295,6 +301,58 @@ class IntakePipelineReport:
     issues: tuple[str, ...]
     bundle: Mapping[str, Any] | None
     content_address: str
+
+    def __post_init__(self) -> None:
+        for field_name in ("request_id", "bundle_id", "context_key"):
+            require_non_empty(getattr(self, field_name), field_name)
+        if not isinstance(self.state, IntakePipelineState):
+            raise ValidationError("intake pipeline report state is unsupported")
+        if not isinstance(self.stage_receipts, Sequence) or isinstance(self.stage_receipts, (str, bytes)):
+            raise ValidationError("stage_receipts must be an array")
+        if any(not isinstance(item, IntakeStageReceipt) for item in self.stage_receipts):
+            raise ValidationError("stage_receipts must contain typed receipts")
+        if tuple(item.stage_id for item in self.stage_receipts) != _REPORT_STAGE_IDS:
+            raise ValidationError("intake pipeline stage order does not replay")
+        input_count = self.stage_receipts[0].input_count
+        if any(item.input_count != input_count for item in self.stage_receipts):
+            raise ValidationError("intake pipeline stage input counts do not replay")
+        partitions = (
+            tuple(self.accepted_record_ids),
+            tuple(self.review_record_ids),
+            tuple(self.blocked_record_ids),
+        )
+        if any(not isinstance(item, str) or not item.strip() for group in partitions for item in group):
+            raise ValidationError("intake pipeline report IDs must be non-empty text")
+        flattened = tuple(item for group in partitions for item in group)
+        if len(set(flattened)) != len(flattened) or len(flattened) != input_count:
+            raise ValidationError("intake pipeline report IDs do not form a partition")
+        if not isinstance(self.issues, Sequence) or isinstance(self.issues, (str, bytes)):
+            raise ValidationError("intake pipeline issues must be an array")
+        if any(not isinstance(item, str) or not item.strip() for item in self.issues):
+            raise ValidationError("intake pipeline issues must be non-empty text")
+        if tuple(self.issues) != tuple(sorted(set(self.issues))):
+            raise ValidationError("intake pipeline issues must be unique and sorted")
+        if self.bundle is not None:
+            if not isinstance(self.bundle, Mapping) or "records" in self.bundle:
+                raise ValidationError("intake pipeline bundle must be a path-free receipt")
+            if self.state is IntakePipelineState.BLOCKED:
+                raise ValidationError("blocked intake pipeline reports cannot publish a bundle")
+        if not isinstance(self.content_address, str) or not _ADDRESS_RE.fullmatch(self.content_address):
+            raise ValidationError("intake pipeline report address is invalid")
+        body = {
+            "request_id": self.request_id,
+            "bundle_id": self.bundle_id,
+            "context_key": self.context_key,
+            "state": self.state,
+            "stage_receipts": self.stage_receipts,
+            "accepted_record_ids": self.accepted_record_ids,
+            "review_record_ids": self.review_record_ids,
+            "blocked_record_ids": self.blocked_record_ids,
+            "issues": self.issues,
+            "bundle": self.bundle,
+        }
+        if content_hash(body) != self.content_address:
+            raise ValidationError("intake pipeline report address does not replay")
 
     @property
     def accepted(self) -> bool:

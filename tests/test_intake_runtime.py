@@ -6,6 +6,7 @@ import copy
 import json
 import threading
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -202,6 +203,19 @@ class IntakeRuntimeTests(unittest.TestCase):
         raw["records"][0]["raw_private_payload_marker"] = "must-not-be-copied"
         report = run_intake_pipeline(raw)
         self.assertNotIn("raw_private_payload_marker", json.dumps(report.to_dict()))
+
+    def test_report_rejects_non_partitioned_ids_and_address_drift(self) -> None:
+        report = run_intake_pipeline(valid_request())
+        with self.assertRaisesRegex(ValidationError, "partition"):
+            replace(report, review_record_ids=(report.accepted_record_ids[0],))
+        with self.assertRaisesRegex(ValidationError, "address"):
+            replace(report, content_address="sha256:" + "0" * 64)
+
+    def test_record_ids_are_normalized_before_stage_intersection(self) -> None:
+        raw = valid_request()
+        raw["records"][0]["record_id"] = " pipeline-accepted-clinvar "
+        report = run_intake_pipeline(raw)
+        self.assertEqual(report.accepted_record_ids, ("pipeline-accepted-clinvar",))
 
     def test_http_pipeline_surface_preserves_status_semantics_and_strict_input(self) -> None:
         with self.subTest("accepted"):
