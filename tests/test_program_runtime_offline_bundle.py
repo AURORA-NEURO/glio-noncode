@@ -173,6 +173,16 @@ class ProgramRuntimeOfflineBundleTests(unittest.TestCase):
             directory_audit = audit_program_runtime_offline_directory(destination)
             self.assertTrue(directory_audit.accepted, directory_audit.to_dict())
 
+    def test_ambiguous_json_is_rejected_by_offline_loader(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="glio-program-offline-strict-") as directory:
+            destination = Path(directory) / "bundle"
+            write_program_runtime_offline_bundle(self.bundle, destination)
+            (destination / "bundle.json").write_text(
+                '{"bundle_id":"one","bundle_id":"two"}', encoding="utf-8"
+            )
+            with self.assertRaises(ValueError):
+                load_program_runtime_offline_bundle(destination, include_payloads=True)
+
     def test_diff_is_stable_for_two_equivalent_bundles(self) -> None:
         other = build_program_runtime_offline_bundle(
             bundle_id=self.bundle.bundle_id,

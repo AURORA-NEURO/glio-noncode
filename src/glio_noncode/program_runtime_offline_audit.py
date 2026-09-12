@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -25,7 +24,7 @@ from .program_runtime_offline_contracts import (
     program_runtime_offline_check,
 )
 from .program_runtime_offline_query import _payload, _rows
-from .serialization import content_hash, hash_bytes
+from .serialization import _strict_json_loads, content_hash, hash_bytes
 
 
 def _check(check_id: str, passed: bool, observed: Any, required: Any, detail: str):
@@ -44,8 +43,8 @@ def _json_artifacts_are_public(bundle: ProgramRuntimeOfflineBundle) -> bool:
         if artifact.media_type != PROGRAM_RUNTIME_OFFLINE_JSON_MEDIA_TYPE:
             continue
         try:
-            value = json.loads(artifact.payload or "{}")
-        except json.JSONDecodeError:
+            value = _strict_json_loads(artifact.payload or "{}")
+        except ValueError:
             return False
         if contains_private_key(value):
             return False
@@ -244,7 +243,7 @@ def verify_program_runtime_offline_bundle(
     bundle = load_program_runtime_offline_bundle(root, include_payloads=True)
     checks = list(audit_program_runtime_offline_bundle(bundle).checks)
     manifest_path = root / "bundle.json"
-    raw = json.loads(manifest_path.read_text(encoding="utf-8"))
+    raw = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
     manifest_body = dict(raw)
     supplied_address = str(manifest_body.pop("content_address", ""))
     checks.append(

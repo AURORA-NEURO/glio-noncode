@@ -17,7 +17,7 @@ from .program_runtime_offline_contracts import (
     ProgramRuntimeOfflineDiff,
     ProgramRuntimeOfflineQueryResult,
 )
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 PROGRAM_RUNTIME_OFFLINE_RESOURCES = (
@@ -46,8 +46,8 @@ def _payload(bundle: ProgramRuntimeOfflineBundle, artifact_id: str) -> Any:
         return None
     if artifact.media_type == "application/json":
         try:
-            return json.loads(artifact.payload)
-        except json.JSONDecodeError as exc:
+            return _strict_json_loads(artifact.payload)
+        except ValueError as exc:
             raise ValidationError(f"artifact {artifact_id!r} is not valid JSON") from exc
     return artifact.payload
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from typing import Any
 
@@ -12,7 +11,7 @@ from .program_runtime_offline_bundle import (
     public_program_projection,
 )
 from .program_runtime_offline_contracts import ProgramRuntimeOfflineBundle
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 def _keys(value: Any) -> set[str]:
@@ -34,8 +33,8 @@ def _values(bundle: ProgramRuntimeOfflineBundle) -> list[Any]:
     for artifact in bundle.artifacts:
         if artifact.media_type == "application/json":
             try:
-                values.append(json.loads(artifact.payload or "{}"))
-            except json.JSONDecodeError:
+                values.append(_strict_json_loads(artifact.payload or "{}"))
+            except ValueError:
                 values.append({"invalid_json": True})
     return values
 
@@ -82,7 +81,7 @@ def audit_program_runtime_offline_boundary(bundle: ProgramRuntimeOfflineBundle) 
         if artifact.media_type != "application/json":
             continue
         try:
-            value = json.loads(artifact.payload or "{}")
+            value = _strict_json_loads(artifact.payload or "{}")
             projected = public_program_projection(value)
             projection_checks.append(
                 {
@@ -91,7 +90,7 @@ def audit_program_runtime_offline_boundary(bundle: ProgramRuntimeOfflineBundle) 
                     "key_count": len(_keys(value)),
                 }
             )
-        except (json.JSONDecodeError, TypeError, ValueError):
+        except (TypeError, ValueError):
             projection_checks.append(
                 {"artifact_id": artifact.artifact_id, "accepted": False, "key_count": 0}
             )

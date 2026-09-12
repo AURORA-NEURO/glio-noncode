@@ -15,7 +15,6 @@ No network access or mutable service state is required.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -50,7 +49,7 @@ from .program_runtime_replay import (
     replay_architecture_program,
     run_program_runtime_failure_injections,
 )
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
 
 
 PROGRAM_RUNTIME_OFFLINE_JSON_MEDIA_TYPE = "application/json"
@@ -256,8 +255,8 @@ def _artifact(
 
 def _json_value(text: str) -> Any:
     try:
-        return json.loads(text)
-    except json.JSONDecodeError as exc:
+        return _strict_json_loads(text)
+    except ValueError as exc:
         raise ValidationError(f"program release projection is not JSON: {exc}") from exc
 
 
@@ -717,7 +716,7 @@ def load_program_runtime_offline_bundle(
     manifest_path = root / PROGRAM_RUNTIME_OFFLINE_MANIFEST_FILENAME
     if not manifest_path.is_file():
         raise ValidationError("program offline manifest is missing")
-    raw = json.loads(manifest_path.read_text(encoding="utf-8"))
+    raw = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValidationError("program offline manifest must be an object")
     artifacts = tuple(
