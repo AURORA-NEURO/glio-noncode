@@ -155,17 +155,28 @@ class IntakePipelineRequest:
             if not isinstance(row, Mapping):
                 raise ValidationError(f"intake pipeline records[{index}] must be an object")
             records.append(dict(row))
-        fields = tuple(str(item) for item in raw.get("required_fields", ()))
+        uses_raw = raw.get("permitted_uses", ())
+        if not isinstance(uses_raw, Sequence) or isinstance(uses_raw, (str, bytes)):
+            raise ValidationError("intake pipeline permitted_uses must be an array")
+        fields_raw = raw.get("required_fields", ())
+        if not isinstance(fields_raw, Sequence) or isinstance(fields_raw, (str, bytes)):
+            raise ValidationError("intake pipeline required_fields must be an array")
+        fields = tuple(str(item) for item in fields_raw)
         weights_raw = raw.get("weights", {})
         if not isinstance(weights_raw, Mapping):
             raise ValidationError("intake pipeline weights must be an object")
+        if any(isinstance(value, bool) for value in weights_raw.values()):
+            raise ValidationError("intake pipeline weights must be numeric")
         try:
             weights = {str(key): float(value) for key, value in weights_raw.items()}
         except (TypeError, ValueError, OverflowError) as error:
             raise ValidationError("intake pipeline weights must be numeric") from error
         if any(not math.isfinite(value) for value in weights.values()):
             raise ValidationError("intake pipeline weights must be finite")
-        source_ids = tuple(raw.get("source_ids", ()))
+        source_ids_raw = raw.get("source_ids", ())
+        if not isinstance(source_ids_raw, Sequence) or isinstance(source_ids_raw, (str, bytes)):
+            raise ValidationError("intake pipeline source_ids must be an array")
+        source_ids = tuple(source_ids_raw)
         if not source_ids:
             source_ids = tuple(
                 sorted(
@@ -176,8 +187,11 @@ class IntakePipelineRequest:
                     }
                 )
             )
+        minimum_score_raw = raw.get("minimum_score", 0.8)
+        if isinstance(minimum_score_raw, bool):
+            raise ValidationError("minimum_score must be numeric")
         try:
-            minimum_score = float(raw.get("minimum_score", 0.8))
+            minimum_score = float(minimum_score_raw)
         except (TypeError, ValueError, OverflowError) as error:
             raise ValidationError("minimum_score must be numeric") from error
         return cls(
