@@ -8,6 +8,7 @@ from glio_noncode.api import (
     MAX_JSON_NESTING_DEPTH,
     MAX_JSON_REQUEST_BYTES,
     ApiHandler,
+    _strict_json_loads,
 )
 
 
@@ -22,6 +23,16 @@ def _handler(body: bytes, *content_lengths: str) -> ApiHandler:
 
 
 class ApiJsonReaderTests(unittest.TestCase):
+    def test_persisted_json_reader_rejects_ambiguous_and_non_finite_values(self) -> None:
+        with self.assertRaisesRegex(ValueError, "duplicate object keys"):
+            _strict_json_loads('{"value":1,"value":2}')
+
+        for raw in ('{"value":NaN}', '{"value":Infinity}', '{"value":1e1000000}'):
+            with self.subTest(raw=raw), self.assertRaisesRegex(
+                ValueError, "non-finite number"
+            ):
+                _strict_json_loads(raw)
+
     def test_valid_object_uses_the_declared_byte_length(self) -> None:
         body = '{"label":"café","score":1.5}'.encode()
 
