@@ -234,11 +234,15 @@ class IntakePipelineRequest:
         fields_raw = raw.get("required_fields", ())
         if not isinstance(fields_raw, Sequence) or isinstance(fields_raw, (str, bytes)):
             raise ValidationError("intake pipeline required_fields must be an array")
-        fields = tuple(str(item) for item in fields_raw)
+        if any(type(item) is not str for item in fields_raw):
+            raise ValidationError("intake pipeline required_fields must contain strings")
+        fields = tuple(fields_raw)
         weights_raw = raw.get("weights", {})
         if not isinstance(weights_raw, Mapping):
             raise ValidationError("intake pipeline weights must be an object")
-        if any(isinstance(value, bool) for value in weights_raw.values()):
+        if any(type(key) is not str for key in weights_raw):
+            raise ValidationError("intake pipeline weight fields must be strings")
+        if any(type(value) not in {int, float} for value in weights_raw.values()):
             raise ValidationError("intake pipeline weights must be numeric")
         try:
             weights = {str(key): float(value) for key, value in weights_raw.items()}
@@ -261,7 +265,7 @@ class IntakePipelineRequest:
                 )
             )
         minimum_score_raw = raw.get("minimum_score", 0.8)
-        if isinstance(minimum_score_raw, bool):
+        if type(minimum_score_raw) not in {int, float}:
             raise ValidationError("minimum_score must be numeric")
         try:
             minimum_score = float(minimum_score_raw)

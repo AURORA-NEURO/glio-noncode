@@ -156,6 +156,18 @@ class IntakeRuntimeTests(unittest.TestCase):
         raw["minimum_score"] = True
         with self.assertRaisesRegex(ValidationError, "numeric"):
             IntakePipelineRequest.from_mapping(raw)
+        raw = valid_request()
+        raw["minimum_score"] = "0.8"
+        with self.assertRaisesRegex(ValidationError, "numeric"):
+            IntakePipelineRequest.from_mapping(raw)
+        raw = valid_request()
+        raw["weights"][1] = 1.0
+        with self.assertRaisesRegex(ValidationError, "fields must be strings"):
+            IntakePipelineRequest.from_mapping(raw)
+        raw = valid_request()
+        raw["required_fields"][0] = 1
+        with self.assertRaisesRegex(ValidationError, "contain strings"):
+            IntakePipelineRequest.from_mapping(raw)
         with self.assertRaisesRegex(ValidationError, "typed request"):
             IntakePipeline().run({})  # type: ignore[arg-type]
         raw = valid_request()
