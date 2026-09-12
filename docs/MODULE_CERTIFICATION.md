@@ -48,7 +48,8 @@ Every module receives these checks in the same order:
 
 1. `parse` — inventory state is `parsed`.
 2. `symbol` — a public symbol surface exists, or the check is N/A for an
-   internal module.
+   internal module. A module with a private path component (such as
+   `_cli_case`) is internal even when it contains named helper functions.
 3. `dependency` — local dependency edges are resolved, or no local imports
    exist.
 4. `test` — test text or its absolute import AST contains the module identifier,
@@ -242,6 +243,17 @@ test module, and materializes the certification schema and capability
 projections. The full unit suite remains the final compatibility check. A
 failed aggregate gate is reportable output; it does not prevent developers from
 running the matrix or inspecting the remediation queue.
+
+The exhaustive import-surface contract in
+`tests/test_module_import_surface.py` imports every discovered package module,
+captures CLI output, and accepts only the entrypoint's normal
+`SystemExit(0)`. Regenerate its deterministic module manifest whenever source
+modules are added or removed:
+
+```powershell
+python tools/generate_module_import_surface_test.py
+python -m unittest tests.test_module_import_surface
+```
 
 ## Limitations
 

@@ -15,6 +15,7 @@ from glio_noncode.errors import ValidationError
 from glio_noncode.module_certification import (
     _contains_module_reference,
     _exported_modules,
+    _is_internal_module,
     _module_evidence,
     build_module_certification,
     module_certification_capabilities,
@@ -168,6 +169,36 @@ class ModuleCertificationFixture(unittest.TestCase):
 
 
 class ModuleCertificationConstructionTests(ModuleCertificationFixture):
+    def test_private_module_is_internal_even_with_named_helpers(self) -> None:
+        row = type(
+            "InventoryRow",
+            (),
+            {
+                "public_symbol_count": 1,
+                "import_count": 0,
+                "local_dependency_count": 0,
+                "state": ModuleState.PARSED,
+                "test_reference_count": 0,
+                "relative_path": "_helper.py",
+                "physical_lines": 10,
+            },
+        )()
+        evidence = _module_evidence(
+            "glio_noncode._helper", row, set(), set(), set(), set()
+        )
+        self.assertTrue(_is_internal_module("glio_noncode._helper"))
+        self.assertFalse(_is_internal_module("glio_noncode.helper"))
+        self.assertEqual(
+            evidence[CertificationCheckKind.TEST][0], CertificationCheckState.NOT_APPLICABLE
+        )
+        self.assertEqual(
+            evidence[CertificationCheckKind.DOCUMENTATION][0],
+            CertificationCheckState.NOT_APPLICABLE,
+        )
+        self.assertEqual(
+            evidence[CertificationCheckKind.EXPORT][0], CertificationCheckState.NOT_APPLICABLE
+        )
+
     def test_dotted_symbol_references_count_as_module_evidence(self) -> None:
         row = type(
             "InventoryRow",

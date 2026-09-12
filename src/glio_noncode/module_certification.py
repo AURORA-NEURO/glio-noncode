@@ -50,6 +50,12 @@ def _contains_module_reference(module_id: str, references: set[str]) -> bool:
     return any(reference == module_id or reference.startswith(prefix) for reference in references)
 
 
+def _is_internal_module(module_id: str) -> bool:
+    """Return whether a package module is private by its path component."""
+
+    return any(part.startswith("_") for part in module_id.split(".")[1:])
+
+
 def _inventory(value: ModuleInventory | dict[str, Any]) -> ModuleInventory:
     if isinstance(value, ModuleInventory):
         return value
@@ -182,7 +188,7 @@ def _module_evidence(
     exported: set[str],
     source_docstring_modules: set[str] | None = None,
 ) -> dict[CertificationCheckKind, tuple[CertificationCheckState, Any, Any, str, tuple[str, ...]]]:
-    public = inventory_row.public_symbol_count > 0
+    public = inventory_row.public_symbol_count > 0 and not _is_internal_module(module_id)
     dependency_required = inventory_row.import_count > 0
     source_docstrings = source_docstring_modules or set()
     module_doc_reference = _contains_module_reference(module_id, doc_modules)
