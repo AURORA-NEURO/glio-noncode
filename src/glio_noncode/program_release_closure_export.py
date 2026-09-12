@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -16,7 +15,7 @@ from .program_release_closure_contracts import (
     ProgramReleaseRuntimeReport,
 )
 from .program_release_closure_support import artifact_address, canonical_payload, safe_relative_path
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 PROGRAM_RELEASE_EXPORT_MEDIA_TYPE = "application/json"
 PROGRAM_RELEASE_EXPORT_MANIFEST_PATH = "manifest.json"
@@ -151,7 +150,10 @@ def read_program_release_export_manifest(destination: str | Path) -> dict[str, A
     path = root / PROGRAM_RELEASE_EXPORT_MANIFEST_PATH
     if not path.is_file():
         raise ValidationError("program release export manifest is missing")
-    value = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise ValidationError("program release export manifest is not valid JSON") from exc
     if not isinstance(value, dict):
         raise ValidationError("program release export manifest must be an object")
     return value

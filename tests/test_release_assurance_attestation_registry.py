@@ -184,7 +184,7 @@ class ReleaseAssuranceAttestationRegistryTests(unittest.TestCase):
             write_release_assurance_attestation_registry_packet(packet, directory)
             manifest = (Path(directory) / "manifest.json").read_text(encoding="utf-8")
             (Path(directory) / "manifest.json").write_text(
-                manifest[:-1] + ',"registry_id":"shadow"}\n', encoding="utf-8"
+                manifest.rstrip()[:-1] + ',"registry_id":"shadow"}\n', encoding="utf-8"
             )
             verification = verify_release_assurance_attestation_registry_packet(directory)
             self.assertFalse(verification.accepted)

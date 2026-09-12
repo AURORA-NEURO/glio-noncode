@@ -168,7 +168,7 @@ class ReleaseAssuranceAttestationRegistryStoreGatePacketTests(unittest.TestCase)
             manifest_path = Path(directory) / "manifest.json"
             manifest = manifest_path.read_text(encoding="utf-8")
             manifest_path.write_text(
-                manifest[:-1] + ',"gate_id":"shadow"}\n', encoding="utf-8"
+                manifest.rstrip()[:-1] + ',"gate_id":"shadow"}\n', encoding="utf-8"
             )
             verification = verify_release_assurance_attestation_registry_store_gate_packet(directory)
             self.assertFalse(verification.accepted)

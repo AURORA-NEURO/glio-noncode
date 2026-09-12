@@ -9,6 +9,7 @@ from pathlib import Path
 from urllib.request import urlopen
 
 from glio_noncode.api import create_server
+from glio_noncode.errors import ValidationError
 from glio_noncode.program_release_closure_boundary import (
     audit_program_release_closure_boundary,
     validate_program_release_closure_boundary,
@@ -420,6 +421,24 @@ class ProgramReleaseClosureTest(unittest.TestCase):
             verification = verify_program_release_export(packet, root)
             self.assertFalse(verification.accepted)
             self.assertEqual(verification.changed_paths, (packet.artifacts[0].relative_path,))
+
+    def test_export_rejects_ambiguous_manifest_json(self) -> None:
+        report = run_program_release_closure(
+            self.source, bundle_id=self.snapshot.bundle_id, run_id=self.snapshot.run_id
+        )
+        packet = build_program_release_export(report)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = write_program_release_export(packet, temporary)
+            manifest_path = root / "manifest.json"
+            manifest = manifest_path.read_text(encoding="utf-8")
+            manifest_path.write_text(
+                manifest.rstrip()[:-1] + ',"bundle_id":"shadow"}\n', encoding="utf-8"
+            )
+            with self.assertRaises(ValidationError):
+                verify_program_release_export_directory(root)
+            with self.assertRaises(ValidationError):
+                from glio_noncode.program_release_closure_export import read_program_release_export_manifest
+                read_program_release_export_manifest(root)
 
     def test_public_metadata_policy_and_path_policy(self) -> None:
         self.assertEqual(forbidden_keys(self.snapshot.to_dict()), ())

@@ -18,7 +18,7 @@ from pathlib import PurePosixPath
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, jsonable
 
 PROGRAM_RELEASE_CLOSURE_FORBIDDEN_KEYS = frozenset(
     {
@@ -176,8 +176,8 @@ def source_rows(bundle: Any, artifact_id: str) -> Any:
         raise ValidationError(f"source artifact {artifact_id!r} is missing its payload")
     if artifact.media_type == "application/json":
         try:
-            return json.loads(artifact.payload)
-        except json.JSONDecodeError as exc:
+            return _strict_json_loads(artifact.payload)
+        except ValueError as exc:
             raise ValidationError(f"source artifact {artifact_id!r} is invalid JSON") from exc
     return list(csv.DictReader(io.StringIO(artifact.payload)))
 

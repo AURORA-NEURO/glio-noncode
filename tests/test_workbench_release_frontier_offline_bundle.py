@@ -122,7 +122,7 @@ class WorkbenchReleaseOfflineBundleTests(unittest.TestCase):
             write_workbench_release_offline_bundle(self.bundle, destination)
             manifest = (destination / "bundle.json").read_text(encoding="utf-8")
             (destination / "bundle.json").write_text(
-                manifest[:-1] + ',"bundle_id":"shadow"}\n',
+                manifest.rstrip()[:-1] + ',"bundle_id":"shadow"}\n',
                 encoding="utf-8",
             )
             with self.assertRaises(ValidationError):
