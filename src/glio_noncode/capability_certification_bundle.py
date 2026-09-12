@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Iterable, Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -45,7 +44,7 @@ from .capability_registry import CapabilityRegistry, default_capability_registry
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
 
 CERTIFICATION_BUNDLE_JSON = "application/json"
 CERTIFICATION_BUNDLE_CSV = "text/csv"
@@ -181,7 +180,7 @@ def _base_artifacts(
     report = runtime.report
     return (
         _artifact("report", "report.json", CERTIFICATION_BUNDLE_JSON, report.to_dict(), kind=CertificationBundleArtifactKind.REPORT),
-        _artifact("summary", "summary.json", CERTIFICATION_BUNDLE_JSON, json.loads(export_capability_certification_summary_json(report)), kind=CertificationBundleArtifactKind.SUMMARY),
+        _artifact("summary", "summary.json", CERTIFICATION_BUNDLE_JSON, _strict_json_loads(export_capability_certification_summary_json(report)), kind=CertificationBundleArtifactKind.SUMMARY),
         _artifact("certificates", "certificates.csv", CERTIFICATION_BUNDLE_CSV, export_capability_certification_csv(report), kind=CertificationBundleArtifactKind.CERTIFICATES),
         _artifact("checks", "checks.csv", CERTIFICATION_BUNDLE_CSV, export_capability_certification_checks_csv(report), kind=CertificationBundleArtifactKind.CHECKS),
         _artifact("domains", "domains.csv", CERTIFICATION_BUNDLE_CSV, export_capability_certification_domains_csv(report), kind=CertificationBundleArtifactKind.DOMAINS),
@@ -256,7 +255,7 @@ def build_capability_certification_bundle(
         _check("artifact-paths-unique", CertificationBundleCheckPlane.CLOSURE, len({item.relative_path for item in artifacts}) == len(artifacts), len({item.relative_path for item in artifacts}), len(artifacts), "artifact paths are unique"),
         _check("artifact-addresses-present", CertificationBundleCheckPlane.ARTIFACT, all(item.content_address.startswith(f"{CAPABILITY_CERTIFICATION_BUNDLE_ARTIFACT_PREFIX}:") for item in artifacts), sum(item.content_address.startswith(f"{CAPABILITY_CERTIFICATION_BUNDLE_ARTIFACT_PREFIX}:") for item in artifacts), len(artifacts), "every artifact has an exact-byte address"),
         _check("artifact-payloads-present", CertificationBundleCheckPlane.ARTIFACT, all(item.payload is not None for item in artifacts), sum(item.payload is not None for item in artifacts), len(artifacts), "every artifact is materializable"),
-        _check("public-json-boundary", CertificationBundleCheckPlane.PUBLIC_BOUNDARY, all(item.media_type != CERTIFICATION_BUNDLE_JSON or (item.payload is not None and not _has_forbidden_key(json.loads(item.payload)) and not contains_private_key(json.loads(item.payload))) for item in artifacts), True, True, "JSON artifacts contain no private or attribution keys"),
+        _check("public-json-boundary", CertificationBundleCheckPlane.PUBLIC_BOUNDARY, all(item.media_type != CERTIFICATION_BUNDLE_JSON or (item.payload is not None and not _has_forbidden_key(_strict_json_loads(item.payload)) and not contains_private_key(_strict_json_loads(item.payload))) for item in artifacts), True, True, "JSON artifacts contain no private or attribution keys"),
         _check("certificate-denominator", CertificationBundleCheckPlane.CERTIFICATION, report.capability_count == 256 and len(report.domain_summaries) == 16, {"capabilities": report.capability_count, "domains": len(report.domain_summaries)}, {"capabilities": 256, "domains": 16}, "the full catalog denominator is retained"),
         _check("check-denominator", CertificationBundleCheckPlane.CERTIFICATION, report.total_checks == 2572, report.total_checks, 2572, "row and global certification checks are conserved"),
         _check("runtime-accepted", CertificationBundleCheckPlane.CERTIFICATION, runtime.accepted, runtime.state, "accepted", "the live certification runtime passed"),
@@ -336,8 +335,8 @@ def verify_capability_certification_bundle(destination: str | Path) -> Certifica
         return _verification("missing-manifest", (_check("manifest-present", CertificationBundleCheckPlane.MANIFEST, False, False, True, "bundle manifest is missing"),))
     try:
         raw_manifest = manifest_path.read_bytes()
-        manifest = json.loads(raw_manifest.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads(raw_manifest.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         return _verification("invalid-manifest", (_check("manifest-readable", CertificationBundleCheckPlane.MANIFEST, False, type(exc).__name__, "UTF-8 JSON object", "bundle manifest cannot be read"),))
     if not isinstance(manifest, Mapping):
         return _verification("invalid-manifest", (_check("manifest-object", CertificationBundleCheckPlane.MANIFEST, False, type(manifest).__name__, "object", "manifest root must be an object"),))
@@ -395,9 +394,9 @@ def verify_capability_certification_bundle(destination: str | Path) -> Certifica
             checks.append(_check(f"bytes:{artifact_id}", CertificationBundleCheckPlane.ARTIFACT, len(raw) == item.get("byte_count") and _line_count(text) == item.get("line_count") and address == item.get("content_address"), {"bytes": len(raw), "lines": _line_count(text), "address": address}, {"bytes": item.get("byte_count"), "lines": item.get("line_count"), "address": item.get("content_address")}, "artifact bytes and address match"))
             if item.get("media_type") == CERTIFICATION_BUNDLE_JSON:
                 try:
-                    parsed = json.loads(text)
+                    parsed = _strict_json_loads(text)
                     public = not _has_forbidden_key(parsed) and not contains_private_key(parsed)
-                except json.JSONDecodeError:
+                except ValueError:
                     public = False
                 checks.append(_check(f"json-public:{artifact_id}", CertificationBundleCheckPlane.PUBLIC_BOUNDARY, public, public, True, "JSON artifact remains public-safe"))
         except (OSError, UnicodeDecodeError) as exc:
@@ -418,7 +417,7 @@ def verify_capability_certification_bundle(destination: str | Path) -> Certifica
             loaded = load_capability_certification_bundle(root, include_payloads=True)
             audit = audit_capability_certification_bundle(loaded)
             checks.append(_check("cross-artifact-audit", CertificationBundleCheckPlane.CLOSURE, audit.accepted, audit.failed_check_ids, (), "report, CSV, runtime, replay, failure, and observability artifacts reconcile"))
-        except (OSError, TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        except (OSError, TypeError, ValueError, UnicodeDecodeError) as exc:
             checks.append(_check("cross-artifact-audit", CertificationBundleCheckPlane.CLOSURE, False, type(exc).__name__, "accepted audit", "cross-artifact reconciliation could not be completed"))
     return _verification(bundle_id, checks)
 

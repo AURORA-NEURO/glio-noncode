@@ -108,6 +108,24 @@ class CapabilityCertificationBundleTests(unittest.TestCase):
             self.assertFalse(verification.accepted)
             self.assertTrue(any(item.check_id == "unexpected-files" and not item.passed for item in verification.checks))
 
+    def test_ambiguous_json_fails_closed_at_verification_and_load(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            write_capability_certification_bundle(self.bundle, directory)
+            manifest_path = Path(directory) / "manifest.json"
+            manifest_path.write_text('{"bundle_id":"one","bundle_id":"two"}', encoding="utf-8")
+            verification = verify_capability_certification_bundle(directory)
+            self.assertFalse(verification.accepted)
+
+        with tempfile.TemporaryDirectory() as directory:
+            write_capability_certification_bundle(self.bundle, directory)
+            report_path = Path(directory) / "report.json"
+            report_path.write_text('{"capability_count":1e1000000}', encoding="utf-8")
+            verification = verify_capability_certification_bundle(directory)
+            self.assertFalse(verification.accepted)
+            self.assertTrue(any(item.check_id == "json-public:report" and not item.passed for item in verification.checks))
+            with self.assertRaises(ValueError):
+                load_capability_certification_bundle(directory, include_payloads=True)
+
     def test_offline_loader_query_and_csv_are_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             write_capability_certification_bundle(self.bundle, directory)

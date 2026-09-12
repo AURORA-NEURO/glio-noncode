@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -22,7 +21,7 @@ from .capability_certification_bundle_contracts import (
     CertificationBundleQueryResult,
     CertificationBundleState,
 )
-from .serialization import canonical_json, content_hash, require_non_empty
+from .serialization import _strict_json_loads, canonical_json, content_hash, require_non_empty
 
 
 def _safe_relative_path(value: str) -> bool:
@@ -35,8 +34,8 @@ def _safe_relative_path(value: str) -> bool:
 def _load_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(value)
     try:
-        manifest = json.loads((root / CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST).read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads((root / CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValueError(f"cannot load certification bundle manifest: {exc}") from exc
     if not isinstance(manifest, Mapping):
         raise ValueError("certification bundle manifest must be an object")
@@ -80,6 +79,11 @@ def load_capability_certification_bundle(
                 payload = (root / Path(*PurePosixPath(relative_path).parts)).read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError) as exc:
                 raise ValueError(f"cannot hydrate certification artifact {relative_path}: {exc}") from exc
+            if str(raw.get("media_type", "")) == "application/json":
+                try:
+                    _strict_json_loads(payload)
+                except ValueError as exc:
+                    raise ValueError(f"certification artifact {relative_path} is not valid JSON: {exc}") from exc
         artifacts.append(
             CertificationBundleArtifact(
                 artifact_id=str(raw.get("artifact_id", "")),
@@ -126,8 +130,8 @@ def _json_payload(bundle: CapabilityCertificationBundle, artifact_id: str) -> An
     if artifact is None or artifact.payload is None:
         return None
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return None
 
 
