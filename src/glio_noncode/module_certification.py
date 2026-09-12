@@ -19,7 +19,11 @@ from .module_certification_contracts import (
     ModuleCertificationMatrix,
     ModuleCertificationRow,
 )
-from .module_inventory import _public_surface_literal_rows
+from .module_inventory import (
+    _public_surface_export_modules,
+    _public_surface_literal_rows,
+    _python_module_references,
+)
 from .module_inventory_contracts import ModuleInventory, ModuleRole, ModuleState
 from .module_inventory_query import inventory_from_mapping
 from .serialization import canonical_json, content_hash, jsonable
@@ -62,7 +66,12 @@ def _source_root(source_root: str | Path | None) -> Path:
     return Path(source_root) if source_root is not None else Path(__file__).resolve().parent
 
 
-def _text_tokens(root: Path, *, markdown: bool = False) -> tuple[set[str], set[str]]:
+def _text_tokens(
+    root: Path,
+    *,
+    markdown: bool = False,
+    export_modules: dict[str, str] | None = None,
+) -> tuple[set[str], set[str]]:
     """Read each evidence file once and return module and file-reference tokens."""
 
     module_tokens: set[str] = set()
@@ -77,7 +86,11 @@ def _text_tokens(root: Path, *, markdown: bool = False) -> tuple[set[str], set[s
             text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        module_tokens.update(_PACKAGE_REFERENCE.findall(text))
+        module_tokens.update(
+            _python_module_references(text, export_modules)
+            if not markdown
+            else _PACKAGE_REFERENCE.findall(text)
+        )
         if markdown:
             file_tokens.update(_PYTHON_FILE_REFERENCE.findall(text))
     return module_tokens, file_tokens
@@ -349,7 +362,8 @@ def build_module_certification(
     source = _source_root(source_root)
     tests = Path(test_root) if test_root is not None else source.parent.parent / "tests"
     docs = Path(docs_root) if docs_root is not None else source.parent.parent / "docs"
-    test_modules, _ = _text_tokens(tests)
+    export_modules = _public_surface_export_modules(source)
+    test_modules, _ = _text_tokens(tests, export_modules=export_modules)
     doc_modules, doc_files = _text_tokens(docs, markdown=True)
     source_docstring_modules = _source_docstring_modules(source)
     exported = _exported_modules(source)
@@ -541,9 +555,11 @@ def module_certification_schema() -> dict[str, Any]:
         "static_evidence": [
             "inventory_row",
             "test_reference_tokens",
+            "test_import_ast",
             "documentation_tokens",
             "source_module_docstrings",
             "package_import_ast",
+            "package_export_symbol_map",
             "package_export_manifest_ast",
             "package_stub_ast",
         ],

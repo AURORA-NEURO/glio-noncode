@@ -1,3 +1,5 @@
+"""Path-free recovery plans for exact history-diff archive transfers."""
+
 from __future__ import annotations
 
 # ruff: noqa: E501, I001

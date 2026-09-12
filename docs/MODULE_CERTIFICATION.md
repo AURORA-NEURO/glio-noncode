@@ -51,9 +51,10 @@ Every module receives these checks in the same order:
    internal module.
 3. `dependency` — local dependency edges are resolved, or no local imports
    exist.
-4. `test` — test text contains the module identifier or inventory has a test
-   reference. Public modules without evidence fail this check; internal modules
-   are N/A.
+4. `test` — test text or its absolute import AST contains the module identifier,
+   including root symbol imports resolved through the generated export map, or
+   inventory has a test reference. Public modules without evidence fail this
+   check; internal modules are N/A.
 5. `documentation` — Markdown evidence contains the module identifier or its
    source filename, or the source module has a non-empty module-level
    docstring. Public modules without evidence fail; internal modules are N/A.
@@ -257,7 +258,9 @@ into acceptance.
 The follow-on lineage projection explains the origin of each matrix signal.
 Every module receives a source row; explicit references found in Python tests
 and Markdown documentation become digest-addressed evidence rows (including
-fully-qualified public symbols); non-empty source module docstrings become
+fully-qualified public symbols, absolute import AST references, and root symbol
+imports resolved through the public export map); non-empty source module
+docstrings become
 documentation evidence; package initializer, lazy manifest, and typing stub
 AST inspection produce export rows; and inventory dependencies become resolved
 or unresolved module edges. The graph retains relative paths, line counts, and

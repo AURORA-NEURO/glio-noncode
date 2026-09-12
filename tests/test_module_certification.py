@@ -201,6 +201,27 @@ class ModuleCertificationConstructionTests(ModuleCertificationFixture):
         )
         self.assertEqual(evidence[CertificationCheckKind.EXPORT][0], CertificationCheckState.PASSED)
 
+    def test_root_child_import_counts_as_test_evidence(self) -> None:
+        (self.tests / "test_root_import.py").write_text(
+            "from glio_noncode import beta\n", encoding="utf-8"
+        )
+        matrix = self.matrix()
+        beta = next(row for row in matrix.rows if row.module_id.endswith(".beta"))
+        check = next(item for item in beta.checks if item.kind is CertificationCheckKind.TEST)
+        self.assertEqual(check.state, CertificationCheckState.PASSED)
+
+    def test_root_symbol_import_uses_generated_export_map(self) -> None:
+        (self.source / "_public_surface.py").write_text(
+            "EXPORTS = {'BetaPublic': ('glio_noncode.beta', 'Beta')}\n", encoding="utf-8"
+        )
+        (self.tests / "test_root_symbol.py").write_text(
+            "from glio_noncode import BetaPublic\n", encoding="utf-8"
+        )
+        matrix = self.matrix()
+        beta = next(row for row in matrix.rows if row.module_id.endswith(".beta"))
+        check = next(item for item in beta.checks if item.kind is CertificationCheckKind.TEST)
+        self.assertEqual(check.state, CertificationCheckState.PASSED)
+
     def test_exported_modules_reads_lazy_manifest_and_stub_without_importing(self) -> None:
         (self.source / "_public_surface.py").write_text(
             "EXPORTS = {\n"

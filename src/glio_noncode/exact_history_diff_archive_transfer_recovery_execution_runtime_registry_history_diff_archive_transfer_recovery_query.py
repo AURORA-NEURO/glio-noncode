@@ -1,3 +1,5 @@
+"""Bounded queries over exact history-diff archive-transfer recovery plans."""
+
 from __future__ import annotations
 
 # ruff: noqa: E501, I001

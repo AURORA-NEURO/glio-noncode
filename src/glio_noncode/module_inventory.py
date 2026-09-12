@@ -156,6 +156,48 @@ def _digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _python_module_references(
+    text: str, export_modules: Mapping[str, str] | None = None
+) -> set[str]:
+    """Extract package module references from text and absolute imports.
+
+    Regex coverage is retained for comments and strings, while AST imports
+    close the common ``from glio_noncode import child`` form that contains no
+    dotted package token.  When a generated root-export map is supplied,
+    imports such as ``from glio_noncode import PublicType`` are attributed to
+    the module that owns that public symbol. Parsing is bounded to one
+    already-loaded test file and falls back to regex-only evidence for invalid
+    Python.
+    """
+
+    references = set(_MODULE_REFERENCE.findall(text))
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError, TypeError):
+        return references
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            references.update(
+                alias.name
+                for alias in node.names
+                if alias.name == _PACKAGE_NAME or alias.name.startswith(f"{_PACKAGE_NAME}.")
+            )
+        elif isinstance(node, ast.ImportFrom) and not node.level:
+            module = node.module or ""
+            if module == _PACKAGE_NAME or module.startswith(f"{_PACKAGE_NAME}."):
+                references.add(module)
+                if module == _PACKAGE_NAME:
+                    for alias in node.names:
+                        if alias.name == "*":
+                            continue
+                        references.add(f"{_PACKAGE_NAME}.{alias.name}")
+                        if export_modules:
+                            target = export_modules.get(alias.name)
+                            if target:
+                                references.add(target)
+    return references
+
+
 def _body_address(body: Mapping[str, Any], prefix: str) -> str:
     return content_hash(
         {key: value for key, value in body.items() if key != "content_address"}, prefix=prefix
@@ -312,6 +354,31 @@ def _public_surface_literal_rows(tree: ast.AST) -> set[tuple[str, str, bool]]:
     return {(target, target, False) for target in targets}
 
 
+def _public_surface_export_modules(source_root: Path) -> dict[str, str]:
+    """Read the generated root symbol-to-module map without importing it."""
+
+    path = source_root / "_public_surface.py"
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    except (OSError, UnicodeDecodeError, SyntaxError):
+        return {}
+    declarations = _public_surface_declarations(tree)
+    exports = declarations.get("EXPORTS")
+    if not isinstance(exports, ast.Dict):
+        return {}
+    mapping: dict[str, str] = {}
+    for key, value in zip(exports.keys, exports.values, strict=True):
+        if not isinstance(key, ast.Constant) or not isinstance(key.value, str):
+            continue
+        if not isinstance(value, (ast.Tuple, ast.List)) or not value.elts:
+            continue
+        first = value.elts[0]
+        module = _public_lazy_target(first.value if isinstance(first, ast.Constant) else None)
+        if module is not None:
+            mapping[key.value] = module
+    return mapping
+
+
 def _import_rows(module_id: str, tree: ast.AST) -> tuple[tuple[str, str, bool], ...]:
     rows: set[tuple[str, str, bool]] = set()
     for node in ast.walk(tree):
@@ -354,7 +421,11 @@ def _module_files(root: Path) -> tuple[Path, ...]:
     return tuple(sorted(files, key=lambda item: item.as_posix().casefold()))
 
 
-def _test_reference_counts(test_root: Path | None, module_ids: Iterable[str]) -> dict[str, int]:
+def _test_reference_counts(
+    test_root: Path | None,
+    module_ids: Iterable[str],
+    export_modules: Mapping[str, str] | None = None,
+) -> dict[str, int]:
     counts = {module_id: 0 for module_id in module_ids}
     if test_root is None or not test_root.exists() or not test_root.is_dir():
         return counts
@@ -372,7 +443,7 @@ def _test_reference_counts(test_root: Path | None, module_ids: Iterable[str]) ->
             continue
     known = set(counts)
     for text in test_payloads:
-        references = set(_MODULE_REFERENCE.findall(text))
+        references = _python_module_references(text, export_modules)
         for reference in references:
             parts = reference.split(".")
             for end in range(2, len(parts) + 1):
@@ -581,7 +652,8 @@ def build_module_inventory(
     )
     issues: list[InventoryIssue] = []
     module_ids = tuple(item[0] for item in discovered)
-    test_counts = _test_reference_counts(tests, module_ids)
+    export_modules = _public_surface_export_modules(root)
+    test_counts = _test_reference_counts(tests, module_ids, export_modules)
     known = set(module_ids)
     modules: list[ModuleRecord] = []
     symbols: list[ModuleSymbol] = []

@@ -135,6 +135,25 @@ class ModuleInventoryConstructionTests(ModuleInventoryFixture):
         gamma = next(item for item in inventory.modules if item.module_id.endswith(".gamma"))
         self.assertEqual(gamma.test_reference_count, 1)
 
+    def test_root_child_import_counts_for_its_module(self) -> None:
+        (self.tests / "test_root_import.py").write_text(
+            "from glio_noncode import gamma\n", encoding="utf-8"
+        )
+        inventory = self.build()
+        gamma = next(item for item in inventory.modules if item.module_id.endswith(".gamma"))
+        self.assertEqual(gamma.test_reference_count, 1)
+
+    def test_root_symbol_import_uses_generated_export_map(self) -> None:
+        (self.root / "_public_surface.py").write_text(
+            "EXPORTS = {'GammaPublic': ('glio_noncode.gamma', 'gamma')}\n", encoding="utf-8"
+        )
+        (self.tests / "test_root_symbol.py").write_text(
+            "from glio_noncode import GammaPublic\n", encoding="utf-8"
+        )
+        inventory = self.build()
+        gamma = next(item for item in inventory.modules if item.module_id.endswith(".gamma"))
+        self.assertEqual(gamma.test_reference_count, 1)
+
     def test_local_imports_keep_resolved_and_unresolved_forms(self) -> None:
         inventory = self.build()
         alpha_edges = [
