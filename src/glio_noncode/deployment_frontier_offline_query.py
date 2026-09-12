@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -30,7 +29,7 @@ from .deployment_frontier_offline_contracts import (
     DeploymentFrontierOfflineVerification,
 )
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 def _bundle(value: str | Path | DeploymentFrontierOfflineBundle) -> DeploymentFrontierOfflineBundle:
@@ -48,8 +47,8 @@ def _payload(bundle: DeploymentFrontierOfflineBundle, artifact_id: str) -> Any:
     if artifact.media_type != "application/json":
         return artifact.payload
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError as exc:
+        return _strict_json_loads(artifact.payload)
+    except ValueError as exc:
         raise ValidationError(f"deployment artifact {artifact_id!r} is not valid JSON") from exc
 
 

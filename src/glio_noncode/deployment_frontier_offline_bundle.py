@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -27,7 +26,7 @@ from .deployment_frontier_runtime import run_deployment_frontier_runtime
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
 from .deployment_frontier_offline_contracts import (
     DEPLOYMENT_FRONTIER_OFFLINE_ARTIFACT_COUNT,
     DEPLOYMENT_FRONTIER_OFFLINE_ARTIFACT_PREFIX,
@@ -815,8 +814,8 @@ def build_deployment_frontier_offline_bundle(
             "public-json-boundary",
             "public_boundary",
             all(
-                not _has_forbidden_key(json.loads(item.payload or "{}"))
-                and not contains_private_key(json.loads(item.payload or "{}"))
+                not _has_forbidden_key(_strict_json_loads(item.payload or "{}"))
+                and not contains_private_key(_strict_json_loads(item.payload or "{}"))
                 for item in artifacts
                 if item.media_type == DEPLOYMENT_FRONTIER_OFFLINE_JSON_MEDIA_TYPE
             ),
@@ -1117,8 +1116,8 @@ def _manifest_mapping(destination: str | Path) -> tuple[Path, dict[str, Any]]:
     if not manifest_path.is_file():
         raise ValidationError("deployment offline manifest is missing")
     try:
-        value = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
         raise ValidationError(f"deployment offline manifest is unreadable: {exc}") from exc
     if not isinstance(value, dict):
         raise ValidationError("deployment offline manifest must be an object")

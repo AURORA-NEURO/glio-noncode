@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -25,7 +24,7 @@ from .deployment_frontier_offline_summary import (
     audit_deployment_frontier_offline_summary,
     build_deployment_frontier_offline_summary,
 )
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 @dataclass(frozen=True, slots=True)
@@ -141,8 +140,8 @@ def _runtime_payload(bundle: DeploymentFrontierOfflineBundle) -> dict[str, Any]:
     if artifact is None or artifact.payload is None:
         return {}
     try:
-        value = json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        value = _strict_json_loads(artifact.payload)
+    except ValueError:
         return {}
     return value if isinstance(value, dict) else {}
 

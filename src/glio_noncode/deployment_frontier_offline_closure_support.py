@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Iterable, Mapping
 from pathlib import PurePosixPath
 from typing import Any
 
 from .deployment_frontier_offline_contracts import DeploymentFrontierOfflineBundle
 from .deployment_frontier_offline_query import _payload, _rows
-from .serialization import canonical_json, content_hash, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, jsonable
 
 _ARTIFACT_BY_RESOURCE = {
     "artifacts": "artifacts",
@@ -337,8 +336,8 @@ def discover_keys(bundle: DeploymentFrontierOfflineBundle) -> tuple[str, ...]:
     for artifact in bundle.artifacts:
         if artifact.payload:
             try:
-                keys.update(_walk_keys(json.loads(artifact.payload)))
-            except json.JSONDecodeError:
+                keys.update(_walk_keys(_strict_json_loads(artifact.payload)))
+            except ValueError:
                 continue
     return tuple(sorted(keys))
 

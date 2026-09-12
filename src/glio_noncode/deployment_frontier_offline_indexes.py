@@ -13,7 +13,7 @@ from .deployment_frontier_offline_contracts import (
     DeploymentFrontierOfflineBundle,
 )
 from .deployment_frontier_offline_query import _rows
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 @dataclass(frozen=True, slots=True)
@@ -120,9 +120,7 @@ def build_deployment_frontier_offline_indexes(
         )
         issue_rows = []
         if issue_value and issue_value.payload:
-            import json
-
-            value = json.loads(issue_value.payload)
+            value = _strict_json_loads(issue_value.payload)
             issue_rows = [
                 {"issue": key, "count": count}
                 for key, count in value.get("issue_counts", {}).items()
@@ -133,9 +131,7 @@ def build_deployment_frontier_offline_indexes(
         )
         state_rows = []
         if state_value and state_value.payload:
-            import json
-
-            value = json.loads(state_value.payload)
+            value = _strict_json_loads(state_value.payload)
             state_rows = [
                 {"state": key, "count": count}
                 for key, count in value.get("state_counts", {}).items()

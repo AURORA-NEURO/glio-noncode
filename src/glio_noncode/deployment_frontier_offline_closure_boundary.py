@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from .deployment_frontier_offline_closure_contracts import (
@@ -15,15 +14,15 @@ from .deployment_frontier_offline_closure_support import (
     safe_relative_path,
 )
 from .deployment_frontier_offline_contracts import DeploymentFrontierOfflineBundle
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 def _artifact_check(artifact: Any) -> dict[str, Any]:
     value: Any = None
     if artifact.payload and artifact.media_type == "application/json":
         try:
-            value = json.loads(artifact.payload)
-        except json.JSONDecodeError:
+            value = _strict_json_loads(artifact.payload)
+        except ValueError:
             value = None
     elif artifact.payload:
         value = artifact.payload
