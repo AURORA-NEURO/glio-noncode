@@ -17,6 +17,7 @@ from glio_noncode.batch_release import (
 )
 from glio_noncode.batch_runtime import BatchRuntime
 from glio_noncode.cli import main
+from glio_noncode.errors import ValidationError
 from glio_noncode.runtime import CaseRuntime
 
 from .helpers import fixture_manifest
@@ -101,6 +102,20 @@ class BatchReleaseTests(unittest.TestCase):
             unsafe = verify_batch_release_bundle(destination)
             self.assertFalse(unsafe.accepted)
             self.assertTrue(any("unsafe artifact path" in warning for warning in unsafe.warnings))
+
+    def test_batch_manifest_rejects_ambiguous_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime, batch_id = self._runtime_and_batch(directory)
+            bundle = build_persisted_batch_release(runtime, batch_id)
+            destination = Path(directory) / "batch-release"
+            write_batch_release_bundle(bundle, destination)
+            manifest_path = destination / "release.json"
+            manifest = manifest_path.read_text(encoding="utf-8")
+            manifest_path.write_text(
+                manifest.rstrip()[:-1] + ',"batch_id":"shadow"}\n', encoding="utf-8"
+            )
+            with self.assertRaises(ValidationError):
+                verify_batch_release_bundle(destination)
 
     def test_cli_build_and_verify_commands_write_contracts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

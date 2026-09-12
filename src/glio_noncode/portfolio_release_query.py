@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -21,7 +20,7 @@ from .portfolio_release_contracts import (
     PortfolioReleaseQueryResult,
     PortfolioReleaseState,
 )
-from .serialization import content_hash
+from .serialization import _strict_json_loads, content_hash
 
 
 def _text(value: Any) -> str:
@@ -47,8 +46,8 @@ def _manifest(path: str | Path) -> dict[str, Any]:
     if not root.is_dir() or not manifest_path.is_file():
         raise ValidationError("portfolio release manifest is missing")
     try:
-        value = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("portfolio release manifest is not valid JSON") from exc
     if not isinstance(value, dict):
         raise ValidationError("portfolio release manifest must be an object")

@@ -112,6 +112,29 @@ class DossierReleaseTests(unittest.TestCase):
             self.assertIn(manifest["artifacts"][0]["artifact_id"], unsafe.failed_artifact_ids)
             self.assertTrue(any("unsafe artifact path" in warning for warning in unsafe.warnings))
 
+    def test_dossier_manifest_rejects_ambiguous_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            original = runtime.evaluate(fixture_manifest())
+            runtime.review_run(
+                original.run_id,
+                accepted_review(
+                    original.run_id,
+                    original.case_id,
+                    original.hypotheses[0].hypothesis_id,
+                    tuple(item.evidence_id for item in original.evidence),
+                ),
+            )
+            destination = Path(directory) / "release"
+            write_dossier_release_bundle(build_persisted_dossier_release(runtime, original.run_id), destination)
+            manifest_path = destination / "release.json"
+            manifest = manifest_path.read_text(encoding="utf-8")
+            manifest_path.write_text(
+                manifest.rstrip()[:-1] + ',"run_id":"shadow"}\n', encoding="utf-8"
+            )
+            with self.assertRaises(ValidationError):
+                verify_dossier_release_bundle(destination)
+
     def test_cli_release_and_verify_commands_write_contracts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime = CaseRuntime(directory)

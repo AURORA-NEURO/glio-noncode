@@ -11,6 +11,7 @@ from threading import Thread
 
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
+from glio_noncode.errors import ValidationError
 from glio_noncode.comparison_release import (
     build_comparison_release_bundle,
     build_persisted_comparison_release,
@@ -115,6 +116,22 @@ class ComparisonReleaseTests(unittest.TestCase):
             unsafe = verify_comparison_release_bundle(destination)
             self.assertFalse(unsafe.accepted)
             self.assertTrue(any("unsafe artifact path" in warning for warning in unsafe.warnings))
+
+    def test_comparison_manifest_rejects_ambiguous_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime, run_id = self._reviewed_runtime(directory)
+            bundle = build_persisted_comparison_release(
+                runtime, run_id, run_id, source_snapshot=0, target_snapshot=1
+            )
+            destination = Path(directory) / "comparison-release"
+            write_comparison_release_bundle(bundle, destination)
+            manifest_path = destination / "release.json"
+            manifest = manifest_path.read_text(encoding="utf-8")
+            manifest_path.write_text(
+                manifest.rstrip()[:-1] + ',"source_run_id":"shadow"}\n', encoding="utf-8"
+            )
+            with self.assertRaises(ValidationError):
+                verify_comparison_release_bundle(destination)
 
     def test_cli_build_and_verify_commands_write_contracts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

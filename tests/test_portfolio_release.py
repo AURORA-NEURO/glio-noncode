@@ -19,7 +19,11 @@ from glio_noncode.portfolio_release import (
     verify_portfolio_release_bundle,
     write_portfolio_release_bundle,
 )
-from glio_noncode.portfolio_release_contracts import PortfolioArtifactKind, PortfolioReleaseState
+from glio_noncode.portfolio_release_contracts import (
+    PORTFOLIO_RELEASE_MANIFEST,
+    PortfolioArtifactKind,
+    PortfolioReleaseState,
+)
 from glio_noncode.portfolio_release_lineage import (
     build_portfolio_release_lineage,
     lineage_descendants,
@@ -138,6 +142,20 @@ class PortfolioReleaseTests(unittest.TestCase):
             tampered = verify_portfolio_release_bundle(destination)
             self.assertFalse(tampered.accepted)
             self.assertEqual(tampered.unexpected_paths, ("unexpected.txt",))
+
+    def test_portfolio_manifest_rejects_ambiguous_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime, _, reviewed = self._runtime(directory)
+            bundle = build_portfolio_release(runtime, run_ids=(reviewed.run_id,), as_of=AS_OF)
+            destination = Path(directory) / "portfolio-release"
+            write_portfolio_release_bundle(bundle, destination)
+            manifest_path = destination / PORTFOLIO_RELEASE_MANIFEST
+            manifest = manifest_path.read_text(encoding="utf-8")
+            manifest_path.write_text(
+                manifest.rstrip()[:-1] + ',"release_version":"shadow"}\n', encoding="utf-8"
+            )
+            with self.assertRaises(ValidationError):
+                verify_portfolio_release_bundle(destination)
 
     def test_blocked_member_is_preserved_and_package_is_not_accepted(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

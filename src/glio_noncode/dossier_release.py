@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -16,7 +15,7 @@ from .module_fabric_support import contains_private_key
 from .reports import render_markdown
 from .run_catalog import RunInspection, inspect_run
 from .runtime import CaseRuntime
-from .serialization import canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes
 from .validation import ReleaseGate
 
 DOSSIER_RELEASE_VERSION = "dossier-release-v1"
@@ -337,7 +336,10 @@ def verify_dossier_release_bundle(destination: str | Path) -> ReleaseVerificatio
     manifest_path = root / DOSSIER_RELEASE_MANIFEST
     if not manifest_path.exists():
         raise ValidationError("release manifest is missing")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    try:
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise ValidationError("release manifest is not valid JSON") from exc
     if not isinstance(manifest, dict):
         raise ValidationError("release manifest must be a JSON object")
     failed: list[str] = []

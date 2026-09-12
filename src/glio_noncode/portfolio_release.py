@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Iterable, Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -49,7 +48,7 @@ from .run_catalog import RunInspection, inspect_run
 from .run_portfolio import build_run_portfolio
 from .run_workspace import _has_forbidden_key, _public_projection
 from .runtime import CaseRuntime
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable
 from .workspace_history import WorkspaceHistory, build_persisted_workspace_history
 from .workspace_release import WorkspaceReleaseBundle, build_workspace_release_bundle
 
@@ -152,8 +151,8 @@ def _artifact(
         raise ValidationError(f"unsafe portfolio artifact path: {relative_path!r}")
     if media_type == "application/json":
         try:
-            payload = _json_text(_public_projection(json.loads(payload)))
-        except json.JSONDecodeError:
+            payload = _json_text(_public_projection(_strict_json_loads(payload)))
+        except ValueError:
             # Verification will reject malformed JSON artifacts.  Keeping the
             # original bytes here preserves a useful diagnostic in a blocked
             # package instead of failing assembly before checks are emitted.
@@ -192,8 +191,8 @@ def _public_json_payload(payload: str) -> tuple[bool, str | None]:
     """Check a JSON artifact for private or prohibited attribution fields."""
 
     try:
-        value = json.loads(payload)
-    except json.JSONDecodeError:
+        value = _strict_json_loads(payload)
+    except ValueError:
         return False, "JSON artifact is not valid JSON"
     if _has_forbidden_key(value) or contains_private_key(value):
         return False, "JSON artifact violates the public boundary"
@@ -794,8 +793,8 @@ def verify_portfolio_release_bundle(
     if not manifest_path.is_file():
         raise ValidationError("portfolio release manifest is missing")
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("portfolio release manifest is not valid JSON") from exc
     if not isinstance(manifest, dict):
         raise ValidationError("portfolio release manifest must be a JSON object")

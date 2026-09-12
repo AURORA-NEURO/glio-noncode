@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -27,7 +26,7 @@ from .run_comparison import (
     compare_persisted_runs,
 )
 from .runtime import CaseRuntime
-from .serialization import canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes
 
 COMPARISON_RELEASE_VERSION = "comparison-release-v1"
 COMPARISON_RELEASE_MANIFEST = "release.json"
@@ -480,7 +479,10 @@ def verify_comparison_release_bundle(destination: str | Path) -> ComparisonRelea
     manifest_path = root / COMPARISON_RELEASE_MANIFEST
     if not manifest_path.is_file():
         raise ValidationError("comparison release manifest is missing")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    try:
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise ValidationError("comparison release manifest is not valid JSON") from exc
     if not isinstance(manifest, dict):
         raise ValidationError("comparison release manifest must be a JSON object")
     artifacts = manifest.get("artifacts", [])

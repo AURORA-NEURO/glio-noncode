@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -22,7 +21,7 @@ from .batch_runtime import MAX_BATCH_INPUT_BYTES, BatchResult, BatchRuntime
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .runtime import CaseRuntime
-from .serialization import canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes
 
 BATCH_RELEASE_VERSION = "batch-release-v1"
 BATCH_RELEASE_MANIFEST = "release.json"
@@ -512,7 +511,10 @@ def verify_batch_release_bundle(destination: str | Path) -> BatchReleaseVerifica
     manifest_path = root / BATCH_RELEASE_MANIFEST
     if not manifest_path.exists():
         raise ValidationError("release manifest is missing")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    try:
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise ValidationError("release manifest is not valid JSON") from exc
     if not isinstance(manifest, dict):
         raise ValidationError("release manifest must be a JSON object")
     artifacts = manifest.get("artifacts", [])
