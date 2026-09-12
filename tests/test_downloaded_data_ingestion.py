@@ -73,6 +73,26 @@ class DownloadedDataIngestionTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             ingestion_model.build_ingest(raw, catalog=catalog, member_names=(csv_name,), record_limit=1, overflow_policy="reject")
 
+    def test_duplicate_zip_members_are_rejected_before_parsing(self):
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("data/rows.json", '[{"id":"one"}]')
+            archive.writestr("data/rows.json", '[{"id":"two"}]')
+        raw = stream.getvalue()
+        with self.assertRaisesRegex(ValidationError, "duplicate member names"):
+            catalog_model.build_catalog(raw, catalog_id="duplicate-member-catalog")
+        with self.assertRaisesRegex(ValidationError, "duplicate member names"):
+            ingestion_model.build_ingest(raw, batch_id="duplicate-member-batch")
+
+    def test_duplicate_json_fields_are_rejected_without_last_value_wins(self):
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("data/duplicate.json", '{"id":"one","id":"two"}')
+        with self.assertRaisesRegex(ValidationError, "is invalid"):
+            catalog_model.build_catalog(
+                stream.getvalue(), catalog_id="duplicate-field-catalog"
+            )
+
     def test_query_and_query_audit_support_resources_and_empty_pages(self):
         batch = ingestion_model.build_ingest(self._zip(), batch_id="query-fixture-batch", record_limit=100)
         result = query_model.query_batch(batch, resources=("summary", "records", "lineage", "values"), member_name="data/table.csv", limit=100)

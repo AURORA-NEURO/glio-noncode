@@ -260,7 +260,11 @@ def _decode(raw: bytes, name: str) -> str:
 
 def _parse_json(raw: bytes, name: str) -> Any:
     try:
-        return json.loads(_decode(raw, name), parse_constant=_parse_constant)
+        return json.loads(
+            _decode(raw, name),
+            parse_constant=_parse_constant,
+            object_pairs_hook=catalog_model._unique_json_object,
+        )
     except (json.JSONDecodeError, ValidationError) as error:
         raise ValidationError(f"downloaded JSON member {name} is invalid") from error
 
@@ -282,7 +286,11 @@ def _yaml_scalar(value: str, name: str) -> Any:
             raise ValidationError(f"YAML member {name} has an invalid quoted scalar") from error
     if token.startswith(("[", "{")):
         try:
-            return json.loads(token, parse_constant=_parse_constant)
+            return json.loads(
+                token,
+                parse_constant=_parse_constant,
+                object_pairs_hook=catalog_model._unique_json_object,
+            )
         except (json.JSONDecodeError, ValidationError):
             try:
                 return ast.literal_eval(token)
@@ -759,7 +767,11 @@ def build_ingest(
         raise ValidationError("downloaded data source must be a ZIP archive") from error
     parsed: list[tuple[catalog_model.DownloadedDataMember, int, str, tuple[str, ...], Any]] = []
     with archive:
-        info_by_name = {info.filename: info for info in archive.infolist()}
+        infos = archive.infolist()
+        names = tuple(info.filename for info in infos)
+        if len(set(names)) != len(names):
+            raise ValidationError("downloaded data source contains duplicate member names")
+        info_by_name = {info.filename: info for info in infos}
         for member in selected:
             info = info_by_name.get(member.member_name)
             if info is None or not catalog_model._regular_member(info):

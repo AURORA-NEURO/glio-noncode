@@ -143,6 +143,17 @@ def _decode_text(raw: bytes, name: str) -> str:
         raise ValidationError(f"downloaded data member {name} is not UTF-8") from error
 
 
+def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Build JSON objects without silently collapsing duplicate keys."""
+
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValidationError(f"downloaded JSON object repeats field {key}")
+        result[key] = value
+    return result
+
+
 def _bounded_fields(fields: Sequence[Any], name: str) -> tuple[str, ...]:
     values = tuple(_label(str(field), f"{name} field") for field in fields)
     if len(values) > MAX_FIELDS or len(set(values)) != len(values):
@@ -152,7 +163,9 @@ def _bounded_fields(fields: Sequence[Any], name: str) -> tuple[str, ...]:
 
 def _inspect_json(raw: bytes, name: str) -> tuple[str, str, int, int, tuple[str, ...]]:
     try:
-        value = json.loads(_decode_text(raw, name))
+        value = json.loads(
+            _decode_text(raw, name), object_pairs_hook=_unique_json_object
+        )
     except (json.JSONDecodeError, ValidationError) as error:
         raise ValidationError(f"downloaded JSON member {name} is invalid") from error
     if isinstance(value, Mapping):
@@ -198,8 +211,8 @@ def _inspect(raw: bytes, name: str, suffix: str) -> tuple[str, str, int, int, tu
                 raise ValidationError(f"downloaded line-delimited member {name} has too many records")
             for line in lines:
                 try:
-                    json.loads(line)
-                except json.JSONDecodeError as error:
+                    json.loads(line, object_pairs_hook=_unique_json_object)
+                except (json.JSONDecodeError, ValidationError) as error:
                     raise ValidationError(f"downloaded line-delimited member {name} is invalid") from error
             return "json", "lines", len(lines), 0, ()
         return _inspect_json(raw, name)
@@ -339,6 +352,9 @@ def build_catalog(source: str | Path | bytes, *, catalog_id: str = "glio-noncode
             raise ValidationError("downloaded data source has too many members")
         if any(not _regular_member(info) for info in infos):
             raise ValidationError("downloaded data source contains an unsafe member")
+        names = tuple(info.filename for info in infos)
+        if len(set(names)) != len(names):
+            raise ValidationError("downloaded data source contains duplicate member names")
         total_uncompressed = sum(info.file_size for info in infos)
         if total_uncompressed > MAX_TOTAL_BYTES or any(info.file_size > MAX_MEMBER_BYTES for info in infos):
             raise ValidationError("downloaded data source exceeds an uncompressed byte bound")
