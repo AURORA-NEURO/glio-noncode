@@ -84,6 +84,13 @@ class DownloadedDataCatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "duplicate member names"):
             catalog_model.build_catalog(stream.getvalue(), catalog_id="case-collision")
 
+    def test_nonfinite_json_numbers_are_rejected(self):
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("data/nonfinite.json", '{"value":NaN}')
+        with self.assertRaisesRegex(ValidationError, "is invalid"):
+            catalog_model.build_catalog(stream.getvalue(), catalog_id="nonfinite-catalog")
+
     def test_disk_source_and_public_schemas(self):
         with tempfile.TemporaryDirectory() as temporary:
             source = Path(temporary) / "download.zip"

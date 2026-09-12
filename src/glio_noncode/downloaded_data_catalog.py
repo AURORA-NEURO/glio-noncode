@@ -19,7 +19,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes
 
 VERSION = "downloaded-data-catalog-v1"
 BOUNDARY = "public_downloaded_data_catalog"
@@ -170,10 +170,10 @@ def _bounded_fields(fields: Sequence[Any], name: str) -> tuple[str, ...]:
 
 def _inspect_json(raw: bytes, name: str) -> tuple[str, str, int, int, tuple[str, ...]]:
     try:
-        value = json.loads(
+        value = _strict_json_loads(
             _decode_text(raw, name), object_pairs_hook=_unique_json_object
         )
-    except (json.JSONDecodeError, ValidationError) as error:
+    except (ValueError, ValidationError) as error:
         raise ValidationError(f"downloaded JSON member {name} is invalid") from error
     if isinstance(value, Mapping):
         fields = _bounded_fields(tuple(value), name)
@@ -218,8 +218,8 @@ def _inspect(raw: bytes, name: str, suffix: str) -> tuple[str, str, int, int, tu
                 raise ValidationError(f"downloaded line-delimited member {name} has too many records")
             for line in lines:
                 try:
-                    json.loads(line, object_pairs_hook=_unique_json_object)
-                except (json.JSONDecodeError, ValidationError) as error:
+                    _strict_json_loads(line, object_pairs_hook=_unique_json_object)
+                except (ValueError, ValidationError) as error:
                     raise ValidationError(f"downloaded line-delimited member {name} is invalid") from error
             return "json", "lines", len(lines), 0, ()
         return _inspect_json(raw, name)

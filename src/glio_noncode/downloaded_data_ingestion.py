@@ -21,7 +21,7 @@ from typing import Any
 
 from . import downloaded_data_catalog as catalog_model
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes
 
 VERSION = "downloaded-data-ingestion-v1"
 BOUNDARY = "public_downloaded_data_ingestion"
@@ -260,12 +260,12 @@ def _decode(raw: bytes, name: str) -> str:
 
 def _parse_json(raw: bytes, name: str) -> Any:
     try:
-        return json.loads(
+        return _strict_json_loads(
             _decode(raw, name),
             parse_constant=_parse_constant,
             object_pairs_hook=catalog_model._unique_json_object,
         )
-    except (json.JSONDecodeError, ValidationError) as error:
+    except (ValueError, ValidationError) as error:
         raise ValidationError(f"downloaded JSON member {name} is invalid") from error
 
 
@@ -286,12 +286,14 @@ def _yaml_scalar(value: str, name: str) -> Any:
             raise ValidationError(f"YAML member {name} has an invalid quoted scalar") from error
     if token.startswith(("[", "{")):
         try:
-            return json.loads(
+            return _strict_json_loads(
                 token,
                 parse_constant=_parse_constant,
                 object_pairs_hook=catalog_model._unique_json_object,
             )
-        except (json.JSONDecodeError, ValidationError):
+        except ValidationError:
+            raise
+        except ValueError:
             try:
                 return ast.literal_eval(token)
             except (SyntaxError, ValueError) as error:

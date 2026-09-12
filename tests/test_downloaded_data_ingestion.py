@@ -101,6 +101,13 @@ class DownloadedDataIngestionTests(unittest.TestCase):
                 stream.getvalue(), catalog_id="duplicate-field-catalog"
             )
 
+    def test_nonfinite_json_numbers_are_rejected(self):
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("data/nonfinite.json", '{"value":1e1000000}')
+        with self.assertRaisesRegex(ValidationError, "is invalid"):
+            ingestion_model.build_ingest(stream.getvalue(), batch_id="nonfinite-batch")
+
     def test_query_and_query_audit_support_resources_and_empty_pages(self):
         batch = ingestion_model.build_ingest(self._zip(), batch_id="query-fixture-batch", record_limit=100)
         result = query_model.query_batch(batch, resources=("summary", "records", "lineage", "values"), member_name="data/table.csv", limit=100)
