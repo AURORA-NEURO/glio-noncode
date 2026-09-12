@@ -314,6 +314,15 @@ class MissionPlanReleaseTests(unittest.TestCase):
             (root / "mission-plan.md").write_bytes(
                 next(item.payload for item in bundle.artifacts if item.filename == "mission-plan.md")
             )
+            manifest_bytes = (root / MISSION_PLAN_RELEASE_MANIFEST_FILE).read_bytes()
+            (root / MISSION_PLAN_RELEASE_MANIFEST_FILE).write_text(
+                '{"release_id":"release-one","release_id":"shadow"}',
+                encoding="utf-8",
+            )
+            duplicate = verify_mission_plan_release(root)
+            self.assertFalse(duplicate.accepted)
+            self.assertIn(MISSION_PLAN_RELEASE_MANIFEST_FILE, duplicate.tampered_files)
+            (root / MISSION_PLAN_RELEASE_MANIFEST_FILE).write_bytes(manifest_bytes)
             (root / "unexpected.json").write_text("{}", encoding="utf-8")
             verification = verify_mission_plan_release(root)
             self.assertFalse(verification.accepted)
@@ -322,6 +331,13 @@ class MissionPlanReleaseTests(unittest.TestCase):
             verification = verify_mission_plan_release(root)
             self.assertFalse(verification.accepted)
             self.assertIn("release-checks.json", verification.missing_files)
+            (root / "release-checks.json").write_bytes(
+                next(item.payload for item in bundle.artifacts if item.filename == "release-checks.json")
+            )
+            (root / MISSION_PLAN_RELEASE_MANIFEST_FILE).unlink()
+            missing_manifest = verify_mission_plan_release(root)
+            self.assertFalse(missing_manifest.accepted)
+            self.assertIn(MISSION_PLAN_RELEASE_MANIFEST_FILE, missing_manifest.missing_files)
 
     def test_write_refuses_nonempty_destination_without_explicit_intent(self) -> None:
         bundle = build_mission_plan_release(self._receipt())

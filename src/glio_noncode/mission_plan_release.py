@@ -29,7 +29,13 @@ from .mission_runtime_public import (
     render_mission_plan_public_markdown,
 )
 from .module_fabric_support import contains_private_key
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable
+from .serialization import (
+    _strict_json_loads,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+    jsonable,
+)
 
 
 MISSION_PLAN_RELEASE_VERSION = "mission-plan-release-v1"
@@ -714,7 +720,12 @@ def verify_mission_plan_release(destination: str | Path) -> MissionPlanReleaseVe
         raise ValidationError("mission plan release directory is missing or is a symlink")
     manifest_path = root / MISSION_PLAN_RELEASE_MANIFEST_FILE
     if not manifest_path.is_file() or manifest_path.is_symlink():
-        return _verification(root=root, release_id="", missing_files=(MISSION_PLAN_RELEASE_MANIFEST_FILE,))
+        return _verification(
+            root=root,
+            release_id="",
+            accepted=False,
+            missing_files=(MISSION_PLAN_RELEASE_MANIFEST_FILE,),
+        )
     missing: list[str] = []
     unexpected: list[str] = []
     unsafe: list[str] = []
@@ -722,11 +733,21 @@ def verify_mission_plan_release(destination: str | Path) -> MissionPlanReleaseVe
     boundary: list[str] = []
     try:
         manifest_bytes = manifest_path.read_bytes()
-        manifest = json.loads(manifest_bytes.decode("utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
-        return _verification(root=root, release_id="", tampered_files=(MISSION_PLAN_RELEASE_MANIFEST_FILE,))
+        manifest = _strict_json_loads(manifest_bytes.decode("utf-8"))
+    except (OSError, UnicodeError, ValueError, json.JSONDecodeError):
+        return _verification(
+            root=root,
+            release_id="",
+            accepted=False,
+            tampered_files=(MISSION_PLAN_RELEASE_MANIFEST_FILE,),
+        )
     if not isinstance(manifest, dict):
-        return _verification(root=root, release_id="", tampered_files=(MISSION_PLAN_RELEASE_MANIFEST_FILE,))
+        return _verification(
+            root=root,
+            release_id="",
+            accepted=False,
+            tampered_files=(MISSION_PLAN_RELEASE_MANIFEST_FILE,),
+        )
     release_id = str(manifest.get("release_id", ""))
     version_valid = manifest.get("release_version") == MISSION_PLAN_RELEASE_VERSION
     listed_address = manifest.get("manifest_address")
@@ -807,9 +828,9 @@ def verify_mission_plan_release(destination: str | Path) -> MissionPlanReleaseVe
         payloads[filename] = payload
         if filename.endswith(".json"):
             try:
-                parsed = json.loads(payload.decode("utf-8"))
+                parsed = _strict_json_loads(payload.decode("utf-8"))
                 boundary.extend(f"{filename}:{item}" for item in _private_key_paths(parsed))
-            except (UnicodeError, json.JSONDecodeError):
+            except (UnicodeError, ValueError, json.JSONDecodeError):
                 tampered.append(filename)
     receipt: MissionPlanPublicReceipt | None = None
     receipt_address_valid = False
@@ -820,7 +841,7 @@ def verify_mission_plan_release(destination: str | Path) -> MissionPlanReleaseVe
     summary_body: Mapping[str, Any] | None = None
     if "mission-plan.json" in payloads:
         try:
-            raw_receipt = json.loads(payloads["mission-plan.json"].decode("utf-8"))
+            raw_receipt = _strict_json_loads(payloads["mission-plan.json"].decode("utf-8"))
             receipt = MissionPlanPublicReceipt.from_mapping(raw_receipt)
             receipt_address_valid = (
                 receipt.content_address == manifest.get("plan_address")
@@ -833,11 +854,11 @@ def verify_mission_plan_release(destination: str | Path) -> MissionPlanReleaseVe
             if payloads["mission-plan.json"] != mission_plan_public_json(receipt).encode("utf-8"):
                 tampered.append("mission-plan.json")
                 exact_bytes = False
-        except (UnicodeError, json.JSONDecodeError, ValidationError, TypeError):
+        except (UnicodeError, ValueError, json.JSONDecodeError, ValidationError, TypeError):
             tampered.append("mission-plan.json")
     if "release-checks.json" in payloads:
         try:
-            checks_body = json.loads(payloads["release-checks.json"].decode("utf-8"))
+            checks_body = _strict_json_loads(payloads["release-checks.json"].decode("utf-8"))
             if not isinstance(checks_body, Mapping):
                 raise ValidationError("release checks must be an object")
             _address_without_content(
@@ -867,7 +888,7 @@ def verify_mission_plan_release(destination: str | Path) -> MissionPlanReleaseVe
             tampered.append("release-checks.json")
     if "release-summary.json" in payloads:
         try:
-            summary_body = json.loads(payloads["release-summary.json"].decode("utf-8"))
+            summary_body = _strict_json_loads(payloads["release-summary.json"].decode("utf-8"))
             if not isinstance(summary_body, Mapping):
                 raise ValidationError("release summary must be an object")
             _address_without_content(
@@ -951,7 +972,7 @@ def verify_mission_plan_release(destination: str | Path) -> MissionPlanReleaseVe
 
 def _load_manifest(root: Path) -> dict[str, Any]:
     try:
-        value = json.loads((root / MISSION_PLAN_RELEASE_MANIFEST_FILE).read_text(encoding="utf-8"))
+        value = _strict_json_loads((root / MISSION_PLAN_RELEASE_MANIFEST_FILE).read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise ValidationError(f"cannot load mission plan release manifest: {exc}") from exc
     if not isinstance(value, dict):
@@ -968,9 +989,9 @@ def load_mission_plan_release(destination: str | Path) -> MissionPlanOfflineRele
         raise ValidationError("mission plan release filesystem verification failed")
     manifest = _load_manifest(root)
     receipt = MissionPlanPublicReceipt.from_mapping(
-        json.loads((root / "mission-plan.json").read_text(encoding="utf-8"))
+        _strict_json_loads((root / "mission-plan.json").read_text(encoding="utf-8"))
     )
-    checks_body = json.loads((root / "release-checks.json").read_text(encoding="utf-8"))
+    checks_body = _strict_json_loads((root / "release-checks.json").read_text(encoding="utf-8"))
     checks = tuple(MissionPlanReleaseCheck.from_mapping(item) for item in checks_body["checks"])
     body = {
         "path": str(root),

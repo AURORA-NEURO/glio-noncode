@@ -33,7 +33,13 @@ from .mission_plan_release import (
     load_mission_plan_release,
 )
 from .mission_runtime_public import MissionPlanPublicReceipt
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable
+from .serialization import (
+    _strict_json_loads,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+    jsonable,
+)
 
 
 MISSION_PLAN_RELEASE_CATALOG_VERSION = "mission-plan-release-catalog-v1"
@@ -829,7 +835,7 @@ def verify_mission_plan_release_catalog(destination: str | Path) -> MissionPlanR
     exact_bytes = not missing and not unexpected
     manifest_body: dict[str, Any] = {}
     try:
-        manifest_body = json.loads((root / MISSION_PLAN_RELEASE_CATALOG_MANIFEST_FILE).read_text(encoding="utf-8"))
+        manifest_body = _strict_json_loads((root / MISSION_PLAN_RELEASE_CATALOG_MANIFEST_FILE).read_text(encoding="utf-8"))
         catalog_id = _text(manifest_body.get("catalog_id"), "manifest.catalog_id", maximum=96)
         if _private_key_paths(manifest_body):
             public_boundary_valid = False
@@ -856,20 +862,20 @@ def verify_mission_plan_release_catalog(destination: str | Path) -> MissionPlanR
                 tampered.append(filename)
             else:
                 verified_count += 1
-            if _private_key_paths(json.loads(payload.decode("utf-8"))) if filename.endswith(".json") else False:
+            if _private_key_paths(_strict_json_loads(payload.decode("utf-8"))) if filename.endswith(".json") else False:
                 public_boundary_valid = False
         if (root / "mission-plan-release-catalog.json").exists():
-            catalog_payload = json.loads((root / "mission-plan-release-catalog.json").read_text(encoding="utf-8"))
+            catalog_payload = _strict_json_loads((root / "mission-plan-release-catalog.json").read_text(encoding="utf-8"))
             catalog = MissionPlanReleaseCatalog.from_mapping(catalog_payload)
             catalog_address_valid = catalog.content_address == manifest_body.get("catalog_address")
         if (root / "catalog-checks.json").exists():
-            checks_payload = json.loads((root / "catalog-checks.json").read_text(encoding="utf-8"))
+            checks_payload = _strict_json_loads((root / "catalog-checks.json").read_text(encoding="utf-8"))
             checks = tuple(MissionPlanReleaseCatalogCheck.from_mapping(item) for item in checks_payload.get("checks", ()))
             checks_address_valid = checks_payload.get("checks_address") == content_hash(
                 {"checks": checks}, prefix="mission-plan-release-catalog-checks"
             ) and checks_payload.get("checks_address") == manifest_body.get("checks_address")
         if (root / "catalog-summary.json").exists():
-            summary = json.loads((root / "catalog-summary.json").read_text(encoding="utf-8"))
+            summary = _strict_json_loads((root / "catalog-summary.json").read_text(encoding="utf-8"))
             summary_address = summary.get("content_address")
             summary_address_valid = summary_address == content_hash(
                 {key: value for key, value in summary.items() if key != "content_address"},
@@ -920,11 +926,11 @@ def load_mission_plan_release_catalog(destination: str | Path) -> MissionPlanRel
     if not verification.accepted:
         raise ValidationError("catalog verification failed: " + canonical_json(verification.to_dict()))
     root = Path(destination)
-    manifest = json.loads((root / MISSION_PLAN_RELEASE_CATALOG_MANIFEST_FILE).read_text(encoding="utf-8"))
+    manifest = _strict_json_loads((root / MISSION_PLAN_RELEASE_CATALOG_MANIFEST_FILE).read_text(encoding="utf-8"))
     catalog = MissionPlanReleaseCatalog.from_mapping(
-        json.loads((root / "mission-plan-release-catalog.json").read_text(encoding="utf-8"))
+        _strict_json_loads((root / "mission-plan-release-catalog.json").read_text(encoding="utf-8"))
     )
-    checks_payload = json.loads((root / "catalog-checks.json").read_text(encoding="utf-8"))
+    checks_payload = _strict_json_loads((root / "catalog-checks.json").read_text(encoding="utf-8"))
     checks = tuple(MissionPlanReleaseCatalogCheck.from_mapping(item) for item in checks_payload["checks"])
     body = {
         "catalog": catalog,
