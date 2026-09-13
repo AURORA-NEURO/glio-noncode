@@ -151,7 +151,7 @@ class RegistryHistoryPersistenceTests(RegistryHistoryFixture):
                 with self.assertRaises(ValidationError):
                     history.load_history(destination)
 
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(history, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     history.load_history(destination)
 

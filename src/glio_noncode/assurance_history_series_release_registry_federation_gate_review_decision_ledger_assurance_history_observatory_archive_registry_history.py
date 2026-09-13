@@ -21,6 +21,7 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry as registry_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_diff as diff_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import (
     _strict_json_loads,
@@ -362,16 +363,24 @@ def history_manifest_json(value: RegistryHistory) -> str:
 
 
 def _write_atomic_directory(destination: Path, payload: Mapping[str, bytes], *, overwrite: bool) -> Path:
-    if destination.exists():
-        if not overwrite:
-            raise ValidationError("registry history destination exists; explicit overwrite is required")
-        if destination.is_symlink() or not destination.is_dir() or {item.name for item in destination.iterdir()} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in destination.iterdir()):
-            raise ValidationError("registry history destination is not an exact compatible directory")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "registry history destination")
+        if destination.is_symlink():
+            raise ValidationError("registry history destination cannot be a symlink")
+        if destination.exists():
+            if not overwrite:
+                raise ValidationError("registry history destination exists; explicit overwrite is required")
+            if not destination.is_dir() or {item.name for item in destination.iterdir()} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in destination.iterdir()):
+                raise ValidationError("registry history destination is not an exact compatible directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("registry history destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=".gnd-observatory-history-", dir=str(destination.parent)))
     try:
         for name in FILES:
-            (temporary / name).write_bytes(payload[name])
+            atomic_write_bytes(temporary / name, payload[name], field=f"registry history staging artifact {name}")
         if destination.exists():
             shutil.rmtree(destination)
         temporary.replace(destination)
@@ -387,16 +396,19 @@ def write_history(value: RegistryHistory, destination: str | Path, *, overwrite:
 
 def _read_directory(source: str | Path) -> dict[str, bytes]:
     directory = Path(source)
-    if directory.is_symlink() or not directory.is_dir():
-        raise ValidationError("registry history input must be a regular directory")
     try:
+        _validate_parent(directory.parent, "registry history input")
+        if directory.is_symlink() or not directory.is_dir():
+            raise ValidationError("registry history input must be a regular directory")
         children = tuple(directory.iterdir())
+        if {item.name for item in children} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in children):
+            raise ValidationError("registry history directory member set is invalid")
     except OSError as error:
         raise ValidationError("registry history directory could not be inspected") from error
-    if {item.name for item in children} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in children):
-        raise ValidationError("registry history directory member set is invalid")
     try:
-        return {name: (directory / name).read_bytes() for name in FILES}
+        return {name: read_bytes(directory / name, field=f"registry history member {name}") for name in FILES}
+    except ValidationError:
+        raise
     except OSError as error:
         raise ValidationError("registry history artifact could not be read") from error
 
