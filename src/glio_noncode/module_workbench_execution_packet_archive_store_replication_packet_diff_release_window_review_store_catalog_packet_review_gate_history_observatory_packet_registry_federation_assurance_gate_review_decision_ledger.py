@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -37,8 +36,15 @@ from typing import Any
 from . import (
     module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review as review_model,
 )
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 FederationReviewQueue = review_model.FederationReviewQueue
 FederationReviewItem = review_model.FederationReviewItem
@@ -1201,9 +1207,20 @@ def _entries_document(value: FederationReviewDecisionLedger) -> dict[str, Any]:
 def write_decision_ledger(value: FederationReviewDecisionLedger, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_decision_ledger(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
-        raise ValidationError("decision ledger destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "decision ledger destination")
+        if destination.is_symlink():
+            raise ValidationError("decision ledger destination cannot be a symlink")
+        if destination.exists():
+            if (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
+                raise ValidationError("decision ledger destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("decision ledger destination is not a regular directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("decision ledger destination could not be prepared") from error
     ledger_raw = canonical_bytes(_ledger_document(value))
     entries_raw = canonical_bytes(_entries_document(value))
     manifest_body = _manifest_body(value, ledger_raw, entries_raw)
@@ -1211,9 +1228,9 @@ def write_decision_ledger(value: FederationReviewDecisionLedger, directory: str 
     manifest_raw = canonical_bytes(manifest_body)
     temporary = Path(tempfile.mkdtemp(prefix=f".{DECISION_PREFIX}-", dir=str(destination.parent)))
     try:
-        (temporary / LEDGER_NAME).write_bytes(ledger_raw)
-        (temporary / ENTRIES_NAME).write_bytes(entries_raw)
-        (temporary / MANIFEST_NAME).write_bytes(manifest_raw)
+        atomic_write_bytes(temporary / LEDGER_NAME, ledger_raw, field="decision ledger staging document")
+        atomic_write_bytes(temporary / ENTRIES_NAME, entries_raw, field="decision entries staging document")
+        atomic_write_bytes(temporary / MANIFEST_NAME, manifest_raw, field="decision manifest staging document")
         if destination.exists():
             if not destination.is_dir() or any(destination.iterdir()):
                 if not overwrite:
@@ -1229,7 +1246,7 @@ def write_decision_ledger(value: FederationReviewDecisionLedger, directory: str 
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -1244,7 +1261,7 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
     artifact = next((item for item in artifacts if item.get("name") == name), None)
     if artifact is None:
         raise ValidationError(f"decision manifest is missing {name}")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=f"decision {name} artifact")
     if artifact.get("bytes") != len(raw) or artifact.get("byte_address") != hash_bytes(raw):
         raise ValidationError(f"decision {name} bytes are not addressed")
     expected_file = content_hash({"name": name, "byte_address": hash_bytes(raw)}, prefix=DECISION_PREFIX + "-file")
@@ -1254,8 +1271,14 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
 
 def load_decision_ledger(directory: str | Path) -> FederationReviewDecisionLedger:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir():
-        raise ValidationError("decision ledger input must be a directory")
+    try:
+        _validate_parent(source.parent, "decision ledger input")
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("decision ledger input must be a directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("decision ledger input could not be inspected") from error
     children = tuple(source.iterdir())
     if any(item.is_symlink() for item in children) or {item.name for item in children} != set(FILES):
         raise ValidationError("decision ledger file set is invalid")
