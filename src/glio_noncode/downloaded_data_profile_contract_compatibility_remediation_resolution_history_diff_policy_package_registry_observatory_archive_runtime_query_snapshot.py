@@ -18,6 +18,7 @@ from . import downloaded_data_profile_contract_compatibility_remediation_resolut
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query as query_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_audit as query_audit_model
 from .errors import ValidationError
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
@@ -387,7 +388,7 @@ def summary_document(value: DownloadedDataProfileContractCompatibilityRemediatio
 
 
 def _write(path: Path, raw: bytes) -> None:
-    path.write_bytes(raw)
+    atomic_write_bytes(path, raw, field="snapshot artifact")
 
 
 def persist_snapshot(value: DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiffPolicyPackageRegistryObservatoryArchiveRuntimeQuerySnapshot, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -399,7 +400,10 @@ def persist_snapshot(value: DownloadedDataProfileContractCompatibilityRemediatio
     if target.exists():
         if target.is_symlink() or not target.is_dir() or not overwrite:
             raise ValidationError("snapshot destination exists; explicit overwrite is required")
+    _validate_parent(target.parent, "snapshot destination")
     target.parent.mkdir(parents=True, exist_ok=True)
+    if target.is_symlink():
+        raise ValidationError("snapshot destination must not be a symlink")
     temporary = Path(tempfile.mkdtemp(prefix=target.name + ".", dir=target.parent))
     try:
         for filename in FILES:
@@ -415,9 +419,9 @@ def persist_snapshot(value: DownloadedDataProfileContractCompatibilityRemediatio
 
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=f"snapshot member {path.name}")
         value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"snapshot member {path.name}")
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError(f"snapshot member {path.name} is not valid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"snapshot member {path.name} is not canonical")
@@ -449,7 +453,11 @@ def load_snapshot(destination: str | Path):
     documents = _documents(candidate)
     expected_members = {"manifest.json": canonical_bytes(expected_manifest.to_dict()), **documents}
     for filename in FILES:
-        if (root / filename).read_bytes() != expected_members[filename]:
+        try:
+            actual = read_bytes(root / filename, field=f"snapshot member {filename}")
+        except (OSError, ValidationError) as error:
+            raise ValidationError(f"snapshot member {filename} could not be read") from error
+        if actual != expected_members[filename]:
             raise ValidationError(f"snapshot member {filename} does not replay")
     for receipt in manifest.artifacts:
         raw = expected_members[receipt.name]
