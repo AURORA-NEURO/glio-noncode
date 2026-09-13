@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive as archive_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -409,18 +410,26 @@ def _validate_chunk_directory(directory: Path, value: ArchiveTransfer, *, requir
 
 
 def _write_atomic_directory(destination: Path, value: ArchiveTransfer, *, parts: Mapping[int, bytes], overwrite: bool) -> Path:
-    if destination.exists():
-        if not overwrite:
-            raise ValidationError("transfer destination exists; explicit overwrite is required")
-        if destination.is_symlink() or not destination.is_dir():
-            raise ValidationError("transfer destination must be a regular directory")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "transfer destination")
+        if destination.is_symlink():
+            raise ValidationError("transfer destination cannot be a symlink")
+        if destination.exists():
+            if not overwrite:
+                raise ValidationError("transfer destination exists; explicit overwrite is required")
+            if not destination.is_dir():
+                raise ValidationError("transfer destination must be a regular directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("transfer destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=".comparison-history-transfer-", dir=str(destination.parent)))
     try:
         (temporary / CHUNK_DIRECTORY).mkdir()
-        (temporary / TRANSFER_DIRECTORY_MANIFEST).write_bytes(canonical_bytes(_manifest(value)))
+        atomic_write_bytes(temporary / TRANSFER_DIRECTORY_MANIFEST, canonical_bytes(_manifest(value)), field="transfer staging manifest")
         for index in sorted(parts):
-            (temporary / chunk_name(index)).write_bytes(parts[index])
+            atomic_write_bytes(temporary / chunk_name(index), parts[index], field=f"transfer staging chunk {index}")
         if destination.exists():
             shutil.rmtree(destination)
         os.replace(temporary, destination)
@@ -446,9 +455,11 @@ def _read_manifest(directory: Path) -> ArchiveTransfer:
     manifest_path = directory / TRANSFER_DIRECTORY_MANIFEST
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise ValidationError("transfer manifest is missing or unsafe")
-    raw = manifest_path.read_bytes()
     try:
+        raw = read_bytes(manifest_path, field="transfer manifest")
         document = _strict_json_loads(raw.decode("utf-8"))
+    except ValidationError:
+        raise
     except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("transfer manifest is invalid JSON") from error
     if canonical_bytes(document) != raw:
@@ -466,24 +477,37 @@ def _read_manifest(directory: Path) -> ArchiveTransfer:
 
 def load_transfer(source: str | Path) -> ArchiveTransfer:
     directory = Path(source)
+    _validate_parent(directory.parent, "transfer input")
     if directory.is_symlink() or not directory.is_dir():
         raise ValidationError("transfer input must be a regular directory")
     value = _read_manifest(directory)
     indices = _validate_chunk_directory(directory, value, require_complete=True)
-    parts = {index: (directory / chunk_name(index)).read_bytes() for index in indices}
+    try:
+        parts = {index: read_bytes(directory / chunk_name(index), field=f"transfer chunk {index}") for index in indices}
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("transfer chunk could not be read") from error
     loaded = ArchiveTransfer(value.transfer_id, value.version, value.boundary, value.archive_address, value.archive_size, value.chunk_size, value.chunk_count, value.chunks, value.content_address, payload=parts)
     return verify_transfer(loaded)
 
 
 def load_partial_transfer(source: str | Path) -> TransferAssembler:
     directory = Path(source)
+    _validate_parent(directory.parent, "partial transfer input")
     if directory.is_symlink() or not directory.is_dir():
         raise ValidationError("partial transfer input must be a regular directory")
     value = _read_manifest(directory)
     indices = _validate_chunk_directory(directory, value, require_complete=False)
     assembler = TransferAssembler(value)
     for index in indices:
-        assembler.add_chunk(index, (directory / chunk_name(index)).read_bytes())
+        try:
+            raw = read_bytes(directory / chunk_name(index), field=f"partial transfer chunk {index}")
+        except ValidationError:
+            raise
+        except OSError as error:
+            raise ValidationError("partial transfer chunk could not be read") from error
+        assembler.add_chunk(index, raw)
     return assembler
 
 
