@@ -15,14 +15,13 @@ from __future__ import annotations
 
 import csv
 import io
-import os
-import tempfile
 import zipfile
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff as diff_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -345,22 +344,21 @@ def archive_json(value: RecoveryExecutionRuntimeRegistryHistoryDiffArchive) -> s
 
 
 def _write_atomic_file(destination: Path, raw: bytes, *, overwrite: bool) -> Path:
-    if destination.exists():
-        if not overwrite:
-            raise ValidationError("history diff archive destination exists; explicit overwrite is required")
-        if destination.is_symlink() or not destination.is_file():
-            raise ValidationError("history diff archive destination must be a regular file")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(prefix=".history-diff-archive-", suffix=".zip", dir=str(destination.parent))
-    os.close(descriptor)
-    temporary = Path(temporary_name)
     try:
-        temporary.write_bytes(raw)
-        os.replace(temporary, destination)
+        _validate_parent(destination.parent, "history diff archive destination")
+        if destination.is_symlink():
+            raise ValidationError("history diff archive destination cannot be a symlink")
+        if destination.exists():
+            if not overwrite:
+                raise ValidationError("history diff archive destination exists; explicit overwrite is required")
+            if not destination.is_file():
+                raise ValidationError("history diff archive destination must be a regular file")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        return atomic_write_bytes(destination, raw, field="history diff archive destination")
+    except ValidationError:
+        raise
     except OSError as error:
-        temporary.unlink(missing_ok=True)
         raise ValidationError("history diff archive destination could not be written") from error
-    return destination
 
 
 def write_archive(value: RecoveryExecutionRuntimeRegistryHistoryDiffArchive, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -378,11 +376,16 @@ def _read_archive_bytes(source: str | Path | bytes) -> tuple[dict[str, bytes], i
         path = Path(source)
         if path.is_symlink() or not path.is_file():
             raise ValidationError("history diff archive input must be a regular file")
-        physical_size = path.stat().st_size
+        try:
+            raw_source = read_bytes(path, field="history diff archive input")
+        except ValidationError:
+            raise
+        except OSError as error:
+            raise ValidationError("history diff archive input could not be read") from error
+        physical_size = len(raw_source)
         if physical_size > MAX_ARCHIVE_BYTES:
             raise ValidationError("history diff archive exceeds the maximum byte bound")
-        stream = path.open("rb")
-        close_stream = True
+        stream = io.BytesIO(raw_source)
     try:
         try:
             archive = zipfile.ZipFile(stream, "r")
