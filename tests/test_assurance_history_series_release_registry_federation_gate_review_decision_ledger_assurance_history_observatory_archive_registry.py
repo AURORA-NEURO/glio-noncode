@@ -277,9 +277,24 @@ class RegistryPersistenceTests(RegistryFixture):
                 with self.assertRaises(ValidationError):
                     registry.load_registry(destination)
 
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(registry, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     registry.load_registry(destination)
+
+    def test_registry_writer_rejects_symlinked_destination_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self.registry_value(root / "source")
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("directory symlinks are unavailable")
+            with self.assertRaises(ValidationError):
+                registry.write_registry(value, linked_parent / "registry")
+            self.assertEqual(tuple(external.iterdir()), ())
 
     def test_registry_loader_rejects_manifest_receipt_set_mismatch(self):
         with tempfile.TemporaryDirectory() as temporary:

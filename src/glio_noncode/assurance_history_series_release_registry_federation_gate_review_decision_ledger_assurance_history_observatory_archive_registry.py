@@ -31,6 +31,7 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory as observatory_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive as archive_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import (
     _strict_json_loads,
@@ -536,6 +537,9 @@ def registry_bytes(value: ObservatoryArchiveRegistry) -> Mapping[str, bytes]:
 
 
 def _write_atomic_directory(destination: Path, payload: Mapping[str, bytes], *, overwrite: bool) -> Path:
+    _validate_parent(destination.parent, "registry destination")
+    if destination.is_symlink():
+        raise ValidationError("registry destination must not be a symlink")
     if destination.exists():
         if not overwrite:
             raise ValidationError("registry destination exists; explicit overwrite is required")
@@ -545,8 +549,10 @@ def _write_atomic_directory(destination: Path, payload: Mapping[str, bytes], *, 
     temporary = Path(tempfile.mkdtemp(prefix=".gnd-observatory-registry-", dir=str(destination.parent)))
     try:
         for name in FILES:
-            (temporary / name).write_bytes(payload[name])
+            atomic_write_bytes(temporary / name, payload[name], field="registry artifact")
         if destination.exists():
+            if destination.is_symlink() or not destination.is_dir():
+                raise ValidationError("registry destination must be a regular directory")
             shutil.rmtree(destination)
         os.replace(temporary, destination)
     except Exception:
@@ -561,6 +567,7 @@ def write_registry(value: ObservatoryArchiveRegistry, destination: str | Path, *
 
 def _read_directory(source: str | Path) -> dict[str, bytes]:
     directory = Path(source)
+    _validate_parent(directory, "registry input")
     if directory.is_symlink() or not directory.is_dir():
         raise ValidationError("registry input must be a regular directory")
     try:
@@ -570,8 +577,8 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
     if {item.name for item in children} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in children):
         raise ValidationError("registry directory member set is invalid")
     try:
-        return {name: (directory / name).read_bytes() for name in FILES}
-    except OSError as error:
+        return {name: read_bytes(directory / name, field="registry artifact") for name in FILES}
+    except (OSError, ValidationError) as error:
         raise ValidationError("registry artifact could not be read") from error
 
 
