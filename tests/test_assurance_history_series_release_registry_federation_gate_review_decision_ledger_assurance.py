@@ -363,7 +363,7 @@ class AssurancePersistenceTests(AssuranceFixture):
                 with self.assertRaises(ValidationError):
                     assurance.load_assurance_gate(target)
 
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(assurance, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     assurance.load_assurance_gate(target)
 
@@ -428,6 +428,20 @@ class AssurancePersistenceTests(AssuranceFixture):
                 self.skipTest("directory symlinks are unavailable")
             with self.assertRaises(ValidationError):
                 assurance.load_assurance_gate(link)
+
+    def test_bundle_writer_rejects_symlinked_destination_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("directory symlinks are unavailable")
+            with self.assertRaises(ValidationError):
+                assurance.write_assurance_gate(self.build(self.ready_ledger), linked_parent / "bundle")
+            self.assertEqual(tuple(external.iterdir()), ())
 
 
 class AssuranceDiffTests(AssuranceFixture):
@@ -513,7 +527,7 @@ class AssuranceDiffTests(AssuranceFixture):
                     assurance.load_diff(target)
 
             assurance.write_diff(diff, target, overwrite=True)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(assurance, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     assurance.load_diff(target)
 

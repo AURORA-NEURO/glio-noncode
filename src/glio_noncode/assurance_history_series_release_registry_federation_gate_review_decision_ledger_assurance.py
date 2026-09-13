@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review as decision_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import (
     _strict_json_loads,
@@ -1118,6 +1119,12 @@ def _manifest_address(value: Mapping[str, Any]) -> str:
 def write_assurance_gate(value: DecisionLedgerAssuranceGate, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_assurance_gate(value)
     destination = Path(directory)
+    try:
+        _validate_parent(destination.parent, "assurance gate destination")
+    except ValidationError:
+        raise
+    if destination.is_symlink():
+        raise ValidationError("assurance gate destination must not be a symlink")
     if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
         raise ValidationError("assurance gate destination already exists")
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -1126,12 +1133,14 @@ def write_assurance_gate(value: DecisionLedgerAssuranceGate, directory: str | Pa
     manifest["manifest_address"] = _manifest_address(manifest)
     temporary = Path(tempfile.mkdtemp(prefix=".glio-ledger-assurance-", dir=str(destination.parent)))
     try:
-        (temporary / ASSURANCE_NAME).write_bytes(assurance_raw)
-        (temporary / GATE_NAME).write_bytes(gate_raw)
-        (temporary / MANIFEST_NAME).write_bytes(canonical_bytes(manifest))
+        atomic_write_bytes(temporary / ASSURANCE_NAME, assurance_raw, field="assurance artifact")
+        atomic_write_bytes(temporary / GATE_NAME, gate_raw, field="assurance artifact")
+        atomic_write_bytes(temporary / MANIFEST_NAME, canonical_bytes(manifest), field="assurance manifest")
         if destination.exists():
             if not destination.is_dir() or not overwrite:
                 raise ValidationError("assurance gate destination cannot be replaced")
+            if destination.is_symlink():
+                raise ValidationError("assurance gate destination must not be a symlink")
             shutil.rmtree(destination)
         os.replace(temporary, destination)
     except Exception:
@@ -1144,9 +1153,9 @@ def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=field)
         value = _strict_json_loads(raw.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, ValidationError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is invalid JSON") from exc
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} is not canonical JSON")
@@ -1158,8 +1167,8 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
     if artifact is None:
         raise ValidationError(f"assurance manifest is missing {name}")
     try:
-        raw = path.read_bytes()
-    except OSError as error:
+        raw = read_bytes(path, field=f"assurance {name}")
+    except (OSError, ValidationError) as error:
         raise ValidationError(f"assurance {name} could not be read") from error
     byte_address = hash_bytes(raw)
     if artifact.get("bytes") != len(raw) or artifact.get("byte_address") != byte_address:
@@ -1170,6 +1179,10 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
 
 def load_assurance_gate(directory: str | Path) -> DecisionLedgerAssuranceGate:
     source = Path(directory)
+    try:
+        _validate_parent(source, "assurance gate source")
+    except ValidationError:
+        raise
     if source.is_symlink() or not source.is_dir():
         raise ValidationError("assurance gate file set is invalid")
     try:
@@ -1206,6 +1219,12 @@ def _diff_manifest_address(value: Mapping[str, Any]) -> str:
 def write_diff(value: AssuranceDiff, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_diff(value)
     destination = Path(directory)
+    try:
+        _validate_parent(destination.parent, "assurance diff destination")
+    except ValidationError:
+        raise
+    if destination.is_symlink():
+        raise ValidationError("assurance diff destination must not be a symlink")
     if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
         raise ValidationError("assurance diff destination already exists")
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -1214,11 +1233,13 @@ def write_diff(value: AssuranceDiff, directory: str | Path, *, overwrite: bool =
     manifest["manifest_address"] = _diff_manifest_address(manifest)
     temporary = Path(tempfile.mkdtemp(prefix=".glio-ledger-assurance-diff-", dir=str(destination.parent)))
     try:
-        (temporary / DIFF_NAME).write_bytes(raw)
-        (temporary / MANIFEST_NAME).write_bytes(canonical_bytes(manifest))
+        atomic_write_bytes(temporary / DIFF_NAME, raw, field="assurance diff artifact")
+        atomic_write_bytes(temporary / MANIFEST_NAME, canonical_bytes(manifest), field="assurance diff manifest")
         if destination.exists():
             if not destination.is_dir() or not overwrite:
                 raise ValidationError("assurance diff destination cannot be replaced")
+            if destination.is_symlink():
+                raise ValidationError("assurance diff destination must not be a symlink")
             shutil.rmtree(destination)
         os.replace(temporary, destination)
     except Exception:
@@ -1229,6 +1250,10 @@ def write_diff(value: AssuranceDiff, directory: str | Path, *, overwrite: bool =
 
 def load_diff(directory: str | Path) -> AssuranceDiff:
     source = Path(directory)
+    try:
+        _validate_parent(source, "assurance diff source")
+    except ValidationError:
+        raise
     if source.is_symlink() or not source.is_dir():
         raise ValidationError("assurance diff file set is invalid")
     try:
@@ -1244,8 +1269,8 @@ def load_diff(directory: str | Path) -> AssuranceDiff:
         raise ValidationError("assurance diff manifest contract is invalid")
     artifact = _mapping(manifest["artifact"], "assurance diff artifact")
     try:
-        raw = (source / DIFF_NAME).read_bytes()
-    except OSError as error:
+        raw = read_bytes(source / DIFF_NAME, field="assurance diff document")
+    except (OSError, ValidationError) as error:
         raise ValidationError("assurance diff document could not be read") from error
     if artifact.get("name") != DIFF_NAME or artifact.get("bytes") != len(raw) or artifact.get("byte_address") != hash_bytes(raw) or artifact.get("file_address") != content_hash({"name": DIFF_NAME, "byte_address": hash_bytes(raw)}, prefix=DIFF_PREFIX + "-file"):
         raise ValidationError("assurance diff artifact is invalid")
