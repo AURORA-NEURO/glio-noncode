@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, read_bytes
 from .deployment_frontier_offline_closure_certification import certify_deployment_frontier_closure
 from .deployment_frontier_offline_closure_failure_injection import (
     build_deployment_frontier_closure_failure_report,
@@ -29,6 +30,7 @@ from .deployment_frontier_offline_closure_summary import (
 )
 from .deployment_frontier_offline_closure_support import safe_relative_path
 from .deployment_frontier_offline_contracts import DeploymentFrontierOfflineBundle
+from .errors import ValidationError
 from .serialization import canonical_json, hash_bytes, jsonable
 
 DEPLOYMENT_FRONTIER_CLOSURE_EXPORT_VERSION = "deployment-frontier-closure-export-v1"
@@ -243,12 +245,14 @@ def write_deployment_frontier_closure_export(
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.parent.is_symlink() or not target.parent.is_dir() or target.is_symlink():
             raise ValueError("D16 closure export artifact path is unsafe")
-        target.write_bytes(artifact.content)
+        atomic_write_bytes(target, artifact.content, field="D16 closure export artifact path")
     manifest_path = _safe_export_path(root, "manifest.json")
     if manifest_path.is_symlink():
         raise ValueError("D16 closure export manifest path is unsafe")
-    manifest_path.write_bytes(
-        (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8")
+    atomic_write_bytes(
+        manifest_path,
+        (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8"),
+        field="D16 closure export manifest path",
     )
     return root
 
@@ -273,13 +277,21 @@ def verify_deployment_frontier_closure_export(
     if not manifest_path.is_file() or manifest_path.is_symlink():
         missing.add("manifest.json")
     unexpected = set(actual) - set(expected)
-    changed = {
-        path
-        for path in set(expected) & set(actual)
-        if actual[path].read_bytes() != expected[path].content
-    }
-    if manifest_path.is_file() and not manifest_path.is_symlink() and manifest_path.read_bytes() != expected_manifest:
-        changed.add("manifest.json")
+    changed: set[str] = set()
+    for path in set(expected) & set(actual):
+        try:
+            matches = read_bytes(actual[path], field="D16 closure export artifact path") == expected[path].content
+        except (OSError, ValidationError):
+            matches = False
+        if not matches:
+            changed.add(path)
+    if manifest_path.is_file() and not manifest_path.is_symlink():
+        try:
+            manifest_matches = read_bytes(manifest_path, field="D16 closure export manifest path") == expected_manifest
+        except (OSError, ValidationError):
+            manifest_matches = False
+        if not manifest_matches:
+            changed.add("manifest.json")
     body = {
         "bundle_id": packet.bundle_id,
         "checked_artifact_count": len(actual),

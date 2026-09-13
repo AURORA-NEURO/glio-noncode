@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, read_bytes
 from .frontier_release_closure_contracts import (
     FRONTIER_RELEASE_CLOSURE_EXPORT_ARTIFACT_COUNT,
     FrontierReleaseExportArtifact,
@@ -14,6 +15,7 @@ from .frontier_release_closure_contracts import (
 )
 from .frontier_release_closure_contracts import FrontierReleaseRuntimeReport
 from .frontier_release_closure_support import safe_relative_path
+from .errors import ValidationError
 from .serialization import canonical_json, hash_bytes, jsonable
 
 
@@ -126,12 +128,14 @@ def write_frontier_release_export(
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.parent.is_symlink() or not target.parent.is_dir() or target.is_symlink():
             raise ValueError("frontier release export artifact path is unsafe")
-        target.write_bytes(artifact.content)
+        atomic_write_bytes(target, artifact.content, field="frontier release export artifact path")
     manifest_path = _safe_export_path(root, "manifest.json")
     if manifest_path.is_symlink():
         raise ValueError("frontier release export manifest path is unsafe")
-    manifest_path.write_bytes(
-        (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8")
+    atomic_write_bytes(
+        manifest_path,
+        (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8"),
+        field="frontier release export manifest path",
     )
     return root
 
@@ -157,13 +161,21 @@ def verify_frontier_release_export(
     if not manifest_path.is_file() or manifest_path.is_symlink():
         missing.add("manifest.json")
     unexpected = set(actual) - set(expected)
-    changed = {
-        path
-        for path in set(expected) & set(actual)
-        if actual[path].read_bytes() != expected[path].content
-    }
-    if manifest_path.is_file() and not manifest_path.is_symlink() and manifest_path.read_bytes() != expected_manifest:
-        changed.add("manifest.json")
+    changed: set[str] = set()
+    for path in set(expected) & set(actual):
+        try:
+            matches = read_bytes(actual[path], field="frontier release export artifact path") == expected[path].content
+        except (OSError, ValidationError):
+            matches = False
+        if not matches:
+            changed.add(path)
+    if manifest_path.is_file() and not manifest_path.is_symlink():
+        try:
+            manifest_matches = read_bytes(manifest_path, field="frontier release export manifest path") == expected_manifest
+        except (OSError, ValidationError):
+            manifest_matches = False
+        if not manifest_matches:
+            changed.add("manifest.json")
     body = {
         "bundle_id": packet.bundle_id,
         "checked_artifact_count": len(actual),
