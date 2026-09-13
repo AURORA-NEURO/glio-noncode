@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -15,12 +14,19 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff import (
     ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketDiff,
     verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff,
 )
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_VERSION = "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-v1"
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_BOUNDARY = "public_aggregate_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review"
@@ -899,9 +905,27 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
     if not verification.accepted:
         raise ValidationError("cannot persist an unverified packet review")
     destination = Path(destination)
-    if destination.exists() and not overwrite:
-        raise ValidationError("packet review destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "packet review destination")
+        if destination.is_symlink():
+            raise ValidationError("packet review destination cannot be a symlink")
+        if destination.exists():
+            if not overwrite:
+                raise ValidationError("packet review destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("packet review destination is not a regular directory")
+            expected_names = {
+                MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_DOCUMENT,
+                MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_MANIFEST,
+            }
+            members = tuple(destination.iterdir())
+            if {item.name for item in members} != expected_names or any(item.is_symlink() or not item.is_file() for item in members):
+                raise ValidationError("packet review destination is not an exact compatible directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("packet review destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
     try:
         document = canonical_bytes(value.to_dict())
@@ -922,14 +946,18 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
                 + "-manifest",
             )
         }
-        (
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_DOCUMENT
-        ).write_bytes(document)
-        (
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_DOCUMENT,
+            document,
+            field="packet review staging document",
+        )
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_MANIFEST
-        ).write_bytes(canonical_bytes(manifest))
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_MANIFEST,
+            canonical_bytes(manifest),
+            field="packet review staging manifest",
+        )
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("packet review destination is not a regular directory")
@@ -942,7 +970,12 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
 
 
 def _read_json(path: Path, field: str) -> dict[str, Any]:
-    raw = path.read_bytes()
+    try:
+        raw = read_bytes(path, field=field)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError(f"{field} could not be read") from error
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -956,8 +989,14 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
     directory: str | Path,
 ) -> ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketReview:
     directory = Path(directory)
-    if not directory.is_dir() or directory.is_symlink():
-        raise ValidationError("packet review directory is invalid")
+    try:
+        _validate_parent(directory.parent, "packet review input")
+        if not directory.is_dir() or directory.is_symlink():
+            raise ValidationError("packet review directory is invalid")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("packet review directory could not be inspected") from error
     expected = {
         MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_MANIFEST,
         MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_DOCUMENT,
@@ -997,7 +1036,12 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
         directory
         / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_DOCUMENT
     )
-    document = document_path.read_bytes()
+    try:
+        document = read_bytes(document_path, field="packet review document")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("packet review document could not be read") from error
     if (
         len(document) != manifest["byte_count"]
         or hash_bytes(
