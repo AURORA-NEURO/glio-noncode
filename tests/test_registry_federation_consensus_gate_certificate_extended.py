@@ -4,13 +4,12 @@
 
 from __future__ import annotations
 
-import contextlib
-import io
 import json
 import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import urlopen
@@ -18,16 +17,13 @@ from urllib.request import urlopen
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode import registry_federation_consensus_gate_certificate as certificate_model
-from glio_noncode import registry_federation_consensus_gate_certificate_audit as certificate_audit_model
 from glio_noncode import registry_federation_consensus_gate_certificate_diff as diff_model
 from glio_noncode import registry_federation_consensus_gate_certificate_diff_audit as diff_audit_model
-from glio_noncode import registry_federation_consensus_gate_certificate_history as history_model
 from glio_noncode import registry_federation_consensus_gate_certificate_history_audit as history_audit_model
 from glio_noncode import registry_federation_consensus_gate_certificate_package as package_model
 from glio_noncode import registry_federation_consensus_gate_certificate_package_audit as package_audit_model
 from glio_noncode import registry_federation_consensus_gate_certificate_query as query_model
 from glio_noncode import registry_federation_consensus_gate_certificate_query_audit as query_audit_model
-from glio_noncode import registry_federation_consensus_gate_certificate_runtime as runtime_model
 from glio_noncode.errors import ValidationError
 from tests.test_registry_federation_consensus_gate_certificate import CertificateFixture
 
@@ -181,6 +177,20 @@ class CertificateExtendedTests(CertificateFixture):
             (destination / "unexpected.json").write_text("{}", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 package_model.load_package(destination)
+
+    def test_package_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            runtime = self.certificate_runtime(root, "primary", "replica")
+            package = package_model.build_package(runtime.gate_runtime, runtime.certificate, gate_audit=runtime.gate_runtime.audit, gate_query=runtime.gate_runtime.query, certificate_audit=runtime.certificate_audit, certificate_query=runtime.certificate_query)
+            destination = root / "package"
+            package_model.write_package(package, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    package_model.load_package(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    package_model.load_package(destination)
 
     def test_diff_reports_policy_transition_and_independent_audit(self):
         with tempfile.TemporaryDirectory() as temporary:

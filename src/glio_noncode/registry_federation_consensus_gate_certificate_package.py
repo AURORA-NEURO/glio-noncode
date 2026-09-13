@@ -10,7 +10,6 @@ drift, and address drift before returning a typed value.
 
 from __future__ import annotations
 
-import json
 import os
 import shutil
 import tempfile
@@ -215,10 +214,19 @@ def write_package(value: RegistryFederationConsensusGateCertificatePackage, dire
 
 
 def load_package(directory: str | Path) -> RegistryFederationConsensusGateCertificatePackage:
-    source = Path(directory)
-    if source.is_symlink() or not source.is_dir() or {item.name for item in source.iterdir()} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in source.iterdir()):
+    try:
+        source = Path(directory)
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("certificate package directory does not contain exact canonical members")
+        members = tuple(source.iterdir())
+    except OSError as error:
+        raise ValidationError("certificate package directory could not be inspected") from error
+    if {item.name for item in members} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in members):
         raise ValidationError("certificate package directory does not contain exact canonical members")
-    raw = {name: (source / name).read_bytes() for name in FILES}
+    try:
+        raw = {name: (source / name).read_bytes() for name in FILES}
+    except OSError as error:
+        raise ValidationError("certificate package artifact could not be read") from error
     try:
         decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
     except (UnicodeDecodeError, ValueError) as error:
