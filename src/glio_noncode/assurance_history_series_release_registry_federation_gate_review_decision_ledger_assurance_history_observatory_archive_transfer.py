@@ -409,10 +409,14 @@ def _expected_files(value: ArchiveTransfer) -> set[str]:
 def _validate_directory_shape(directory: Path, value: ArchiveTransfer) -> None:
     expected_files = _expected_files(value)
     expected_directories = {CHUNK_PREFIX.rstrip("/")}
-    names = {item.relative_to(directory).as_posix() for item in directory.rglob("*")}
+    try:
+        children = tuple(directory.rglob("*"))
+    except OSError as error:
+        raise ValidationError("transfer directory could not be inspected") from error
+    names = {item.relative_to(directory).as_posix() for item in children}
     if names != expected_files | expected_directories:
         raise ValidationError("transfer directory member set is invalid")
-    for item in directory.rglob("*"):
+    for item in children:
         relative = item.relative_to(directory).as_posix()
         if item.is_symlink() or (relative in expected_files and not item.is_file()) or (relative in expected_directories and not item.is_dir()):
             raise ValidationError("transfer directory contains an invalid member")
@@ -456,7 +460,11 @@ def _validate_partial_directory_shape(directory: Path, value: ArchiveTransfer) -
     if chunk_directory.is_symlink() or not chunk_directory.is_dir():
         raise ValidationError("partial transfer chunk directory is missing")
     received: list[int] = []
-    for item in chunk_directory.iterdir():
+    try:
+        chunk_items = tuple(chunk_directory.iterdir())
+    except OSError as error:
+        raise ValidationError("partial transfer chunk directory could not be inspected") from error
+    for item in chunk_items:
         if item.is_symlink() or not item.is_file():
             raise ValidationError("partial transfer contains a non-regular chunk")
         name = item.name
@@ -471,10 +479,14 @@ def _validate_partial_directory_shape(directory: Path, value: ArchiveTransfer) -
         received.append(index)
     indices = tuple(sorted(received))
     expected = _partial_expected_files(value, indices)
-    names = {item.relative_to(directory).as_posix() for item in directory.rglob("*")}
+    try:
+        children = tuple(directory.rglob("*"))
+    except OSError as error:
+        raise ValidationError("partial transfer directory could not be inspected") from error
+    names = {item.relative_to(directory).as_posix() for item in children}
     if names != expected:
         raise ValidationError("partial transfer directory member set is invalid")
-    for item in directory.rglob("*"):
+    for item in children:
         if item.is_symlink():
             raise ValidationError("partial transfer contains a symlink")
     return indices
@@ -517,10 +529,10 @@ def _read_manifest(source: str | Path) -> tuple[ArchiveTransfer, Path]:
     manifest_path = directory / MANIFEST_NAME
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise ValidationError("transfer manifest is missing")
-    raw = manifest_path.read_bytes()
     try:
+        raw = manifest_path.read_bytes()
         decoded = _strict_json_loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError) as error:
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("transfer manifest is invalid JSON") from error
     manifest = dict(_mapping(decoded, "transfer manifest"))
     if canonical_bytes(manifest) != raw:
@@ -541,7 +553,10 @@ def load_transfer(source: str | Path) -> ArchiveTransfer:
     _validate_directory_shape(directory, value)
     payload = {}
     for index, chunk in enumerate(value.chunks):
-        raw = (directory / chunk_name(index)).read_bytes()
+        try:
+            raw = (directory / chunk_name(index)).read_bytes()
+        except OSError as error:
+            raise ValidationError(f"transfer chunk {index} could not be read") from error
         if len(raw) != chunk.size or address_chunk(raw) != chunk.content_address:
             raise ValidationError("transfer chunk bytes are not addressed")
         payload[index] = raw
@@ -554,7 +569,11 @@ def load_partial_transfer(source: str | Path) -> TransferAssembler:
     value, directory = _read_manifest(source)
     indices = _validate_partial_directory_shape(directory, value)
     assembler = TransferAssembler(value)
-    assembler.add_chunks({index: (directory / chunk_name(index)).read_bytes() for index in indices})
+    try:
+        payload = {index: (directory / chunk_name(index)).read_bytes() for index in indices}
+    except OSError as error:
+        raise ValidationError("partial transfer chunk could not be read") from error
+    assembler.add_chunks(payload)
     return assembler
 
 

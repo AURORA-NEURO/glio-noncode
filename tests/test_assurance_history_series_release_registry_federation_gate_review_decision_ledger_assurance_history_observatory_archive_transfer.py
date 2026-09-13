@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -485,6 +486,33 @@ class TransferDirectoryTests(TransferFixture):
             loaded = transfer.load_transfer(destination)
             self.assertEqual(loaded.to_dict(), value.to_dict())
             self.assertEqual(transfer.assemble_archive_bytes(loaded), (root / "observatory.zip").read_bytes())
+
+    def test_transfer_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self.transfer_value(root)
+            destination = root / "transfer"
+            transfer.write_transfer(value, destination)
+            with patch.object(Path, "rglob", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    transfer.load_transfer(destination)
+
+            transfer.write_transfer(value, destination, overwrite=True)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    transfer.load_transfer(destination)
+
+            transfer.write_transfer(value, destination, overwrite=True)
+            real_read_bytes = Path.read_bytes
+
+            def fail_chunks(path: Path) -> bytes:
+                if path.name.startswith("chunk-"):
+                    raise OSError("chunk denied")
+                return real_read_bytes(path)
+
+            with patch.object(Path, "read_bytes", fail_chunks):
+                with self.assertRaises(ValidationError):
+                    transfer.load_transfer(destination)
 
     def test_verify_directory_returns_loaded_value(self):
         with tempfile.TemporaryDirectory() as temporary:
