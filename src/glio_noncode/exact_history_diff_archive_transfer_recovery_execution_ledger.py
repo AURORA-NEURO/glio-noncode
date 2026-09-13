@@ -16,7 +16,7 @@ from typing import Any
 
 from . import exact_history_diff_archive_transfer_recovery_execution as execution_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 VERSION = execution_model.VERSION + "-ledger-v1"
 BOUNDARY = execution_model.BOUNDARY + "_ledger"
@@ -553,8 +553,8 @@ def persist_ledger(value: ExactHistoryDiffArchiveTransferRecoveryExecutionLedger
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
         raw = path.read_bytes()
-        value = _mapping(json.loads(raw.decode("utf-8")), f"ledger member {path.name}")
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"ledger member {path.name}")
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError(f"ledger member {path.name} is not valid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"ledger member {path.name} is not canonical")

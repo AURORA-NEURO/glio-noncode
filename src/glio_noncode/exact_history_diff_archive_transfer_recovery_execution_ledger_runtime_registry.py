@@ -16,7 +16,7 @@ from typing import Any
 
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime as runtime_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 VERSION = runtime_model.VERSION + "-registry-v1"
 BOUNDARY = runtime_model.BOUNDARY + "_registry"
@@ -537,8 +537,8 @@ def persist_registry(value: ExactHistoryDiffArchiveTransferRecoveryExecutionLedg
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
         raw = path.read_bytes()
-        value = _mapping(json.loads(raw.decode("utf-8")), f"ledger runtime registry member {path.name}")
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"ledger runtime registry member {path.name}")
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError(f"ledger runtime registry member {path.name} is not valid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"ledger runtime registry member {path.name} is not canonical")

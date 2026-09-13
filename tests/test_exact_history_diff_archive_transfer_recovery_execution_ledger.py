@@ -73,6 +73,12 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionLedgerTests(unittest.TestC
             self.assertEqual(loaded.content_address, value.content_address)
             self.assertEqual(ledger_model.ledger_json(loaded), ledger_model.ledger_json(value))
             self.assertEqual(set(item.name for item in destination.iterdir()), set(ledger_model.FILES))
+            manifest = destination / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"ledger_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                ledger_model.load_ledger(destination)
+            manifest.write_bytes(raw_manifest)
             tampered = destination / "ledger.json"
             tampered.write_bytes(tampered.read_bytes() + b"\n")
             with self.assertRaises(ValidationError):

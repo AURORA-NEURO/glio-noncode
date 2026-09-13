@@ -16,7 +16,7 @@ from typing import Any
 
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history as history_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = history_model.VERSION + "-diff-v1"
@@ -503,8 +503,8 @@ def persist_diff(value, destination: str | Path, *, overwrite: bool = False) -> 
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("registry history diff artifact is not valid JSON") from error
     return _mapping(value, "registry history diff artifact")
 

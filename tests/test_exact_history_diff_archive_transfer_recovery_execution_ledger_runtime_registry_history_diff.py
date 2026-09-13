@@ -81,6 +81,12 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionLedgerRuntimeRegistryHisto
             loaded = diff_model.load_diff(destination)
             self.assertEqual(diff_model.diff_json(loaded), diff_model.diff_json(added))
             self.assertEqual(set(item.name for item in destination.iterdir()), set(diff_model.FILES))
+            manifest = destination / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"diff_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                diff_model.load_diff(destination)
+            manifest.write_bytes(raw_manifest)
             summary_path = destination / "summary.json"
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
             payload["accepted"] = True

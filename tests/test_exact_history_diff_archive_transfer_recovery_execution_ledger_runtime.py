@@ -70,6 +70,12 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionLedgerRuntimeTests(unittes
             loaded = runtime_model.load_runtime(destination)
             self.assertEqual(runtime_model.runtime_json(loaded), runtime_model.runtime_json(value))
             self.assertEqual(set(item.name for item in destination.iterdir()), set(runtime_model.FILES))
+            manifest = destination / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"runtime_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                runtime_model.load_runtime(destination)
+            manifest.write_bytes(raw_manifest)
             tampered = destination / "runtime.json"
             payload = json.loads(tampered.read_text(encoding="utf-8"))
             payload["state"] = "blocked"

@@ -79,6 +79,12 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionLedgerRuntimeRegistryHisto
             loaded = history_model.load_history(destination)
             self.assertEqual(history_model.history_json(loaded), history_model.history_json(value))
             self.assertEqual(set(item.name for item in destination.iterdir()), set(history_model.FILES))
+            manifest = destination / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"history_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                history_model.load_history(destination)
+            manifest.write_bytes(raw_manifest)
             tampered = destination / "summary.json"
             payload = json.loads(tampered.read_text(encoding="utf-8"))
             payload["accepted"] = True
