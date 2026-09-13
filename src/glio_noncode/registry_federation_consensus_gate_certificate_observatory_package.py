@@ -17,6 +17,7 @@ from . import registry_federation_consensus_gate_certificate_observatory_audit a
 from . import registry_federation_consensus_gate_certificate_observatory_query_audit as query_audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_report as report_model
 from . import registry_federation_consensus_gate_certificate_observatory_report_audit as report_audit_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
@@ -173,13 +174,20 @@ def package_bytes(value: RegistryFederationConsensusGateCertificateObservatoryPa
 
 
 def _write_atomic(destination: Path, payload: Mapping[str, bytes], *, overwrite: bool) -> Path:
-    if destination.exists() and (destination.is_symlink() or not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
+    _validate_parent(destination.parent, "certificate observatory package destination")
+    if destination.is_symlink():
+        raise ValidationError("certificate observatory package destination cannot be a symlink")
+    if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
         raise ValidationError("certificate observatory package destination is not writable")
     destination.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix="certificate-observatory-package-staging-", dir=str(destination.parent)))
     try:
         for name in FILES:
-            (staging / name).write_bytes(payload[name])
+            atomic_write_bytes(
+                staging / name,
+                payload[name],
+                field=f"certificate observatory package staging artifact {name}",
+            )
         if destination.exists():
             shutil.rmtree(destination)
         os.replace(staging, destination)
@@ -196,6 +204,7 @@ def write_package(value: RegistryFederationConsensusGateCertificateObservatoryPa
 def _read_directory(directory: str | Path) -> dict[str, bytes]:
     source = Path(directory)
     try:
+        _validate_parent(source.parent, "certificate observatory package input")
         if source.is_symlink() or not source.is_dir():
             raise ValidationError("certificate observatory package input must be a regular directory")
         members = tuple(source.iterdir())
@@ -212,7 +221,10 @@ def _read_directory(directory: str | Path) -> dict[str, bytes]:
         try:
             if member.is_symlink() or not member.is_file():
                 raise ValidationError("certificate observatory package member must be a regular file")
-            result[name] = member.read_bytes()
+            result[name] = read_bytes(
+                member,
+                field=f"certificate observatory package member {name}",
+            )
         except ValidationError:
             raise
         except OSError as error:

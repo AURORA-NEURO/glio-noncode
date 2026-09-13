@@ -170,7 +170,7 @@ class CertificateObservatoryTests(CertificateFixture):
             with patch.object(Path, "iterdir", side_effect=OSError("unreadable")):
                 with self.assertRaisesRegex(ValidationError, "could not be inspected"):
                     package_model.load_package(destination)
-            with patch.object(Path, "read_bytes", side_effect=OSError("unreadable")):
+            with patch.object(package_model, "read_bytes", side_effect=OSError("unreadable")):
                 with self.assertRaisesRegex(ValidationError, "could not be read"):
                     package_model.load_package(destination)
 
