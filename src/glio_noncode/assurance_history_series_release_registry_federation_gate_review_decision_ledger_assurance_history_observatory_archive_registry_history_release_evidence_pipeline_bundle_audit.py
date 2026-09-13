@@ -20,6 +20,7 @@ from typing import Any
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline as pipeline_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle as bundle_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query as query_model
+from ._safe_persistence import _validate_parent, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -241,6 +242,7 @@ def _check(check_id: str, passed: bool, detail: str, evidence: str) -> RegistryH
 def _read_directory(source: str | Path) -> tuple[dict[str, bytes], set[str], bool]:
     try:
         directory = Path(source)
+        _validate_parent(directory.parent, "release evidence bundle audit input")
         if directory.is_symlink() or not directory.is_dir():
             return {}, set(), False
         members = tuple(directory.iterdir())
@@ -255,11 +257,11 @@ def _read_directory(source: str | Path) -> tuple[dict[str, bytes], set[str], boo
                 continue
             try:
                 if item.stat().st_size <= bundle_model.MAX_ARTIFACT_BYTES:
-                    payload[item.name] = item.read_bytes()
-            except OSError:
+                    payload[item.name] = read_bytes(item, field=f"release evidence bundle audit member {item.name}")
+            except (OSError, ValidationError):
                 exact = False
         return payload, names, exact and set(payload) == set(bundle_model.FILES)
-    except (OSError, ValueError):
+    except (OSError, ValueError, ValidationError):
         return {}, set(), False
 
 
