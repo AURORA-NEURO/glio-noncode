@@ -170,6 +170,24 @@ def _cache_thread_lock(path: Path) -> threading.RLock:
 def _cache_filesystem_lock(path: Path) -> Iterator[None]:
     """Serialize cache replacement across processes; locks are crash-released."""
 
+    try:
+        if path.is_symlink():
+            raise ValidationError(f"source-cache lock path is unsafe: {path.name}")
+        parent_is_symlink = path.parent.is_symlink()
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise SourceError("source-cache lock path could not be inspected") from exc
+    if parent_is_symlink:
+        raise ValidationError("source-cache lock directory is unsafe")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.parent.is_symlink() or not path.parent.is_dir():
+            raise ValidationError("source-cache lock directory is unsafe")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise SourceError("source-cache lock directory could not be prepared") from exc
     deadline = time.monotonic() + 30.0
     with path.open("a+b", buffering=0) as handle:
         handle.seek(0, os.SEEK_END)
@@ -950,9 +968,27 @@ class SourceCache:
 
     def __init__(self, root: str | Path) -> None:
         self.root = Path(root)
-        self.root.mkdir(parents=True, exist_ok=True)
+        try:
+            if self.root.is_symlink():
+                raise ValidationError("source-cache root must be a regular directory")
+            self.root.mkdir(parents=True, exist_ok=True)
+            if self.root.is_symlink() or not self.root.is_dir():
+                raise ValidationError("source-cache root must be a regular directory")
+        except ValidationError:
+            raise
+        except OSError as exc:
+            raise ValidationError("source-cache root could not be inspected") from exc
         self._locks = self.root / ".locks"
-        self._locks.mkdir(parents=True, exist_ok=True)
+        try:
+            if self._locks.is_symlink():
+                raise ValidationError("source-cache lock root must be a regular directory")
+            self._locks.mkdir(parents=True, exist_ok=True)
+            if self._locks.is_symlink() or not self._locks.is_dir():
+                raise ValidationError("source-cache lock root must be a regular directory")
+        except ValidationError:
+            raise
+        except OSError as exc:
+            raise ValidationError("source-cache lock root could not be inspected") from exc
         self._lock = _cache_thread_lock(self.root)
 
     def _path(self, request_hash: str) -> Path:
@@ -987,7 +1023,12 @@ class SourceCache:
             maximum=MAX_SOURCE_RESPONSE_BYTES,
         )
         path = self._path(request_hash)
-        if not path.exists():
+        try:
+            unsafe = path.is_symlink()
+            present = path.exists()
+        except OSError:
+            return None
+        if unsafe or not present:
             return None
         try:
             if path.stat().st_size > maximum * 2 + 32_768:
@@ -1106,6 +1147,17 @@ class SourceCache:
             }
         )
         with self._lock, _cache_filesystem_lock(self._locks / f"{path.stem}.lock"):
+            try:
+                if self.root.is_symlink() or not self.root.is_dir():
+                    raise ValidationError("source-cache root is unsafe")
+                if self._locks.is_symlink() or not self._locks.is_dir():
+                    raise ValidationError("source-cache lock root is unsafe")
+                if path.is_symlink():
+                    raise ValidationError("source-cache entry path is unsafe")
+            except ValidationError:
+                raise
+            except OSError as exc:
+                raise SourceError("source-cache paths could not be inspected") from exc
             descriptor, temporary_name = tempfile.mkstemp(
                 dir=path.parent,
                 prefix=f".{path.name}.",

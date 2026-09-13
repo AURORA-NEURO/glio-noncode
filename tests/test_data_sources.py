@@ -1103,6 +1103,73 @@ class DataSourceTests(unittest.TestCase):
             self.assertEqual(loaded.body, body)
             self.assertEqual(len(list(Path(directory).glob("*.tmp"))), 0)
 
+    def test_cache_rejects_symlinked_root_and_lock_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            real_root = parent / "real-root"
+            real_root.mkdir()
+            linked_root = parent / "linked-root"
+            try:
+                linked_root.symlink_to(real_root, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"symlink creation unavailable: {exc}")
+            with self.assertRaisesRegex(ValidationError, "regular directory"):
+                SourceCache(linked_root)
+
+            root = parent / "cache"
+            root.mkdir()
+            external_locks = parent / "external-locks"
+            external_locks.mkdir()
+            (root / ".locks").symlink_to(external_locks, target_is_directory=True)
+            with self.assertRaisesRegex(ValidationError, "lock root"):
+                SourceCache(root)
+
+    def test_cache_rejects_symlinked_entry_and_lock_without_following_target(self) -> None:
+        source = _source(max_response_bytes=1_024)
+        request_hash = content_hash({"request": "symlinked"})
+        body = b'{"ok":true}'
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            cache = SourceCache(parent / "cache")
+            cache_path = cache._path(request_hash)
+            external = parent / "external.json"
+            external.write_bytes(b"do-not-touch")
+            try:
+                cache_path.symlink_to(external)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"symlink creation unavailable: {exc}")
+
+            self.assertIsNone(
+                cache.get(request_hash, source=source, max_response_bytes=1_024)
+            )
+            with self.assertRaisesRegex(ValidationError, "entry path is unsafe"):
+                cache.put(
+                    request_hash=request_hash,
+                    source=source,
+                    url="https://ensembl.example/symlinked",
+                    body=body,
+                    content_type="application/json",
+                    ttl_seconds=60,
+                )
+            self.assertEqual(external.read_bytes(), b"do-not-touch")
+
+            cache_path.unlink()
+            lock_path = cache._locks / f"{cache_path.stem}.lock"
+            lock_path.unlink(missing_ok=True)
+            external_lock = parent / "external.lock"
+            external_lock.write_bytes(b"do-not-touch-lock")
+            lock_path.symlink_to(external_lock)
+            with self.assertRaisesRegex(ValidationError, "lock path is unsafe"):
+                cache.put(
+                    request_hash=request_hash,
+                    source=source,
+                    url="https://ensembl.example/symlinked",
+                    body=body,
+                    content_type="application/json",
+                    ttl_seconds=60,
+                )
+            self.assertEqual(external_lock.read_bytes(), b"do-not-touch-lock")
+
     def test_numeric_and_iterable_configuration_is_exact_and_bounded(self) -> None:
         invalid_specs = (
             {"rate_limit_per_minute": True},
