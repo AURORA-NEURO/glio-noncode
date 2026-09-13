@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from ._safe_persistence import read_text
 from .deployment_frontier_contracts import (
     DEPLOYMENT_FRONTIER_BOUNDARY,
     DEPLOYMENT_FRONTIER_CONTEXT_KEY,
@@ -263,7 +264,9 @@ def audit_deployment_frontier_data(fixture: DeploymentFrontierFixture) -> Deploy
 
 def load_deployment_frontier_fixture(path: str | Path) -> DeploymentFrontierFixture:
     fixture_path = Path(path)
-    raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
+    raw = _strict_json_loads(
+        read_text(fixture_path, field="deployment frontier fixture input path", encoding="utf-8")
+    )
     if not isinstance(raw, Mapping):
         raise ValueError("deployment fixture must be an object")
     if raw.get("fixture_version") != DEPLOYMENT_FRONTIER_VERSION:

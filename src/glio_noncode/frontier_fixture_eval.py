@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .frontier_contracts import default_frontier_contract_registry
 from .frontier_data_alpha import FrontierState
@@ -188,8 +189,10 @@ class FrontierFixtureEvaluator:
 
         fixture_path = Path(path)
         try:
-            raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
-        except ValueError as exc:
+            raw = _strict_json_loads(
+                read_text(fixture_path, field="frontier fixture input path", encoding="utf-8")
+            )
+        except (ValueError, ValidationError) as exc:
             raise ValidationError(f"fixture is not valid JSON: {fixture_path}") from exc
         return self.validate_fixture(raw)
 
