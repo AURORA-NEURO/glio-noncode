@@ -28,6 +28,7 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution as resolution_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_audit as resolution_audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_runtime as source_runtime_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -271,13 +272,21 @@ def runtime_bytes(value: RegistryFederationConsensusGateCertificateObservatoryAr
 
 
 def _write_atomic_directory(destination: Path, payload: Mapping[str, bytes], *, overwrite: bool) -> Path:
-    if destination.exists() and (destination.is_symlink() or not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
-        raise ValidationError("reconciliation runtime destination is not writable")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "reconciliation runtime destination")
+        if destination.is_symlink():
+            raise ValidationError("reconciliation runtime destination cannot be a symlink")
+        if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
+            raise ValidationError("reconciliation runtime destination is not writable")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("reconciliation runtime destination could not be prepared") from error
     staging = Path(tempfile.mkdtemp(prefix="certificate-observatory-reconciliation-runtime-staging-", dir=str(destination.parent)))
     try:
         for name in FILES:
-            (staging / name).write_bytes(payload[name])
+            atomic_write_bytes(staging / name, payload[name], field=f"reconciliation runtime staging artifact {name}")
         if destination.exists():
             backup = Path(tempfile.mkdtemp(prefix="certificate-observatory-reconciliation-runtime-backup-", dir=str(destination.parent)))
             backup.rmdir()
@@ -304,6 +313,7 @@ def write_runtime(value: RegistryFederationConsensusGateCertificateObservatoryAr
 def _read_directory(source: str | Path) -> dict[str, bytes]:
     try:
         path = Path(source)
+        _validate_parent(path.parent, "reconciliation runtime input")
         if path.is_symlink() or not path.is_dir():
             raise ValidationError("reconciliation runtime input must be a regular directory")
         members = tuple(path.iterdir())
@@ -318,7 +328,9 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
         if member.is_symlink() or not member.is_file():
             raise ValidationError("reconciliation runtime member must be a regular file")
         try:
-            result[name] = member.read_bytes()
+            result[name] = read_bytes(member, field=f"reconciliation runtime member {name}")
+        except ValidationError:
+            raise
         except OSError as error:
             raise ValidationError("reconciliation runtime artifact could not be read") from error
     return result

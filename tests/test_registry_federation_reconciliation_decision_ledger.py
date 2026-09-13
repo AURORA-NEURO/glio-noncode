@@ -199,7 +199,7 @@ class DecisionLedgerFixture(unittest.TestCase):
             with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
                 with self.assertRaises(ValidationError):
                     runtime_model.load_runtime(destination)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(runtime_model, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     runtime_model.load_runtime(destination)
 
