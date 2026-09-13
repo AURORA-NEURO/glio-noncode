@@ -11,6 +11,7 @@ from threading import Thread
 
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
+from glio_noncode.errors import ValidationError
 from glio_noncode.models import ReviewDecision, ReviewState
 from glio_noncode.runtime import CaseRuntime
 from glio_noncode.workspace_history import build_persisted_workspace_history
@@ -130,6 +131,13 @@ class WorkspaceReleaseTests(unittest.TestCase):
             self.assertFalse(missing.accepted)
             self.assertIn("workspace-history", missing.failed_artifact_ids)
             self.assertEqual(missing.unexpected_filenames, ("unexpected.txt",))
+
+            manifest_path = destination / WORKSPACE_RELEASE_MANIFEST
+            original_manifest = manifest_path.read_bytes().rstrip()
+            self.assertTrue(original_manifest.endswith(b"}"))
+            manifest_path.write_bytes(original_manifest[:-1] + b',"release_version":"shadow"}')
+            with self.assertRaises(ValidationError):
+                verify_workspace_release_bundle(destination)
 
     def test_blocked_history_is_exportable_but_never_accepted(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

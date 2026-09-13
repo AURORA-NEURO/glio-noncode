@@ -131,6 +131,16 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
             self.assertIn("events.jsonl", verification.tampered_files)
             self.assertIn("unexpected.txt", verification.unexpected_files)
 
+            duplicate_destination = Path(directory) / "duplicate-release"
+            write_review_workspace_execution_release(bundle, duplicate_destination)
+            manifest_path = duplicate_destination / "manifest.json"
+            original_manifest = manifest_path.read_bytes().rstrip()
+            self.assertTrue(original_manifest.endswith(b"}"))
+            manifest_path.write_bytes(original_manifest[:-1] + b',"release_id":"shadow"}')
+            duplicate = verify_review_workspace_execution_release(duplicate_destination)
+            self.assertFalse(duplicate.accepted)
+            self.assertIn("manifest.json", duplicate.tampered_files)
+
     def test_event_stream_reconciliation_survives_manifest_readdressing(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             _, plan, report = self._report(directory)

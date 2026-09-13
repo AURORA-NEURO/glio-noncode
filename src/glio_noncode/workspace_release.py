@@ -26,7 +26,7 @@ from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
 from .runtime import CaseRuntime
-from .serialization import canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes
 from .workspace_history import (
     WorkspaceHistory,
     build_persisted_workspace_history,
@@ -564,8 +564,8 @@ def verify_workspace_release_bundle(
     if not manifest_path.exists():
         raise ValidationError("workspace release manifest is missing")
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("workspace release manifest is not valid JSON") from exc
     if not isinstance(manifest, dict):
         raise ValidationError("workspace release manifest must be a JSON object")
@@ -643,8 +643,8 @@ def verify_workspace_release_bundle(
             continue
         if str(artifact.get("media_type", "")) == "application/json":
             try:
-                parsed = json.loads(decoded)
-            except json.JSONDecodeError:
+                parsed = _strict_json_loads(decoded)
+            except ValueError:
                 failed.append(artifact_id)
                 artifact_boundary_valid = False
                 warnings.append(f"workspace JSON artifact is not valid JSON for {artifact_id}")

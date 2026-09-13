@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from .errors import ValidationError
 from .service_release_bundle import service_release_artifact_payloads
@@ -16,7 +15,7 @@ from .service_release_contracts import (
 )
 from .service_release_support import artifact_address, forbidden_keys, safe_relative_path
 from .service_surface import ServiceSurfaceSnapshot
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 def build_service_release_export(
@@ -109,8 +108,8 @@ def verify_service_release_export(directory: str | Path) -> ServiceReleaseExport
             content_hash(body, prefix="service-release-export-verification"),
         )
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
         tampered.append("manifest.json")
         manifest = {}
     listed = manifest.get("artifacts", ()) if isinstance(manifest, dict) else ()
@@ -140,9 +139,9 @@ def verify_service_release_export(directory: str | Path) -> ServiceReleaseExport
         if len(payload) != int(item.get("byte_count", -1)) or artifact_address(payload) != item.get("content_address"):
             tampered.append(path)
         try:
-            decoded = json.loads(payload.decode("utf-8")) if item.get("media_type") == "application/json" else None
+            decoded = _strict_json_loads(payload.decode("utf-8")) if item.get("media_type") == "application/json" else None
             boundary.extend(forbidden_keys(decoded))
-        except (UnicodeError, json.JSONDecodeError):
+        except (UnicodeError, ValueError):
             tampered.append(path)
     actual_paths = sorted(
         path.relative_to(root).as_posix()

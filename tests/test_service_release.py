@@ -177,6 +177,13 @@ class ServiceReleaseTests(unittest.TestCase):
             tampered = verify_service_release_export(directory)
             self.assertFalse(tampered.accepted)
             self.assertIn("surfaces/status.json", tampered.tampered_paths)
+            manifest_path = Path(directory) / "manifest.json"
+            original_manifest = manifest_path.read_bytes().rstrip()
+            self.assertTrue(original_manifest.endswith(b"}"))
+            manifest_path.write_bytes(original_manifest[:-1] + b',"bundle_id":"shadow"}')
+            duplicate = verify_service_release_export(directory)
+            self.assertFalse(duplicate.accepted)
+            self.assertIn("manifest.json", duplicate.tampered_paths)
 
     def test_service_surface_closure_contains_registry_snapshot(self) -> None:
         closure = build_service_surface_closure(self.service)

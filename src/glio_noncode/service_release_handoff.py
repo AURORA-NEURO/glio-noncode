@@ -11,7 +11,6 @@ metadata.
 
 from __future__ import annotations
 
-import json
 import os
 import tempfile
 import csv
@@ -21,7 +20,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 from .service_release_contracts import (
     SERVICE_RELEASE_HANDOFF_ARTIFACT_COUNT,
     SERVICE_RELEASE_HANDOFF_MAX_ARTIFACTS,
@@ -221,6 +220,7 @@ def write_service_release_handoff(
 def _empty_verification(
     directory: Path,
     state: ServiceReleaseHandoffState,
+    manifest_drift: tuple[str, ...] = (),
 ) -> ServiceReleaseHandoffVerification:
     """Return a stable failure when no manifest can be decoded."""
 
@@ -236,7 +236,7 @@ def _empty_verification(
         "unsafe_paths": (),
         "tampered_paths": (),
         "boundary_violations": (),
-        "manifest_drift": (),
+        "manifest_drift": tuple(sorted(set(manifest_drift))),
         "accepted": False,
     }
     return ServiceReleaseHandoffVerification(
@@ -257,8 +257,8 @@ def _read_manifest(
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -384,7 +384,7 @@ def verify_service_release_handoff(
 
     root, manifest, manifest_drift = _read_manifest(directory)
     if not manifest:
-        return _empty_verification(root, ServiceReleaseHandoffState.MISSING)
+        return _empty_verification(root, ServiceReleaseHandoffState.MISSING, manifest_drift)
     missing: list[str] = []
     unexpected: list[str] = []
     duplicate: list[str] = []
@@ -441,8 +441,8 @@ def verify_service_release_handoff(
             tampered.append(path)
         if media_type == "application/json":
             try:
-                boundary.extend(forbidden_keys(json.loads(payload.decode("utf-8"))))
-            except (UnicodeError, json.JSONDecodeError):
+                boundary.extend(forbidden_keys(_strict_json_loads(payload.decode("utf-8"))))
+            except (UnicodeError, ValueError):
                 tampered.append(path)
         elif media_type in {"text/csv", "text/markdown"}:
             boundary.extend(

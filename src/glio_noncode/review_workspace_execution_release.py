@@ -14,7 +14,6 @@ identity, model metadata, or programming-language metadata.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -69,7 +68,7 @@ from .review_workspace_execution_transitions import (
     review_workspace_execution_transitions_export_payloads,
     review_workspace_execution_transitions_from_mapping,
 )
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable
 
 
 REVIEW_WORKSPACE_EXECUTION_RELEASE_VERSION = "review-workspace-execution-release-v1"
@@ -705,8 +704,8 @@ def verify_review_workspace_execution_release(
         )
     try:
         manifest_bytes = manifest_path.read_bytes()
-        manifest = json.loads(manifest_bytes.decode("utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        manifest = _strict_json_loads(manifest_bytes.decode("utf-8"))
+    except (OSError, UnicodeError, ValueError):
         return _verification(
             root=root,
             release_id="",
@@ -806,7 +805,7 @@ def verify_review_workspace_execution_release(
         verified_count += 1
         if filename.endswith(".json"):
             try:
-                artifact_body = json.loads(payload.decode("utf-8"))
+                artifact_body = _strict_json_loads(payload.decode("utf-8"))
                 boundary.extend(f"{filename}:{item}" for item in _private_key_paths(artifact_body))
                 if filename == "review-workspace-execution.json":
                     report = review_workspace_execution_report_from_mapping(artifact_body)
@@ -827,7 +826,7 @@ def verify_review_workspace_execution_release(
                         transitions_body = artifact_body
                     else:
                         raise ValidationError("execution transitions artifact must be an object")
-            except (UnicodeError, json.JSONDecodeError, TypeError, ValidationError):
+            except (UnicodeError, ValueError, TypeError, ValidationError):
                 tampered.append(filename)
                 if filename == "review-workspace-execution.json":
                     report = None
@@ -979,8 +978,8 @@ def verify_review_workspace_execution_release(
 
 def _manifest(root: Path) -> dict[str, Any]:
     try:
-        value = json.loads((root / REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads((root / REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError(f"cannot load execution release manifest: {exc}") from exc
     if not isinstance(value, dict):
         raise ValidationError("execution release manifest must be an object")
@@ -998,13 +997,13 @@ def load_review_workspace_execution_release(
         raise ValidationError("execution release filesystem verification failed")
     manifest = _manifest(root)
     try:
-        raw_report = json.loads((root / "review-workspace-execution.json").read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raw_report = _strict_json_loads((root / "review-workspace-execution.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError(f"cannot load execution release report: {exc}") from exc
     report = review_workspace_execution_report_from_mapping(raw_report)
     try:
-        raw_plan = json.loads((root / "review-workspace-plan.json").read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raw_plan = _strict_json_loads((root / "review-workspace-plan.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError(f"cannot load execution release plan: {exc}") from exc
     plan = review_workspace_plan_from_mapping(raw_plan)
     if not report.accepted:

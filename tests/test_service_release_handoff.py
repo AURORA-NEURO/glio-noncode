@@ -99,6 +99,13 @@ class ServiceReleaseHandoffTests(unittest.TestCase):
             tampered = verify_service_release_handoff(directory)
             self.assertFalse(tampered.accepted)
             self.assertIn("surfaces/status.json", tampered.tampered_paths)
+            manifest = Path(directory) / "manifest.json"
+            original_manifest = manifest.read_bytes().rstrip()
+            self.assertTrue(original_manifest.endswith(b"}"))
+            manifest.write_bytes(original_manifest[:-1] + b',"bundle_id":"shadow"}')
+            duplicate = verify_service_release_handoff(directory)
+            self.assertFalse(duplicate.accepted)
+            self.assertIn("manifest.json", duplicate.manifest_drift)
 
         with tempfile.TemporaryDirectory() as directory:
             write_service_release_handoff(self.packet, directory)
