@@ -19,12 +19,11 @@ from __future__ import annotations
 import csv
 import io
 import json
-import os
-import tempfile
 from collections.abc import Iterable, Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, read_bytes
 from .capability_registry import CapabilityRegistry, default_capability_registry
 from .errors import ValidationError
 from .module_fabric_bundle_contracts import (
@@ -117,23 +116,7 @@ def _path_has_symlink(root: Path, relative_path: str = "") -> bool:
 def _atomic_write_bytes(target: Path, payload: bytes) -> None:
     """Replace one bundle file atomically after a durable temporary write."""
 
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{target.name}.",
-        suffix=".tmp",
-        dir=str(target.parent),
-    )
-    temporary = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, target)
-    except BaseException:
-        try:
-            temporary.unlink(missing_ok=True)
-        finally:
-            raise
+    atomic_write_bytes(target, payload, field="module-fabric bundle artifact path")
 
 
 def _public_value(value: Any) -> Any:
@@ -513,9 +496,9 @@ def verify_module_fabric_bundle(destination: str | Path) -> FabricBundleVerifica
             (_check("manifest-present", FabricBundleCheckPlane.MANIFEST, False, False, True, "bundle manifest is missing or is not a regular file"),),
         )
     try:
-        raw_manifest = manifest_path.read_bytes()
+        raw_manifest = read_bytes(manifest_path, field="module-fabric bundle manifest path")
         manifest = _strict_json_loads(raw_manifest.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         return _verification(
             "invalid-manifest",
             (_check("manifest-readable", FabricBundleCheckPlane.MANIFEST, False, type(exc).__name__, "valid UTF-8 JSON", "bundle manifest cannot be decoded"),),
@@ -688,7 +671,7 @@ def verify_module_fabric_bundle(destination: str | Path) -> FabricBundleVerifica
         if not regular:
             continue
         try:
-            raw = target.read_bytes()
+            raw = read_bytes(target, field="module-fabric bundle artifact path")
             text = raw.decode("utf-8")
             exact = (
                 len(raw) == item.get("byte_count")
@@ -721,7 +704,7 @@ def verify_module_fabric_bundle(destination: str | Path) -> FabricBundleVerifica
                         "JSON artifact is valid and remains within the public boundary",
                     )
                 )
-        except (OSError, UnicodeDecodeError) as exc:
+        except (OSError, UnicodeError, ValidationError) as exc:
             checks.append(
                 _check(
                     f"readable:{item.get('artifact_id', 'unknown')}",
@@ -766,7 +749,7 @@ def verify_module_fabric_bundle(destination: str | Path) -> FabricBundleVerifica
             loaded = load_module_fabric_bundle(root, include_payloads=True, verify=False)
             audit = audit_module_fabric_bundle(loaded)
             checks.append(_check("cross-artifact-audit", FabricBundleCheckPlane.CLOSURE, audit.accepted, audit.failed_check_ids, (), "fixture, evaluation, runtime, release, replay, lineage, and projection artifacts reconcile"))
-        except (OSError, TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        except (OSError, TypeError, ValueError, UnicodeError, ValidationError, json.JSONDecodeError) as exc:
             checks.append(_check("cross-artifact-audit", FabricBundleCheckPlane.CLOSURE, False, type(exc).__name__, "accepted audit", "cross-artifact reconciliation could not be completed"))
     return _verification(bundle_id, checks)
 
