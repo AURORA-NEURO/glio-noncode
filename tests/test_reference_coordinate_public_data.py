@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -31,6 +32,13 @@ class ReferenceCoordinatePublicDataTests(unittest.TestCase):
         self.assertTrue(report.passed)
         self.assertEqual(len(report.checks), 26)
         self.assertEqual(report.failed_check_ids, ())
+
+    def test_fixture_file_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "fixture.json"
+            source.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                ReferenceCoordinateFixtureCatalog.from_file(source)
 
     def test_fixture_identity_counts_and_operations_are_locked(self) -> None:
         catalog = self.load()

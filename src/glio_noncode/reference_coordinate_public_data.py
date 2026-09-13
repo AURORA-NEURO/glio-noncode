@@ -10,7 +10,6 @@ coordinate conversion as proof of sequence equivalence or clinical meaning.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -19,7 +18,7 @@ from typing import Any
 
 from .errors import ValidationError
 from .reference_extensions import ReferenceExtensionState
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 REFERENCE_COORDINATE_FIXTURE_VERSION = "reference-coordinate-public-aggregate-v1"
 REFERENCE_COORDINATE_CONTEXT_KEY = "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline"
@@ -349,7 +348,7 @@ class ReferenceCoordinateFixtureCatalog:
     @classmethod
     def from_file(cls, path: str | Path) -> ReferenceCoordinateFixtureCatalog:
         source = Path(path)
-        return cls.from_mapping(json.loads(source.read_text(encoding="utf-8")))
+        return cls.from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
 
     def address_body(self) -> dict[str, Any]:
         return {
