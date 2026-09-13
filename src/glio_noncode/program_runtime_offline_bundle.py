@@ -196,6 +196,22 @@ def _safe_relative_path(value: str) -> bool:
     )
 
 
+def _offline_path(root: Path, relative_path: str) -> Path:
+    """Resolve a validated artifact path without following symlinks."""
+
+    current = root
+    for component in PurePosixPath(relative_path).parts:
+        current /= component
+        try:
+            if current.is_symlink():
+                raise ValidationError("program offline bundle path is unsafe")
+        except ValidationError:
+            raise
+        except OSError as exc:
+            raise ValidationError("program offline bundle path could not be inspected") from exc
+    return current
+
+
 def _public_projection(value: Any) -> Any:
     value = jsonable(value)
     if isinstance(value, Mapping):
@@ -670,15 +686,29 @@ def write_program_runtime_offline_bundle(
     """Materialize the bundle using only validated relative paths."""
 
     root = Path(destination)
-    root.mkdir(parents=True, exist_ok=True)
+    try:
+        if root.is_symlink():
+            raise ValidationError("program offline destination is unsafe")
+        root.mkdir(parents=True, exist_ok=True)
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("program offline destination must be a directory")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise ValidationError("program offline destination could not be prepared") from exc
     for artifact in bundle.artifacts:
-        path = root / PurePosixPath(artifact.relative_path)
+        path = _offline_path(root, artifact.relative_path)
         path.parent.mkdir(parents=True, exist_ok=True)
         if artifact.payload is None:
             raise ValidationError(f"artifact {artifact.artifact_id!r} has no payload")
+        if path.parent.is_symlink() or not path.parent.is_dir() or path.is_symlink():
+            raise ValidationError("program offline artifact path is unsafe")
         path.write_bytes(artifact.payload.encode("utf-8"))
     manifest = bundle.to_dict(include_payloads=include_payloads)
-    (root / PROGRAM_RUNTIME_OFFLINE_MANIFEST_FILENAME).write_text(
+    manifest_path = _offline_path(root, PROGRAM_RUNTIME_OFFLINE_MANIFEST_FILENAME)
+    if manifest_path.is_symlink():
+        raise ValidationError("program offline manifest path is unsafe")
+    manifest_path.write_text(
         _json_text(manifest), encoding="utf-8"
     )
     return root
@@ -688,8 +718,8 @@ def _artifact_from_manifest(root: Path, value: Mapping[str, Any]) -> ProgramRunt
     relative_path = str(value.get("relative_path", ""))
     if not _safe_relative_path(relative_path):
         raise ValidationError("manifest contains an unsafe artifact path")
-    path = root / PurePosixPath(relative_path)
-    if not path.is_file():
+    path = _offline_path(root, relative_path)
+    if path.is_symlink() or not path.is_file():
         raise ValidationError(f"missing program artifact: {relative_path}")
     payload = path.read_text(encoding="utf-8")
     kind = ProgramRuntimeOfflineArtifactKind(str(value["kind"]))
@@ -713,8 +743,10 @@ def load_program_runtime_offline_bundle(
     """Load a manifest and its files without importing producer state."""
 
     root = Path(destination)
-    manifest_path = root / PROGRAM_RUNTIME_OFFLINE_MANIFEST_FILENAME
-    if not manifest_path.is_file():
+    if root.is_symlink() or not root.is_dir():
+        raise ValidationError("program offline root must be a regular directory")
+    manifest_path = _offline_path(root, PROGRAM_RUNTIME_OFFLINE_MANIFEST_FILENAME)
+    if manifest_path.is_symlink() or not manifest_path.is_file():
         raise ValidationError("program offline manifest is missing")
     raw = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
