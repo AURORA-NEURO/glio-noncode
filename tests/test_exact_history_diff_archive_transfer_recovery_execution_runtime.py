@@ -7,6 +7,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import os
 import tempfile
 import threading
 import unittest
@@ -78,6 +79,30 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeTests(unittest.Test
             runtime_query_model.query_from_mapping(tampered_query)
         self.assertNotIn("source_path", runtime_model.runtime_json(runtime))
         self.assertNotIn("payload_bytes", runtime_model.runtime_json(runtime))
+
+    def test_persistence_rejects_symlinked_destination_and_parent(self):
+        runtime = self._runtime()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            real_target = root / "real-target"
+            real_target.mkdir()
+            linked_target = root / "linked-target"
+            try:
+                os.symlink(real_target, linked_target, target_is_directory=True)
+            except OSError:
+                self.skipTest("directory symlinks unavailable")
+            with self.assertRaises(ValidationError):
+                runtime_model.persist_runtime(runtime, linked_target, overwrite=True)
+
+            real_parent = root / "real-parent"
+            real_parent.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                os.symlink(real_parent, linked_parent, target_is_directory=True)
+            except OSError:
+                self.skipTest("directory symlinks unavailable")
+            with self.assertRaises(ValidationError):
+                runtime_model.persist_runtime(runtime, linked_parent / "runtime")
 
     def test_cli_api_schemas_and_public_inventory(self):
         runtime = self._runtime()
