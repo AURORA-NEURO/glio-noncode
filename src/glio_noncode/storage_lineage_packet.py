@@ -10,13 +10,12 @@ from __future__ import annotations
 
 import csv
 import json
-import os
-import tempfile
 from collections.abc import Iterable, Mapping
 from io import StringIO
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .release_assurance_support import (
     artifact_address,
@@ -226,17 +225,7 @@ def build_storage_lineage_packet(
 
 def _atomic_write(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_name, path)
-    finally:
-        temporary = Path(temporary_name)
-        if temporary.exists():
-            temporary.unlink()
+    atomic_write_bytes(path, payload, field=f"storage lineage packet member {path.name}")
 
 
 def write_storage_lineage_packet(
@@ -250,8 +239,9 @@ def write_storage_lineage_packet(
     if not isinstance(packet, StorageLineagePacket):
         raise ValidationError("storage lineage packet writer requires a typed packet")
     root = Path(destination)
-    if root.exists() and root.is_symlink():
-        raise ValidationError("storage lineage packet destination must not be a symlink")
+    _validate_parent(root.parent, "storage lineage packet destination")
+    if root.exists() and (root.is_symlink() or not root.is_dir()):
+        raise ValidationError("storage lineage packet destination must be a regular directory")
     root.mkdir(parents=True, exist_ok=True)
     if any(root.iterdir()) and not allow_existing:
         raise ValidationError("storage lineage packet destination is not empty")
@@ -267,8 +257,8 @@ def _read_manifest(directory: str | Path) -> tuple[Path, dict[str, Any], tuple[s
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError, json.JSONDecodeError):
+        value = _strict_json_loads(read_text(path, field="storage lineage packet manifest"))
+    except (OSError, UnicodeError, ValueError, json.JSONDecodeError, ValidationError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -392,8 +382,8 @@ def verify_storage_lineage_packet(directory: str | Path) -> StorageLineagePacket
             missing.append(path)
             continue
         try:
-            payload = target.read_bytes()
-        except OSError:
+            payload = read_bytes(target, field=f"storage lineage packet artifact {path}")
+        except (OSError, ValidationError):
             tampered.append(path)
             continue
         try:
@@ -493,10 +483,10 @@ def load_storage_lineage_packet(directory: str | Path) -> StorageLineagePacketOf
     if not verification.accepted:
         raise ValidationError("storage lineage packet is not accepted")
     try:
-        graph_payload = _strict_json_loads((root / "lineage" / "graph.json").read_text(encoding="utf-8"))
-        observation_payload = _strict_json_loads((root / "lineage" / "observability.json").read_text(encoding="utf-8"))
-        review_payload = _strict_json_loads((root / "lineage" / "review-queue.json").read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
+        graph_payload = _strict_json_loads(read_text(root / "lineage" / "graph.json", field="storage lineage graph"))
+        observation_payload = _strict_json_loads(read_text(root / "lineage" / "observability.json", field="storage lineage observability"))
+        review_payload = _strict_json_loads(read_text(root / "lineage" / "review-queue.json", field="storage lineage review queue"))
+    except (OSError, UnicodeError, ValueError, json.JSONDecodeError, ValidationError) as exc:
         raise ValidationError("storage lineage packet JSON payload is not valid") from exc
     graph = StorageLineageGraph.from_mapping(graph_payload)
     observation = StorageLineageObservability.from_mapping(observation_payload)
