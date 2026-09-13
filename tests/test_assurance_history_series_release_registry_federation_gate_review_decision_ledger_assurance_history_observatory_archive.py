@@ -11,6 +11,7 @@ import zipfile
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -376,6 +377,14 @@ class ArchiveZipTests(ArchiveFixture):
         with tempfile.TemporaryDirectory() as temporary:
             with self.assertRaises(ValidationError):
                 archive.load_archive(Path(temporary) / "missing.zip")
+
+    def test_archive_loader_normalizes_file_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            target = self.write_archive(self.archive_value(root), root)
+            with patch.object(Path, "open", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    archive.load_archive(target)
 
 
 class ArchiveExtractionTests(ArchiveFixture):

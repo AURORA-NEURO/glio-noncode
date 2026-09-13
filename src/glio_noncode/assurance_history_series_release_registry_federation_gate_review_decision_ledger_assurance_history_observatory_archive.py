@@ -26,6 +26,7 @@ import os
 import shutil
 import tempfile
 import zipfile
+import zlib
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -155,7 +156,10 @@ def _read_package_artifacts(directory: Path) -> dict[str, bytes]:
         raise ValidationError("observatory source must be a regular directory")
     package = observatory_model.load_package(directory)
     del package
-    return {PAYLOAD_PREFIX + name: (directory / name).read_bytes() for name in observatory_model.FILES}
+    try:
+        return {PAYLOAD_PREFIX + name: (directory / name).read_bytes() for name in observatory_model.FILES}
+    except OSError as error:
+        raise ValidationError("observatory source artifact could not be read") from error
 
 
 class ObservatoryArchive:
@@ -334,21 +338,29 @@ def _read_archive(source: str | Path | bytes) -> tuple[dict[str, Any], dict[str,
         path = Path(source)
         if path.is_symlink() or not path.is_file():
             raise ValidationError("archive input must be a regular file")
-        stream = path.open("rb")
+        try:
+            stream = path.open("rb")
+        except OSError as error:
+            raise ValidationError("archive input could not be read") from error
     try:
         try:
             archive = zipfile.ZipFile(stream, mode="r")
-        except (OSError, zipfile.BadZipFile) as error:
+        except (OSError, ValueError, zipfile.BadZipFile) as error:
             raise ValidationError("archive input is not a valid ZIP") from error
         with archive:
             if archive.comment:
                 raise ValidationError("archive comment is not permitted")
-            infos = archive.infolist()
-            if len(infos) != len(FILES) or len({info.filename for info in infos}) != len(infos) or {info.filename for info in infos} != set(FILES):
-                raise ValidationError("archive member set is invalid")
-            if any(not _zip_member_regular(info) for info in infos):
-                raise ValidationError("archive contains a non-regular or encrypted member")
-            raw_by_name = {info.filename: archive.read(info) for info in infos}
+            try:
+                infos = archive.infolist()
+                if len(infos) != len(FILES) or len({info.filename for info in infos}) != len(infos) or {info.filename for info in infos} != set(FILES):
+                    raise ValidationError("archive member set is invalid")
+                if any(not _zip_member_regular(info) for info in infos):
+                    raise ValidationError("archive contains a non-regular or encrypted member")
+                raw_by_name = {info.filename: archive.read(info) for info in infos}
+            except ValidationError:
+                raise
+            except (OSError, EOFError, KeyError, RuntimeError, zipfile.BadZipFile, zlib.error) as error:
+                raise ValidationError("archive payload could not be read") from error
         try:
             manifest_value = _strict_json_loads(raw_by_name[ARCHIVE_MANIFEST_NAME].decode("utf-8"))
         except (UnicodeDecodeError, ValueError) as error:
