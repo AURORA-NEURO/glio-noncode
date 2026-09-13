@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from .errors import ValidationError
 from .cohort_discovery import (
     CallableInterval,
     ChromatinContextControlMatcher,
@@ -17,6 +18,13 @@ from .cohort_discovery import (
 )
 from .models import ReferenceContext, VariantIdentity, VariantKind, VariantOrigin
 from .serialization import content_hash, jsonable
+
+
+def _bool_field(payload: Mapping[str, Any], name: str, default: bool) -> bool:
+    value = payload.get(name, default)
+    if not isinstance(value, bool):
+        raise ValidationError(f"{name} must be boolean")
+    return value
 from .cohort_foundation_frontier_adapters import default_cohort_foundation_frontier_adapters
 from .cohort_foundation_frontier_public_data import (
     CohortFoundationFixture,
@@ -152,7 +160,7 @@ def _execute_query(record: CohortFoundationRecord, context: ReferenceContext) ->
         origins=tuple(str(item) for item in payload.get("origins", ())),
         chromosomes=tuple(str(item) for item in payload.get("chromosomes", ())),
         sample_ids=tuple(str(item) for item in payload.get("sample_ids", ())),
-        require_callable=bool(payload.get("require_callable", True)),
+        require_callable=_bool_field(payload, "require_callable", True),
     )
     result = CohortQueryBuilder().build(query, rows)
     return result.state, result.to_dict()

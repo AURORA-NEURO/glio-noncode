@@ -33,6 +33,13 @@ from .identity_public_data import (
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
+def _bool_field(payload: Mapping[str, Any], name: str, default: bool) -> bool:
+    value = payload.get(name, default)
+    if not isinstance(value, bool):
+        raise ValidationError(f"{name} must be boolean")
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class IdentityOperationFailure:
     """Serializable validation abstention for a malformed review control."""
@@ -384,9 +391,9 @@ class IdentityFixtureEvaluator:
                 raise ValidationError(f"{record.record_id} observations must be an array")
             return BatchSampleIdentityChecker().check(
                 observations,
-                require_batch=bool(payload.get("require_batch", True)),
-                require_sample=bool(payload.get("require_sample", True)),
-                require_subject=bool(payload.get("require_subject", False)),
+                require_batch=_bool_field(payload, "require_batch", True),
+                require_sample=_bool_field(payload, "require_sample", True),
+                require_subject=_bool_field(payload, "require_subject", False),
             )
         if record.kind == IdentityRecordKind.CUSTODY:
             events = payload.get("events", payload.get("records", ()))

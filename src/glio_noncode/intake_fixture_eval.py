@@ -34,6 +34,13 @@ from .intake_public_data import (
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
+def _bool_field(payload: Mapping[str, Any], name: str, default: bool) -> bool:
+    value = payload.get(name, default)
+    if not isinstance(value, bool):
+        raise ValidationError(f"{name} must be boolean")
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class IntakeOperationFailure:
     """Safe review receipt for an operation that rejects its input envelope."""
@@ -393,7 +400,7 @@ class IntakeFixtureEvaluator:
                     bundle_id=str(payload.get("bundle_id", "")),
                     context_key=context_key,
                     source_ids=source_ids,
-                    require_accepted=bool(payload.get("require_accepted", True)),
+                    require_accepted=_bool_field(payload, "require_accepted", True),
                 )
             raise ValidationError(f"unsupported intake record kind: {record.kind.value}")
         except (GlioError, TypeError, ValueError) as exc:
