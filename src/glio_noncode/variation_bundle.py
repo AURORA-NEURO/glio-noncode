@@ -11,6 +11,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .serialization import content_hash, jsonable, require_non_empty
 from .variation_contracts import default_variation_contract_registry
@@ -272,7 +273,11 @@ class VariationEvidenceBundleBuilder:
             format_value = inferred
         else:
             format_value = VariationBundleFormat.JSON
-        output_path.write_text(bundle.render(format_value), encoding="utf-8", newline="\n")
+        atomic_write_text(
+            output_path,
+            bundle.render(format_value),
+            field="variation evidence bundle output",
+        )
         return bundle
 
     @staticmethod
