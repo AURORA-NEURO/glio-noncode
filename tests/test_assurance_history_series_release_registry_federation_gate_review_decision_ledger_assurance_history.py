@@ -360,6 +360,16 @@ class HistoryPersistenceTests(HistoryFixture):
                 self.assertEqual(artifact["bytes"], len(raw))
                 self.assertEqual(artifact["byte_address"], history.hash_bytes(raw) if hasattr(history, "hash_bytes") else artifact["byte_address"])
 
+    def test_history_loader_rejects_duplicate_manifest_fields(self):
+        value = self.build_history()
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = self.write_history(value, Path(temporary))
+            path = destination / history.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"history_id":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                history.load_history(destination)
+
     def test_history_rejects_extra_file(self):
         value = self.build_history()
         with tempfile.TemporaryDirectory() as temporary:

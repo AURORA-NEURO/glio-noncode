@@ -30,7 +30,13 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review as decision_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 FederationReviewDecisionLedger = decision_model.FederationReviewDecisionLedger
 FederationReviewItem = decision_model.FederationReviewItem
@@ -1139,8 +1145,8 @@ def _read_json(path: Path, field: str) -> dict[str, Any]:
         raise ValidationError(f"{field} must be a regular file")
     raw = path.read_bytes()
     try:
-        value = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is invalid JSON") from exc
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} is not canonical JSON")

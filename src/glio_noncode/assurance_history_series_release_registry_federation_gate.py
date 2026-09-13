@@ -29,7 +29,13 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation as federation_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 VERSION = federation_model.VERSION + "-gate-v1"
 BOUNDARY = federation_model.BOUNDARY + "_gate"
@@ -184,8 +190,8 @@ def _require_regular_file(path: Path, field: str) -> None:
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     _require_regular_file(path, field)
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is not valid UTF-8 JSON") from exc
     if not isinstance(value, dict):
         raise ValidationError(f"{field} must be a JSON object")

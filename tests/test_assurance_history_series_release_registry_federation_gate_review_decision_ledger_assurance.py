@@ -346,6 +346,15 @@ class AssurancePersistenceTests(AssuranceFixture):
             self.assertEqual(tuple(document["files"]), assurance.FILES)
             self.assertIn("manifest_address", document)
 
+    def test_bundle_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            target = self.write_assurance(self.build(self.ready_ledger), Path(temporary))
+            path = target / assurance.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"ledger_id":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                assurance.load_assurance_gate(target)
+
     def test_bundle_rejects_extra_file(self):
         with tempfile.TemporaryDirectory() as temporary:
             target = self.write_assurance(self.build(self.ready_ledger), Path(temporary))

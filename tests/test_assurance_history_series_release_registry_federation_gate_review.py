@@ -201,6 +201,16 @@ class ReviewPersistenceTests(ReviewFixture):
                 self.assertEqual(artifact["bytes"], len(raw))
                 self.assertEqual(artifact["byte_address"], review._file_address(artifact["name"], raw))
 
+    def test_queue_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "review"
+            review.write_review(self.ready_review, destination)
+            path = destination / review.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"federation_address":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                review.load_review(destination)
+
     def test_queue_persistence_is_canonical_utf8(self):
         with tempfile.TemporaryDirectory() as temporary:
             destination = Path(temporary) / "review"

@@ -592,6 +592,15 @@ class FederationGatePersistenceTests(FederationGateFixture):
             self.assertEqual(manifest["gate_address"], self.value.gate.content_address)
             self.assertEqual(manifest["content_address"], gate._manifest_address(manifest))
 
+    def test_manifest_rejects_duplicate_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = self.persist(Path(temporary))
+            path = destination / gate.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"federation_address":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                gate.load_federation_assurance_gate(destination)
+
     def test_manifest_byte_receipts_match_every_document(self):
         with tempfile.TemporaryDirectory() as temporary:
             destination = self.persist(Path(temporary))

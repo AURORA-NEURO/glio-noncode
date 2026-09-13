@@ -37,7 +37,13 @@ from typing import Any
 
 from . import assurance_history_series_release_registry as registry_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 VERSION = registry_model.VERSION + "-federation-v1"
 BOUNDARY = registry_model.BOUNDARY + "_federation"
@@ -234,8 +240,8 @@ def _require_directory(path: Path, field: str) -> None:
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     _require_regular_file(path, field)
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError(f"{field} is not valid UTF-8 JSON") from exc
     return dict(_mapping(value, field))
 

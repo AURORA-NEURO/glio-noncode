@@ -318,6 +318,17 @@ class FederationPersistenceTests(FederationFixture):
             receipt = next(item for item in manifest["artifacts"] if item["name"] == federation.MEMBERS_NAME)
             self.assertEqual(receipt["byte_address"], hash_bytes(members_raw, prefix=f"{federation.PREFIX}-file-members"))
 
+    def test_persistence_rejects_duplicate_manifest_fields(self):
+        value = self.build((self.ready_registry("one"),))
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "federation"
+            self.write(value, destination)
+            path = destination / federation.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"federation_address":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                federation.load_federation(destination)
+
     def test_persistence_is_canonical_repeatable_and_overwrite_guarded(self):
         value = self.build((self.ready_registry("one"),))
         with tempfile.TemporaryDirectory() as temporary:
