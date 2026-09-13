@@ -34,7 +34,7 @@ from .causal_foundation_frontier_fixture_eval import evaluate_causal_foundation_
 from .causal_foundation_frontier_public_data import default_causal_foundation_frontier_fixture
 from .causal_frontier_fixture_eval import evaluate_causal_frontier_fixture
 from .causal_frontier_public_data import default_causal_frontier_fixture
-from .serialization import jsonable
+from .serialization import _strict_json_loads, jsonable
 
 _FAMILIES = (
     CausalArchitectureFamily.FOUNDATION,
@@ -281,7 +281,7 @@ def causal_architecture_fixture_json(fixture: CausalArchitectureFixture | None =
 
 
 def load_causal_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D11 fixture JSON must be an object")
     return dict(raw)

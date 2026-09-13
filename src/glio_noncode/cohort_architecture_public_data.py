@@ -39,7 +39,7 @@ from .cohort_foundation_frontier_fixture_eval import (
 from .cohort_foundation_frontier_public_data import default_cohort_foundation_frontier_fixture
 from .cohort_frontier_fixture_eval import evaluate_cohort_frontier_fixture
 from .cohort_frontier_public_data import default_cohort_frontier_fixture
-from .serialization import jsonable
+from .serialization import _strict_json_loads, jsonable
 
 _FAMILY_ORDER = (
     CohortArchitectureFamily.FOUNDATION,
@@ -521,7 +521,7 @@ def cohort_architecture_fixture_json(fixture: CohortArchitectureFixture | None =
 
 
 def load_cohort_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D12 aggregate JSON must be an object")
     return dict(raw)

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 LINK_FRONTIER_FIXTURE_VERSION = "2026.08.d10-c13-c16.v1"
 LINK_FRONTIER_CONTEXT_KEY = "GRCh38|glioma|adult|stem_like|core|unknown"
@@ -538,7 +538,7 @@ def audit_link_frontier_data(
 
 
 def load_link_frontier_fixture(path: str | Path) -> LinkFrontierFixture:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValidationError("link fixture JSON must be an object")
     return default_link_frontier_fixture() if raw.get("fixture_id") == "link-frontier-public-aggregate" else _fixture_from_dict(raw)

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 CAUSAL_FRONTIER_FIXTURE_VERSION = "2026.08.d11-c13-c16.v1"
 CAUSAL_FRONTIER_CONTEXT_KEY = "GRCh38|glioma|adult|stem_like|core|unknown"
@@ -529,7 +529,7 @@ def audit_causal_frontier_data(fixture: CausalFrontierFixture | None = None) -> 
 
 
 def load_causal_frontier_fixture(path: str | Path) -> CausalFrontierFixture:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValidationError("causal fixture JSON must be an object")
     sources = tuple(CausalFrontierSourceReceipt(**item) for item in raw.get("sources", ()))

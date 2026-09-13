@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 COHORT_FRONTIER_FIXTURE_VERSION = "2026.08.d12-c13-c16.v1"
 COHORT_FRONTIER_CONTEXT_KEY = "GRCh38|glioma|adult|stem_like|core|unknown"
@@ -232,7 +232,7 @@ def audit_cohort_frontier_data(fixture: CohortFrontierFixture | None = None) -> 
 
 
 def load_cohort_frontier_fixture(path: str | Path) -> CohortFrontierFixture:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValidationError("cohort fixture JSON must be an object")
     sources = tuple(CohortFrontierSourceReceipt(**item) for item in raw.get("sources", ()))

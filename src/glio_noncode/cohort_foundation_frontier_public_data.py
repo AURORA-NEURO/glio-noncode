@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 COHORT_FOUNDATION_FRONTIER_FIXTURE_VERSION = "2026.08.d12-c01-c04.v1"
@@ -349,7 +349,7 @@ def cohort_foundation_frontier_fixture_json(fixture: CohortFoundationFixture | N
 def load_cohort_foundation_frontier_fixture(path: str | Path) -> CohortFoundationFixture:
     """Load an externally supplied aggregate fixture with strict enum parsing."""
 
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     sources = tuple(CohortFoundationSourceReceipt(**item) for item in raw["sources"])
     records = tuple(
         CohortFoundationRecord(

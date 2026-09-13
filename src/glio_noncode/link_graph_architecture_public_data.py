@@ -42,7 +42,7 @@ from .link_graph_foundation_frontier_fixture_eval import (
 from .link_graph_foundation_frontier_public_data import (
     default_link_graph_foundation_frontier_fixture,
 )
-from .serialization import jsonable
+from .serialization import _strict_json_loads, jsonable
 
 _FAMILY_ORDER = (
     LinkGraphArchitectureFamily.FOUNDATION,
@@ -295,7 +295,7 @@ def link_graph_architecture_fixture_json(
 
 
 def load_link_graph_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D10 fixture JSON must be an object")
     return dict(raw)

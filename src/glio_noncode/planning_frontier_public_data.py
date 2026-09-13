@@ -20,7 +20,7 @@ from .planning_frontier_contracts import (
     PlanningSourceReceipt,
     PlanningState,
 )
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 PLANNING_FRONTIER_SOURCE_COUNT = 5
@@ -262,7 +262,7 @@ def audit_planning_frontier_data(fixture: PlanningFixture) -> PlanningDataAudit:
 
 
 def load_planning_frontier_fixture(path: str | Path) -> PlanningFixture:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     expected = default_planning_frontier_fixture()
     if not isinstance(raw, Mapping) or raw.get("fixture_id") != expected.fixture_id or raw.get("fixture_version") != expected.fixture_version or raw.get("content_address") != expected.content_address:
         raise ValueError("planning fixture identity mismatch")

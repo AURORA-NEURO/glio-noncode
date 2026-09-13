@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import jsonable
+from .serialization import _strict_json_loads, jsonable
 
 LINK_GRAPH_ARCHITECTURE_VERSION = "2026.08.d10-link-graph-architecture.v1"
 LINK_GRAPH_ARCHITECTURE_BOUNDARY = "public_aggregate_non_patient"
@@ -262,7 +262,7 @@ class LinkGraphArchitectureFixture:
 
     @classmethod
     def from_file(cls, path: str | Path) -> LinkGraphArchitectureFixture:
-        raw = json.loads(Path(path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
         if not isinstance(raw, Mapping):
             raise ValidationError("D10 fixture JSON must be an object")
         return cls.from_mapping(raw)

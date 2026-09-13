@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import jsonable
+from .serialization import _strict_json_loads, jsonable
 
 COHORT_ARCHITECTURE_VERSION = "2026.08.d12-cohort-architecture.v1"
 COHORT_ARCHITECTURE_BOUNDARY = "public_aggregate_non_patient"
@@ -280,7 +280,7 @@ class CohortArchitectureFixture:
 
     @classmethod
     def from_file(cls, path: str | Path) -> CohortArchitectureFixture:
-        raw = json.loads(Path(path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
         if not isinstance(raw, Mapping):
             raise ValidationError("D12 fixture JSON must be an object")
         return cls.from_mapping(raw)

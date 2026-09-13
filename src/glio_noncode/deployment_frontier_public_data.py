@@ -25,7 +25,7 @@ from .deployment_frontier_contracts import (
     DeploymentFrontierSourceReceipt,
     DeploymentFrontierState,
 )
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 DEPLOYMENT_FRONTIER_SOURCE_COUNT = 5
@@ -263,7 +263,7 @@ def audit_deployment_frontier_data(fixture: DeploymentFrontierFixture) -> Deploy
 
 def load_deployment_frontier_fixture(path: str | Path) -> DeploymentFrontierFixture:
     fixture_path = Path(path)
-    raw = json.loads(fixture_path.read_text(encoding="utf-8"))
+    raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("deployment fixture must be an object")
     if raw.get("fixture_version") != DEPLOYMENT_FRONTIER_VERSION:
