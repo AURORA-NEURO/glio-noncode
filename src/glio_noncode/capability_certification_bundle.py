@@ -102,6 +102,22 @@ def _safe_relative_path(value: str) -> bool:
     )
 
 
+def _bundle_path(root: Path, relative_path: str) -> Path:
+    """Resolve a validated artifact path without traversing symlinks."""
+
+    current = root
+    for component in PurePosixPath(relative_path).parts:
+        current /= component
+        try:
+            if current.is_symlink():
+                raise ValidationError("certification bundle path is unsafe")
+        except ValidationError:
+            raise
+        except OSError as exc:
+            raise ValidationError("certification bundle path could not be inspected") from exc
+    return current
+
+
 def _public_projection(value: Any) -> Any:
     """Project nested values while removing direct attribution metadata."""
 
@@ -299,14 +315,28 @@ def write_capability_certification_bundle(
     """Write exact UTF-8 files without deleting unrelated destination files."""
 
     root = Path(destination)
-    root.mkdir(parents=True, exist_ok=True)
+    try:
+        if root.is_symlink():
+            raise ValidationError("certification bundle destination is unsafe")
+        root.mkdir(parents=True, exist_ok=True)
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("certification bundle destination must be a directory")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise ValidationError("certification bundle destination could not be prepared") from exc
     for artifact in bundle.artifacts:
         if artifact.payload is None:
             raise ValidationError(f"artifact {artifact.artifact_id} has no payload")
-        target = root / Path(*PurePosixPath(artifact.relative_path).parts)
+        target = _bundle_path(root, artifact.relative_path)
         target.parent.mkdir(parents=True, exist_ok=True)
+        if target.parent.is_symlink() or not target.parent.is_dir() or target.is_symlink():
+            raise ValidationError("certification bundle artifact path is unsafe")
         target.write_bytes(artifact.payload.encode("utf-8"))
-    (root / CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST).write_bytes(bundle_manifest_text(bundle).encode("utf-8"))
+    manifest_path = _bundle_path(root, CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST)
+    if manifest_path.is_symlink():
+        raise ValidationError("certification bundle manifest path is unsafe")
+    manifest_path.write_bytes(bundle_manifest_text(bundle).encode("utf-8"))
     return root
 
 
@@ -329,7 +359,7 @@ def verify_capability_certification_bundle(destination: str | Path) -> Certifica
 
     root = Path(destination)
     manifest_path = root / CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST
-    if not root.exists() or not root.is_dir():
+    if root.is_symlink() or not root.exists() or not root.is_dir():
         return _verification("missing-bundle", (_check("bundle-directory", CertificationBundleCheckPlane.MANIFEST, False, str(root), "directory", "bundle directory is missing"),))
     if not manifest_path.exists() or not manifest_path.is_file() or manifest_path.is_symlink():
         return _verification("missing-manifest", (_check("manifest-present", CertificationBundleCheckPlane.MANIFEST, False, False, True, "bundle manifest is missing"),))
@@ -382,8 +412,12 @@ def verify_capability_certification_bundle(destination: str | Path) -> Certifica
         if not safe:
             continue
         expected_paths.add(relative_path)
-        target = root / Path(*PurePosixPath(relative_path).parts)
-        regular = target.exists() and target.is_file() and not target.is_symlink()
+        try:
+            target = _bundle_path(root, relative_path)
+            regular = target.exists() and target.is_file() and not target.is_symlink()
+        except (OSError, ValidationError) as exc:
+            checks.append(_check(f"present:{artifact_id}", CertificationBundleCheckPlane.ARTIFACT, False, type(exc).__name__, "regular file", "manifest artifact path is unsafe"))
+            continue
         checks.append(_check(f"present:{artifact_id}", CertificationBundleCheckPlane.ARTIFACT, regular, str(target) if target.exists() else "missing", "regular file", "manifest artifact is materialized"))
         if not regular:
             continue

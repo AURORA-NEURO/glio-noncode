@@ -36,6 +36,7 @@ from glio_noncode.capability_certification_bundle_schema import (
     validate_capability_certification_bundle_manifest,
 )
 from glio_noncode.cli import main
+from glio_noncode.errors import ValidationError
 from glio_noncode.module_fabric_support import contains_private_key
 from glio_noncode.run_workspace import _has_forbidden_key
 from glio_noncode.serialization import canonical_json
@@ -125,6 +126,34 @@ class CapabilityCertificationBundleTests(unittest.TestCase):
             self.assertTrue(any(item.check_id == "json-public:report" and not item.passed for item in verification.checks))
             with self.assertRaises(ValueError):
                 load_capability_certification_bundle(directory, include_payloads=True)
+
+    def test_bundle_rejects_symlinked_destination_and_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            destination = root / "bundle"
+            write_capability_certification_bundle(self.bundle, destination)
+            linked_destination = root / "linked-bundle"
+            try:
+                linked_destination.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+
+            with self.assertRaisesRegex(ValidationError, "destination"):
+                write_capability_certification_bundle(self.bundle, linked_destination)
+            verification = verify_capability_certification_bundle(linked_destination)
+            self.assertFalse(verification.accepted)
+
+            artifact = destination / "report.json"
+            external = root / "external-report.json"
+            external_body = artifact.read_bytes()
+            external.write_bytes(external_body)
+            artifact.unlink()
+            artifact.symlink_to(external)
+            with self.assertRaisesRegex(ValueError, "certification artifact"):
+                load_capability_certification_bundle(destination, include_payloads=True)
+            verification = verify_capability_certification_bundle(destination)
+            self.assertFalse(verification.accepted)
+            self.assertEqual(external.read_bytes(), external_body)
 
     def test_offline_loader_query_and_csv_are_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from .errors import ValidationError
 from .capability_certification_bundle_contracts import (
     CAPABILITY_CERTIFICATION_BUNDLE_DEFAULT_LIMIT,
     CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST,
@@ -22,6 +23,7 @@ from .capability_certification_bundle_contracts import (
     CertificationBundleState,
 )
 from .serialization import _strict_json_loads, canonical_json, content_hash, require_non_empty
+from .capability_certification_bundle import _bundle_path
 
 
 def _safe_relative_path(value: str) -> bool:
@@ -34,8 +36,15 @@ def _safe_relative_path(value: str) -> bool:
 def _load_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(value)
     try:
-        manifest = _strict_json_loads((root / CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST).read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        if root.is_symlink() or not root.is_dir():
+            raise ValueError("certification bundle root must be a regular directory")
+        manifest_path = _bundle_path(root, CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST)
+        if manifest_path.is_symlink() or not manifest_path.is_file():
+            raise ValueError("certification bundle manifest is missing")
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except ValueError:
+        raise
+    except (OSError, UnicodeDecodeError) as exc:
         raise ValueError(f"cannot load certification bundle manifest: {exc}") from exc
     if not isinstance(manifest, Mapping):
         raise ValueError("certification bundle manifest must be an object")
@@ -74,9 +83,17 @@ def load_capability_certification_bundle(
         if not _safe_relative_path(relative_path):
             raise ValueError(f"unsafe certification artifact path: {relative_path!r}")
         payload = None
+        try:
+            artifact_path = _bundle_path(root, relative_path)
+            if artifact_path.is_symlink():
+                raise ValueError(f"certification artifact {relative_path} is unsafe")
+        except (OSError, ValueError, ValidationError) as exc:
+            raise ValueError(f"cannot inspect certification artifact {relative_path}: {exc}") from exc
         if include_payloads:
             try:
-                payload = (root / Path(*PurePosixPath(relative_path).parts)).read_text(encoding="utf-8")
+                if not artifact_path.is_file():
+                    raise ValueError(f"certification artifact {relative_path} is missing")
+                payload = artifact_path.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError) as exc:
                 raise ValueError(f"cannot hydrate certification artifact {relative_path}: {exc}") from exc
             if str(raw.get("media_type", "")) == "application/json":
