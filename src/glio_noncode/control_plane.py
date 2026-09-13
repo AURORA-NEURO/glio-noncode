@@ -78,6 +78,22 @@ _CLAIM_RANK = {
 MAX_INVOCATION_INPUT_BYTES = 16 * 1024 * 1024
 
 
+def _validate_string_tuple(
+    value: object,
+    field: str,
+    *,
+    allow_empty: bool = True,
+) -> None:
+    if type(value) is not tuple:
+        raise ValidationError(f"{field} must be a tuple")
+    if not allow_empty and not value:
+        raise ValidationError(f"{field} must not be empty")
+    if any(type(item) is not str or not item.strip() for item in value):
+        raise ValidationError(f"{field} must contain non-empty strings")
+    if len(value) != len(set(value)):
+        raise ValidationError(f"{field} must not contain duplicates")
+
+
 def _claim_allowed(agent: ClaimCeiling, mission: ClaimCeiling) -> bool:
     return _CLAIM_RANK[agent] <= _CLAIM_RANK[mission]
 
@@ -115,6 +131,8 @@ class ToolContract:
             raise ValidationError("tool safety_class must be a SafetyClass")
         if type(self.resource) is not ResourceEnvelope:
             raise ValidationError("tool resource must be a ResourceEnvelope")
+        require_non_empty(self.mutation_scope, "mutation_scope")
+        _validate_string_tuple(self.allowed_source_ids, "allowed_source_ids")
         for value, name in (
             (self.deterministic, "deterministic"),
             (self.network_egress, "network_egress"),
@@ -157,10 +175,30 @@ class AgentSpec:
     def __post_init__(self) -> None:
         for name in ("agent_id", "name", "purpose"):
             require_non_empty(getattr(self, name), name)
+        if type(self.plane) is not Plane:
+            raise ValidationError("agent plane must be a Plane")
+        if type(self.claim_ceiling) is not ClaimCeiling:
+            raise ValidationError("agent claim_ceiling must be a ClaimCeiling")
+        for value, field_name in (
+            (self.input_contracts, "input_contracts"),
+            (self.output_contracts, "output_contracts"),
+            (self.allowed_tool_ids, "allowed_tool_ids"),
+            (self.dependency_agent_ids, "dependency_agent_ids"),
+            (self.prohibited_actions, "prohibited_actions"),
+        ):
+            _validate_string_tuple(value, f"{self.agent_id}.{field_name}")
         if not self.input_contracts or not self.output_contracts:
             raise ValidationError(f"{self.agent_id} must declare input and output contracts")
         if not self.allowed_tool_ids:
             raise ValidationError(f"{self.agent_id} must declare at least one tool")
+        if self.agent_id in self.dependency_agent_ids:
+            raise ValidationError(f"{self.agent_id} cannot depend on itself")
+        for value, field_name in (
+            (self.review_required, "review_required"),
+            (self.may_abstain, "may_abstain"),
+        ):
+            if type(value) is not bool:
+                raise ValidationError(f"{self.agent_id} {field_name} must be boolean")
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -187,6 +225,13 @@ class MissionContext:
     def __post_init__(self) -> None:
         for name in ("mission_id", "project_id", "intended_use", "requested_question"):
             require_non_empty(getattr(self, name), name)
+        if type(self.claim_ceiling) is not ClaimCeiling:
+            raise ValidationError("mission claim_ceiling must be a ClaimCeiling")
+        _validate_string_tuple(self.allowed_source_ids, "allowed_source_ids")
+        _validate_string_tuple(self.allowed_data_scopes, "allowed_data_scopes")
+        _validate_string_tuple(self.allowed_mutations, "allowed_mutations")
+        require_non_empty(self.subject_scope, "subject_scope")
+        require_non_empty(self.created_at, "created_at")
         if not self.research_use_only:
             raise ValidationError("control-plane missions must be research-use only")
         for value, name in (
@@ -217,6 +262,20 @@ class ProvenanceContext:
     def __post_init__(self) -> None:
         if not self.input_hashes:
             raise ValidationError("provenance requires at least one input hash")
+        _validate_string_tuple(self.input_hashes, "input_hashes", allow_empty=False)
+        _validate_string_tuple(self.upstream_event_ids, "upstream_event_ids")
+        _validate_string_tuple(self.model_digests, "model_digests")
+        _validate_string_tuple(self.parent_bundle_addresses, "parent_bundle_addresses")
+        if not isinstance(self.source_versions, Mapping):
+            raise ValidationError("source_versions must be a mapping")
+        if any(
+            type(key) is not str
+            or not key.strip()
+            or type(value) is not str
+            or not value.strip()
+            for key, value in self.source_versions.items()
+        ):
+            raise ValidationError("source_versions must map non-empty strings to non-empty strings")
         require_non_empty(self.reference_build, "reference_build")
 
     @property

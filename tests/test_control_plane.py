@@ -4,6 +4,7 @@ import unittest
 from dataclasses import replace
 
 from glio_noncode.control_plane import (
+    AgentSpec,
     Abstention,
     ClaimCeiling,
     ControlPlaneExecutor,
@@ -147,6 +148,31 @@ class ControlPlaneTests(unittest.TestCase):
     def test_executor_rejects_non_callable_handlers_at_registration(self) -> None:
         with self.assertRaises(Exception):
             ControlPlaneExecutor().register("A08.publish", object())  # type: ignore[arg-type]
+
+    def test_control_envelopes_reject_malformed_typed_metadata(self) -> None:
+        with self.assertRaises(Exception):
+            MissionContext(
+                mission_id="m",
+                project_id="p",
+                intended_use="research",
+                requested_question="bounded",
+                claim_ceiling="hypothesis",  # type: ignore[arg-type]
+            )
+        with self.assertRaises(Exception):
+            ProvenanceContext(("sha256:input", "sha256:input"))
+        with self.assertRaises(Exception):
+            ProvenanceContext(("sha256:input",), source_versions={"source": 1})  # type: ignore[dict-item]
+        with self.assertRaises(Exception):
+            AgentSpec(
+                agent_id="A99",
+                name="Malformed",
+                plane="control",  # type: ignore[arg-type]
+                purpose="test",
+                input_contracts=("input",),
+                output_contracts=("output",),
+                allowed_tool_ids=("A99.inspect",),
+                review_required="false",  # type: ignore[arg-type]
+            )
 
     def test_scheduler_scopes_budgets_to_missions_and_retains_consumed_seconds(self) -> None:
         scheduler = ResourceScheduler(
