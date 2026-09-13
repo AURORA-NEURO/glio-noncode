@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -523,10 +522,14 @@ def write_registry(value: RegistryFederationConsensusGateCertificateObservatoryA
 
 
 def _read_directory(source: str | Path) -> dict[str, bytes]:
-    path = Path(source)
-    if path.is_symlink() or not path.is_dir():
-        raise ValidationError("archive registry input must be a regular directory")
-    names = tuple(item.name for item in path.iterdir())
+    try:
+        path = Path(source)
+        if path.is_symlink() or not path.is_dir():
+            raise ValidationError("archive registry input must be a regular directory")
+        members = tuple(path.iterdir())
+    except OSError as error:
+        raise ValidationError("archive registry directory could not be inspected") from error
+    names = tuple(item.name for item in members)
     if set(names) != set(FILES) or len(names) != len(FILES):
         raise ValidationError("archive registry member set is not exact")
     result = {}
@@ -534,7 +537,10 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
         member = path / name
         if member.is_symlink() or not member.is_file():
             raise ValidationError("archive registry member must be a regular file")
-        raw = member.read_bytes()
+        try:
+            raw = member.read_bytes()
+        except OSError as error:
+            raise ValidationError("archive registry artifact could not be read") from error
         if len(raw) > MAX_TOTAL_ARCHIVE_BYTES:
             raise ValidationError("archive registry member exceeds the size bound")
         result[name] = raw

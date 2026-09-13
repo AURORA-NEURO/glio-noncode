@@ -16,6 +16,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -212,6 +213,19 @@ class ArchiveRegistryFixture(unittest.TestCase):
             (destination / registry_model.MANIFEST_NAME).write_text(json.dumps(manifest, sort_keys=True, separators=(",", ":")), encoding="utf-8")
             with self.assertRaises(ValidationError):
                 registry_model.load_registry(destination)
+
+    def test_registry_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self.registry(root, "failure-a")
+            destination = root / "registry"
+            registry_model.write_registry(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    registry_model.load_registry(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    registry_model.load_registry(destination)
 
     def test_registry_audit_exposes_all_independent_checks(self):
         with tempfile.TemporaryDirectory() as temporary:
