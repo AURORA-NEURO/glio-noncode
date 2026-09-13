@@ -28,7 +28,7 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_transfer_audit as transfer_audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_package as package_model
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 VERSION = transfer_model.VERSION + "-runtime-v1"
@@ -145,8 +145,8 @@ def _load_package_input(source: str | Path) -> package_model.RegistryFederationC
     if path.is_file() and path.suffix.lower() == ".zip":
         return archive_model.load_archive(path).package  # type: ignore[return-value]
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raw = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("runtime input is not a readable package or observatory document") from error
     if not isinstance(raw, Mapping):
         raise ValidationError("runtime input JSON must be an object")

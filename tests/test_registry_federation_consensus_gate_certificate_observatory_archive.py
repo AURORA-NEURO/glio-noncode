@@ -258,6 +258,11 @@ class CertificateObservatoryArchiveTests(CertificateFixture):
             self.assertTrue(transfer_audit_model.audit_transfer_directory(str(destination)).accepted)
             self.assertEqual(transfer_model.query_transfer(loaded, resource="chunks", limit=100).returned, transfer.chunk_count)
             self.assertEqual(transfer_model.query_transfer(loaded, resource="progress").rows[0]["complete"], True)
+            manifest = destination / transfer_model.MANIFEST_NAME
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"transfer_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                transfer_model.load_transfer(destination)
 
     def test_transfer_rejects_bad_chunk_sizes_receipts_and_members(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -367,6 +372,11 @@ class CertificateObservatoryArchiveTests(CertificateFixture):
             second_dir = root / "second-package"
             package_model.write_package(first, first_dir)
             package_model.write_package(second, second_dir)
+            package_json = root / "package.json"
+            package_json.write_text(json.dumps(first.to_dict(), sort_keys=True), encoding="utf-8")
+            package_json.write_text(package_json.read_text(encoding="utf-8").rstrip()[:-1] + ',"package_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                archive_runtime_model.run_runtime((package_json,), limit=10)
             with self.assertRaises(ValidationError):
                 archive_runtime_model.run_runtime((first_dir, second_dir), limit=10)
             self.assertNotEqual(first.content_address, second.content_address)

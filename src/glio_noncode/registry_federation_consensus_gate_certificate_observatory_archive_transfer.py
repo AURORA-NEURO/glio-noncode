@@ -24,7 +24,7 @@ from typing import Any
 
 from . import registry_federation_consensus_gate_certificate_observatory_archive as archive_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = archive_model.VERSION + "-transfer-v1"
@@ -411,8 +411,8 @@ def _read_manifest(source: str | Path) -> tuple[Mapping[str, Any], Path]:
     if directory.is_symlink() or not directory.is_dir() or (directory / MANIFEST_NAME).is_symlink() or not (directory / MANIFEST_NAME).is_file():
         raise ValidationError("transfer source must contain a regular manifest")
     try:
-        manifest = json.loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        manifest = _strict_json_loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("transfer manifest is not valid JSON") from error
     if canonical_bytes(manifest) != (directory / MANIFEST_NAME).read_bytes():
         raise ValidationError("transfer manifest is not canonical")
