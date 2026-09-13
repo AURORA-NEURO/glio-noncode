@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text, read_bytes, read_text
 from .dossier_query import build_dossier_query_closure, summarize_dossier
 from .errors import ValidationError
 from .models import Dossier
@@ -334,12 +335,20 @@ def write_dossier_release_bundle(bundle: DossierReleaseBundle, destination: str 
         target = root / artifact.filename
         if target.is_symlink():
             raise ValidationError("release artifact path is unsafe")
-        target.write_text(artifact.payload, encoding="utf-8", newline="")
+        atomic_write_text(
+            target,
+            artifact.payload,
+            field="dossier release artifact path",
+            encoding="utf-8",
+        )
     manifest_path = root / DOSSIER_RELEASE_MANIFEST
     if manifest_path.is_symlink():
         raise ValidationError("release manifest path is unsafe")
-    manifest_path.write_text(
-        canonical_json(bundle.manifest_dict()), encoding="utf-8", newline=""
+    atomic_write_text(
+        manifest_path,
+        canonical_json(bundle.manifest_dict()),
+        field="dossier release manifest path",
+        encoding="utf-8",
     )
     return root
 
@@ -354,8 +363,10 @@ def verify_dossier_release_bundle(destination: str | Path) -> ReleaseVerificatio
     if manifest_path.is_symlink() or not manifest_path.exists():
         raise ValidationError("release manifest is missing")
     try:
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        manifest = _strict_json_loads(
+            read_text(manifest_path, field="dossier release manifest path", encoding="utf-8")
+        )
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError("release manifest is not valid JSON") from exc
     if not isinstance(manifest, dict):
         raise ValidationError("release manifest must be a JSON object")
@@ -402,8 +413,8 @@ def verify_dossier_release_bundle(destination: str | Path) -> ReleaseVerificatio
             failed.append(artifact_id)
             continue
         try:
-            payload = path.read_bytes()
-        except OSError:
+            payload = read_bytes(path, field="dossier release artifact path")
+        except (OSError, ValidationError):
             failed.append(artifact_id)
             continue
         expected = str(artifact.get("content_address", ""))
@@ -439,11 +450,18 @@ def verify_dossier_release_bundle(destination: str | Path) -> ReleaseVerificatio
             continue
         artifact_copy = dict(artifact)
         path = safe_path(str(artifact_copy.get("filename", "")))
-        artifact_copy["payload"] = (
-            path.read_text(encoding="utf-8", errors="replace")
-            if path is not None and path.is_file()
-            else ""
-        )
+        if path is not None and path.is_file():
+            try:
+                artifact_copy["payload"] = read_text(
+                    path,
+                    field="dossier release artifact path",
+                    encoding="utf-8",
+                    errors="replace",
+                )
+            except (OSError, UnicodeError, ValidationError):
+                artifact_copy["payload"] = ""
+        else:
+            artifact_copy["payload"] = ""
         reconstructed_artifacts.append(artifact_copy)
     reconstructed["artifacts"] = reconstructed_artifacts
     manifest_address_valid = content_hash(reconstructed, prefix="dossier-release") == manifest.get("content_address")

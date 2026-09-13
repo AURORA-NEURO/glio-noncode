@@ -126,11 +126,12 @@ def read_text(
     *,
     field: str = "input path",
     encoding: str = "utf-8",
+    errors: str = "strict",
 ) -> str:
     """Read and decode a regular text file without symlink traversal."""
 
     try:
-        return read_bytes(path, field=field).decode(encoding)
+        return read_bytes(path, field=field).decode(encoding, errors=errors)
     except LookupError as exc:
         raise ValidationError("text input encoding is invalid") from exc
 
