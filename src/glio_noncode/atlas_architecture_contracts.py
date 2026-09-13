@@ -8,15 +8,15 @@ replay, and release artifacts.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 ATLAS_ARCHITECTURE_VERSION = "2026.08.d05-atlas-architecture.v1"
 ATLAS_ARCHITECTURE_BOUNDARY = "public_aggregate_glioma_regulatory_atlas"
@@ -299,8 +299,9 @@ class AtlasArchitectureFixture:
 
     @classmethod
     def from_file(cls, path: str | Path) -> AtlasArchitectureFixture:
-        with Path(path).open("r", encoding="utf-8") as handle:
-            raw = json.load(handle)
+        raw = _strict_json_loads(
+            read_text(path, field="atlas architecture fixture input path", encoding="utf-8")
+        )
         if not isinstance(raw, Mapping):
             raise ValidationError("atlas architecture fixture must be an object")
         return cls.from_mapping(raw)

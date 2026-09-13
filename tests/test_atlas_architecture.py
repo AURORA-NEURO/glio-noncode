@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
 from glio_noncode.atlas_architecture_access import atlas_architecture_access_policy
 from glio_noncode.atlas_architecture_contracts import (
     ATLAS_ARCHITECTURE_CASE_COUNT,
     ATLAS_ARCHITECTURE_CONTEXT,
+    AtlasArchitectureFixture,
     AtlasArchitectureScenario,
     AtlasArchitectureState,
 )
@@ -32,6 +36,7 @@ from glio_noncode.atlas_architecture_review import build_atlas_architecture_revi
 from glio_noncode.atlas_architecture_runtime import run_atlas_architecture
 from glio_noncode.atlas_architecture_schema import atlas_architecture_schema
 from glio_noncode.atlas_architecture_validation import validate_atlas_architecture_matrix
+from glio_noncode.errors import ValidationError
 
 
 class AtlasArchitectureFixtureTests(unittest.TestCase):
@@ -53,6 +58,28 @@ class AtlasArchitectureFixtureTests(unittest.TestCase):
         self.assertTrue(all(item.public_aggregate for item in self.fixture.sources))
         self.assertTrue(all(item.delegate_context_key for item in self.fixture.cases))
         self.assertTrue(all(item.content_address for item in report.checks))
+
+    def test_fixture_file_loader_is_strict_and_symlink_safe(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixture_path = root / "fixture.json"
+            fixture_path.write_text(payload, encoding="utf-8")
+            loaded = AtlasArchitectureFixture.from_file(fixture_path)
+            self.assertEqual(loaded.content_address, self.fixture.content_address)
+
+            duplicate = root / "duplicate.json"
+            duplicate.write_text(payload[:-1] + ',"fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                AtlasArchitectureFixture.from_file(duplicate)
+
+            link = root / "link.json"
+            try:
+                link.symlink_to(fixture_path)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                AtlasArchitectureFixture.from_file(link)
 
     def test_operations_are_four_scenario_contracts(self) -> None:
         for operation in self.fixture.operation_ids:
