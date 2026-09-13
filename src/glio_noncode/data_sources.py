@@ -39,6 +39,7 @@ from ._callback_isolation import (
     source_callback_scope,
     source_manifest_callback_scope,
 )
+from ._safe_persistence import atomic_write_text, read_text
 from .adapters import AdapterMetadata
 from .errors import SourceError, SourceNotFoundError, SourceRateLimitError, ValidationError
 from .identity import normalize_chromosome, variant_interval
@@ -1034,7 +1035,7 @@ class SourceCache:
             if path.stat().st_size > maximum * 2 + 32_768:
                 return None
             raw = _strict_json_loads(
-                path.read_text(encoding="utf-8"),
+                read_text(path, field="source-cache entry path"),
                 object_pairs_hook=_unique_json_object,
                 parse_constant=_invalid_json_constant,
             )
@@ -1158,21 +1159,10 @@ class SourceCache:
                 raise
             except OSError as exc:
                 raise SourceError("source-cache paths could not be inspected") from exc
-            descriptor, temporary_name = tempfile.mkstemp(
-                dir=path.parent,
-                prefix=f".{path.name}.",
-                suffix=".tmp",
-                text=True,
-            )
-            temporary = Path(temporary_name)
             try:
-                with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as handle:
-                    handle.write(serialized)
-                    handle.flush()
-                    os.fsync(handle.fileno())
-                os.replace(temporary, path)
-            finally:
-                temporary.unlink(missing_ok=True)
+                atomic_write_text(path, serialized, field="source-cache entry path")
+            except ValidationError as exc:
+                raise ValidationError("source-cache entry path is unsafe") from exc
         return entry
 
 
