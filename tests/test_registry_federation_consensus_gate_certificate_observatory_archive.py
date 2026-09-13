@@ -12,6 +12,7 @@ import threading
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -280,6 +281,28 @@ class CertificateObservatoryArchiveTests(CertificateFixture):
             (destination / "unexpected.txt").write_text("unexpected", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 transfer_model.load_transfer(destination)
+
+    def test_transfer_loader_normalizes_directory_and_chunk_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            _, _, transfer = self._transfer(root, chunk_size=300)
+            destination = root / "transfer"
+            transfer_model.write_transfer(transfer, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaisesRegex(ValidationError, "could not be inspected"):
+                    transfer_model.load_transfer(destination)
+            manifest_raw = (destination / transfer_model.MANIFEST_NAME).read_bytes()
+            calls = {"count": 0}
+
+            def fail_after_manifest() -> bytes:
+                calls["count"] += 1
+                if calls["count"] == 1:
+                    return manifest_raw
+                raise OSError("chunk denied")
+
+            with patch.object(Path, "read_bytes", side_effect=fail_after_manifest):
+                with self.assertRaisesRegex(ValidationError, "chunk could not be read"):
+                    transfer_model.load_transfer(destination)
 
     def test_partial_transfer_round_trip_has_explicit_incomplete_state(self):
         with tempfile.TemporaryDirectory() as temporary:

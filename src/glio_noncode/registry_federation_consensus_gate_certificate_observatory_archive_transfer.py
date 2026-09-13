@@ -408,15 +408,47 @@ def write_partial_transfer(assembler: TransferAssembler, destination: str | Path
 
 def _read_manifest(source: str | Path) -> tuple[Mapping[str, Any], Path]:
     directory = Path(source)
-    if directory.is_symlink() or not directory.is_dir() or (directory / MANIFEST_NAME).is_symlink() or not (directory / MANIFEST_NAME).is_file():
-        raise ValidationError("transfer source must contain a regular manifest")
     try:
-        manifest = _strict_json_loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
+        manifest_path = directory / MANIFEST_NAME
+        if directory.is_symlink() or not directory.is_dir() or manifest_path.is_symlink() or not manifest_path.is_file():
+            raise ValidationError("transfer source must contain a regular manifest")
+        raw = manifest_path.read_bytes()
+        manifest = _strict_json_loads(raw.decode("utf-8"))
+    except ValidationError:
+        raise
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("transfer manifest is not valid JSON") from error
-    if canonical_bytes(manifest) != (directory / MANIFEST_NAME).read_bytes():
+    if canonical_bytes(manifest) != raw:
         raise ValidationError("transfer manifest is not canonical")
     return _mapping(manifest, "transfer manifest"), directory
+
+
+def _directory_members(directory: Path) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
+    try:
+        members = tuple(directory.iterdir())
+        chunk_dir = directory / CHUNK_DIRECTORY
+        if chunk_dir.exists():
+            if chunk_dir.is_symlink() or not chunk_dir.is_dir():
+                raise ValidationError("transfer chunk directory is unsafe")
+            chunks = tuple(chunk_dir.iterdir())
+        else:
+            chunks = ()
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("transfer directory could not be inspected") from error
+    return members, chunks
+
+
+def _read_chunk(path: Path) -> bytes:
+    try:
+        if path.is_symlink() or not path.is_file():
+            raise ValidationError("transfer chunk must be a regular file")
+        return path.read_bytes()
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("transfer chunk could not be read") from error
 
 
 def load_transfer(source: str | Path) -> RegistryFederationConsensusGateCertificateObservatoryArchiveTransfer:
@@ -426,13 +458,14 @@ def load_transfer(source: str | Path) -> RegistryFederationConsensusGateCertific
         raise ValidationError("transfer manifest address does not replay")
     chunks = tuple(RegistryFederationConsensusGateCertificateObservatoryArchiveTransferChunk.from_mapping(item) for item in _sequence(manifest["chunks"], "transfer chunks", MAX_CHUNKS))
     value = RegistryFederationConsensusGateCertificateObservatoryArchiveTransfer(manifest["transfer_id"], manifest["version"], manifest["boundary"], manifest["archive_address"], manifest["archive_size"], manifest["chunk_size"], manifest["chunk_count"], chunks, manifest["transfer_address"])
-    files = {item.name for item in directory.iterdir() if item.name != CHUNK_DIRECTORY} | {f"{CHUNK_DIRECTORY}/{item.name}" for item in (directory / CHUNK_DIRECTORY).iterdir()} if (directory / CHUNK_DIRECTORY).is_dir() else {item.name for item in directory.iterdir() if item.name != CHUNK_DIRECTORY}
+    members, chunks = _directory_members(directory)
+    files = {item.name for item in members if item.name != CHUNK_DIRECTORY} | {f"{CHUNK_DIRECTORY}/{item.name}" for item in chunks}
     expected = _expected_files(value, range(value.chunk_count))
     if files != expected:
         raise ValidationError("complete transfer directory has an unexpected member set")
     payload: dict[int, bytes] = {}
     for index in range(value.chunk_count):
-        raw = (directory / chunk_name(index)).read_bytes()
+        raw = _read_chunk(directory / chunk_name(index))
         if len(raw) != value.chunks[index].size or address_chunk(raw) != value.chunks[index].content_address:
             raise ValidationError("transfer chunk receipt does not replay")
         payload[index] = raw
@@ -449,17 +482,16 @@ def load_partial_transfer(source: str | Path) -> TransferAssembler:
     value = transfer_from_mapping({"transfer_id": manifest["transfer_id"], "version": manifest["version"], "boundary": manifest["boundary"], "archive_address": manifest["archive_address"], "archive_size": manifest["archive_size"], "chunk_size": manifest["chunk_size"], "chunk_count": manifest["chunk_count"], "chunks": manifest["chunks"], "content_address": manifest["transfer_address"]})
     parts: dict[int, bytes] = {}
     chunk_dir = directory / CHUNK_DIRECTORY
-    if chunk_dir.exists() and (chunk_dir.is_symlink() or not chunk_dir.is_dir()):
-        raise ValidationError("transfer chunk directory is unsafe")
-    if chunk_dir.is_dir():
-        for item in chunk_dir.iterdir():
+    members, chunks = _directory_members(directory)
+    if chunks:
+        for item in chunks:
             if item.is_symlink() or not item.is_file() or item.name not in {Path(chunk_name(index)).name for index in range(value.chunk_count)}:
                 raise ValidationError("partial transfer contains an unexpected chunk")
             index = int(item.stem.removeprefix(CHUNK_PREFIX_NAME))
-            parts[index] = item.read_bytes()
+            parts[index] = _read_chunk(item)
     expected = _expected_files(value, parts)
-    actual = {item.name for item in directory.iterdir() if item.name != CHUNK_DIRECTORY}
-    nested = {f"{CHUNK_DIRECTORY}/{item.name}" for item in chunk_dir.iterdir()} if chunk_dir.is_dir() else set()
+    actual = {item.name for item in members if item.name != CHUNK_DIRECTORY}
+    nested = {f"{CHUNK_DIRECTORY}/{item.name}" for item in chunks}
     if actual | nested != expected:
         raise ValidationError("partial transfer member set does not replay")
     return TransferAssembler(value, parts)
