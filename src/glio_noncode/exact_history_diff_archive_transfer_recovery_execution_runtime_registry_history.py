@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -15,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_registry as registry_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -610,15 +610,28 @@ def manifest_json(value: ExactHistoryDiffArchiveTransferRecoveryExecutionRuntime
 
 
 def _write(path: Path, value: Mapping[str, Any]) -> None:
-    path.write_text(canonical_json(value), encoding="utf-8", newline="\n")
+    atomic_write_bytes(
+        path,
+        canonical_json(value).encode("utf-8"),
+        field="runtime registry history document",
+    )
 
 
 def persist_history(value: ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistory, destination: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_history(value)
     destination = Path(destination)
-    if destination.exists() and (not destination.is_dir() or not overwrite):
-        raise ValidationError("runtime registry history destination exists or is not a directory")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "runtime registry history destination")
+        if destination.is_symlink():
+            raise ValidationError("runtime registry history destination cannot be a symlink")
+        if destination.exists():
+            if not destination.is_dir() or not overwrite:
+                raise ValidationError("runtime registry history destination exists or is not a directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("runtime registry history destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=".history-diff-recovery-execution-runtime-registry-history-", dir=str(destination.parent)))
     try:
         entries = ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryEntries(value.entries, address_entries(value.entries))
@@ -636,7 +649,7 @@ def persist_history(value: ExactHistoryDiffArchiveTransferRecoveryExecutionRunti
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+        value = _strict_json_loads(read_text(path, field="runtime registry history artifact"))
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("runtime registry history artifact is not valid JSON") from error
     return _mapping(value, "runtime registry history artifact")
@@ -644,7 +657,7 @@ def _read_json(path: Path) -> Mapping[str, Any]:
 
 def _read_canonical(path: Path, value: Mapping[str, Any]) -> None:
     try:
-        actual = path.read_text(encoding="utf-8")
+        actual = read_text(path, field="runtime registry history artifact")
     except (OSError, UnicodeDecodeError) as error:
         raise ValidationError("runtime registry history artifact cannot be read") from error
     if actual != canonical_json(value):
@@ -653,8 +666,14 @@ def _read_canonical(path: Path, value: Mapping[str, Any]) -> None:
 
 def load_history(destination: str | Path) -> ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistory:
     destination = Path(destination)
-    if not destination.is_dir() or destination.is_symlink():
-        raise ValidationError("runtime registry history source must be a regular directory")
+    try:
+        _validate_parent(destination.parent, "runtime registry history input")
+        if not destination.is_dir() or destination.is_symlink():
+            raise ValidationError("runtime registry history source must be a regular directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("runtime registry history input could not be inspected") from error
     children = tuple(destination.iterdir())
     if tuple(sorted(item.name for item in children)) != tuple(sorted(FILES)):
         raise ValidationError("runtime registry history directory must contain the exact file set")
