@@ -36,7 +36,7 @@ from .data_sources import FetchReceipt, FetchStatus, SequenceSlice
 from .errors import ValidationError
 from .evidence import EvidenceGraph
 from .identity import normalize_variant, parse_variant
-from .inference_extensions import InferenceExtensionSuite
+from .inference_extensions import InferenceExtensionSuite, InferenceState
 from .intake import RawVariantRecord, VariantIntake
 from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
 from .lineage import LineageResolver, SampleLineageRecord
@@ -1499,36 +1499,49 @@ class ControlPlaneApplication:
     ) -> EvidenceEnvelope | Abstention:
         try:
             result = calculation()
-        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            if type(getattr(result, "state", None)) is not InferenceState:
+                raise ValidationError("inference extension returned an invalid state")
+            uncertainty = _input_number(
+                getattr(result, "uncertainty", None), f"{scope} uncertainty"
+            )
+            if not 0.0 <= uncertainty <= 1.0:
+                raise ValidationError(f"{scope} uncertainty must be between 0 and 1")
+            content_address = _input_text(
+                getattr(result, "content_address", None), f"{scope} content_address"
+            )
+            payload = result.to_dict()
+            if not isinstance(payload, Mapping) or any(
+                type(key) is not str for key in payload
+            ):
+                raise ValidationError(f"{scope} result payload must be a mapping")
+            sources = _input_strings(payload.get("source_ids", ()), f"{scope} source_ids")
+            if not sources:
+                sources = ("declared_inference_input",)
+            limitations = _input_strings(
+                getattr(result, "limitations", ()), f"{scope} limitations"
+            )
+        except (AttributeError, TypeError, ValueError, ValidationError, KeyError) as exc:
             return Abstention(
                 f"invalid_{scope}_payload",
                 scope,
                 str(exc),
                 missing_inputs,
             )
-        payload = result.to_dict()
         state = EvidenceState(result.state.value)
-        sources = tuple(
-            dict.fromkeys(
-                str(value) for value in payload.get("source_ids", ()) if str(value).strip()
-            )
-        )
-        if not sources:
-            sources = ("declared_inference_input",)
         return EvidenceEnvelope(
-            evidence_id=f"{scope}:{result.content_address}",
+            evidence_id=f"{scope}:{content_address}",
             agent_id=request.agent_id,
             tool_id=request.tool_id,
             state=state,
             tier=EvidenceTier.COMPUTED,
             claim_summary=(
-                f"{scope} result is {result.state.value}; uncertainty={result.uncertainty:.3f}."
+                f"{scope} result is {result.state.value}; uncertainty={uncertainty:.3f}."
             ),
-            payload_hash=result.content_address,
+            payload_hash=content_address,
             source_ids=sources,
             provenance_digest=request.provenance.digest,
-            confidence=round(1.0 - result.uncertainty, 6),
-            limitations=tuple(result.limitations)
+            confidence=round(1.0 - uncertainty, 6),
+            limitations=limitations
             + (f"Result payload fields: {', '.join(sorted(payload))}.",),
         )
 
