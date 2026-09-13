@@ -233,6 +233,23 @@ class RegistryFederationConsensusGateTests(DurableCatalogPromotionPackageFixture
                 with self.assertRaises(ValidationError):
                     package_model.load_package(destination)
 
+    def test_package_loader_normalizes_inspection_read_and_decode_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            runtime = self._runtime(root, "primary", "replica")
+            package = package_model.build_package(runtime.consensus_runtime, runtime.gate, audit=runtime.audit, query=runtime.query)
+            destination = root / "package"
+            package_model.write_package(package, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    package_model.load_package(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    package_model.load_package(destination)
+            (destination / package_model.PACKAGE_NAME).write_bytes(b"\xff")
+            with self.assertRaises(ValidationError):
+                package_model.load_package(destination)
+
     def test_package_audit_recomputes_member_set_and_replays_mapping(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
