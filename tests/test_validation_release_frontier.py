@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
+from pathlib import Path
 
 from glio_noncode.validation_release_frontier_contracts import ValidationReleaseOperation, ValidationReleaseRole
 from glio_noncode.validation_release_frontier_fixture_eval import audit_validation_release_context, evaluate_validation_release_fixture
 from glio_noncode.validation_release_frontier_operations import run_validation_release_operation
-from glio_noncode.validation_release_frontier_public_data import audit_validation_release_frontier_data, default_validation_release_frontier_fixture
+from glio_noncode.validation_release_frontier_public_data import audit_validation_release_frontier_data, default_validation_release_frontier_fixture, load_validation_release_frontier_fixture, validation_release_frontier_fixture_json
 
 
 class ValidationReleaseFrontierTests(unittest.TestCase):
@@ -47,6 +49,15 @@ class ValidationReleaseFrontierTests(unittest.TestCase):
         serialized = str(self.evaluation.to_dict()).lower()
         for marker in ("password", "api_key", "signing_secret", "access_token"):
             self.assertNotIn(marker, serialized)
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = validation_release_frontier_fixture_json(self.fixture).rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_validation_release_frontier_fixture(path)
 
 
 if __name__ == "__main__":

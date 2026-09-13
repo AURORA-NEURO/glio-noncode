@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
 from dataclasses import replace
+from pathlib import Path
 
 from glio_noncode.lifecycle_beta_frontier_adapters import (
     build_lifecycle_beta_frontier_adapters,
@@ -32,6 +35,7 @@ from glio_noncode.lifecycle_beta_frontier_policy import (
 from glio_noncode.lifecycle_beta_frontier_public_data import (
     audit_lifecycle_beta_frontier_data,
     default_lifecycle_beta_frontier_fixture,
+    load_lifecycle_beta_frontier_fixture,
 )
 from glio_noncode.lifecycle_beta_frontier_quality_gate import run_lifecycle_beta_frontier_quality_gate
 from glio_noncode.lifecycle_beta_frontier_reconciliation import reconcile_lifecycle_beta_frontier
@@ -91,6 +95,15 @@ class LifecycleBetaFrontierTests(unittest.TestCase):
         self.assertEqual(len(self.fixture.records), 32)
         self.assertEqual(len(self.fixture.positive_records), 8)
         self.assertEqual(len(self.fixture.control_records), 24)
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_lifecycle_beta_frontier_fixture(path)
         self.assertTrue(self.audit.accepted)
 
     def test_each_operation_has_one_positive_and_three_controls(self) -> None:

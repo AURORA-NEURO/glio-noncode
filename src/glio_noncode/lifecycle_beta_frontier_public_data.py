@@ -23,7 +23,7 @@ from .lifecycle_beta_frontier_contracts import (
     LifecycleBetaFrontierSourceReceipt,
     LifecycleBetaFrontierState,
 )
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 LIFECYCLE_BETA_FRONTIER_SOURCE_COUNT = 9
@@ -267,9 +267,7 @@ def audit_lifecycle_beta_frontier_data(fixture: LifecycleBetaFrontierFixture | N
 
 
 def load_lifecycle_beta_frontier_fixture(path: str | Path) -> LifecycleBetaFrontierFixture:
-    import json
-
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(payload, dict) or not payload.get("records"):
         raise ValueError("lifecycle beta frontier fixture requires records")
     sources = tuple(LifecycleBetaFrontierSourceReceipt(**item) for item in payload["sources"])

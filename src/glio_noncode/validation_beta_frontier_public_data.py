@@ -15,7 +15,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 VALIDATION_BETA_FRONTIER_FIXTURE_VERSION = "2026.08.d13-c05-c12.v1"
 VALIDATION_BETA_FRONTIER_CONTEXT_KEY = (
@@ -856,7 +856,7 @@ def validation_beta_frontier_fixture_json(
 def load_validation_beta_frontier_fixture(path: str | Path) -> ValidationBetaFrontierFixture:
     """Load a serialized fixture while rehydrating its declared enums."""
 
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValueError("validation beta frontier fixture JSON must be an object")
     sources = tuple(ValidationBetaFrontierSourceReceipt(**item) for item in raw.get("sources", ()))

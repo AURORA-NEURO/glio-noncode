@@ -220,6 +220,15 @@ class ValidationFrontierEvidenceTests(unittest.TestCase):
         self.assertEqual(loaded.fixture_id, self.fixture.fixture_id)
         self.assertEqual(len(loaded.records), 16)
 
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_validation_frontier_fixture(path)
+
     def test_single_execution_address_is_stable(self) -> None:
         record = self.fixture.record_map()["C03-POS-001"]
         first = execute_validation_frontier_record(record)

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 
 from glio_noncode.workbench_release_frontier_contracts import WorkbenchReleaseOperation, WorkbenchReleaseRole, WorkbenchReleaseState
 from glio_noncode.workbench_release_frontier_fixture_eval import audit_workbench_release_context, evaluate_workbench_release_fixture
 from glio_noncode.workbench_release_frontier_operations import evaluate_accessibility, evaluate_report_export, evaluate_review_form, evaluate_search_palette, run_workbench_release_operation
-from glio_noncode.workbench_release_frontier_public_data import audit_workbench_release_frontier_data, default_workbench_release_frontier_fixture
+from glio_noncode.workbench_release_frontier_public_data import audit_workbench_release_frontier_data, default_workbench_release_frontier_fixture, load_workbench_release_frontier_fixture, workbench_release_frontier_fixture_json
 from glio_noncode.workbench_release_frontier_runtime import run_workbench_release_runtime
 
 
@@ -67,6 +69,15 @@ class WorkbenchReleaseFrontierTests(unittest.TestCase):
         self.assertTrue(runtime.bundle.accepted)
         self.assertEqual(runtime.stage_ids[0], "data-audit")
         self.assertEqual(runtime.stage_ids[-1], "observability")
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = workbench_release_frontier_fixture_json(self.fixture).rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_workbench_release_frontier_fixture(path)
 
 
 if __name__ == "__main__":

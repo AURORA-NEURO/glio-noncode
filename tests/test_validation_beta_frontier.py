@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from dataclasses import replace
+from pathlib import Path
 
 from glio_noncode.validation_beta_frontier_adapters import (
     default_validation_beta_frontier_adapters,
@@ -54,6 +56,7 @@ from glio_noncode.validation_beta_frontier_public_data import (
     ValidationBetaFrontierOperation,
     audit_validation_beta_frontier_data,
     default_validation_beta_frontier_fixture,
+    load_validation_beta_frontier_fixture,
     validation_beta_frontier_fixture_json,
 )
 from glio_noncode.validation_beta_frontier_query import query_validation_beta_frontier
@@ -321,6 +324,15 @@ class ValidationBetaFrontierTests(unittest.TestCase):
         payload = json.loads(validation_beta_frontier_fixture_json(self.fixture))
         self.assertEqual(payload["fixture_id"], self.fixture.fixture_id)
         self.assertEqual(len(payload["records"]), 32)
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = validation_beta_frontier_fixture_json(self.fixture).rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_validation_beta_frontier_fixture(path)
 
     def test_mutated_expected_state_is_detected(self) -> None:
         first = self.fixture.records[0]
