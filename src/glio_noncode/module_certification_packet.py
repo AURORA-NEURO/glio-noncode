@@ -475,7 +475,9 @@ def verify_module_certification_packet(
     manifest_path = target / MODULE_CERTIFICATION_PACKET_MANIFEST
     checks: list[ModuleCertificationPacketCheck] = []
     try:
-        manifest = _strict_json_loads(read_text(manifest_path, field="certification packet manifest"))
+        manifest = _strict_json_loads(
+            read_text(manifest_path, field="certification packet manifest")
+        )
         packet_id = str(manifest["packet_id"])
     except (OSError, UnicodeDecodeError, ValueError, KeyError, TypeError, ValidationError) as exc:
         packet_id = target.name or "unknown"
@@ -517,7 +519,14 @@ def verify_module_certification_packet(
                 payload=payload,
             )
             artifacts.append(artifact)
-        except (OSError, UnicodeDecodeError, KeyError, TypeError, ValueError, ValidationError) as exc:
+        except (
+            OSError,
+            UnicodeDecodeError,
+            KeyError,
+            TypeError,
+            ValueError,
+            ValidationError,
+        ) as exc:
             checks.append(
                 _check(
                     f"artifact-{len(artifacts)}-read",
