@@ -5,6 +5,13 @@ from __future__ import annotations
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import (
+    _validate_parent,
+    atomic_write_bytes,
+    atomic_write_text,
+    read_bytes,
+    read_text,
+)
 from .errors import ValidationError
 from .program_release_closure_boundary import validate_program_release_closure_boundary
 from .program_release_closure_contracts import (
@@ -92,13 +99,22 @@ def write_program_release_export(
     packet: ProgramReleaseExportPacket, destination: str | Path
 ) -> Path:
     root = Path(destination)
+    _validate_parent(root.parent, "program release export")
+    if root.exists() and (root.is_symlink() or not root.is_dir()):
+        raise ValidationError("program release export destination must be a regular directory")
     root.mkdir(parents=True, exist_ok=True)
     for artifact in packet.artifacts:
         path = root / PurePosixPath(safe_relative_path(artifact.relative_path))
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(artifact.content)
-    (root / PROGRAM_RELEASE_EXPORT_MANIFEST_PATH).write_text(
-        canonical_json(packet.manifest) + "\n", encoding="utf-8"
+        atomic_write_bytes(
+            path,
+            artifact.content,
+            field=f"program release artifact {artifact.relative_path}",
+        )
+    atomic_write_text(
+        root / PROGRAM_RELEASE_EXPORT_MANIFEST_PATH,
+        canonical_json(packet.manifest) + "\n",
+        field="program release manifest",
     )
     return root
 
@@ -107,19 +123,26 @@ def verify_program_release_export(
     packet: ProgramReleaseExportPacket, destination: str | Path
 ) -> ProgramReleaseExportVerification:
     root = Path(destination)
-    if not root.is_dir():
+    if root.is_symlink() or not root.is_dir():
         raise ValidationError("program release export directory is missing")
     expected = {safe_relative_path(item.relative_path): item for item in packet.artifacts}
     actual = {
         path.relative_to(root).as_posix(): path
         for path in root.rglob("*")
-        if path.is_file() and path.name != PROGRAM_RELEASE_EXPORT_MANIFEST_PATH
+        if (
+            path.is_file()
+            and not path.is_symlink()
+            and path.name != PROGRAM_RELEASE_EXPORT_MANIFEST_PATH
+        )
     }
     missing = tuple(sorted(set(expected) - set(actual)))
     unexpected = tuple(sorted(set(actual) - set(expected)))
     changed: list[str] = []
     for relative_path in sorted(set(expected) & set(actual)):
-        payload = actual[relative_path].read_bytes()
+        payload = read_bytes(
+            actual[relative_path],
+            field=f"program release artifact {relative_path}",
+        )
         if (
             payload != expected[relative_path].content
             or artifact_address(payload) != expected[relative_path].content_address
@@ -148,11 +171,11 @@ def verify_program_release_export(
 def read_program_release_export_manifest(destination: str | Path) -> dict[str, Any]:
     root = Path(destination)
     path = root / PROGRAM_RELEASE_EXPORT_MANIFEST_PATH
-    if not path.is_file():
+    if path.is_symlink() or not path.is_file():
         raise ValidationError("program release export manifest is missing")
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        value = _strict_json_loads(read_text(path, field="program release manifest"))
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError("program release export manifest is not valid JSON") from exc
     if not isinstance(value, dict):
         raise ValidationError("program release export manifest must be an object")
@@ -175,13 +198,20 @@ def verify_program_release_export_directory(
     actual = {
         path.relative_to(root).as_posix(): path
         for path in root.rglob("*")
-        if path.is_file() and path.name != PROGRAM_RELEASE_EXPORT_MANIFEST_PATH
+        if (
+            path.is_file()
+            and not path.is_symlink()
+            and path.name != PROGRAM_RELEASE_EXPORT_MANIFEST_PATH
+        )
     }
     missing = tuple(sorted(set(expected) - set(actual)))
     unexpected = tuple(sorted(set(actual) - set(expected)))
     changed: list[str] = []
     for relative_path in sorted(set(expected) & set(actual)):
-        payload = actual[relative_path].read_bytes()
+        payload = read_bytes(
+            actual[relative_path],
+            field=f"program release artifact {relative_path}",
+        )
         if int(expected[relative_path].get("byte_count", -1)) != len(payload) or str(
             expected[relative_path].get("content_address", "")
         ) != artifact_address(payload):

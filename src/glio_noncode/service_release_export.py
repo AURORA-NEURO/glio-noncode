@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
+from .serialization import _strict_json_loads, canonical_json, content_hash
 from .service_release_bundle import service_release_artifact_payloads
 from .service_release_contracts import (
     SERVICE_RELEASE_EXPORT_VERSION,
@@ -15,7 +18,6 @@ from .service_release_contracts import (
 )
 from .service_release_support import artifact_address, forbidden_keys, safe_relative_path
 from .service_surface import ServiceSurfaceSnapshot
-from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 def build_service_release_export(
@@ -73,14 +75,21 @@ def write_service_release_export(packet: ServiceReleaseExportPacket, destination
     """Write a release packet under a dedicated destination directory."""
 
     root = Path(destination)
+    _validate_parent(root.parent, "service release export")
+    if root.exists() and (root.is_symlink() or not root.is_dir()):
+        raise ValidationError("service release export destination must be a regular directory")
     root.mkdir(parents=True, exist_ok=True)
     for artifact in packet.artifacts:
         path = root / safe_relative_path(artifact.relative_path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(artifact.content)
+        atomic_write_bytes(
+            path,
+            artifact.content,
+            field=f"service release artifact {artifact.relative_path}",
+        )
     manifest_path = root / "manifest.json"
     manifest_payload = (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8")
-    manifest_path.write_bytes(manifest_payload)
+    atomic_write_bytes(manifest_path, manifest_payload, field="service release manifest")
     return root
 
 
@@ -95,7 +104,12 @@ def verify_service_release_export(directory: str | Path) -> ServiceReleaseExport
     tampered: list[str] = []
     boundary: list[str] = []
     manifest_path = root / "manifest.json"
-    if not manifest_path.is_file():
+    if (
+        root.is_symlink()
+        or not root.is_dir()
+        or manifest_path.is_symlink()
+        or not manifest_path.is_file()
+    ):
         missing.append("manifest.json")
         body = {"directory": str(root), "checked_artifact_count": 0,
                 "missing_paths": tuple(missing), "unexpected_paths": tuple(unexpected),
@@ -108,8 +122,8 @@ def verify_service_release_export(directory: str | Path) -> ServiceReleaseExport
             content_hash(body, prefix="service-release-export-verification"),
         )
     try:
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError):
+        manifest = _strict_json_loads(read_text(manifest_path, field="service release manifest"))
+    except (OSError, UnicodeError, ValueError, ValidationError):
         tampered.append("manifest.json")
         manifest = {}
     listed = manifest.get("artifacts", ()) if isinstance(manifest, dict) else ()
@@ -128,12 +142,12 @@ def verify_service_release_export(directory: str | Path) -> ServiceReleaseExport
             duplicate.append(path)
         expected_paths.append(path)
         target = root / path
-        if not target.is_file():
+        if target.is_symlink() or not target.is_file():
             missing.append(path)
             continue
         try:
-            payload = target.read_bytes()
-        except OSError:
+            payload = read_bytes(target, field=f"service release artifact {path}")
+        except (OSError, ValidationError):
             tampered.append(path)
             continue
         if len(payload) != int(item.get("byte_count", -1)) or artifact_address(payload) != item.get("content_address"):
