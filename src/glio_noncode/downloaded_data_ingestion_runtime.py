@@ -272,10 +272,29 @@ def _write(path: Path, value: Any) -> None:
 def persist_runtime(value: DownloadedDataIngestionRuntime, destination: str | Path, *, overwrite: bool = False) -> Path:
     value = DownloadedDataIngestionRuntime.from_mapping(value.to_dict())
     target = Path(destination)
-    if target.exists() and not overwrite:
-        raise ValidationError("runtime destination exists; pass overwrite explicitly")
+    try:
+        if target.is_symlink():
+            raise ValidationError("runtime destination path is unsafe")
+        target_exists = target.exists()
+        if target_exists and not target.is_dir():
+            raise ValidationError("runtime destination must be a directory")
+        if target_exists and not overwrite:
+            raise ValidationError("runtime destination exists; pass overwrite explicitly")
+        if target.parent.is_symlink():
+            raise ValidationError("runtime destination parent is unsafe")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("runtime destination could not be inspected") from error
     target_parent = target.parent
-    target_parent.mkdir(parents=True, exist_ok=True)
+    try:
+        target_parent.mkdir(parents=True, exist_ok=True)
+        if target_parent.is_symlink() or not target_parent.is_dir():
+            raise ValidationError("runtime destination parent is unsafe")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("runtime destination parent could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=target.name + ".", dir=target_parent))
     try:
         _write(temporary / "manifest.json", value.manifest.to_dict())
@@ -286,27 +305,54 @@ def persist_runtime(value: DownloadedDataIngestionRuntime, destination: str | Pa
         _write(temporary / "query.json", value.query.to_dict())
         _write(temporary / "query-audit.json", value.query_audit.to_dict())
         _write(temporary / "runtime.json", value.to_dict())
+        if target.is_symlink():
+            raise ValidationError("runtime destination path is unsafe")
         if target.exists():
+            if not target.is_dir():
+                raise ValidationError("runtime destination must be a directory")
+            if not overwrite:
+                raise ValidationError("runtime destination exists; pass overwrite explicitly")
             shutil.rmtree(target)
         os.replace(temporary, target)
+    except ValidationError:
+        shutil.rmtree(temporary, ignore_errors=True)
+        raise
     except OSError as error:
         shutil.rmtree(temporary, ignore_errors=True)
         raise ValidationError("runtime could not be persisted atomically") from error
     return target
 
 
+def _read_text(path: Path) -> str:
+    try:
+        if path.is_symlink() or not path.is_file():
+            raise ValidationError(f"runtime member {path.name} is unsafe")
+        return path.read_text(encoding="utf-8")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError(f"runtime member {path.name} could not be read") from error
+
+
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        return _mapping(_strict_json_loads(path.read_text(encoding="utf-8")), str(path))
+        return _mapping(_strict_json_loads(_read_text(path)), str(path))
+    except ValidationError:
+        raise
     except (OSError, ValueError) as error:
         raise ValidationError(f"runtime member {path.name} is not valid JSON") from error
 
 
 def load_runtime(destination: str | Path) -> DownloadedDataIngestionRuntime:
     root = Path(destination)
-    if not root.is_dir():
-        raise ValidationError("runtime source must be a directory")
-    names = tuple(item.name for item in root.iterdir())
+    try:
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("runtime source must be a regular directory")
+        names = tuple(item.name for item in root.iterdir())
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("runtime source directory could not be inspected") from error
     if tuple(sorted(names)) != tuple(sorted(FILES)):
         raise ValidationError("runtime directory has an unexpected file set")
     raw_runtime = _read_json(root / "runtime.json")
@@ -317,7 +363,7 @@ def load_runtime(destination: str | Path) -> DownloadedDataIngestionRuntime:
         decoded = _read_json(path)
         if canonical_json(decoded) != canonical_json(expected):
             raise ValidationError(f"runtime member {filename} does not replay its typed value")
-        actual = path.read_text(encoding="utf-8")
+        actual = _read_text(path)
         if actual != canonical_json(expected):
             raise ValidationError(f"runtime member {filename} is not canonical")
     return value

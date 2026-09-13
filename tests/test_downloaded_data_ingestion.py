@@ -137,6 +137,33 @@ class DownloadedDataIngestionTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 runtime_model.load_runtime(root / "runtime")
 
+    def test_runtime_rejects_symlinked_destination_and_members(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            runtime = runtime_model.run_runtime(self._zip(), runtime_id="symlink-runtime")
+            destination = root / "runtime"
+            runtime_model.persist_runtime(runtime, destination)
+            linked_destination = root / "linked-runtime"
+            try:
+                linked_destination.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"symlink creation unavailable: {exc}")
+
+            with self.assertRaisesRegex(ValidationError, "destination path is unsafe"):
+                runtime_model.persist_runtime(runtime, linked_destination, overwrite=True)
+            with self.assertRaisesRegex(ValidationError, "regular directory"):
+                runtime_model.load_runtime(linked_destination)
+
+            catalog_path = destination / "catalog.json"
+            external = root / "external-catalog.json"
+            external_body = catalog_path.read_text(encoding="utf-8")
+            external.write_text(external_body, encoding="utf-8")
+            catalog_path.unlink()
+            catalog_path.symlink_to(external)
+            with self.assertRaisesRegex(ValidationError, "runtime member catalog.json is unsafe"):
+                runtime_model.load_runtime(destination)
+            self.assertEqual(external.read_text(encoding="utf-8"), external_body)
+
     def test_diff_classifies_record_change_and_audits_query(self):
         left = ingestion_model.build_ingest(self._zip(), batch_id="left-batch", record_limit=100)
         right = ingestion_model.build_ingest(self._zip(changed=True), batch_id="right-batch", record_limit=100)
