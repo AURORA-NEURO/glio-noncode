@@ -11,6 +11,7 @@ import unittest
 from urllib.parse import urlencode
 from urllib.request import urlopen
 from pathlib import Path
+from unittest.mock import patch
 
 from glio_noncode import registry_federation_consensus_gate_certificate_observatory_archive as archive_model
 from glio_noncode import registry_federation_consensus_gate_certificate_observatory_archive_registry as registry_model
@@ -188,6 +189,19 @@ class DecisionLedgerFixture(unittest.TestCase):
             plan_path.write_text(plan_path.read_text(encoding="utf-8").rstrip()[:-1] + ',"plan_id":"shadow"}', encoding="utf-8")
             with self.assertRaises(ValidationError):
                 runtime_model.run_runtime(plan_path, runtime_id="duplicate-plan-runtime")
+
+    def test_runtime_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            plan = self._plan(root)
+            destination = root / "decision-runtime"
+            runtime_model.run_runtime(plan, runtime_id="failure-runtime", ledger_id="failure-ledger", destination=destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    runtime_model.load_runtime(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    runtime_model.load_runtime(destination)
 
     def test_runtime_preserves_pending_state_but_structural_audit_still_passes(self):
         with tempfile.TemporaryDirectory() as temporary:

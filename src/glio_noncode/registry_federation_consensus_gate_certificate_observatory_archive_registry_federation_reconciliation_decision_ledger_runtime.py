@@ -348,10 +348,14 @@ def write_runtime(value: RegistryFederationConsensusGateCertificateObservatoryAr
 
 
 def _read_directory(source: str | Path) -> dict[str, bytes]:
-    path = Path(source)
-    if path.is_symlink() or not path.is_dir():
-        raise ValidationError("decision ledger runtime input must be a regular directory")
-    names = tuple(item.name for item in path.iterdir())
+    try:
+        path = Path(source)
+        if path.is_symlink() or not path.is_dir():
+            raise ValidationError("decision ledger runtime input must be a regular directory")
+        members = tuple(path.iterdir())
+    except OSError as error:
+        raise ValidationError("decision ledger runtime directory could not be inspected") from error
+    names = tuple(item.name for item in members)
     if set(names) != set(FILES) or len(names) != len(FILES):
         raise ValidationError("decision ledger runtime member set is not exact")
     result: dict[str, bytes] = {}
@@ -359,7 +363,10 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
         member = path / name
         if member.is_symlink() or not member.is_file():
             raise ValidationError("decision ledger runtime member must be a regular file")
-        result[name] = member.read_bytes()
+        try:
+            result[name] = member.read_bytes()
+        except OSError as error:
+            raise ValidationError("decision ledger runtime artifact could not be read") from error
     return result
 
 
