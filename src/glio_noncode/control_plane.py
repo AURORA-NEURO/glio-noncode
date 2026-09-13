@@ -111,6 +111,18 @@ class ToolContract:
             "output_contract",
         ):
             require_non_empty(getattr(self, name), name)
+        if type(self.safety_class) is not SafetyClass:
+            raise ValidationError("tool safety_class must be a SafetyClass")
+        if type(self.resource) is not ResourceEnvelope:
+            raise ValidationError("tool resource must be a ResourceEnvelope")
+        for value, name in (
+            (self.deterministic, "deterministic"),
+            (self.network_egress, "network_egress"),
+            (self.requires_policy_decision, "requires_policy_decision"),
+            (self.requires_human_review, "requires_human_review"),
+        ):
+            if type(value) is not bool:
+                raise ValidationError(f"tool {name} must be boolean")
         if self.mutation_scope == "none" and self.safety_class == SafetyClass.EVENT_WRITE:
             raise ValidationError("event-write tools must declare a mutation scope")
         if self.network_egress and not self.allowed_source_ids:
@@ -177,6 +189,13 @@ class MissionContext:
             require_non_empty(getattr(self, name), name)
         if not self.research_use_only:
             raise ValidationError("control-plane missions must be research-use only")
+        for value, name in (
+            (self.research_use_only, "research_use_only"),
+            (self.allow_network, "allow_network"),
+            (self.private_data_allowed, "private_data_allowed"),
+        ):
+            if type(value) is not bool:
+                raise ValidationError(f"mission {name} must be boolean")
         if self.allow_network and not self.allowed_source_ids:
             raise ValidationError("network-enabled missions must declare allowed sources")
 
@@ -227,6 +246,8 @@ class WorkflowBudget:
             raise ValidationError("max_seconds must be a positive integer")
         if type(self.max_cost_units) not in {int, float} or not isfinite(float(self.max_cost_units)) or self.max_cost_units <= 0:
             raise ValidationError("max_cost_units must be a finite positive number")
+        if type(self.capacity) is not ResourceEnvelope:
+            raise ValidationError("workflow budget capacity must be a ResourceEnvelope")
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -251,6 +272,14 @@ class InvocationRequest:
     def __post_init__(self) -> None:
         for name in ("request_id", "agent_id", "tool_id", "idempotency_key"):
             require_non_empty(getattr(self, name), name)
+        if type(self.mission) is not MissionContext:
+            raise ValidationError("invocation mission must be a MissionContext")
+        if type(self.provenance) is not ProvenanceContext:
+            raise ValidationError("invocation provenance must be a ProvenanceContext")
+        if self.resource is not None and type(self.resource) is not ResourceEnvelope:
+            raise ValidationError("invocation resource must be a ResourceEnvelope")
+        if type(self.budget) is not WorkflowBudget:
+            raise ValidationError("invocation budget must be a WorkflowBudget")
         if type(self.deadline_seconds) is not int or self.deadline_seconds < 1:
             raise ValidationError("deadline_seconds must be a positive integer")
         if not isinstance(self.input_payload, Mapping):
@@ -1219,6 +1248,8 @@ class ResourceScheduler:
     """Thread-safe admission controller for bounded invocations."""
 
     def __init__(self, capacity: ResourceEnvelope | None = None) -> None:
+        if capacity is not None and type(capacity) is not ResourceEnvelope:
+            raise ValidationError("scheduler capacity must be a ResourceEnvelope")
         self.capacity = capacity or ResourceEnvelope(
             cpu=8, memory_gb=32, storage_gb=100, network_egress=True, max_seconds=3_600
         )
