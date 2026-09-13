@@ -50,6 +50,9 @@ def _sync_directory(path: Path) -> None:
 def atomic_write_bytes(path: str | Path, payload: bytes, *, field: str = "output path") -> Path:
     """Atomically replace a regular output file without following symlinks."""
 
+    if not isinstance(payload, (bytes, bytearray)):
+        raise ValidationError("byte payload must be bytes")
+    payload = bytes(payload)
     target = Path(path)
     _validate_target(target, field)
     descriptor, temporary_name = tempfile.mkstemp(

@@ -51,6 +51,8 @@ class SafePersistenceTests(unittest.TestCase):
                 atomic_write_text(parent_file / "artifact.txt", "payload")
             with self.assertRaises(ValidationError):
                 atomic_write_text(root / "artifact.txt", 42)  # type: ignore[arg-type]
+            with self.assertRaises(ValidationError):
+                atomic_write_bytes(root / "artifact.txt", "payload")  # type: ignore[arg-type]
 
     def test_safe_reads_preserve_payload_and_reject_symlinks(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
