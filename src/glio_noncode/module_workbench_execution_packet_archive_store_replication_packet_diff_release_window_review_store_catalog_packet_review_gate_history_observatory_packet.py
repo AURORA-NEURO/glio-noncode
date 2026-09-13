@@ -22,6 +22,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory import (
     ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketReviewGateHistoryObservatory,
@@ -1098,7 +1099,10 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
     destination = Path(destination)
     if destination.exists() and not overwrite:
         raise ValidationError("packet destination already exists")
+    _validate_parent(destination.parent, "packet destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.is_symlink():
+        raise ValidationError("packet destination must not be a symlink")
     temporary = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
     try:
         files = {
@@ -1108,7 +1112,11 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
         }
         files.update({_ARTIFACT_FILES[kind]: raw for kind, raw in payloads.items()})
         for name, raw in files.items():
-            (temporary / name).write_bytes(raw)
+            atomic_write_bytes(
+                temporary / name,
+                raw,
+                field=f"packet artifact {name}",
+            )
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("packet destination is not a regular directory")
@@ -1121,7 +1129,7 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
 
 
 def _read_json(path: Path, field: str) -> dict[str, Any]:
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -1213,7 +1221,11 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
         for kind, file_name in _ARTIFACT_FILES.items()
     }
     payload_raw = {
-        kind: (directory / file_name).read_bytes() for kind, file_name in _ARTIFACT_FILES.items()
+        kind: read_bytes(
+            directory / file_name,
+            field=f"packet {kind} artifact",
+        )
+        for kind, file_name in _ARTIFACT_FILES.items()
     }
     for artifact in packet.artifacts:
         if (

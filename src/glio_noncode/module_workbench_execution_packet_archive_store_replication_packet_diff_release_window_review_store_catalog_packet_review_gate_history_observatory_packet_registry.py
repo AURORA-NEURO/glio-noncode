@@ -25,6 +25,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet import (
     ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketReviewGateHistoryObservatoryPacket,
@@ -957,7 +958,10 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
     destination = Path(destination)
     if destination.exists() and not overwrite:
         raise ValidationError("registry destination already exists")
+    _validate_parent(destination.parent, "registry destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.is_symlink():
+        raise ValidationError("registry destination must not be a symlink")
     temporary = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
     try:
         files = {
@@ -967,7 +971,11 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
         }
         files.update({_REGISTRY_FILES[kind]: raw for kind, raw in payloads.items()})
         for name, raw in files.items():
-            (temporary / name).write_bytes(raw)
+            atomic_write_bytes(
+                temporary / name,
+                raw,
+                field=f"registry artifact {name}",
+            )
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("registry destination is not a regular directory")
@@ -980,7 +988,7 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
 
 
 def _read_value(path: Path, field: str) -> Any:
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -1042,7 +1050,11 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
     ):
         raise ValidationError("registry packet count is not conserved")
     payloads = {
-        kind: (directory / file_name).read_bytes() for kind, file_name in _REGISTRY_FILES.items()
+        kind: read_bytes(
+            directory / file_name,
+            field=f"registry {kind} artifact",
+        )
+        for kind, file_name in _REGISTRY_FILES.items()
     }
     manifest_files = manifest.get("files")
     if not isinstance(manifest_files, list) or len(manifest_files) != 3:
