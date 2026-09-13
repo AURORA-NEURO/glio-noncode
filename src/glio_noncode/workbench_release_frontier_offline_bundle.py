@@ -16,16 +16,24 @@ from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable, require_non_empty
+from .serialization import (
+    _strict_json_loads,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+    jsonable,
+    require_non_empty,
+)
 from .workbench_release_frontier_offline_contracts import (
     WORKBENCH_RELEASE_OFFLINE_ARTIFACT_COUNT,
     WORKBENCH_RELEASE_OFFLINE_ARTIFACT_PREFIX,
     WORKBENCH_RELEASE_OFFLINE_BOUNDARY,
-    WORKBENCH_RELEASE_OFFLINE_MANIFEST,
     WORKBENCH_RELEASE_OFFLINE_BUNDLE_VERSION,
+    WORKBENCH_RELEASE_OFFLINE_MANIFEST,
     WorkbenchReleaseOfflineArtifact,
     WorkbenchReleaseOfflineArtifactKind,
     WorkbenchReleaseOfflineBundle,
@@ -977,9 +985,13 @@ def write_workbench_release_offline_bundle(
 
     root = Path(destination)
     try:
+        _validate_parent(root.parent, "workbench offline destination")
         if root.is_symlink():
             raise ValidationError("workbench offline destination is unsafe")
+        if root.exists() and not root.is_dir():
+            raise ValidationError("workbench offline destination must be a directory")
         root.mkdir(parents=True, exist_ok=True)
+        _validate_parent(root, "workbench offline destination")
         if root.is_symlink() or not root.is_dir():
             raise ValidationError("workbench offline destination must be a directory")
     except ValidationError:
@@ -990,15 +1002,23 @@ def write_workbench_release_offline_bundle(
         if artifact.payload is None:
             raise ValidationError(f"artifact {artifact.artifact_id} has no payload")
         target = _offline_path(root, artifact.relative_path)
+        _validate_parent(target.parent, "workbench offline artifact path")
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.parent.is_symlink() or not target.parent.is_dir() or target.is_symlink():
             raise ValidationError("workbench offline artifact path is unsafe")
-        target.write_bytes(artifact.payload.encode("utf-8"))
+        atomic_write_bytes(
+            target,
+            artifact.payload.encode("utf-8"),
+            field=f"workbench offline artifact {artifact.artifact_id}",
+        )
     manifest_path = _offline_path(root, WORKBENCH_RELEASE_OFFLINE_MANIFEST)
+    _validate_parent(manifest_path.parent, "workbench offline manifest path")
     if manifest_path.is_symlink():
         raise ValidationError("workbench offline manifest path is unsafe")
-    manifest_path.write_bytes(
-        workbench_release_offline_manifest_text(bundle).encode("utf-8")
+    atomic_write_bytes(
+        manifest_path,
+        workbench_release_offline_manifest_text(bundle).encode("utf-8"),
+        field="workbench offline manifest",
     )
     return root
 
@@ -1100,8 +1120,10 @@ def verify_workbench_release_offline_bundle(destination: str | Path) -> Any:
             "artifact-files",
             WorkbenchReleaseOfflineCheckPlane.ARTIFACT,
             all(
-                (Path(destination) / Path(*PurePosixPath(item.relative_path).parts))
-                .read_bytes()
+                read_bytes(
+                    Path(destination) / Path(*PurePosixPath(item.relative_path).parts),
+                    field=f"workbench offline artifact {item.artifact_id}",
+                )
                 .decode("utf-8")
                 == item.payload
                 for item in bundle.artifacts

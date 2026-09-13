@@ -8,8 +8,13 @@ from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import _validate_parent, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
+from .workbench_release_frontier_offline_bundle import (
+    _offline_path,
+    verify_workbench_release_offline_bundle,
+)
 from .workbench_release_frontier_offline_contracts import (
     WORKBENCH_RELEASE_OFFLINE_DEFAULT_LIMIT,
     WORKBENCH_RELEASE_OFFLINE_MANIFEST,
@@ -24,8 +29,6 @@ from .workbench_release_frontier_offline_contracts import (
     WorkbenchReleaseOfflineQueryResult,
     WorkbenchReleaseOfflineVerification,
 )
-from .workbench_release_frontier_offline_bundle import verify_workbench_release_offline_bundle
-from .workbench_release_frontier_offline_bundle import _offline_path
 
 
 def _safe_relative_path(value: str) -> bool:
@@ -41,13 +44,19 @@ def _safe_relative_path(value: str) -> bool:
 
 def _manifest_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(value)
-    if root.is_symlink() or not root.is_dir():
-        raise ValidationError("workbench offline root must be a regular directory")
+    try:
+        _validate_parent(root.parent, "workbench offline root")
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("workbench offline root must be a regular directory")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise ValidationError("workbench offline root could not be inspected") from exc
     manifest_path = _offline_path(root, WORKBENCH_RELEASE_OFFLINE_MANIFEST)
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise ValidationError(f"workbench offline manifest is missing: {manifest_path}")
     try:
-        parsed = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+        parsed = _strict_json_loads(read_text(manifest_path, field="workbench offline manifest"))
     except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"workbench offline manifest cannot be read: {exc}") from exc
     if not isinstance(parsed, Mapping):
@@ -75,13 +84,19 @@ def _artifact(
         raise ValidationError(f"workbench artifact path is unsafe: {relative_path!r}")
     payload: str | None = None
     target = _offline_path(root, relative_path)
+    try:
+        _validate_parent(target.parent, "workbench artifact path")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise ValidationError(f"workbench artifact path cannot be inspected: {target}") from exc
     if target.is_symlink():
         raise ValidationError(f"workbench artifact path is unsafe: {target}")
     if include_payloads:
         if not target.is_file():
             raise ValidationError(f"workbench artifact file is missing: {target}")
         try:
-            payload = target.read_text(encoding="utf-8")
+            payload = read_text(target, field=f"workbench artifact {raw.get('artifact_id', relative_path)}")
         except (OSError, UnicodeDecodeError) as exc:
             raise ValidationError(f"workbench artifact file cannot be read: {target}") from exc
     try:
