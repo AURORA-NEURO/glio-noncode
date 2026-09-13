@@ -9,6 +9,7 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive import (
     build_module_workbench_execution_packet_archive,
@@ -360,12 +361,12 @@ def _store_from_mapping(
 
 def _read_store(path: str | Path) -> ModuleWorkbenchExecutionPacketArchiveStore:
     root = Path(path)
-    if not root.is_dir():
+    if root.is_symlink() or not root.is_dir():
         raise ValidationError("archive store destination is not a directory")
     manifest_path = root / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_MANIFEST
-    if not manifest_path.is_file():
+    if manifest_path.is_symlink() or not manifest_path.is_file():
         raise ValidationError("archive store manifest is missing")
-    raw = manifest_path.read_bytes()
+    raw = read_bytes(manifest_path, field="archive store manifest")
     try:
         mapping = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -387,7 +388,7 @@ def _read_store(path: str | Path) -> ModuleWorkbenchExecutionPacketArchiveStore:
         object_path = objects_root / object_key
         if object_path.is_symlink() or not object_path.is_file():
             raise ValidationError("archive store object is not a regular file")
-        payloads.append(object_path.read_bytes())
+        payloads.append(read_bytes(object_path, field=f"archive store object {object_key}"))
     return _store_from_mapping(mapping, tuple(payloads))
 
 
@@ -603,8 +604,11 @@ def write_module_workbench_execution_packet_archive_store(
     if not verification.accepted:
         raise ValidationError("cannot write a blocked archive store")
     target = Path(destination)
+    _validate_parent(target.parent, "archive store destination")
     if target.exists() and not allow_existing:
         raise ValidationError("archive store destination already exists")
+    if target.exists() and (target.is_symlink() or not target.is_dir()):
+        raise ValidationError("archive store destination must be a regular directory")
     parent = target.parent
     parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".archive-store-", dir=parent))
@@ -612,13 +616,14 @@ def write_module_workbench_execution_packet_archive_store(
         objects_root = temporary / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_OBJECTS_DIRECTORY
         objects_root.mkdir()
         for entry, payload in zip(value.entries, value.object_payloads, strict=True):
-            (objects_root / entry.object_key).write_bytes(payload)
+            atomic_write_bytes(
+                objects_root / entry.object_key,
+                payload,
+                field=f"archive store object {entry.object_key}",
+            )
         manifest = canonical_bytes(value.to_dict())
         manifest_path = temporary / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_MANIFEST
-        with manifest_path.open("wb") as handle:
-            handle.write(manifest)
-            handle.flush()
-            os.fsync(handle.fileno())
+        atomic_write_bytes(manifest_path, manifest, field="archive store manifest")
         if target.exists():
             shutil.rmtree(target)
         os.replace(temporary, target)
