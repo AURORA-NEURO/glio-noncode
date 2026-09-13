@@ -9,6 +9,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -147,6 +148,20 @@ class RegistryFederationConsensusExtendedTests(DurableCatalogPromotionPackageFix
             manifest.write_text(json.dumps(raw, separators=(",", ":")), encoding="utf-8")
             with self.assertRaises(ValidationError):
                 history_model.load_history(destination)
+
+    def test_history_loader_normalizes_directory_and_member_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self._receipt(root, "primary", "replica")
+            audit = consensus_audit_model.audit_consensus(value)
+            destination = root / "history"
+            history_model.write_history(history_model.build_history(((value, audit),)), destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaisesRegex(ValidationError, "could not be inspected"):
+                    history_model.load_history(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("member denied")):
+                with self.assertRaisesRegex(ValidationError, "could not be read"):
+                    history_model.load_history(destination)
 
     def test_observatory_aggregates_multiple_histories_and_filters(self):
         with tempfile.TemporaryDirectory() as temporary:

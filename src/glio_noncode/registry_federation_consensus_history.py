@@ -258,12 +258,37 @@ def write_history(value: RegistryFederationConsensusHistory, directory: str | Pa
     return destination
 
 
-def load_history(directory: str | Path) -> RegistryFederationConsensusHistory:
+def _read_directory(directory: str | Path) -> dict[str, bytes]:
     source = Path(directory)
-    if not source.is_dir() or tuple(sorted(path.name for path in source.iterdir())) != tuple(sorted(FILES)):
+    try:
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("history input must be a regular directory")
+        members = tuple(source.iterdir())
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("history directory could not be inspected") from error
+    try:
+        invalid_members = any(path.is_symlink() or not path.is_file() for path in members)
+    except OSError as error:
+        raise ValidationError("history directory could not be inspected") from error
+    if tuple(sorted(path.name for path in members)) != tuple(sorted(FILES)) or invalid_members:
         raise ValidationError("history directory does not contain exact canonical members")
-    raw = {name: (source / name).read_bytes() for name in FILES}
-    decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
+    result: dict[str, bytes] = {}
+    for name in FILES:
+        try:
+            result[name] = (source / name).read_bytes()
+        except OSError as error:
+            raise ValidationError("history member could not be read") from error
+    return result
+
+
+def load_history(directory: str | Path) -> RegistryFederationConsensusHistory:
+    raw = _read_directory(directory)
+    try:
+        decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
+    except (UnicodeDecodeError, ValueError) as error:
+        raise ValidationError("history contains invalid JSON") from error
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("history member is not canonical JSON")
     value = history_from_mapping(decoded[HISTORY_NAME])
