@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import GlioError, ValidationError
 from .frontier_data_alpha import (
     ConsentPolicyAttacher,
@@ -113,8 +114,8 @@ class IntakeFixtureEvaluator:
     def load_file(self, path: str | Path) -> Mapping[str, Any]:
         fixture_path = Path(path)
         try:
-            raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
-        except OSError as exc:
+            raw = _strict_json_loads(read_text(fixture_path, field="intake fixture"))
+        except (OSError, ValidationError) as exc:
             raise ValidationError(f"unable to read intake fixture: {fixture_path}") from exc
         except ValueError as exc:
             raise ValidationError(f"intake fixture is not valid JSON: {fixture_path}") from exc
