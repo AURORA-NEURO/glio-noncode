@@ -9,6 +9,9 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_text, read_bytes
+from .errors import ValidationError
+
 DEFAULT_MAX_JSON_BYTES = 16 * 1024 * 1024
 DEFAULT_MAX_JSON_NESTING_DEPTH = 100
 
@@ -76,12 +79,12 @@ def read_text(
         return text
     source = Path(location)
     try:
-        if source.stat().st_size > max_bytes:
-            raise ValueError(f"{label} exceeds the {max_bytes}-byte limit")
-        payload = source.read_bytes()
+        payload = read_bytes(source, field=label)
     except ValueError:
         raise
-    except OSError as error:
+    except (OSError, ValidationError) as error:
+        # Keep the CLI's stable ValueError contract while refusing missing,
+        # non-regular, or symlinked inputs from crossing the boundary.
         raise ValueError(f"{label} could not be read") from error
     if len(payload) > max_bytes:
         raise ValueError(f"{label} exceeds the {max_bytes}-byte limit")
@@ -140,8 +143,9 @@ def write_json(value: object, output: str) -> None:
         print(rendered)
         return
     destination = Path(output)
+    _validate_parent(destination.parent, "CLI output")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(rendered + "\n", encoding="utf-8")
+    atomic_write_text(destination, rendered + "\n", field="CLI output")
 
 
 __all__ = [
