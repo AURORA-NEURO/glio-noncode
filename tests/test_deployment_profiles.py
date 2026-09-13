@@ -197,6 +197,11 @@ class DeploymentProfileTests(unittest.TestCase):
             self.assertTrue(store.status.blocked)
             self.assertTrue(guard.audit_store_status["write_blocked"])
             audit_path = Path(directory) / DEPLOYMENT_AUDIT_FILENAME
+            original = audit_path.read_bytes()
+            audit_path.write_bytes(original.rstrip()[:-1] + b',"profile_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                DeploymentAuditStore(directory, profile.profile_id, retention_limit=1)
+            audit_path.write_bytes(original)
             payload = json.loads(audit_path.read_text(encoding="utf-8"))
             payload["events"][0]["reason"] = "tampered"
             audit_path.write_text(json.dumps(payload), encoding="utf-8")

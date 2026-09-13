@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 DEPLOYMENT_PROFILE_VERSION = "deployment-profile-v1"
 DEPLOYMENT_AUDIT_VERSION = "deployment-audit-v1"
@@ -651,8 +651,8 @@ class DeploymentAuditStore:
         if not self.path.exists():
             return
         try:
-            value = json.loads(self.path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            value = _strict_json_loads(self.path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, ValueError) as exc:
             raise ValidationError("deployment audit file cannot be decoded") from exc
         if not isinstance(value, Mapping):
             raise ValidationError("deployment audit file must contain an object")
