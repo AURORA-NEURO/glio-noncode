@@ -21,6 +21,7 @@ from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, atomic_write_text, read_bytes, read_text
 from .deployment_frontier_public_data import default_deployment_frontier_fixture
 from .deployment_frontier_runtime import run_deployment_frontier_runtime
 from .errors import ValidationError
@@ -1148,13 +1149,22 @@ def write_deployment_frontier_offline_bundle(
     manifest_path = _offline_path(root, DEPLOYMENT_FRONTIER_OFFLINE_MANIFEST)
     if manifest_path.is_symlink():
         raise ValidationError("deployment offline manifest path is unsafe")
-    manifest_path.write_text(deployment_frontier_offline_manifest_text(bundle), encoding="utf-8")
+    atomic_write_text(
+        manifest_path,
+        deployment_frontier_offline_manifest_text(bundle),
+        field="deployment offline manifest path",
+        encoding="utf-8",
+    )
     for artifact in bundle.artifacts:
         path = _offline_path(root, artifact.relative_path)
         _prepare_offline_parent(root, artifact.relative_path)
         if path.is_symlink():
             raise ValidationError("deployment offline artifact path is unsafe")
-        path.write_bytes((artifact.payload or "").encode("utf-8"))
+        atomic_write_bytes(
+            path,
+            (artifact.payload or "").encode("utf-8"),
+            field="deployment offline artifact path",
+        )
     return root
 
 
@@ -1171,8 +1181,10 @@ def _manifest_mapping(destination: str | Path) -> tuple[Path, dict[str, Any]]:
     except OSError as exc:
         raise ValidationError("deployment offline manifest could not be inspected") from exc
     try:
-        value = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
+        value = _strict_json_loads(
+            read_text(manifest_path, field="deployment offline manifest path", encoding="utf-8")
+        )
+    except (OSError, ValueError, ValidationError) as exc:
         raise ValidationError(f"deployment offline manifest is unreadable: {exc}") from exc
     if not isinstance(value, dict):
         raise ValidationError("deployment offline manifest must be an object")
@@ -1204,7 +1216,11 @@ def load_deployment_frontier_offline_bundle(
             raise ValidationError("deployment offline artifact path could not be inspected") from exc
         if unsafe:
             raise ValidationError("deployment offline artifact path is unsafe")
-        payload = path.read_text(encoding="utf-8") if include_payloads and present else None
+        payload = (
+            read_text(path, field="deployment offline artifact path", encoding="utf-8")
+            if include_payloads and present
+            else None
+        )
         try:
             kind = DeploymentFrontierOfflineArtifactKind(str(item["kind"]))
             artifacts.append(
@@ -1321,7 +1337,13 @@ def verify_deployment_frontier_offline_bundle(
     )
     for artifact in bundle.artifacts:
         path = root / Path(*PurePosixPath(artifact.relative_path).parts)
-        raw = path.read_bytes() if path.is_file() else b""
+        if path.is_file():
+            try:
+                raw = read_bytes(path, field="deployment offline artifact path")
+            except (OSError, ValidationError):
+                raw = b""
+        else:
+            raw = b""
         checks.append(
             verify_check(
                 f"artifact-bytes:{artifact.artifact_id}",

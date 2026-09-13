@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .evidence_lifecycle_frontier_artifacts import build_evidence_lifecycle_artifact_inventory
 from .evidence_lifecycle_frontier_bundle import EvidenceLifecycleReleaseBundle
@@ -453,11 +454,19 @@ def write_evidence_lifecycle_offline_bundle(bundle: EvidenceLifecycleOfflineBund
         _prepare_offline_parent(root, artifact.relative_path)
         if target.is_symlink():
             raise ValidationError("evidence lifecycle artifact path is unsafe")
-        target.write_bytes(artifact.payload.encode("utf-8"))
+        atomic_write_bytes(
+            target,
+            artifact.payload.encode("utf-8"),
+            field="evidence lifecycle artifact path",
+        )
     manifest_path = _offline_path(root, EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST)
     if manifest_path.is_symlink():
         raise ValidationError("evidence lifecycle manifest path is unsafe")
-    manifest_path.write_bytes(evidence_lifecycle_offline_manifest_text(bundle).encode("utf-8"))
+    atomic_write_bytes(
+        manifest_path,
+        evidence_lifecycle_offline_manifest_text(bundle).encode("utf-8"),
+        field="evidence lifecycle manifest path",
+    )
     return root
 
 
@@ -490,9 +499,12 @@ def verify_evidence_lifecycle_offline_bundle(destination: str | Path) -> Evidenc
     if not manifest_path.exists() or not manifest_path.is_file() or manifest_path.is_symlink():
         return _verification("missing-manifest", [_check("manifest-present", EvidenceLifecycleOfflineCheckPlane.MANIFEST, False, False, True, "bundle manifest is missing or is not a regular file")])
     try:
-        raw_manifest = manifest_path.read_bytes()
+        raw_manifest = read_bytes(
+            manifest_path,
+            field="evidence lifecycle manifest path",
+        )
         manifest = _strict_json_loads(raw_manifest.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         return _verification("invalid-manifest", [_check("manifest-readable", EvidenceLifecycleOfflineCheckPlane.MANIFEST, False, type(exc).__name__, "canonical UTF-8 JSON", "bundle manifest cannot be decoded")])
     if not isinstance(manifest, Mapping):
         return _verification("invalid-manifest", [_check("manifest-object", EvidenceLifecycleOfflineCheckPlane.MANIFEST, False, type(manifest).__name__, "object", "bundle manifest root must be an object")])
@@ -524,7 +536,7 @@ def verify_evidence_lifecycle_offline_bundle(destination: str | Path) -> Evidenc
         checks.append(_check(f"artifact:{artifact_id}:path", EvidenceLifecycleOfflineCheckPlane.ARTIFACT, _safe_relative_path(relative_path), relative_path, "safe relative path", "artifact path is portable"))
         try:
             target = _path_for(root, relative_path)
-            raw_bytes = target.read_bytes()
+            raw_bytes = read_bytes(target, field="evidence lifecycle artifact path")
             expected_address = str(raw.get("content_address", ""))
             expected_bytes = int(raw.get("byte_count", -1))
             expected_lines = int(raw.get("line_count", -1))
