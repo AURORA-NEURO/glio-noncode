@@ -32,7 +32,7 @@ from typing import Any
 from . import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series as series_model
 from . import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series_policy as policy_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 DecisionAssuranceHistorySeries = series_model.DecisionAssuranceHistorySeries
 DecisionAssuranceHistorySeriesPolicy = policy_model.DecisionAssuranceHistorySeriesPolicy
@@ -917,8 +917,8 @@ def _read_json(path: Path, field: str) -> dict[str, Any]:
         raise ValidationError(f"{field} must be a regular file")
     raw = path.read_bytes()
     try:
-        value = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is invalid JSON") from exc
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} is not canonical JSON")
@@ -954,10 +954,10 @@ def load_decision_assurance_history_series_release_package(directory: str | Path
     if manifest["manifest_address"] != _manifest_address({**manifest, "manifest_address": None}):
         raise ValidationError("series release manifest address mismatch")
     documents = {name: _check_manifest_artifact(manifest, source, name) for name in (SERIES_NAME, POLICY_NAME, EVALUATION_NAME, RELEASE_NAME)}
-    series = series_model.decision_assurance_history_series_from_mapping(json.loads(documents[SERIES_NAME].decode("utf-8")))
-    selected_policy = policy_model.decision_assurance_history_series_policy_from_mapping(json.loads(documents[POLICY_NAME].decode("utf-8")))
-    evaluation = policy_model.decision_assurance_history_series_policy_evaluation_from_mapping(json.loads(documents[EVALUATION_NAME].decode("utf-8")))
-    release = decision_assurance_history_series_release_from_mapping(json.loads(documents[RELEASE_NAME].decode("utf-8")))
+    series = series_model.decision_assurance_history_series_from_mapping(_strict_json_loads(documents[SERIES_NAME].decode("utf-8")))
+    selected_policy = policy_model.decision_assurance_history_series_policy_from_mapping(_strict_json_loads(documents[POLICY_NAME].decode("utf-8")))
+    evaluation = policy_model.decision_assurance_history_series_policy_evaluation_from_mapping(_strict_json_loads(documents[EVALUATION_NAME].decode("utf-8")))
+    release = decision_assurance_history_series_release_from_mapping(_strict_json_loads(documents[RELEASE_NAME].decode("utf-8")))
     if manifest["package_id"] == "" or manifest["release_id"] != release.release_id or manifest["series_address"] != series.content_address or manifest["policy_address"] != selected_policy.content_address or manifest["evaluation_address"] != evaluation.content_address or manifest["release_address"] != release.content_address:
         raise ValidationError("series release manifest linkage is invalid")
     body = {"package_id": manifest["package_id"], "version": VERSION, "boundary": BOUNDARY, "series": series, "policy": selected_policy, "evaluation": evaluation, "release": release, "content_address": "pending:loaded-series-release-package"}
@@ -1017,7 +1017,7 @@ def load_decision_assurance_history_series_release_diff(directory: str | Path) -
     if manifest["manifest_address"] != _manifest_address({**manifest, "manifest_address": None}, prefix=DIFF_MANIFEST_PREFIX):
         raise ValidationError("series release diff manifest address mismatch")
     raw = _check_manifest_artifact(manifest, source, DIFF_NAME, prefix=DIFF_PREFIX + "-file")
-    value = decision_assurance_history_series_release_diff_from_mapping(json.loads(raw.decode("utf-8")))
+    value = decision_assurance_history_series_release_diff_from_mapping(_strict_json_loads(raw.decode("utf-8")))
     if manifest["diff_id"] != value.diff_id or manifest["baseline_address"] != value.baseline_address or manifest["candidate_address"] != value.candidate_address or manifest["diff_address"] != value.content_address:
         raise ValidationError("series release diff manifest linkage is invalid")
     return verify_decision_assurance_history_series_release_diff(value)

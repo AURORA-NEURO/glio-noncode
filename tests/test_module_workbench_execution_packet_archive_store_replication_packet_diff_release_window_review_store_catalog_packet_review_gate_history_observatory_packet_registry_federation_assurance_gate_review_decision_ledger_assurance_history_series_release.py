@@ -268,6 +268,17 @@ class ReleasePersistenceTests(ReleaseFixture):
                 self.assertEqual(artifact["byte_address"], hash_bytes(raw))
                 self.assertEqual(canonical_bytes(json.loads(raw.decode())), raw)
 
+    def test_package_loader_rejects_duplicate_manifest_fields(self):
+        value = self.ready_package()
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "release"
+            self.write_package(value, destination)
+            path = destination / release.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"package_id":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                release.load_decision_assurance_history_series_release_package(destination)
+
     def test_package_persistence_rejects_noncanonical_missing_extra_and_tampered_files(self):
         value = self.ready_package()
         with tempfile.TemporaryDirectory() as temporary:

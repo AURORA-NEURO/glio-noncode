@@ -288,6 +288,16 @@ class SeriesPersistenceTests(SeriesFixture):
             self.assertEqual(manifest["history_count"], self.value.history_count)
             self.assertEqual({item["name"] for item in manifest["artifacts"]}, {"series.json", "entries.json"})
 
+    def test_series_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "series"
+            self.write_series(self.value, destination)
+            path = destination / series.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"series_address":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                series.load_decision_assurance_history_series(destination)
+
     def test_persistence_rejects_missing_extra_tampered_and_noncanonical_files(self):
         with tempfile.TemporaryDirectory() as temporary:
             destination = Path(temporary) / "series"

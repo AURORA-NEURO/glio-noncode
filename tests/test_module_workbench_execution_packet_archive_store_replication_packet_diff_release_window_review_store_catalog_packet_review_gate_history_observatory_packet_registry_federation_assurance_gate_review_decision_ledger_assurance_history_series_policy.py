@@ -188,6 +188,16 @@ class PolicyPersistenceTests(PolicyFixture):
             self.assertEqual(manifest["policy_address"], self.value.policy.content_address)
             self.assertEqual(manifest["evaluation_address"], self.value.content_address)
 
+    def test_policy_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "policy"
+            self.write_evaluation(self.value, destination)
+            path = destination / policy.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"policy_address":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                policy.load_decision_assurance_history_series_policy_evaluation(destination)
+
     def test_persistence_rejects_missing_extra_noncanonical_and_tampered_artifacts(self):
         with tempfile.TemporaryDirectory() as temporary:
             destination = Path(temporary) / "policy"
