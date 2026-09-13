@@ -19,8 +19,6 @@ import hashlib
 import hmac
 import io
 import json
-import os
-import tempfile
 import threading
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
@@ -29,6 +27,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
@@ -95,31 +94,19 @@ def _addressed(body: Mapping[str, Any], prefix: str) -> str:
 def _atomic_json_write(destination: Path, value: Mapping[str, Any]) -> None:
     """Durably replace one JSON object without exposing partial audit state."""
 
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{destination.name}.",
-        suffix=".tmp",
-        dir=str(destination.parent),
-    )
-    temporary = Path(temporary_name)
     try:
-        payload = json.dumps(
-            jsonable(value),
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        ).encode("utf-8") + b"\n"
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, destination)
-    except BaseException as exc:
-        try:
-            temporary.unlink(missing_ok=True)
-        finally:
-            if isinstance(exc, (OSError, UnicodeError, TypeError, ValueError)):
-                raise ValidationError("deployment audit store write failed") from exc
-            raise
+        payload = (
+            json.dumps(
+                jsonable(value),
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + "\n"
+        )
+        atomic_write_text(destination, payload, field="deployment audit file path")
+    except (OSError, UnicodeError, TypeError, ValueError, ValidationError) as exc:
+        raise ValidationError("deployment audit store write failed") from exc
 
 
 def api_key_digest(api_key: str) -> str:
@@ -651,8 +638,8 @@ class DeploymentAuditStore:
         if not self.path.exists():
             return
         try:
-            value = _strict_json_loads(self.path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeDecodeError, ValueError) as exc:
+            value = _strict_json_loads(read_text(self.path, field="deployment audit file"))
+        except (OSError, UnicodeError, ValueError, ValidationError) as exc:
             raise ValidationError("deployment audit file cannot be decoded") from exc
         if not isinstance(value, Mapping):
             raise ValidationError("deployment audit file must contain an object")
@@ -938,9 +925,8 @@ def load_deployment_credentials(path: str) -> dict[str, str]:
     """Load credentials without ever serializing them into a public artifact."""
 
     try:
-        with open(path, "r", encoding="utf-8") as handle:
-            raw = handle.read().strip()
-    except OSError as exc:
+        raw = read_text(path, field="deployment credential file").strip()
+    except (OSError, UnicodeError, ValidationError) as exc:
         raise ValidationError(f"cannot read deployment credential file: {exc}") from exc
     if not raw:
         raise ValidationError("deployment credential file is empty")

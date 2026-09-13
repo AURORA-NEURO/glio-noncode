@@ -27,6 +27,7 @@ from glio_noncode.deployment_profiles import (
     deployment_audit_markdown,
     deployment_profile_from_dict,
     deployment_profile_schema,
+    load_deployment_credentials,
     verify_deployment_audit_log,
 )
 from glio_noncode.errors import ValidationError
@@ -179,6 +180,29 @@ class DeploymentProfileTests(unittest.TestCase):
             self.assertEqual(reopened_store.status.remaining_capacity, 2)
             self.assertTrue(reopened_store.status.durable)
             self.assertEqual(verify_deployment_audit_log(reopened_store.audit_log), ())
+
+    def test_credential_loader_supports_json_and_plaintext_without_following_symlinks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            json_path = root / "credentials.json"
+            json_path.write_text(json.dumps({"operator-1": "a-random-secret-key-12345"}), encoding="utf-8")
+            self.assertEqual(
+                load_deployment_credentials(str(json_path)),
+                {"operator-1": "a-random-secret-key-12345"},
+            )
+            plain_path = root / "credential.txt"
+            plain_path.write_text("a-random-secret-key-12345\n", encoding="utf-8")
+            self.assertEqual(
+                load_deployment_credentials(str(plain_path)),
+                {"default": "a-random-secret-key-12345"},
+            )
+            link = root / "linked-credentials"
+            try:
+                link.symlink_to(json_path)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                load_deployment_credentials(str(link))
 
     def test_durable_audit_store_rejects_tampering_and_blocks_at_retention_limit(self) -> None:
         profile = self._profile()
