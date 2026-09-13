@@ -289,10 +289,14 @@ def write_history(value: RegistryFederationConsensusGateCertificateObservatoryAr
 
 
 def _read_directory(source: str | Path) -> dict[str, bytes]:
-    path = Path(source)
-    if path.is_symlink() or not path.is_dir():
-        raise ValidationError("history input must be a regular directory")
-    names = tuple(item.name for item in path.iterdir())
+    try:
+        path = Path(source)
+        if path.is_symlink() or not path.is_dir():
+            raise ValidationError("history input must be a regular directory")
+        members = tuple(path.iterdir())
+    except OSError as error:
+        raise ValidationError("history directory could not be inspected") from error
+    names = tuple(item.name for item in members)
     if set(names) != set(FILES) or len(names) != len(FILES):
         raise ValidationError("history member set is not exact")
     result = {}
@@ -300,7 +304,10 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
         member = path / name
         if member.is_symlink() or not member.is_file():
             raise ValidationError("history member must be a regular file")
-        raw = member.read_bytes()
+        try:
+            raw = member.read_bytes()
+        except OSError as error:
+            raise ValidationError("history artifact could not be read") from error
         if len(raw) > MAX_HISTORY_BYTES:
             raise ValidationError("history member exceeds the size bound")
         result[name] = raw

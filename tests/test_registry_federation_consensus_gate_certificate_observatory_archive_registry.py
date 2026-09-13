@@ -412,6 +412,20 @@ class ArchiveRegistryFixture(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 history_model.load_history(destination)
 
+    def test_history_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            first = self.registry(root / "first", "history-failure-a")
+            value = history_model.build_history((first,), history_id="failure-history")
+            destination = root / "history"
+            history_model.write_history(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    history_model.load_history(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    history_model.load_history(destination)
+
     def test_cli_builds_a_registry_and_exposes_all_new_schema_commands(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
