@@ -10,6 +10,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .regulatory_atlas_fixture_eval import RegulatoryAtlasEvaluationReport
 from .regulatory_atlas_public_data import RegulatoryAtlasFixture, RegulatoryAtlasRole
@@ -180,7 +181,11 @@ class RegulatoryAtlasBundleBuilder:
             )
         output = Path(path)
         require_non_empty(str(output), "regulatory atlas bundle output path")
-        output.write_text(self.render(bundle), encoding="utf-8")
+        atomic_write_text(
+            output,
+            self.render(bundle),
+            field="regulatory atlas bundle output",
+        )
 
 
 __all__ = [
