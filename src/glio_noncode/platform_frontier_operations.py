@@ -13,6 +13,20 @@ from .serialization import content_hash, jsonable
 from .workflow import ResourceEnvelope, StepKind, WorkflowCompiler, WorkflowStep
 
 
+def _bool_field(payload: Mapping[str, Any], name: str, default: bool) -> bool:
+    value = payload.get(name, default)
+    if not isinstance(value, bool):
+        raise ValidationError(f"{name} must be boolean")
+    return value
+
+
+def _int_field(payload: Mapping[str, Any], name: str, default: int) -> int:
+    value = payload.get(name, default)
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValidationError(f"{name} must be an integer")
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class PlatformFrontierOperationResult:
     """One adapter result with normalized issue codes and a safe projection."""
@@ -37,7 +51,7 @@ def _mission(payload: Mapping[str, Any]) -> MissionContext:
         allowed_source_ids=tuple(payload.get("allowed_source_ids", ())),
         allowed_data_scopes=tuple(payload.get("allowed_data_scopes", ("synthetic", "public_reference"))),
         allowed_mutations=tuple(payload.get("allowed_mutations", ("none", "event_log", "content_addressed_store"))),
-        allow_network=bool(payload.get("allow_network", False)),
+        allow_network=_bool_field(payload, "allow_network", False),
         private_data_allowed=False,
     )
 
@@ -81,8 +95,8 @@ def _resource(payload: Mapping[str, Any]) -> ResourceEnvelope:
         memory_gb=float(value.get("memory_gb", 1.0)),
         gpu_count=int(value.get("gpu_count", 0)),
         storage_gb=float(value.get("storage_gb", 1.0)),
-        network_egress=bool(value.get("network_egress", False)),
-        max_seconds=int(value.get("max_seconds", 60)),
+        network_egress=_bool_field(value, "network_egress", False),
+        max_seconds=_int_field(value, "max_seconds", 60),
     )
 
 
@@ -95,8 +109,8 @@ def _platform_workflow(payload: Mapping[str, Any]) -> PlatformFrontierOperationR
                 StepKind(str(row["kind"])),
                 tuple(str(item) for item in row.get("depends_on", ())),
                 resource=_resource(row),
-                optional=bool(row.get("optional", False)),
-                deterministic=bool(row.get("deterministic", True)),
+                optional=_bool_field(row, "optional", False),
+                deterministic=_bool_field(row, "deterministic", True),
                 input_contract=str(row.get("input_contract", "aggregate_input")),
                 output_contract=str(row.get("output_contract", "aggregate_output")),
             )
@@ -173,7 +187,7 @@ def _sandbox_request(payload: Mapping[str, Any]) -> InvocationRequest:
 def _platform_sandbox(payload: Mapping[str, Any]) -> PlatformFrontierOperationResult:
     request = _sandbox_request(payload)
     sandbox = ExecutionSandbox(isolation=SandboxIsolation(workspace_root=".glio/platform-sandbox"))
-    if bool(payload.get("register_handler", False)) and str(payload.get("tool_id")) == "A01.publish":
+    if _bool_field(payload, "register_handler", False) and str(payload.get("tool_id")) == "A01.publish":
         sandbox.register("A01.publish", lambda _request: WorkflowDecision("platform_operation_complete"))
     run = sandbox.execute(request)
     if run.admission.admitted and run.state.value == "completed":

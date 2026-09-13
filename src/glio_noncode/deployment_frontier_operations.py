@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-from .errors import GlioError
+from .errors import GlioError, ValidationError
 from .frontier_release_alpha import (
     FederatedExecutionCoordinator,
     LocalDeploymentBundleBuilder,
@@ -46,6 +46,20 @@ def _prefix_codes(values: list[str] | tuple[str, ...]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(str(item).split(":", 1)[0] for item in values if str(item)))
 
 
+def _bool_field(payload: Mapping[str, Any], name: str, default: bool) -> bool:
+    value = payload.get(name, default)
+    if not isinstance(value, bool):
+        raise ValidationError(f"{name} must be boolean")
+    return value
+
+
+def _int_field(payload: Mapping[str, Any], name: str, default: int) -> int:
+    value = payload.get(name, default)
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValidationError(f"{name} must be an integer")
+    return value
+
+
 def _privacy(payload: Mapping[str, Any]) -> DeploymentFrontierOperationResult:
     context_key = str(payload["context_key"])
     report = PrivacySecurityPolicyEngine().evaluate(
@@ -66,7 +80,7 @@ def _privacy(payload: Mapping[str, Any]) -> DeploymentFrontierOperationResult:
 
 
 def _bundle(payload: Mapping[str, Any]) -> DeploymentFrontierOperationResult:
-    offline = bool(payload.get("offline", True))
+    offline = _bool_field(payload, "offline", True)
     try:
         bundle = LocalDeploymentBundleBuilder().build(
             payload,
@@ -110,8 +124,8 @@ def _federated(payload: Mapping[str, Any]) -> DeploymentFrontierOperationResult:
         payload.get("sites", ()),
         plan_id=str(payload["plan_id"]),
         context_key=context_key,
-        privacy_budget=int(payload.get("privacy_budget", 0)),
-        minimum_site_count=int(payload.get("minimum_site_count", 1)),
+        privacy_budget=_int_field(payload, "privacy_budget", 0),
+        minimum_site_count=_int_field(payload, "minimum_site_count", 1),
     )
     reasons = tuple(
         reason

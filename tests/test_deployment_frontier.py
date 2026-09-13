@@ -57,6 +57,19 @@ class DeploymentFrontierTests(unittest.TestCase):
         self.assertNotIn("api_key", serialized)
         self.assertNotIn("password", serialized)
 
+    def test_operation_flags_are_not_coerced(self) -> None:
+        record = next(
+            item
+            for item in self.fixture.records
+            if item.operation is DeploymentFrontierOperation.LOCAL_DEPLOYMENT_BUNDLE
+            and item.role is DeploymentFrontierRole.POSITIVE
+        )
+        payload = dict(record.payload)
+        payload["offline"] = "false"
+        result = run_deployment_frontier_operation(record.operation, payload)
+        self.assertEqual(result.state.value, "hold")
+        self.assertEqual(result.issue_codes, ("bundle_contract_failure",))
+
 
 if __name__ == "__main__":
     unittest.main()

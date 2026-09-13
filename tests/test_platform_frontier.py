@@ -90,6 +90,19 @@ class PlatformFrontierCoreTests(unittest.TestCase):
         self.assertNotIn("hidden", str(result.output))
         self.assertEqual(result.issue_codes, ("direct_identifier",))
 
+    def test_operation_flags_are_not_coerced(self) -> None:
+        record = next(
+            item
+            for item in self.fixture.records
+            if item.operation is PlatformFrontierOperation.MISSION_PLANNER
+            and item.role is PlatformFrontierRole.POSITIVE
+        )
+        payload = dict(record.payload)
+        payload["allow_network"] = "false"
+        result = run_platform_frontier_operation(record.operation, payload)
+        self.assertEqual(result.state, PlatformFrontierState.REJECTED)
+        self.assertEqual(result.issue_codes, ("unknown_role",))
+
     def test_context_audit_is_closed(self) -> None:
         from glio_noncode.platform_frontier_fixture_eval import audit_platform_frontier_context
 
