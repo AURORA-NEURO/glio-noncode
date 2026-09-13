@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from glio_noncode import registry_federation_consensus as consensus_model
 from glio_noncode import registry_federation_consensus_remediation as remediation_model
@@ -65,6 +66,22 @@ class RegistryFederationConsensusRemediationPackageTests(DurableCatalogPromotion
                 path.write_text(json.dumps(document, separators=(",", ":")), encoding="utf-8")
                 with self.assertRaises(ValidationError):
                     package_model.load_package(destination)
+
+    def test_package_loader_normalizes_inspection_read_and_decode_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = package_model.build_package(self._remediation(root))
+            destination = root / "package"
+            package_model.write_package(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    package_model.load_package(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    package_model.load_package(destination)
+            (destination / package_model.PACKAGE_NAME).write_bytes(b"\xff")
+            with self.assertRaises(ValidationError):
+                package_model.load_package(destination)
 
     def test_package_schema_contract_covers_manifest_and_nested_receipt(self):
         self.assertEqual(package_model.package_schema()["required"], list(package_model.RegistryFederationConsensusRemediationPackage.FIELDS))
