@@ -20,6 +20,34 @@ from .models import VariantIdentity, VariantKind
 from .serialization import content_hash, jsonable
 
 
+MAX_NORMALIZATION_REFERENCE_BP = 1_000_000
+MAX_NORMALIZATION_TEXT = 8_192
+
+
+def _text(value: object, field_name: str, *, maximum: int = MAX_NORMALIZATION_TEXT) -> str:
+    if type(value) is not str or not value.strip():
+        raise ValidationError(f"{field_name} must be a non-empty string")
+    if len(value) > maximum or value != value.strip():
+        raise ValidationError(f"{field_name} is invalid or exceeds its maximum length")
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValidationError(f"{field_name} must be valid UTF-8") from exc
+    if any(ord(character) < 32 or ord(character) == 127 for character in value):
+        raise ValidationError(f"{field_name} must not contain control characters")
+    return value
+
+
+def _optional_text(value: object, field_name: str, *, maximum: int = MAX_NORMALIZATION_TEXT) -> str | None:
+    return None if value is None else _text(value, field_name, maximum=maximum)
+
+
+def _integer(value: object, field_name: str) -> int:
+    if type(value) is not int:
+        raise ValidationError(f"{field_name} must be an integer")
+    return value
+
+
 class NormalizationState(StrEnum):
     SUPPORTED = "supported"
     AMBIGUOUS = "ambiguous"
@@ -71,7 +99,17 @@ class VRSNormalizer:
         reference_sequence: str | None = None,
         reference_start: int | None = None,
     ) -> NormalizationReport:
-        input_hash = content_hash(raw.to_dict() if isinstance(raw, VariantIdentity) else raw)
+        _text(genome_build, "genome_build", maximum=256)
+        _optional_text(sequence_digest, "sequence_digest", maximum=512)
+        _optional_text(reference_sequence, "reference_sequence", maximum=MAX_NORMALIZATION_REFERENCE_BP)
+        if reference_start is not None:
+            _integer(reference_start, "reference_start")
+        try:
+            input_hash = content_hash(raw.to_dict() if isinstance(raw, VariantIdentity) else raw)
+        except Exception:  # noqa: BLE001 - hostile untyped input
+            # Preserve the report-producing API for malformed payloads while
+            # avoiding a hash over an unrepresentable object graph.
+            input_hash = content_hash({"invalid_input_type": type(raw).__name__})
         try:
             variant = self._coerce_variant(raw, genome_build)
         except (TypeError, ValueError, ValidationError) as exc:
@@ -148,38 +186,71 @@ class VRSNormalizer:
 
     @staticmethod
     def _input_id(raw: VariantIdentity | Mapping[str, Any] | str) -> str:
-        if isinstance(raw, VariantIdentity):
+        if type(raw) is VariantIdentity:
             return raw.variant_id
         if isinstance(raw, Mapping):
-            return str(raw.get("variant_id", raw.get("id", "unidentified-input")))
-        return str(raw)
+            value = raw.get("variant_id", raw.get("id", "unidentified-input"))
+            return value if type(value) is str and value.strip() else "unidentified-input"
+        return raw if type(raw) is str and raw.strip() else "unidentified-input"
 
     @staticmethod
     def _coerce_variant(
         raw: VariantIdentity | Mapping[str, Any] | str,
         genome_build: str,
     ) -> VariantIdentity:
-        if isinstance(raw, VariantIdentity):
+        if type(raw) is VariantIdentity:
             return raw
         if isinstance(raw, str):
             return normalize_variant({"notation": raw, "genome_build": genome_build})
         if not isinstance(raw, Mapping):
             raise ValidationError("normalization input must be a variant, mapping, or notation")
         if "notation" in raw:
-            return normalize_variant(raw, default_build=genome_build)
-        chromosome = normalize_chromosome(str(raw.get("chromosome", raw.get("chrom", ""))))
-        start = int(raw.get("start", raw.get("position", raw.get("pos", 0))))
-        reference = normalize_allele(str(raw.get("reference", raw.get("ref", ""))))
-        alternate = normalize_allele(str(raw.get("alternate", raw.get("alt", ""))))
+            notation = _text(raw["notation"], "variant notation")
+            build = _text(raw.get("genome_build", genome_build), "genome_build", maximum=256)
+            variant_id = _optional_text(raw.get("variant_id"), "variant_id", maximum=256)
+            origin = raw.get("origin", "uncertain")
+            clonality = _text(raw.get("clonality", "unknown"), "clonality", maximum=256)
+            sample_id = _text(raw.get("sample_id", "unspecified"), "sample_id", maximum=256)
+            annotations = raw.get("annotations", {})
+            if not isinstance(annotations, Mapping):
+                raise ValidationError("variant annotations must be a mapping")
+            return normalize_variant(
+                {
+                    "notation": notation,
+                    "genome_build": build,
+                    "variant_id": variant_id,
+                    "origin": origin,
+                    "clonality": clonality,
+                    "sample_id": sample_id,
+                    "annotations": dict(annotations),
+                },
+                default_build=genome_build,
+            )
+        chromosome = normalize_chromosome(
+            _text(raw.get("chromosome", raw.get("chrom", "")), "chromosome", maximum=256)
+        )
+        start = _integer(raw.get("start", raw.get("position", raw.get("pos", 0))), "variant start")
+        reference = normalize_allele(
+            _text(raw.get("reference", raw.get("ref", "")), "reference", maximum=MAX_NORMALIZATION_TEXT)
+        )
+        alternate = normalize_allele(
+            _text(raw.get("alternate", raw.get("alt", "")), "alternate", maximum=MAX_NORMALIZATION_TEXT)
+        )
         if start < 1:
             raise ValidationError("variant start must be positive")
+        build = _text(raw.get("genome_build", genome_build), "genome_build", maximum=256)
+        variant_id = _optional_text(raw.get("variant_id", raw.get("id")), "variant_id", maximum=256)
+        annotations = raw.get("annotations", {})
+        if not isinstance(annotations, Mapping):
+            raise ValidationError("variant annotations must be a mapping")
         return normalize_variant(
             {
                 "notation": f"{chromosome}:{start}:{reference}>{alternate}",
-                "genome_build": str(raw.get("genome_build", genome_build)),
-                "variant_id": str(raw.get("variant_id", raw.get("id", ""))) or None,
-                "annotations": dict(raw.get("annotations", {})),
-            }
+                "genome_build": build,
+                "variant_id": variant_id,
+                "annotations": dict(annotations),
+            },
+            default_build=genome_build,
         )
 
     @staticmethod

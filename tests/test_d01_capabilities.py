@@ -99,6 +99,19 @@ class D01CapabilityTests(unittest.TestCase):
         self.assertGreater(len(result.candidates), 1)
         self.assertTrue(result.ambiguities)
 
+    def test_vrs_normalization_rejects_coercible_structured_fields(self) -> None:
+        result = VRSNormalizer().normalize(
+            {
+                "variant_id": "v1",
+                "chromosome": "7",
+                "start": "100",
+                "reference": "A",
+                "alternate": "T",
+            }
+        )
+        self.assertEqual(result.state, NormalizationState.INVALID)
+        self.assertTrue(any("integer" in warning for warning in result.warnings))
+
     def test_gvcf_preserves_deferred_reference_block(self) -> None:
         text = (
             "##fileformat=VCFv4.3\n"
