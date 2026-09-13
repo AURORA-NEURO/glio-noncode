@@ -21,7 +21,7 @@ from typing import Any
 from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot as snapshot_model
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 VERSION = snapshot_model.VERSION + "-registry-v1"
 BOUNDARY = snapshot_model.BOUNDARY + "_registry"
@@ -834,8 +834,8 @@ def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     if len(raw) > MAX_REGISTRY_BYTES:
         raise ValidationError("registry artifact exceeds the size bound")
     try:
-        parsed = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        parsed = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("registry artifact is not canonical JSON") from exc
     if not isinstance(parsed, Mapping) or canonical_json(parsed).encode("utf-8") != raw:
         raise ValidationError("registry artifact is not canonical JSON")
@@ -875,7 +875,7 @@ def run_registry(value: Sequence[Any] | str | Path | Mapping[str, Any], *, regis
             if not paths:
                 raise ValidationError("registry input must contain snapshot JSON documents")
             for path in paths:
-                raw = json.loads(path.read_text(encoding="utf-8"))
+                raw = _strict_json_loads(path.read_text(encoding="utf-8"))
                 values.append(raw.get("snapshot", raw))
             result = build_registry(values, registry_id=registry_id)
     elif isinstance(value, Mapping):

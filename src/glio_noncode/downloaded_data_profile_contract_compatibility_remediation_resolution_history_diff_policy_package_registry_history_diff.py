@@ -20,7 +20,7 @@ from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_history as history_model,
 )
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 VERSION = "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-history-diff-v1"
 BOUNDARY = "public_downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_history_diff"
@@ -491,8 +491,8 @@ def persist_diff(value: DownloadedDataProfileContractCompatibilityRemediationRes
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("registry history diff artifact is not valid JSON") from error
     return _mapping(value, "registry history diff artifact")
 

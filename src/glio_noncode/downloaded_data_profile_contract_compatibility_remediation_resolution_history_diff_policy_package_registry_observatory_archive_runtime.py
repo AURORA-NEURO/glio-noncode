@@ -28,7 +28,7 @@ from . import downloaded_data_profile_contract_compatibility_remediation_resolut
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_query as query_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_query_audit as query_audit_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = query_audit_model.VERSION + "-runtime-v1"
@@ -359,8 +359,8 @@ def _coerce_archive(source: str | Path | bytes | archive_model.DownloadedDataPro
     if path.suffix.casefold() == ".zip":
         return archive_model.load_archive(path)
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raw = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("runtime source is not a readable archive or observatory JSON") from error
     raw = _mapping(raw, "runtime source JSON")
     nested_archive = raw.get("archive")
@@ -506,8 +506,8 @@ def persist_runtime(value: DownloadedDataProfileContractCompatibilityRemediation
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
         raw = path.read_bytes()
-        value = _mapping(json.loads(raw.decode("utf-8")), f"runtime member {path.name}")
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"runtime member {path.name}")
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError(f"runtime member {path.name} is not valid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"runtime member {path.name} is not canonical")
