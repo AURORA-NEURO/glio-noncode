@@ -39,6 +39,25 @@ class ScientificExtensionTests(unittest.TestCase):
         with self.assertRaises(Exception):
             WorkflowCompiler().compile("cycle", steps)
 
+    def test_workflow_contracts_reject_malformed_steps_and_empty_graphs(self) -> None:
+        malformed = (
+            {"step_id": "x", "kind": StepKind.INGEST, "input_contract": 7},
+            {"step_id": "x", "kind": StepKind.INGEST, "depends_on": []},
+        )
+        for value in malformed:
+            with self.assertRaises(ValidationError):
+                WorkflowStep(**value)  # type: ignore[arg-type]
+        with self.assertRaises(ValidationError):
+            WorkflowStep("x", StepKind.INGEST, depends_on=("x",))
+        with self.assertRaises(ValidationError):
+            WorkflowStep("x", "ingest")  # type: ignore[arg-type]
+        with self.assertRaises(ValidationError):
+            WorkflowStep("x", StepKind.INGEST, optional="false")  # type: ignore[arg-type]
+        with self.assertRaises(ValidationError):
+            WorkflowCompiler().compile("empty", ())
+        with self.assertRaises(ValidationError):
+            WorkflowCompiler().compile("bad", (object(),))  # type: ignore[arg-type]
+
     def test_resource_envelope_rejects_non_finite_and_wrong_scalar_types(self) -> None:
         for kwargs in (
             {"cpu": nan},

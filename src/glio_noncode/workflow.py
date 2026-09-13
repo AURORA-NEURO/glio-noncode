@@ -10,6 +10,12 @@ from typing import Iterable
 from .errors import ValidationError
 
 
+MAX_WORKFLOW_STEPS = 4096
+MAX_WORKFLOW_DEPENDENCIES = 256
+MAX_WORKFLOW_ID_LENGTH = 256
+MAX_WORKFLOW_CONTRACT_LENGTH = 256
+
+
 class StepKind(str, Enum):
     INGEST = "ingest"
     NORMALIZE = "normalize"
@@ -73,8 +79,35 @@ class WorkflowStep:
     output_contract: str = "unspecified"
 
     def __post_init__(self) -> None:
-        if not self.step_id:
+        if type(self.step_id) is not str or not self.step_id.strip():
             raise ValidationError("workflow step ID is required")
+        if len(self.step_id) > MAX_WORKFLOW_ID_LENGTH:
+            raise ValidationError("workflow step ID exceeds the maximum length")
+        if type(self.kind) is not StepKind:
+            raise ValidationError("workflow step kind must be a StepKind")
+        if type(self.depends_on) is not tuple:
+            raise ValidationError("workflow step dependencies must be a tuple")
+        if len(self.depends_on) > MAX_WORKFLOW_DEPENDENCIES:
+            raise ValidationError("workflow step dependencies exceed the safety bound")
+        if any(type(value) is not str or not value.strip() for value in self.depends_on):
+            raise ValidationError("workflow step dependencies must be non-empty strings")
+        if len(self.depends_on) != len(set(self.depends_on)):
+            raise ValidationError("workflow step dependencies must be unique")
+        if self.step_id in self.depends_on:
+            raise ValidationError("workflow step cannot depend on itself")
+        if type(self.resource) is not ResourceEnvelope:
+            raise ValidationError("workflow step resource must be a ResourceEnvelope")
+        for value, name in ((self.optional, "optional"), (self.deterministic, "deterministic")):
+            if type(value) is not bool:
+                raise ValidationError(f"workflow step {name} must be boolean")
+        for value, name in (
+            (self.input_contract, "input_contract"),
+            (self.output_contract, "output_contract"),
+        ):
+            if type(value) is not str or not value.strip():
+                raise ValidationError(f"workflow step {name} must be a non-empty string")
+            if len(value) > MAX_WORKFLOW_CONTRACT_LENGTH:
+                raise ValidationError(f"workflow step {name} exceeds the maximum length")
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,7 +157,17 @@ class WorkflowCompiler:
     """Compile and validate a DAG without silently dropping optional steps."""
 
     def compile(self, workflow_id: str, steps: Iterable[WorkflowStep]) -> CompiledWorkflow:
+        if type(workflow_id) is not str or not workflow_id.strip():
+            raise ValidationError("workflow ID is required")
+        if len(workflow_id) > MAX_WORKFLOW_ID_LENGTH:
+            raise ValidationError("workflow ID exceeds the maximum length")
         step_list = list(steps)
+        if len(step_list) > MAX_WORKFLOW_STEPS:
+            raise ValidationError("workflow exceeds the maximum step count")
+        if not step_list:
+            raise ValidationError("workflow requires at least one step")
+        if any(type(step) is not WorkflowStep for step in step_list):
+            raise ValidationError("workflow steps must be WorkflowStep instances")
         by_id = {step.step_id: step for step in step_list}
         if len(by_id) != len(step_list):
             raise ValidationError("workflow step IDs must be unique")
