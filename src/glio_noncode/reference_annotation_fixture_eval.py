@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import read_text
 from .reference_annotation_contracts import (
     ReferenceAnnotationContractRegistry,
     default_reference_annotation_contracts,
@@ -485,9 +486,7 @@ def evaluate_reference_annotation_fixture_file(
 ) -> ReferenceAnnotationEvaluationReport:
     """Evaluate a JSON fixture from disk."""
 
-    fixture_path = Path(path)
-    with fixture_path.open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
+    payload = json.loads(read_text(Path(path), field="reference annotation fixture path"))
     return evaluate_reference_annotation_fixture(load_reference_annotation_fixture(payload))
 
 

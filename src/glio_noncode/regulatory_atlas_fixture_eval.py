@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .atlas_extensions import CcreAtlasAdapter, CcreAtlasProfile, CcreQueryState, CcreTrackParser
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .models import ReferenceContext
 from .regulatory_atlas_contracts import (
@@ -420,8 +421,7 @@ def evaluate_regulatory_atlas_fixture(
 def evaluate_regulatory_atlas_fixture_file(path: str | Path) -> RegulatoryAtlasEvaluationReport:
     """Evaluate a fixture descriptor loaded from disk."""
 
-    with Path(path).open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
+    payload = json.loads(read_text(Path(path), field="regulatory atlas fixture path"))
     return evaluate_regulatory_atlas_fixture(load_regulatory_atlas_fixture(payload))
 
 

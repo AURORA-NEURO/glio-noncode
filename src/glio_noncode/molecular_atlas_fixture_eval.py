@@ -14,6 +14,7 @@ from .atlas_beta import (
     MolecularStateAtlasAdapter,
 )
 from .errors import ValidationError
+from ._safe_persistence import read_text
 from .models import ReferenceContext
 from .molecular_atlas_contracts import (
     MolecularAtlasContractRegistry,
@@ -470,8 +471,7 @@ def evaluate_molecular_atlas_fixture(
 def evaluate_molecular_atlas_fixture_file(path: str | Path) -> MolecularAtlasEvaluationReport:
     """Evaluate a descriptor loaded from disk."""
 
-    with Path(path).open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
+    payload = json.loads(read_text(Path(path), field="molecular atlas fixture path"))
     return evaluate_molecular_atlas_fixture(load_molecular_atlas_fixture(payload))
 
 

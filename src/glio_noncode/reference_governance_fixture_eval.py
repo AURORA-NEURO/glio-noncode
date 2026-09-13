@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .errors import ValidationError
+from ._safe_persistence import read_text
 from .reference_alpha import (
     GeneAliasVersionResolver,
     LicenseUseRestrictionRegistry,
@@ -464,8 +465,7 @@ def evaluate_reference_governance_fixture_file(
 ) -> ReferenceGovernanceEvaluationReport:
     """Evaluate a JSON descriptor from disk."""
 
-    with Path(path).open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
+    payload = json.loads(read_text(Path(path), field="reference governance fixture path"))
     return evaluate_reference_governance_fixture(load_reference_governance_fixture(payload))
 
 
