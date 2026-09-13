@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .module_certification_contracts import (
     MODULE_CERTIFICATION_BOUNDARY,
@@ -89,8 +90,8 @@ def _text_tokens(
         if path.is_symlink() or not path.is_file() or path.suffix.casefold() not in suffixes:
             continue
         try:
-            text = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
+            text = read_text(path, field="module certification evidence")
+        except (OSError, UnicodeDecodeError, ValidationError):
             continue
         module_tokens.update(
             _python_module_references(text, export_modules)
@@ -112,9 +113,11 @@ def _source_docstring_modules(root: Path) -> set[str]:
         if path.is_symlink() or not path.is_file():
             continue
         try:
-            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            tree = ast.parse(
+                read_text(path, field="module certification source"), filename=str(path)
+            )
             relative = path.resolve().relative_to(root.resolve()).with_suffix("")
-        except (OSError, UnicodeDecodeError, SyntaxError, ValueError):
+        except (OSError, UnicodeDecodeError, SyntaxError, ValueError, ValidationError):
             continue
         parts = relative.parts
         if parts and parts[-1] == "__init__":
@@ -170,8 +173,10 @@ def _exported_modules(source_root: Path) -> set[str]:
     ):
         path = source_root / filename
         try:
-            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        except (OSError, UnicodeDecodeError, SyntaxError):
+            tree = ast.parse(
+                read_text(path, field="module certification export manifest"), filename=str(path)
+            )
+        except (OSError, UnicodeDecodeError, SyntaxError, ValidationError):
             continue
         add_imports(tree)
         if manifest:

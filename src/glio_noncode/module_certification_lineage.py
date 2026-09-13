@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_bytes, read_text
 from .errors import ValidationError
 from .module_certification import build_module_certification
 from .module_certification_contracts import ModuleCertificationMatrix
@@ -107,8 +108,8 @@ def _snapshots(root: Path, suffixes: frozenset[str]) -> tuple[_FileSnapshot, ...
         if path.is_symlink() or not path.is_file() or path.suffix.casefold() not in suffixes:
             continue
         try:
-            payload = path.read_bytes()
-        except OSError:
+            payload = read_bytes(path, field="module certification lineage evidence")
+        except (OSError, ValidationError):
             continue
         relative = path.relative_to(root).as_posix()
         text = payload.decode("utf-8", errors="ignore")
@@ -203,8 +204,11 @@ def _export_references(source: Path, package: str = "glio_noncode") -> set[str]:
 
     init_path = source / "__init__.py"
     try:
-        tree = ast.parse(init_path.read_text(encoding="utf-8"), filename="__init__.py")
-    except (OSError, UnicodeDecodeError, SyntaxError):
+        tree = ast.parse(
+            read_text(init_path, field="module certification lineage exports"),
+            filename="__init__.py",
+        )
+    except (OSError, UnicodeDecodeError, SyntaxError, ValidationError):
         return set()
     values: set[str] = set()
     for node in ast.walk(tree):
@@ -280,10 +284,12 @@ def _export_evidence(
 ) -> list[ModuleCertificationEvidence]:
     rows: list[ModuleCertificationEvidence] = []
     try:
-        init_payload = (source / "__init__.py").read_bytes()
+        init_payload = read_bytes(
+            source / "__init__.py", field="module certification lineage source"
+        )
         init_digest = hash_bytes(init_payload)
         init_lines = _line_count(init_payload)
-    except OSError:
+    except (OSError, ValidationError):
         return rows
     for module in inventory.modules:
         if module.module_id not in exports and not module.relative_path.endswith("__init__.py"):
