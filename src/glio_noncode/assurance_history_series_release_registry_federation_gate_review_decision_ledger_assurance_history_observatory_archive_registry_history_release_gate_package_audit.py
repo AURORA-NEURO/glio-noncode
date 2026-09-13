@@ -20,7 +20,7 @@ from typing import Any
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate as gate_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package as package_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
 
 VERSION = package_model.VERSION + "-audit-v1"
@@ -240,11 +240,11 @@ def _decode_documents(payload: Mapping[str, bytes]) -> tuple[dict[str, Mapping[s
             canonical = False
             continue
         try:
-            document = json.loads(raw.decode("utf-8"))
+            document = _strict_json_loads(raw.decode("utf-8"))
             documents[name] = _mapping(document, f"release-gate package {name}")
             if canonical_bytes(document) != raw:
                 canonical = False
-        except (UnicodeDecodeError, json.JSONDecodeError, ValidationError):
+        except (UnicodeDecodeError, ValueError, ValidationError):
             canonical = False
     return documents, canonical
 
@@ -361,7 +361,10 @@ def audit_gate(value: gate_model.RegistryHistoryReleaseGate) -> RegistryHistoryR
         raise ValidationError("release-gate package audit requires a typed gate")
     gate_model.verify_gate(value)
     payload = package_model.package_bytes(value)
-    documents = {name: _mapping(json.loads(payload[name].decode("utf-8")), f"release-gate package {name}") for name in package_model.FILES}
+    documents = {
+        name: _mapping(_strict_json_loads(payload[name].decode("utf-8")), f"release-gate package {name}")
+        for name in package_model.FILES
+    }
     return _audit_documents(payload, documents, True)
 
 

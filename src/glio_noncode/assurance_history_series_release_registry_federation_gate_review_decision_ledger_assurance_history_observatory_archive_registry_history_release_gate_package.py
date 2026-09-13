@@ -20,7 +20,7 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate as gate_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, content_hash, hash_bytes
 
 
 VERSION = gate_model.VERSION + "-package-v1"
@@ -124,8 +124,8 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
 def load_package(source: str | Path) -> gate_model.RegistryHistoryReleaseGate:
     payload = _read_directory(source)
     try:
-        documents = {name: json.loads(payload[name].decode("utf-8")) for name in FILES}
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        documents = {name: _strict_json_loads(payload[name].decode("utf-8")) for name in FILES}
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("registry history release gate package contains invalid JSON") from error
     if any(canonical_bytes(documents[name]) != payload[name] for name in FILES):
         raise ValidationError("registry history release gate package artifacts are not canonical")

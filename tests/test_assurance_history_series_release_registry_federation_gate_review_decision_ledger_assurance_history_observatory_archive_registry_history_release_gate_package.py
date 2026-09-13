@@ -91,6 +91,18 @@ class RegistryHistoryReleaseGatePackageBuildTests(RegistryHistoryReleaseGatePack
             self.assert_public(manifest)
             self.assert_public(policy)
 
+    def test_package_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self.gate_value(root)
+            destination = root / "package"
+            package.write_package(value, destination)
+            path = destination / package.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"gate_address":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                package.load_package(destination)
+
     def test_tampered_extra_noncanonical_and_unlinked_artifacts_are_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
