@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution as execution_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -375,7 +376,7 @@ def capabilities() -> dict[str, Any]:
 
 
 def _write(path: Path, raw: bytes) -> None:
-    path.write_bytes(raw)
+    atomic_write_bytes(path, raw, field="runtime artifact")
 
 
 def persist_runtime(value: HistoryDiffArchiveTransferRecoveryExecutionRuntime, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -384,11 +385,14 @@ def persist_runtime(value: HistoryDiffArchiveTransferRecoveryExecutionRuntime, d
     manifest = _build_manifest(value)
     members = {"manifest.json": canonical_bytes(manifest.to_dict()), **documents}
     target = Path(destination)
+    if target.is_symlink():
+        raise ValidationError("runtime destination must not be a symlink")
     if target.exists():
         if not overwrite:
             raise ValidationError("runtime destination exists; explicit overwrite is required")
         if target.is_symlink() or not target.is_dir():
             raise ValidationError("runtime destination must be a regular directory")
+    _validate_parent(target.parent, "runtime destination")
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=target.name + ".", dir=target.parent))
     try:
@@ -405,9 +409,9 @@ def persist_runtime(value: HistoryDiffArchiveTransferRecoveryExecutionRuntime, d
 
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=f"runtime member {path.name}")
         value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"runtime member {path.name}")
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError(f"runtime member {path.name} is not valid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"runtime member {path.name} is not canonical")
@@ -449,7 +453,7 @@ def load_runtime(destination: str | Path) -> HistoryDiffArchiveTransferRecoveryE
     documents = _documents(candidate)
     expected_members = {"manifest.json": canonical_bytes(expected_manifest.to_dict()), **documents}
     for filename in FILES:
-        if (root / filename).read_bytes() != expected_members[filename]:
+        if read_bytes(root / filename, field=f"runtime member {filename}") != expected_members[filename]:
             raise ValidationError(f"runtime member {filename} does not replay")
     for receipt in manifest.artifacts:
         raw = expected_members[receipt.name]
