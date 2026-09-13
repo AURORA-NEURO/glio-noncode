@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
 from pathlib import Path
 
 from glio_noncode.reference_annotation_runtime import (
@@ -39,6 +40,13 @@ class ReferenceAnnotationRuntimeTests(unittest.TestCase):
         )
         self.assertTrue(report.published)
         self.assertEqual(report.fixture_id, "reference-annotation-public-aggregate")
+
+    def test_file_request_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            request = Path(directory) / "request.json"
+            request.write_text('{"fixture_path":"fixture.json","fixture_path":"shadow.json"}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                run_reference_annotation_pipeline_file(request)
 
     def test_review_request_file_does_not_publish(self) -> None:
         report = run_reference_annotation_pipeline_file(

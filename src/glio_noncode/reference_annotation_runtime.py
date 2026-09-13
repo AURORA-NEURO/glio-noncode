@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -22,7 +21,7 @@ from .reference_annotation_quality_gate import evaluate_reference_annotation_qua
 from .reference_annotation_reconciliation import reconcile_reference_annotation_views
 from .reference_annotation_replay import replay_reference_annotation_evaluation
 from .reference_annotation_scenario_matrix import evaluate_reference_annotation_scenarios
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 class ReferenceAnnotationRuntimeStage(StrEnum):
@@ -102,7 +101,7 @@ def run_reference_annotation_pipeline(
     selected = fixture
     if selected is None:
         with Path(request.fixture_path).open("r", encoding="utf-8") as handle:
-            selected = load_reference_annotation_fixture(json.load(handle))
+            selected = load_reference_annotation_fixture(_strict_json_loads(handle.read()))
     context_match = request.context_key is None or request.context_key == selected.context_key
     receipts = [
         _stage(
@@ -200,7 +199,7 @@ def run_reference_annotation_pipeline_file(
     """Run a JSON request document or a fixture path directly."""
 
     request_path = Path(path)
-    payload = json.loads(request_path.read_text(encoding="utf-8"))
+    payload = _strict_json_loads(request_path.read_text(encoding="utf-8"))
     if "fixture_path" in payload:
         request = ReferenceAnnotationRuntimeRequest(
             fixture_path=str(payload["fixture_path"]),

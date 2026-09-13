@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -19,7 +18,7 @@ from .reference_coordinate_public_data import (
 )
 from .reference_coordinate_reconciliation import reconcile_reference_coordinate_views
 from .reference_coordinate_replay import replay_reference_coordinate_fixture
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,7 +56,7 @@ class ReferenceCoordinatePipelineRequest:
     @classmethod
     def from_file(cls, path: str | Path) -> ReferenceCoordinatePipelineRequest:
         request_path = Path(path)
-        raw = json.loads(request_path.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(request_path.read_text(encoding="utf-8"))
         if not isinstance(raw, dict):
             raise ValidationError("pipeline request must be an object")
         return cls.from_mapping(raw, base_path=request_path.parent)

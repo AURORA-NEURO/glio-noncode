@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
 from pathlib import Path
 
 from glio_noncode.reference_coordinate_bundle import ReferenceCoordinateBundleFormat
@@ -35,6 +36,13 @@ class ReferenceCoordinateRuntimeTests(unittest.TestCase):
         request = ReferenceCoordinatePipelineRequest.from_file(ACCEPTED)
         self.assertTrue(Path(request.fixture_path).is_absolute())
         self.assertTrue(Path(request.fixture_path).exists())
+
+    def test_request_file_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            request = Path(directory) / "request.json"
+            request.write_text('{"fixture_path":"fixture.json","fixture_path":"shadow.json"}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                ReferenceCoordinatePipelineRequest.from_file(request)
 
     def test_stage_counts_are_conserved_for_accepted_path(self) -> None:
         report = run_reference_coordinate_pipeline(
