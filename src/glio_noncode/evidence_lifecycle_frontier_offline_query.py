@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash, require_non_empty
 from .evidence_lifecycle_frontier_offline_bundle import verify_evidence_lifecycle_offline_bundle
@@ -43,7 +44,7 @@ def _load_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
         manifest_path = _offline_path(root, EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST)
         if manifest_path.is_symlink() or not manifest_path.is_file():
             raise ValidationError("evidence lifecycle offline manifest is missing")
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = _strict_json_loads(read_text(manifest_path, field="evidence lifecycle offline manifest"))
     except ValidationError:
         raise
     except (OSError, UnicodeDecodeError, ValueError) as exc:
@@ -86,7 +87,7 @@ def load_evidence_lifecycle_offline_bundle(destination: str | Path, *, include_p
             if path.is_symlink() or not path.is_file():
                 raise ValidationError(f"evidence lifecycle artifact {relative_path} is unsafe")
             if include_payloads:
-                payload = path.read_text(encoding="utf-8")
+                payload = read_text(path, field=f"evidence lifecycle artifact {relative_path}")
         except ValidationError:
             raise
         except (OSError, UnicodeDecodeError) as exc:
