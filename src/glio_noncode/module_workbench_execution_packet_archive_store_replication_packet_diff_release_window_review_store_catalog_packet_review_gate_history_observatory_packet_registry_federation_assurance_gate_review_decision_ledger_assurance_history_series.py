@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -28,9 +27,18 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from . import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history as history_model
+from . import (
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history as history_model,
+)
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 DecisionAssuranceHistory = history_model.DecisionAssuranceHistory
 
@@ -950,9 +958,20 @@ def _manifest_address(value: Mapping[str, Any]) -> str:
 def write_decision_assurance_history_series(value: DecisionAssuranceHistorySeries, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_decision_assurance_history_series(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
-        raise ValidationError("decision assurance history series destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "decision assurance history series destination")
+        if destination.is_symlink():
+            raise ValidationError("decision assurance history series destination cannot be a symlink")
+        if destination.exists():
+            if (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
+                raise ValidationError("decision assurance history series destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("decision assurance history series destination is not a regular directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("decision assurance history series destination could not be prepared") from error
     series_raw = canonical_bytes(value.to_dict(include_entries=False))
     entries_raw = canonical_bytes({"series_id": value.series_id, "series_address": value.content_address, "history_count": value.history_count, "observation_count": value.observation_count, "entries": [entry.to_dict() for entry in value.entries]})
     manifest = _manifest_body(value, series_raw, entries_raw)
@@ -960,9 +979,9 @@ def write_decision_assurance_history_series(value: DecisionAssuranceHistorySerie
     manifest_raw = canonical_bytes(manifest)
     temporary = Path(tempfile.mkdtemp(prefix=f".{SERIES_PREFIX}-", dir=str(destination.parent)))
     try:
-        (temporary / SERIES_NAME).write_bytes(series_raw)
-        (temporary / ENTRIES_NAME).write_bytes(entries_raw)
-        (temporary / MANIFEST_NAME).write_bytes(manifest_raw)
+        atomic_write_bytes(temporary / SERIES_NAME, series_raw, field="assurance history series staging document")
+        atomic_write_bytes(temporary / ENTRIES_NAME, entries_raw, field="assurance history series entries staging document")
+        atomic_write_bytes(temporary / MANIFEST_NAME, manifest_raw, field="assurance history series manifest staging document")
         if destination.exists():
             if not destination.is_dir():
                 raise ValidationError("decision assurance history series destination is not a directory")
@@ -980,7 +999,7 @@ def write_decision_assurance_history_series(value: DecisionAssuranceHistorySerie
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -994,7 +1013,7 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
     artifact = next((item for item in _mapping_sequence(manifest.get("artifacts"), "series manifest artifacts") if item.get("name") == name), None)
     if artifact is None:
         raise ValidationError(f"series manifest is missing {name}")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=f"series {name} artifact")
     byte_address = hash_bytes(raw)
     if artifact.get("bytes") != len(raw) or artifact.get("byte_address") != byte_address:
         raise ValidationError(f"series {name} bytes are not addressed")
@@ -1004,8 +1023,14 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
 
 def load_decision_assurance_history_series(directory: str | Path) -> DecisionAssuranceHistorySeries:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir():
-        raise ValidationError("decision assurance history series input must be a directory")
+    try:
+        _validate_parent(source.parent, "decision assurance history series input")
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("decision assurance history series input must be a directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("decision assurance history series input could not be inspected") from error
     children = tuple(source.iterdir())
     if any(item.is_symlink() for item in children) or {item.name for item in children} != set(FILES):
         raise ValidationError("decision assurance history series file set is invalid")
