@@ -11,6 +11,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib.request import urlopen
 
 from glio_noncode import assurance_history_series_release_registry as registry
@@ -19,7 +20,9 @@ from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
 from glio_noncode.serialization import hash_bytes
-from tests.test_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series_release import ReleaseFixture
+from tests.test_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series_release import (
+    ReleaseFixture,
+)
 
 
 class FederationFixture(unittest.TestCase):
@@ -372,6 +375,19 @@ class FederationPersistenceTests(FederationFixture):
             with self.assertRaises(ValidationError):
                 federation.load_federation(destination)
 
+    def test_persistence_loader_normalizes_inspection_and_read_failures(self):
+        value = self.build((self.ready_registry("one"),))
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "federation"
+            self.write(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    federation.load_federation(destination)
+
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    federation.load_federation(destination)
+
     def test_directory_builder_admits_only_verified_registry_directories(self):
         first_value = self.ready_registry("one")
         second_value = self.held_registry("two")
@@ -559,6 +575,21 @@ class FederationDiffTests(FederationFixture):
             (destination / federation.MANIFEST_NAME).unlink()
             with self.assertRaises(ValidationError):
                 federation.load_federation_diff(destination)
+
+    def test_diff_loader_normalizes_inspection_and_read_failures(self):
+        baseline = self.build((self.ready_registry("one"),))
+        candidate = self.build((self.blocked_registry("one"),))
+        value = federation.build_federation_diff(baseline, candidate)
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "diff"
+            self.write_diff(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    federation.load_federation_diff(destination)
+
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    federation.load_federation_diff(destination)
 
 
 class FederationSchemaCapabilityTests(FederationFixture):

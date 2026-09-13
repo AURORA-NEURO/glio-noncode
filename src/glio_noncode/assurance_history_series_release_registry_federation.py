@@ -1620,21 +1620,32 @@ def _verify_manifest(directory: Path, manifest: Mapping[str, Any], value: Decisi
         name = _text(artifact["name"], "federation artifact name", 128)
         if artifact["bytes"] != len(documents[name]) or _file_address(name, documents[name]) != artifact["byte_address"]:
             raise ValidationError(f"federation artifact receipt mismatch: {name}")
-    if set(directory.iterdir()) != {directory / name for name in FILES}:
+    try:
+        members = tuple(directory.iterdir())
+    except OSError as error:
+        raise ValidationError("federation directory could not be inspected") from error
+    if set(members) != {directory / name for name in FILES}:
         raise ValidationError("federation directory contains an unexpected file set")
 
 
 def load_federation(directory: str | Path) -> DecisionAssuranceHistorySeriesReleaseRegistryFederationBundle:
     destination = Path(directory)
     _require_directory(destination, "federation directory")
-    if {item.name for item in destination.iterdir()} != set(FILES):
+    try:
+        members = tuple(destination.iterdir())
+    except OSError as error:
+        raise ValidationError("federation directory could not be inspected") from error
+    if {item.name for item in members} != set(FILES):
         raise ValidationError("federation directory file set is invalid")
     documents: dict[str, bytes] = {}
     parsed: dict[str, dict[str, Any]] = {}
     for name in FILES:
         path = destination / name
         _require_regular_file(path, f"federation {name}")
-        raw = path.read_bytes()
+        try:
+            raw = path.read_bytes()
+        except OSError as error:
+            raise ValidationError(f"federation {name} could not be read") from error
         value = _read_json(path, f"federation {name}")
         if raw != _canonical_document(value):
             raise ValidationError(f"federation {name} is not canonical JSON")
@@ -2283,12 +2294,19 @@ def write_federation_diff(value: FederationDiff, directory: str | Path, *, overw
 def load_federation_diff(directory: str | Path) -> FederationDiff:
     destination = Path(directory)
     _require_directory(destination, "federation diff directory")
-    if {item.name for item in destination.iterdir()} != set(DIFF_FILES):
+    try:
+        members = tuple(destination.iterdir())
+    except OSError as error:
+        raise ValidationError("federation diff directory could not be inspected") from error
+    if {item.name for item in members} != set(DIFF_FILES):
         raise ValidationError("federation diff directory file set is invalid")
     manifest_path, diff_path = destination / MANIFEST_NAME, destination / DIFF_NAME
     _require_regular_file(manifest_path, "federation diff manifest")
     _require_regular_file(diff_path, "federation diff document")
-    manifest_raw, diff_raw = manifest_path.read_bytes(), diff_path.read_bytes()
+    try:
+        manifest_raw, diff_raw = manifest_path.read_bytes(), diff_path.read_bytes()
+    except OSError as error:
+        raise ValidationError("federation diff artifact could not be read") from error
     manifest, body = _read_json(manifest_path, "federation diff manifest"), _read_json(diff_path, "federation diff document")
     if manifest_raw != canonical_bytes(manifest) or diff_raw != canonical_bytes(body):
         raise ValidationError("federation diff documents must use canonical JSON")
