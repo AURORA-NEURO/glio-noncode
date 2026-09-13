@@ -12,6 +12,9 @@ from .errors import ValidationError
 from .models import EvidenceClaim, EvidenceState, EvidenceTier, ReferenceContext, VariantIdentity
 from .serialization import content_hash, jsonable
 
+MAX_MOTIF_DEFINITIONS = 2_048
+MAX_MOTIF_PATTERN_LENGTH = 256
+
 
 class SequenceAnalysisState(StrEnum):
     """Outcome of applying an identity to a retrieved sequence."""
@@ -52,8 +55,11 @@ class MotifDefinition:
 
     def __post_init__(self) -> None:
         for name in ("motif_id", "name", "pattern", "source_id"):
-            if not str(getattr(self, name)).strip():
-                raise ValidationError(f"{name} must not be empty")
+            value = getattr(self, name)
+            if type(value) is not str or not value.strip():
+                raise ValidationError(f"{name} must be a non-empty string")
+        if len(self.pattern) > MAX_MOTIF_PATTERN_LENGTH:
+            raise ValidationError("motif pattern exceeds the maximum length")
         if any(base not in _IUPAC for base in self.pattern.upper()):
             raise ValidationError(f"motif pattern contains unsupported IUPAC bases: {self.pattern}")
 
@@ -78,9 +84,19 @@ class MotifHit:
     source_id: str
 
     def __post_init__(self) -> None:
+        for value, name in (
+            (self.motif_id, "motif_id"),
+            (self.name, "motif name"),
+            (self.matched_sequence, "matched_sequence"),
+            (self.source_id, "motif source_id"),
+        ):
+            if type(value) is not str or not value.strip():
+                raise ValidationError(f"{name} must be a non-empty string")
+        if type(self.start) is not int or type(self.end) is not int:
+            raise ValidationError("motif hit interval coordinates must be integers")
         if self.start < 1 or self.end < self.start:
             raise ValidationError("motif hit interval is invalid")
-        if self.strand not in {"+", "-"}:
+        if type(self.strand) is not str or self.strand not in {"+", "-"}:
             raise ValidationError("motif hit strand must be + or -")
 
     @property
@@ -162,13 +178,20 @@ class MotifScanner:
         genomic_start: int,
         motifs: Iterable[MotifDefinition],
     ) -> tuple[MotifHit, ...]:
+        if type(sequence) is not str:
+            raise ValidationError("motif scanner sequence must be a string")
         normalized = sequence.upper()
         if not normalized or any(base not in "ACGTN" for base in normalized):
             raise ValidationError("motif scanner sequence must contain only A/C/G/T/N")
-        if genomic_start < 1:
+        if type(genomic_start) is not int or genomic_start < 1:
             raise ValidationError("motif scanner genomic_start must be positive")
+        motif_list = tuple(motifs)
+        if len(motif_list) > MAX_MOTIF_DEFINITIONS:
+            raise ValidationError("motif scanner motif count exceeds the maximum")
+        if any(type(motif) is not MotifDefinition for motif in motif_list):
+            raise ValidationError("motif scanner requires MotifDefinition instances")
         hits: list[MotifHit] = []
-        for motif in motifs:
+        for motif in motif_list:
             pattern = motif.normalized_pattern
             reverse_pattern = _reverse_complement_iupac(pattern)
             for offset in range(0, len(normalized) - len(pattern) + 1):
@@ -213,6 +236,10 @@ class SequenceInference:
         *,
         motifs: Iterable[MotifDefinition] = (),
     ) -> SequenceAnalysisResult:
+        if type(variant) is not VariantIdentity:
+            raise ValidationError("sequence analysis variant must be a VariantIdentity")
+        if type(sequence) is not SequenceSlice:
+            raise ValidationError("sequence analysis input must be a SequenceSlice")
         if variant.chromosome != sequence.chromosome:
             return self._abstention(
                 variant,

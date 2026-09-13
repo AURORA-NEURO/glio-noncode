@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from glio_noncode.data_sources import FetchReceipt, FetchStatus, SequenceSlice
+from glio_noncode.errors import ValidationError
 from glio_noncode.identity import parse_variant
 from glio_noncode.models import ReferenceContext
 from glio_noncode.sequence_inference import (
@@ -68,6 +69,18 @@ class SequenceInferenceTests(unittest.TestCase):
         result = SequenceInference().analyze(variant, _sequence())
         self.assertEqual(result.state, SequenceAnalysisState.OUT_OF_WINDOW)
         self.assertIn("not fully contained", result.limitations[0])
+
+    def test_sequence_boundary_rejects_malformed_motifs_and_types(self) -> None:
+        with self.assertRaises(ValidationError):
+            MotifDefinition(7, "motif", "ACG")  # type: ignore[arg-type]
+        with self.assertRaises(ValidationError):
+            MotifDefinition("motif", "motif", "ACG", source_id=7)  # type: ignore[arg-type]
+        with self.assertRaises(ValidationError):
+            MotifScanner().scan("ACGT", genomic_start=True, motifs=())  # type: ignore[arg-type]
+        with self.assertRaises(ValidationError):
+            MotifScanner().scan("ACGT", genomic_start=1, motifs=(object(),))  # type: ignore[arg-type]
+        with self.assertRaises(ValidationError):
+            SequenceInference().analyze(object(), _sequence())  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
