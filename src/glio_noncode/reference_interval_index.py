@@ -26,11 +26,11 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .identity import normalize_chromosome
 from .models import ReferenceContext
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
-
 
 REFERENCE_INTERVAL_INDEX_VERSION = "reference-interval-index-v1"
 REFERENCE_INTERVAL_INDEX_SCHEMA_VERSION = "reference-interval-index-schema-v1"
@@ -1202,11 +1202,15 @@ def load_reference_rows(path: str | Path) -> tuple[Mapping[str, Any], ...]:
 
     source = Path(path)
     suffix = source.suffix.casefold()
+    try:
+        text = read_text(source, field="reference interval input")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("reference interval input could not be read") from error
     if suffix == ".jsonl":
         rows: list[Mapping[str, Any]] = []
-        for line_number, line in enumerate(
-            source.read_text(encoding="utf-8").splitlines(), start=1
-        ):
+        for line_number, line in enumerate(text.splitlines(), start=1):
             if not line.strip():
                 continue
             value = _strict_json_loads(line)
@@ -1215,7 +1219,7 @@ def load_reference_rows(path: str | Path) -> tuple[Mapping[str, Any], ...]:
             rows.append(value)
         return tuple(rows)
     if suffix == ".json":
-        value = _strict_json_loads(source.read_text(encoding="utf-8"))
+        value = _strict_json_loads(text)
         if isinstance(value, Mapping):
             value = value.get("records", value.get("rows", ()))
         if not isinstance(value, list):
@@ -1225,7 +1229,7 @@ def load_reference_rows(path: str | Path) -> tuple[Mapping[str, Any], ...]:
         return tuple(value)
     delimiter = "\t" if suffix in {".tsv", ".bed"} else ","
     reader = csv.DictReader(
-        io.StringIO(source.read_text(encoding="utf-8")),
+        io.StringIO(text),
         delimiter=delimiter,
     )
     if not reader.fieldnames:
