@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 CHROMATIN_FRONTIER_FIXTURE_VERSION = "2026.08.d07-c13-c16.v1"
 CHROMATIN_FRONTIER_CONTEXT_KEY = "GRCh38|glioma|adult|stem_like|tumor|unknown"
@@ -809,7 +809,7 @@ def audit_chromatin_frontier_data(
 
 
 def load_chromatin_frontier_fixture(path: str) -> ChromatinFrontierFixture:
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     sources = tuple(ChromatinFrontierSourceReceipt(**row) for row in payload["sources"])
     records = tuple(
         ChromatinFrontierRecord(

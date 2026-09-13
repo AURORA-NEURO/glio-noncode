@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
+from pathlib import Path
 
 import glio_noncode
 from glio_noncode.cell_state_architecture_normalization import (
@@ -13,6 +15,7 @@ from glio_noncode.cell_state_architecture_normalization import (
 from glio_noncode.cell_state_architecture_public_data import (
     cell_state_architecture_fixture_json,
     default_cell_state_architecture_fixture,
+    load_cell_state_architecture_mapping,
 )
 
 
@@ -44,6 +47,15 @@ class CellStateArchitectureExportTests(unittest.TestCase):
         self.assertEqual(projected, {"case_id": fixture.cases[0].case_id})
         rows = normalize_case_rows(({"z": 1, "a": 2},))
         self.assertEqual(tuple(rows[0]), ("a", "z"))
+
+    def test_mapping_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = cell_state_architecture_fixture_json().rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_cell_state_architecture_mapping(path)
 
 
 if __name__ == "__main__":

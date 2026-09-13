@@ -142,6 +142,15 @@ class CellStateFrontierDepthTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 load_cell_state_frontier_fixture(path)
 
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_cell_state_frontier_fixture(path)
+
     def test_data_audit_contains_all_boundary_checks(self) -> None:
         audit = audit_cell_state_frontier_data(self.fixture)
         self.assertTrue(audit.accepted)

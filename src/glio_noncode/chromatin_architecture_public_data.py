@@ -34,7 +34,7 @@ from .chromatin_frontier_fixture_eval import evaluate_chromatin_frontier_fixture
 from .chromatin_frontier_public_data import default_chromatin_frontier_fixture
 from .methylation_frontier_fixture_eval import evaluate_methylation_frontier_fixture
 from .methylation_frontier_public_data import default_methylation_frontier_fixture
-from .serialization import jsonable
+from .serialization import _strict_json_loads, jsonable
 
 CHROMATIN_ARCHITECTURE_FIXTURE_FILE = "chromatin-architecture-public-aggregate.json"
 
@@ -446,7 +446,7 @@ def default_chromatin_architecture_fixture(
 
 
 def load_chromatin_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D07 chromatin architecture JSON must be an object")
     return dict(raw)

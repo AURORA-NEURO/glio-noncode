@@ -34,7 +34,7 @@ from .cell_state_architecture_contracts import (
 )
 from .cell_state_frontier_fixture_eval import evaluate_cell_state_frontier_fixture
 from .cell_state_frontier_public_data import default_cell_state_frontier_fixture
-from .serialization import jsonable
+from .serialization import _strict_json_loads, jsonable
 
 CELL_STATE_ARCHITECTURE_FIXTURE_FILE = "cell-state-architecture-public-aggregate.json"
 
@@ -458,7 +458,7 @@ def cell_state_architecture_fixture_json(
 
 
 def load_cell_state_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D08 cell state architecture JSON must be an object")
     return dict(raw)

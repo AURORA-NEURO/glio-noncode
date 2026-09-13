@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
+from pathlib import Path
 
 import glio_noncode
 from glio_noncode.chromatin_architecture_contracts import ChromatinArchitectureOperation
@@ -15,6 +17,7 @@ from glio_noncode.chromatin_architecture_operations import evaluate_chromatin_ar
 from glio_noncode.chromatin_architecture_public_data import (
     chromatin_architecture_fixture_json,
     default_chromatin_architecture_fixture,
+    load_chromatin_architecture_mapping,
 )
 from glio_noncode.chromatin_architecture_query import (
     ChromatinArchitectureQuery,
@@ -61,6 +64,15 @@ class ChromatinArchitectureExportTests(unittest.TestCase):
             {"payload": {"raw": True}, "case_id": "D07-C01-positive"}
         )
         self.assertEqual(projected, {"case_id": "D07-C01-positive"})
+
+    def test_mapping_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = chromatin_architecture_fixture_json().rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_chromatin_architecture_mapping(path)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 CELL_STATE_FRONTIER_FIXTURE_VERSION = "2026.08.d08-c13-c16.v1"
 CELL_STATE_FRONTIER_CONTEXT_KEY = "GRCh38|glioma|adult|stem_like|tumor|unknown"
@@ -637,7 +637,7 @@ def audit_cell_state_frontier_data(
 
 
 def load_cell_state_frontier_fixture(path: str | Path) -> CellStateFrontierFixture:
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     sources = tuple(CellStateFrontierSourceReceipt(**row) for row in payload["sources"])
     records = tuple(
         CellStateFrontierRecord(

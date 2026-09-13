@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -10,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 CELL_STATE_ARCHITECTURE_VERSION = "2026.08.d08-cell-state-architecture.v1"
 CELL_STATE_ARCHITECTURE_BOUNDARY = "public_aggregate_cell_state_disease_territory"
@@ -296,7 +295,7 @@ class CellStateArchitectureFixture:
 
     @classmethod
     def from_file(cls, path: str | Path) -> CellStateArchitectureFixture:
-        raw = json.loads(Path(path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
         if not isinstance(raw, Mapping):
             raise ValidationError("D08 fixture JSON must be an object")
         return cls.from_mapping(raw)
