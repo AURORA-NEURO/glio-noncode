@@ -12,6 +12,8 @@ from typing import Any
 from ._safe_persistence import (
     atomic_write_bytes,
     atomic_write_text,
+    open_read_bytes as _safe_open_read_bytes,
+    open_read_text as _safe_open_read_text,
     read_bytes as _safe_read_bytes,
     read_text as _safe_read_text,
 )
@@ -34684,7 +34686,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
             importer = StreamingVariantImporter(default_build=args.genome_build)
             if selected_format == StreamingInputFormat.BCF.value:
-                with input_path.open("rb") as stream:
+                with _safe_open_read_bytes(input_path, field="legacy CLI streaming input") as stream:
                     chunks = iter(lambda: stream.read(65_536), b"")
                     report = importer.import_bcf(
                         chunks,
@@ -34698,7 +34700,12 @@ def main(argv: list[str] | None = None) -> int:
                         max_issues=args.max_issues,
                     )
             else:
-                with input_path.open("r", encoding="utf-8", newline="") as stream:
+                with _safe_open_read_text(
+                    input_path,
+                    field="legacy CLI streaming input",
+                    encoding="utf-8",
+                    newline="",
+                ) as stream:
                     report = importer.import_vcf(
                         stream,
                         source_id=source_id,

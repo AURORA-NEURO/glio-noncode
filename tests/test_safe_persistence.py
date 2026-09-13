@@ -8,6 +8,8 @@ from glio_noncode._safe_persistence import (
     DEFAULT_MAX_READ_BYTES,
     atomic_write_bytes,
     atomic_write_text,
+    open_read_bytes,
+    open_read_text,
     read_bytes,
     read_bytes_bounded,
     read_text,
@@ -84,6 +86,25 @@ class SafePersistenceTests(unittest.TestCase):
                 read_bytes_bounded(target, max_bytes=-1)
             with self.assertRaises(ValidationError):
                 read_bytes_bounded(target, max_bytes=True)  # type: ignore[arg-type]
+
+    def test_streaming_reads_use_regular_file_handles(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "stream.txt"
+            target.write_text("line-one\nline-two\n", encoding="utf-8")
+            with open_read_bytes(target) as stream:
+                self.assertEqual(stream.read(), target.read_bytes())
+            with open_read_text(target) as stream:
+                self.assertEqual(stream.readline(), "line-one\n")
+                self.assertEqual(stream.readline(), "line-two\n")
+            link = Path(directory) / "stream-link.txt"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                open_read_bytes(link)
+            with self.assertRaises(ValidationError):
+                open_read_text(link)
 
     def test_default_reads_are_bounded_and_allow_explicit_tighter_limits(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

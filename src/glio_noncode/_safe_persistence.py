@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import stat
 import tempfile
+from io import TextIOWrapper
 from pathlib import Path
 
 from .errors import ValidationError
@@ -171,4 +172,51 @@ def read_text(
         raise ValidationError("text input encoding is invalid") from exc
 
 
-__all__ = ["atomic_write_bytes", "atomic_write_text"]
+def open_read_bytes(path: str | Path, *, field: str = "input path"):
+    """Open a regular file for bounded streaming without following symlinks."""
+
+    target = Path(path)
+    _validate_target(target, field)
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(target, flags)
+    except OSError as exc:
+        if target.is_symlink():
+            raise ValidationError(f"{field} must not be a symlink") from exc
+        raise
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise ValidationError(f"{field} must be a regular file")
+        handle = os.fdopen(descriptor, "rb")
+        descriptor = -1
+        if target.is_symlink():
+            handle.close()
+            raise ValidationError(f"{field} must not be a symlink")
+        return handle
+    finally:
+        if descriptor != -1:
+            os.close(descriptor)
+
+
+def open_read_text(
+    path: str | Path,
+    *,
+    field: str = "input path",
+    encoding: str = "utf-8",
+    errors: str = "strict",
+    newline: str | None = None,
+):
+    """Open a regular text file for streaming without following symlinks."""
+
+    binary = None
+    try:
+        binary = open_read_bytes(path, field=field)
+        return TextIOWrapper(binary, encoding=encoding, errors=errors, newline=newline)
+    except LookupError as exc:
+        if binary is not None:
+            binary.close()
+        raise ValidationError("text input encoding is invalid") from exc
+
+
+__all__ = ["atomic_write_bytes", "atomic_write_text", "open_read_bytes", "open_read_text"]
