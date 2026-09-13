@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from . import exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive as archive_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -424,13 +425,14 @@ def _write_atomic_directory(destination: Path, value: ExactHistoryDiffArchiveTra
             raise ValidationError("transfer destination exists; explicit overwrite is required")
         if destination.is_symlink() or not destination.is_dir():
             raise ValidationError("transfer destination must be a regular directory")
+    _validate_parent(destination.parent, "transfer destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".history-diff-archive-transfer-", dir=str(destination.parent)))
     try:
         (temporary / CHUNK_DIRECTORY).mkdir()
-        (temporary / TRANSFER_DIRECTORY_MANIFEST).write_bytes(canonical_bytes(_manifest(value)))
+        atomic_write_bytes(temporary / TRANSFER_DIRECTORY_MANIFEST, canonical_bytes(_manifest(value)), field="transfer manifest")
         for index in sorted(parts):
-            (temporary / chunk_name(index)).write_bytes(parts[index])
+            atomic_write_bytes(temporary / chunk_name(index), parts[index], field="transfer chunk")
         if destination.exists():
             shutil.rmtree(destination)
         os.replace(temporary, destination)
@@ -456,7 +458,7 @@ def _read_manifest(directory: Path) -> ExactHistoryDiffArchiveTransferRecoveryEx
     manifest_path = directory / TRANSFER_DIRECTORY_MANIFEST
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise ValidationError("transfer manifest is missing or unsafe")
-    raw = manifest_path.read_bytes()
+    raw = read_bytes(manifest_path, field="transfer manifest")
     try:
         document = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as error:
@@ -480,7 +482,7 @@ def load_transfer(source: str | Path) -> ExactHistoryDiffArchiveTransferRecovery
         raise ValidationError("transfer input must be a regular directory")
     value = _read_manifest(directory)
     indices = _validate_chunk_directory(directory, value, require_complete=True)
-    parts = {index: (directory / chunk_name(index)).read_bytes() for index in indices}
+    parts = {index: read_bytes(directory / chunk_name(index), field="transfer chunk") for index in indices}
     loaded = ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransfer(value.transfer_id, value.version, value.boundary, value.archive_address, value.archive_size, value.chunk_size, value.chunk_count, value.chunks, value.content_address, payload=parts)
     return verify_transfer(loaded)
 
@@ -493,7 +495,7 @@ def load_partial_transfer(source: str | Path) -> ExactHistoryDiffArchiveTransfer
     indices = _validate_chunk_directory(directory, value, require_complete=False)
     assembler = ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiffArchiveTransferAssembler(value)
     for index in indices:
-        assembler.add_chunk(index, (directory / chunk_name(index)).read_bytes())
+        assembler.add_chunk(index, read_bytes(directory / chunk_name(index), field="transfer chunk"))
     return assembler
 
 

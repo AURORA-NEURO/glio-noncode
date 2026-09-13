@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation as federation_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -296,17 +297,12 @@ def _write_atomic_file(destination: Path, raw: bytes, *, overwrite: bool) -> Pat
             raise ValidationError("archive destination exists; explicit overwrite is required")
         if destination.is_symlink() or not destination.is_file():
             raise ValidationError("archive destination must be a regular file")
+    _validate_parent(destination.parent, "archive destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(prefix=".runtime-registry-federation-", suffix=".zip", dir=str(destination.parent))
-    os.close(descriptor)
-    temporary = Path(temporary_name)
     try:
-        temporary.write_bytes(raw)
-        os.replace(temporary, destination)
+        return atomic_write_bytes(destination, raw, field="archive destination")
     except OSError as error:
-        temporary.unlink(missing_ok=True)
         raise ValidationError("archive destination could not be written") from error
-    return destination
 
 
 def write_archive(value: RecoveryExecutionRuntimeRegistryFederationArchive, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -327,8 +323,7 @@ def _read_archive_bytes(source: str | Path | bytes) -> tuple[dict[str, bytes], i
         physical_size = path.stat().st_size
         if physical_size > MAX_ARCHIVE_BYTES:
             raise ValidationError("archive exceeds the maximum byte bound")
-        stream = path.open("rb")
-        close_stream = True
+        stream = io.BytesIO(read_bytes(path, field="archive input"))
     try:
         try:
             archive = zipfile.ZipFile(stream, "r")
