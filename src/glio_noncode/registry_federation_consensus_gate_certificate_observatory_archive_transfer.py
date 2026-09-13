@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from . import registry_federation_consensus_gate_certificate_observatory_archive as archive_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -367,15 +368,23 @@ def _expected_files(value: RegistryFederationConsensusGateCertificateObservatory
 
 
 def _write_atomic_directory(destination: Path, value: RegistryFederationConsensusGateCertificateObservatoryArchiveTransfer, indices: Sequence[int], *, overwrite: bool) -> Path:
-    if destination.exists() and (destination.is_symlink() or not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
-        raise ValidationError("transfer destination is not writable")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "transfer destination")
+        if destination.is_symlink():
+            raise ValidationError("transfer destination cannot be a symlink")
+        if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
+            raise ValidationError("transfer destination is not writable")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("transfer destination could not be prepared") from error
     staging = Path(tempfile.mkdtemp(prefix="certificate-observatory-transfer-staging-", dir=str(destination.parent)))
     try:
         (staging / CHUNK_DIRECTORY).mkdir()
-        (staging / MANIFEST_NAME).write_bytes(canonical_bytes(manifest_document(value)))
+        atomic_write_bytes(staging / MANIFEST_NAME, canonical_bytes(manifest_document(value)), field="transfer staging manifest")
         for index in indices:
-            (staging / chunk_name(index)).write_bytes(chunk_bytes(value, index))
+            atomic_write_bytes(staging / chunk_name(index), chunk_bytes(value, index), field=f"transfer staging chunk {index}")
         if destination.exists():
             shutil.rmtree(destination)
         os.replace(staging, destination)
@@ -409,10 +418,11 @@ def write_partial_transfer(assembler: TransferAssembler, destination: str | Path
 def _read_manifest(source: str | Path) -> tuple[Mapping[str, Any], Path]:
     directory = Path(source)
     try:
+        _validate_parent(directory.parent, "transfer input")
         manifest_path = directory / MANIFEST_NAME
         if directory.is_symlink() or not directory.is_dir() or manifest_path.is_symlink() or not manifest_path.is_file():
             raise ValidationError("transfer source must contain a regular manifest")
-        raw = manifest_path.read_bytes()
+        raw = read_bytes(manifest_path, field="transfer manifest")
         manifest = _strict_json_loads(raw.decode("utf-8"))
     except ValidationError:
         raise
@@ -444,7 +454,7 @@ def _read_chunk(path: Path) -> bytes:
     try:
         if path.is_symlink() or not path.is_file():
             raise ValidationError("transfer chunk must be a regular file")
-        return path.read_bytes()
+        return read_bytes(path, field="transfer chunk")
     except ValidationError:
         raise
     except OSError as error:
