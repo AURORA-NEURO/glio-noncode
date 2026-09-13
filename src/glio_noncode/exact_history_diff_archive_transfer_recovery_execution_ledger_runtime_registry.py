@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime as runtime_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -520,11 +521,18 @@ def persist_registry(value: ExactHistoryDiffArchiveTransferRecoveryExecutionLedg
     if target.exists():
         if not overwrite or target.is_symlink() or not target.is_dir():
             raise ValidationError("ledger runtime registry destination exists; explicit overwrite is required")
+    _validate_parent(target.parent, "ledger runtime registry destination")
     target.parent.mkdir(parents=True, exist_ok=True)
+    if target.is_symlink():
+        raise ValidationError("ledger runtime registry destination must not be a symlink")
     temporary = Path(tempfile.mkdtemp(prefix=target.name + ".", dir=target.parent))
     try:
         for name in FILES:
-            (temporary / name).write_bytes(members[name])
+            atomic_write_bytes(
+                temporary / name,
+                members[name],
+                field=f"ledger runtime registry artifact {name}",
+            )
         if target.exists():
             shutil.rmtree(target)
         os.replace(temporary, target)
@@ -536,9 +544,9 @@ def persist_registry(value: ExactHistoryDiffArchiveTransferRecoveryExecutionLedg
 
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=f"ledger runtime registry member {path.name}")
         value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"ledger runtime registry member {path.name}")
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError(f"ledger runtime registry member {path.name} is not valid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"ledger runtime registry member {path.name} is not canonical")
