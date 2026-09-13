@@ -23,7 +23,7 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from ._safe_persistence import atomic_write_bytes, read_bytes
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .capability_registry import CapabilityRegistry, default_capability_registry
 from .errors import ValidationError
 from .module_fabric_bundle_contracts import (
@@ -439,8 +439,11 @@ def write_module_fabric_bundle(
     """
 
     root = Path(destination)
+    _validate_parent(root.parent, "module-fabric bundle destination")
     if root.exists() and root.is_symlink():
         raise ValidationError("module-fabric bundle destination cannot be a symlink")
+    if root.exists() and not root.is_dir():
+        raise ValidationError("module-fabric bundle destination must be a directory")
     root.mkdir(parents=True, exist_ok=True)
     if not root.is_dir():
         raise ValidationError("module-fabric bundle destination must be a directory")
@@ -456,6 +459,7 @@ def write_module_fabric_bundle(
         target = root / Path(*PurePosixPath(artifact.relative_path).parts)
         if _path_has_symlink(root, artifact.relative_path):
             raise ValidationError(f"artifact {artifact.artifact_id} path contains a symlink")
+        _validate_parent(target.parent, "module-fabric bundle artifact path")
         target.parent.mkdir(parents=True, exist_ok=True)
         if _path_has_symlink(root, artifact.relative_path):
             raise ValidationError(f"artifact {artifact.artifact_id} path contains a symlink")
