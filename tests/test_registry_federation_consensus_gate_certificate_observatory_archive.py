@@ -92,6 +92,16 @@ class CertificateObservatoryArchiveTests(CertificateFixture):
             self.assertEqual(archive_model.archive_from_mapping(archive.to_dict()).to_dict(), archive.to_dict())
             self.assertTrue(archive_audit_model.audit_archive(loaded).accepted)
 
+    def test_archive_file_ceiling_is_checked_before_materializing_bytes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "oversized.zip"
+            source.write_bytes(b"oversized")
+            with patch.object(archive_model, "MAX_ARCHIVE_BYTES", 0), patch.object(
+                Path, "read_bytes", side_effect=AssertionError("oversized archive was read")
+            ):
+                with self.assertRaisesRegex(ValidationError, "byte ceiling"):
+                    archive_model.load_archive(source)
+
     def test_archive_zip_order_and_headers_are_stable(self):
         with tempfile.TemporaryDirectory() as temporary:
             _, archive = self._archive(Path(temporary))

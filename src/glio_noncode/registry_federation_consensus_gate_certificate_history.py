@@ -12,7 +12,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
+from ._safe_persistence import _validate_parent, _validate_target, atomic_write_bytes
 from . import registry_federation_consensus_gate_certificate as certificate_model
 from . import registry_federation_consensus_gate_certificate_audit as audit_model
 from .errors import ValidationError
@@ -29,6 +29,16 @@ ENTRIES_NAME = "entries.json"
 FILES = (MANIFEST_NAME, HISTORY_NAME, ENTRIES_NAME)
 MAX_ENTRIES = 256
 MAX_TEXT = certificate_model.MAX_TEXT
+
+
+def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
+    """Read a validated history member while preserving the fault seam."""
+
+    target = Path(path)
+    _validate_target(target, field)
+    payload = target.read_bytes()
+    _validate_target(target, field)
+    return payload
 
 
 def _text(value: Any, field: str, maximum: int = MAX_TEXT, *, required: bool = False) -> str:

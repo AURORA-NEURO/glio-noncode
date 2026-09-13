@@ -17,7 +17,7 @@ from typing import Any
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry as registry_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_audit as audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_diff as diff_model
-from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
+from ._safe_persistence import _validate_parent, _validate_target, atomic_write_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -36,6 +36,16 @@ FILES = (MANIFEST_NAME, HISTORY_NAME, ENTRIES_NAME, METRICS_NAME)
 DEFAULT_HISTORY_ID = "consensus-certificate-observatory-archive-registry-history"
 MAX_ENTRIES = registry_model.MAX_ENTRIES
 MAX_HISTORY_BYTES = MAX_ENTRIES * registry_model.MAX_TOTAL_ARCHIVE_BYTES
+
+
+def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
+    """Read a validated history member while preserving the fault seam."""
+
+    target = Path(path)
+    _validate_target(target, field)
+    payload = target.read_bytes()
+    _validate_target(target, field)
+    return payload
 
 
 def _text(value: Any, field: str, maximum: int = 512, *, required: bool = True) -> str:

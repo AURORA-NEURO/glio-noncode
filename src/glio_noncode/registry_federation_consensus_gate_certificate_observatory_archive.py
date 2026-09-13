@@ -47,8 +47,17 @@ def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
 
     target = Path(path)
     _validate_target(target, field)
+    try:
+        if target.stat().st_size > MAX_ARCHIVE_BYTES:
+            raise ValidationError(f"{field} exceeds the archive byte ceiling")
+    except ValidationError:
+        raise
+    except OSError:
+        raise
     payload = target.read_bytes()
     _validate_target(target, field)
+    if len(payload) > MAX_ARCHIVE_BYTES:
+        raise ValidationError(f"{field} exceeds the archive byte ceiling")
     return payload
 FILES = (ARCHIVE_MANIFEST_NAME, *ARCHIVE_PAYLOAD_FILES)
 DEFAULT_ARCHIVE_ID = "consensus-certificate-observatory-archive"
