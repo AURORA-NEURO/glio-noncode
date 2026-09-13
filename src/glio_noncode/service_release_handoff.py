@@ -11,14 +11,13 @@ metadata.
 
 from __future__ import annotations
 
-import os
-import tempfile
 import csv
 import io
 from collections.abc import Iterable, Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 from .service_release_contracts import (
@@ -175,22 +174,7 @@ def build_service_release_handoff(
 def _atomic_write(path: Path, payload: bytes) -> None:
     """Write through a sibling temporary file and atomically replace the target."""
 
-    path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-        dir=path.parent,
-    )
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_name, path)
-    finally:
-        temporary = Path(temporary_name)
-        if temporary.exists():
-            temporary.unlink()
+    atomic_write_bytes(path, payload, field="service-release handoff artifact")
 
 
 def write_service_release_handoff(
@@ -202,6 +186,7 @@ def write_service_release_handoff(
     """Persist a handoff without deleting an existing destination."""
 
     root = Path(destination)
+    _validate_parent(root.parent, "service-release handoff destination")
     if root.is_symlink():
         raise ValidationError("service-release handoff destination cannot be a symlink")
     if root.exists() and not root.is_dir():
@@ -212,6 +197,8 @@ def write_service_release_handoff(
         raise ValidationError("service-release handoff destination is not empty")
     for artifact in packet.artifacts:
         target = root / Path(*PurePosixPath(safe_relative_path(artifact.relative_path)).parts)
+        _validate_parent(target.parent, "service-release handoff artifact")
+        target.parent.mkdir(parents=True, exist_ok=True)
         _atomic_write(target, artifact.content)
     _atomic_write(root / "manifest.json", _json_bytes(packet.manifest.to_dict()))
     return root
@@ -257,8 +244,8 @@ def _read_manifest(
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError):
+        value = _strict_json_loads(read_text(path, field="service-release handoff manifest"))
+    except (OSError, UnicodeError, ValueError, ValidationError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -429,8 +416,8 @@ def verify_service_release_handoff(
             missing.append(path)
             continue
         try:
-            payload = target.read_bytes()
-        except OSError:
+            payload = read_bytes(target, field=f"service-release handoff artifact {path}")
+        except (OSError, ValidationError):
             tampered.append(path)
             continue
         if len(payload) != int(item.get("byte_count", -1)):
