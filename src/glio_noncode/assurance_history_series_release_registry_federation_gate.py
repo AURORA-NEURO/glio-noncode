@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry_federation as federation_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import (
     _strict_json_loads,
@@ -178,11 +179,13 @@ def _file_address(name: str, raw: bytes) -> str:
 
 
 def _require_directory(path: Path, field: str) -> None:
+    _validate_parent(path, field)
     if path.is_symlink() or not path.is_dir():
         raise ValidationError(f"{field} must be a regular directory")
 
 
 def _require_regular_file(path: Path, field: str) -> None:
+    _validate_parent(path.parent, field)
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
 
@@ -190,8 +193,8 @@ def _require_regular_file(path: Path, field: str) -> None:
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     _require_regular_file(path, field)
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        value = _strict_json_loads(read_bytes(path, field=field).decode("utf-8"))
+    except (OSError, ValidationError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is not valid UTF-8 JSON") from exc
     if not isinstance(value, dict):
         raise ValidationError(f"{field} must be a JSON object")
@@ -918,6 +921,9 @@ def write_federation_assurance_gate(
     documents = _documents(value)
     destination = Path(directory)
     parent = destination.parent
+    _validate_parent(parent, "federation gate destination")
+    if destination.is_symlink():
+        raise ValidationError("federation gate destination must not be a symlink")
     parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         if destination.is_symlink() or not destination.is_dir():
@@ -927,9 +933,11 @@ def write_federation_assurance_gate(
     temporary = Path(tempfile.mkdtemp(prefix=".glio-federation-gate-", dir=str(parent)))
     try:
         for name, raw in documents.items():
-            (temporary / name).write_bytes(raw)
-        (temporary / MANIFEST_NAME).write_bytes(canonical_bytes(_manifest_body(value, documents)))
+            atomic_write_bytes(temporary / name, raw, field="federation gate artifact")
+        atomic_write_bytes(temporary / MANIFEST_NAME, canonical_bytes(_manifest_body(value, documents)), field="federation gate manifest")
         if destination.exists():
+            if destination.is_symlink() or not destination.is_dir():
+                raise ValidationError("federation gate destination must be a regular directory")
             shutil.rmtree(destination)
         os.replace(temporary, destination)
     except Exception:
@@ -954,8 +962,8 @@ def load_federation_assurance_gate(directory: str | Path) -> FederationAssurance
         path = destination / name
         _require_regular_file(path, f"federation gate {name}")
         try:
-            raw = path.read_bytes()
-        except OSError as error:
+            raw = read_bytes(path, field=f"federation gate {name}")
+        except (OSError, ValidationError) as error:
             raise ValidationError(f"federation gate {name} could not be read") from error
         parsed[name] = _read_json(path, f"federation gate {name}")
         if raw != canonical_bytes(parsed[name]):

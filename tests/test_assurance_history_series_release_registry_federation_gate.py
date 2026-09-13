@@ -627,7 +627,7 @@ class FederationGatePersistenceTests(FederationGateFixture):
                     gate.load_federation_assurance_gate(destination)
 
             self.write_gate(self.value, destination, overwrite=True)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(gate, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     gate.load_federation_assurance_gate(destination)
 
@@ -775,6 +775,20 @@ class FederationGatePersistenceTests(FederationGateFixture):
                 self.skipTest("symbolic links are not available for this test process")
             with self.assertRaises(ValidationError):
                 gate.load_federation_assurance_gate(destination)
+
+    def test_writer_rejects_symlinked_destination_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("directory symlinks are unavailable")
+            with self.assertRaises(ValidationError):
+                gate.write_federation_assurance_gate(self.value, linked_parent / "gate")
+            self.assertEqual(tuple(external.iterdir()), ())
 
     def test_persisted_file_bytes_are_repeatable(self):
         with tempfile.TemporaryDirectory() as temporary:
