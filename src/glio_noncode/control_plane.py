@@ -1485,7 +1485,9 @@ class ControlPlaneExecutor:
         self._handlers: dict[str, Handler] = {}
         self._idempotent: dict[str, InvocationResult] = {}
         self._idempotent_fingerprints: dict[str, str] = {}
+        self._request_fingerprints: dict[str, str] = {}
         self._inflight_idempotency_keys: set[str] = set()
+        self._inflight_request_ids: set[str] = set()
         self._lock = threading.Lock()
 
     def register(self, tool_id: str, handler: Handler) -> None:
@@ -1509,6 +1511,7 @@ class ControlPlaneExecutor:
         with self._lock:
             cached = self._idempotent.get(request.idempotency_key)
             cached_fingerprint = self._idempotent_fingerprints.get(request.idempotency_key)
+            request_fingerprint = self._request_fingerprints.get(request.request_id)
         if cached is not None and cached_fingerprint != fingerprint:
             return self._result(
                 request,
@@ -1522,6 +1525,17 @@ class ControlPlaneExecutor:
             )
         if cached is not None:
             return replace(cached, cached=True)
+        if request_fingerprint is not None:
+            return self._result(
+                request,
+                InvocationState.REJECTED,
+                started,
+                error=TypedInvocationError(
+                    "request_id_conflict",
+                    "request_id is already bound to a different idempotency key",
+                    retryable=False,
+                ),
+            )
         policy = self.policy_gate.inspect(request, agent, tool)
         if not policy.allowed:
             return self._rejected(request, started, "; ".join(policy.violations), policy=policy)
@@ -1550,7 +1564,22 @@ class ControlPlaneExecutor:
                     policy=policy,
                     schedule=schedule,
                 )
+            if request.request_id in self._inflight_request_ids:
+                self.scheduler.release(request.request_id)
+                return self._result(
+                    request,
+                    InvocationState.REJECTED,
+                    started,
+                    error=TypedInvocationError(
+                        "request_id_in_flight",
+                        "an invocation with this request_id is still running",
+                        retryable=True,
+                    ),
+                    policy=policy,
+                    schedule=schedule,
+                )
             self._inflight_idempotency_keys.add(request.idempotency_key)
+            self._inflight_request_ids.add(request.request_id)
         try:
             self.event_log.append(
                 "control_invocation_admitted",
@@ -1568,6 +1597,7 @@ class ControlPlaneExecutor:
             self.scheduler.release(request.request_id)
             with self._lock:
                 self._inflight_idempotency_keys.discard(request.idempotency_key)
+                self._inflight_request_ids.discard(request.request_id)
             raise
         try:
             handler = self._handlers.get(tool.tool_id)
@@ -1615,6 +1645,7 @@ class ControlPlaneExecutor:
             self.scheduler.release(request.request_id)
             with self._lock:
                 self._inflight_idempotency_keys.discard(request.idempotency_key)
+                self._inflight_request_ids.discard(request.request_id)
         self.event_log.append(
             "control_invocation_completed",
             {
@@ -1633,6 +1664,7 @@ class ControlPlaneExecutor:
         with self._lock:
             self._idempotent[request.idempotency_key] = result
             self._idempotent_fingerprints[request.idempotency_key] = fingerprint
+            self._request_fingerprints[request.request_id] = fingerprint
         return result
 
     @staticmethod

@@ -137,6 +137,17 @@ class ControlPlaneTests(unittest.TestCase):
         self.assertEqual(conflicting.error.code, "idempotency_conflict")
         self.assertEqual(calls["count"], 1)
 
+    def test_request_ids_cannot_be_reused_with_another_idempotency_key(self) -> None:
+        executor = ControlPlaneExecutor()
+        executor.register("A08.publish", lambda request: WorkflowDecision("done"))
+        request = _request("A08", "A08.publish", request_id="request-id-bound")
+        self.assertEqual(executor.execute(request).state, InvocationState.COMPLETED)
+        reused = replace(request, idempotency_key="different-idempotency-key")
+        result = executor.execute(reused)
+        self.assertEqual(result.state, InvocationState.REJECTED)
+        self.assertIsNotNone(result.error)
+        self.assertEqual(result.error.code, "request_id_conflict")
+
     def test_workflow_budget_and_deadline_require_finite_integer_limits(self) -> None:
         with self.assertRaises(Exception):
             WorkflowBudget(max_invocations=1.0)  # type: ignore[arg-type]
