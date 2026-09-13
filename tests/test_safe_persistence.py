@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from glio_noncode._safe_persistence import (
+    DEFAULT_MAX_READ_BYTES,
     atomic_write_bytes,
     atomic_write_text,
     read_bytes,
@@ -83,6 +84,16 @@ class SafePersistenceTests(unittest.TestCase):
                 read_bytes_bounded(target, max_bytes=-1)
             with self.assertRaises(ValidationError):
                 read_bytes_bounded(target, max_bytes=True)  # type: ignore[arg-type]
+
+    def test_default_reads_are_bounded_and_allow_explicit_tighter_limits(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "default-limit.bin"
+            target.write_bytes(b"x" * 32)
+            self.assertEqual(read_bytes(target, max_bytes=32), b"x" * 32)
+            self.assertEqual(read_text(target, max_bytes=32), "x" * 32)
+            self.assertGreater(DEFAULT_MAX_READ_BYTES, 32)
+            with self.assertRaises(ValidationError):
+                read_bytes(target, max_bytes=31)
 
 
 if __name__ == "__main__":

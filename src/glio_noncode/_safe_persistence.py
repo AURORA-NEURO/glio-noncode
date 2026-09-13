@@ -9,6 +9,8 @@ from pathlib import Path
 
 from .errors import ValidationError
 
+DEFAULT_MAX_READ_BYTES = 128 * 1024 * 1024
+
 
 def _validate_parent(parent: Path, field: str) -> None:
     """Reject symlinked or non-directory components on the output path."""
@@ -94,34 +96,18 @@ def atomic_write_text(
     return atomic_write_bytes(path, payload, field=field)
 
 
-def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
-    """Read a regular file without following symlinked fixture paths."""
+def read_bytes(
+    path: str | Path,
+    *,
+    field: str = "input path",
+    max_bytes: int = DEFAULT_MAX_READ_BYTES,
+) -> bytes:
+    """Read a regular file without symlink traversal or unbounded allocation."""
 
-    target = Path(path)
-    _validate_target(target, field)
-    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
-    flags |= getattr(os, "O_NOFOLLOW", 0)
-    try:
-        descriptor = os.open(target, flags)
-    except OSError as exc:
-        if target.is_symlink():
-            raise ValidationError(f"{field} must not be a symlink") from exc
-        raise
-    try:
-        metadata = os.fstat(descriptor)
-        if not stat.S_ISREG(metadata.st_mode):
-            raise ValidationError(f"{field} must be a regular file")
-        with os.fdopen(descriptor, "rb") as handle:
-            descriptor = -1
-            payload = handle.read()
-        # Windows does not expose O_NOFOLLOW; catch a target swapped to a
-        # symlink while opening before returning any untrusted bytes.
-        if target.is_symlink():
-            raise ValidationError(f"{field} must not be a symlink")
-        return payload
-    finally:
-        if descriptor != -1:
-            os.close(descriptor)
+    payload = read_bytes_bounded(path, max_bytes=max_bytes, field=field)
+    if len(payload) > max_bytes:
+        raise ValidationError(f"{field} exceeds the byte ceiling")
+    return payload
 
 
 def read_bytes_bounded(
@@ -175,11 +161,12 @@ def read_text(
     field: str = "input path",
     encoding: str = "utf-8",
     errors: str = "strict",
+    max_bytes: int = DEFAULT_MAX_READ_BYTES,
 ) -> str:
     """Read and decode a regular text file without symlink traversal."""
 
     try:
-        return read_bytes(path, field=field).decode(encoding, errors=errors)
+        return read_bytes(path, field=field, max_bytes=max_bytes).decode(encoding, errors=errors)
     except LookupError as exc:
         raise ValidationError("text input encoding is invalid") from exc
 
