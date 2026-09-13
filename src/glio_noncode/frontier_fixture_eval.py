@@ -14,7 +14,6 @@ prove biological effect, clinical utility, or transport to an external cohort.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -40,7 +39,7 @@ from .frontier_release_hardening import (
     HARDENING_OPERATIONS,
     run_hardening_operation,
 )
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 FIXTURE_SCHEMA_VERSION = "frontier-fixture-v1"
 _CONTEXT_FIELDS = (
@@ -189,8 +188,8 @@ class FrontierFixtureEvaluator:
 
         fixture_path = Path(path)
         try:
-            raw = json.loads(fixture_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
+            raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
+        except ValueError as exc:
             raise ValidationError(f"fixture is not valid JSON: {fixture_path}") from exc
         return self.validate_fixture(raw)
 

@@ -144,6 +144,13 @@ class FrontierScenarioMatrixTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 FrontierScenarioMatrix.from_file(path)
 
+    def test_duplicate_fixture_keys_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text('{"context":{},"context":{}}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                FrontierScenarioMatrix.from_file(path)
+
     def test_missing_context_is_rejected(self) -> None:
         fixture = copy.deepcopy(self.fixture)
         fixture.pop("context")

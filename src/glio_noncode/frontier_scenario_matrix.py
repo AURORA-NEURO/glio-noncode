@@ -9,7 +9,6 @@ regression triage because it reports the first scenario that changes state.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -19,7 +18,7 @@ from typing import Any
 from .errors import ValidationError
 from .frontier_data_alpha import FrontierState
 from .frontier_end_to_end import run_end_to_end_operation
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 class ScenarioExpectation(StrEnum):
@@ -105,7 +104,7 @@ class FrontierScenarioMatrix:
 
     @classmethod
     def from_file(cls, path: str | Path) -> FrontierScenarioMatrix:
-        raw = json.loads(Path(path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
         if not isinstance(raw, Mapping):
             raise ValidationError("scenario fixture must be an object")
         return cls(raw)

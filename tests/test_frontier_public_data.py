@@ -290,6 +290,13 @@ class FrontierPublicDataTests(unittest.TestCase):
             with self.assertRaises(json.JSONDecodeError):
                 PublicFixtureCatalog.from_file(path)
 
+    def test_file_loader_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                PublicFixtureCatalog.from_file(path)
+
     def test_file_loader_rejects_non_object_json(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "array.json"

@@ -13,7 +13,6 @@ record to be attributable to a declared source and exact context.
 
 from __future__ import annotations
 
-import json
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -22,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 class PublicDataState(StrEnum):
@@ -346,7 +345,7 @@ class PublicFixtureCatalog:
     @classmethod
     def from_file(cls, path: str | Path) -> PublicFixtureCatalog:
         fixture_path = Path(path)
-        raw = json.loads(fixture_path.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
         if not isinstance(raw, Mapping):
             raise ValidationError("public fixture must be an object")
         return cls.from_fixture(raw)
