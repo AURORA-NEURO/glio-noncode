@@ -23,6 +23,7 @@ from . import (
     module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series_release as release_model,
 )
 from .errors import ValidationError
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .serialization import (
     _strict_json_loads,
     canonical_bytes,
@@ -848,6 +849,9 @@ def write_decision_assurance_history_series_release_registry(
         and not overwrite
     ):
         raise ValidationError("release registry destination already exists")
+    if destination.exists() and (destination.is_symlink() or not destination.is_dir()):
+        raise ValidationError("release registry destination is not a directory")
+    _validate_parent(destination.parent, "release registry destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
     registry_raw, entries_raw = (
         canonical_bytes(value.to_dict()),
@@ -866,9 +870,9 @@ def write_decision_assurance_history_series_release_registry(
     manifest["manifest_address"] = _manifest_address(manifest)
     temporary = Path(tempfile.mkdtemp(prefix=".glio-release-registry-", dir=str(destination.parent)))
     try:
-        (temporary / ENTRIES_NAME).write_bytes(entries_raw)
-        (temporary / REGISTRY_NAME).write_bytes(registry_raw)
-        (temporary / MANIFEST_NAME).write_bytes(canonical_bytes(manifest))
+        atomic_write_bytes(temporary / ENTRIES_NAME, entries_raw, field="release registry entries")
+        atomic_write_bytes(temporary / REGISTRY_NAME, registry_raw, field="release registry registry")
+        atomic_write_bytes(temporary / MANIFEST_NAME, canonical_bytes(manifest), field="release registry manifest")
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("release registry destination is not a directory")
@@ -887,9 +891,9 @@ def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=field)
         value = _strict_json_loads(raw.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"{field} is invalid JSON") from exc
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} is not canonical JSON")
@@ -913,8 +917,8 @@ def _check_artifact(
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"release registry artifact {name} must be a regular file")
     try:
-        raw = path.read_bytes()
-    except OSError as error:
+        raw = read_bytes(path, field=f"release registry artifact {name}")
+    except (OSError, ValidationError) as error:
         raise ValidationError(f"release registry artifact {name} could not be read") from error
     if (
         artifact.get("bytes") != len(raw)
@@ -1677,6 +1681,9 @@ def write_decision_assurance_history_series_release_registry_diff(
         and not overwrite
     ):
         raise ValidationError("release registry diff destination already exists")
+    if destination.exists() and (destination.is_symlink() or not destination.is_dir()):
+        raise ValidationError("release registry diff destination is not a directory")
+    _validate_parent(destination.parent, "release registry diff destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
     diff_raw = canonical_bytes(value.to_dict())
     manifest = {
@@ -1694,8 +1701,8 @@ def write_decision_assurance_history_series_release_registry_diff(
     manifest["manifest_address"] = _manifest_address(manifest, prefix=DIFF_MANIFEST_PREFIX)
     temporary = Path(tempfile.mkdtemp(prefix=".glio-release-registry-diff-", dir=str(destination.parent)))
     try:
-        (temporary / DIFF_NAME).write_bytes(diff_raw)
-        (temporary / MANIFEST_NAME).write_bytes(canonical_bytes(manifest))
+        atomic_write_bytes(temporary / DIFF_NAME, diff_raw, field="release registry diff")
+        atomic_write_bytes(temporary / MANIFEST_NAME, canonical_bytes(manifest), field="release registry diff manifest")
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("release registry diff destination is not a directory")

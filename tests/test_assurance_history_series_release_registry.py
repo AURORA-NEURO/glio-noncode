@@ -258,7 +258,7 @@ class RegistryPersistenceTests(RegistryFixture):
                     registry.load_decision_assurance_history_series_release_registry(destination)
 
             self.write(value, destination, overwrite=True)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(registry, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     registry.load_decision_assurance_history_series_release_registry(destination)
 
