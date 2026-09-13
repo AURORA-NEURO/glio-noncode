@@ -11,7 +11,6 @@ from __future__ import annotations
 
 # ruff: noqa: E501, I001
 
-import json
 import shutil
 import tempfile
 from collections.abc import Mapping
@@ -112,13 +111,19 @@ def write_package(value: gate_model.RegistryHistoryReleaseGate, destination: str
 
 
 def _read_directory(source: str | Path) -> dict[str, bytes]:
-    directory = Path(source)
-    if directory.is_symlink() or not directory.is_dir():
-        raise ValidationError("registry history release gate package input must be a regular directory")
-    members = tuple(directory.iterdir())
+    try:
+        directory = Path(source)
+        if directory.is_symlink() or not directory.is_dir():
+            raise ValidationError("registry history release gate package input must be a regular directory")
+        members = tuple(directory.iterdir())
+    except OSError as error:
+        raise ValidationError("registry history release gate package input directory could not be inspected") from error
     if {item.name for item in members} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in members):
         raise ValidationError("registry history release gate package member set is invalid")
-    return {name: (directory / name).read_bytes() for name in FILES}
+    try:
+        return {name: (directory / name).read_bytes() for name in FILES}
+    except OSError as error:
+        raise ValidationError("registry history release gate package artifact could not be read") from error
 
 
 def load_package(source: str | Path) -> gate_model.RegistryHistoryReleaseGate:
