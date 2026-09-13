@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
@@ -74,6 +75,13 @@ class SpecimenPreanalyticPublicDataTests(unittest.TestCase):
         raw["source_receipts"][0]["patient_level"] = True
         with self.assertRaises(ValidationError):
             SpecimenPreanalyticFixtureCatalog.from_mapping(raw)
+
+    def test_fixture_file_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                SpecimenPreanalyticFixtureCatalog.from_file(path)
 
 
 if __name__ == "__main__":

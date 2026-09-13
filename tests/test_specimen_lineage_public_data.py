@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -97,6 +98,13 @@ class SpecimenLineagePublicDataTests(unittest.TestCase):
         self.assertEqual(tuple(sorted(catalog.source_ids)), catalog.source_ids)
         self.assertEqual(tuple(sorted(catalog.record_ids)), catalog.record_ids)
         self.assertEqual(len(set(catalog.record_ids)), 12)
+
+    def test_fixture_file_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                SpecimenLineageFixtureCatalog.from_file(path)
 
 
 if __name__ == "__main__":

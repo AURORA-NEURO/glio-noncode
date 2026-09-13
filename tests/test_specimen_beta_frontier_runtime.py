@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
 from pathlib import Path
 
 from glio_noncode.specimen_beta_frontier_runtime import (
@@ -64,6 +65,15 @@ class SpecimenBetaFrontierRuntimeTests(unittest.TestCase):
                 source_ids=("source",),
                 operation_payloads={"origin": {"records": []}},
             )
+
+    def test_pipeline_request_file_rejects_duplicate_json_keys(self) -> None:
+        from glio_noncode.errors import ValidationError
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "request.json"
+            path.write_text('{"pipeline_id":"one","pipeline_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                specimen_beta_frontier_pipeline_request_from_file(str(path))
 
     def test_review_pipeline_keeps_all_four_stage_receipts(self) -> None:
         request = specimen_beta_frontier_pipeline_request_from_file(str(REVIEW))

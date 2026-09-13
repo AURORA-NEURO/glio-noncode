@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .specimen_preanalytic_fixture_eval import evaluate_specimen_preanalytic_fixture
 from .specimen_preanalytic_lineage import build_specimen_preanalytic_lineage
 from .specimen_preanalytic_public_data import (
@@ -43,7 +42,7 @@ class SpecimenPreanalyticPipelineRequest:
         cls, path: str | Path
     ) -> tuple[SpecimenPreanalyticPipelineRequest, SpecimenPreanalyticFixtureCatalog]:
         source = Path(path)
-        raw = json.loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
         request = cls.from_mapping(raw)
         fixture_path = Path(request.fixture_path)
         if not fixture_path.is_absolute():

@@ -111,6 +111,10 @@ class SpecimenFrontierPublicDataTests(unittest.TestCase):
             path.write_text("[]", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 SpecimenFrontierFixtureCatalog.from_file(path)
+            duplicate = Path(directory) / "duplicate.json"
+            duplicate.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                SpecimenFrontierFixtureCatalog.from_file(duplicate)
 
 
 if __name__ == "__main__":

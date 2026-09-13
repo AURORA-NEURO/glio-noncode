@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
 from pathlib import Path
 
 from glio_noncode.errors import ValidationError
@@ -85,6 +86,13 @@ class SpecimenLineageRuntimeTests(unittest.TestCase):
             request.operation_payloads["treatment_context"]["exposures"][0]["exposure_id"],
             "pipeline-exposure",
         )
+
+    def test_request_file_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "request.json"
+            path.write_text('{"pipeline_id":"one","pipeline_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                specimen_lineage_pipeline_request_from_file(path)
 
 
 if __name__ == "__main__":

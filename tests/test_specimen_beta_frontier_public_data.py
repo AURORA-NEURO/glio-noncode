@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -77,6 +78,13 @@ class SpecimenBetaFrontierPublicDataTests(unittest.TestCase):
         payload["aggregate_only"] = False
         with self.assertRaises(ValidationError):
             SpecimenBetaFrontierFixtureCatalog.from_mapping(payload)
+
+    def test_fixture_file_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                SpecimenBetaFrontierFixtureCatalog.from_file(path)
 
 
 if __name__ == "__main__":

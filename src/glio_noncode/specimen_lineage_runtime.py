@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -10,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .specimen_lineage import (
     LineageAlphaState,
     LongitudinalSpecimenLinker,
@@ -309,8 +308,8 @@ def specimen_lineage_pipeline_request_from_file(path: str | Path) -> SpecimenLin
 
     source = Path(path)
     try:
-        raw = json.loads(source.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
         raise ValidationError(f"invalid lineage pipeline request: {exc}") from exc
     if not isinstance(raw, Mapping):
         raise ValidationError("lineage pipeline request root must be an object")

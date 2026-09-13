@@ -9,7 +9,6 @@ execution.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -17,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 SPECIMEN_BETA_FRONTIER_FIXTURE_SCHEMA_VERSION = "specimen-beta-frontier-evidence-v1"
 SPECIMEN_BETA_FRONTIER_OPERATION_FLOOR = 4
@@ -238,8 +237,8 @@ class SpecimenBetaFrontierFixtureCatalog:
     def from_file(cls, path: str | Path) -> SpecimenBetaFrontierFixtureCatalog:
         source = Path(path)
         try:
-            payload = json.loads(source.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+            payload = _strict_json_loads(source.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
             raise ValidationError(f"invalid beta fixture: {exc}") from exc
         if not isinstance(payload, Mapping):
             raise ValidationError("beta fixture root must be an object")

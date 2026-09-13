@@ -13,7 +13,6 @@ software verification while remaining separate from clinical validation.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -22,7 +21,7 @@ from typing import Any
 
 from .errors import ValidationError
 from .frontier_data_alpha import FrontierState
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 SPECIMEN_PREANALYTIC_FIXTURE_VERSION = "specimen-preanalytic-public-aggregate-v1"
 EXPECTED_CONTEXT_KEY = (
@@ -315,7 +314,7 @@ class SpecimenPreanalyticFixtureCatalog:
     @classmethod
     def from_file(cls, path: str | Path) -> SpecimenPreanalyticFixtureCatalog:
         source = Path(path)
-        return cls.from_mapping(json.loads(source.read_text(encoding="utf-8")))
+        return cls.from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
 
     def address_body(self) -> dict[str, Any]:
         return {

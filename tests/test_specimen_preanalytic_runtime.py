@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
 from pathlib import Path
 
 from glio_noncode.specimen_preanalytic_runtime import (
@@ -57,6 +58,13 @@ class SpecimenPreanalyticRuntimeTests(unittest.TestCase):
         second = run_specimen_preanalytic_pipeline(request, catalog)
         self.assertEqual(first.content_address, second.content_address)
         self.assertEqual(first.manifest_address, second.manifest_address)
+
+    def test_request_file_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "request.json"
+            path.write_text('{"request_id":"one","request_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                SpecimenPreanalyticPipelineRequest.from_file(path)
 
 
 if __name__ == "__main__":

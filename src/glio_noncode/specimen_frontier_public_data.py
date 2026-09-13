@@ -8,7 +8,6 @@ controls, deterministic identifiers, and an aggregate-only payload policy.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -16,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 SPECIMEN_FRONTIER_FIXTURE_SCHEMA_VERSION = "specimen-frontier-evidence-v1"
 SPECIMEN_FRONTIER_OPERATION_FLOOR = 4
@@ -205,8 +204,8 @@ class SpecimenFrontierFixtureCatalog:
     def from_file(cls, path: str | Path) -> SpecimenFrontierFixtureCatalog:
         source = Path(path)
         try:
-            payload = json.loads(source.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+            payload = _strict_json_loads(source.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
             raise ValidationError(f"invalid specimen frontier fixture: {exc}") from exc
         if not isinstance(payload, Mapping):
             raise ValidationError("specimen frontier fixture root must be an object")
