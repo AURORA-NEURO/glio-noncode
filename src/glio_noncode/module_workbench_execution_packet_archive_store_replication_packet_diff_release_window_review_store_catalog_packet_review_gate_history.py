@@ -15,12 +15,19 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate import (
     ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketReviewGate,
     verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate,
 )
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_VERSION = "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-v1"
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_BOUNDARY = "public_aggregate_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history"
@@ -912,9 +919,24 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
     ).accepted:
         raise ValidationError("cannot persist an unverified packet review gate history")
     destination = Path(destination)
-    if destination.exists() and not overwrite:
-        raise ValidationError("packet review gate history destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "packet review gate history destination")
+        if destination.is_symlink():
+            raise ValidationError("packet review gate history destination cannot be a symlink")
+        if destination.exists():
+            if not overwrite:
+                raise ValidationError("packet review gate history destination already exists")
+            if not destination.is_dir():
+                raise ValidationError(
+                    "packet review gate history destination is not a regular directory"
+                )
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError(
+            "packet review gate history destination could not be prepared"
+        ) from error
     temporary = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
     try:
         document = canonical_bytes(value.to_dict())
@@ -935,14 +957,18 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
                 + "-manifest",
             )
         }
-        (
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_DOCUMENT
-        ).write_bytes(document)
-        (
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_DOCUMENT,
+            document,
+            field="packet review gate history staging document",
+        )
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_MANIFEST
-        ).write_bytes(canonical_bytes(manifest))
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_MANIFEST,
+            canonical_bytes(manifest),
+            field="packet review gate history staging manifest",
+        )
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError(
@@ -962,8 +988,14 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
     """Load and fail closed on any non-canonical or mismatched history archive."""
 
     directory = Path(directory)
-    if not directory.is_dir() or directory.is_symlink():
-        raise ValidationError("packet review gate history directory is invalid")
+    try:
+        _validate_parent(directory.parent, "packet review gate history input")
+        if not directory.is_dir() or directory.is_symlink():
+            raise ValidationError("packet review gate history directory is invalid")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("packet review gate history directory could not be inspected") from error
     expected = {
         MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_MANIFEST,
         MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_DOCUMENT,
@@ -982,11 +1014,15 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
         directory
         / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_DOCUMENT
     )
-    manifest_raw = manifest_path.read_bytes()
-    document_raw = document_path.read_bytes()
     try:
+        manifest_raw = read_bytes(manifest_path, field="packet review gate history manifest")
+        document_raw = read_bytes(document_path, field="packet review gate history document")
         manifest = _strict_json_loads(manifest_raw.decode("utf-8"))
         document = _strict_json_loads(document_raw.decode("utf-8"))
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("packet review gate history files could not be read") from error
     except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("packet review gate history files are not valid JSON") from exc
     if (
