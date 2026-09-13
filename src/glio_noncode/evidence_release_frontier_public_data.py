@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from ._safe_persistence import read_text
 from .evidence_release_frontier_contracts import (
     EVIDENCE_RELEASE_FRONTIER_BOUNDARY,
     EVIDENCE_RELEASE_FRONTIER_CONTEXT_KEY,
@@ -151,7 +152,7 @@ def audit_evidence_release_frontier_data(fixture: EvidenceReleaseFixture) -> Evi
 
 
 def load_evidence_release_frontier_fixture(path: str | Path) -> EvidenceReleaseFixture:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="evidence release frontier fixture input path", encoding="utf-8"))
     if not isinstance(raw, Mapping) or raw.get("fixture_version") != EVIDENCE_RELEASE_FRONTIER_VERSION:
         raise ValueError("evidence-release fixture version mismatch")
     expected = default_evidence_release_frontier_fixture()

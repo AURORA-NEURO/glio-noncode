@@ -7,6 +7,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 VALIDATION_FRONTIER_FIXTURE_VERSION = "2026.08.d13-c01-c04.v1"
@@ -223,7 +224,7 @@ def audit_validation_frontier_data(fixture: ValidationFrontierFixture) -> Valida
 
 
 def load_validation_frontier_fixture(path: str | Path) -> ValidationFrontierFixture:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="validation frontier fixture input path", encoding="utf-8"))
     if not raw.get("sources") or not raw.get("records"):
         raise ValueError("validation frontier fixture requires sources and records")
     sources = tuple(ValidationFrontierSourceReceipt(**item) for item in raw.get("sources", ()))

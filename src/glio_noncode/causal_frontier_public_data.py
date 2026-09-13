@@ -8,6 +8,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
@@ -529,7 +530,7 @@ def audit_causal_frontier_data(fixture: CausalFrontierFixture | None = None) -> 
 
 
 def load_causal_frontier_fixture(path: str | Path) -> CausalFrontierFixture:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="causal frontier fixture input path", encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValidationError("causal fixture JSON must be an object")
     sources = tuple(CausalFrontierSourceReceipt(**item) for item in raw.get("sources", ()))

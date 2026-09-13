@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, content_hash, jsonable
 from .workbench_release_frontier_contracts import WORKBENCH_RELEASE_FRONTIER_BOUNDARY, WORKBENCH_RELEASE_FRONTIER_CONTEXT_KEY, WORKBENCH_RELEASE_FRONTIER_FOREIGN_CONTEXT, WORKBENCH_RELEASE_FRONTIER_VERSION, WorkbenchReleaseFixture, WorkbenchReleaseOperation, WorkbenchReleaseRecord, WorkbenchReleaseRole, WorkbenchReleaseSourceReceipt, WorkbenchReleaseState
 
@@ -134,7 +135,7 @@ def audit_workbench_release_frontier_data(fixture: WorkbenchReleaseFixture) -> W
 
 
 def load_workbench_release_frontier_fixture(path: str | Path) -> WorkbenchReleaseFixture:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="workbench release frontier fixture input path", encoding="utf-8"))
     if not isinstance(raw, Mapping) or raw.get("fixture_version") != WORKBENCH_RELEASE_FRONTIER_VERSION:
         raise ValueError("workbench fixture version mismatch")
     expected = default_workbench_release_frontier_fixture()

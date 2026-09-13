@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from ._safe_persistence import read_text
 from .planning_frontier_contracts import (
     PLANNING_FRONTIER_BOUNDARY,
     PLANNING_FRONTIER_CONTEXT_KEY,
@@ -262,7 +263,7 @@ def audit_planning_frontier_data(fixture: PlanningFixture) -> PlanningDataAudit:
 
 
 def load_planning_frontier_fixture(path: str | Path) -> PlanningFixture:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="planning frontier fixture input path", encoding="utf-8"))
     expected = default_planning_frontier_fixture()
     if not isinstance(raw, Mapping) or raw.get("fixture_id") != expected.fixture_id or raw.get("fixture_version") != expected.fixture_version or raw.get("content_address") != expected.content_address:
         raise ValueError("planning fixture identity mismatch")

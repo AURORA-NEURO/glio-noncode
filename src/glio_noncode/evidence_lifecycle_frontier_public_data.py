@@ -7,7 +7,8 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from .serialization import content_hash, jsonable, require_non_empty
+from ._safe_persistence import read_text
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 EVIDENCE_LIFECYCLE_FIXTURE_VERSION = "2026.08.d14-c01-c04.v1"
 EVIDENCE_LIFECYCLE_CONTEXT_KEY = "GRCh38|glioma|adult|stem_like|core|untreated"
@@ -211,7 +212,9 @@ def audit_evidence_lifecycle_data(fixture: EvidenceLifecycleFixture | None = Non
 
 
 def load_evidence_lifecycle_fixture(path: str | Path) -> EvidenceLifecycleFixture:
-    payload = __import__("json").loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(
+        read_text(path, field="evidence lifecycle frontier fixture input path", encoding="utf-8")
+    )
     if not isinstance(payload, dict) or not payload.get("sources") or not payload.get("records"):
         raise ValueError("evidence lifecycle fixture requires sources and records")
     sources = tuple(EvidenceLifecycleSourceReceipt(**item) for item in payload["sources"])

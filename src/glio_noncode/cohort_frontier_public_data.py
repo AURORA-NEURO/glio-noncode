@@ -8,6 +8,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
@@ -232,7 +233,7 @@ def audit_cohort_frontier_data(fixture: CohortFrontierFixture | None = None) -> 
 
 
 def load_cohort_frontier_fixture(path: str | Path) -> CohortFrontierFixture:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="cohort frontier fixture input path", encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValidationError("cohort fixture JSON must be an object")
     sources = tuple(CohortFrontierSourceReceipt(**item) for item in raw.get("sources", ()))

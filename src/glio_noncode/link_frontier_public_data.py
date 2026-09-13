@@ -8,6 +8,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
@@ -538,7 +539,7 @@ def audit_link_frontier_data(
 
 
 def load_link_frontier_fixture(path: str | Path) -> LinkFrontierFixture:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="link frontier fixture input path", encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValidationError("link fixture JSON must be an object")
     return default_link_frontier_fixture() if raw.get("fixture_id") == "link-frontier-public-aggregate" else _fixture_from_dict(raw)

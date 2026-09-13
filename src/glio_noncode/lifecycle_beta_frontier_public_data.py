@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .lifecycle_beta_frontier_contracts import (
     LIFECYCLE_BETA_FRONTIER_BOUNDARY,
     LIFECYCLE_BETA_FRONTIER_CONTEXT_KEY,
@@ -267,7 +268,7 @@ def audit_lifecycle_beta_frontier_data(fixture: LifecycleBetaFrontierFixture | N
 
 
 def load_lifecycle_beta_frontier_fixture(path: str | Path) -> LifecycleBetaFrontierFixture:
-    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(read_text(path, field="lifecycle beta frontier fixture input path", encoding="utf-8"))
     if not isinstance(payload, dict) or not payload.get("records"):
         raise ValueError("lifecycle beta frontier fixture requires records")
     sources = tuple(LifecycleBetaFrontierSourceReceipt(**item) for item in payload["sources"])
