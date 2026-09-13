@@ -23,7 +23,13 @@ from . import (
     module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series_release as release_model,
 )
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 VERSION = release_model.VERSION + "-registry-v1"
 BOUNDARY = release_model.BOUNDARY + "_registry"
@@ -882,8 +888,8 @@ def _read_json(path: Path, field: str) -> dict[str, Any]:
         raise ValidationError(f"{field} must be a regular file")
     raw = path.read_bytes()
     try:
-        value = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is invalid JSON") from exc
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} is not canonical JSON")
@@ -951,8 +957,15 @@ def load_decision_assurance_history_series_release_registry(
         raise ValidationError("release registry manifest contract is invalid")
     if manifest["manifest_address"] != _manifest_address({**manifest, "manifest_address": None}):
         raise ValidationError("release registry manifest address mismatch")
-    entries_document = json.loads(_check_artifact(manifest, source, ENTRIES_NAME).decode("utf-8"))
-    registry_document = json.loads(_check_artifact(manifest, source, REGISTRY_NAME).decode("utf-8"))
+    try:
+        entries_document = _strict_json_loads(
+            _check_artifact(manifest, source, ENTRIES_NAME).decode("utf-8")
+        )
+        registry_document = _strict_json_loads(
+            _check_artifact(manifest, source, REGISTRY_NAME).decode("utf-8")
+        )
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise ValidationError("release registry artifact is invalid JSON") from exc
     if list(
         _mapping_sequence(entries_document.get("entries"), "release registry entries document")
     ) != list(_mapping_sequence(registry_document.get("entries"), "release registry entries")):
@@ -1731,7 +1744,7 @@ def load_decision_assurance_history_series_release_registry_diff(
     ):
         raise ValidationError("release registry diff manifest address mismatch")
     value = decision_assurance_history_series_release_registry_diff_from_mapping(
-        json.loads(
+        _strict_json_loads(
             _check_artifact(manifest, source, DIFF_NAME, prefix=DIFF_PREFIX + "-file").decode(
                 "utf-8"
             )

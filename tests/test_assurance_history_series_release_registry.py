@@ -216,6 +216,17 @@ class RegistryPersistenceTests(RegistryFixture):
             with self.assertRaises(ValidationError):
                 registry.load_decision_assurance_history_series_release_registry(destination)
 
+    def test_registry_loader_rejects_duplicate_manifest_fields(self):
+        value = self.build((self.ready(),))
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "registry"
+            self.write(value, destination)
+            manifest_raw = (destination / registry.MANIFEST_NAME).read_text()
+            duplicate = manifest_raw.rstrip()[:-1] + ',"registry_id":"shadow"}'
+            (destination / registry.MANIFEST_NAME).write_text(duplicate)
+            with self.assertRaises(ValidationError):
+                registry.load_decision_assurance_history_series_release_registry(destination)
+
     def test_registry_persistence_rejects_file_input_and_symlinked_artifact(self):
         value = self.build((self.ready(),))
         with tempfile.TemporaryDirectory() as temporary:
