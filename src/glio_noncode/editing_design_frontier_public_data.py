@@ -5,6 +5,7 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, content_hash, jsonable
 from .editing_design_frontier_contracts import EDITING_DESIGN_FRONTIER_BOUNDARY, EDITING_DESIGN_FRONTIER_CONTEXT_KEY, EDITING_DESIGN_FRONTIER_FOREIGN_CONTEXT, EDITING_DESIGN_FRONTIER_VERSION, EditingDesignFixture, EditingDesignOperation, EditingDesignRecord, EditingDesignRole, EditingDesignSourceReceipt, EditingDesignState
 
@@ -92,7 +93,7 @@ def audit_editing_design_frontier_data(fixture: EditingDesignFixture) -> Editing
     return EditingDesignDataAudit(fixture.fixture_id, tuple(checks), all(check.passed for check in checks), content_hash(tuple(checks)))
 
 def load_editing_design_frontier_fixture(path: str | Path) -> EditingDesignFixture:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8")); expected = default_editing_design_frontier_fixture()
+    raw = _strict_json_loads(read_text(Path(path), field="editing design frontier fixture input path")); expected = default_editing_design_frontier_fixture()
     if not isinstance(raw, Mapping) or raw.get("fixture_version") != EDITING_DESIGN_FRONTIER_VERSION or raw.get("fixture_id") != expected.fixture_id or raw.get("content_address") != expected.content_address: raise ValueError("editing-design fixture identity mismatch")
     return expected
 

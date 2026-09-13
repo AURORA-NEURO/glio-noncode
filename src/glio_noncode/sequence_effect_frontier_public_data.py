@@ -14,6 +14,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable
 
@@ -686,7 +687,7 @@ def load_sequence_effect_fixture(path: str | Path) -> SequenceEffectFixture:
     """Load a sanitized fixture mapping; payloads are retained for execution only."""
 
     try:
-        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(read_text(Path(path), field="sequence effect fixture input path"))
     except (OSError, ValueError) as exc:
         raise ValidationError(f"unable to load sequence-effect fixture: {path}") from exc
     if not isinstance(raw, Mapping):

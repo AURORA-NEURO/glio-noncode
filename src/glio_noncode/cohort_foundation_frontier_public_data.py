@@ -15,6 +15,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any, Mapping
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable
 
@@ -349,7 +350,7 @@ def cohort_foundation_frontier_fixture_json(fixture: CohortFoundationFixture | N
 def load_cohort_foundation_frontier_fixture(path: str | Path) -> CohortFoundationFixture:
     """Load an externally supplied aggregate fixture with strict enum parsing."""
 
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(Path(path), field="cohort foundation frontier fixture input path"))
     sources = tuple(CohortFoundationSourceReceipt(**item) for item in raw["sources"])
     records = tuple(
         CohortFoundationRecord(

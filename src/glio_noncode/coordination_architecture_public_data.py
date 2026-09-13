@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .serialization import _strict_json_loads, content_hash, jsonable
@@ -261,7 +262,7 @@ def coordination_fixture_json(fixture: CoordinationFixture | None = None) -> str
 
 def load_coordination_fixture(path: str | Path) -> CoordinationFixture:
     try:
-        value = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+        value = _strict_json_loads(read_text(Path(path), field="coordination architecture fixture input path"))
     except (OSError, ValueError) as exc:
         raise ValidationError(f"unable to read coordination fixture: {path}") from exc
     if not isinstance(value, Mapping):

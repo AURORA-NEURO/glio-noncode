@@ -8,6 +8,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
@@ -640,7 +641,7 @@ def audit_topology_frontier_data(
 
 
 def load_topology_frontier_fixture(path: str | Path) -> TopologyFrontierFixture:
-    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(read_text(Path(path), field="topology frontier fixture input path"))
     sources = tuple(TopologyFrontierSourceReceipt(**row) for row in payload["sources"])
     records = tuple(
         TopologyFrontierRecord(

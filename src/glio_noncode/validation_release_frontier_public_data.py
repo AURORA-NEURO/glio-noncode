@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .validation_release_frontier_contracts import (
     VALIDATION_RELEASE_FRONTIER_BOUNDARY,
@@ -134,7 +135,7 @@ def audit_validation_release_frontier_data(fixture: ValidationReleaseFixture) ->
 
 
 def load_validation_release_frontier_fixture(path: str | Path) -> ValidationReleaseFixture:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(Path(path), field="validation release frontier fixture input path"))
     if not isinstance(raw, Mapping) or raw.get("fixture_version") != VALIDATION_RELEASE_FRONTIER_VERSION:
         raise ValueError("validation-release fixture version mismatch")
     expected = default_validation_release_frontier_fixture()

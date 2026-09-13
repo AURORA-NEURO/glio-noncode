@@ -17,6 +17,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
@@ -884,7 +885,7 @@ def load_reference_release_fixture(
     if isinstance(source, Mapping):
         payload = dict(source)
     else:
-        payload = _strict_json_loads(Path(source).read_text(encoding="utf-8"))
+        payload = _strict_json_loads(read_text(Path(source), field="reference release frontier fixture input path"))
     if payload.get("fixture") == "default_reference_release_fixture":
         return default_reference_release_fixture()
     sources: list[ReferenceReleaseSourceReceipt] = []

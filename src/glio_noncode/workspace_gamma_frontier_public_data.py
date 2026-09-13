@@ -14,6 +14,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 GAMMA_FRONTIER_FIXTURE_VERSION = "2026.08.d15-c09-c12.v1"
@@ -627,7 +628,7 @@ def load_gamma_frontier_fixture(path: str | Path | None = None) -> GammaFrontier
 
     if path is None:
         return default_gamma_frontier_fixture()
-    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(read_text(Path(path), field="workspace gamma frontier fixture input path"))
     sources = tuple(GammaFrontierSourceReceipt(**item) for item in payload["sources"])
     records = []
     for item in payload["records"]:

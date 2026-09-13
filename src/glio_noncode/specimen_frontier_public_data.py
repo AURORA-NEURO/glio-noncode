@@ -14,6 +14,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
@@ -204,7 +205,7 @@ class SpecimenFrontierFixtureCatalog:
     def from_file(cls, path: str | Path) -> SpecimenFrontierFixtureCatalog:
         source = Path(path)
         try:
-            payload = _strict_json_loads(source.read_text(encoding="utf-8"))
+            payload = _strict_json_loads(read_text(source, field="specimen frontier fixture input path"))
         except (OSError, ValueError) as exc:
             raise ValidationError(f"invalid specimen frontier fixture: {exc}") from exc
         if not isinstance(payload, Mapping):

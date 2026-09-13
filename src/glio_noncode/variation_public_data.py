@@ -15,6 +15,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
@@ -223,7 +224,7 @@ class VariationFixtureCatalog:
     def from_file(cls, path: str | Path) -> VariationFixtureCatalog:
         fixture_path = Path(path)
         try:
-            raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(read_text(fixture_path, field="variation fixture input path"))
         except ValueError as exc:
             raise ValidationError(f"variation fixture is not valid JSON: {fixture_path}") from exc
         if not isinstance(raw, Mapping):
