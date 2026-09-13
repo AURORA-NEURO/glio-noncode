@@ -92,6 +92,12 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeTests(unittest.Te
             loaded = runtime_model.load_runtime(destination)
             self.assertEqual(loaded.content_address, runtime.content_address)
             self.assertEqual(runtime_model.runtime_json(loaded), runtime_model.runtime_json(runtime))
+            manifest = destination / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"runtime_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                runtime_model.load_runtime(destination)
+            manifest.write_bytes(raw_manifest)
 
             execution_path = destination / "execution.json"
             execution_path.write_text(execution_path.read_text(encoding="utf-8") + " ", encoding="utf-8")

@@ -56,6 +56,12 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeTests(unittest.Test
             self.assertEqual((audit.check_count, audit.passed, query.total_count, query.returned_count, query_audit.check_count, query_audit.passed), (16, True, query.returned_count, query.returned_count, 12, True))
             self.assertEqual(loaded.to_dict(), runtime.to_dict())
             self.assertEqual(tuple(sorted(item.name for item in destination.iterdir())), tuple(sorted(runtime_model.FILES)))
+            manifest = destination / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"runtime_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                runtime_model.load_runtime(destination)
+            manifest.write_bytes(raw_manifest)
             self.assertEqual(runtime_model.runtime_from_mapping(json.loads(runtime_model.runtime_json(runtime))).to_dict(), runtime.to_dict())
             self.assertEqual(runtime_model.manifest_document(runtime)["runtime_address"], runtime.content_address)
 
