@@ -13,7 +13,6 @@ the result later. The supported live endpoints are:
 from __future__ import annotations
 
 import hashlib
-import json
 import math
 import os
 import re
@@ -45,6 +44,7 @@ from .errors import SourceError, SourceNotFoundError, SourceRateLimitError, Vali
 from .identity import normalize_chromosome, variant_interval
 from .models import CandidateElement, CaseManifest, ReferenceContext, VariantIdentity
 from .serialization import (
+    _strict_json_loads,
     canonical_bytes,
     canonical_json,
     content_hash,
@@ -992,7 +992,7 @@ class SourceCache:
         try:
             if path.stat().st_size > maximum * 2 + 32_768:
                 return None
-            raw = json.loads(
+            raw = _strict_json_loads(
                 path.read_text(encoding="utf-8"),
                 object_pairs_hook=_unique_json_object,
                 parse_constant=_invalid_json_constant,
@@ -1699,7 +1699,7 @@ class SourceClient:
     ) -> SourcePayload:
         if expect_json:
             try:
-                value = json.loads(
+                value = _strict_json_loads(
                     body.decode("utf-8"),
                     object_pairs_hook=_unique_json_object,
                     parse_constant=_invalid_json_constant,

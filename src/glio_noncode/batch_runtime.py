@@ -10,7 +10,6 @@ result.
 
 from __future__ import annotations
 
-import json
 import re
 from collections.abc import Iterator, Mapping, Sequence
 from contextlib import ExitStack, contextmanager
@@ -23,7 +22,7 @@ from .errors import GlioError, StoreError, ValidationError
 from .models import CaseManifest
 from .module_fabric_support import contains_private_key
 from .runtime import CaseRuntime
-from .serialization import canonical_bytes, canonical_json, content_hash, utc_now
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, utc_now
 from .storage import _address_digest, _atomic_write_text, _filesystem_lock, _run_lock
 
 BATCH_RUNTIME_VERSION = "batch-runtime-v1"
@@ -568,12 +567,12 @@ class BatchRuntime:
         if len(payload) > _HARD_MAX_BATCH_INDEX_BYTES:
             raise StoreError("batch index exceeds its byte ceiling")
         try:
-            raw = json.loads(
+            raw = _strict_json_loads(
                 payload.decode("utf-8"),
                 object_pairs_hook=_unique_json_object,
                 parse_constant=_invalid_json_constant,
             )
-        except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as exc:
+        except (UnicodeDecodeError, RecursionError, ValueError) as exc:
             raise StoreError("invalid batch index") from exc
         if type(raw) is not dict:
             raise StoreError("invalid batch index")

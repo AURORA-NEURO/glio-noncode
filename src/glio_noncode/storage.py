@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import re
 import tempfile
@@ -15,7 +14,7 @@ from threading import Lock, RLock
 from typing import Any, cast
 
 from .errors import StoreError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 _RUN_ID_RE = re.compile(r"run-[A-Za-z0-9][A-Za-z0-9._-]{0,123}\Z")
 _RUN_LOCKS: dict[str, RLock] = {}
@@ -257,12 +256,12 @@ def _decode_run_record(
     """Decode one exact JSON snapshot before applying the typed record contract."""
 
     try:
-        value = json.loads(
+        value = _strict_json_loads(
             payload.decode("utf-8"),
             object_pairs_hook=_unique_json_object,
             parse_constant=_invalid_json_constant,
         )
-    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as exc:
+    except (UnicodeDecodeError, RecursionError, ValueError) as exc:
         raise StoreError(f"invalid run record: {path.name}") from exc
     return _validated_run_record(value, expected_run_id=expected_run_id)
 
@@ -271,12 +270,12 @@ def _decode_stored_object(payload: bytes, *, address: str) -> Any:
     """Decode stored object bytes without accepting ambiguous JSON spellings."""
 
     try:
-        return json.loads(
+        return _strict_json_loads(
             payload.decode("utf-8"),
             object_pairs_hook=_unique_json_object,
             parse_constant=_invalid_json_constant,
         )
-    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError) as exc:
+    except (UnicodeDecodeError, RecursionError, ValueError) as exc:
         raise StoreError(f"invalid stored object: {address}") from exc
 
 
