@@ -16,7 +16,7 @@ from typing import Any
 from . import registry_federation_consensus_gate as gate_model
 from . import registry_federation_consensus_gate_audit as audit_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
 
 VERSION = gate_model.VERSION + "-history-v1"
@@ -280,7 +280,7 @@ def load_history(directory: str | Path) -> RegistryFederationConsensusGateHistor
     if not source.is_dir() or tuple(sorted(path.name for path in source.iterdir())) != tuple(sorted(FILES)):
         raise ValidationError("gate history directory does not contain exact canonical members")
     raw = {name: (source / name).read_bytes() for name in FILES}
-    decoded = {name: json.loads(payload.decode("utf-8")) for name, payload in raw.items()}
+    decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("gate history member is not canonical JSON")
     value = history_from_mapping(decoded[HISTORY_NAME])

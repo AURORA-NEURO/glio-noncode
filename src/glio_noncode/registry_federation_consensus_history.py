@@ -17,7 +17,7 @@ from . import registry_federation_consensus as consensus_model
 from . import registry_federation_consensus_audit as audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry as registry_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
 
 VERSION = consensus_model.VERSION + "-history-v1"
@@ -263,7 +263,7 @@ def load_history(directory: str | Path) -> RegistryFederationConsensusHistory:
     if not source.is_dir() or tuple(sorted(path.name for path in source.iterdir())) != tuple(sorted(FILES)):
         raise ValidationError("history directory does not contain exact canonical members")
     raw = {name: (source / name).read_bytes() for name in FILES}
-    decoded = {name: json.loads(payload.decode("utf-8")) for name, payload in raw.items()}
+    decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("history member is not canonical JSON")
     value = history_from_mapping(decoded[HISTORY_NAME])

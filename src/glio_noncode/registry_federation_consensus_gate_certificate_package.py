@@ -26,7 +26,7 @@ from . import registry_federation_consensus_gate_certificate_query as certificat
 from . import registry_federation_consensus_gate_query as gate_query_model
 from . import registry_federation_consensus_gate_runtime as runtime_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
 
 VERSION = certificate_model.VERSION + "-package-v1"
@@ -220,8 +220,8 @@ def load_package(directory: str | Path) -> RegistryFederationConsensusGateCertif
         raise ValidationError("certificate package directory does not contain exact canonical members")
     raw = {name: (source / name).read_bytes() for name in FILES}
     try:
-        decoded = {name: json.loads(payload.decode("utf-8")) for name, payload in raw.items()}
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("certificate package contains invalid JSON") from error
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("certificate package member is not canonical JSON")
