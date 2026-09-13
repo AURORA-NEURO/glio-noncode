@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -15,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history as history_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -475,14 +475,24 @@ def _documents(value) -> dict[str, bytes]:
 
 
 def _write_json(path: Path, value: Mapping[str, Any]) -> None:
-    path.write_text(canonical_json(value), encoding="utf-8", newline="\n")
+    atomic_write_bytes(path, canonical_json(value).encode("utf-8"), field="registry history diff document")
 
 
 def persist_diff(value, destination: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_diff(value)
     destination = Path(destination)
-    if destination.exists() and (not destination.is_dir() or not overwrite):
-        raise ValidationError("registry history diff destination exists or is not a directory")
+    try:
+        _validate_parent(destination.parent, "registry history diff destination")
+        if destination.is_symlink():
+            raise ValidationError("registry history diff destination cannot be a symlink")
+        if destination.exists():
+            if not destination.is_dir() or not overwrite:
+                raise ValidationError("registry history diff destination exists or is not a directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("registry history diff destination could not be prepared") from error
     documents = _documents(value)
     for name, receipt in zip(ARTIFACT_FILES, value.manifest.artifacts):
         if len(documents[name]) != receipt.size or hash_bytes(documents[name], prefix=ARTIFACT_PREFIX) != receipt.hash:
@@ -491,7 +501,7 @@ def persist_diff(value, destination: str | Path, *, overwrite: bool = False) -> 
     temporary = Path(tempfile.mkdtemp(prefix=".execution-ledger-registry-history-diff-", dir=str(destination.parent)))
     try:
         for name in FILES:
-            (temporary / name).write_bytes(documents[name])
+            atomic_write_bytes(temporary / name, documents[name], field=f"registry history diff {name} staging document")
         if destination.exists():
             shutil.rmtree(destination)
         os.replace(temporary, destination)
@@ -503,7 +513,7 @@ def persist_diff(value, destination: str | Path, *, overwrite: bool = False) -> 
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+        value = _strict_json_loads(read_text(path, field="registry history diff artifact"))
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("registry history diff artifact is not valid JSON") from error
     return _mapping(value, "registry history diff artifact")
@@ -511,14 +521,20 @@ def _read_json(path: Path) -> Mapping[str, Any]:
 
 def load_diff(destination: str | Path):
     destination = Path(destination)
-    if not destination.is_dir() or destination.is_symlink():
-        raise ValidationError("registry history diff source must be a regular directory")
+    try:
+        _validate_parent(destination.parent, "registry history diff source")
+        if not destination.is_dir() or destination.is_symlink():
+            raise ValidationError("registry history diff source must be a regular directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("registry history diff source could not be inspected") from error
     children = tuple(destination.iterdir())
     if tuple(sorted(item.name for item in children)) != tuple(sorted(FILES)) or any(item.is_symlink() or not item.is_file() for item in children):
         raise ValidationError("registry history diff directory must contain the exact regular file set")
     documents = {name: _read_json(destination / name) for name in FILES}
     for name, document in documents.items():
-        actual = (destination / name).read_text(encoding="utf-8")
+        actual = read_text(destination / name, field=f"registry history diff {name}")
         if actual != canonical_json(document) or len(canonical_bytes(document)) > MAX_DIFF_BYTES:
             raise ValidationError("registry history diff artifact is not canonical or exceeds its bound")
     value = diff_from_mapping(documents["diff.json"])
@@ -528,7 +544,7 @@ def load_diff(destination: str | Path):
     if manifest.to_dict() != value.manifest.to_dict() or items.to_dict() != {"items": [item.to_dict() for item in value.items], "content_address": address_items(value.items)} or summary.to_dict() != value.summary.to_dict():
         raise ValidationError("registry history diff component documents do not replay diff.json")
     for name, receipt in zip(ARTIFACT_FILES, manifest.artifacts):
-        payload = (destination / name).read_bytes()
+        payload = read_bytes(destination / name, field=f"registry history diff {name} artifact")
         if len(payload) != receipt.size or hash_bytes(payload, prefix=ARTIFACT_PREFIX) != receipt.hash:
             raise ValidationError("registry history diff artifact byte receipt does not replay")
     return value
