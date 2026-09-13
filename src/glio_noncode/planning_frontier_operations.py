@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import math
 from collections.abc import Mapping
 from typing import Any
@@ -29,6 +28,7 @@ from .planning_frontier_support import (
     sequence,
     unique_text,
 )
+from .serialization import _strict_json_loads
 
 
 STRENGTH_RANK = {"exploratory": 1, "moderate": 2, "strong": 3, "replicated": 4}
@@ -153,7 +153,7 @@ def _parse_guide_rows(text: str, input_format: str | None) -> tuple[Mapping[str,
         return ()
     mode = (input_format or "").lower()
     if mode in {"json", "jsonl"} or raw.lstrip().startswith(("[", "{")):
-        parsed = json.loads(raw)
+        parsed = _strict_json_loads(raw)
         rows = parsed.get("observations", parsed) if isinstance(parsed, Mapping) else parsed
         return tuple(mapping(item, "guide row") for item in sequence(rows, "observations"))
     delimiter = "\t" if mode in {"tsv", "tab"} else ","
@@ -233,7 +233,7 @@ def evaluate_guide_oligo_adaptation(payload: Mapping[str, Any]) -> PlanningOpera
             "input_address": address(payload.get("text", ""), prefix="guide-input"),
         }
         return _result(operation, state, issues, output)
-    except (TypeError, ValueError, KeyError, json.JSONDecodeError):
+    except (TypeError, ValueError, KeyError):
         return _invalid(operation, ("source_id", "source_version", "input_format", "text", "context_key"))
 
 
