@@ -23,6 +23,7 @@ from . import (
 from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit as runtime_audit_model,
 )
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -292,17 +293,30 @@ def render_package_markdown(value: DownloadedDataProfileContractCompatibilityRem
 
 
 def _write(path: Path, value: Any) -> None:
-    path.write_text(canonical_json(value), encoding="utf-8", newline="\n")
+    atomic_write_bytes(
+        path,
+        canonical_json(value).encode("utf-8"),
+        field="history diff policy package document",
+    )
 
 
 def persist_package(value: DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiffPolicyPackage, destination: str | Path, *, overwrite: bool = False) -> Path:
     if not isinstance(value, DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiffPolicyPackage):
         raise ValidationError("history diff policy package persistence requires a typed package")
     destination = Path(destination)
-    if destination.exists() and (not destination.is_dir() or not overwrite):
-        raise ValidationError("history diff policy package destination exists or is not a directory")
+    try:
+        _validate_parent(destination.parent, "history diff policy package destination")
+        if destination.is_symlink():
+            raise ValidationError("history diff policy package destination cannot be a symlink")
+        if destination.exists():
+            if not destination.is_dir() or not overwrite:
+                raise ValidationError("history diff policy package destination exists or is not a directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("history diff policy package destination could not be prepared") from error
     parent = destination.parent
-    parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".downloaded-resolution-history-diff-policy-package-", dir=str(parent)))
     try:
         documents = {"manifest.json": value.manifest.to_dict(), "runtime.json": value.runtime.to_dict(), "policy-audit.json": value.policy_audit.to_dict(), "runtime-audit.json": value.runtime_audit.to_dict(), "summary.json": value.summary.to_dict()}
@@ -319,7 +333,7 @@ def persist_package(value: DownloadedDataProfileContractCompatibilityRemediation
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+        value = _strict_json_loads(read_text(path, field="history diff policy package artifact"))
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("history diff policy package artifact is not valid JSON") from error
     return _mapping(value, "history diff policy package artifact")
@@ -327,7 +341,7 @@ def _read_json(path: Path) -> Mapping[str, Any]:
 
 def _read_canonical(path: Path, value: Mapping[str, Any]) -> None:
     try:
-        actual = path.read_text(encoding="utf-8")
+        actual = read_text(path, field="history diff policy package artifact")
     except (OSError, UnicodeDecodeError) as error:
         raise ValidationError("history diff policy package artifact cannot be read") from error
     if actual != canonical_json(value):
@@ -336,8 +350,14 @@ def _read_canonical(path: Path, value: Mapping[str, Any]) -> None:
 
 def load_package(destination: str | Path) -> DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiffPolicyPackage:
     destination = Path(destination)
-    if not destination.is_dir():
-        raise ValidationError("history diff policy package destination must be a directory")
+    try:
+        _validate_parent(destination.parent, "history diff policy package input")
+        if destination.is_symlink() or not destination.is_dir():
+            raise ValidationError("history diff policy package destination must be a directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("history diff policy package input could not be inspected") from error
     names = tuple(sorted(path.name for path in destination.iterdir()))
     if names != tuple(sorted(FILES)):
         raise ValidationError("history diff policy package directory does not contain the exact file set")
