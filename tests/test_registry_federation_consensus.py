@@ -113,13 +113,28 @@ class RegistryFederationConsensusTests(DurableCatalogPromotionPackageFixture):
             with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
                 with self.assertRaises(ValidationError):
                     registry_federation_consensus.load_consensus(destination)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(registry_federation_consensus, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     registry_federation_consensus.load_consensus(destination)
 
             (destination / registry_federation_consensus.MANIFEST_NAME).write_text("[]", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 registry_federation_consensus.load_consensus(destination)
+
+    def test_consensus_writer_rejects_symlinked_destination_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self._receipt(root / "receipt", "primary", "replica")
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("directory symlinks are unavailable")
+            with self.assertRaises(ValidationError):
+                registry_federation_consensus.write_consensus(value, linked_parent / "consensus")
+            self.assertEqual(tuple(external.iterdir()), ())
 
     def test_independent_audit_passes_for_accepted_and_rejected_receipts(self):
         with tempfile.TemporaryDirectory() as temporary:

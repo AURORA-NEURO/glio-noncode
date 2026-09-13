@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_federation as federation_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
@@ -497,6 +498,9 @@ def package_bytes(value: RegistryFederationConsensus) -> dict[str, bytes]:
 def write_consensus(value: RegistryFederationConsensus, directory: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_consensus(value)
     destination = Path(directory)
+    _validate_parent(destination.parent, "consensus destination")
+    if destination.is_symlink():
+        raise ValidationError("consensus destination must not be a symlink")
     if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
         raise ValidationError("consensus destination already exists")
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -504,8 +508,10 @@ def write_consensus(value: RegistryFederationConsensus, directory: str | Path, *
     try:
         staging = Path(tempfile.mkdtemp(prefix="federation-consensus-staging-", dir=str(destination.parent)))
         for name, raw in package_bytes(value).items():
-            (staging / name).write_bytes(raw)
+            atomic_write_bytes(staging / name, raw, field="consensus artifact")
         if destination.exists():
+            if destination.is_symlink() or not destination.is_dir():
+                raise ValidationError("consensus destination is not a regular directory")
             shutil.rmtree(destination)
         staging.replace(destination)
         staging = None
@@ -518,6 +524,9 @@ def write_consensus(value: RegistryFederationConsensus, directory: str | Path, *
 def load_consensus(directory: str | Path) -> RegistryFederationConsensus:
     try:
         source = Path(directory)
+        _validate_parent(source, "consensus source")
+        if source.is_symlink():
+            raise ValidationError("consensus directory does not contain exact canonical members")
         if not source.is_dir():
             raise ValidationError("consensus directory does not contain exact canonical members")
         members = tuple(source.iterdir())
@@ -526,8 +535,8 @@ def load_consensus(directory: str | Path) -> RegistryFederationConsensus:
     if tuple(sorted(path.name for path in members)) != tuple(sorted(FILES)) or any(path.is_symlink() or not path.is_file() for path in members):
         raise ValidationError("consensus directory does not contain exact canonical members")
     try:
-        raw = {name: (source / name).read_bytes() for name in FILES}
-    except OSError as error:
+        raw = {name: read_bytes(source / name, field="consensus artifact") for name in FILES}
+    except (OSError, ValidationError) as error:
         raise ValidationError("consensus artifact could not be read") from error
     try:
         decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
