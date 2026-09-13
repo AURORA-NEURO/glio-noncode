@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from ._safe_persistence import _validate_parent, _validate_target, atomic_write_bytes
+from ._safe_persistence import read_bytes_bounded
 from . import registry_federation_consensus_gate_certificate as certificate_model
 from . import registry_federation_consensus_gate_certificate_audit as audit_model
 from .errors import ValidationError
@@ -29,6 +30,10 @@ ENTRIES_NAME = "entries.json"
 FILES = (MANIFEST_NAME, HISTORY_NAME, ENTRIES_NAME)
 MAX_ENTRIES = 256
 MAX_TEXT = certificate_model.MAX_TEXT
+# History projections are canonical JSON and contain only bounded certificate
+# evidence addresses.  Keep a generous per-member ceiling while preventing an
+# accidentally huge fixture from being materialized before JSON validation.
+MAX_HISTORY_MEMBER_BYTES = 8 * 1024 * 1024
 
 
 def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
@@ -36,7 +41,9 @@ def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
 
     target = Path(path)
     _validate_target(target, field)
-    payload = target.read_bytes()
+    payload = read_bytes_bounded(target, max_bytes=MAX_HISTORY_MEMBER_BYTES, field=field)
+    if len(payload) > MAX_HISTORY_MEMBER_BYTES:
+        raise ValidationError(f"{field} exceeds the history member byte ceiling")
     _validate_target(target, field)
     return payload
 

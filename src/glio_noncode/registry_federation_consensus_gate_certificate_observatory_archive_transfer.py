@@ -24,6 +24,7 @@ from typing import Any
 
 from . import registry_federation_consensus_gate_certificate_observatory_archive as archive_model
 from ._safe_persistence import _validate_parent, _validate_target, atomic_write_bytes
+from ._safe_persistence import read_bytes_bounded
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -54,7 +55,9 @@ def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
 
     target = Path(path)
     _validate_target(target, field)
-    payload = target.read_bytes()
+    payload = read_bytes_bounded(target, max_bytes=MAX_TRANSFER_BYTES, field=field)
+    if len(payload) > MAX_TRANSFER_BYTES:
+        raise ValidationError(f"{field} exceeds the transfer byte ceiling")
     _validate_target(target, field)
     return payload
 
@@ -660,7 +663,7 @@ def query_result_schema() -> dict[str, Any]:
 
 
 def capabilities() -> dict[str, Any]:
-    return {"version": VERSION, "boundary": BOUNDARY, "transfer_prefix": TRANSFER_PREFIX, "chunk_prefix": CHUNK_PREFIX, "manifest_prefix": MANIFEST_PREFIX, "progress_prefix": PROGRESS_PREFIX, "features": ("bounded chunking", "per-chunk content receipts", "atomic complete and partial directories", "incremental assembly", "nested archive verification", "progress projection", "bounded transfer queries", "JSON CSV and Markdown exports"), "schemas": ("chunk", "transfer", "progress", "query", "query-result")}
+    return {"version": VERSION, "boundary": BOUNDARY, "transfer_prefix": TRANSFER_PREFIX, "chunk_prefix": CHUNK_PREFIX, "manifest_prefix": MANIFEST_PREFIX, "progress_prefix": PROGRESS_PREFIX, "features": ("bounded chunking", "per-chunk content receipts", "atomic complete and partial directories", "incremental assembly", "nested archive verification", "progress projection", "bounded transfer queries", "JSON CSV and Markdown exports"), "schemas": ("chunk", "transfer", "progress", "query", "query-result"), "max_transfer_bytes": MAX_TRANSFER_BYTES}
 
 
 __all__ = ["BOUNDARY", "CHUNK_PREFIX", "DEFAULT_CHUNK_SIZE", "DEFAULT_LIMIT", "DEFAULT_TRANSFER_ID", "MANIFEST_NAME", "MANIFEST_PREFIX", "PROGRESS_PREFIX", "QUERY_PREFIX", "TRANSFER_PREFIX", "TransferAssembler", "VERSION", "RegistryFederationConsensusGateCertificateObservatoryArchiveTransfer", "RegistryFederationConsensusGateCertificateObservatoryArchiveTransferChunk", "RegistryFederationConsensusGateCertificateObservatoryArchiveTransferProgress", "RegistryFederationConsensusGateCertificateObservatoryArchiveTransferQuery", "RegistryFederationConsensusGateCertificateObservatoryArchiveTransferQueryResult", "address_chunk", "address_progress", "address_transfer", "address_transfer_query", "address_transfer_query_result", "assemble_archive_bytes", "build_transfer", "build_transfer_from_bytes", "build_transfer_from_file", "capabilities", "chunk_bytes", "chunk_name", "chunk_schema", "load_partial_transfer", "load_transfer", "manifest_document", "manifest_json", "progress_json", "progress_schema", "query_csv", "query_from_mapping", "query_json", "query_result_schema", "query_schema", "query_transfer", "render_progress_markdown", "render_transfer_markdown", "transfer_from_mapping", "transfer_json", "transfer_schema", "verify_query_result", "verify_transfer", "verify_transfer_directory", "write_partial_transfer", "write_transfer"]

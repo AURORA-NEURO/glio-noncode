@@ -18,6 +18,7 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_audit as audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_diff as diff_model
 from ._safe_persistence import _validate_parent, _validate_target, atomic_write_bytes
+from ._safe_persistence import read_bytes_bounded
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -36,6 +37,7 @@ FILES = (MANIFEST_NAME, HISTORY_NAME, ENTRIES_NAME, METRICS_NAME)
 DEFAULT_HISTORY_ID = "consensus-certificate-observatory-archive-registry-history"
 MAX_ENTRIES = registry_model.MAX_ENTRIES
 MAX_HISTORY_BYTES = MAX_ENTRIES * registry_model.MAX_TOTAL_ARCHIVE_BYTES
+MAX_HISTORY_MEMBER_BYTES = 16 * 1024 * 1024
 
 
 def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
@@ -43,7 +45,9 @@ def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
 
     target = Path(path)
     _validate_target(target, field)
-    payload = target.read_bytes()
+    payload = read_bytes_bounded(target, max_bytes=MAX_HISTORY_MEMBER_BYTES, field=field)
+    if len(payload) > MAX_HISTORY_MEMBER_BYTES:
+        raise ValidationError(f"{field} exceeds the history member byte ceiling")
     _validate_target(target, field)
     return payload
 
@@ -399,7 +403,7 @@ def manifest_schema() -> dict[str, Any]:
 
 
 def capabilities() -> dict[str, Any]:
-    return {"version": VERSION, "boundary": BOUNDARY, "history_prefix": HISTORY_PREFIX, "entry_prefix": ENTRY_PREFIX, "files": FILES, "limits": {"max_snapshots": MAX_ENTRIES, "max_history_bytes": MAX_HISTORY_BYTES}, "features": ("append-only registry snapshots", "predecessor chain", "transition counters", "independent snapshot audits", "atomic four-file persistence", "canonical reload", "JSON CSV and Markdown exports"), "schemas": ("entry", "manifest", "history")}
+    return {"version": VERSION, "boundary": BOUNDARY, "history_prefix": HISTORY_PREFIX, "entry_prefix": ENTRY_PREFIX, "files": FILES, "limits": {"max_snapshots": MAX_ENTRIES, "max_history_bytes": MAX_HISTORY_BYTES, "max_history_member_bytes": MAX_HISTORY_MEMBER_BYTES}, "features": ("append-only registry snapshots", "predecessor chain", "transition counters", "independent snapshot audits", "atomic four-file persistence", "canonical reload", "JSON CSV and Markdown exports"), "schemas": ("entry", "manifest", "history")}
 
 
 __all__ = ["BOUNDARY", "DEFAULT_HISTORY_ID", "ENTRY_PREFIX", "FILES", "HISTORY_NAME", "HISTORY_PREFIX", "MAX_ENTRIES", "RegistryFederationConsensusGateCertificateObservatoryArchiveRegistryHistory", "RegistryFederationConsensusGateCertificateObservatoryArchiveRegistryHistoryEntry", "VERSION", "address_entry", "address_history", "build_history", "capabilities", "entry_schema", "history_bytes", "history_csv", "history_from_mapping", "history_json", "history_schema", "load_history", "manifest_document", "manifest_schema", "render_history_markdown", "verify_history", "verify_history_directory", "write_history"]

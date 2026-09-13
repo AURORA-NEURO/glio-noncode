@@ -90,7 +90,7 @@ class RegistryHistoryReleaseEvidencePipelineBundleDiffBuildTests(RegistryHistory
             root = Path(temporary)
             source = self.bundle_for(root, "snapshot")
             loaded = bundle.load_bundle(source)
-            with patch.object(diff.bundle_model, "load_bundle", return_value=loaded), patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(diff.bundle_model, "load_bundle", return_value=loaded), patch.object(diff, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     diff.build_diff(source, source)
 

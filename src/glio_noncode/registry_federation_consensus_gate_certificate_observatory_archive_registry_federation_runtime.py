@@ -17,6 +17,7 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_consensus_audit as consensus_audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_report as report_model
 from ._safe_persistence import _validate_parent, _validate_target, atomic_write_bytes
+from ._safe_persistence import read_bytes_bounded
 from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
@@ -36,6 +37,7 @@ CONSENSUS_NAME = "consensus.json"
 REPORT_NAME = "report.json"
 FILES = (MANIFEST_NAME, RUNTIME_NAME, FEDERATION_NAME, AUDITS_NAME, CONSENSUS_NAME, REPORT_NAME)
 MAX_SOURCE_COUNT = federation_model.MAX_PEERS
+MAX_RUNTIME_MEMBER_BYTES = 16 * 1024 * 1024
 
 
 def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
@@ -43,7 +45,9 @@ def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
 
     target = Path(path)
     _validate_target(target, field)
-    payload = target.read_bytes()
+    payload = read_bytes_bounded(target, max_bytes=MAX_RUNTIME_MEMBER_BYTES, field=field)
+    if len(payload) > MAX_RUNTIME_MEMBER_BYTES:
+        raise ValidationError(f"{field} exceeds the runtime member byte ceiling")
     _validate_target(target, field)
     return payload
 
@@ -352,7 +356,7 @@ def runtime_schema() -> dict[str, Any]:
 
 
 def capabilities() -> dict[str, Any]:
-    return {"version": VERSION, "boundary": BOUNDARY, "public": True, "bounded": True, "content_addressed": True, "operations": ("run_runtime", "build_runtime", "load_registry_input", "runtime_from_mapping", "runtime_json", "runtime_csv", "render_runtime_markdown", "write_runtime", "load_runtime", "verify_runtime_directory"), "files": FILES, "max_sources": MAX_SOURCE_COUNT}
+    return {"version": VERSION, "boundary": BOUNDARY, "public": True, "bounded": True, "content_addressed": True, "operations": ("run_runtime", "build_runtime", "load_registry_input", "runtime_from_mapping", "runtime_json", "runtime_csv", "render_runtime_markdown", "write_runtime", "load_runtime", "verify_runtime_directory"), "files": FILES, "max_sources": MAX_SOURCE_COUNT, "max_runtime_member_bytes": MAX_RUNTIME_MEMBER_BYTES}
 
 
 __all__ = ["AUDITS_NAME", "BOUNDARY", "CONSENSUS_NAME", "DEFAULT_RUNTIME_ID", "FEDERATION_NAME", "FILES", "MANIFEST_NAME", "REPORT_NAME", "RUNTIME_NAME", "RUNTIME_PREFIX", "VERSION", "RegistryFederationConsensusGateCertificateObservatoryArchiveRegistryFederationRuntime", "address_runtime", "build_runtime", "capabilities", "load_registry_input", "load_runtime", "manifest_document", "manifest_schema", "render_runtime_markdown", "run_runtime", "runtime_bytes", "runtime_csv", "runtime_from_mapping", "runtime_json", "runtime_schema", "verify_runtime", "verify_runtime_directory", "write_runtime"]

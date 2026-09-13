@@ -261,7 +261,7 @@ class ArchiveRegistryFederationContractTests(unittest.TestCase):
             with patch.object(Path, "iterdir", side_effect=OSError("unreadable")):
                 with self.assertRaisesRegex(ValidationError, "could not be inspected"):
                     runtime_model.load_runtime(destination)
-            with patch.object(Path, "read_bytes", side_effect=OSError("unreadable")):
+            with patch.object(runtime_model, "read_bytes", side_effect=OSError("unreadable")):
                 with self.assertRaisesRegex(ValidationError, "could not be read"):
                     runtime_model.load_runtime(destination)
 

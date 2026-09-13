@@ -20,7 +20,7 @@ from typing import Any
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline as pipeline_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle as bundle_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query as query_model
-from ._safe_persistence import _validate_target
+from ._safe_persistence import _validate_target, read_bytes_bounded
 from .errors import ValidationError
 from .serialization import canonical_json, content_hash, hash_bytes
 
@@ -45,6 +45,18 @@ BUNDLE_FIELDS = (
     "content_address",
 )
 ITEM_FIELDS = ("size", "hash")
+
+
+def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
+    """Read a bounded verified-bundle artifact while preserving the fault seam."""
+
+    target = Path(path)
+    _validate_target(target, field)
+    payload = read_bytes_bounded(target, max_bytes=bundle_model.MAX_ARTIFACT_BYTES, field=field)
+    if len(payload) > bundle_model.MAX_ARTIFACT_BYTES:
+        raise ValidationError(f"{field} exceeds the artifact byte ceiling")
+    _validate_target(target, field)
+    return payload
 
 
 def _text(value: Any, field: str, maximum: int = 512) -> str:
@@ -260,7 +272,7 @@ def _snapshot(source: str | Path) -> tuple[bundle_model.RegistryHistoryReleaseEv
         for name in bundle_model.FILES:
             artifact = directory / name
             _validate_target(artifact, "release evidence bundle snapshot artifact")
-            payload[name] = artifact.read_bytes()
+            payload[name] = read_bytes(artifact, field="release evidence bundle snapshot artifact")
             # Re-check after the read because Windows lacks O_NOFOLLOW and a
             # copied bundle can be swapped while the snapshot is in flight.
             _validate_target(artifact, "release evidence bundle snapshot artifact")
