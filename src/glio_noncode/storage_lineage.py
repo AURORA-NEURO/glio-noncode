@@ -18,8 +18,10 @@ from io import StringIO
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .release_assurance_support import text_matches
+from .runtime import CaseRuntime
 from .serialization import _strict_json_loads, canonical_json, content_hash
 from .storage_audit import (
     StorageAuditReport,
@@ -45,7 +47,6 @@ from .storage_lineage_contracts import (
     StorageLineageNodeKind,
     StorageLineageQueryResult,
 )
-from .runtime import CaseRuntime
 
 
 def _text(value: Any, field: str, *, maximum: int = 500) -> str:
@@ -173,8 +174,8 @@ def _edge_key(
 
 def _load_object(path: Path) -> Any | None:
     try:
-        return _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError):
+        return _strict_json_loads(read_text(path, field="storage lineage object"))
+    except (OSError, UnicodeError, ValueError, ValidationError):
         return None
 
 
