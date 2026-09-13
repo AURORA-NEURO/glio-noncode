@@ -389,9 +389,16 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
     directory = Path(source)
     if directory.is_symlink() or not directory.is_dir():
         raise ValidationError("registry history input must be a regular directory")
-    if {item.name for item in directory.iterdir()} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in directory.iterdir()):
+    try:
+        children = tuple(directory.iterdir())
+    except OSError as error:
+        raise ValidationError("registry history directory could not be inspected") from error
+    if {item.name for item in children} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in children):
         raise ValidationError("registry history directory member set is invalid")
-    return {name: (directory / name).read_bytes() for name in FILES}
+    try:
+        return {name: (directory / name).read_bytes() for name in FILES}
+    except OSError as error:
+        raise ValidationError("registry history artifact could not be read") from error
 
 
 def load_history(source: str | Path) -> RegistryHistory:

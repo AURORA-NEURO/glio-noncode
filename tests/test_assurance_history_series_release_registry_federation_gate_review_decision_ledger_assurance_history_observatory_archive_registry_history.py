@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -139,6 +140,20 @@ class RegistryHistoryPersistenceTests(RegistryHistoryFixture):
             path.write_text(duplicate, encoding="utf-8")
             with self.assertRaises(ValidationError):
                 history.load_history(destination)
+
+    def test_history_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            result = history.build_history(self.snapshots(root, "failure-a", "failure-b"))
+            destination = root / "history"
+            history.write_history(result, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    history.load_history(destination)
+
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    history.load_history(destination)
 
     def test_mapping_rejects_forged_fields_and_history_constructor_rejects_nonadjacent_transition(self):
         with tempfile.TemporaryDirectory() as temporary:
