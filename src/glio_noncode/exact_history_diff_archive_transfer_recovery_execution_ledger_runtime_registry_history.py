@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry as registry_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -566,13 +567,26 @@ def persist_history(value: ExactHistoryDiffArchiveTransferRecoveryExecutionLedge
     manifest = _manifest_for_documents(value, documents)
     members = {"manifest.json": canonical_bytes(manifest.to_dict()), **documents}
     target = Path(destination)
-    if target.exists() and (not overwrite or target.is_symlink() or not target.is_dir()):
-        raise ValidationError("ledger runtime registry history destination exists; explicit overwrite is required")
-    target.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(target.parent, "ledger runtime registry history destination")
+        if target.is_symlink():
+            raise ValidationError("ledger runtime registry history destination cannot be a symlink")
+        if target.exists():
+            if not overwrite or not target.is_dir():
+                raise ValidationError("ledger runtime registry history destination exists; explicit overwrite is required")
+        target.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("ledger runtime registry history destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=target.name + ".", dir=target.parent))
     try:
         for name in FILES:
-            (temporary / name).write_bytes(members[name])
+            atomic_write_bytes(
+                temporary / name,
+                members[name],
+                field=f"ledger runtime registry history {name} staging document",
+            )
         if target.exists():
             shutil.rmtree(target)
         os.replace(temporary, target)
@@ -584,7 +598,7 @@ def persist_history(value: ExactHistoryDiffArchiveTransferRecoveryExecutionLedge
 
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=f"ledger runtime registry history member {path.name}")
         value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"ledger runtime registry history member {path.name}")
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError(f"ledger runtime registry history member {path.name} is not valid JSON") from error
@@ -597,8 +611,14 @@ def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
 
 def load_history(destination: str | Path) -> ExactHistoryDiffArchiveTransferRecoveryExecutionLedgerRuntimeRegistryHistory:
     root = Path(destination)
-    if root.is_symlink() or not root.is_dir():
-        raise ValidationError("ledger runtime registry history source must be a regular directory")
+    try:
+        _validate_parent(root.parent, "ledger runtime registry history input")
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("ledger runtime registry history source must be a regular directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("ledger runtime registry history input could not be inspected") from error
     children = tuple(root.iterdir())
     if tuple(sorted(item.name for item in children)) != tuple(sorted(FILES)) or any(item.is_symlink() or not item.is_file() for item in children):
         raise ValidationError("ledger runtime registry history directory has an unexpected file set")
