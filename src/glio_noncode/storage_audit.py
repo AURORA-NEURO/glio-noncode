@@ -22,8 +22,9 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_bytes
 from .batch_runtime import BatchRuntime
-from .errors import GlioError, StoreError
+from .errors import GlioError, StoreError, ValidationError
 from .module_fabric_support import contains_private_key
 from .run_catalog import inspect_run
 from .run_workspace import _has_forbidden_key
@@ -257,8 +258,8 @@ def _addressed(body: dict[str, Any], prefix: str) -> str:
 def _object_audit(path: Path, address: str) -> tuple[StorageObjectAudit, Any | None]:
     warnings: list[str] = []
     try:
-        payload = path.read_bytes()
-    except OSError as exc:
+        payload = read_bytes(path, field="storage audit object")
+    except (OSError, ValidationError) as exc:
         body = {
             "address": address,
             "filename": path.name,
@@ -366,8 +367,8 @@ def _decode_index(payload: bytes) -> tuple[dict[str, Any] | None, tuple[str, ...
 
 def _read_index(path: Path) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
     try:
-        payload = path.read_bytes()
-    except OSError as exc:
+        payload = read_bytes(path, field="storage audit index")
+    except (OSError, ValidationError) as exc:
         return None, (f"index JSON is invalid: {exc}",)
     return _decode_index(payload)
 
