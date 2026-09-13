@@ -1,15 +1,29 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 
 from glio_noncode.capability_registry import (
     CapabilityRegistry,
     CapabilityState,
     default_capability_registry,
 )
+from glio_noncode.errors import ValidationError
 
 
 class CapabilityRegistryTests(unittest.TestCase):
+    def test_csv_loader_rejects_symlinked_catalog(self) -> None:
+        source = Path(__file__).resolve().parents[1] / "schemas" / "capability_catalog.csv"
+        with tempfile.TemporaryDirectory() as directory:
+            link = Path(directory) / "catalog.csv"
+            try:
+                link.symlink_to(source)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                CapabilityRegistry.from_csv(link)
+
     def test_blueprint_catalog_has_256_rows_and_64_mvp_rows(self) -> None:
         registry = default_capability_registry()
         coverage = registry.coverage()

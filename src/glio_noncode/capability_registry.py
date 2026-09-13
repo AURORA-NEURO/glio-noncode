@@ -10,6 +10,7 @@ capabilities remain planned or only partially implemented.
 from __future__ import annotations
 
 import csv
+import io
 import sysconfig
 from collections import Counter
 from collections.abc import Iterable, Mapping
@@ -18,6 +19,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import content_hash, jsonable
 
@@ -147,7 +149,7 @@ def _default_catalog_path() -> Path:
         Path(sysconfig.get_path("data")) / "schemas" / "capability_catalog.csv",
     )
     for candidate in candidates:
-        if candidate.is_file():
+        if candidate.is_file() and not candidate.is_symlink():
             return candidate
     raise ValidationError(
         "capability catalog is not installed; expected schemas/capability_catalog.csv"
@@ -175,9 +177,13 @@ class CapabilityRegistry:
     def from_csv(cls, path: str | Path | None = None) -> CapabilityRegistry:
         catalog_path = Path(path) if path is not None else _default_catalog_path()
         try:
-            with catalog_path.open("r", encoding="utf-8", newline="") as handle:
-                rows = tuple(csv.DictReader(handle))
-        except OSError as exc:
+            contents = read_text(
+                catalog_path,
+                field="capability catalog path",
+                encoding="utf-8",
+            )
+            rows = tuple(csv.DictReader(io.StringIO(contents, newline="")))
+        except (OSError, UnicodeError, ValidationError) as exc:
             raise ValidationError(f"unable to read capability catalog: {catalog_path}") from exc
         records: list[CapabilityRecord] = []
         for row in rows:
