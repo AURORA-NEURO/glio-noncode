@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry import (
     ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketReviewGateHistoryObservatoryPacketRegistry,
     address_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry,
@@ -1858,11 +1859,14 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
     }
     if set(documents) != expected_files:
         raise ValidationError("federation artifact file set is invalid")
+    if destination.is_symlink():
+        raise ValidationError("federation destination cannot be a symlink")
+    _validate_parent(destination.parent, "federation destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".glio-federation-", dir=str(destination.parent)))
     try:
         for file_name, raw in documents.items():
-            (temporary / file_name).write_bytes(raw)
+            atomic_write_bytes(temporary / file_name, raw, field="federation artifact")
         if destination.exists():
             if destination.is_symlink():
                 raise ValidationError("federation destination cannot be a symlink")
@@ -1879,9 +1883,9 @@ def _read_canonical_document(path: Path) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"federation artifact is not a regular file: {path.name}")
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=f"federation artifact {path.name}")
         document = _strict_json_loads(raw.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"federation artifact is not valid JSON: {path.name}") from exc
     if not isinstance(document, Mapping) or canonical_bytes(document) != raw:
         raise ValidationError(f"federation artifact is not canonical: {path.name}")
@@ -1922,7 +1926,7 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
         row.get("file_name") for row in artifact_rows if isinstance(row, Mapping)
     } != set(_FEDERATION_FILES.values()):
         raise ValidationError("federation manifest artifact files are invalid")
-    raw_by_name = {name: (directory / name).read_bytes() for name in _FEDERATION_FILES.values()}
+    raw_by_name = {name: read_bytes(directory / name, field=f"federation artifact {name}") for name in _FEDERATION_FILES.values()}
     for row in artifact_rows:
         if not isinstance(row, Mapping) or row.get("file_name") not in raw_by_name:
             raise ValidationError("federation manifest receipt is invalid")

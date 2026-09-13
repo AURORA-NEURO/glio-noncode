@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory import (
     MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_MAX_OBSERVATIONS,
     MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_MAX_TRANSITIONS,
@@ -981,8 +982,11 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
     if not value.accepted:
         raise ValidationError("cannot persist a blocked runtime report")
     destination = Path(destination)
+    if destination.is_symlink():
+        raise ValidationError("runtime destination cannot be a symlink")
     if destination.exists() and not overwrite:
         raise ValidationError("runtime destination already exists")
+    _validate_parent(destination.parent, "runtime destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
     try:
@@ -1004,14 +1008,18 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
                 + "-manifest",
             )
         }
-        (
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_RUNTIME_DOCUMENT
-        ).write_bytes(document)
-        (
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_RUNTIME_DOCUMENT,
+            document,
+            field="runtime document",
+        )
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_RUNTIME_MANIFEST
-        ).write_bytes(canonical_bytes(manifest))
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_RUNTIME_MANIFEST,
+            canonical_bytes(manifest),
+            field="runtime manifest",
+        )
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("runtime destination is not a regular directory")
@@ -1039,14 +1047,16 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
         or {item.name for item in children} != expected
     ):
         raise ValidationError("runtime files do not match the published set")
-    manifest_raw = (
+    manifest_raw = read_bytes(
         directory
-        / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_RUNTIME_MANIFEST
-    ).read_bytes()
-    document_raw = (
+        / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_RUNTIME_MANIFEST,
+        field="runtime manifest",
+    )
+    document_raw = read_bytes(
         directory
-        / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_RUNTIME_DOCUMENT
-    ).read_bytes()
+        / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_RUNTIME_DOCUMENT,
+        field="runtime document",
+    )
     try:
         manifest = _strict_json_loads(manifest_raw.decode("utf-8"))
         document = _strict_json_loads(document_raw.decode("utf-8"))

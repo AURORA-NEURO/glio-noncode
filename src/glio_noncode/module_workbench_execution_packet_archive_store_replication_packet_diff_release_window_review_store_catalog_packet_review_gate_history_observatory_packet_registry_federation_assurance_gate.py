@@ -36,6 +36,7 @@ from . import (
     module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation as federation_model,
 )
 from .errors import ValidationError
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 FEDERATION = federation_model
@@ -1269,8 +1270,11 @@ def _manifest_address(value: Mapping[str, Any]) -> str:
 def write_federation_assurance_gate(value: FederationReleaseGate, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_federation_assurance_gate(value)
     destination = Path(directory)
+    if destination.is_symlink():
+        raise ValidationError("assurance-gate destination cannot be a symlink")
     if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
         raise ValidationError("assurance-gate destination already exists")
+    _validate_parent(destination.parent, "assurance-gate destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
     documents = _document_bytes(value)
     body = _manifest_body(value, documents)
@@ -1279,7 +1283,7 @@ def write_federation_assurance_gate(value: FederationReleaseGate, directory: str
     temporary = Path(tempfile.mkdtemp(prefix=f".{GATE_PREFIX}-", dir=str(destination.parent)))
     try:
         for name, raw in ((ASSURANCE_NAME, documents[ASSURANCE_NAME]), (GATE_NAME, documents[GATE_NAME]), (MANIFEST_NAME, manifest)):
-            (temporary / name).write_bytes(raw)
+            atomic_write_bytes(temporary / name, raw, field="assurance-gate artifact")
         if destination.exists():
             if not destination.is_dir() or any(destination.iterdir()):
                 if not overwrite:
@@ -1295,7 +1299,7 @@ def write_federation_assurance_gate(value: FederationReleaseGate, directory: str
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if not path.is_file() or path.is_symlink():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -1333,7 +1337,7 @@ def load_federation_assurance_gate(directory: str | Path) -> FederationReleaseGa
         name = _text(item.get("name"), "artifact name", 64)
         if name not in {ASSURANCE_NAME, GATE_NAME} or name in documents:
             raise ValidationError("assurance-gate artifact name is invalid")
-        raw = (source / name).read_bytes()
+        raw = read_bytes(source / name, field=f"assurance-gate artifact {name}")
         if item.get("bytes") != len(raw) or item.get("byte_address") != hash_bytes(raw) or item.get("file_address") != _file_address(name, raw):
             raise ValidationError("assurance-gate artifact address mismatch")
         documents[name] = raw

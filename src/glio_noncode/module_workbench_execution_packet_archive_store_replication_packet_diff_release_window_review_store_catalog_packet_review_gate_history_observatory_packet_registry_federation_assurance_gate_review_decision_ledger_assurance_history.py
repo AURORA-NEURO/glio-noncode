@@ -34,6 +34,7 @@ from . import (
     module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance as assurance_model,
 )
 from .errors import ValidationError
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 DecisionAssuranceGate = assurance_model.DecisionAssuranceGate
@@ -768,8 +769,11 @@ def _manifest_address(value: Mapping[str, Any]) -> str:
 def write_decision_assurance_history(value: DecisionAssuranceHistory, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_decision_assurance_history(value)
     destination = Path(directory)
+    if destination.is_symlink():
+        raise ValidationError("decision assurance history destination cannot be a symlink")
     if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
         raise ValidationError("decision assurance history destination already exists")
+    _validate_parent(destination.parent, "decision assurance history destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
     history_raw = canonical_bytes(value.to_dict(include_entries=False))
     entries_raw = canonical_bytes({"history_id": value.history_id, "history_address": value.content_address, "entry_count": value.entry_count, "entries": [entry.to_dict() for entry in value.entries]})
@@ -778,9 +782,9 @@ def write_decision_assurance_history(value: DecisionAssuranceHistory, directory:
     manifest_raw = canonical_bytes(manifest)
     temporary = Path(tempfile.mkdtemp(prefix=f".{HISTORY_PREFIX}-", dir=str(destination.parent)))
     try:
-        (temporary / HISTORY_NAME).write_bytes(history_raw)
-        (temporary / ENTRIES_NAME).write_bytes(entries_raw)
-        (temporary / MANIFEST_NAME).write_bytes(manifest_raw)
+        atomic_write_bytes(temporary / HISTORY_NAME, history_raw, field="assurance history artifact")
+        atomic_write_bytes(temporary / ENTRIES_NAME, entries_raw, field="assurance history artifact")
+        atomic_write_bytes(temporary / MANIFEST_NAME, manifest_raw, field="assurance history manifest")
         if destination.exists():
             if not destination.is_dir():
                 raise ValidationError("decision assurance history destination is not a directory")
@@ -798,7 +802,7 @@ def write_decision_assurance_history(value: DecisionAssuranceHistory, directory:
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -812,7 +816,7 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
     artifact = next((item for item in _mapping_sequence(manifest.get("artifacts"), "history manifest artifacts") if item.get("name") == name), None)
     if artifact is None:
         raise ValidationError(f"history manifest is missing {name}")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=f"history {name} artifact")
     byte_address = hash_bytes(raw)
     if artifact.get("bytes") != len(raw) or artifact.get("byte_address") != byte_address:
         raise ValidationError(f"history {name} bytes are not addressed")
