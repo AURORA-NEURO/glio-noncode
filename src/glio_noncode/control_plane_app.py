@@ -115,6 +115,12 @@ def _input_number(value: object, field: str) -> float:
     return result
 
 
+def _input_integer(value: object, field: str) -> int:
+    if type(value) is not int:
+        raise ValidationError(f"{field} must be an integer")
+    return value
+
+
 def _input_strings(value: object, field: str) -> tuple[str, ...]:
     if not isinstance(value, (list, tuple)):
         raise ValidationError(f"{field} must be an array")
@@ -817,7 +823,7 @@ class ControlPlaneApplication:
         raw = request.input_payload
         try:
             variant = self._variant_from_payload(raw)
-            target_build = str(raw["target_build"])
+            target_build = _input_text(raw["target_build"], "target_build")
             projector = self._projector(raw.get("mappings", ()))
             result = projector.project(variant, target_build)
         except (TypeError, ValueError, ValidationError, KeyError) as exc:
@@ -851,9 +857,9 @@ class ControlPlaneApplication:
         raw = request.input_payload
         targets_raw = raw.get("target_builds", raw.get("target_build"))
         if isinstance(targets_raw, str):
-            targets = (targets_raw,)
+            targets = (_input_text(targets_raw, "target_build"),)
         elif isinstance(targets_raw, (list, tuple)):
-            targets = tuple(str(item) for item in targets_raw)
+            targets = _input_strings(targets_raw, "target_builds")
         else:
             targets = ()
         if not targets:
@@ -909,17 +915,17 @@ class ControlPlaneApplication:
         if not isinstance(raw, Mapping):
             raise ValidationError("each mapping segment must be a mapping")
         return MappingSegment(
-            mapping_id=str(raw["mapping_id"]),
-            source_assembly=str(raw["source_assembly"]),
-            source_chromosome=str(raw["source_chromosome"]),
-            source_start=int(raw["source_start"]),
-            source_end=int(raw["source_end"]),
-            target_assembly=str(raw["target_assembly"]),
-            target_chromosome=str(raw["target_chromosome"]),
-            target_start=int(raw["target_start"]),
-            target_end=int(raw["target_end"]),
-            strand=str(raw["strand"]),
-            source_version=str(raw["source_version"]),
+            mapping_id=_input_text(raw["mapping_id"], "mapping_id"),
+            source_assembly=_input_text(raw["source_assembly"], "source_assembly"),
+            source_chromosome=_input_text(raw["source_chromosome"], "source_chromosome"),
+            source_start=_input_integer(raw["source_start"], "source_start"),
+            source_end=_input_integer(raw["source_end"], "source_end"),
+            target_assembly=_input_text(raw["target_assembly"], "target_assembly"),
+            target_chromosome=_input_text(raw["target_chromosome"], "target_chromosome"),
+            target_start=_input_integer(raw["target_start"], "target_start"),
+            target_end=_input_integer(raw["target_end"], "target_end"),
+            strand=_input_text(raw["strand"], "strand"),
+            source_version=_input_text(raw["source_version"], "source_version"),
         )
 
     def _structural_reconstruction(
@@ -935,7 +941,7 @@ class ControlPlaneApplication:
             result = self.structural.reconstruct(
                 records,
                 context=context,
-                source_id=str(raw.get("source_id", "structural-input")),
+                source_id=_input_text(raw.get("source_id", "structural-input"), "source_id"),
             )
         except (TypeError, ValueError, ValidationError, KeyError) as exc:
             return Abstention(
@@ -966,18 +972,22 @@ class ControlPlaneApplication:
     def _raw_variant_record(raw: object) -> RawVariantRecord:
         if not isinstance(raw, Mapping):
             raise ValidationError("each structural record must be a mapping")
+        info = raw.get("info", {})
+        sample = raw.get("sample", {})
+        if not isinstance(info, Mapping) or not isinstance(sample, Mapping):
+            raise ValidationError("structural record info and sample must be mappings")
         return RawVariantRecord(
-            record_id=str(raw["record_id"]),
-            chromosome=str(raw["chromosome"]),
-            position=int(raw["position"]),
-            reference=str(raw.get("reference", "N")),
-            alternate=str(raw["alternate"]),
-            source_line=int(raw.get("source_line", 1)),
-            raw_hash=str(raw.get("raw_hash", content_hash(raw))),
-            info=dict(raw.get("info", {})),
-            sample=dict(raw.get("sample", {})),
-            filter_value=str(raw.get("filter_value", ".")),
-            quality=str(raw.get("quality", ".")),
+            record_id=_input_text(raw["record_id"], "record_id"),
+            chromosome=_input_text(raw["chromosome"], "chromosome"),
+            position=_input_integer(raw["position"], "position"),
+            reference=_input_text(raw.get("reference", "N"), "reference"),
+            alternate=_input_text(raw["alternate"], "alternate"),
+            source_line=_input_integer(raw.get("source_line", 1), "source_line"),
+            raw_hash=_input_text(raw.get("raw_hash", content_hash(raw)), "raw_hash"),
+            info=dict(info),
+            sample=dict(sample),
+            filter_value=_input_text(raw.get("filter_value", "."), "filter_value"),
+            quality=_input_text(raw.get("quality", "."), "quality"),
         )
 
     def _lineage_resolution(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
@@ -991,20 +1001,35 @@ class ControlPlaneApplication:
                 ("records",),
             )
         try:
-            records = tuple(
-                SampleLineageRecord(
-                    sample_id=str(item["sample_id"]),
-                    parent_sample_ids=tuple(
-                        str(value) for value in item.get("parent_sample_ids", ())
-                    ),
-                    relationship=str(item["relationship"]),
-                    timepoint=str(item.get("timepoint", "unspecified")),
-                    source_id=str(item.get("source_id", "lineage-input")),
-                    metadata=dict(item.get("metadata", {})) if item.get("metadata") else None,
+            records_list: list[SampleLineageRecord] = []
+            for index, item in enumerate(records_raw):
+                if not isinstance(item, Mapping):
+                    raise ValidationError(f"lineage record[{index}] must be a mapping")
+                metadata = item.get("metadata", {})
+                if metadata is not None and not isinstance(metadata, Mapping):
+                    raise ValidationError(f"lineage record[{index}].metadata must be a mapping")
+                records_list.append(
+                    SampleLineageRecord(
+                        sample_id=_input_text(item["sample_id"], f"lineage record[{index}].sample_id"),
+                        parent_sample_ids=_input_strings(
+                            item.get("parent_sample_ids", ()),
+                            f"lineage record[{index}].parent_sample_ids",
+                        ),
+                        relationship=_input_text(
+                            item["relationship"], f"lineage record[{index}].relationship"
+                        ),
+                        timepoint=_input_text(
+                            item.get("timepoint", "unspecified"),
+                            f"lineage record[{index}].timepoint",
+                        ),
+                        source_id=_input_text(
+                            item.get("source_id", "lineage-input"),
+                            f"lineage record[{index}].source_id",
+                        ),
+                        metadata=None if metadata is None else dict(metadata),
+                    )
                 )
-                for item in records_raw
-                if isinstance(item, Mapping)
-            )
+            records = tuple(records_list)
             result = self.lineage.resolve(records)
         except (TypeError, ValueError, ValidationError, KeyError) as exc:
             return Abstention(
@@ -1042,27 +1067,41 @@ class ControlPlaneApplication:
                 ("observations",),
             )
         try:
-            observations = tuple(
-                OriginObservation(
-                    observation_id=str(item["observation_id"]),
-                    variant_id=str(item["variant_id"]),
-                    sample_id=str(item["sample_id"]),
-                    relationship=str(item["relationship"]),
-                    alternate_fraction=(
-                        float(item["alternate_fraction"])
-                        if item.get("alternate_fraction") is not None
-                        else None
-                    ),
-                    present_in_normal=self._optional_bool(item.get("present_in_normal")),
-                    timepoint=str(item.get("timepoint", "unspecified")),
-                    source_id=str(item.get("source_id", "origin-input")),
+            observations_list: list[OriginObservation] = []
+            for index, item in enumerate(observations_raw):
+                if not isinstance(item, Mapping):
+                    raise ValidationError(f"origin observation[{index}] must be a mapping")
+                fraction = item.get("alternate_fraction")
+                observations_list.append(
+                    OriginObservation(
+                        observation_id=_input_text(item["observation_id"], f"origin observation[{index}].observation_id"),
+                        variant_id=_input_text(item["variant_id"], f"origin observation[{index}].variant_id"),
+                        sample_id=_input_text(item["sample_id"], f"origin observation[{index}].sample_id"),
+                        relationship=_input_text(item["relationship"], f"origin observation[{index}].relationship"),
+                        alternate_fraction=(
+                            None
+                            if fraction is None
+                            else _input_number(fraction, f"origin observation[{index}].alternate_fraction")
+                        ),
+                        present_in_normal=self._optional_bool(item.get("present_in_normal")),
+                        timepoint=_input_text(
+                            item.get("timepoint", "unspecified"),
+                            f"origin observation[{index}].timepoint",
+                        ),
+                        source_id=_input_text(
+                            item.get("source_id", "origin-input"),
+                            f"origin observation[{index}].source_id",
+                        ),
+                    )
                 )
-                for item in observations_raw
-                if isinstance(item, Mapping)
-            )
+            observations = tuple(observations_list)
             result = self.origin.assess(
                 observations,
-                variant_id=str(raw["variant_id"]) if raw.get("variant_id") else None,
+                variant_id=(
+                    _input_text(raw["variant_id"], "variant_id")
+                    if raw.get("variant_id") is not None
+                    else None
+                ),
             )
         except (TypeError, ValueError, ValidationError, KeyError) as exc:
             return Abstention(
@@ -1098,33 +1137,43 @@ class ControlPlaneApplication:
                 ("observations",),
             )
         try:
-            observations = tuple(
-                AssayQCObservation(
-                    assay_id=str(item["assay_id"]),
-                    sample_id=str(item["sample_id"]),
-                    assay_type=str(item["assay_type"]),
-                    usable_reads=int(item["usable_reads"])
-                    if item.get("usable_reads") is not None
-                    else None,
-                    mapping_rate=float(item["mapping_rate"])
-                    if item.get("mapping_rate") is not None
-                    else None,
-                    replicate_correlation=(
-                        float(item["replicate_correlation"])
-                        if item.get("replicate_correlation") is not None
-                        else None
-                    ),
-                    contamination_rate=(
-                        float(item["contamination_rate"])
-                        if item.get("contamination_rate") is not None
-                        else None
-                    ),
-                    controls_passed=self._optional_bool(item.get("controls_passed")),
-                    source_id=str(item.get("source_id", "assay-qc-input")),
+            observations_list: list[AssayQCObservation] = []
+            for index, item in enumerate(observations_raw):
+                if not isinstance(item, Mapping):
+                    raise ValidationError(f"assay QC observation[{index}] must be a mapping")
+                observations_list.append(
+                    AssayQCObservation(
+                        assay_id=_input_text(item["assay_id"], f"assay QC observation[{index}].assay_id"),
+                        sample_id=_input_text(item["sample_id"], f"assay QC observation[{index}].sample_id"),
+                        assay_type=_input_text(item["assay_type"], f"assay QC observation[{index}].assay_type"),
+                        usable_reads=(
+                            None
+                            if item.get("usable_reads") is None
+                            else _input_integer(item["usable_reads"], f"assay QC observation[{index}].usable_reads")
+                        ),
+                        mapping_rate=(
+                            None
+                            if item.get("mapping_rate") is None
+                            else _input_number(item["mapping_rate"], f"assay QC observation[{index}].mapping_rate")
+                        ),
+                        replicate_correlation=(
+                            None
+                            if item.get("replicate_correlation") is None
+                            else _input_number(item["replicate_correlation"], f"assay QC observation[{index}].replicate_correlation")
+                        ),
+                        contamination_rate=(
+                            None
+                            if item.get("contamination_rate") is None
+                            else _input_number(item["contamination_rate"], f"assay QC observation[{index}].contamination_rate")
+                        ),
+                        controls_passed=self._optional_bool(item.get("controls_passed")),
+                        source_id=_input_text(
+                            item.get("source_id", "assay-qc-input"),
+                            f"assay QC observation[{index}].source_id",
+                        ),
+                    )
                 )
-                for item in observations_raw
-                if isinstance(item, Mapping)
-            )
+            observations = tuple(observations_list)
             results = self.assay_qc.evaluate_many(observations)
         except (TypeError, ValueError, ValidationError, KeyError) as exc:
             return Abstention(
@@ -1171,17 +1220,9 @@ class ControlPlaneApplication:
     def _optional_bool(value: object) -> bool | None:
         if value is None:
             return None
-        if isinstance(value, bool):
-            return value
-        if isinstance(value, (int, float)) and value in {0, 1}:
-            return bool(value)
-        if isinstance(value, str):
-            normalized = value.strip().lower()
-            if normalized in {"true", "yes", "1"}:
-                return True
-            if normalized in {"false", "no", "0"}:
-                return False
-        raise ValidationError("boolean field must be true, false, 1, or 0")
+        if type(value) is not bool:
+            raise ValidationError("boolean field must be true or false")
+        return value
 
     def _context_atlas(
         self,
@@ -1206,11 +1247,15 @@ class ControlPlaneApplication:
                 self._context_observation(item, expected_channel) for item in observations_raw
             )
             bundle = self.context_evidence.build(
-                variant_id=str(raw["variant_id"]),
-                edge_id=str(raw.get("edge_id", f"{raw['variant_id']}:{role_id}")),
+                variant_id=_input_text(raw["variant_id"], "variant_id"),
+                edge_id=_input_text(
+                    raw.get("edge_id", f"{raw['variant_id']}:{role_id}"), "edge_id"
+                ),
                 case_context=context,
                 observations=observations,
-                minimum_context_score=float(raw.get("minimum_context_score", 0.35)),
+                minimum_context_score=_input_number(
+                    raw.get("minimum_context_score", 0.35), "minimum_context_score"
+                ),
                 produced_by=f"{role_id}.context_atlas",
             )
         except (TypeError, ValueError, ValidationError, KeyError) as exc:
@@ -1255,23 +1300,30 @@ class ControlPlaneApplication:
         context_raw = raw.get("context")
         if not isinstance(context_raw, Mapping):
             raise ValidationError("each context observation requires a context mapping")
-        channel = str(raw.get("channel", expected_channel))
+        channel = _input_text(raw.get("channel", expected_channel), "observation channel")
         if channel != expected_channel:
             raise ValidationError(
                 f"observation channel {channel!r} does not match role channel {expected_channel!r}"
             )
+        payload_raw = raw.get("payload", {})
+        if not isinstance(payload_raw, Mapping):
+            raise ValidationError("observation payload must be a mapping")
         return ContextObservation(
-            observation_id=str(raw["observation_id"]),
-            source_id=str(raw["source_id"]),
-            source_version=str(raw["source_version"]),
+            observation_id=_input_text(raw["observation_id"], "observation_id"),
+            source_id=_input_text(raw["source_id"], "observation source_id"),
+            source_version=_input_text(raw["source_version"], "observation source_version"),
             context=ReferenceContext.from_dict(context_raw),
             channel=channel,
-            state=EvidenceState(str(raw["state"])),
-            tier=EvidenceTier(str(raw["tier"])),
-            score=float(raw["score"]) if raw.get("score") is not None else None,
-            confidence=float(raw["confidence"]),
-            summary=str(raw["summary"]),
-            payload=dict(raw.get("payload", {})),
+            state=EvidenceState(_input_text(raw["state"], "observation state")),
+            tier=EvidenceTier(_input_text(raw["tier"], "observation tier")),
+            score=(
+                None
+                if raw.get("score") is None
+                else _input_number(raw["score"], "observation score")
+            ),
+            confidence=_input_number(raw["confidence"], "observation confidence"),
+            summary=_input_text(raw["summary"], "observation summary"),
+            payload=dict(payload_raw),
         )
 
     def _atlas(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
