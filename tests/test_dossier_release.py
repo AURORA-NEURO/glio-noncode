@@ -135,6 +135,43 @@ class DossierReleaseTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 verify_dossier_release_bundle(destination)
 
+    def test_dossier_release_rejects_symlinked_destination_and_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            original = runtime.evaluate(fixture_manifest())
+            runtime.review_run(
+                original.run_id,
+                accepted_review(
+                    original.run_id,
+                    original.case_id,
+                    original.hypotheses[0].hypothesis_id,
+                    tuple(item.evidence_id for item in original.evidence),
+                ),
+            )
+            bundle = build_persisted_dossier_release(runtime, original.run_id)
+            destination = Path(directory) / "release"
+            write_dossier_release_bundle(bundle, destination)
+            linked = Path(directory) / "linked-release"
+            try:
+                linked.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(ValidationError, "destination"):
+                write_dossier_release_bundle(bundle, linked)
+            with self.assertRaisesRegex(ValidationError, "regular directory"):
+                verify_dossier_release_bundle(linked)
+
+            artifact = destination / "dossier.md"
+            external = Path(directory) / "external-dossier.md"
+            external_body = artifact.read_bytes()
+            external.write_bytes(external_body)
+            artifact.unlink()
+            artifact.symlink_to(external)
+            verification = verify_dossier_release_bundle(destination)
+            self.assertFalse(verification.accepted)
+            self.assertIn("dossier-markdown", verification.failed_artifact_ids)
+            self.assertEqual(external.read_bytes(), external_body)
+
     def test_cli_release_and_verify_commands_write_contracts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime = CaseRuntime(directory)

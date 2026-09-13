@@ -133,6 +133,35 @@ class ComparisonReleaseTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 verify_comparison_release_bundle(destination)
 
+    def test_comparison_release_rejects_symlinked_destination_and_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime, run_id = self._reviewed_runtime(directory)
+            bundle = build_persisted_comparison_release(
+                runtime, run_id, run_id, source_snapshot=0, target_snapshot=1
+            )
+            destination = Path(directory) / "comparison-release"
+            write_comparison_release_bundle(bundle, destination)
+            linked = Path(directory) / "linked-release"
+            try:
+                linked.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(ValidationError, "destination"):
+                write_comparison_release_bundle(bundle, linked)
+            with self.assertRaisesRegex(ValidationError, "regular directory"):
+                verify_comparison_release_bundle(linked)
+
+            artifact = destination / "comparison.md"
+            external = Path(directory) / "external-comparison.md"
+            external_body = artifact.read_bytes()
+            external.write_bytes(external_body)
+            artifact.unlink()
+            artifact.symlink_to(external)
+            verification = verify_comparison_release_bundle(destination)
+            self.assertFalse(verification.accepted)
+            self.assertIn("comparison-markdown", verification.failed_artifact_ids)
+            self.assertEqual(external.read_bytes(), external_body)
+
     def test_cli_build_and_verify_commands_write_contracts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime, run_id = self._reviewed_runtime(directory)

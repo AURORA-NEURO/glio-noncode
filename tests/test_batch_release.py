@@ -117,6 +117,33 @@ class BatchReleaseTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 verify_batch_release_bundle(destination)
 
+    def test_release_rejects_symlinked_destination_and_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime, batch_id = self._runtime_and_batch(directory)
+            bundle = build_persisted_batch_release(runtime, batch_id)
+            destination = Path(directory) / "release"
+            write_batch_release_bundle(bundle, destination)
+            linked = Path(directory) / "linked-release"
+            try:
+                linked.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(ValidationError, "destination"):
+                write_batch_release_bundle(bundle, linked)
+            with self.assertRaisesRegex(ValidationError, "regular directory"):
+                verify_batch_release_bundle(linked)
+
+            artifact = destination / "batch-items.csv"
+            external = Path(directory) / "external-batch-items.csv"
+            external_body = artifact.read_bytes()
+            external.write_bytes(external_body)
+            artifact.unlink()
+            artifact.symlink_to(external)
+            verification = verify_batch_release_bundle(destination)
+            self.assertFalse(verification.accepted)
+            self.assertIn("batch-items-csv", verification.failed_artifact_ids)
+            self.assertEqual(external.read_bytes(), external_body)
+
     def test_cli_build_and_verify_commands_write_contracts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime, batch_id = self._runtime_and_batch(directory)

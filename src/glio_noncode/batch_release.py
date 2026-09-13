@@ -491,14 +491,29 @@ def write_batch_release_bundle(bundle: BatchReleaseBundle, destination: str | Pa
     """Write a portable bundle into a new or empty directory."""
 
     root = Path(destination)
-    root.mkdir(parents=True, exist_ok=True)
+    try:
+        if root.is_symlink():
+            raise ValidationError("release destination is unsafe")
+        root.mkdir(parents=True, exist_ok=True)
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("release destination must be a directory")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise ValidationError("release destination could not be prepared") from exc
     if any(root.iterdir()):
         raise ValueError("release destination must be empty")
     for artifact in bundle.artifacts:
         if not artifact.filename or Path(artifact.filename).name != artifact.filename:
             raise ValueError("release artifact path must be a direct filename")
-        (root / artifact.filename).write_text(artifact.payload, encoding="utf-8", newline="")
-    (root / BATCH_RELEASE_MANIFEST).write_text(
+        target = root / artifact.filename
+        if target.is_symlink():
+            raise ValidationError("release artifact path is unsafe")
+        target.write_text(artifact.payload, encoding="utf-8", newline="")
+    manifest_path = root / BATCH_RELEASE_MANIFEST
+    if manifest_path.is_symlink():
+        raise ValidationError("release manifest path is unsafe")
+    manifest_path.write_text(
         canonical_json(bundle.manifest_dict()), encoding="utf-8", newline=""
     )
     return root
@@ -508,8 +523,10 @@ def verify_batch_release_bundle(destination: str | Path) -> BatchReleaseVerifica
     """Reopen a release directory and verify every artifact and manifest hash."""
 
     root = Path(destination)
+    if root.is_symlink() or not root.is_dir():
+        raise ValidationError("release destination must be a regular directory")
     manifest_path = root / BATCH_RELEASE_MANIFEST
-    if not manifest_path.exists():
+    if manifest_path.is_symlink() or not manifest_path.exists():
         raise ValidationError("release manifest is missing")
     try:
         manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
@@ -534,7 +551,8 @@ def verify_batch_release_bundle(destination: str | Path) -> BatchReleaseVerifica
     def safe_path(filename: str) -> Path | None:
         if not filename or Path(filename).name != filename:
             return None
-        return root / filename
+        path = root / filename
+        return None if path.is_symlink() else path
 
     seen_ids: set[str] = set()
     seen_filenames: set[str] = set()
@@ -558,7 +576,11 @@ def verify_batch_release_bundle(destination: str | Path) -> BatchReleaseVerifica
         if not path.is_file():
             failed.append(artifact_id)
             continue
-        payload = path.read_bytes()
+        try:
+            payload = path.read_bytes()
+        except OSError:
+            failed.append(artifact_id)
+            continue
         if hash_bytes(payload, prefix="batch-release-artifact") != str(
             artifact.get("content_address", "")
         ):
