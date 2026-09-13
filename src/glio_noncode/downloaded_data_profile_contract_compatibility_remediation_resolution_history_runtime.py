@@ -22,6 +22,7 @@ from . import (
 from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_query_audit as query_audit_model,
 )
+from ._safe_persistence import atomic_write_text, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -233,14 +234,14 @@ def render_runtime_markdown(value: DownloadedDataProfileContractCompatibilityRem
 
 
 def _write(path: Path, value: Any) -> None:
-    path.write_text(canonical_json(value), encoding="utf-8", newline="\n")
+    atomic_write_text(path, canonical_json(value))
 
 
 def persist_runtime(value: DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryRuntime, destination: str | Path, *, overwrite: bool = False) -> Path:
     if not isinstance(value, DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryRuntime):
         raise ValidationError("history runtime persistence requires a typed runtime")
     destination = Path(destination)
-    if destination.exists() and (not destination.is_dir() or not overwrite):
+    if destination.exists() and (destination.is_symlink() or not destination.is_dir() or not overwrite):
         raise ValidationError("history runtime destination exists or is not a directory")
     parent = destination.parent
     parent.mkdir(parents=True, exist_ok=True)
@@ -263,7 +264,7 @@ def persist_runtime(value: DownloadedDataProfileContractCompatibilityRemediation
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+        value = _strict_json_loads(read_text(path, field="profile history runtime artifact"))
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("history runtime artifact is not valid JSON") from error
     return _mapping(value, "history runtime artifact")
@@ -271,7 +272,7 @@ def _read_json(path: Path) -> Mapping[str, Any]:
 
 def load_runtime(destination: str | Path) -> DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryRuntime:
     destination = Path(destination)
-    if not destination.is_dir():
+    if destination.is_symlink() or not destination.is_dir():
         raise ValidationError("history runtime destination must be a directory")
     names = tuple(sorted(path.name for path in destination.iterdir()))
     if names != tuple(sorted(FILES)):

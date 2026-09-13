@@ -27,6 +27,7 @@ from . import downloaded_data_profile_contract_compatibility_remediation_resolut
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_audit as archive_audit_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_query as query_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_query_audit as query_audit_model
+from ._safe_persistence import atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -359,7 +360,7 @@ def _coerce_archive(source: str | Path | bytes | archive_model.DownloadedDataPro
     if path.suffix.casefold() == ".zip":
         return archive_model.load_archive(path)
     try:
-        raw = _strict_json_loads(path.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(read_text(path, field="runtime source JSON"))
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("runtime source is not a readable archive or observatory JSON") from error
     raw = _mapping(raw, "runtime source JSON")
@@ -475,7 +476,7 @@ def capabilities() -> dict[str, Any]:
 
 
 def _write(path: Path, raw: bytes) -> None:
-    path.write_bytes(raw)
+    atomic_write_bytes(path, raw)
 
 
 def persist_runtime(value: DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiffPolicyPackageRegistryObservatoryArchiveRuntime, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -505,7 +506,7 @@ def persist_runtime(value: DownloadedDataProfileContractCompatibilityRemediation
 
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=f"runtime member {path.name}")
         value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"runtime member {path.name}")
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError(f"runtime member {path.name} is not valid JSON") from error
@@ -545,7 +546,7 @@ def load_runtime(destination: str | Path) -> DownloadedDataProfileContractCompat
     documents = _documents(candidate)
     expected_members = {"manifest.json": canonical_bytes(expected_manifest.to_dict()), **documents}
     for filename in FILES:
-        actual = (root / filename).read_bytes()
+        actual = read_bytes(root / filename, field=f"runtime member {filename}")
         if actual != expected_members[filename]:
             raise ValidationError(f"runtime member {filename} does not replay")
     for receipt in manifest.artifacts:
