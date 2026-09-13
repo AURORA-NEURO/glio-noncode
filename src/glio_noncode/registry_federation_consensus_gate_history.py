@@ -14,6 +14,7 @@ from typing import Any
 
 from . import registry_federation_consensus_gate as gate_model
 from . import registry_federation_consensus_gate_audit as audit_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
@@ -256,14 +257,22 @@ def history_bytes(value: RegistryFederationConsensusGateHistory) -> dict[str, by
 def write_history(value: RegistryFederationConsensusGateHistory, directory: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_history(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
-        raise ValidationError("gate history destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "gate history destination")
+        if destination.is_symlink():
+            raise ValidationError("gate history destination cannot be a symlink")
+        if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
+            raise ValidationError("gate history destination already exists")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("gate history destination could not be prepared") from error
     staging: Path | None = None
     try:
         staging = Path(tempfile.mkdtemp(prefix="consensus-gate-history-staging-", dir=str(destination.parent)))
         for name, raw in history_bytes(value).items():
-            (staging / name).write_bytes(raw)
+            atomic_write_bytes(staging / name, raw, field=f"gate history staging artifact {name}")
         if destination.exists():
             shutil.rmtree(destination)
         staging.replace(destination)
@@ -277,7 +286,8 @@ def write_history(value: RegistryFederationConsensusGateHistory, directory: str 
 def load_history(directory: str | Path) -> RegistryFederationConsensusGateHistory:
     try:
         source = Path(directory)
-        if not source.is_dir():
+        _validate_parent(source.parent, "gate history input")
+        if source.is_symlink() or not source.is_dir():
             raise ValidationError("gate history directory does not contain exact canonical members")
         members = tuple(source.iterdir())
     except OSError as error:
@@ -285,7 +295,9 @@ def load_history(directory: str | Path) -> RegistryFederationConsensusGateHistor
     if tuple(sorted(path.name for path in members)) != tuple(sorted(FILES)) or any(path.is_symlink() or not path.is_file() for path in members):
         raise ValidationError("gate history directory does not contain exact canonical members")
     try:
-        raw = {name: (source / name).read_bytes() for name in FILES}
+        raw = {name: read_bytes(source / name, field=f"gate history member {name}") for name in FILES}
+    except ValidationError:
+        raise
     except OSError as error:
         raise ValidationError("gate history artifact could not be read") from error
     try:

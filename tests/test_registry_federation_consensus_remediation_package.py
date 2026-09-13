@@ -76,7 +76,7 @@ class RegistryFederationConsensusRemediationPackageTests(DurableCatalogPromotion
             with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
                 with self.assertRaises(ValidationError):
                     package_model.load_package(destination)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(package_model, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     package_model.load_package(destination)
             (destination / package_model.PACKAGE_NAME).write_bytes(b"\xff")
