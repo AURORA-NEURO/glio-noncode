@@ -567,6 +567,18 @@ class TransferDirectoryTests(TransferFixture):
             with self.assertRaises(ValidationError):
                 transfer.load_transfer(destination)
 
+    def test_duplicate_manifest_fields_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self.transfer_value(root)
+            destination = root / "transfer"
+            transfer.write_transfer(value, destination)
+            path = destination / transfer.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"transfer_id":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                transfer.load_transfer(destination)
+
     def test_noncanonical_manifest_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

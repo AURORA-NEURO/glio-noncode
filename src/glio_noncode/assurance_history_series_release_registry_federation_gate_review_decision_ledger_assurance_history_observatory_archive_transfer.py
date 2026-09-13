@@ -31,7 +31,7 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive as archive_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = archive_model.VERSION + "-transfer-v1"
@@ -519,8 +519,8 @@ def _read_manifest(source: str | Path) -> tuple[ArchiveTransfer, Path]:
         raise ValidationError("transfer manifest is missing")
     raw = manifest_path.read_bytes()
     try:
-        decoded = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        decoded = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("transfer manifest is invalid JSON") from error
     manifest = dict(_mapping(decoded, "transfer manifest"))
     if canonical_bytes(manifest) != raw:
