@@ -29,6 +29,7 @@ from typing import Any
 
 from . import registry_federation_consensus_gate_certificate_observatory_archive as archive_model
 from . import registry_federation_consensus_gate_certificate_observatory_package as package_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -491,13 +492,20 @@ def registry_bytes(value: RegistryFederationConsensusGateCertificateObservatoryA
 
 
 def _write_atomic_directory(destination: Path, payload: Mapping[str, bytes], *, overwrite: bool) -> Path:
-    if destination.exists() and (destination.is_symlink() or not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
+    _validate_parent(destination.parent, "archive registry destination")
+    if destination.is_symlink():
+        raise ValidationError("archive registry destination cannot be a symlink")
+    if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
         raise ValidationError("archive registry destination is not writable")
     destination.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix="certificate-observatory-archive-registry-staging-", dir=str(destination.parent)))
     try:
         for name in FILES:
-            (staging / name).write_bytes(payload[name])
+            atomic_write_bytes(
+                staging / name,
+                payload[name],
+                field=f"archive registry staging artifact {name}",
+            )
         if destination.exists():
             backup = Path(tempfile.mkdtemp(prefix="certificate-observatory-archive-registry-backup-", dir=str(destination.parent)))
             backup.rmdir()
@@ -524,6 +532,7 @@ def write_registry(value: RegistryFederationConsensusGateCertificateObservatoryA
 def _read_directory(source: str | Path) -> dict[str, bytes]:
     try:
         path = Path(source)
+        _validate_parent(path.parent, "archive registry input")
         if path.is_symlink() or not path.is_dir():
             raise ValidationError("archive registry input must be a regular directory")
         members = tuple(path.iterdir())
@@ -538,8 +547,8 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
         if member.is_symlink() or not member.is_file():
             raise ValidationError("archive registry member must be a regular file")
         try:
-            raw = member.read_bytes()
-        except OSError as error:
+            raw = read_bytes(member, field=f"archive registry member {name}")
+        except (OSError, ValidationError) as error:
             raise ValidationError("archive registry artifact could not be read") from error
         if len(raw) > MAX_TOTAL_ARCHIVE_BYTES:
             raise ValidationError("archive registry member exceeds the size bound")

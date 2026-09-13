@@ -223,7 +223,7 @@ class ArchiveRegistryFixture(unittest.TestCase):
             with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
                 with self.assertRaises(ValidationError):
                     registry_model.load_registry(destination)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(registry_model, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     registry_model.load_registry(destination)
 
