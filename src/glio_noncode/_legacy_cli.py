@@ -9,7 +9,12 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from ._safe_persistence import atomic_write_bytes, atomic_write_text, read_text as _safe_read_text
+from ._safe_persistence import (
+    atomic_write_bytes,
+    atomic_write_text,
+    read_bytes as _safe_read_bytes,
+    read_text as _safe_read_text,
+)
 
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND = "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-archive"
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND = COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND + "-transfer"
@@ -5185,6 +5190,15 @@ def _legacy_read_text(path: str) -> str:
 
     try:
         return _safe_read_text(path, field="legacy CLI input")
+    except (OSError, ValidationError) as error:
+        raise ValueError(f"legacy CLI input could not be read: {path}") from error
+
+
+def _legacy_read_bytes(path: str) -> bytes:
+    """Read a binary legacy CLI input without following symlinked paths."""
+
+    try:
+        return _safe_read_bytes(path, field="legacy CLI input")
     except (OSError, ValidationError) as error:
         raise ValueError(f"legacy CLI input could not be read: {path}") from error
 
@@ -34094,7 +34108,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-gencode":
             input_path = Path(args.input)
             result = GencodeTranscriptAdapter().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 assembly=args.assembly,
@@ -34105,7 +34119,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-mane":
             input_path = Path(args.input)
             result = ManeTranscriptAdapter().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -34116,7 +34130,7 @@ def main(argv: list[str] | None = None) -> int:
             catalog_path = Path(args.catalog)
             adapter = RegulatoryOntologyAdapter()
             catalog = adapter.parse_text(
-                catalog_path.read_text(encoding="utf-8"),
+                _legacy_read_text(catalog_path),
                 source_id=args.source_id or catalog_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -34131,7 +34145,7 @@ def main(argv: list[str] | None = None) -> int:
             catalog_path = Path(args.catalog)
             mapper = DiseaseOntologyMapper()
             catalog = mapper.parse_text(
-                catalog_path.read_text(encoding="utf-8"),
+                _legacy_read_text(catalog_path),
                 source_id=args.source_id or catalog_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -34182,7 +34196,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-citations":
             input_path = Path(args.input)
             result = CitationResolver().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -34223,7 +34237,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "workspace-track":
             input_path = Path(args.input)
             batch = RegulatoryTrackParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 genome_build=args.genome_build,
                 input_format=args.format,
@@ -34623,7 +34637,7 @@ def main(argv: list[str] | None = None) -> int:
             intake_engine = VariantIntake(default_build=args.genome_build)
             if args.format == IntakeFormat.BCF.value or input_path.suffix.lower() == ".bcf":
                 batch = intake_engine.parse_bytes(
-                    input_path.read_bytes(),
+                    _legacy_read_bytes(input_path),
                     source_id=source_id,
                     genome_build=args.genome_build,
                     sample_id=args.sample_id,
@@ -34631,7 +34645,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
             else:
                 batch = intake_engine.parse_text(
-                    input_path.read_text(encoding="utf-8"),
+                    _legacy_read_text(input_path),
                     source_id=source_id,
                     input_format=args.format,
                     genome_build=args.genome_build,
@@ -34643,7 +34657,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-track":
             input_path = Path(args.input)
             batch = RegulatoryTrackParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 genome_build=args.genome_build,
                 input_format=args.format,
@@ -35135,7 +35149,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "sv-consensus":
             input_path = Path(args.input)
             batch = SVConsensusImporter(breakpoint_tolerance=args.breakpoint_tolerance).parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 input_format=args.format,
             )
@@ -35144,7 +35158,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "harmonize-cn":
             input_path = Path(args.input)
             result = CopyNumberSegmentHarmonizer().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
             )
             _write_json(result.to_dict(), args.output)
@@ -35973,7 +35987,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-ccre":
             input_path = Path(args.input)
             result = CcreTrackParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 profile=args.profile,
                 input_format=args.format,
@@ -35983,7 +35997,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-chromatin":
             input_path = Path(args.input)
             result = ChromatinTrackParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 track_kind=args.track_kind,
                 input_format=args.format,
@@ -36054,7 +36068,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "harmonize-histone":
             input_path = Path(args.input)
             result = HistoneMarkTrackHarmonizer().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
