@@ -15,6 +15,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
@@ -300,7 +301,9 @@ class ReferenceArchitectureFixture:
     @classmethod
     def from_file(cls, path: str | Path) -> ReferenceArchitectureFixture:
         try:
-            raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+            raw = _strict_json_loads(
+                read_text(path, field="reference architecture fixture input path", encoding="utf-8")
+            )
         except FileNotFoundError as exc:
             raise ValidationError(f"reference architecture fixture not found: {path}") from exc
         except ValueError as exc:

@@ -10,6 +10,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, jsonable
 
@@ -295,7 +296,9 @@ class WorkbenchArchitectureFixture:
 
     @classmethod
     def from_file(cls, path: str | Path) -> WorkbenchArchitectureFixture:
-        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(
+            read_text(path, field="workbench architecture fixture input path", encoding="utf-8")
+        )
         if not isinstance(raw, Mapping):
             raise ValidationError("D15 fixture JSON must be an object")
         return cls.from_mapping(raw)
