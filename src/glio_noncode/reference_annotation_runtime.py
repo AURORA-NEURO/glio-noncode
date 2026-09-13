@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from ._safe_persistence import read_text
+from .errors import ValidationError
 from .reference_annotation_bundle import (
     ReferenceAnnotationBundleBuilder,
     ReferenceAnnotationBundleFormat,
@@ -40,6 +41,14 @@ class ReferenceAnnotationRuntimeRequest:
     context_key: str | None = None
     accepted_only: bool = True
     output_format: ReferenceAnnotationBundleFormat = ReferenceAnnotationBundleFormat.JSON
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.fixture_path, str) or not self.fixture_path.strip():
+            raise ValidationError("reference annotation fixture_path must be non-empty text")
+        if self.context_key is not None and not isinstance(self.context_key, str):
+            raise ValidationError("reference annotation context_key must be text or null")
+        if not isinstance(self.accepted_only, bool):
+            raise ValidationError("reference annotation accepted_only must be boolean")
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -101,8 +110,11 @@ def run_reference_annotation_pipeline(
 
     selected = fixture
     if selected is None:
-        with Path(request.fixture_path).open("r", encoding="utf-8") as handle:
-            selected = load_reference_annotation_fixture(_strict_json_loads(handle.read()))
+        selected = load_reference_annotation_fixture(
+            _strict_json_loads(
+                read_text(Path(request.fixture_path), field="reference annotation fixture input")
+            )
+        )
     context_match = request.context_key is None or request.context_key == selected.context_key
     receipts = [
         _stage(
@@ -203,11 +215,20 @@ def run_reference_annotation_pipeline_file(
     payload = _strict_json_loads(
         read_text(request_path, field="reference annotation runtime request")
     )
+    if not isinstance(payload, dict):
+        raise ValidationError("reference annotation runtime request must be an object")
     if "fixture_path" in payload:
+        fixture_path = payload["fixture_path"]
+        request_context = payload.get("context_key", context_key)
+        request_accepted_only = payload.get("accepted_only", accepted_only)
+        if not isinstance(fixture_path, str) or not isinstance(request_accepted_only, bool):
+            raise ValidationError("reference annotation runtime request fields have invalid types")
+        if request_context is not None and not isinstance(request_context, str):
+            raise ValidationError("reference annotation runtime request context_key must be text or null")
         request = ReferenceAnnotationRuntimeRequest(
-            fixture_path=str(payload["fixture_path"]),
-            context_key=payload.get("context_key", context_key),
-            accepted_only=bool(payload.get("accepted_only", accepted_only)),
+            fixture_path=fixture_path,
+            context_key=request_context,
+            accepted_only=request_accepted_only,
             output_format=ReferenceAnnotationBundleFormat(
                 payload.get("output_format", output_format)
             ),

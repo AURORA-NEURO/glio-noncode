@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .review_workspace_execution import (
@@ -617,11 +618,15 @@ def write_review_workspace_execution_release(
         target = root / filename
         if target.exists() and target.is_symlink():
             raise ValidationError(f"execution release artifact must not be a symlink: {filename}")
-        target.write_bytes(artifact.payload)
+        atomic_write_bytes(target, artifact.payload, field=f"execution release artifact {filename}")
     manifest_target = root / REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST
     if manifest_target.exists() and manifest_target.is_symlink():
         raise ValidationError("execution release manifest must not be a symlink")
-    manifest_target.write_bytes((canonical_json(bundle.manifest) + "\n").encode("utf-8"))
+    atomic_write_bytes(
+        manifest_target,
+        (canonical_json(bundle.manifest) + "\n").encode("utf-8"),
+        field="execution release manifest",
+    )
     return root
 
 
@@ -703,9 +708,9 @@ def verify_review_workspace_execution_release(
             missing_files=(REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST,),
         )
     try:
-        manifest_bytes = manifest_path.read_bytes()
+        manifest_bytes = read_bytes(manifest_path, field="execution release manifest")
         manifest = _strict_json_loads(manifest_bytes.decode("utf-8"))
-    except (OSError, UnicodeError, ValueError):
+    except (OSError, UnicodeError, ValueError, ValidationError):
         return _verification(
             root=root,
             release_id="",
@@ -789,14 +794,14 @@ def verify_review_workspace_execution_release(
             missing.append(filename)
             continue
         try:
-            payload = target.read_bytes()
+            payload = read_bytes(target, field=f"execution release artifact {filename}")
             valid = (
                 len(payload) == int(raw_artifact.get("byte_count", -1))
                 and len(payload.decode("utf-8").splitlines()) == int(raw_artifact.get("line_count", -1))
                 and hash_bytes(payload, prefix=REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX) == raw_artifact.get("content_address")
                 and raw_artifact.get("media_type") == _media_type(filename)
             )
-        except (OSError, UnicodeError, ValueError, TypeError):
+        except (OSError, UnicodeError, ValueError, TypeError, ValidationError):
             valid = False
             payload = b""
         if not valid:
@@ -847,9 +852,9 @@ def verify_review_workspace_execution_release(
         event_stream_path = root / "events.jsonl"
         if event_stream_path.is_file() and not event_stream_path.is_symlink():
             try:
-                if event_stream_path.read_bytes() != _event_stream(report):
+                if read_bytes(event_stream_path, field="execution release event stream") != _event_stream(report):
                     tampered.append("events.jsonl")
-            except OSError:
+            except (OSError, ValidationError):
                 tampered.append("events.jsonl")
     else:
         tampered.append("review-workspace-execution.json")
@@ -978,8 +983,10 @@ def verify_review_workspace_execution_release(
 
 def _manifest(root: Path) -> dict[str, Any]:
     try:
-        value = _strict_json_loads((root / REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        value = _strict_json_loads(
+            read_text(root / REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST, field="execution release manifest")
+        )
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"cannot load execution release manifest: {exc}") from exc
     if not isinstance(value, dict):
         raise ValidationError("execution release manifest must be an object")
@@ -997,13 +1004,17 @@ def load_review_workspace_execution_release(
         raise ValidationError("execution release filesystem verification failed")
     manifest = _manifest(root)
     try:
-        raw_report = _strict_json_loads((root / "review-workspace-execution.json").read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        raw_report = _strict_json_loads(
+            read_text(root / "review-workspace-execution.json", field="execution release report")
+        )
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"cannot load execution release report: {exc}") from exc
     report = review_workspace_execution_report_from_mapping(raw_report)
     try:
-        raw_plan = _strict_json_loads((root / "review-workspace-plan.json").read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        raw_plan = _strict_json_loads(
+            read_text(root / "review-workspace-plan.json", field="execution release plan")
+        )
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"cannot load execution release plan: {exc}") from exc
     plan = review_workspace_plan_from_mapping(raw_plan)
     if not report.accepted:

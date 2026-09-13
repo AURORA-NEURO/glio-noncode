@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text, read_bytes, read_text
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
@@ -536,6 +537,8 @@ def write_workspace_release_bundle(
     """Write a release bundle into a new or empty directory."""
 
     root = Path(destination)
+    if root.is_symlink() or (root.exists() and not root.is_dir()):
+        raise ValidationError("workspace release destination must be a regular directory")
     root.mkdir(parents=True, exist_ok=True)
     if any(root.iterdir()):
         raise ValueError("release destination must be empty")
@@ -543,12 +546,8 @@ def write_workspace_release_bundle(
         filename = Path(artifact.filename)
         if not artifact.filename or filename.name != artifact.filename:
             raise ValueError("release artifact path must be a direct filename")
-        (root / artifact.filename).write_text(artifact.payload, encoding="utf-8", newline="")
-    (root / WORKSPACE_RELEASE_MANIFEST).write_text(
-        canonical_json(bundle.manifest_dict()),
-        encoding="utf-8",
-        newline="",
-    )
+        atomic_write_text(root / artifact.filename, artifact.payload)
+    atomic_write_text(root / WORKSPACE_RELEASE_MANIFEST, canonical_json(bundle.manifest_dict()))
     return root
 
 
@@ -558,13 +557,13 @@ def verify_workspace_release_bundle(
     """Reopen a workspace release and verify every file and manifest address."""
 
     root = Path(destination)
-    if not root.is_dir():
+    if root.is_symlink() or not root.is_dir():
         raise ValidationError("workspace release directory is missing")
     manifest_path = root / WORKSPACE_RELEASE_MANIFEST
     if not manifest_path.exists():
         raise ValidationError("workspace release manifest is missing")
     try:
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = _strict_json_loads(read_text(manifest_path, field="workspace release manifest"))
     except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("workspace release manifest is not valid JSON") from exc
     if not isinstance(manifest, dict):
@@ -616,7 +615,12 @@ def verify_workspace_release_bundle(
             failed.append(artifact_id)
             warnings.append(f"workspace artifact is missing for {artifact_id}")
             continue
-        payload = path.read_bytes()
+        try:
+            payload = read_bytes(path, field=f"workspace artifact {artifact_id}")
+        except ValidationError as error:
+            failed.append(artifact_id)
+            warnings.append(f"workspace artifact could not be read for {artifact_id}: {error}")
+            continue
         if hash_bytes(payload, prefix=WORKSPACE_RELEASE_ARTIFACT_PREFIX) != str(
             artifact.get("content_address", "")
         ):
@@ -677,7 +681,7 @@ def verify_workspace_release_bundle(
         copy = dict(artifact)
         path = safe_path(str(copy.get("filename", "")))
         copy["payload"] = (
-            path.read_text(encoding="utf-8", errors="replace")
+            read_text(path, field=f"workspace artifact {copy.get('filename', '')}", errors="replace")
             if path is not None and path.is_file()
             else ""
         )

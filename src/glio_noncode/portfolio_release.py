@@ -27,6 +27,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .dossier_release import DossierReleaseBundle, build_dossier_release_bundle
+from ._safe_persistence import atomic_write_text, read_bytes, read_text
 from .errors import StoreError, ValidationError
 from .models import Dossier
 from .module_fabric_support import contains_private_key
@@ -752,6 +753,8 @@ def write_portfolio_release_bundle(
     """Write a portfolio bundle into a new or empty directory."""
 
     root = Path(destination)
+    if root.is_symlink() or (root.exists() and not root.is_dir()):
+        raise ValidationError("portfolio release destination must be a regular directory")
     root.mkdir(parents=True, exist_ok=True)
     if any(root.iterdir()):
         raise ValueError("portfolio release destination must be empty")
@@ -760,12 +763,8 @@ def write_portfolio_release_bundle(
             raise ValidationError(f"unsafe portfolio artifact path: {artifact.relative_path}")
         target = root.joinpath(*PurePosixPath(artifact.relative_path).parts)
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(artifact.payload, encoding="utf-8", newline="")
-    (root / PORTFOLIO_RELEASE_MANIFEST).write_text(
-        canonical_json(bundle.manifest_dict()),
-        encoding="utf-8",
-        newline="",
-    )
+        atomic_write_text(target, artifact.payload)
+    atomic_write_text(root / PORTFOLIO_RELEASE_MANIFEST, canonical_json(bundle.manifest_dict()))
     return root
 
 
@@ -787,13 +786,13 @@ def verify_portfolio_release_bundle(
     """Reopen a portfolio directory and verify every manifest invariant."""
 
     root = Path(destination)
-    if not root.is_dir():
+    if root.is_symlink() or not root.is_dir():
         raise ValidationError("portfolio release directory is missing")
     manifest_path = root / PORTFOLIO_RELEASE_MANIFEST
     if not manifest_path.is_file():
         raise ValidationError("portfolio release manifest is missing")
     try:
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = _strict_json_loads(read_text(manifest_path, field="portfolio release manifest"))
     except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("portfolio release manifest is not valid JSON") from exc
     if not isinstance(manifest, dict):
@@ -850,7 +849,7 @@ def verify_portfolio_release_bundle(
             warnings.append(f"portfolio artifact is missing or symlinked: {relative_path}")
             continue
         try:
-            payload_bytes = target.read_bytes()
+            payload_bytes = read_bytes(target, field=f"portfolio artifact {relative_path}")
             payload = payload_bytes.decode("utf-8")
         except (OSError, UnicodeDecodeError) as exc:
             failed_artifacts.append(artifact_id or "invalid-encoding")
