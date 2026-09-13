@@ -9,6 +9,8 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, atomic_write_text
+
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND = "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-archive"
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND = COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND + "-transfer"
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_RECOVERY_COMMAND = COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND + "-recovery"
@@ -6561,8 +6563,6 @@ def _downloaded_ingest_diff_from_document(raw: Mapping[str, Any]):
 def _write_json(payload: Any, output: str | None) -> None:
     text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if output:
-        from ._safe_persistence import atomic_write_text
-
         atomic_write_text(output, text, field="CLI JSON output path")
     else:
         sys.stdout.write(text)
@@ -6572,8 +6572,6 @@ def _write_text(text: str, output: str | None) -> None:
     """Write a text export or stream it to standard output."""
 
     if output:
-        from ._safe_persistence import atomic_write_text
-
         atomic_write_text(output, text, field="CLI text output path")
     else:
         sys.stdout.write(text)
@@ -27872,7 +27870,7 @@ def main(argv: list[str] | None = None) -> int:
                 value = transfer_model.load_transfer(args.input)
                 raw = transfer_model.assemble_transfer_directory(args.input)
                 if args.archive_output:
-                    Path(args.archive_output).write_bytes(raw)
+                    atomic_write_bytes(args.archive_output, raw, field="CLI archive output path")
                 _emit_contract(value, args, transfer_model, json_name="transfer_json", csv_name="transfer_csv", markdown_name="render_transfer_markdown")
                 return 0
             if args.command == history_diff_archive_transfer_command + "-audit":
@@ -28281,7 +28279,7 @@ def main(argv: list[str] | None = None) -> int:
                 value = exact_history_diff_archive_transfer_model.load_transfer(args.input)
                 raw = exact_history_diff_archive_transfer_model.assemble_transfer_directory(args.input)
                 if args.archive_output:
-                    Path(args.archive_output).write_bytes(raw)
+                    atomic_write_bytes(args.archive_output, raw, field="CLI archive output path")
                 _emit_contract(value, args, exact_history_diff_archive_transfer_model, json_name="transfer_json", csv_name="transfer_csv", markdown_name="render_transfer_markdown")
                 return 0
             if args.command == exact_history_diff_archive_transfer_prefix + "-audit":
@@ -28822,7 +28820,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.command == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_prefix + "-assemble":
                 raw = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_model.assemble_transfer_directory(args.input)
                 if args.archive_output:
-                    Path(args.archive_output).write_bytes(raw)
+                    atomic_write_bytes(args.archive_output, raw, field="CLI archive output path")
                 archive = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_model.load_archive_bytes(raw)
                 _emit_contract(archive, args, exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_model, json_name="archive_json", csv_name="archive_csv", markdown_name="render_archive_markdown")
                 return 0
@@ -29350,7 +29348,7 @@ def main(argv: list[str] | None = None) -> int:
                 value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_model.load_transfer(args.input)
                 raw = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_model.assemble_transfer_directory(args.input)
                 if args.archive_output:
-                    Path(args.archive_output).write_bytes(raw)
+                    atomic_write_bytes(args.archive_output, raw, field="CLI archive output path")
                 _emit_contract(value, args, exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_model, json_name="transfer_json", csv_name="transfer_csv", markdown_name="render_transfer_markdown")
                 return 0
             if args.command == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_prefix + "-audit":
@@ -35527,7 +35525,7 @@ def main(argv: list[str] | None = None) -> int:
                 allow_review=args.allow_review,
             )
             rendered = builder.render(bundle)
-            Path(args.output).write_text(rendered, encoding="utf-8")
+            atomic_write_text(args.output, rendered, field="reference coordinate bundle output path")
             verification = builder.verify(bundle, catalog)
             return 0 if verification.passed else 2
         if args.command == "reference-coordinate-lineage":
