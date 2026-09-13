@@ -387,6 +387,11 @@ class ArchiveRegistryFixture(unittest.TestCase):
             self.assertEqual(tuple(sorted(item.name for item in destination.iterdir())), tuple(sorted(history_model.FILES)))
             self.assertEqual(history_model.load_history(destination).to_dict(), value.to_dict())
             self.assertEqual(history_model.verify_history_directory(destination).content_address, value.content_address)
+            manifest_raw = (destination / history_model.MANIFEST_NAME).read_bytes()
+            (destination / history_model.MANIFEST_NAME).write_bytes(manifest_raw.rstrip()[:-1] + b',"history_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                history_model.load_history(destination)
+            (destination / history_model.MANIFEST_NAME).write_bytes(manifest_raw)
             manifest = json.loads((destination / history_model.MANIFEST_NAME).read_text(encoding="utf-8"))
             manifest["history_address"] = "bad:history"
             (destination / history_model.MANIFEST_NAME).write_text(json.dumps(manifest, sort_keys=True, separators=(",", ":")), encoding="utf-8")

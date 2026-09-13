@@ -39,7 +39,7 @@ from . import (
     registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime as reconciliation_runtime_model,
 )
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 VERSION = ledger_model.VERSION + "-runtime-v1"
 BOUNDARY = ledger_model.BOUNDARY + "_runtime"
@@ -221,8 +221,8 @@ def _load_json_file(source: Path) -> Mapping[str, Any]:
     if source.is_symlink() or not source.is_file():
         raise ValidationError("decision ledger runtime plan source must be a regular file")
     try:
-        value = json.loads(source.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(source.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("decision ledger runtime plan source JSON is invalid") from error
     return _mapping(value, "decision ledger runtime plan source JSON")
 
@@ -366,8 +366,8 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
 def load_runtime(source: str | Path) -> RegistryFederationConsensusGateCertificateObservatoryArchiveRegistryFederationReconciliationDecisionLedgerRuntime:
     raw = _read_directory(source)
     try:
-        decoded = {name: json.loads(value.decode("utf-8")) for name, value in raw.items()}
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        decoded = {name: _strict_json_loads(value.decode("utf-8")) for name, value in raw.items()}
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("decision ledger runtime contains invalid JSON") from error
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("decision ledger runtime contains non-canonical JSON")

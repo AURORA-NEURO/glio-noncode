@@ -253,6 +253,9 @@ class ArchiveRegistryFederationReconciliationContractTests(unittest.TestCase):
             self.assertNotEqual(strict.consensus.content_address, relaxed.consensus.content_address)
             self.assertNotEqual(strict.content_address, relaxed.content_address)
             self.assertEqual(runtime_model.runtime_from_mapping(strict.to_dict()).to_dict(), strict.to_dict())
+            left_json.write_text(left_json.read_text(encoding="utf-8").rstrip()[:-1] + ',"registry_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                runtime_model.run_runtime((left_json, right_json), peer_ids=("alpha", "beta"), quorum=2)
 
     def test_runtime_rejects_extra_and_noncanonical_members(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -266,6 +269,10 @@ class ArchiveRegistryFederationReconciliationContractTests(unittest.TestCase):
             (destination / "extra.json").unlink()
             raw = (destination / runtime_model.FEDERATION_NAME).read_bytes()
             (destination / runtime_model.FEDERATION_NAME).write_bytes(raw + b" ")
+            with self.assertRaises(ValidationError):
+                runtime_model.load_runtime(destination)
+            manifest_raw = (destination / runtime_model.MANIFEST_NAME).read_bytes()
+            (destination / runtime_model.MANIFEST_NAME).write_bytes(manifest_raw.rstrip()[:-1] + b',"runtime_id":"shadow"}')
             with self.assertRaises(ValidationError):
                 runtime_model.load_runtime(destination)
 

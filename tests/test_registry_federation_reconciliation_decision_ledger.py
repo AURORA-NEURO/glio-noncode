@@ -183,6 +183,11 @@ class DecisionLedgerFixture(unittest.TestCase):
             self.assertEqual(runtime_audit_model.audit_runtime(runtime).passed_count, 13)
             self.assertEqual(runtime_audit_model.audit_runtime(runtime).check_count, 13)
             self.assertEqual(runtime_model.runtime_from_mapping(json.loads(runtime_model.runtime_json(runtime))).content_address, runtime.content_address)
+            plan_path = root / "plan.json"
+            plan_path.write_text(json.dumps(plan.to_dict(), sort_keys=True), encoding="utf-8")
+            plan_path.write_text(plan_path.read_text(encoding="utf-8").rstrip()[:-1] + ',"plan_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                runtime_model.run_runtime(plan_path, runtime_id="duplicate-plan-runtime")
 
     def test_runtime_preserves_pending_state_but_structural_audit_still_passes(self):
         with tempfile.TemporaryDirectory() as temporary:

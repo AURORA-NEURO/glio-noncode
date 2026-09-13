@@ -18,7 +18,7 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_audit as audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_diff as diff_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = registry_model.VERSION + "-history-v1"
@@ -310,8 +310,8 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
 def load_history(source: str | Path) -> RegistryFederationConsensusGateCertificateObservatoryArchiveRegistryHistory:
     raw = _read_directory(source)
     try:
-        decoded = {name: json.loads(value.decode("utf-8")) for name, value in raw.items()}
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        decoded = {name: _strict_json_loads(value.decode("utf-8")) for name, value in raw.items()}
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("history contains invalid JSON") from error
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("history contains non-canonical JSON")
