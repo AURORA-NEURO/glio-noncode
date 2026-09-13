@@ -34738,7 +34738,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.catalog:
                 catalog_path = Path(args.catalog)
                 batch = CategoricalCatalogParser().parse_text(
-                    catalog_path.read_text(encoding="utf-8"),
+                    _legacy_read_text(catalog_path),
                     source_id=args.source_id or catalog_path.stem,
                     source_version=args.source_version,
                     input_format=args.format,
@@ -35242,7 +35242,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "purity-ploidy":
             input_path = Path(args.input)
             result = PurityPloidyImporter().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 input_format=args.format,
             )
@@ -40469,7 +40469,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-methylation":
             input_path = Path(args.input)
             result = MethylationRecordParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40480,7 +40480,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "query-methylation-context":
             input_path = Path(args.input)
             batch = MethylationRecordParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40550,7 +40550,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-context-prior":
             input_path = Path(args.input)
             result = ContextPriorObservationParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40629,7 +40629,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-loop-stripe":
             input_path = Path(args.input)
             result = LoopStripeAdapter().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40640,7 +40640,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-promoter-capture":
             input_path = Path(args.input)
             result = PromoterCaptureContactAdapter().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40712,7 +40712,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-activity-contact-link":
             input_path = Path(args.input)
             result = ActivityByContactLinkAdapter().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40750,7 +40750,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-crispr-perturbation-links":
             input_path = Path(args.input)
             result = CRISPRPerturbationLinkAdapter().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40770,7 +40770,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-3d-contact-links":
             input_path = Path(args.input)
             result = ThreeDContactLinkAdapter().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40813,7 +40813,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-causal-evidence":
             input_path = Path(args.input)
             result = CausalMediatorEvidenceParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40900,7 +40900,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-regulatory-recurrence":
             input_path = Path(args.input)
             result = RegulatoryRecurrenceParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40910,7 +40910,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-regional-burden":
             input_path = Path(args.input)
             result = RegionalBurdenParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
             )
@@ -40943,7 +40943,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-functional-convergence":
             input_path = Path(args.input)
             result = FunctionalConvergenceParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -40963,7 +40963,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-pathway-regulon":
             input_path = Path(args.input)
             result = PathwayRegulonParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -41065,7 +41065,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-guide-oligo-design":
             input_path = Path(args.input)
             result = GuideOligoDesignAdapter().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 source_version=args.source_version,
                 input_format=args.format,
@@ -41631,7 +41631,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-context":
             input_path = Path(args.input)
             result = ContextObservationParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 input_format=args.format,
             )
@@ -41640,7 +41640,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-contacts":
             input_path = Path(args.input)
             result = ContactMatrixParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 assay=args.assay,
                 input_format=args.format,
@@ -41650,7 +41650,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-boundaries":
             input_path = Path(args.input)
             result = TadBoundaryParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 assay=args.assay,
                 input_format=args.format,
@@ -41660,7 +41660,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "parse-genes":
             input_path = Path(args.input)
             result = GeneFeatureParser().parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
                 input_format=args.format,
                 default_genome_build=args.genome_build,
@@ -41668,7 +41668,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "factor-graph":
-            payload = _strict_json_loads(Path(args.input).read_text(encoding="utf-8"))
+            payload = _strict_json_loads(_legacy_read_text(args.input))
             rows = payload.get("factors", payload) if isinstance(payload, dict) else payload
             if not isinstance(rows, list):
                 raise ValueError("factor graph JSON must contain a factors list")
@@ -41735,7 +41735,7 @@ def main(argv: list[str] | None = None) -> int:
                 else SequenceFoundationModelAdapter()
             )
             result = adapter.parse_text(
-                input_path.read_text(encoding="utf-8"),
+                _legacy_read_text(input_path),
                 source_id=args.source_id or input_path.stem,
             )
             _write_json(result.to_dict(), args.output)
@@ -46475,7 +46475,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(observatory_archive_schema_commands[args.command.removeprefix(observatory_archive_schema_prefix)](), args.output)
             return 0
         if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND:
-            value = release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.build_transfer_from_bytes(Path(args.input).read_bytes(), transfer_id=args.transfer_id, chunk_size=args.chunk_size)
+            value = release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.build_transfer_from_bytes(_legacy_read_bytes(args.input), transfer_id=args.transfer_id, chunk_size=args.chunk_size)
             release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.write_transfer(value, args.destination, overwrite=args.allow_existing)
             if args.format == "markdown":
                 _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.render_transfer_markdown(value), args.output)
@@ -46968,7 +46968,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == history_release_evidence_pipeline_bundle_command + "-manifest":
             manifest_path = Path(args.input) / release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.MANIFEST_NAME
             release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.load_bundle(args.input)
-            _write_json(_strict_json_loads(manifest_path.read_text(encoding="utf-8")), args.output)
+            _write_json(_strict_json_loads(_legacy_read_text(manifest_path)), args.output)
             return 0
         history_release_evidence_pipeline_bundle_schema_commands = {
             "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.bundle_schema,
@@ -47233,7 +47233,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == history_release_evidence_pipeline_observability_bundle_command + "-manifest":
             manifest_path = Path(args.input) / release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.MANIFEST_NAME
             release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.load_bundle(args.input)
-            _write_json(_strict_json_loads(manifest_path.read_text(encoding="utf-8")), args.output)
+            _write_json(_strict_json_loads(_legacy_read_text(manifest_path)), args.output)
             return 0
         history_release_evidence_pipeline_observability_bundle_schema_commands = {
             "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.bundle_schema,
