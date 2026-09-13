@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field, replace
@@ -21,7 +20,7 @@ from typing import Any
 
 from .errors import ValidationError
 from .models import EvidenceState, ReferenceContext
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 class ContextDimension(StrEnum):
@@ -133,8 +132,8 @@ class ContextObservationParser:
         selected = input_format or ("json" if first.startswith(("{", "[")) else "tsv")
         if selected == "json":
             try:
-                payload = json.loads(text)
-            except json.JSONDecodeError as exc:
+                payload = _strict_json_loads(text)
+            except ValueError as exc:
                 raise ValidationError(f"invalid context JSON: {exc}") from exc
             rows = payload.get("observations", payload) if isinstance(payload, Mapping) else payload
             if not isinstance(rows, list):

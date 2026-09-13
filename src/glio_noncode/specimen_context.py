@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -19,7 +18,7 @@ from enum import StrEnum
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 class SpecimenEvidenceState(StrEnum):
@@ -383,8 +382,8 @@ class PurityPloidyImporter:
         selected = input_format or ("json" if first.startswith(("{", "[")) else "tsv")
         if selected == "json":
             try:
-                payload = json.loads(text)
-            except json.JSONDecodeError as exc:
+                payload = _strict_json_loads(text)
+            except ValueError as exc:
                 raise ValidationError(f"invalid purity/ploidy JSON: {exc}") from exc
             rows = payload.get("records", payload) if isinstance(payload, Mapping) else payload
             if not isinstance(rows, list):

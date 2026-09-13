@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -18,7 +17,7 @@ from .cell_context_alpha_frontier_public_data import (
     CellContextAlphaFrontierRecord,
 )
 from .errors import ValidationError
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,8 +91,8 @@ class CellContextAlphaFrontierAdapterRegistry:
 
 def _rows(record: CellContextAlphaFrontierRecord) -> list[dict[str, Any]]:
     try:
-        payload = json.loads(str(record.payload["observation_text"]))
-    except (KeyError, TypeError, json.JSONDecodeError) as error:
+        payload = _strict_json_loads(str(record.payload["observation_text"]))
+    except (KeyError, TypeError, ValueError) as error:
         raise ValidationError("alpha observation_text must be JSON") from error
     rows = payload.get("observations", payload) if isinstance(payload, Mapping) else payload
     if not isinstance(rows, list):

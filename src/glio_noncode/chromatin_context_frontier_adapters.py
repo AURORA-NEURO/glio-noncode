@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -23,7 +22,7 @@ from .chromatin_context_frontier_public_data import (
 )
 from .errors import ValidationError
 from .models import ReferenceContext
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,8 +96,8 @@ class ChromatinContextFrontierAdapterRegistry:
 def _rows(record: ChromatinContextFrontierRecord) -> list[dict[str, Any]]:
     raw = record.payload.get("track_text", "")
     try:
-        payload = json.loads(str(raw))
-    except (TypeError, json.JSONDecodeError) as error:
+        payload = _strict_json_loads(str(raw))
+    except (TypeError, ValueError) as error:
         raise ValidationError("track_text must be JSON") from error
     rows = payload.get("observations", payload) if isinstance(payload, Mapping) else payload
     if not isinstance(rows, list):

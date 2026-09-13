@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -21,7 +20,7 @@ from typing import Any
 from .errors import ValidationError
 from .identity import normalize_chromosome
 from .models import ReferenceContext
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 class TopologyAssay(StrEnum):
@@ -198,8 +197,8 @@ class ContactMatrixParser:
         selected = input_format or ("json" if first.startswith(("{", "[")) else "tsv")
         if selected == "json":
             try:
-                payload = json.loads(text)
-            except json.JSONDecodeError as exc:
+                payload = _strict_json_loads(text)
+            except ValueError as exc:
                 raise ValidationError(f"invalid contact JSON: {exc}") from exc
             rows = payload.get("records", payload) if isinstance(payload, Mapping) else payload
             if not isinstance(rows, list):
@@ -640,7 +639,7 @@ class TadBoundaryParser:
             raise ValidationError("boundary input must not be empty")
         selected = input_format or ("json" if text.lstrip().startswith(("{", "[")) else "tsv")
         if selected == "json":
-            payload = json.loads(text)
+            payload = _strict_json_loads(text)
             rows = payload.get("boundaries", payload) if isinstance(payload, Mapping) else payload
             if not isinstance(rows, list):
                 raise ValidationError("boundary JSON must contain a boundaries list")

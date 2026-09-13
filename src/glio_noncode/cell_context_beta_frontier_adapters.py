@@ -22,7 +22,7 @@ from .cell_context_beta_frontier_public_data import (
 )
 from .errors import ValidationError
 from .models import ReferenceContext
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,8 +102,8 @@ def _context(key: str) -> ReferenceContext:
 
 def _rows(record: CellContextBetaFrontierRecord) -> list[dict[str, Any]]:
     try:
-        value = json.loads(str(record.payload["observation_text"]))
-    except (KeyError, TypeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(str(record.payload["observation_text"]))
+    except (KeyError, TypeError, ValueError) as error:
         raise ValidationError("beta observation_text must be JSON") from error
     rows = value.get("observations", value) if isinstance(value, Mapping) else value
     if not isinstance(rows, list):

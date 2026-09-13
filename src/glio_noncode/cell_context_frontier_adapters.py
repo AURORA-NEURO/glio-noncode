@@ -23,7 +23,7 @@ from .cell_context_frontier_public_data import (
 )
 from .errors import ValidationError
 from .models import ReferenceContext
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 @dataclass(frozen=True, slots=True)
@@ -96,8 +96,8 @@ class CellContextFrontierAdapterRegistry:
 
 def _rows(record: CellContextFrontierRecord) -> list[dict[str, Any]]:
     try:
-        payload = json.loads(str(record.payload["observation_text"]))
-    except (TypeError, json.JSONDecodeError, KeyError) as error:
+        payload = _strict_json_loads(str(record.payload["observation_text"]))
+    except (TypeError, ValueError, KeyError) as error:
         raise ValidationError("observation_text must be JSON") from error
     rows = payload.get("observations", payload) if isinstance(payload, Mapping) else payload
     if not isinstance(rows, list):
