@@ -1657,53 +1657,35 @@ class ControlPlaneApplication:
         receipt_raw = raw.get("receipt")
         if not isinstance(receipt_raw, Mapping):
             raise ValidationError("sequence receipt is required")
+        http_status = receipt_raw.get("http_status")
+        elapsed_seconds = receipt_raw.get("elapsed_seconds")
+        response_hash = receipt_raw.get("response_hash")
+        cache_expires_at = receipt_raw.get("cache_expires_at")
+        error_type = receipt_raw.get("error_type")
+        error_message = receipt_raw.get("error_message")
         receipt = FetchReceipt(
-            source_id=str(receipt_raw["source_id"]),
-            source_version=str(receipt_raw["source_version"]),
-            url=str(receipt_raw["url"]),
-            request_hash=str(receipt_raw["request_hash"]),
-            response_hash=(
-                str(receipt_raw["response_hash"])
-                if receipt_raw.get("response_hash") is not None
-                else None
-            ),
-            status=FetchStatus(str(receipt_raw["status"])),
-            http_status=(
-                int(receipt_raw["http_status"])
-                if receipt_raw.get("http_status") is not None
-                else None
-            ),
-            attempts=int(receipt_raw["attempts"]),
-            retrieved_at=str(receipt_raw["retrieved_at"]),
-            elapsed_seconds=(
-                float(receipt_raw["elapsed_seconds"])
-                if receipt_raw.get("elapsed_seconds") is not None
-                else None
-            ),
-            cache_expires_at=(
-                str(receipt_raw["cache_expires_at"])
-                if receipt_raw.get("cache_expires_at") is not None
-                else None
-            ),
-            warnings=tuple(str(item) for item in receipt_raw.get("warnings", ())),
-            error_type=(
-                str(receipt_raw["error_type"])
-                if receipt_raw.get("error_type") is not None
-                else None
-            ),
-            error_message=(
-                str(receipt_raw["error_message"])
-                if receipt_raw.get("error_message") is not None
-                else None
-            ),
+            source_id=_input_text(receipt_raw["source_id"], "receipt source_id"),
+            source_version=_input_text(receipt_raw["source_version"], "receipt source_version"),
+            url=_input_text(receipt_raw["url"], "receipt url"),
+            request_hash=_input_text(receipt_raw["request_hash"], "receipt request_hash"),
+            response_hash=(None if response_hash is None else _input_text(response_hash, "receipt response_hash")),
+            status=FetchStatus(_input_text(receipt_raw["status"], "receipt status")),
+            http_status=(None if http_status is None else _input_integer(http_status, "receipt http_status")),
+            attempts=_input_integer(receipt_raw["attempts"], "receipt attempts"),
+            retrieved_at=_input_text(receipt_raw["retrieved_at"], "receipt retrieved_at"),
+            elapsed_seconds=(None if elapsed_seconds is None else _input_number(elapsed_seconds, "receipt elapsed_seconds")),
+            cache_expires_at=(None if cache_expires_at is None else _input_text(cache_expires_at, "receipt cache_expires_at")),
+            warnings=_input_strings(receipt_raw.get("warnings", ()), "receipt warnings"),
+            error_type=(None if error_type is None else _input_text(error_type, "receipt error_type")),
+            error_message=(None if error_message is None else _input_text(error_message, "receipt error_message")),
         )
         return SequenceSlice(
-            assembly=str(raw["assembly"]),
-            chromosome=str(raw["chromosome"]),
-            start=int(raw["start"]),
-            end=int(raw["end"]),
-            sequence=str(raw["sequence"]),
-            source_id=str(raw["source_id"]),
+            assembly=_input_text(raw["assembly"], "sequence assembly"),
+            chromosome=_input_text(raw["chromosome"], "sequence chromosome"),
+            start=_input_integer(raw["start"], "sequence start"),
+            end=_input_integer(raw["end"], "sequence end"),
+            sequence=_input_text(raw["sequence"], "sequence"),
+            source_id=_input_text(raw["source_id"], "sequence source_id"),
             receipt=receipt,
         )
 
