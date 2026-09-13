@@ -1176,6 +1176,7 @@ from .dossier_query import (
 )
 from .dossier_release import build_persisted_dossier_release
 from .errors import GlioError, StoreError, ValidationError
+from ._safe_persistence import read_bytes_bounded as _safe_read_bytes_bounded
 from .evidence_lifecycle_frontier_offline_audit import audit_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_boundary import audit_evidence_lifecycle_offline_boundary
 from .evidence_lifecycle_frontier_offline_bundle import build_evidence_lifecycle_offline_bundle
@@ -3247,6 +3248,33 @@ def _parse_review_decisions(
     return tuple(decisions)
 
 
+_API_MAX_INPUT_BYTES = 128 * 1024 * 1024
+
+
+def _api_read_bytes(path: str | Path, *, field: str = "API input") -> bytes:
+    """Read a bounded API file input without following symlinked paths."""
+
+    try:
+        return _safe_read_bytes_bounded(
+            path,
+            max_bytes=_API_MAX_INPUT_BYTES,
+            field=field,
+        )
+    except ValidationError as exc:
+        raise ValueError(str(exc)) from exc
+    except OSError as exc:
+        raise ValueError(f"{field} could not be read") from exc
+
+
+def _api_read_text(path: str | Path, *, field: str = "API input") -> str:
+    """Read a bounded UTF-8 API file input without following symlinks."""
+
+    try:
+        return _api_read_bytes(path, field=field).decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"{field} is not valid UTF-8") from exc
+
+
 class ApiHandler(BaseHTTPRequestHandler):
     """Small API handler with explicit endpoints and bounded error bodies."""
 
@@ -3498,7 +3526,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return registry_federation_consensus_gate_certificate_history_model.load_history(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("certificate history input must be an object")
         return registry_federation_consensus_gate_certificate_history_model.history_from_mapping(raw)
@@ -3516,7 +3544,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return registry_federation_consensus_gate_certificate_observatory_package_model.load_package(source).observatory
-        return ApiHandler._certificate_observatory_from_document(_strict_json_loads(source.read_text(encoding="utf-8")))
+        return ApiHandler._certificate_observatory_from_document(_strict_json_loads(_api_read_text(source)))
 
     @staticmethod
     def _certificate_observatory_archive_from_input(input_path: str, *, archive_id: str):
@@ -3530,7 +3558,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             if value.archive_id != archive_id:
                 return registry_federation_consensus_gate_certificate_observatory_archive_model.build_archive(value.package, archive_id=archive_id)
             return value
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("certificate observatory archive input must be an object")
         if "archive_address" in raw and "artifacts" in raw:
@@ -3548,7 +3576,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return registry_federation_consensus_gate_certificate_observatory_archive_registry_model.load_registry(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("certificate observatory archive registry input must be an object")
         return registry_federation_consensus_gate_certificate_observatory_archive_registry_model.registry_from_mapping(raw)
@@ -3563,11 +3591,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                 return registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_runtime_model.load_runtime(source).federation
             federation_path = source / "federation.json"
             if federation_path.exists():
-                raw = _strict_json_loads(federation_path.read_text(encoding="utf-8"))
+                raw = _strict_json_loads(_api_read_text(federation_path))
             else:
                 raise ValueError("federation input directory must contain runtime.json or federation.json")
         else:
-            raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("certificate observatory archive registry federation input must be an object")
         nested = raw.get("federation")
@@ -3586,9 +3614,9 @@ class ApiHandler(BaseHTTPRequestHandler):
             resolution_path = source / "resolution.json"
             if not resolution_path.exists():
                 raise ValueError("resolution input directory must contain runtime.json or resolution.json")
-            raw = _strict_json_loads(resolution_path.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(_api_read_text(resolution_path))
         else:
-            raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("federation resolution input must be an object")
         nested = raw.get("resolution")
@@ -3605,9 +3633,9 @@ class ApiHandler(BaseHTTPRequestHandler):
             plan_path = source / "plan.json"
             if not plan_path.exists():
                 raise ValueError("reconciliation plan input directory must contain runtime.json or plan.json")
-            raw = _strict_json_loads(plan_path.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(_api_read_text(plan_path))
         else:
-            raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("reconciliation plan input must be an object")
         nested = raw.get("plan")
@@ -3620,7 +3648,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("reconciliation runtime input must be an object")
         return registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_model.runtime_from_mapping(raw)
@@ -3632,7 +3660,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("decision ledger runtime input must be an object")
         return registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_model.runtime_from_mapping(raw)
@@ -3644,7 +3672,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return ApiHandler._certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_from_input(input_path).ledger
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("decision ledger input must be an object")
         nested = raw.get("ledger")
@@ -3669,7 +3697,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_ingestion_runtime_model.load_runtime(source).batch
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data ingestion input must be an object")
         nested = raw.get("batch")
@@ -3680,7 +3708,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_ingestion_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data runtime input must be an object")
         return downloaded_data_ingestion_runtime_model.runtime_from_mapping(raw)
@@ -3690,7 +3718,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data profile runtime input must be an object")
         return downloaded_data_profile_runtime_model.runtime_from_mapping(raw)
@@ -3700,7 +3728,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_runtime_model.load_runtime(source).profile
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data profile input must be an object")
         nested = raw.get("profile")
@@ -3711,7 +3739,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_runtime_model.load_runtime(source).query
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data profile query input must be an object")
         nested = raw.get("query")
@@ -3722,7 +3750,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data contract runtime input must be an object")
         return downloaded_data_profile_contract_runtime_model.runtime_from_mapping(raw)
@@ -3736,7 +3764,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             if tuple(sorted(path.name for path in source.iterdir())) == tuple(sorted(downloaded_data_profile_runtime_model.FILES)):
                 return downloaded_data_profile_contract_model.build_contract(downloaded_data_profile_runtime_model.load_runtime(source).profile)
             return downloaded_data_profile_contract_model.build_contract(downloaded_data_profile_model.build_profile(downloaded_data_ingestion_runtime_model.load_runtime(source).batch, profile_id="glio-noncode-downloaded-data-profile"))
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data contract input must be an object")
         nested = raw.get("contract")
@@ -3753,7 +3781,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_runtime_model.load_runtime(source).query
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data contract query input must be an object")
         nested = raw.get("query")
@@ -3764,7 +3792,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_diff_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data contract diff runtime input must be an object")
         return downloaded_data_profile_contract_diff_runtime_model.runtime_from_mapping(raw)
@@ -3774,7 +3802,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_diff_runtime_model.load_runtime(source).diff
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data contract diff input must be an object")
         nested = raw.get("diff")
@@ -3785,7 +3813,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_diff_runtime_model.load_runtime(source).query
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data contract diff query input must be an object")
         nested = raw.get("query")
@@ -3794,7 +3822,7 @@ class ApiHandler(BaseHTTPRequestHandler):
     @staticmethod
     def _downloaded_contract_compatibility_policy_from_input(input_path: str):
         source = Path(input_path)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data contract compatibility policy input must be an object")
         nested = raw.get("policy")
@@ -3805,7 +3833,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_runtime_model.load_runtime(source).gate
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data contract compatibility input must be an object")
         nested = raw.get("gate")
@@ -3816,7 +3844,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_runtime_model.load_runtime(source).query
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data contract compatibility query input must be an object")
         nested = raw.get("query")
@@ -3827,7 +3855,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data contract compatibility runtime input must be an object")
         return downloaded_data_profile_contract_compatibility_runtime_model.runtime_from_mapping(raw)
@@ -3837,7 +3865,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_runtime_model.load_runtime(source).plan
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation input must be an object")
         nested = raw.get("plan")
@@ -3852,7 +3880,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_runtime_model.load_runtime(source).query
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation query input must be an object")
         nested = raw.get("query")
@@ -3863,7 +3891,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation runtime input must be an object")
         return downloaded_data_profile_contract_compatibility_remediation_runtime_model.runtime_from_mapping(raw)
@@ -3873,7 +3901,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model.load_runtime(source).resolution
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution input must be an object")
         nested = raw.get("resolution")
@@ -3890,7 +3918,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             if (source / "history.json").is_file():
                 return (downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_model.load_runtime(source).history,)
             return (downloaded_data_profile_contract_compatibility_remediation_resolution_runtime_model.load_runtime(source).resolution,)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history input must be an object")
         candidates = raw.get("resolutions")
@@ -3916,7 +3944,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def _downloaded_contract_compatibility_remediation_resolution_history_query_from_input(input_path: str):
-        raw = _strict_json_loads(Path(input_path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history query input must be an object")
         nested = raw.get("query")
@@ -3927,7 +3955,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history runtime input must be an object")
         return downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_model.runtime_from_mapping(raw)
@@ -3948,7 +3976,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.load_runtime(source).diff
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history diff input must be an object")
         nested = raw.get("diff")
@@ -3956,7 +3984,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def _downloaded_contract_compatibility_remediation_resolution_history_diff_query_from_input(input_path: str):
-        raw = _strict_json_loads(Path(input_path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history diff query input must be an object")
         nested = raw.get("query")
@@ -3967,7 +3995,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history diff runtime input must be an object")
         return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_model.runtime_from_mapping(raw)
@@ -3977,7 +4005,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_model.load_runtime(source).evaluation
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history diff policy evaluation input must be an object")
         nested = raw.get("evaluation")
@@ -3988,7 +4016,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_model.load_runtime(source).query
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history diff policy query input must be an object")
         nested = raw.get("query")
@@ -3999,7 +4027,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history diff policy runtime input must be an object")
         nested = raw.get("runtime")
@@ -4010,7 +4038,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.load_package(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history diff policy package input must be an object")
         nested = raw.get("package")
@@ -4022,7 +4050,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if source.is_dir():
             package = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.load_package(source)
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.query_package(package)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history diff policy package query input must be an object")
         nested = raw.get("query")
@@ -4040,7 +4068,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_model.load_registry(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history diff policy package registry input must be an object")
         nested = raw.get("registry")
@@ -4052,7 +4080,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if source.is_dir():
             registry = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_model.load_registry(source)
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_model.query_registry(registry)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data compatibility remediation resolution history diff policy package registry query input must be an object")
         nested = raw.get("query")
@@ -4069,7 +4097,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_history_model.load_history(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data policy package registry history input must be an object")
         nested = raw.get("history")
@@ -4081,7 +4109,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if source.is_dir():
             history = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_history_model.load_history(source)
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_history_query_model.query_history(history)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data policy package registry history query input must be an object")
         nested = raw.get("query")
@@ -4098,7 +4126,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_history_diff_model.load_diff(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data policy package registry history diff input must be an object")
         nested = raw.get("diff")
@@ -4110,7 +4138,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if source.is_dir():
             diff = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_history_diff_model.load_diff(source)
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_history_diff_query_model.query_diff(diff)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data policy package registry history diff query input must be an object")
         nested = raw.get("query")
@@ -4127,7 +4155,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_model.load_observatory(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data policy package registry observatory input must be an object")
         nested = raw.get("observatory")
@@ -4139,7 +4167,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if source.is_dir():
             observatory = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_model.load_observatory(source)
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_query_model.query_observatory(observatory)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data policy package registry observatory query input must be an object")
         nested = raw.get("query")
@@ -4159,7 +4187,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_model.build_archive_from_directory(source, archive_id=selected_id)
         if source.suffix.casefold() == ".zip":
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_model.load_archive(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data policy package registry observatory archive input must be an object")
         nested_archive = raw.get("archive")
@@ -4177,7 +4205,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if source.is_dir() or source.suffix.casefold() == ".zip":
             archive = cls._downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_from_input(input_path)
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_query_model.query_archive(archive)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data policy package registry observatory archive query input must be an object")
         nested = raw.get("query")
@@ -4193,7 +4221,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data policy package registry observatory archive runtime input must be an object")
         nested = raw.get("runtime")
@@ -4208,7 +4236,7 @@ class ApiHandler(BaseHTTPRequestHandler):
     def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_from_input(cls, input_path: str):
         source = Path(input_path)
         if source.is_file():
-            raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(_api_read_text(source))
             if not isinstance(raw, dict):
                 raise ValueError("downloaded-data policy package registry observatory archive runtime query input must be an object")
             nested = raw.get("query")
@@ -4224,7 +4252,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_model.load_runtime(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("snapshot source must be a persisted runtime directory, runtime JSON, or runtime query JSON")
         nested_runtime = raw.get("runtime")
@@ -4244,7 +4272,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_model.load_snapshot(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("snapshot audit input must be a persisted snapshot directory or snapshot JSON")
         nested = raw.get("snapshot")
@@ -4259,7 +4287,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_model.load_diff(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("snapshot diff audit input must be a persisted diff directory or diff JSON")
         nested = raw.get("diff")
@@ -4271,7 +4299,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_from_input(input_path: str):
-        raw = _strict_json_loads(Path(input_path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
         if not isinstance(raw, dict):
             raise ValueError("snapshot diff query audit input must be a query JSON document")
         nested = raw.get("query")
@@ -4286,7 +4314,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_model.load_snapshot(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("snapshot diff query snapshot audit input must be a persisted snapshot directory or snapshot JSON")
         nested = raw.get("snapshot")
@@ -4301,7 +4329,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_model.load_diff(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("query snapshot comparison audit input must be a persisted comparison directory or comparison JSON")
         nested = raw.get("diff") or raw.get("comparison")
@@ -4313,7 +4341,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_from_input(input_path: str):
-        raw = _strict_json_loads(Path(input_path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
         if not isinstance(raw, dict):
             raise ValueError("query snapshot comparison query audit input must be a query JSON document")
         nested = raw.get("query")
@@ -4328,7 +4356,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_model.load_snapshot(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("comparison query snapshot audit input must be a persisted snapshot directory or snapshot JSON")
         nested = raw.get("snapshot")
@@ -4343,7 +4371,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_model.load_snapshot(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("registry input must be a persisted comparison query snapshot directory or snapshot JSON")
         nested = raw.get("snapshot")
@@ -4358,7 +4386,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_model.load_registry(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("registry input must be a persisted registry directory or registry JSON")
         nested = raw.get("registry")
@@ -4370,7 +4398,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_query_from_input(input_path: str):
-        raw = _strict_json_loads(Path(input_path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
         if not isinstance(raw, dict):
             raise ValueError("registry query audit input must be a query JSON document")
         nested = raw.get("query")
@@ -4385,7 +4413,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_model.load_registry(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("registry history input must be a persisted registry directory or registry JSON")
         nested = raw.get("registry")
@@ -4400,7 +4428,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_model.FILES)):
             return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_model.load_history(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("registry history audit input must be a persisted history directory or history JSON")
         nested = raw.get("history")
@@ -4412,7 +4440,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_query_from_input(input_path: str):
-        raw = _strict_json_loads(Path(input_path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
         if not isinstance(raw, dict):
             raise ValueError("registry history query audit input must be a query JSON document")
         nested = raw.get("query")
@@ -4428,7 +4456,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_model
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(model.FILES)):
             return model.load_observatory(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("history observatory input must be a persisted observatory directory or observatory JSON")
         nested = raw.get("observatory")
@@ -4440,7 +4468,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_from_input(input_path: str):
-        raw = _strict_json_loads(Path(input_path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
         if not isinstance(raw, dict):
             raise ValueError("history observatory query audit input must be a query JSON document")
         model = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_query_model
@@ -4460,7 +4488,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             return model.build_archive_from_directory(source, archive_id=selected_id)
         if source.suffix.casefold() == ".zip":
             return model.load_archive(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("history observatory archive input must be an object")
         nested_archive = raw.get("archive")
@@ -4485,7 +4513,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if source.suffix.casefold() == ".zip":
             archive = archive_model.load_archive(source)
             return model.build_transfer(archive, transfer_id=transfer_id, chunk_size=chunk_size or model.DEFAULT_CHUNK_SIZE)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("history observatory archive transfer input must be an object")
         nested_transfer = raw.get("transfer")
@@ -4512,7 +4540,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if source.is_dir() and (source / transfer_model.TRANSFER_DIRECTORY_MANIFEST).is_file():
             return recovery_model.build_recovery_from_directory(source, recovery_id=recovery_id or recovery_model.DEFAULT_RECOVERY_ID)
         if not source.is_dir() and source.suffix.casefold() != ".zip":
-            raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(_api_read_text(source))
             if not isinstance(raw, dict):
                 raise ValueError("history observatory archive transfer recovery input must be an object")
             nested_recovery = raw.get("recovery")
@@ -4528,7 +4556,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         model = downloaded_data_history_observatory_archive_transfer_recovery_execution_model
         source = Path(input_path)
         if not source.is_dir() and source.suffix.casefold() != ".zip":
-            raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(_api_read_text(source))
             if isinstance(raw, Mapping) and "execution_id" in raw and "outcomes" in raw:
                 return model.execution_from_mapping(raw)
         recovery = ApiHandler._downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history_observatory_archive_transfer_recovery_from_input(input_path, recovery_id=ApiHandler._query_value(query, "recovery_id") or None)
@@ -4576,7 +4604,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         if source.is_dir() and tuple(sorted(item.name for item in source.iterdir())) == tuple(sorted(model.FILES)):
             return model.load_registry(source)
         if source.is_file():
-            return model.registry_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+            return model.registry_from_mapping(_strict_json_loads(_api_read_text(source)))
         raise ValueError("runtime registry federation source must be a persisted registry directory or JSON file")
 
     @classmethod
@@ -4622,7 +4650,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return recovery_model.build_recovery_from_directory(source, recovery_id=recovery_id)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if isinstance(raw, Mapping) and "recovery_id" in raw and "actions" in raw:
             return recovery_model.recovery_from_mapping(raw)
         if isinstance(raw, Mapping) and isinstance(raw.get("recovery"), Mapping):
@@ -4639,7 +4667,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             raise ValueError("input, execution, recovery, or transfer is required")
         source = Path(input_path)
         if source.is_file() and source.suffix.casefold() != ".zip":
-            raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(_api_read_text(source))
             if isinstance(raw, Mapping) and "execution_id" in raw and "outcomes" in raw:
                 return model.execution_from_mapping(raw)
         recovery_id = cls._query_value(query, "recovery_id") or recovery_model.DEFAULT_RECOVERY_ID
@@ -4673,7 +4701,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         raw = None
         if source.is_file() and source.suffix.casefold() != ".zip":
-            raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(_api_read_text(source))
             if isinstance(raw, Mapping) and "execution_id" in raw and "outcomes" in raw:
                 return model.execution_from_mapping(raw)
         recovery_id = cls._query_value(query, "recovery_id") or recovery_model.DEFAULT_RECOVERY_ID
@@ -4732,7 +4760,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         runtime_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_model
 
         def read_json(source_path: str) -> Mapping[str, Any]:
-            value = _strict_json_loads(Path(source_path).read_text(encoding="utf-8"))
+            value = _strict_json_loads(_api_read_text(Path(source_path)))
             if not isinstance(value, Mapping):
                 raise ValueError("history-diff runtime registry input must be an object")
             return value
@@ -4770,7 +4798,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         registry_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_model
 
         def read_json(source_path: str) -> Mapping[str, Any]:
-            value = _strict_json_loads(Path(source_path).read_text(encoding="utf-8"))
+            value = _strict_json_loads(_api_read_text(Path(source_path)))
             if not isinstance(value, Mapping):
                 raise ValueError("history-diff runtime registry history input must be an object")
             return value
@@ -4808,7 +4836,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         registry_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_model
 
         def read_json(source_path: str) -> Mapping[str, Any]:
-            value = _strict_json_loads(Path(source_path).read_text(encoding="utf-8"))
+            value = _strict_json_loads(_api_read_text(Path(source_path)))
             if not isinstance(value, Mapping):
                 raise ValueError("history-diff runtime registry history input must be an object")
             return value
@@ -4846,7 +4874,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         runtime_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_model
 
         def read_json(source_path: str) -> Mapping[str, Any]:
-            return _strict_json_loads(Path(source_path).read_text(encoding="utf-8"))
+            return _strict_json_loads(_api_read_text(Path(source_path)))
 
         def load_runtime(source_path: str):
             source = Path(source_path)
@@ -4878,7 +4906,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         registry_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_model
 
         def read_json(source_path: str) -> Mapping[str, Any]:
-            value = _strict_json_loads(Path(source_path).read_text(encoding="utf-8"))
+            value = _strict_json_loads(_api_read_text(Path(source_path)))
             if not isinstance(value, Mapping):
                 raise ValueError("runtime registry history input must be an object")
             return value
@@ -4926,7 +4954,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             return model.load_diff(source)
         if source.is_file() and source.name == "diff.json" and source.parent.is_dir() and tuple(sorted(item.name for item in source.parent.iterdir())) == tuple(sorted(model.FILES)):
             return model.load_diff(source.parent)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, Mapping):
             raise ValueError("history-diff runtime registry history diff input must be an object")
         nested = raw.get("diff")
@@ -4942,7 +4970,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             return exact_history_diff_archive_model.build_archive_from_directory(source, archive_id=cls._query_value(query, "archive_id") or exact_history_diff_archive_model.DEFAULT_ARCHIVE_ID)
         if source.is_file() and source.suffix.lower() == ".zip":
             return exact_history_diff_archive_model.verify_archive_file(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, Mapping):
             raise ValueError("exact history diff archive input must be an object")
         nested = raw.get("archive")
@@ -4959,7 +4987,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             return exact_history_diff_archive_model.build_archive_from_directory(source)
         if source.is_file() and source.suffix.lower() == ".zip":
             return exact_history_diff_archive_model.verify_archive_file(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, Mapping):
             raise ValueError("exact history diff archive input must be an object")
         nested = raw.get("archive")
@@ -4985,7 +5013,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             return model.load_diff(source)
         if source.is_file() and source.name == "diff.json" and source.parent.is_dir() and tuple(sorted(item.name for item in source.parent.iterdir())) == tuple(sorted(model.FILES)):
             return model.load_diff(source.parent)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, Mapping):
             raise ValueError("runtime registry history diff input must be an object")
         nested = raw.get("diff")
@@ -5022,7 +5050,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
     @staticmethod
     def _downloaded_ingest_diff_from_input(input_path: str):
-        raw = _strict_json_loads(Path(input_path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
         if not isinstance(raw, dict):
             raise ValueError("downloaded-data diff input must be an object")
         nested = raw.get("diff")
@@ -5035,7 +5063,7 @@ class ApiHandler(BaseHTTPRequestHandler):
         source = Path(input_path)
         if source.is_dir():
             return registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.load_history(source)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(_api_read_text(source))
         if not isinstance(raw, dict):
             raise ValueError("certificate observatory archive registry history input must be an object")
         return registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.history_from_mapping(raw)
@@ -5263,7 +5291,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_catalog_model, json_name="catalog_json", csv_name="catalog_csv", markdown_name="render_catalog_markdown")
                     return
                 if path == downloaded_data_prefix + "/catalog/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = downloaded_data_catalog_audit_model.audit_catalog(downloaded_data_catalog_model.catalog_from_mapping(raw.get("catalog", raw)))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_catalog_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -5297,7 +5325,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == ingest_prefix + "/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = downloaded_data_ingestion_query_audit_model.audit_query(downloaded_data_ingestion_query_model.query_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -5316,7 +5344,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == ingest_prefix + "/diff/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = downloaded_data_ingestion_diff_query_audit_model.audit_query(downloaded_data_ingestion_diff_query_model.query_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_ingestion_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -5699,7 +5727,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_compatibility_remediation_resolution_history_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 if path == contract_prefix + "/compatibility/remediation/resolution/history/diff":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     if not isinstance(raw, Mapping):
                         raise ValueError("downloaded-data compatibility remediation resolution history diff input must contain left and right histories")
                     value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_model.build_diff(
@@ -6518,7 +6546,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not execution_input:
                         raise ValueError("input/query and execution_input/execution are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     execution = self._downloaded_history_observatory_archive_transfer_recovery_execution_from_input(execution_input, query)
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_query_audit_model
                     value = model.audit_query(query_value, execution)
@@ -6568,7 +6596,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not runtime_input:
                         raise ValueError("input/query and runtime_input/runtime are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     runtime = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_from_input(runtime_input, query)
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_query_audit_model
                     value = model.audit_query(query_value, runtime)
@@ -6612,7 +6640,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not registry_input:
                         raise ValueError("input/query and registry_input/registry are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     registry = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_model.load_registry(registry_input)
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_query_audit_model
                     value = model.audit_query(query_value, registry)
@@ -6656,7 +6684,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not federation_input:
                         raise ValueError("input/query and federation_input/federation are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     federation = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_model.load_federation(federation_input)
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_query_audit_model
                     value = model.audit_query(query_value, federation)
@@ -6702,7 +6730,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     archive_input = self._query_value(query, "archive_input") or self._query_value(query, "archive")
                     if not query_input or not archive_input:
                         raise ValueError("input/query and archive_input/archive are required")
-                    query_value = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     archive = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_model.load_archive(archive_input)
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_query_audit_model
                     value = model.audit_query(query_value, archive)
@@ -6776,7 +6804,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not transfer_input:
                         raise ValueError("input/query and transfer_input/transfer are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     transfer = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_model.load_transfer(transfer_input)
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_query_audit_model
                     value = model.audit_query(query_value, transfer)
@@ -6811,7 +6839,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not recovery_input:
                         raise ValueError("input/query and recovery_input/recovery are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     recovery = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_from_query({"input": [recovery_input]})
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_query_audit_model
                     value = model.audit_query(query_value, recovery)
@@ -6864,7 +6892,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not execution_input:
                         raise ValueError("input/query and execution_input/execution are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     execution = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_from_query({"input": [execution_input]})
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_query_audit_model
                     value = model.audit_query(query_value, execution)
@@ -6920,7 +6948,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not runtime_input:
                         raise ValueError("input/query and runtime_input/runtime are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     runtime = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_from_query({"input": [runtime_input]})
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_query_audit_model
                     value = model.audit_query(query_value, runtime)
@@ -6977,7 +7005,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not registry_input:
                         raise ValueError("input/query and registry_input/registry are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     registry = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_from_query({"input": [registry_input]})
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_query_audit_model
                     value = model.audit_query(query_value, registry)
@@ -7036,7 +7064,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not history_input:
                         raise ValueError("input/query and history_input/history are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     history = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_from_query({"input": [history_input]})
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model
                     value = model.audit_query(query_value, history)
@@ -7074,7 +7102,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not diff_input:
                         raise ValueError("input/query and diff_input/diff are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     diff = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_from_input(diff_input)
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_query_audit_model
                     value = model.audit_query(query_value, diff)
@@ -7148,7 +7176,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not archive_input:
                         raise ValueError("input/query and archive_input/archive are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     archive_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_model
                     archive = archive_model.load_archive(archive_input)
                     audit_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit_model
@@ -7272,14 +7300,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
                         raise ValueError("input or recovery is required")
-                    value = recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     self._write_contract(value, self._query_value(query, "format") or "summary", recovery_model, json_name="recovery_json", csv_name="recovery_csv", markdown_name="render_recovery_markdown")
                     return
                 if path == history_diff_archive_transfer_recovery_path + "/audit":
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
                         raise ValueError("input or recovery is required")
-                    value = recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     audit_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_audit_model
                     audit = audit_model.audit_recovery(value)
                     self._write_contract(audit, self._query_value(query, "format") or "summary", audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
@@ -7288,7 +7316,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
                         raise ValueError("input or recovery is required")
-                    recovery = recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    recovery = recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_query_model
                     value = query_model.query_recovery(recovery, resources=self._query_values(query, "resource") or query_model.RESOURCES, index=self._query_optional_int(query, "index"), state=self._query_value(query, "state") or "", received=self._query_bool(query, "received") if "received" in query else None, text=self._query_value(query, "text") or self._query_value(query, "q") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", query_model.MAX_LIMIT))
                     self._write_contract(value, self._query_value(query, "format") or "summary", query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
@@ -7299,8 +7327,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not recovery_input:
                         raise ValueError("input/query and recovery_input/recovery are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
-                    recovery = recovery_model.recovery_from_mapping(_strict_json_loads(Path(recovery_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
+                    recovery = recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(recovery_input))))
                     audit_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_query_audit_model
                     audit = audit_model.audit_query(query_value, recovery)
                     self._write_contract(audit, self._query_value(query, "format") or "summary", audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
@@ -7331,7 +7359,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     execution_input = self._query_value(query, "execution_input") or self._query_value(query, "execution")
                     if not query_input or not execution_input:
                         raise ValueError("input/query and execution_input/execution are required")
-                    query_value = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     execution = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_from_query({"input": [execution_input]})
                     audit_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model
                     value = audit_model.audit_query(query_value, execution)
@@ -7378,7 +7406,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not runtime_input:
                         raise ValueError("input/query and runtime_input/runtime are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     runtime = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_from_query({"input": [runtime_input]})
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_query_audit_model
                     value = model.audit_query(query_value, runtime)
@@ -7435,7 +7463,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not registry_input:
                         raise ValueError("input/query and registry_input/registry are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     registry = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_from_query({"input": [registry_input]})
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_query_audit_model
                     value = model.audit_query(query_value, registry)
@@ -7494,7 +7522,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not history_input:
                         raise ValueError("input/query and history_input/history/registry_input/registry are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     history = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_from_query({"input": [history_input]})
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_audit_model
                     value = model.audit_query(query_value, history)
@@ -7532,7 +7560,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if not query_input or not diff_input:
                         raise ValueError("input/query and diff_input/diff are required")
                     query_model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_model
-                    query_value = query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     diff = self._downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_from_input(diff_input)
                     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_audit_model
                     value = model.audit_query(query_value, diff)
@@ -7566,7 +7594,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     archive_input = self._query_value(query, "archive_input") or self._query_value(query, "archive")
                     if not query_input or not archive_input:
                         raise ValueError("input/query and archive_input/archive are required")
-                    query_value = exact_history_diff_archive_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     archive = self._exact_history_diff_archive_from_input(archive_input)
                     value = exact_history_diff_archive_query_audit_model.audit_query(query_value, archive)
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
@@ -7715,14 +7743,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
                         raise ValueError("input or recovery is required")
-                    value = recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     self._write_contract(value, self._query_value(query, "format") or "summary", recovery_model, json_name="recovery_json", csv_name="recovery_csv", markdown_name="render_recovery_markdown")
                     return
                 if path == exact_history_diff_archive_transfer_recovery_path + "/audit":
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
                         raise ValueError("input or recovery is required")
-                    value = recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     audit = exact_history_diff_archive_transfer_recovery_audit_model.audit_recovery(value)
                     self._write_contract(audit, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -7730,7 +7758,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
                         raise ValueError("input or recovery is required")
-                    recovery = recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    recovery = recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     value = exact_history_diff_archive_transfer_recovery_query_model.query_recovery(recovery, resources=self._query_values(query, "resource") or exact_history_diff_archive_transfer_recovery_query_model.RESOURCES, index=self._query_optional_int(query, "index"), state=self._query_value(query, "state") or "", received=self._query_bool(query, "received") if "received" in query else None, text=self._query_value(query, "text") or self._query_value(query, "q") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", exact_history_diff_archive_transfer_recovery_query_model.MAX_LIMIT))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
@@ -7739,8 +7767,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     recovery_input = self._query_value(query, "recovery_input") or self._query_value(query, "recovery")
                     if not query_input or not recovery_input:
                         raise ValueError("input/query and recovery_input/recovery are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
-                    recovery = recovery_model.recovery_from_mapping(_strict_json_loads(Path(recovery_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
+                    recovery = recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(recovery_input))))
                     value = exact_history_diff_archive_transfer_recovery_query_audit_model.audit_query(query_value, recovery)
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -7768,7 +7796,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
                         raise ValueError("input or recovery is required")
-                    recovery = exact_history_diff_archive_transfer_recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    recovery = exact_history_diff_archive_transfer_recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     applied_indices = tuple(int(item) for item in self._query_values(query, "applied_index"))
                     rejected_indices = tuple(int(item) for item in self._query_values(query, "rejected_index"))
                     transfer_input = self._query_value(query, "transfer_input")
@@ -7784,14 +7812,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "execution")
                     if not input_path:
                         raise ValueError("input or execution is required")
-                    value = execution_model.verify_execution(execution_model.execution_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8"))))
+                    value = execution_model.verify_execution(execution_model.execution_from_mapping(_strict_json_loads(_api_read_text(Path(input_path)))))
                     self._write_contract(value, self._query_value(query, "format") or "summary", execution_model, json_name="execution_json", csv_name="execution_csv", markdown_name="render_execution_markdown")
                     return
                 if path == exact_history_diff_archive_transfer_recovery_execution_path + "/audit":
                     input_path = self._query_value(query, "input") or self._query_value(query, "execution")
                     if not input_path:
                         raise ValueError("input or execution is required")
-                    value = execution_model.execution_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = execution_model.execution_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     audit = exact_history_diff_archive_transfer_recovery_execution_audit_model.audit_execution(value)
                     self._write_contract(audit, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -7799,7 +7827,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "execution")
                     if not input_path:
                         raise ValueError("input or execution is required")
-                    execution = execution_model.execution_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    execution = execution_model.execution_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     value = exact_history_diff_archive_transfer_recovery_execution_query_model.query_execution(execution, resources=self._query_values(query, "resource") or exact_history_diff_archive_transfer_recovery_execution_query_model.RESOURCES, status=self._query_value(query, "status") or "", index=self._query_int(query, "index", -1), text=self._query_value(query, "text") or self._query_value(query, "q") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", exact_history_diff_archive_transfer_recovery_execution_query_model.MAX_LIMIT))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
@@ -7808,8 +7836,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     execution_input = self._query_value(query, "execution_input") or self._query_value(query, "execution")
                     if not query_input or not execution_input:
                         raise ValueError("input/query and execution_input/execution are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
-                    execution = execution_model.execution_from_mapping(_strict_json_loads(Path(execution_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
+                    execution = execution_model.execution_from_mapping(_strict_json_loads(_api_read_text(Path(execution_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_query_audit_model.audit_query(query_value, execution)
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -7841,7 +7869,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                             inputs = [input_path]
                     if not inputs:
                         raise ValueError("execution or input is required")
-                    executions = tuple(exact_history_diff_archive_transfer_recovery_execution_model.execution_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8"))) for input_path in inputs)
+                    executions = tuple(exact_history_diff_archive_transfer_recovery_execution_model.execution_from_mapping(_strict_json_loads(_api_read_text(Path(input_path)))) for input_path in inputs)
                     value = ledger_model.build_ledger(executions, ledger_id=self._query_value(query, "ledger_id") or ledger_model.DEFAULT_LEDGER_ID)
                     self._write_contract(value, self._query_value(query, "format") or "summary", ledger_model, json_name="ledger_json", csv_name="ledger_csv", markdown_name="render_ledger_markdown")
                     return
@@ -7849,14 +7877,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "ledger")
                     if not input_path:
                         raise ValueError("input or ledger is required")
-                    value = ledger_model.load_ledger(input_path) if Path(input_path).is_dir() else ledger_model.ledger_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = ledger_model.load_ledger(input_path) if Path(input_path).is_dir() else ledger_model.ledger_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     self._write_contract(ledger_model.verify_ledger(value), self._query_value(query, "format") or "summary", ledger_model, json_name="ledger_json", csv_name="ledger_csv", markdown_name="render_ledger_markdown")
                     return
                 if path == exact_history_diff_archive_transfer_recovery_execution_ledger_path + "/audit":
                     input_path = self._query_value(query, "input") or self._query_value(query, "ledger")
                     if not input_path:
                         raise ValueError("input or ledger is required")
-                    value = ledger_model.load_ledger(input_path) if Path(input_path).is_dir() else ledger_model.ledger_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = ledger_model.load_ledger(input_path) if Path(input_path).is_dir() else ledger_model.ledger_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     audit = exact_history_diff_archive_transfer_recovery_execution_ledger_audit_model.audit_ledger(value)
                     self._write_contract(audit, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -7864,7 +7892,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "ledger")
                     if not input_path:
                         raise ValueError("input or ledger is required")
-                    value = ledger_model.load_ledger(input_path) if Path(input_path).is_dir() else ledger_model.ledger_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = ledger_model.load_ledger(input_path) if Path(input_path).is_dir() else ledger_model.ledger_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     result = exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.query_ledger(value, resources=self._query_values(query, "resource") or exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.RESOURCES, transition=self._query_value(query, "transition") or "", state=self._query_value(query, "state") or "", decision=self._query_value(query, "decision") or "", text=self._query_value(query, "text") or self._query_value(query, "q") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.MAX_LIMIT))
                     self._write_contract(result, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
@@ -7873,8 +7901,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     ledger_input = self._query_value(query, "ledger_input") or self._query_value(query, "ledger")
                     if not query_input or not ledger_input:
                         raise ValueError("input/query and ledger_input/ledger are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
-                    ledger = ledger_model.load_ledger(ledger_input) if Path(ledger_input).is_dir() else ledger_model.ledger_from_mapping(_strict_json_loads(Path(ledger_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
+                    ledger = ledger_model.load_ledger(ledger_input) if Path(ledger_input).is_dir() else ledger_model.ledger_from_mapping(_strict_json_loads(_api_read_text(Path(ledger_input))))
                     audit = exact_history_diff_archive_transfer_recovery_execution_ledger_query_audit_model.audit_query(query_value, ledger)
                     self._write_contract(audit, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -7908,7 +7936,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         if names == tuple(sorted(ledger_runtime_model.FILES)):
                             return ledger_runtime_model.load_runtime(source)
                         return ledger_runtime_model.build_runtime(ledger_model.load_ledger(source))
-                    raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(source))
                     if set(raw) == set(ledger_runtime_model.RUNTIME_FIELDS):
                         return ledger_runtime_model.runtime_from_mapping(raw)
                     return ledger_runtime_model.build_runtime(ledger_model.ledger_from_mapping(raw))
@@ -7945,7 +7973,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     runtime_input = self._query_value(query, "runtime_input") or self._query_value(query, "runtime")
                     if not query_input or not runtime_input:
                         raise ValueError("input/query and runtime_input/runtime are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime(runtime_input))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -7980,7 +8008,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         names = tuple(sorted(item.name for item in source.iterdir()))
                         if names == tuple(sorted(registry_model.FILES)):
                             return registry_model.load_registry(source)
-                    raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(source))
                     if set(raw) == set(registry_model.REGISTRY_FIELDS):
                         return registry_model.registry_from_mapping(raw)
                     return registry_model.build_registry((_load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_runtime(input_path),))
@@ -8024,7 +8052,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     registry_input = self._query_value(query, "registry_input") or self._query_value(query, "registry")
                     if not query_input or not registry_input:
                         raise ValueError("input/query and registry_input/registry are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry(registry_input))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -8060,7 +8088,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                             return history_model.load_history(source)
                         if names == tuple(sorted(registry_model.FILES)):
                             return registry_model.load_registry(source)
-                    raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(source))
                     if set(raw) == set(history_model.HISTORY_FIELDS):
                         return history_model.history_from_mapping(raw)
                     if set(raw) == set(registry_model.REGISTRY_FIELDS):
@@ -8124,7 +8152,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     history_input = self._query_value(query, "history_input") or self._query_value(query, "history")
                     if not query_input or not history_input:
                         raise ValueError("input/query and history_input/history are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history(history_input))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -8158,7 +8186,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         names = tuple(sorted(item.name for item in source.iterdir()))
                         if names == tuple(sorted(history_diff_model.FILES)):
                             return history_diff_model.load_diff(source)
-                    raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(source))
                     if set(raw) == set(history_diff_model.DIFF_FIELDS):
                         return history_diff_model.diff_from_mapping(raw)
                     raise ValueError("input is not an exact execution-ledger runtime registry history diff")
@@ -8208,7 +8236,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     diff_input = self._query_value(query, "diff_input") or self._query_value(query, "diff")
                     if not query_input or not diff_input:
                         raise ValueError("input/query and diff_input/diff are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff(diff_input))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -8240,7 +8268,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     source = Path(input_path)
                     if source.suffix.lower() == ".zip":
                         return history_diff_archive_model.load_archive(source)
-                    return history_diff_archive_model.archive_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                    return history_diff_archive_model.archive_from_mapping(_strict_json_loads(_api_read_text(source)))
                 if path == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_path:
                     input_path = self._query_value(query, "input") or self._query_value(query, "diff")
                     if not input_path:
@@ -8287,7 +8315,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     archive_input = self._query_value(query, "archive_input") or self._query_value(query, "archive")
                     if not query_input or not archive_input:
                         raise ValueError("input/query and archive_input/archive are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive(archive_input))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -8316,7 +8344,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     source = Path(input_path)
                     if source.is_dir():
                         return history_diff_archive_transfer_model.load_transfer(source)
-                    return history_diff_archive_transfer_model.transfer_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                    return history_diff_archive_transfer_model.transfer_from_mapping(_strict_json_loads(_api_read_text(source)))
                 if path == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_path:
                     input_path = self._query_value(query, "input") or self._query_value(query, "archive")
                     if not input_path:
@@ -8390,7 +8418,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     transfer_input = self._query_value(query, "transfer_input") or self._query_value(query, "transfer")
                     if not query_input or not transfer_input:
                         raise ValueError("input/query and transfer_input/transfer are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer(transfer_input))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -8420,7 +8448,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     source = Path(input_path)
                     if source.is_dir():
                         return recovery_model.build_recovery_from_directory(source)
-                    return recovery_model.recovery_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                    return recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(source)))
                 if path == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_path:
                     input_path = self._query_value(query, "input") or self._query_value(query, "transfer")
                     if not input_path:
@@ -8429,7 +8457,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if source.is_dir():
                         value = recovery_model.build_recovery_from_directory(source, recovery_id=self._query_value(query, "recovery_id") or recovery_model.DEFAULT_RECOVERY_ID)
                     else:
-                        transfer = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_model.transfer_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                        transfer = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_model.transfer_from_mapping(_strict_json_loads(_api_read_text(source)))
                         value = recovery_model.build_recovery(transfer, recovery_id=self._query_value(query, "recovery_id") or recovery_model.DEFAULT_RECOVERY_ID, checkpointed=self._query_bool(query, "checkpointed", False))
                     self._write_contract(value, self._query_value(query, "format") or "summary", recovery_model, json_name="recovery_json", csv_name="recovery_csv", markdown_name="render_recovery_markdown")
                     return
@@ -8466,7 +8494,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     recovery_input = self._query_value(query, "recovery_input") or self._query_value(query, "recovery")
                     if not query_input or not recovery_input:
                         raise ValueError("input/query and recovery_input/recovery are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery(recovery_input))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -8491,10 +8519,10 @@ class ApiHandler(BaseHTTPRequestHandler):
                 exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_path = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_path + "/execution"
                 execution_model = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_model
                 def _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution(input_path: str):
-                    return execution_model.execution_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    return execution_model.execution_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                 def _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_for_execution(input_path: str):
                     source = Path(input_path)
-                    return recovery_model.build_recovery_from_directory(source) if source.is_dir() else recovery_model.recovery_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                    return recovery_model.build_recovery_from_directory(source) if source.is_dir() else recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(source)))
                 if path == exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_path:
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
@@ -8536,7 +8564,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     execution_input = self._query_value(query, "execution_input") or self._query_value(query, "execution")
                     if not query_input or not execution_input:
                         raise ValueError("input/query and execution_input/execution are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution(execution_input))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -8574,7 +8602,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "runtime")
                     if not input_path:
                         raise ValueError("input or runtime is required")
-                    runtime = runtime_model.load_runtime(input_path) if Path(input_path).is_dir() else runtime_model.runtime_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    runtime = runtime_model.load_runtime(input_path) if Path(input_path).is_dir() else runtime_model.runtime_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     value = runtime_model.verify_runtime(runtime)
                     self._write_contract(value, self._query_value(query, "format") or "summary", runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
                     return
@@ -8599,7 +8627,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     runtime_input = self._query_value(query, "runtime_input") or self._query_value(query, "runtime")
                     if not query_input or not runtime_input:
                         raise ValueError("input/query and runtime_input/runtime are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     runtime = runtime_model.load_runtime(runtime_input)
                     value = exact_history_diff_archive_transfer_recovery_execution_runtime_query_audit_model.audit_query(query_value, runtime)
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
@@ -8629,12 +8657,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                     runtime_path = Path(input_path)
                     if runtime_path.is_dir():
                         return runtime_model.load_runtime(runtime_path)
-                    return runtime_model.runtime_from_mapping(_strict_json_loads(runtime_path.read_text(encoding="utf-8")))
+                    return runtime_model.runtime_from_mapping(_strict_json_loads(_api_read_text(runtime_path)))
                 def _load_exact_history_diff_archive_transfer_recovery_execution_runtime_registry(input_path: str):
                     registry_path = Path(input_path)
                     if registry_path.is_dir():
                         return registry_model.load_registry(registry_path)
-                    return registry_model.registry_from_mapping(_strict_json_loads(registry_path.read_text(encoding="utf-8")))
+                    return registry_model.registry_from_mapping(_strict_json_loads(_api_read_text(registry_path)))
                 if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_path:
                     inputs = self._query_values(query, "runtime_input") or self._query_values(query, "runtime")
                     input_path = self._query_value(query, "input")
@@ -8648,7 +8676,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         elif source.is_file() and source.name == "registry.json" and source.parent.is_dir() and tuple(sorted(item.name for item in source.parent.iterdir())) == tuple(sorted(registry_model.FILES)):
                             value = registry_model.load_registry(source.parent)
                         else:
-                            raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+                            raw = _strict_json_loads(_api_read_text(source))
                             if isinstance(raw, Mapping) and "registry_id" in raw and "entries" in raw and "manifest" in raw:
                                 value = registry_model.registry_from_mapping(raw)
                             else:
@@ -8677,7 +8705,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     registry_input = self._query_value(query, "registry_input") or self._query_value(query, "registry")
                     if not query_input or not registry_input:
                         raise ValueError("input/query and registry_input/registry are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     registry = _load_exact_history_diff_archive_transfer_recovery_execution_runtime_registry(registry_input)
                     value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_query_audit_model.audit_query(query_value, registry)
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_registry_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
@@ -8718,7 +8746,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                             return history_model.load_history(history_path.parent)
                         if history_path.name == "registry.json" and history_path.parent.is_dir() and tuple(sorted(item.name for item in history_path.parent.iterdir())) == tuple(sorted(registry_model.FILES)):
                             return registry_model.load_registry(history_path.parent)
-                        raw = _strict_json_loads(history_path.read_text(encoding="utf-8"))
+                        raw = _strict_json_loads(_api_read_text(history_path))
                         if isinstance(raw, Mapping) and "history_id" in raw and "entries" in raw and "manifest" in raw:
                             return history_model.history_from_mapping(raw)
                         return registry_model.registry_from_mapping(raw)
@@ -8772,7 +8800,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     history_input = self._query_value(query, "history_input") or self._query_value(query, "history")
                     if not query_input or not history_input:
                         raise ValueError("input/query and history_input/history are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     history = _load_exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_input(history_input)
                     if isinstance(history, registry_model.ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistry):
                         history = history_model.build_history((history,))
@@ -8811,7 +8839,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if diff_input_path.is_file():
                         if diff_input_path.name == "history.json" and diff_input_path.parent.is_dir() and tuple(sorted(item.name for item in diff_input_path.parent.iterdir())) == tuple(sorted(history_model.FILES)):
                             return history_model.load_history(diff_input_path.parent)
-                        return history_model.history_from_mapping(_strict_json_loads(diff_input_path.read_text(encoding="utf-8")))
+                        return history_model.history_from_mapping(_strict_json_loads(_api_read_text(diff_input_path)))
                     raise ValueError(f"history input path does not exist: {input_path}")
                 def _load_exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff(input_path: str):
                     diff_input_path = Path(input_path)
@@ -8822,7 +8850,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if diff_input_path.is_file():
                         if diff_input_path.name == "diff.json" and diff_input_path.parent.is_dir() and tuple(sorted(item.name for item in diff_input_path.parent.iterdir())) == tuple(sorted(diff_model.FILES)):
                             return diff_model.load_diff(diff_input_path.parent)
-                        return diff_model.diff_from_mapping(_strict_json_loads(diff_input_path.read_text(encoding="utf-8")))
+                        return diff_model.diff_from_mapping(_strict_json_loads(_api_read_text(diff_input_path)))
                     raise ValueError(f"diff input path does not exist: {input_path}")
                 if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_path:
                     left_input = self._query_value(query, "left_input") or self._query_value(query, "left")
@@ -8864,7 +8892,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     diff_input = self._query_value(query, "diff_input") or self._query_value(query, "diff")
                     if not query_input or not diff_input:
                         raise ValueError("input/query and diff_input/diff are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff(diff_input))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -8927,7 +8955,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     archive_input = self._query_value(query, "archive_input") or self._query_value(query, "archive")
                     if not query_input or not archive_input:
                         raise ValueError("input/query and archive_input/archive are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit_model.audit_query(query_value, _load_exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive(archive_input))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -9079,14 +9107,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
                         raise ValueError("input or recovery is required")
-                    value = exact_recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = exact_recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_recovery_model, json_name="recovery_json", csv_name="recovery_csv", markdown_name="render_recovery_markdown")
                     return
                 if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_path + "/audit":
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
                         raise ValueError("input or recovery is required")
-                    recovery = exact_recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    recovery = exact_recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     value = exact_recovery_audit_model.audit_recovery(recovery)
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_recovery_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -9096,13 +9124,13 @@ class ApiHandler(BaseHTTPRequestHandler):
                         input_path = self._query_value(query, "recovery_input") or self._query_value(query, "recovery")
                         if not query_input_path or not input_path:
                             raise ValueError("input/query and recovery_input/recovery are required")
-                        query_value = exact_recovery_query_model.query_from_mapping(_strict_json_loads(Path(query_input_path).read_text(encoding="utf-8")))
+                        query_value = exact_recovery_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input_path))))
                     else:
                         input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                         if not input_path:
                             raise ValueError("input or recovery is required")
                         query_value = None
-                    recovery = exact_recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    recovery = exact_recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     value = query_value or exact_recovery_query_model.query_recovery(recovery, resources=self._query_values(query, "resource") or exact_recovery_query_model.RESOURCES, index=self._query_optional_int(query, "index"), state=self._query_value(query, "state") or "", received=self._query_bool(query, "received") if "received" in query else None, text=self._query_value(query, "text") or self._query_value(query, "q") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", exact_recovery_query_model.MAX_LIMIT))
                     if path.endswith("/query/audit"):
                         audit = exact_recovery_query_audit_model.audit_query(value, recovery)
@@ -9134,7 +9162,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "recovery")
                     if not input_path:
                         raise ValueError("input or recovery is required")
-                    recovery = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_model.recovery_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    recovery = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     applied_indices = tuple(int(item) for item in self._query_values(query, "applied_index"))
                     rejected_indices = tuple(int(item) for item in self._query_values(query, "rejected_index"))
                     transfer_input = self._query_value(query, "transfer_input")
@@ -9150,14 +9178,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "execution")
                     if not input_path:
                         raise ValueError("input or execution is required")
-                    value = execution_model.verify_execution(execution_model.execution_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8"))))
+                    value = execution_model.verify_execution(execution_model.execution_from_mapping(_strict_json_loads(_api_read_text(Path(input_path)))))
                     self._write_contract(value, self._query_value(query, "format") or "summary", execution_model, json_name="execution_json", csv_name="execution_csv", markdown_name="render_execution_markdown")
                     return
                 if path == exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_path + "/audit":
                     input_path = self._query_value(query, "input") or self._query_value(query, "execution")
                     if not input_path:
                         raise ValueError("input or execution is required")
-                    value = execution_model.execution_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = execution_model.execution_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     audit = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_audit_model.audit_execution(value)
                     self._write_contract(audit, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -9165,7 +9193,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     input_path = self._query_value(query, "input") or self._query_value(query, "execution")
                     if not input_path:
                         raise ValueError("input or execution is required")
-                    execution = execution_model.execution_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    execution = execution_model.execution_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.query_execution(execution, resources=self._query_values(query, "resource") or exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.RESOURCES, status=self._query_value(query, "status") or "", index=self._query_int(query, "index", -1), text=self._query_value(query, "text") or self._query_value(query, "q") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.MAX_LIMIT))
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
@@ -9174,8 +9202,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     execution_input = self._query_value(query, "execution_input") or self._query_value(query, "execution")
                     if not query_input or not execution_input:
                         raise ValueError("input/query and execution_input/execution are required")
-                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.query_from_mapping(_strict_json_loads(Path(query_input).read_text(encoding="utf-8")))
-                    execution = execution_model.execution_from_mapping(_strict_json_loads(Path(execution_input).read_text(encoding="utf-8")))
+                    query_value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(query_input))))
+                    execution = execution_model.execution_from_mapping(_strict_json_loads(_api_read_text(Path(execution_input))))
                     value = exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model.audit_query(query_value, execution)
                     self._write_contract(value, self._query_value(query, "format") or "summary", exact_history_diff_archive_transfer_recovery_execution_runtime_registry_history_diff_archive_transfer_recovery_execution_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -10365,7 +10393,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary() if output_format == "summary" else value.to_dict())
                     return
                 if path == federation_prefix + "/diff/audit":
-                    value = registry_federation_diff_audit_model.audit_diff(registry_federation_diff_model.diff_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))))
+                    value = registry_federation_diff_audit_model.audit_diff(registry_federation_diff_model.diff_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))))
                     output_format = self._query_value(query, "format") or "json"
                     if output_format == "markdown":
                         self._write_bytes(HTTPStatus.OK, registry_federation_diff_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
@@ -10434,7 +10462,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 if path == federation_prefix + "/matrix/audit":
                     input_path = self._query_value(query, "input") or ""
-                    matrix_value = registry_federation_matrix_model.matrix_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    matrix_value = registry_federation_matrix_model.matrix_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     value = registry_federation_matrix_audit_model.audit_matrix(matrix_value)
                     output_format = self._query_value(query, "format") or "json"
                     if output_format == "summary":
@@ -10448,7 +10476,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 if path == federation_prefix + "/matrix/query":
                     input_path = self._query_value(query, "input") or ""
-                    matrix_value = registry_federation_matrix_model.matrix_from_mapping(_strict_json_loads(Path(input_path).read_text(encoding="utf-8")))
+                    matrix_value = registry_federation_matrix_model.matrix_from_mapping(_strict_json_loads(_api_read_text(Path(input_path))))
                     value = registry_federation_matrix_model.query_matrix(matrix_value, peer_id=self._query_value(query, "peer_id") or "", state=self._query_value(query, "state") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
                     output_format = self._query_value(query, "format") or "json"
                     if output_format == "summary":
@@ -10491,7 +10519,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if path == federation_prefix + "/consensus/audit":
                     input_path = self._query_value(query, "input") or ""
                     source = Path(input_path)
-                    consensus = registry_federation_consensus_model.load_consensus(source) if source.is_dir() else registry_federation_consensus_model.consensus_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                    consensus = registry_federation_consensus_model.load_consensus(source) if source.is_dir() else registry_federation_consensus_model.consensus_from_mapping(_strict_json_loads(_api_read_text(source)))
                     value = registry_federation_consensus_audit_model.audit_consensus(consensus)
                     output_format = self._query_value(query, "format") or "json"
                     if output_format == "summary":
@@ -10506,7 +10534,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if path == federation_prefix + "/consensus/query":
                     input_path = self._query_value(query, "input") or ""
                     source = Path(input_path)
-                    consensus = registry_federation_consensus_model.load_consensus(source) if source.is_dir() else registry_federation_consensus_model.consensus_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                    consensus = registry_federation_consensus_model.load_consensus(source) if source.is_dir() else registry_federation_consensus_model.consensus_from_mapping(_strict_json_loads(_api_read_text(source)))
                     value = registry_federation_consensus_query_model.query_consensus(consensus, resources=tuple(self._query_values(query, "resource") or registry_federation_consensus_query_model.DEFAULT_RESOURCES), package_id=self._query_value(query, "package_id") or "", resolution=self._query_value(query, "resolution") or "", severity=self._query_value(query, "severity") or "", kind=self._query_value(query, "kind") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
                     output_format = self._query_value(query, "format") or "json"
                     if output_format == "summary":
@@ -10541,8 +10569,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 if path == federation_prefix + "/consensus/diff":
                     left_path, right_path = Path(self._query_value(query, "left") or ""), Path(self._query_value(query, "right") or "")
-                    left = registry_federation_consensus_model.load_consensus(left_path) if left_path.is_dir() else registry_federation_consensus_model.consensus_from_mapping(_strict_json_loads(left_path.read_text(encoding="utf-8")))
-                    right = registry_federation_consensus_model.load_consensus(right_path) if right_path.is_dir() else registry_federation_consensus_model.consensus_from_mapping(_strict_json_loads(right_path.read_text(encoding="utf-8")))
+                    left = registry_federation_consensus_model.load_consensus(left_path) if left_path.is_dir() else registry_federation_consensus_model.consensus_from_mapping(_strict_json_loads(_api_read_text(left_path)))
+                    right = registry_federation_consensus_model.load_consensus(right_path) if right_path.is_dir() else registry_federation_consensus_model.consensus_from_mapping(_strict_json_loads(_api_read_text(right_path)))
                     value = registry_federation_consensus_diff_model.build_diff(left, right, diff_id=self._query_value(query, "diff_id") or registry_federation_consensus_diff_model.DEFAULT_DIFF_ID)
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -10555,7 +10583,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/diff/audit":
-                    value = registry_federation_consensus_diff_audit_model.audit_diff(registry_federation_consensus_diff_model.diff_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))))
+                    value = registry_federation_consensus_diff_audit_model.audit_diff(registry_federation_consensus_diff_model.diff_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_diff_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
@@ -10609,7 +10637,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if path == federation_prefix + "/consensus/gate":
                     input_path = self._query_value(query, "input") or ""
                     source = Path(input_path)
-                    raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(source))
                     consensus_runtime = registry_federation_consensus_gate_runtime_model.runtime_from_mapping(raw).consensus_runtime if "consensus_runtime" in raw else registry_federation_consensus_runtime_model.runtime_from_mapping(raw)
                     value = registry_federation_consensus_gate_model.evaluate_gate(consensus_runtime, gate_id=self._query_value(query, "gate_id") or "consensus-release-gate")
                     output_format = self._query_value(query, "format") or "json"
@@ -10645,7 +10673,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(status, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_audit_model.audit_gate(registry_federation_consensus_gate_model.gate_from_mapping(raw))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -10658,7 +10686,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/query":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     gate = registry_federation_consensus_gate_model.gate_from_mapping(raw)
                     value = registry_federation_consensus_gate_query_model.query_gate(gate, query_id=self._query_value(query, "query_id") or "consensus-gate-query", resources=tuple(self._query_values(query, "resource") or registry_federation_consensus_gate_query_model.DEFAULT_RESOURCES), check_id=self._query_value(query, "check_id") or "", passed=None if "passed" not in query else self._query_bool(query, "passed"), state=self._query_value(query, "state") or "", decision=self._query_value(query, "decision") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
                     output_format = self._query_value(query, "format") or "summary"
@@ -10672,7 +10700,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/package":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     runtime_value = registry_federation_consensus_gate_runtime_model.runtime_from_mapping(raw)
                     value = registry_federation_consensus_gate_package_model.build_package(runtime_value.consensus_runtime, runtime_value.gate, audit=runtime_value.audit, query=runtime_value.query, package_id=self._query_value(query, "package_id") or "consensus-gate-package")
                     destination = self._query_value(query, "destination")
@@ -10685,7 +10713,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/package/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     package = registry_federation_consensus_gate_package_model.package_from_mapping(raw)
                     value = registry_federation_consensus_gate_package_audit_model.audit_package(package)
                     output_format = self._query_value(query, "format") or "summary"
@@ -10699,8 +10727,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/diff":
-                    left_raw = _strict_json_loads(Path(self._query_value(query, "left") or "").read_text(encoding="utf-8"))
-                    right_raw = _strict_json_loads(Path(self._query_value(query, "right") or "").read_text(encoding="utf-8"))
+                    left_raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "left") or "")))
+                    right_raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "right") or "")))
                     value = registry_federation_consensus_gate_diff_model.build_diff(registry_federation_consensus_gate_model.gate_from_mapping(left_raw), registry_federation_consensus_gate_model.gate_from_mapping(right_raw), diff_id=self._query_value(query, "diff_id") or registry_federation_consensus_gate_diff_model.DEFAULT_DIFF_ID)
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -10713,7 +10741,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/diff/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_diff_audit_model.audit_diff(registry_federation_consensus_gate_diff_model.diff_from_mapping(raw))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -10748,7 +10776,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/history/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_history_audit_model.audit_history(registry_federation_consensus_gate_history_model.history_from_mapping(raw))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -10779,7 +10807,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary() | {"returned_count": len(selected.rows)})
                     return
                 if path == federation_prefix + "/consensus/gate/observatory/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_observatory_audit_model.audit_observatory(registry_federation_consensus_gate_observatory_model.observatory_from_mapping(raw))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -10792,7 +10820,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     if not isinstance(raw, dict):
                         raise ValueError("certificate input must be an object")
                     if "gate_runtime" in raw and "certificate" in raw:
@@ -10859,7 +10887,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(status, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_audit_model.audit_certificate(self._certificate_from_document(raw))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -10872,7 +10900,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/query":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_query_model.query_certificate(
                         self._certificate_from_document(raw),
                         resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_query_model.DEFAULT_RESOURCES,
@@ -10894,7 +10922,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     result = registry_federation_consensus_gate_certificate_query_model.query_from_mapping(raw)
                     value = registry_federation_consensus_gate_certificate_query_audit_model.audit_query(result)
                     output_format = self._query_value(query, "format") or "summary"
@@ -10908,7 +10936,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/package":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     runtime = registry_federation_consensus_gate_certificate_runtime_model.runtime_from_mapping(raw)
                     package = registry_federation_consensus_gate_certificate_package_model.build_package(
                         runtime.gate_runtime,
@@ -10930,7 +10958,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/package/audit":
                     source = Path(self._query_value(query, "input") or "")
-                    package = registry_federation_consensus_gate_certificate_package_model.load_package(source) if source.is_dir() else registry_federation_consensus_gate_certificate_package_model.package_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                    package = registry_federation_consensus_gate_certificate_package_model.load_package(source) if source.is_dir() else registry_federation_consensus_gate_certificate_package_model.package_from_mapping(_strict_json_loads(_api_read_text(source)))
                     value = registry_federation_consensus_gate_certificate_package_audit_model.audit_package(package)
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -10943,8 +10971,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/diff":
-                    left_raw = _strict_json_loads(Path(self._query_value(query, "left") or "").read_text(encoding="utf-8"))
-                    right_raw = _strict_json_loads(Path(self._query_value(query, "right") or "").read_text(encoding="utf-8"))
+                    left_raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "left") or "")))
+                    right_raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "right") or "")))
                     value = registry_federation_consensus_gate_certificate_diff_model.build_diff(self._certificate_from_document(left_raw), self._certificate_from_document(right_raw), diff_id=self._query_value(query, "diff_id") or registry_federation_consensus_gate_certificate_diff_model.DEFAULT_DIFF_ID)
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -10957,7 +10985,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/diff/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_diff_audit_model.audit_diff(registry_federation_consensus_gate_certificate_diff_model.diff_from_mapping(raw))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -10980,7 +11008,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                             package = registry_federation_consensus_gate_certificate_package_model.load_package(source)
                             values.append((package.certificate, package.certificate_audit))
                         else:
-                            raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+                            raw = _strict_json_loads(_api_read_text(source))
                             if not isinstance(raw, dict):
                                 raise ValueError("certificate history input must be an object")
                             values.append(self._certificate_and_audit_from_document(raw))
@@ -11000,7 +11028,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/history/audit":
                     source = Path(self._query_value(query, "input") or "")
-                    history = registry_federation_consensus_gate_certificate_history_model.load_history(source) if source.is_dir() else registry_federation_consensus_gate_certificate_history_model.history_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                    history = registry_federation_consensus_gate_certificate_history_model.load_history(source) if source.is_dir() else registry_federation_consensus_gate_certificate_history_model.history_from_mapping(_strict_json_loads(_api_read_text(source)))
                     value = registry_federation_consensus_gate_certificate_history_audit_model.audit_history(history)
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -11032,7 +11060,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if source.is_dir():
                         value = registry_federation_consensus_gate_certificate_observatory_package_model.load_package(source).observatory
                     else:
-                        value = self._certificate_observatory_from_document(_strict_json_loads(source.read_text(encoding="utf-8")))
+                        value = self._certificate_observatory_from_document(_strict_json_loads(_api_read_text(source)))
                     audit = registry_federation_consensus_gate_certificate_observatory_audit_model.audit_observatory(value)
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -11045,7 +11073,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, audit.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/query":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_model.query_observatory(self._certificate_observatory_from_document(raw), resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_observatory_model.DEFAULT_RESOURCES, history_id=self._query_value(query, "history_id") or "", certificate_id=self._query_value(query, "certificate_id") or "", state=self._query_value(query, "state") or "", decision=self._query_value(query, "decision") or "", accepted=None if self._query_value(query, "accepted") is None else self._query_bool(query, "accepted"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -11058,7 +11086,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     audit = registry_federation_consensus_gate_certificate_observatory_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_model.query_from_mapping(raw))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -11071,7 +11099,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, audit.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/report":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_report_model.build_report(self._certificate_observatory_from_document(raw), report_id=self._query_value(query, "report_id") or "consensus-certificate-observatory-report")
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -11084,7 +11112,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/report/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_report_audit_model.audit_report(registry_federation_consensus_gate_certificate_observatory_report_model.report_from_mapping(raw))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -11097,7 +11125,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/package":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     package = registry_federation_consensus_gate_certificate_observatory_package_model.build_package(self._certificate_observatory_from_document(raw), package_id=self._query_value(query, "package_id") or "consensus-certificate-observatory-package")
                     destination = self._query_value(query, "destination")
                     if destination:
@@ -11110,7 +11138,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/package/audit":
                     source = Path(self._query_value(query, "input") or "")
-                    package = registry_federation_consensus_gate_certificate_observatory_package_model.load_package(source) if source.is_dir() else registry_federation_consensus_gate_certificate_observatory_package_model.package_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                    package = registry_federation_consensus_gate_certificate_observatory_package_model.load_package(source) if source.is_dir() else registry_federation_consensus_gate_certificate_observatory_package_model.package_from_mapping(_strict_json_loads(_api_read_text(source)))
                     value = registry_federation_consensus_gate_certificate_observatory_package_audit_model.audit_package(package)
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -11137,7 +11165,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/diff/audit":
-                    value = registry_federation_consensus_gate_certificate_observatory_diff_audit_model.audit_diff(registry_federation_consensus_gate_certificate_observatory_diff_model.diff_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))))
+                    value = registry_federation_consensus_gate_certificate_observatory_diff_audit_model.audit_diff(registry_federation_consensus_gate_certificate_observatory_diff_model.diff_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_certificate_observatory_diff_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
@@ -11149,7 +11177,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/diff/query":
-                    value = registry_federation_consensus_gate_certificate_observatory_diff_model.query_diff(registry_federation_consensus_gate_certificate_observatory_diff_model.diff_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))), resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_observatory_diff_model.DEFAULT_RESOURCES, observation_key=self._query_value(query, "observation_key") or "", action=self._query_value(query, "action") or "", accepted_change=None if self._query_value(query, "accepted_change") is None else self._query_int(query, "accepted_change", 0), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
+                    value = registry_federation_consensus_gate_certificate_observatory_diff_model.query_diff(registry_federation_consensus_gate_certificate_observatory_diff_model.diff_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))), resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_observatory_diff_model.DEFAULT_RESOURCES, observation_key=self._query_value(query, "observation_key") or "", action=self._query_value(query, "action") or "", accepted_change=None if self._query_value(query, "accepted_change") is None else self._query_int(query, "accepted_change", 0), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_certificate_observatory_diff_model.query_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
@@ -11161,7 +11189,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/diff/query-audit":
-                    value = registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_diff_model.query_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))))
+                    value = registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_diff_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
@@ -11180,7 +11208,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/runtime/audit":
-                    value = registry_federation_consensus_gate_certificate_observatory_runtime_audit_model.audit_runtime(registry_federation_consensus_gate_certificate_observatory_runtime_model.runtime_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))))
+                    value = registry_federation_consensus_gate_certificate_observatory_runtime_audit_model.audit_runtime(registry_federation_consensus_gate_certificate_observatory_runtime_model.runtime_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_certificate_observatory_runtime_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
@@ -11204,7 +11232,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/replay/audit":
-                    value = registry_federation_consensus_gate_certificate_observatory_replay_audit_model.audit_replay(registry_federation_consensus_gate_certificate_observatory_replay_model.replay_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))))
+                    value = registry_federation_consensus_gate_certificate_observatory_replay_audit_model.audit_replay(registry_federation_consensus_gate_certificate_observatory_replay_model.replay_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_certificate_observatory_replay_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
@@ -11259,7 +11287,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, result.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     audit = registry_federation_consensus_gate_certificate_observatory_archive_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_query_model.query_from_mapping(raw))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -11321,7 +11349,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/transfer/recovery/audit":
-                    value = registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_audit_model.audit_recovery(registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_model.recovery_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))))
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_audit_model.audit_recovery(registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
@@ -11333,7 +11361,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/transfer/recovery/query":
-                    recovery = registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_model.recovery_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8")))
+                    recovery = registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_model.recovery_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or ""))))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query_model.query_recovery(recovery, resource=self._query_value(query, "resource") or "summary", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -11384,7 +11412,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_query_model.query_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11395,12 +11423,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/diff/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_audit_model.audit_diff(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_model.diff_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/diff/query":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_query_model.query_diff(
                         registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_model.diff_from_mapping(raw),
                         resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_query_model.RESOURCES,
@@ -11413,7 +11441,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/diff/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_query_model.query_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11423,7 +11451,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_consensus_model, json_name="consensus_json", csv_name="consensus_csv", markdown_name="render_consensus_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/consensus/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_consensus_audit_model.audit_consensus(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_consensus_model.consensus_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_consensus_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11432,17 +11460,17 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_report_model, json_name="report_json", csv_name="report_csv", markdown_name="render_report_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/report/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_report_audit_model.audit_report(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_report_model.report_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_report_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/runtime":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_runtime_model.runtime_from_mapping(raw)
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/runtime/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_runtime_audit_model.audit_runtime(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_runtime_model.runtime_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11457,13 +11485,13 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/resolution/query":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     resolution = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_model.resolution_from_mapping(raw.get("resolution", raw) if isinstance(raw, dict) else raw)
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_query_model.query_resolution(resolution, resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_query_model.RESOURCES, entry_id=self._query_value(query, "entry_id") or "", state=self._query_value(query, "state") or "", action=self._query_value(query, "action") or "", peer_id=self._query_value(query, "peer_id") or "", package_id=self._query_value(query, "package_id") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_query_model.DEFAULT_LIMIT))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/resolution/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_query_model.query_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11477,13 +11505,13 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/reconciliation-plan/query":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     plan = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_model.plan_from_mapping(raw.get("plan", raw) if isinstance(raw, dict) else raw)
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query_model.query_plan(plan, resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query_model.RESOURCES, peer_id=self._query_value(query, "peer_id") or "", entry_id=self._query_value(query, "entry_id") or "", state=self._query_value(query, "state") or "", action=self._query_value(query, "action") or "", status=self._query_value(query, "status") or "", priority=self._query_value(query, "priority") or "", registry_id=self._query_value(query, "registry_id") or "", package_id=self._query_value(query, "package_id") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query_model.DEFAULT_LIMIT))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == archive_registry_federation_prefix + "/reconciliation-plan/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query_model.query_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11518,7 +11546,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == decision_ledger_prefix + "/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.query_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11527,17 +11555,17 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
                     return
                 if path == decision_ledger_prefix + "/diff/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_audit_model.audit_diff(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model.diff_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 if path == decision_ledger_prefix + "/diff/query":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.query_diff(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model.diff_from_mapping(raw), resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.RESOURCES, operation_address=self._query_value(query, "operation_address") or "", peer_id=self._query_value(query, "peer_id") or "", entry_id=self._query_value(query, "entry_id") or "", change=self._query_value(query, "change") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.DEFAULT_LIMIT))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == decision_ledger_prefix + "/diff/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.query_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11578,7 +11606,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model.query_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11589,17 +11617,17 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/diff/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_audit_model.audit_diff(registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model.diff_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/diff/query":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model.query_diff(registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model.diff_from_mapping(raw), resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model.DEFAULT_RESOURCES, change_type=self._query_value(query, "change_type") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/diff/query-audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model.query_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11610,7 +11638,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/runtime/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_audit_model.audit_runtime(registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_model.runtime_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11634,7 +11662,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_report_model, json_name="report_json", csv_name="report_csv", markdown_name="render_report_markdown")
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/report/audit":
-                    raw = _strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    raw = _strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))
                     value = registry_federation_consensus_gate_certificate_observatory_archive_registry_report_audit_model.audit_report(registry_federation_consensus_gate_certificate_observatory_archive_registry_report_model.report_from_mapping(raw))
                     self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_report_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
@@ -11646,7 +11674,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/runtime/audit":
-                    value = registry_federation_consensus_gate_certificate_observatory_archive_runtime_audit_model.audit_runtime(registry_federation_consensus_gate_certificate_observatory_archive_runtime_model.runtime_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))))
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_runtime_audit_model.audit_runtime(registry_federation_consensus_gate_certificate_observatory_archive_runtime_model.runtime_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_certificate_observatory_archive_runtime_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
@@ -11660,7 +11688,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if path == federation_prefix + "/consensus/remediation":
                     input_path = self._query_value(query, "input") or ""
                     source = Path(input_path)
-                    consensus = registry_federation_consensus_model.load_consensus(source) if source.is_dir() else registry_federation_consensus_model.consensus_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+                    consensus = registry_federation_consensus_model.load_consensus(source) if source.is_dir() else registry_federation_consensus_model.consensus_from_mapping(_strict_json_loads(_api_read_text(source)))
                     value = registry_federation_consensus_remediation_model.build_remediation(consensus, remediation_id=self._query_value(query, "remediation_id") or registry_federation_consensus_remediation_model.DEFAULT_REMEDIATION_ID)
                     output_format = self._query_value(query, "format") or "summary"
                     status = HTTPStatus.OK if value.ready else HTTPStatus.UNPROCESSABLE_ENTITY
@@ -11674,7 +11702,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(status, value.summary())
                     return
                 if path == federation_prefix + "/consensus/remediation/audit":
-                    value = registry_federation_consensus_remediation_audit_model.audit_remediation(registry_federation_consensus_remediation_model.remediation_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))))
+                    value = registry_federation_consensus_remediation_audit_model.audit_remediation(registry_federation_consensus_remediation_model.remediation_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or "")))))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_remediation_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
@@ -11686,7 +11714,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/remediation/query":
-                    value = registry_federation_consensus_remediation_model.remediation_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8")))
+                    value = registry_federation_consensus_remediation_model.remediation_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or ""))))
                     result = registry_federation_consensus_remediation_query_model.query_remediation(value, resources=tuple(self._query_values(query, "resource") or registry_federation_consensus_remediation_query_model.DEFAULT_RESOURCES), package_id=self._query_value(query, "package_id") or "", status=self._query_value(query, "status") or "", severity=self._query_value(query, "severity") or "", kind=self._query_value(query, "kind") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -11699,7 +11727,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, result.summary())
                     return
                 if path == federation_prefix + "/consensus/remediation/package":
-                    value = registry_federation_consensus_remediation_model.remediation_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8")))
+                    value = registry_federation_consensus_remediation_model.remediation_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or ""))))
                     package = registry_federation_consensus_remediation_package_model.build_package(value, package_id=self._query_value(query, "package_id") or "consensus-remediation-package")
                     destination = self._query_value(query, "destination")
                     if destination:
@@ -11711,7 +11739,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(HTTPStatus.OK, package.summary())
                     return
                 if path == federation_prefix + "/consensus/remediation/query-audit":
-                    result = registry_federation_consensus_remediation_query_model.query_from_mapping(_strict_json_loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8")))
+                    result = registry_federation_consensus_remediation_query_model.query_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input") or ""))))
                     value = registry_federation_consensus_remediation_query_audit_model.audit_query(result)
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "csv":
@@ -13460,7 +13488,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     destination = self._query_value(query, "destination")
                     if not archive_path or not destination:
                         raise ValueError("input and destination are required")
-                    value = release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.build_transfer_from_bytes(Path(archive_path).read_bytes(), transfer_id=self._query_value(query, "transfer_id") or release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.DEFAULT_TRANSFER_ID, chunk_size=self._query_int(query, "chunk_size", release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.DEFAULT_CHUNK_SIZE))
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.build_transfer_from_bytes(_api_read_bytes(Path(archive_path), field="archive transfer input"), transfer_id=self._query_value(query, "transfer_id") or release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.DEFAULT_TRANSFER_ID, chunk_size=self._query_int(query, "chunk_size", release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.DEFAULT_CHUNK_SIZE))
                     release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.write_transfer(value, destination, overwrite=self._query_bool(query, "allow_existing") if "allow_existing" in query else False)
                     output_format = self._query_value(query, "format") or "summary"
                     if output_format == "markdown":
@@ -14151,7 +14179,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         raise ValueError("release evidence bundle input is required")
                     manifest_path = Path(directory) / release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.MANIFEST_NAME
                     release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.load_bundle(directory)
-                    self._write(HTTPStatus.OK, _strict_json_loads(manifest_path.read_text(encoding="utf-8")))
+                    self._write(HTTPStatus.OK, _strict_json_loads(_api_read_text(manifest_path)))
                     return
                 history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_bundle_prefix + "/audit"
                 history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_schema_routes = {
@@ -14471,7 +14499,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         raise ValueError("release evidence observability bundle input is required")
                     manifest_path = Path(directory) / release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.MANIFEST_NAME
                     release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.load_bundle(directory)
-                    self._write(HTTPStatus.OK, _strict_json_loads(manifest_path.read_text(encoding="utf-8")))
+                    self._write(HTTPStatus.OK, _strict_json_loads(_api_read_text(manifest_path)))
                     return
                 history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_query_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_prefix + "/query"
                 history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_query_schema_routes = {
@@ -15321,7 +15349,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write(HTTPStatus.OK, package_diff_query_model.capabilities())
                     return
                 if path == package_diff_query_prefix:
-                    value = package_diff_model.diff_from_mapping(_strict_json_loads(Path(self._query_value(query, "input")).read_text(encoding="utf-8")))
+                    value = package_diff_model.diff_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input")))))
                     result = package_diff_query_model.query_diff(value, resource=self._query_value(query, "resource") or "summary", action_id=self._query_value(query, "action_id"), field=self._query_value(query, "field"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", package_diff_query_model.DEFAULT_LIMIT))
                     output_format = self._query_value(query, "format") or "json"
                     if output_format == "csv":
@@ -15341,7 +15369,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write(HTTPStatus.OK, package_diff_audit_model.capabilities())
                     return
                 if path == package_diff_audit_prefix:
-                    value = package_diff_model.diff_from_mapping(_strict_json_loads(Path(self._query_value(query, "input")).read_text(encoding="utf-8")))
+                    value = package_diff_model.diff_from_mapping(_strict_json_loads(_api_read_text(Path(self._query_value(query, "input")))))
                     audit_value = package_diff_audit_model.audit_diff(value)
                     output_format = self._query_value(query, "format") or "json"
                     if output_format == "summary":
@@ -15480,7 +15508,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     source = self._query_value(query, "input")
                     if not source:
                         raise ValueError("input is required")
-                    assurance = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.audit_diff(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.diff_from_mapping(_strict_json_loads(Path(source).read_text(encoding="utf-8"))))
+                    assurance = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.audit_diff(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.diff_from_mapping(_strict_json_loads(_api_read_text(Path(source)))))
                     output_format = self._query_value(query, "format") or "json"
                     if output_format == "summary":
                         self._write(HTTPStatus.OK, assurance.summary())
