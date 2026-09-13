@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -31,8 +30,15 @@ from typing import Any
 from . import (
     module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger as decision_model,
 )
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 FederationReviewDecisionLedger = decision_model.FederationReviewDecisionLedger
 FederationReviewDecisionEntry = decision_model.FederationReviewDecisionEntry
@@ -898,17 +904,28 @@ def _diff_manifest_address(value: Mapping[str, Any]) -> str:
 def write_decision_assurance_diff(value: DecisionAssuranceDiff, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_decision_assurance_diff(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
-        raise ValidationError("decision assurance diff destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "decision assurance diff destination")
+        if destination.is_symlink():
+            raise ValidationError("decision assurance diff destination cannot be a symlink")
+        if destination.exists():
+            if (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
+                raise ValidationError("decision assurance diff destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("decision assurance diff destination is not a regular directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("decision assurance diff destination could not be prepared") from error
     diff_raw = canonical_bytes(value.to_dict())
     manifest = _diff_manifest_body(value, diff_raw)
     manifest["manifest_address"] = _diff_manifest_address(manifest)
     manifest_raw = canonical_bytes(manifest)
     temporary = Path(tempfile.mkdtemp(prefix=f".{DIFF_PREFIX}-", dir=str(destination.parent)))
     try:
-        (temporary / DIFF_NAME).write_bytes(diff_raw)
-        (temporary / MANIFEST_NAME).write_bytes(manifest_raw)
+        atomic_write_bytes(temporary / DIFF_NAME, diff_raw, field="decision assurance diff staging document")
+        atomic_write_bytes(temporary / MANIFEST_NAME, manifest_raw, field="decision assurance diff staging manifest")
         if destination.exists():
             if not overwrite:
                 raise ValidationError("decision assurance diff destination already exists")
@@ -926,7 +943,7 @@ def _check_diff_artifact(manifest: Mapping[str, Any], path: Path) -> None:
     artifact = _mapping(manifest.get("artifact"), "decision assurance diff artifact")
     if artifact.get("name") != DIFF_NAME:
         raise ValidationError("decision assurance diff artifact name is invalid")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field="decision assurance diff artifact")
     byte_address = hash_bytes(raw)
     if artifact.get("bytes") != len(raw) or artifact.get("byte_address") != byte_address:
         raise ValidationError("decision assurance diff bytes are not addressed")
@@ -937,8 +954,14 @@ def _check_diff_artifact(manifest: Mapping[str, Any], path: Path) -> None:
 
 def load_decision_assurance_diff(directory: str | Path) -> DecisionAssuranceDiff:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir():
-        raise ValidationError("decision assurance diff input must be a directory")
+    try:
+        _validate_parent(source.parent, "decision assurance diff input")
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("decision assurance diff input must be a directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("decision assurance diff input could not be inspected") from error
     children = tuple(source.iterdir())
     if any(item.is_symlink() for item in children) or {item.name for item in children} != set(DIFF_FILES):
         raise ValidationError("decision assurance diff file set is invalid")
@@ -1182,9 +1205,20 @@ def _manifest_address(value: Mapping[str, Any]) -> str:
 def write_decision_assurance_gate(value: DecisionAssuranceGate, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_decision_assurance_gate(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
-        raise ValidationError("decision assurance gate destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "decision assurance gate destination")
+        if destination.is_symlink():
+            raise ValidationError("decision assurance gate destination cannot be a symlink")
+        if destination.exists():
+            if (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
+                raise ValidationError("decision assurance gate destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("decision assurance gate destination is not a regular directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("decision assurance gate destination could not be prepared") from error
     assurance_raw = canonical_bytes(value.assurance.to_dict())
     gate_raw = canonical_bytes(value.gate.to_dict())
     manifest = _manifest_body(value, assurance_raw, gate_raw)
@@ -1192,9 +1226,9 @@ def write_decision_assurance_gate(value: DecisionAssuranceGate, directory: str |
     manifest_raw = canonical_bytes(manifest)
     temporary = Path(tempfile.mkdtemp(prefix=f".{ASSURANCE_PREFIX}-", dir=str(destination.parent)))
     try:
-        (temporary / ASSURANCE_NAME).write_bytes(assurance_raw)
-        (temporary / GATE_NAME).write_bytes(gate_raw)
-        (temporary / MANIFEST_NAME).write_bytes(manifest_raw)
+        atomic_write_bytes(temporary / ASSURANCE_NAME, assurance_raw, field="decision assurance staging document")
+        atomic_write_bytes(temporary / GATE_NAME, gate_raw, field="decision gate staging document")
+        atomic_write_bytes(temporary / MANIFEST_NAME, manifest_raw, field="decision assurance staging manifest")
         if destination.exists():
             if not destination.is_dir() or any(destination.iterdir()):
                 if not overwrite:
@@ -1210,7 +1244,7 @@ def write_decision_assurance_gate(value: DecisionAssuranceGate, directory: str |
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -1224,7 +1258,7 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
     artifact = next((item for item in manifest["artifacts"] if item.get("name") == name), None)
     if artifact is None:
         raise ValidationError(f"decision assurance manifest is missing {name}")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=f"decision assurance {name} artifact")
     if artifact.get("bytes") != len(raw) or artifact.get("byte_address") != hash_bytes(raw):
         raise ValidationError(f"decision assurance {name} bytes are not addressed")
     expected = content_hash({"name": name, "byte_address": hash_bytes(raw)}, prefix=ASSURANCE_PREFIX + "-file")
@@ -1234,8 +1268,14 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
 
 def load_decision_assurance_gate(directory: str | Path) -> DecisionAssuranceGate:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir():
-        raise ValidationError("decision assurance gate input must be a directory")
+    try:
+        _validate_parent(source.parent, "decision assurance gate input")
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("decision assurance gate input must be a directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("decision assurance gate input could not be inspected") from error
     children = tuple(source.iterdir())
     if any(item.is_symlink() for item in children) or {item.name for item in children} != set(FILES):
         raise ValidationError("decision assurance gate file set is invalid")
