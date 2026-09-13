@@ -4355,7 +4355,7 @@ from .sequence_grammar_frontier_cli import (
 )
 from .sequence_grammar_frontier_public_data import load_sequence_grammar_fixture
 from .sequence_regulation_frontier_cli import run_sequence_regulation_operation
-from .serialization import jsonable
+from .serialization import _strict_json_loads, jsonable
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
 from .service_release_export import (
@@ -5179,7 +5179,7 @@ from .workspace_release import (
 
 
 def _read_json(path: str) -> dict[str, Any]:
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("input JSON must be an object")
     return payload
@@ -5188,7 +5188,7 @@ def _read_json(path: str) -> dict[str, Any]:
 def _read_json_document(path: str) -> Any:
     """Read an object or list document for batch-oriented commands."""
 
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    return _strict_json_loads(Path(path).read_text(encoding="utf-8"))
 
 
 def _decision_mapping(values: list[str]) -> dict[str, str]:
@@ -7322,7 +7322,7 @@ def _platform_execution_architecture_fixture(input_path: str | None):
 
 
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
         for key in keys:
             if key in payload:
@@ -30884,7 +30884,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "capability-certification-bundle-observability":
             bundle = load_capability_certification_bundle(args.destination, include_payloads=True)
             artifact = next(item for item in bundle.artifacts if item.artifact_id == "observability")
-            report = certification_bundle_observability_from_dict(json.loads(artifact.payload or "{}"))
+            report = certification_bundle_observability_from_dict(_strict_json_loads(artifact.payload or "{}"))
             if args.format == "events-csv":
                 _write_text(certification_bundle_events_csv(report), args.output)
             elif args.format == "metrics-csv":
@@ -41643,7 +41643,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "factor-graph":
-            payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
+            payload = _strict_json_loads(Path(args.input).read_text(encoding="utf-8"))
             rows = payload.get("factors", payload) if isinstance(payload, dict) else payload
             if not isinstance(rows, list):
                 raise ValueError("factor graph JSON must contain a factors list")
@@ -42084,7 +42084,7 @@ def main(argv: list[str] | None = None) -> int:
                     _write_text(export_release_assurance_report_csv(runtime).decode("utf-8"), args.output)
                     return 0 if runtime.accepted else 2
                 else:
-                    payload = json.loads(export_release_assurance_report_json(runtime).decode("utf-8"))
+                    payload = _strict_json_loads(export_release_assurance_report_json(runtime).decode("utf-8"))
             elif args.plane == "checkpoint":
                 runtime = run_release_assurance(source, bundle_id=args.bundle_id, run_id=args.run_id)
                 checkpoint = build_release_assurance_checkpoint(runtime)
@@ -46526,7 +46526,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_COMMAND + "-manifest":
             value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_model.load_registry(args.input)
-            _write_json(json.loads(release_registry_decision_ledger_assurance_history_observatory_archive_registry_model.registry_manifest_json(value)), args.output)
+            _write_json(_strict_json_loads(release_registry_decision_ledger_assurance_history_observatory_archive_registry_model.registry_manifest_json(value)), args.output)
             return 0
         if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_COMMAND + "-query":
             value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_model.load_registry(args.input)
@@ -46642,7 +46642,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_COMMAND + "-manifest":
             value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_model.load_history(args.input)
-            _write_json(json.loads(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_model.history_manifest_json(value)), args.output)
+            _write_json(_strict_json_loads(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_model.history_manifest_json(value)), args.output)
             return 0
         history_schema_commands = {
             "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_model.history_schema,
@@ -46774,7 +46774,7 @@ def main(argv: list[str] | None = None) -> int:
             release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_model.write_package(gate_value, args.destination, overwrite=args.allow_existing)
             loaded = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_model.load_package(args.destination)
             if args.format == "manifest":
-                _write_json(json.loads(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_model.package_manifest_json(loaded)), args.output)
+                _write_json(_strict_json_loads(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_model.package_manifest_json(loaded)), args.output)
             elif args.format == "json":
                 _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.gate_json(loaded), args.output)
             else:
@@ -46786,7 +46786,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if value.accepted else 2
         if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_GATE_PACKAGE_COMMAND + "-manifest":
             value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_model.load_package(args.input)
-            _write_json(json.loads(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_model.package_manifest_json(value)), args.output)
+            _write_json(_strict_json_loads(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_model.package_manifest_json(value)), args.output)
             return 0
         history_release_gate_package_schema_commands = {
             "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_model.package_schema,
@@ -46943,7 +46943,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == history_release_evidence_pipeline_bundle_command + "-manifest":
             manifest_path = Path(args.input) / release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.MANIFEST_NAME
             release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.load_bundle(args.input)
-            _write_json(json.loads(manifest_path.read_text(encoding="utf-8")), args.output)
+            _write_json(_strict_json_loads(manifest_path.read_text(encoding="utf-8")), args.output)
             return 0
         history_release_evidence_pipeline_bundle_schema_commands = {
             "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.bundle_schema,
@@ -47208,7 +47208,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == history_release_evidence_pipeline_observability_bundle_command + "-manifest":
             manifest_path = Path(args.input) / release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.MANIFEST_NAME
             release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.load_bundle(args.input)
-            _write_json(json.loads(manifest_path.read_text(encoding="utf-8")), args.output)
+            _write_json(_strict_json_loads(manifest_path.read_text(encoding="utf-8")), args.output)
             return 0
         history_release_evidence_pipeline_observability_bundle_schema_commands = {
             "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.bundle_schema,
