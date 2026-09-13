@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import os
-import tempfile
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .module_impact import _as_inventory, build_module_impact_diff, build_module_impact_report
 from .module_impact_audit import audit_module_impact
@@ -60,19 +59,8 @@ def _safe_path(value: str) -> bool:
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent)
-    )
-    temporary = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-    except BaseException:
-        temporary.unlink(missing_ok=True)
-        raise
+    path.parent.mkdir(parents=True, exist_ok=True)
+    atomic_write_bytes(path, payload, field=f"module impact packet member {path.name}")
 
 
 def _json_text(value: Any) -> str:
@@ -347,10 +335,11 @@ def write_module_impact_packet(
     if not isinstance(packet, ModuleImpactPacket):
         raise ValidationError("packet writing requires a typed packet")
     target = Path(destination)
+    _validate_parent(target.parent, "module impact packet destination")
     if target.exists():
         if not allow_existing:
             raise ValidationError("module impact packet destination already exists")
-        if not target.is_dir():
+        if target.is_symlink() or not target.is_dir():
             raise ValidationError("module impact packet destination must be a directory")
     else:
         target.mkdir(parents=True, exist_ok=False)
@@ -395,11 +384,17 @@ def verify_module_impact_packet(directory: str | Path) -> ModuleImpactPacketVeri
 
     target = Path(directory)
     manifest_path = target / MODULE_IMPACT_PACKET_MANIFEST
-    if not target.exists() or not target.is_dir() or not manifest_path.is_file():
+    if (
+        target.is_symlink()
+        or not target.exists()
+        or not target.is_dir()
+        or manifest_path.is_symlink()
+        or not manifest_path.is_file()
+    ):
         raise ValidationError("module impact packet directory or manifest is missing")
     try:
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        manifest = _strict_json_loads(read_text(manifest_path, field="module impact packet manifest"))
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         raise ValidationError("module impact packet manifest is unreadable") from exc
     packet_id = str(manifest.get("packet_id", "unknown"))
     raw_artifacts = manifest.get("artifacts", ())
@@ -442,7 +437,7 @@ def verify_module_impact_packet(directory: str | Path) -> ModuleImpactPacketVeri
         relative = str(row.get("relative_path", ""))
         path = target / relative
         try:
-            data = path.read_bytes()
+            data = read_bytes(path, field=f"module impact packet artifact {relative}")
             text = data.decode("utf-8")
             expected_address = str(row.get("content_address", ""))
             actual_address = hash_bytes(data, prefix=MODULE_IMPACT_PACKET_ARTIFACT_PREFIX)
@@ -455,7 +450,7 @@ def verify_module_impact_packet(directory: str | Path) -> ModuleImpactPacketVeri
             exact = exact and row_ok
             if row.get("media_type") == _JSON:
                 public = public and not _has_forbidden_key(_strict_json_loads(text))
-        except (OSError, UnicodeDecodeError, ValueError):
+        except (OSError, UnicodeDecodeError, ValueError, ValidationError):
             exact = False
             public = False
     checks.append(
@@ -513,7 +508,9 @@ def load_module_impact_packet(directory: str | Path) -> ModuleImpactPacket:
     if not verification.accepted:
         raise ValidationError("module impact packet verification failed")
     target = Path(directory)
-    manifest = _strict_json_loads((target / MODULE_IMPACT_PACKET_MANIFEST).read_text(encoding="utf-8"))
+    manifest = _strict_json_loads(
+        read_text(target / MODULE_IMPACT_PACKET_MANIFEST, field="module impact packet manifest")
+    )
     artifacts = tuple(
         ModuleImpactPacketArtifact(
             **{
@@ -528,7 +525,10 @@ def load_module_impact_packet(directory: str | Path) -> ModuleImpactPacket:
                 )
             },
             kind=ModuleImpactPacketArtifactKind(str(row["kind"])),
-            payload=(target / str(row["relative_path"])).read_text(encoding="utf-8"),
+            payload=read_text(
+                target / str(row["relative_path"]),
+                field=f"module impact packet artifact {row['relative_path']}",
+            ),
         )
         for row in manifest["artifacts"]
     )
