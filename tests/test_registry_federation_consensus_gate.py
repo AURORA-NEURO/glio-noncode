@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from glio_noncode import registry_federation_consensus_gate as gate_model
 from glio_noncode import registry_federation_consensus_gate_audit as gate_audit_model
@@ -319,6 +320,23 @@ class RegistryFederationConsensusGateTests(DurableCatalogPromotionPackageFixture
                 path.write_text(json.dumps(document, separators=(",", ":")), encoding="utf-8")
                 with self.assertRaises(ValidationError):
                     history_model.load_history(destination)
+
+    def test_history_loader_normalizes_inspection_read_and_decode_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            runtime = self._runtime(root, "primary", "replica")
+            value = history_model.build_history(((runtime.gate, runtime.audit),), history_id="gate-history-failures")
+            destination = root / "history"
+            history_model.write_history(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    history_model.load_history(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    history_model.load_history(destination)
+            (destination / history_model.HISTORY_NAME).write_bytes(b"\xff")
+            with self.assertRaises(ValidationError):
+                history_model.load_history(destination)
 
     def test_history_audit_recomputes_order_and_evidence(self):
         with tempfile.TemporaryDirectory() as temporary:

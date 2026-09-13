@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import shutil
 import tempfile
 from collections.abc import Mapping, Sequence
@@ -276,11 +275,23 @@ def write_history(value: RegistryFederationConsensusGateHistory, directory: str 
 
 
 def load_history(directory: str | Path) -> RegistryFederationConsensusGateHistory:
-    source = Path(directory)
-    if not source.is_dir() or tuple(sorted(path.name for path in source.iterdir())) != tuple(sorted(FILES)):
+    try:
+        source = Path(directory)
+        if not source.is_dir():
+            raise ValidationError("gate history directory does not contain exact canonical members")
+        members = tuple(source.iterdir())
+    except OSError as error:
+        raise ValidationError("gate history directory could not be inspected") from error
+    if tuple(sorted(path.name for path in members)) != tuple(sorted(FILES)) or any(path.is_symlink() or not path.is_file() for path in members):
         raise ValidationError("gate history directory does not contain exact canonical members")
-    raw = {name: (source / name).read_bytes() for name in FILES}
-    decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
+    try:
+        raw = {name: (source / name).read_bytes() for name in FILES}
+    except OSError as error:
+        raise ValidationError("gate history artifact could not be read") from error
+    try:
+        decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
+    except (UnicodeDecodeError, ValueError) as error:
+        raise ValidationError("gate history package contains invalid JSON") from error
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("gate history member is not canonical JSON")
     value = history_from_mapping(decoded[HISTORY_NAME])
