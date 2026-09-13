@@ -12,6 +12,7 @@ from typing import Any
 
 from . import registry_federation_consensus_gate_certificate_observatory_package as package_model
 from . import registry_federation_consensus_gate_certificate_observatory_package_audit as package_audit_model
+from ._safe_persistence import read_bytes
 from .errors import ValidationError
 from .serialization import canonical_json, content_hash
 
@@ -126,7 +127,10 @@ def replay_package(directory: str | Path) -> RegistryFederationConsensusGateCert
     destination = Path(directory)
     value = package_model.load_package(destination)
     expected = package_model.package_bytes(value)
-    actual = {name: (destination / name).read_bytes() for name in FILES}
+    try:
+        actual = {name: read_bytes(destination / name, field=f"observatory replay member {name}") for name in FILES}
+    except (OSError, ValidationError) as error:
+        raise ValidationError("observatory replay package member could not be read") from error
     package_audit = package_audit_model.audit_package(value)
     provisional = RegistryFederationConsensusGateCertificateObservatoryReplay(value.content_address, value.observatory.content_address, value.query.content_address, value.report.content_address, value.observatory_audit.content_address, value.query_audit.content_address, value.report_audit.content_address, len(actual), tuple(actual), expected == actual, package_model.load_package(destination).to_dict() == value.to_dict(), package_audit.accepted, REPLAY_PREFIX + ":pending")
     return RegistryFederationConsensusGateCertificateObservatoryReplay(provisional.package_address, provisional.observatory_address, provisional.query_address, provisional.report_address, provisional.observatory_audit_address, provisional.query_audit_address, provisional.report_audit_address, provisional.member_count, provisional.members, provisional.byte_equal, provisional.projection_equal, provisional.audit_accepted, address_replay(provisional))
