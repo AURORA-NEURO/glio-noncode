@@ -10,6 +10,7 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .module_inventory_contracts import (
     MODULE_INVENTORY_BOUNDARY,
@@ -359,8 +360,8 @@ def _public_surface_export_modules(source_root: Path) -> dict[str, str]:
 
     path = source_root / "_public_surface.py"
     try:
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    except (OSError, UnicodeDecodeError, SyntaxError):
+        tree = ast.parse(read_text(path, field="public surface source"), filename=str(path))
+    except (OSError, UnicodeDecodeError, SyntaxError, ValidationError):
         return {}
     declarations = _public_surface_declarations(tree)
     exports = declarations.get("EXPORTS")
@@ -438,8 +439,8 @@ def _test_reference_counts(
     test_payloads: list[str] = []
     for path in test_files:
         try:
-            test_payloads.append(path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeDecodeError):
+            test_payloads.append(read_text(path, field="module inventory test source"))
+        except (OSError, UnicodeDecodeError, ValidationError):
             continue
     known = set(counts)
     for text in test_payloads:
@@ -661,10 +662,10 @@ def build_module_inventory(
     for module_id, path in discovered:
         relative = _safe_relative(path, root)
         try:
-            text = path.read_text(encoding="utf-8")
+            text = read_text(path, field="module inventory source")
             tree = ast.parse(text, filename=relative)
             state = ModuleState.EMPTY if not tree.body else ModuleState.PARSED
-        except (OSError, UnicodeDecodeError, SyntaxError) as exc:
+        except (OSError, UnicodeDecodeError, SyntaxError, ValidationError) as exc:
             detail = str(exc).replace("\r", " ").replace("\n", " ")[:480]
             body = {
                 "issue_id": f"{module_id}:parse",
