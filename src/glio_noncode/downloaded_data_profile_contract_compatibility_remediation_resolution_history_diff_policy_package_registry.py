@@ -22,6 +22,7 @@ from . import downloaded_data_ingestion as ingestion_model
 from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package as package_model,
 )
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -397,15 +398,29 @@ def summary_json(value: DownloadedDataProfileContractCompatibilityRemediationRes
 
 
 def _write(path: Path, value: Any) -> None:
-    path.write_text(canonical_json(value), encoding="utf-8", newline="\n")
+    atomic_write_bytes(
+        path,
+        canonical_json(value).encode("utf-8"),
+        field="policy package registry document",
+    )
 
 
 def persist_registry(value: DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiffPolicyPackageRegistry, destination: str | Path, *, overwrite: bool = False) -> Path:
     if not isinstance(value, DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiffPolicyPackageRegistry):
         raise ValidationError("policy package registry persistence requires a typed registry")
     destination = Path(destination)
-    if destination.exists() and (not destination.is_dir() or not overwrite):
-        raise ValidationError("policy package registry destination exists or is not a directory")
+    try:
+        _validate_parent(destination.parent, "policy package registry destination")
+        if destination.is_symlink():
+            raise ValidationError("policy package registry destination cannot be a symlink")
+        if destination.exists():
+            if not destination.is_dir() or not overwrite:
+                raise ValidationError("policy package registry destination exists or is not a directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("policy package registry destination could not be prepared") from error
     parent = destination.parent
     parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".downloaded-policy-package-registry-", dir=str(parent)))
@@ -425,7 +440,7 @@ def persist_registry(value: DownloadedDataProfileContractCompatibilityRemediatio
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+        value = _strict_json_loads(read_text(path, field="policy package registry artifact"))
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("policy package registry artifact is not valid JSON") from error
     return _mapping(value, "policy package registry artifact")
@@ -433,7 +448,7 @@ def _read_json(path: Path) -> Mapping[str, Any]:
 
 def _read_canonical(path: Path, value: Mapping[str, Any]) -> None:
     try:
-        actual = path.read_text(encoding="utf-8")
+        actual = read_text(path, field="policy package registry artifact")
     except (OSError, UnicodeDecodeError) as error:
         raise ValidationError("policy package registry artifact cannot be read") from error
     if actual != canonical_json(value):
@@ -442,8 +457,14 @@ def _read_canonical(path: Path, value: Mapping[str, Any]) -> None:
 
 def load_registry(destination: str | Path) -> DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiffPolicyPackageRegistry:
     destination = Path(destination)
-    if not destination.is_dir():
-        raise ValidationError("policy package registry destination must be a directory")
+    try:
+        _validate_parent(destination.parent, "policy package registry input")
+        if destination.is_symlink() or not destination.is_dir():
+            raise ValidationError("policy package registry destination must be a directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("policy package registry input could not be inspected") from error
     names = tuple(sorted(path.name for path in destination.iterdir()))
     if names != tuple(sorted(FILES)):
         raise ValidationError("policy package registry directory does not contain the exact file set")
