@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.intake_bundle import (
     IntakeBundleEntry,
     IntakeBundleFormat,
@@ -94,6 +95,20 @@ class IntakeBundleTests(unittest.TestCase):
             self.assertEqual(json.loads(json_path.read_text(encoding="utf-8"))["entry_count"], 12)
             self.assertTrue(csv_path.read_text(encoding="utf-8").startswith("entry_id,"))
             self.assertTrue(md_path.read_text(encoding="utf-8").startswith("# Intake evidence bundle"))
+
+    def test_write_rejects_symlinked_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target.json"
+            target.write_text("preserve", encoding="utf-8")
+            link = root / "linked.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                self.builder.write(FIXTURE_PATH, link)
+            self.assertEqual(target.read_text(encoding="utf-8"), "preserve")
 
     def test_review_bundle_requires_explicit_allow_review(self) -> None:
         raw = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))

@@ -121,6 +121,20 @@ class IdentityBundleTests(unittest.TestCase):
             self.builder.write(FIXTURE, path, output_format=IdentityBundleFormat.CSV)
             self.assertTrue(path.read_text(encoding="utf-8").startswith("entry_id,"))
 
+    def test_write_rejects_symlinked_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target.json"
+            target.write_text("preserve", encoding="utf-8")
+            link = root / "linked.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                self.builder.write(FIXTURE, link)
+            self.assertEqual(target.read_text(encoding="utf-8"), "preserve")
+
     def test_bundle_does_not_copy_raw_payload_values(self) -> None:
         serialized = json.dumps(self.builder.build(FIXTURE).to_dict(), sort_keys=True).casefold()
         self.assertNotIn("public-aggregate-subject-01", serialized)

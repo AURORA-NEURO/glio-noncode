@@ -11,6 +11,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .identity_contracts import default_identity_contract_registry
 from .identity_fixture_eval import IdentityFixtureEvaluator
@@ -278,7 +279,7 @@ class IdentityEvidenceBundleBuilder:
             }[output_path.suffix.lower()]
         else:
             format_value = IdentityBundleFormat.JSON
-        output_path.write_text(bundle.render(format_value), encoding="utf-8", newline="\n")
+        atomic_write_text(output_path, bundle.render(format_value), field="identity bundle output path")
         return bundle
 
     @staticmethod

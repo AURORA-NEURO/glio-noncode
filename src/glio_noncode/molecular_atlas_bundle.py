@@ -10,6 +10,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .molecular_atlas_fixture_eval import MolecularAtlasEvaluationReport
 from .molecular_atlas_public_data import MolecularAtlasFixture, MolecularAtlasRole
@@ -179,7 +180,7 @@ class MolecularAtlasBundleBuilder:
             )
         output = Path(path)
         require_non_empty(str(output), "molecular atlas bundle output path")
-        output.write_text(self.render(bundle), encoding="utf-8")
+        atomic_write_text(output, self.render(bundle), field="molecular atlas bundle output path")
 
 
 __all__ = [

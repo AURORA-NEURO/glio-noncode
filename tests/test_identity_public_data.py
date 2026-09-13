@@ -251,6 +251,19 @@ class IdentityPublicDataTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 IdentityFixtureCatalog.from_file(path)
 
+    def test_fixture_loader_rejects_symlinked_input(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "fixture.json"
+            target.write_text(FIXTURE.read_text(encoding="utf-8"), encoding="utf-8")
+            link = root / "linked-fixture.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                IdentityFixtureCatalog.from_file(link)
+
     def test_duplicate_json_keys_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "duplicate.json"

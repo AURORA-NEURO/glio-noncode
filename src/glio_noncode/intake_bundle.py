@@ -11,6 +11,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .intake_contracts import default_intake_contract_registry
 from .intake_fixture_eval import evaluate_intake_fixture
 from .intake_public_data import IntakeDataState, IntakeFixtureCatalog
@@ -291,7 +292,7 @@ class IntakeEvidenceBundleBuilder:
         bundle = self.build(path, bundle_id=bundle_id, allow_review=allow_review)
         output_path = Path(output)
         format_value = self._format_for_path(output_path, output_format)
-        output_path.write_text(bundle.render(format_value), encoding="utf-8")
+        atomic_write_text(output_path, bundle.render(format_value), field="intake bundle output path")
         return bundle
 
     @staticmethod

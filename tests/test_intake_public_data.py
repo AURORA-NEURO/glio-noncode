@@ -245,6 +245,19 @@ class IntakePublicDataTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 IntakeFixtureCatalog.from_file(duplicate)
 
+    def test_fixture_loader_rejects_symlinked_input(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "fixture.json"
+            target.write_text(FIXTURE_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+            link = root / "linked-fixture.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                IntakeFixtureCatalog.from_file(link)
+
 
 if __name__ == "__main__":
     unittest.main()
