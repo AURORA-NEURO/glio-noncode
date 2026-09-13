@@ -10,8 +10,8 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from glio_noncode import registry_federation_consensus_gate_certificate as certificate_model
 from glio_noncode import registry_federation_consensus_gate_certificate_history as history_model
 from glio_noncode import registry_federation_consensus_gate_certificate_history_audit as audit_model
 from glio_noncode import registry_federation_consensus_gate_certificate_package as package_model
@@ -117,6 +117,20 @@ class CertificateHistoryTests(CertificateFixture):
             entries_path.write_text("[]\n", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 history_model.load_history(destination)
+
+    def test_history_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            issued, _ = self._values(root)
+            value = history_model.build_history(((issued.certificate, issued.certificate_audit),), history_id="failure-history")
+            destination = root / "history"
+            history_model.write_history(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    history_model.load_history(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    history_model.load_history(destination)
 
     def test_independent_history_audit_has_full_check_set_and_replays(self):
         with tempfile.TemporaryDirectory() as temporary:
