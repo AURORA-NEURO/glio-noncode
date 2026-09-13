@@ -339,22 +339,36 @@ def write_registry(value: RegistryHistoryReleaseEvidencePipelineObservabilityBun
 
 
 def load_registry(directory: str | Path) -> RegistryHistoryReleaseEvidencePipelineObservabilityBundleCatalogPromotionGateReleasePacketPackageRegistry:
-    directory = Path(directory)
-    if not directory.is_dir():
-        raise ValidationError("catalog promotion package registry directory does not exist")
-    names = tuple(sorted(item.name for item in directory.iterdir()))
+    try:
+        directory = Path(directory)
+        if not directory.is_dir():
+            raise ValidationError("catalog promotion package registry directory does not exist")
+        members = tuple(directory.iterdir())
+    except OSError as error:
+        raise ValidationError("catalog promotion package registry directory could not be inspected") from error
+    names = tuple(sorted(item.name for item in members))
     if names != tuple(sorted(FILES)):
         raise ValidationError("catalog promotion package registry directory has an unexpected member set")
-    manifest = _strict_json_loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
+    if any(item.is_symlink() or not item.is_file() for item in members):
+        raise ValidationError("catalog promotion package registry directory has an invalid member")
+    try:
+        manifest = _strict_json_loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
+        registry_document = _strict_json_loads((directory / REGISTRY_NAME).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
+        raise ValidationError("catalog promotion package registry contains invalid JSON") from error
+    manifest = _mapping(manifest, "catalog promotion package registry manifest")
     if isinstance(manifest.get("files"), list):
         manifest["files"] = tuple(manifest["files"])
-    value = registry_from_mapping(_strict_json_loads((directory / REGISTRY_NAME).read_text(encoding="utf-8")))
+    value = registry_from_mapping(_mapping(registry_document, "catalog promotion package registry document"))
     if manifest != value.manifest:
         raise ValidationError("catalog promotion package registry manifest does not match the registry")
     payload = package_bytes(value)
-    for name, raw in payload.items():
-        if (directory / name).read_bytes() != raw:
-            raise ValidationError(f"catalog promotion package registry member {name} does not match its canonical bytes")
+    try:
+        for name, raw in payload.items():
+            if (directory / name).read_bytes() != raw:
+                raise ValidationError(f"catalog promotion package registry member {name} does not match its canonical bytes")
+    except OSError as error:
+        raise ValidationError("catalog promotion package registry artifact could not be read") from error
     return value
 
 

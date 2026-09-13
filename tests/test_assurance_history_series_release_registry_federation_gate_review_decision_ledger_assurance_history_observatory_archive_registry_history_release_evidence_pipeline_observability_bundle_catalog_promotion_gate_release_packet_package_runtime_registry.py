@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from glio_noncode import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry as registry
 from glio_noncode import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime as runtime
@@ -228,6 +229,23 @@ class CatalogPromotionPackageRegistryTests(PublicBoundaryMixin, DurableCatalogPr
             registry.write_registry(value, destination, overwrite=True)
             registry_raw = destination / registry.REGISTRY_NAME
             registry_raw.write_bytes(registry_raw.read_bytes().replace(b"package-ready", b"package-altered", 1))
+            with self.assertRaises(ValidationError):
+                registry.load_registry(destination)
+
+    def test_registry_loader_normalizes_inspection_read_and_decode_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self._packages(root)
+            value = registry.build_registry_from_directories((root / "ready-package", root / "held-package"))
+            destination = root / "registry"
+            registry.write_registry(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    registry.load_registry(destination)
+            with patch.object(Path, "read_text", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    registry.load_registry(destination)
+            (destination / registry.MANIFEST_NAME).write_text("[]", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 registry.load_registry(destination)
 
