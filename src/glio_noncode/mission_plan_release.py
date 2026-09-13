@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .mission_runtime_public import (
     MISSION_PLAN_PUBLIC_VERSION,
@@ -655,11 +656,15 @@ def write_mission_plan_release(
         target = root / filename
         if target.exists() and target.is_symlink():
             raise ValidationError(f"mission plan release artifact must not be a symlink: {filename}")
-        target.write_bytes(artifact.payload)
+        atomic_write_bytes(target, artifact.payload, field="mission plan release artifact path")
     manifest_target = root / MISSION_PLAN_RELEASE_MANIFEST_FILE
     if manifest_target.exists() and manifest_target.is_symlink():
         raise ValidationError("mission plan release manifest must not be a symlink")
-    manifest_target.write_bytes((canonical_json(bundle.manifest) + "\n").encode("utf-8"))
+    atomic_write_bytes(
+        manifest_target,
+        (canonical_json(bundle.manifest) + "\n").encode("utf-8"),
+        field="mission plan release manifest path",
+    )
     return root
 
 
@@ -732,7 +737,7 @@ def verify_mission_plan_release(destination: str | Path) -> MissionPlanReleaseVe
     tampered: list[str] = []
     boundary: list[str] = []
     try:
-        manifest_bytes = manifest_path.read_bytes()
+        manifest_bytes = read_bytes(manifest_path, field="mission plan release manifest path")
         manifest = _strict_json_loads(manifest_bytes.decode("utf-8"))
     except (OSError, UnicodeError, ValueError, json.JSONDecodeError):
         return _verification(
@@ -809,7 +814,7 @@ def verify_mission_plan_release(destination: str | Path) -> MissionPlanReleaseVe
             exact_bytes = False
             continue
         try:
-            payload = target.read_bytes()
+            payload = read_bytes(target, field="mission plan release artifact path")
             valid = (
                 len(payload) == int(row.get("byte_count", -1))
                 and len(payload.decode("utf-8").splitlines()) == int(row.get("line_count", -1))
@@ -972,7 +977,9 @@ def verify_mission_plan_release(destination: str | Path) -> MissionPlanReleaseVe
 
 def _load_manifest(root: Path) -> dict[str, Any]:
     try:
-        value = _strict_json_loads((root / MISSION_PLAN_RELEASE_MANIFEST_FILE).read_text(encoding="utf-8"))
+        value = _strict_json_loads(
+            read_text(root / MISSION_PLAN_RELEASE_MANIFEST_FILE, field="mission plan release manifest path")
+        )
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise ValidationError(f"cannot load mission plan release manifest: {exc}") from exc
     if not isinstance(value, dict):
@@ -989,9 +996,11 @@ def load_mission_plan_release(destination: str | Path) -> MissionPlanOfflineRele
         raise ValidationError("mission plan release filesystem verification failed")
     manifest = _load_manifest(root)
     receipt = MissionPlanPublicReceipt.from_mapping(
-        _strict_json_loads((root / "mission-plan.json").read_text(encoding="utf-8"))
+        _strict_json_loads(read_text(root / "mission-plan.json", field="mission plan release artifact path"))
     )
-    checks_body = _strict_json_loads((root / "release-checks.json").read_text(encoding="utf-8"))
+    checks_body = _strict_json_loads(
+        read_text(root / "release-checks.json", field="mission plan release artifact path")
+    )
     checks = tuple(MissionPlanReleaseCheck.from_mapping(item) for item in checks_body["checks"])
     body = {
         "path": str(root),

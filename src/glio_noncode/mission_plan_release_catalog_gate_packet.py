@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .mission_plan_release_catalog import (
     MissionPlanReleaseCatalog,
@@ -444,6 +445,8 @@ def write_mission_plan_release_catalog_gate_packet(
         raise ValidationError("catalog gate packet writer requires a packet")
     root = Path(destination)
     if root.exists():
+        if root.is_symlink():
+            raise ValidationError("catalog gate packet destination must not be a symlink")
         if not root.is_dir():
             raise ValidationError("catalog gate packet destination must be a directory")
         if tuple(root.iterdir()) and not allow_existing:
@@ -451,7 +454,11 @@ def write_mission_plan_release_catalog_gate_packet(
     else:
         root.mkdir(parents=True, exist_ok=False)
     for artifact in value.artifacts:
-        (root / artifact.filename).write_bytes(artifact.payload)
+        atomic_write_bytes(
+            root / artifact.filename,
+            artifact.payload,
+            field="mission plan catalog gate packet artifact path",
+        )
     return root
 
 
@@ -459,9 +466,9 @@ def verify_mission_plan_release_catalog_gate_packet(destination: str | Path) -> 
     """Verify packet names, exact bytes, addresses, and public boundary."""
 
     root = Path(destination)
-    if not root.exists() or not root.is_dir():
+    if not root.exists() or root.is_symlink() or not root.is_dir():
         raise ValidationError("catalog gate packet destination must be an existing directory")
-    files = tuple(sorted(item.name for item in root.iterdir() if item.is_file()))
+    files = tuple(sorted(item.name for item in root.iterdir() if item.is_file() and not item.is_symlink()))
     missing = tuple(sorted(MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_REQUIRED_ARTIFACTS - set(files)))
     unexpected = tuple(sorted(set(files) - MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_REQUIRED_ARTIFACTS))
     tampered: list[str] = []
@@ -473,7 +480,9 @@ def verify_mission_plan_release_catalog_gate_packet(destination: str | Path) -> 
     public_boundary_valid = True
     exact_bytes = not missing and not unexpected
     try:
-        manifest = _strict_json_loads((root / MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_MANIFEST_FILE).read_text(encoding="utf-8"))
+        manifest = _strict_json_loads(
+            read_text(root / MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_MANIFEST_FILE, field="mission plan catalog gate packet manifest path")
+        )
         packet_id = _text(manifest.get("packet_id"), "packet.packet_id", maximum=120)
         public_boundary_valid = not bool(_private_paths(manifest))
         manifest_address_valid = manifest.get("manifest_address") == content_hash(
@@ -486,7 +495,7 @@ def verify_mission_plan_release_catalog_gate_packet(destination: str | Path) -> 
             path = root / filename
             if not path.exists():
                 continue
-            payload = path.read_bytes()
+            payload = read_bytes(path, field="mission plan catalog gate packet artifact path")
             item = metadata.get(filename)
             actual = hash_bytes(payload, prefix="mission-plan-release-catalog-gate-packet-artifact")
             if not isinstance(item, Mapping) or item.get("content_address") != actual or item.get("byte_count") != len(payload):
@@ -495,17 +504,17 @@ def verify_mission_plan_release_catalog_gate_packet(destination: str | Path) -> 
                 verified_count += 1
             if filename.endswith(".json"):
                 public_boundary_valid = public_boundary_valid and not bool(_private_paths(_strict_json_loads(payload.decode("utf-8"))))
-        catalog = MissionPlanReleaseCatalog.from_mapping(_strict_json_loads((root / "mission-plan-release-catalog.json").read_text(encoding="utf-8")))
-        gate = MissionPlanReleaseCatalogGate.from_mapping(_strict_json_loads((root / "catalog-gate.json").read_text(encoding="utf-8")))
-        report = MissionPlanReleaseCatalogReport.from_mapping(_strict_json_loads((root / "catalog-gate-report.json").read_text(encoding="utf-8")))
-        runtime = MissionPlanReleaseCatalogGateRuntime.from_mapping(_strict_json_loads((root / "catalog-gate-runtime.json").read_text(encoding="utf-8")))
+        catalog = MissionPlanReleaseCatalog.from_mapping(_strict_json_loads(read_text(root / "mission-plan-release-catalog.json", field="mission plan catalog gate packet artifact path")))
+        gate = MissionPlanReleaseCatalogGate.from_mapping(_strict_json_loads(read_text(root / "catalog-gate.json", field="mission plan catalog gate packet artifact path")))
+        report = MissionPlanReleaseCatalogReport.from_mapping(_strict_json_loads(read_text(root / "catalog-gate-report.json", field="mission plan catalog gate packet artifact path")))
+        runtime = MissionPlanReleaseCatalogGateRuntime.from_mapping(_strict_json_loads(read_text(root / "catalog-gate-runtime.json", field="mission plan catalog gate packet artifact path")))
         catalog_address_valid = manifest.get("catalog_address") == catalog.content_address
         gate_address_valid = manifest.get("gate_address") == gate.content_address
         report_address_valid = manifest.get("report_address") == report.content_address
         runtime_address_valid = manifest.get("runtime_address") == runtime.content_address
-        audit_payload = _strict_json_loads((root / "catalog-gate-audit.json").read_text(encoding="utf-8"))
+        audit_payload = _strict_json_loads(read_text(root / "catalog-gate-audit.json", field="mission plan catalog gate packet artifact path"))
         audit_address_valid = audit_payload.get("catalog_address") == catalog.content_address and audit_payload.get("accepted") is True
-        summary = _strict_json_loads((root / "catalog-gate-summary.json").read_text(encoding="utf-8"))
+        summary = _strict_json_loads(read_text(root / "catalog-gate-summary.json", field="mission plan catalog gate packet artifact path"))
         summary_address_valid = summary.get("content_address") == content_hash(
             {key: value for key, value in summary.items() if key != "content_address"},
             prefix="mission-plan-release-catalog-gate-packet-summary",
@@ -564,12 +573,12 @@ def load_mission_plan_release_catalog_gate_packet(destination: str | Path) -> Mi
     if not verification.accepted:
         raise ValidationError("catalog gate packet verification failed: " + canonical_json(verification.to_dict()))
     root = Path(destination)
-    catalog = MissionPlanReleaseCatalog.from_mapping(_strict_json_loads((root / "mission-plan-release-catalog.json").read_text(encoding="utf-8")))
-    gate = MissionPlanReleaseCatalogGate.from_mapping(_strict_json_loads((root / "catalog-gate.json").read_text(encoding="utf-8")))
-    report = MissionPlanReleaseCatalogReport.from_mapping(_strict_json_loads((root / "catalog-gate-report.json").read_text(encoding="utf-8")))
-    runtime = MissionPlanReleaseCatalogGateRuntime.from_mapping(_strict_json_loads((root / "catalog-gate-runtime.json").read_text(encoding="utf-8")))
-    audit = MissionPlanReleaseCatalogAudit.from_mapping(_strict_json_loads((root / "catalog-gate-audit.json").read_text(encoding="utf-8")))
-    manifest = _strict_json_loads((root / MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_MANIFEST_FILE).read_text(encoding="utf-8"))
+    catalog = MissionPlanReleaseCatalog.from_mapping(_strict_json_loads(read_text(root / "mission-plan-release-catalog.json", field="mission plan catalog gate packet artifact path")))
+    gate = MissionPlanReleaseCatalogGate.from_mapping(_strict_json_loads(read_text(root / "catalog-gate.json", field="mission plan catalog gate packet artifact path")))
+    report = MissionPlanReleaseCatalogReport.from_mapping(_strict_json_loads(read_text(root / "catalog-gate-report.json", field="mission plan catalog gate packet artifact path")))
+    runtime = MissionPlanReleaseCatalogGateRuntime.from_mapping(_strict_json_loads(read_text(root / "catalog-gate-runtime.json", field="mission plan catalog gate packet artifact path")))
+    audit = MissionPlanReleaseCatalogAudit.from_mapping(_strict_json_loads(read_text(root / "catalog-gate-audit.json", field="mission plan catalog gate packet artifact path")))
+    manifest = _strict_json_loads(read_text(root / MISSION_PLAN_RELEASE_CATALOG_GATE_PACKET_MANIFEST_FILE, field="mission plan catalog gate packet manifest path"))
     body = {"catalog": catalog, "gate": gate, "report": report, "audit": audit, "runtime": runtime, "manifest": manifest, "verification": verification, "accepted": True}
     return MissionPlanReleaseCatalogGatePacketOffline(
         **body,
