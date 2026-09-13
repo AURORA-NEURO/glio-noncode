@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -83,6 +84,15 @@ class RegistryHistoryReleaseEvidencePipelineBundleDiffBuildTests(RegistryHistory
             document["items"][0]["detail"] = "tampered"
             with self.assertRaises(ValidationError):
                 diff.diff_from_mapping(document)
+
+    def test_diff_snapshot_normalizes_artifact_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = self.bundle_for(root, "snapshot")
+            loaded = bundle.load_bundle(source)
+            with patch.object(diff.bundle_model, "load_bundle", return_value=loaded), patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    diff.build_diff(source, source)
 
 
 class RegistryHistoryReleaseEvidencePipelineBundleDiffCliApiTests(RegistryHistoryReleaseEvidencePipelineBundleDiffFixture):

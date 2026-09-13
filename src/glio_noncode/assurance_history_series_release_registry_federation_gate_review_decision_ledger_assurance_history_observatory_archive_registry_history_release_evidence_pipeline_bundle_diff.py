@@ -254,7 +254,11 @@ def address_diff(value: RegistryHistoryReleaseEvidencePipelineBundleDiff) -> str
 def _snapshot(source: str | Path) -> tuple[bundle_model.RegistryHistoryReleaseEvidencePipelineBundle, dict[str, bytes]]:
     loaded = bundle_model.load_bundle(source)
     directory = Path(source)
-    return loaded, {name: (directory / name).read_bytes() for name in bundle_model.FILES}
+    try:
+        payload = {name: (directory / name).read_bytes() for name in bundle_model.FILES}
+    except OSError as error:
+        raise ValidationError("release evidence bundle snapshot artifact could not be read") from error
+    return loaded, payload
 
 
 def _artifact(value: bytes) -> tuple[int, str]:

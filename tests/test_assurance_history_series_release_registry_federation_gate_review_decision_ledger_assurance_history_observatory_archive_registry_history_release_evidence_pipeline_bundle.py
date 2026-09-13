@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -68,6 +69,19 @@ class RegistryHistoryReleaseEvidencePipelineBundleBuildTests(RegistryHistoryRele
             path.write_text(duplicate, encoding="utf-8")
             with self.assertRaises(ValidationError):
                 bundle.load_bundle(destination)
+
+    def test_bundle_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = pipeline.build_pipeline(self.directories(root))
+            destination = root / "bundle"
+            bundle.write_bundle(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    bundle.load_bundle(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    bundle.load_bundle(destination)
 
     def test_bundle_schemas_capabilities_and_limits_are_public(self):
         self.assert_public(bundle.bundle_schema())
