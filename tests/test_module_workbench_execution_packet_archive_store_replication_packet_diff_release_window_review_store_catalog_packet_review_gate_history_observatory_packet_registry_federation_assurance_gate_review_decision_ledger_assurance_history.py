@@ -295,6 +295,16 @@ class HistoryPersistenceTests(HistoryFixture):
             second = self.write_history(value, root / "second")
             self.assertEqual({path.name: path.read_bytes() for path in first.iterdir()}, {path.name: path.read_bytes() for path in second.iterdir()})
 
+    def test_history_loader_rejects_duplicate_manifest_fields(self):
+        value = self.build_ready_history("history:duplicate")
+        with tempfile.TemporaryDirectory() as root_text:
+            destination = self.write_history(value, Path(root_text) / "history")
+            path = destination / "manifest.json"
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"history_id":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                history.load_decision_assurance_history(destination)
+
     def test_persistence_rejects_missing_extra_noncanonical_and_tampered_documents(self):
         value = self.build_ready_history("history:tamper")
         with tempfile.TemporaryDirectory() as root_text:
