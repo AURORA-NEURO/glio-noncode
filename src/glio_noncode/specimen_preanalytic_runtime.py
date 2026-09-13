@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .specimen_preanalytic_fixture_eval import evaluate_specimen_preanalytic_fixture
 from .specimen_preanalytic_lineage import build_specimen_preanalytic_lineage
@@ -42,7 +43,7 @@ class SpecimenPreanalyticPipelineRequest:
         cls, path: str | Path
     ) -> tuple[SpecimenPreanalyticPipelineRequest, SpecimenPreanalyticFixtureCatalog]:
         source = Path(path)
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(read_text(source, field="specimen preanalytic pipeline request"))
         request = cls.from_mapping(raw)
         fixture_path = Path(request.fixture_path)
         if not fixture_path.is_absolute():
