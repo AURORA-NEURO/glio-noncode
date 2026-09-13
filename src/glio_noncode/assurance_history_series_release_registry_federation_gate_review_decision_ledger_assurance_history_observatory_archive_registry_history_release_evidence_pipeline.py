@@ -20,6 +20,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package as package_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit as package_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate as certificate_model
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -185,7 +186,12 @@ def build_pipeline(history_directory: str | Path, package_destination: str | Pat
     else:
         package_model.write_package(gate, package_destination, overwrite=overwrite)
         loaded_gate = package_model.load_package(package_destination)
-        manifest = _strict_json_loads((Path(package_destination) / package_model.MANIFEST_NAME).read_text(encoding="utf-8"))
+        manifest = _strict_json_loads(
+            read_text(
+                Path(package_destination) / package_model.MANIFEST_NAME,
+                field="release evidence pipeline package manifest",
+            )
+        )
         package_audit = package_audit_model.audit_package_directory(package_destination)
     certificate = certificate_model.evaluate_audit(package_audit, certificate_policy)
     accepted = loaded_gate.accepted and certificate.accepted

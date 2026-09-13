@@ -20,6 +20,7 @@ from typing import Any
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline as pipeline_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle as bundle_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query as query_model
+from ._safe_persistence import _validate_target
 from .errors import ValidationError
 from .serialization import canonical_json, content_hash, hash_bytes
 
@@ -255,8 +256,15 @@ def _snapshot(source: str | Path) -> tuple[bundle_model.RegistryHistoryReleaseEv
     loaded = bundle_model.load_bundle(source)
     directory = Path(source)
     try:
-        payload = {name: (directory / name).read_bytes() for name in bundle_model.FILES}
-    except OSError as error:
+        payload: dict[str, bytes] = {}
+        for name in bundle_model.FILES:
+            artifact = directory / name
+            _validate_target(artifact, "release evidence bundle snapshot artifact")
+            payload[name] = artifact.read_bytes()
+            # Re-check after the read because Windows lacks O_NOFOLLOW and a
+            # copied bundle can be swapped while the snapshot is in flight.
+            _validate_target(artifact, "release evidence bundle snapshot artifact")
+    except (OSError, ValidationError) as error:
         raise ValidationError("release evidence bundle snapshot artifact could not be read") from error
     return loaded, payload
 
