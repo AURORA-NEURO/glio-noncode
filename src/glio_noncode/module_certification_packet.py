@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import csv
 import io
-import os
-import tempfile
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_text
 from .errors import ValidationError
 from .module_certification import module_certification_json
 from .module_certification_audit import audit_module_certification
@@ -65,19 +64,7 @@ def _safe_path(value: str) -> bool:
 
 def _atomic_write(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent)
-    )
-    temporary = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-    except BaseException:
-        temporary.unlink(missing_ok=True)
-        raise
+    atomic_write_bytes(path, payload, field=f"certification packet member {path.name}")
 
 
 def _json_text(value: Any) -> str:
@@ -447,8 +434,11 @@ def write_module_certification_packet(
     if not isinstance(packet, ModuleCertificationPacket):
         raise ValidationError("certification packet writer requires a typed packet")
     target = Path(destination)
+    _validate_parent(target.parent, "certification packet destination")
     if target.exists() and not allow_existing:
         raise ValidationError("certification packet destination already exists")
+    if target.exists() and (target.is_symlink() or not target.is_dir()):
+        raise ValidationError("certification packet destination must be a regular directory")
     target.mkdir(parents=True, exist_ok=True)
     for artifact in packet.artifacts:
         if artifact.payload is None:
@@ -477,9 +467,9 @@ def verify_module_certification_packet(
     manifest_path = target / MODULE_CERTIFICATION_PACKET_MANIFEST
     checks: list[ModuleCertificationPacketCheck] = []
     try:
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = _strict_json_loads(read_text(manifest_path, field="certification packet manifest"))
         packet_id = str(manifest["packet_id"])
-    except (OSError, UnicodeDecodeError, ValueError, KeyError, TypeError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError, KeyError, TypeError, ValidationError) as exc:
         packet_id = target.name or "unknown"
         checks.append(
             _check(
@@ -504,7 +494,10 @@ def verify_module_certification_packet(
     for raw in manifest.get("artifacts", []):
         try:
             relative_path = str(raw["relative_path"])
-            payload = (target / relative_path).read_text(encoding="utf-8")
+            payload = read_text(
+                target / relative_path,
+                field=f"certification packet artifact {relative_path}",
+            )
             artifact = ModuleCertificationPacketArtifact(
                 artifact_id=str(raw["artifact_id"]),
                 relative_path=relative_path,
@@ -516,7 +509,7 @@ def verify_module_certification_packet(
                 payload=payload,
             )
             artifacts.append(artifact)
-        except (OSError, UnicodeDecodeError, KeyError, TypeError, ValueError) as exc:
+        except (OSError, UnicodeDecodeError, KeyError, TypeError, ValueError, ValidationError) as exc:
             checks.append(
                 _check(
                     f"artifact-{len(artifacts)}-read",
@@ -715,11 +708,17 @@ def load_module_certification_packet(directory: str | Path) -> ModuleCertificati
         raise ValidationError("cannot load an unverified certification packet")
     target = Path(directory)
     manifest = _strict_json_loads(
-        (target / MODULE_CERTIFICATION_PACKET_MANIFEST).read_text(encoding="utf-8")
+        read_text(
+            target / MODULE_CERTIFICATION_PACKET_MANIFEST,
+            field="certification packet manifest",
+        )
     )
     artifacts = []
     for raw in manifest["artifacts"]:
-        payload = (target / raw["relative_path"]).read_text(encoding="utf-8")
+        payload = read_text(
+            target / raw["relative_path"],
+            field=f"certification packet artifact {raw['relative_path']}",
+        )
         artifacts.append(
             ModuleCertificationPacketArtifact(
                 artifact_id=raw["artifact_id"],
