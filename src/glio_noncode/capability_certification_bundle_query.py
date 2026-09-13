@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .capability_certification_bundle_contracts import (
     CAPABILITY_CERTIFICATION_BUNDLE_DEFAULT_LIMIT,
@@ -41,10 +42,12 @@ def _load_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
         manifest_path = _bundle_path(root, CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST)
         if manifest_path.is_symlink() or not manifest_path.is_file():
             raise ValueError("certification bundle manifest is missing")
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = _strict_json_loads(
+            read_text(manifest_path, field="certification bundle manifest path", encoding="utf-8")
+        )
     except ValueError:
         raise
-    except (OSError, UnicodeDecodeError) as exc:
+    except (OSError, UnicodeDecodeError, ValidationError) as exc:
         raise ValueError(f"cannot load certification bundle manifest: {exc}") from exc
     if not isinstance(manifest, Mapping):
         raise ValueError("certification bundle manifest must be an object")
@@ -93,8 +96,12 @@ def load_capability_certification_bundle(
             try:
                 if not artifact_path.is_file():
                     raise ValueError(f"certification artifact {relative_path} is missing")
-                payload = artifact_path.read_text(encoding="utf-8")
-            except (OSError, UnicodeDecodeError) as exc:
+                payload = read_text(
+                    artifact_path,
+                    field=f"certification artifact {relative_path}",
+                    encoding="utf-8",
+                )
+            except (OSError, UnicodeDecodeError, ValidationError) as exc:
                 raise ValueError(f"cannot hydrate certification artifact {relative_path}: {exc}") from exc
             if str(raw.get("media_type", "")) == "application/json":
                 try:

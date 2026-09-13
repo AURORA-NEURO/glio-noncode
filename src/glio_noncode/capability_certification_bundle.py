@@ -8,7 +8,7 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from ._safe_persistence import atomic_write_bytes
+from ._safe_persistence import atomic_write_bytes, read_bytes
 from .capability_certification_bundle_contracts import (
     CAPABILITY_CERTIFICATION_BUNDLE_ARTIFACT_PREFIX,
     CAPABILITY_CERTIFICATION_BUNDLE_BOUNDARY,
@@ -373,9 +373,12 @@ def verify_capability_certification_bundle(destination: str | Path) -> Certifica
     if not manifest_path.exists() or not manifest_path.is_file() or manifest_path.is_symlink():
         return _verification("missing-manifest", (_check("manifest-present", CertificationBundleCheckPlane.MANIFEST, False, False, True, "bundle manifest is missing"),))
     try:
-        raw_manifest = manifest_path.read_bytes()
+        raw_manifest = read_bytes(
+            manifest_path,
+            field="certification bundle manifest path",
+        )
         manifest = _strict_json_loads(raw_manifest.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         return _verification("invalid-manifest", (_check("manifest-readable", CertificationBundleCheckPlane.MANIFEST, False, type(exc).__name__, "UTF-8 JSON object", "bundle manifest cannot be read"),))
     if not isinstance(manifest, Mapping):
         return _verification("invalid-manifest", (_check("manifest-object", CertificationBundleCheckPlane.MANIFEST, False, type(manifest).__name__, "object", "manifest root must be an object"),))
@@ -431,7 +434,7 @@ def verify_capability_certification_bundle(destination: str | Path) -> Certifica
         if not regular:
             continue
         try:
-            raw = target.read_bytes()
+            raw = read_bytes(target, field="certification bundle artifact path")
             text = raw.decode("utf-8")
             address = hash_bytes(raw, prefix=CAPABILITY_CERTIFICATION_BUNDLE_ARTIFACT_PREFIX)
             checks.append(_check(f"bytes:{artifact_id}", CertificationBundleCheckPlane.ARTIFACT, len(raw) == item.get("byte_count") and _line_count(text) == item.get("line_count") and address == item.get("content_address"), {"bytes": len(raw), "lines": _line_count(text), "address": address}, {"bytes": item.get("byte_count"), "lines": item.get("line_count"), "address": item.get("content_address")}, "artifact bytes and address match"))
@@ -442,7 +445,7 @@ def verify_capability_certification_bundle(destination: str | Path) -> Certifica
                 except ValueError:
                     public = False
                 checks.append(_check(f"json-public:{artifact_id}", CertificationBundleCheckPlane.PUBLIC_BOUNDARY, public, public, True, "JSON artifact remains public-safe"))
-        except (OSError, UnicodeDecodeError) as exc:
+        except (OSError, UnicodeDecodeError, ValidationError) as exc:
             checks.append(_check(f"readable:{artifact_id}", CertificationBundleCheckPlane.ARTIFACT, False, type(exc).__name__, "UTF-8 file", "artifact cannot be decoded"))
     actual_paths: set[str] = set()
     for path in root.rglob("*"):
