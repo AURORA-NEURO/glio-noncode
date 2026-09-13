@@ -63,7 +63,6 @@ def _safe_path(value: str) -> bool:
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
     atomic_write_bytes(path, payload, field=f"certification packet member {path.name}")
 
 
@@ -435,6 +434,8 @@ def write_module_certification_packet(
         raise ValidationError("certification packet writer requires a typed packet")
     target = Path(destination)
     _validate_parent(target.parent, "certification packet destination")
+    if target.is_symlink():
+        raise ValidationError("certification packet destination must not be a symlink")
     if target.exists() and not allow_existing:
         raise ValidationError("certification packet destination already exists")
     if target.exists() and (target.is_symlink() or not target.is_dir()):
@@ -445,7 +446,14 @@ def write_module_certification_packet(
             raise ValidationError(
                 f"certification packet artifact has no payload: {artifact.artifact_id}"
             )
-        _atomic_write(target / artifact.relative_path, artifact.payload.encode("utf-8"))
+        if not _safe_path(artifact.relative_path):
+            raise ValidationError(
+                f"certification packet artifact has an unsafe path: {artifact.relative_path}"
+            )
+        path = target / artifact.relative_path
+        _validate_parent(path.parent, "certification packet artifact")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _atomic_write(path, artifact.payload.encode("utf-8"))
     _atomic_write(
         target / MODULE_CERTIFICATION_PACKET_MANIFEST, _manifest_text(packet).encode("utf-8")
     )
