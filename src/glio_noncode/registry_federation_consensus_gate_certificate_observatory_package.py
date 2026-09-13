@@ -193,11 +193,35 @@ def write_package(value: RegistryFederationConsensusGateCertificateObservatoryPa
     return _write_atomic(Path(directory), package_bytes(value), overwrite=overwrite)
 
 
-def load_package(directory: str | Path) -> RegistryFederationConsensusGateCertificateObservatoryPackage:
+def _read_directory(directory: str | Path) -> dict[str, bytes]:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir() or {item.name for item in source.iterdir()} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in source.iterdir()):
+    try:
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("certificate observatory package input must be a regular directory")
+        members = tuple(source.iterdir())
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("certificate observatory package input directory could not be inspected") from error
+    names = tuple(item.name for item in members)
+    if set(names) != set(FILES) or len(names) != len(FILES):
         raise ValidationError("certificate observatory package directory does not contain exact canonical members")
-    raw = {name: (source / name).read_bytes() for name in FILES}
+    result: dict[str, bytes] = {}
+    for name in FILES:
+        member = source / name
+        try:
+            if member.is_symlink() or not member.is_file():
+                raise ValidationError("certificate observatory package member must be a regular file")
+            result[name] = member.read_bytes()
+        except ValidationError:
+            raise
+        except OSError as error:
+            raise ValidationError("certificate observatory package member could not be read") from error
+    return result
+
+
+def load_package(directory: str | Path) -> RegistryFederationConsensusGateCertificateObservatoryPackage:
+    raw = _read_directory(directory)
     try:
         decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
     except (UnicodeDecodeError, ValueError) as error:

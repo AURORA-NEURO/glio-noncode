@@ -11,6 +11,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -159,6 +160,19 @@ class CertificateObservatoryTests(CertificateFixture):
             (destination / "extra.json").write_text("{}", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 package_model.load_package(destination)
+
+    def test_package_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            _, _, _, _, _, _, package, _ = self._graph(root)
+            destination = root / "package"
+            package_model.write_package(package, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("unreadable")):
+                with self.assertRaisesRegex(ValidationError, "could not be inspected"):
+                    package_model.load_package(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("unreadable")):
+                with self.assertRaisesRegex(ValidationError, "could not be read"):
+                    package_model.load_package(destination)
 
     def test_public_schemas_are_closed_and_exports_are_path_free(self):
         with tempfile.TemporaryDirectory() as temporary:
