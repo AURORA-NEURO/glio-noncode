@@ -27,6 +27,7 @@ from enum import StrEnum
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive_store_replication import (
     build_module_workbench_execution_packet_archive_store_promotion,
@@ -1123,8 +1124,11 @@ def write_module_workbench_execution_packet_archive_store_replication_packet(
     if not packet.accepted or not verification.accepted:
         raise ValidationError("cannot write a blocked replication packet")
     target = Path(destination)
+    _validate_parent(target.parent, "replication packet destination")
     if target.exists() and not allow_existing:
         raise ValidationError("replication packet destination already exists")
+    if target.exists() and (target.is_symlink() or not target.is_dir()):
+        raise ValidationError("replication packet destination must be a regular directory")
     parent = target.parent
     parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".replication-packet-", dir=parent))
@@ -1137,15 +1141,16 @@ def write_module_workbench_execution_packet_archive_store_replication_packet(
         for item in packet.artifacts:
             path = temporary / item.file_name
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(payloads[item.file_name])
+            atomic_write_bytes(
+                path,
+                payloads[item.file_name],
+                field=f"replication packet artifact {item.file_name}",
+            )
         manifest = canonical_bytes(packet.to_dict())
         manifest_path = (
             temporary / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_MANIFEST
         )
-        with manifest_path.open("wb") as handle:
-            handle.write(manifest)
-            handle.flush()
-            os.fsync(handle.fileno())
+        atomic_write_bytes(manifest_path, manifest, field="replication packet manifest")
         if target.exists():
             shutil.rmtree(target)
         os.replace(temporary, target)
@@ -1167,7 +1172,7 @@ def _read_packet(
     )
     if not manifest_path.is_file() or manifest_path.is_symlink():
         raise ValidationError("replication packet manifest is missing or unsafe")
-    raw = manifest_path.read_bytes()
+    raw = read_bytes(manifest_path, field="replication packet manifest")
     try:
         mapping = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -1189,7 +1194,10 @@ def _read_packet(
         artifact_path = root / item.file_name
         if artifact_path.is_symlink() or not artifact_path.is_file():
             raise ValidationError("replication packet artifact is not a regular file")
-        payloads[item.file_name] = artifact_path.read_bytes()
+        payloads[item.file_name] = read_bytes(
+            artifact_path,
+            field=f"replication packet artifact {item.file_name}",
+        )
     return packet, payloads
 
 
