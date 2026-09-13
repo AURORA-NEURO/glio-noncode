@@ -383,6 +383,21 @@ class ObservatoryPersistenceTests(ObservatoryFixture):
                 observatory.write_observatory(value, destination)
             observatory.write_observatory(value, destination, overwrite=True)
 
+    def test_writer_rejects_symlinked_destination_parent(self):
+        value = self.make_observatory()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("directory symlinks are unavailable")
+            with self.assertRaises(ValidationError):
+                observatory.write_observatory(value, linked_parent / "observatory")
+            self.assertEqual(tuple(external.iterdir()), ())
+
     def test_extra_file_is_rejected(self):
         value = self.make_observatory()
         with tempfile.TemporaryDirectory() as temporary:
@@ -419,7 +434,7 @@ class ObservatoryPersistenceTests(ObservatoryFixture):
                 with self.assertRaises(ValidationError):
                     observatory.load_package(destination)
 
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(observatory, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     observatory.load_package(destination)
 
