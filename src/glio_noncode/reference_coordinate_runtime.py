@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .reference_coordinate_bundle import (
     ReferenceCoordinateBundleBuilder,
@@ -56,7 +57,9 @@ class ReferenceCoordinatePipelineRequest:
     @classmethod
     def from_file(cls, path: str | Path) -> ReferenceCoordinatePipelineRequest:
         request_path = Path(path)
-        raw = _strict_json_loads(request_path.read_text(encoding="utf-8"))
+        raw = _strict_json_loads(
+            read_text(request_path, field="reference coordinate pipeline request")
+        )
         if not isinstance(raw, dict):
             raise ValidationError("pipeline request must be an object")
         return cls.from_mapping(raw, base_path=request_path.parent)

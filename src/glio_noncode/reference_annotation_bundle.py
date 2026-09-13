@@ -10,6 +10,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .reference_annotation_fixture_eval import ReferenceAnnotationEvaluationReport
 from .reference_annotation_public_data import (
@@ -226,7 +227,7 @@ class ReferenceAnnotationBundleBuilder:
         selected = format or output.suffix.lstrip(".") or "json"
         if selected == "md":
             selected = ReferenceAnnotationBundleFormat.MARKDOWN
-        output.write_text(self.render(bundle, selected), encoding="utf-8")
+        atomic_write_text(output, self.render(bundle, selected), field="reference annotation bundle output path")
         return output
 
 

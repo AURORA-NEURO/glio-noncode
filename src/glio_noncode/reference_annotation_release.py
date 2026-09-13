@@ -7,6 +7,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .reference_annotation_bundle import ReferenceAnnotationBundle, ReferenceAnnotationBundleBuilder
 from .reference_annotation_contracts import (
@@ -244,8 +245,10 @@ def write_reference_annotation_release_manifest(
     output = Path(path)
     import json
 
-    output.write_text(
-        json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    atomic_write_text(
+        output,
+        json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n",
+        field="reference annotation release manifest path",
     )
     return output
 

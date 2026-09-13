@@ -4,6 +4,7 @@ import unittest
 import tempfile
 from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.reference_coordinate_bundle import ReferenceCoordinateBundleFormat
 from glio_noncode.reference_coordinate_runtime import (
     ReferenceCoordinatePipelineRequest,
@@ -43,6 +44,19 @@ class ReferenceCoordinateRuntimeTests(unittest.TestCase):
             request.write_text('{"fixture_path":"fixture.json","fixture_path":"shadow.json"}', encoding="utf-8")
             with self.assertRaises(ValueError):
                 ReferenceCoordinatePipelineRequest.from_file(request)
+
+    def test_request_file_rejects_symlinked_input(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "request.json"
+            target.write_text(ACCEPTED.read_text(encoding="utf-8"), encoding="utf-8")
+            link = root / "linked-request.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                ReferenceCoordinatePipelineRequest.from_file(link)
 
     def test_stage_counts_are_conserved_for_accepted_path(self) -> None:
         report = run_reference_coordinate_pipeline(

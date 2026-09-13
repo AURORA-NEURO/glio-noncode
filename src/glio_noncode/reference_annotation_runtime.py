@@ -7,6 +7,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .reference_annotation_bundle import (
     ReferenceAnnotationBundleBuilder,
     ReferenceAnnotationBundleFormat,
@@ -199,7 +200,9 @@ def run_reference_annotation_pipeline_file(
     """Run a JSON request document or a fixture path directly."""
 
     request_path = Path(path)
-    payload = _strict_json_loads(request_path.read_text(encoding="utf-8"))
+    payload = _strict_json_loads(
+        read_text(request_path, field="reference annotation runtime request")
+    )
     if "fixture_path" in payload:
         request = ReferenceAnnotationRuntimeRequest(
             fixture_path=str(payload["fixture_path"]),

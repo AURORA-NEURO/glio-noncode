@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.reference_annotation_bundle import ReferenceAnnotationBundleBuilder
 from glio_noncode.reference_annotation_fixture_eval import evaluate_reference_annotation_fixture
 from glio_noncode.reference_annotation_quality_gate import (
@@ -49,6 +50,21 @@ class ReferenceAnnotationReleaseTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             self.assertTrue(text.endswith("\n"))
             self.assertIn(manifest.content_address, text)
+
+    def test_release_manifest_writer_rejects_symlinked_output(self) -> None:
+        manifest = self._manifest()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target.json"
+            target.write_text("preserve", encoding="utf-8")
+            link = root / "linked.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                write_reference_annotation_release_manifest(manifest, link)
+            self.assertEqual(target.read_text(encoding="utf-8"), "preserve")
 
     def test_review_bundle_cannot_be_published(self) -> None:
         evaluation = evaluate_reference_annotation_fixture()

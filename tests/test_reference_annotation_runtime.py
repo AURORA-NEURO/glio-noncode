@@ -4,6 +4,7 @@ import unittest
 import tempfile
 from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.reference_annotation_runtime import (
     ReferenceAnnotationRuntimeRequest,
     run_reference_annotation_pipeline,
@@ -47,6 +48,24 @@ class ReferenceAnnotationRuntimeTests(unittest.TestCase):
             request.write_text('{"fixture_path":"fixture.json","fixture_path":"shadow.json"}', encoding="utf-8")
             with self.assertRaises(ValueError):
                 run_reference_annotation_pipeline_file(request)
+
+    def test_file_request_rejects_symlinked_input(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "request.json"
+            target.write_text(
+                (ROOT / "examples/reference-annotation-pipeline-accepted.json").read_text(
+                    encoding="utf-8"
+                ),
+                encoding="utf-8",
+            )
+            link = root / "linked-request.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                run_reference_annotation_pipeline_file(link)
 
     def test_review_request_file_does_not_publish(self) -> None:
         report = run_reference_annotation_pipeline_file(

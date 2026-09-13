@@ -16,6 +16,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .reference_extensions import ReferenceExtensionState
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
@@ -348,7 +349,9 @@ class ReferenceCoordinateFixtureCatalog:
     @classmethod
     def from_file(cls, path: str | Path) -> ReferenceCoordinateFixtureCatalog:
         source = Path(path)
-        return cls.from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+        return cls.from_mapping(
+            _strict_json_loads(read_text(source, field="reference coordinate fixture"))
+        )
 
     def address_body(self) -> dict[str, Any]:
         return {

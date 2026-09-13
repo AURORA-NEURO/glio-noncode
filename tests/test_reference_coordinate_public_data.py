@@ -40,6 +40,19 @@ class ReferenceCoordinatePublicDataTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 ReferenceCoordinateFixtureCatalog.from_file(source)
 
+    def test_fixture_file_rejects_symlinked_input(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "fixture.json"
+            target.write_text(FIXTURE.read_text(encoding="utf-8"), encoding="utf-8")
+            link = root / "linked-fixture.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                ReferenceCoordinateFixtureCatalog.from_file(link)
+
     def test_fixture_identity_counts_and_operations_are_locked(self) -> None:
         catalog = self.load()
         self.assertEqual(catalog.fixture_version, REFERENCE_COORDINATE_FIXTURE_VERSION)

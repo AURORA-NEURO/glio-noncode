@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.reference_annotation_bundle import (
     ReferenceAnnotationBundleBuilder,
     ReferenceAnnotationBundleFormat,
@@ -53,6 +56,24 @@ class ReferenceAnnotationQualityBundleTests(unittest.TestCase):
         self.assertTrue(json_text.endswith("\n"))
         self.assertEqual(len(csv_text.splitlines()), 5)
         self.assertIn("| Record | Capability |", markdown)
+
+    def test_bundle_writer_rejects_symlinked_output(self) -> None:
+        fixture = default_reference_annotation_fixture()
+        evaluation = evaluate_reference_annotation_fixture(fixture)
+        builder = ReferenceAnnotationBundleBuilder()
+        bundle = builder.build(evaluation, fixture=fixture, accepted_only=True)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target.json"
+            target.write_text("preserve", encoding="utf-8")
+            link = root / "linked.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                builder.write(bundle, link)
+            self.assertEqual(target.read_text(encoding="utf-8"), "preserve")
 
     def test_bundle_address_changes_when_entry_state_changes(self) -> None:
         fixture = default_reference_annotation_fixture()
