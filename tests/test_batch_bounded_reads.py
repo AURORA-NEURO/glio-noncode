@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import glio_noncode.batch_runtime as batch_module
@@ -81,6 +82,25 @@ class BatchBoundedReadTests(unittest.TestCase):
 
             with self.assertRaisesRegex(StoreError, "invalid batch index"):
                 runtime.get(result.batch_id)
+
+    def test_batch_runtime_rejects_symlinked_index_without_following_target(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = BatchRuntime(directory)
+            result = runtime.evaluate([fixture_manifest().to_dict()])
+            index_path = runtime._index_path(result.batch_id)
+            external = Path(directory) / "external-batch-index.json"
+            external.write_bytes(index_path.read_bytes())
+            index_path.unlink()
+            try:
+                index_path.symlink_to(external)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"file symlinks unavailable: {exc}")
+            before = external.read_bytes()
+            with self.assertRaisesRegex(StoreError, "path is unsafe"):
+                runtime.get(result.batch_id)
+            with self.assertRaisesRegex(StoreError, "path is unsafe"):
+                runtime.evaluate([fixture_manifest().to_dict()])
+            self.assertEqual(external.read_bytes(), before)
 
     def test_batch_input_is_size_checked_before_object_store_write(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

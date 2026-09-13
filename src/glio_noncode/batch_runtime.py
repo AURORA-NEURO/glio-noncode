@@ -164,6 +164,13 @@ def _required_sha256_address(raw: Mapping[str, Any], field: str) -> str:
 def _batch_filesystem_lock(path: Path) -> Iterator[None]:
     """Wait through bounded store-lock windows for a long-running batch winner."""
 
+    try:
+        if path.is_symlink():
+            raise StoreError(f"batch lock path is unsafe: {path.name}")
+    except StoreError:
+        raise
+    except OSError as exc:
+        raise StoreError(f"batch lock path could not be inspected: {path.name}") from exc
     for attempt in range(_BATCH_LOCK_ATTEMPTS):
         stack = ExitStack()
         try:
@@ -545,9 +552,25 @@ class BatchRuntime:
     ) -> None:
         self.runtime = runtime or CaseRuntime(data_root)
         self.root = Path(self.runtime.store.root) / "batches"
-        self.root.mkdir(parents=True, exist_ok=True)
-        self._locks = Path(self.runtime.store.root) / ".locks" / "batches"
-        self._locks.mkdir(parents=True, exist_ok=True)
+        try:
+            if self.root.is_symlink():
+                raise StoreError("batch store root must be a regular directory")
+            self.root.mkdir(parents=True, exist_ok=True)
+            if not self.root.is_dir():
+                raise StoreError("batch store root must be a regular directory")
+            locks_root = Path(self.runtime.store.root) / ".locks"
+            if locks_root.is_symlink() or not locks_root.is_dir():
+                raise StoreError("batch lock root must be a regular directory")
+            self._locks = locks_root / "batches"
+            if self._locks.is_symlink():
+                raise StoreError("batch lock directory must be a regular directory")
+            self._locks.mkdir(parents=True, exist_ok=True)
+            if not self._locks.is_dir():
+                raise StoreError("batch lock directory must be a regular directory")
+        except StoreError:
+            raise
+        except OSError as exc:
+            raise StoreError("batch store directories could not be inspected") from exc
 
     def _index_path(self, batch_id: str) -> Path:
         return self.root / f"{_batch_digest(batch_id)}.json"
@@ -557,7 +580,14 @@ class BatchRuntime:
 
     @staticmethod
     def _read_index_unlocked(path: Path, batch_id: str) -> _BatchIndex:
-        if not path.exists():
+        try:
+            unsafe = path.is_symlink()
+            present = path.exists()
+        except OSError as exc:
+            raise StoreError("batch index path could not be inspected") from exc
+        if unsafe:
+            raise StoreError("batch index path is unsafe")
+        if not present:
             raise StoreError("batch not found")
         try:
             with path.open("rb") as handle:
@@ -893,7 +923,14 @@ class BatchRuntime:
         index_path = self._index_path(batch_id)
         process_lock = _run_lock(index_path)
         with process_lock, _batch_filesystem_lock(self._lock_path(batch_id)):
-            if index_path.exists():
+            try:
+                unsafe = index_path.is_symlink()
+                present = index_path.exists()
+            except OSError as exc:
+                raise StoreError("batch index path could not be inspected") from exc
+            if unsafe:
+                raise StoreError("batch index path is unsafe")
+            if present:
                 return self._get_unlocked(batch_id, index_path)
             return self._evaluate_new(
                 label=label,
