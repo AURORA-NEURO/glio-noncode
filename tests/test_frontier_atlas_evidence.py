@@ -51,6 +51,7 @@ from glio_noncode.frontier_atlas_views import (
     filter_frontier_atlas_review_queue,
     frontier_atlas_review_summary,
 )
+from glio_noncode.errors import ValidationError
 
 
 class FrontierAtlasEvidenceTests(unittest.TestCase):
@@ -76,6 +77,20 @@ class FrontierAtlasEvidenceTests(unittest.TestCase):
             path.write_text(duplicate, encoding="utf-8")
             with self.assertRaises(ValueError):
                 load_frontier_atlas_fixture(path)
+
+    def test_fixture_loader_rejects_symlink_input(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "fixture.json"
+            target.write_text(payload, encoding="utf-8")
+            link = root / "link.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                load_frontier_atlas_fixture(link)
 
     def test_evaluation_has_120_checks_and_explicit_states(self) -> None:
         self.assertTrue(self.evaluation.accepted)

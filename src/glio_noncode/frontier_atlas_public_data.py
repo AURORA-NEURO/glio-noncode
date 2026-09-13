@@ -929,9 +929,11 @@ def _contains_subject_key(value: Any) -> bool:
 def load_frontier_atlas_fixture(path: str) -> FrontierAtlasFixture:
     """Load and address-check a serialized fixture."""
 
-    from pathlib import Path
+    from ._safe_persistence import read_text
 
-    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(
+        read_text(path, field="frontier atlas fixture input path", encoding="utf-8")
+    )
     sources = tuple(FrontierAtlasSourceReceipt(**row) for row in payload["sources"])
     records = tuple(
         FrontierAtlasRecord(

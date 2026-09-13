@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import stat
 import tempfile
 from pathlib import Path
 
@@ -88,6 +89,50 @@ def atomic_write_text(
     except (LookupError, UnicodeError) as exc:
         raise ValidationError("text payload encoding is invalid") from exc
     return atomic_write_bytes(path, payload, field=field)
+
+
+def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
+    """Read a regular file without following symlinked fixture paths."""
+
+    target = Path(path)
+    _validate_target(target, field)
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
+    flags |= getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(target, flags)
+    except OSError as exc:
+        if target.is_symlink():
+            raise ValidationError(f"{field} must not be a symlink") from exc
+        raise
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise ValidationError(f"{field} must be a regular file")
+        with os.fdopen(descriptor, "rb") as handle:
+            descriptor = -1
+            payload = handle.read()
+        # Windows does not expose O_NOFOLLOW; catch a target swapped to a
+        # symlink while opening before returning any untrusted bytes.
+        if target.is_symlink():
+            raise ValidationError(f"{field} must not be a symlink")
+        return payload
+    finally:
+        if descriptor != -1:
+            os.close(descriptor)
+
+
+def read_text(
+    path: str | Path,
+    *,
+    field: str = "input path",
+    encoding: str = "utf-8",
+) -> str:
+    """Read and decode a regular text file without symlink traversal."""
+
+    try:
+        return read_bytes(path, field=field).decode(encoding)
+    except LookupError as exc:
+        raise ValidationError("text input encoding is invalid") from exc
 
 
 __all__ = ["atomic_write_bytes", "atomic_write_text"]

@@ -142,6 +142,20 @@ class AtlasAlphaEvidenceTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 load_atlas_alpha_evidence_fixture(path)
 
+    def test_fixture_loader_rejects_symlink_input(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "fixture.json"
+            target.write_text(payload, encoding="utf-8")
+            link = root / "link.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                load_atlas_alpha_evidence_fixture(link)
+
     def test_bundle_and_release_writers_reject_symlink_targets(self) -> None:
         quality = run_atlas_alpha_evidence_quality_gate(self.fixture)
         runtime = run_atlas_alpha_evidence_pipeline(

@@ -4,7 +4,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from glio_noncode._safe_persistence import atomic_write_bytes, atomic_write_text
+from glio_noncode._safe_persistence import (
+    atomic_write_bytes,
+    atomic_write_text,
+    read_bytes,
+    read_text,
+)
 from glio_noncode.errors import ValidationError
 
 
@@ -46,6 +51,23 @@ class SafePersistenceTests(unittest.TestCase):
                 atomic_write_text(parent_file / "artifact.txt", "payload")
             with self.assertRaises(ValidationError):
                 atomic_write_text(root / "artifact.txt", 42)  # type: ignore[arg-type]
+
+    def test_safe_reads_preserve_payload_and_reject_symlinks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "fixture.json"
+            target.write_bytes(b'{"ok":true}\n')
+            self.assertEqual(read_bytes(target), b'{"ok":true}\n')
+            self.assertEqual(read_text(target), '{"ok":true}\n')
+            link = root / "link.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                read_bytes(link)
+            with self.assertRaises(ValidationError):
+                read_text(link)
 
 
 if __name__ == "__main__":

@@ -903,9 +903,11 @@ def _contains_subject_key(value: Any) -> bool:
 def load_atlas_alpha_evidence_fixture(path: str) -> AtlasAlphaEvidenceFixture:
     """Load a serialized fixture and validate its stable content address."""
 
-    from pathlib import Path
+    from ._safe_persistence import read_text
 
-    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(
+        read_text(path, field="atlas alpha fixture input path", encoding="utf-8")
+    )
     sources = tuple(AtlasAlphaEvidenceSourceReceipt(**row) for row in payload["sources"])
     records = tuple(
         AtlasAlphaEvidenceRecord(
