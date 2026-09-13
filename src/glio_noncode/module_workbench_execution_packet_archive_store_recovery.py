@@ -11,6 +11,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive_store_contracts import (
     MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_MANIFEST,
@@ -322,7 +323,7 @@ def inspect_module_workbench_execution_packet_archive_store(
         )
     else:
         try:
-            manifest_bytes = manifest_path.read_bytes()
+            manifest_bytes = read_bytes(manifest_path, field="archive store recovery manifest")
             decoded = _strict_json_loads(manifest_bytes.decode("utf-8"))
             manifest = decoded if isinstance(decoded, Mapping) else None
             findings.append(
@@ -336,7 +337,7 @@ def inspect_module_workbench_execution_packet_archive_store(
                     "manifest can be decoded as a JSON object",
                 )
             )
-        except (OSError, UnicodeDecodeError, ValueError, TypeError):
+        except (OSError, UnicodeDecodeError, ValueError, TypeError, ValidationError):
             findings.append(
                 _finding(
                     len(findings),
@@ -466,7 +467,10 @@ def inspect_module_workbench_execution_packet_archive_store(
             )
             if child.name in declared_keys:
                 try:
-                    payload = child.read_bytes()
+                    payload = read_bytes(
+                        child,
+                        field=f"archive store recovery object {child.name}",
+                    )
                     expected_key = _object_key(payload)
                     findings.append(
                         _finding(
@@ -479,7 +483,7 @@ def inspect_module_workbench_execution_packet_archive_store(
                             "object filename is the address of its exact bytes",
                         )
                     )
-                except OSError:
+                except (OSError, ValidationError):
                     findings.append(
                         _finding(
                             len(findings),
