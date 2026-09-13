@@ -38,7 +38,7 @@ from . import (
 from . import (
     registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime as reconciliation_runtime_model,
 )
-from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -222,8 +222,8 @@ def _load_json_file(source: Path) -> Mapping[str, Any]:
     if source.is_symlink() or not source.is_file():
         raise ValidationError("decision ledger runtime plan source must be a regular file")
     try:
-        value = _strict_json_loads(source.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+        value = _strict_json_loads(read_text(source, field="decision ledger runtime plan source", encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError("decision ledger runtime plan source JSON is invalid") from error
     return _mapping(value, "decision ledger runtime plan source JSON")
 
