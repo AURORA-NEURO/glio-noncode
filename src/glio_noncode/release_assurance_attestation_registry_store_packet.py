@@ -10,13 +10,12 @@ rule; and hydration is refused until all checks pass.
 from __future__ import annotations
 
 import csv
-import os
-import tempfile
 from collections.abc import Iterable, Mapping
 from io import StringIO
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .release_assurance_attestation_registry_store import (
     audit_release_assurance_attestation_registry_store,
@@ -269,22 +268,7 @@ def build_release_assurance_attestation_registry_store_packet(
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-        dir=path.parent,
-    )
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_name, path)
-    finally:
-        temporary = Path(temporary_name)
-        if temporary.exists():
-            temporary.unlink()
+    atomic_write_bytes(path, payload, field="store packet artifact")
 
 
 def write_release_assurance_attestation_registry_store_packet(
@@ -298,13 +282,19 @@ def write_release_assurance_attestation_registry_store_packet(
     if not isinstance(packet, ReleaseAssuranceAttestationRegistryStorePacket):
         raise ValidationError("store packet writer requires a typed packet")
     root = Path(destination)
+    _validate_parent(root.parent, "store packet destination")
     if root.exists() and root.is_symlink():
         raise ValidationError("store packet destination must not be a symlink")
+    if root.exists() and not root.is_dir():
+        raise ValidationError("store packet destination must be a directory")
     root.mkdir(parents=True, exist_ok=True)
     if any(root.iterdir()) and not allow_existing:
         raise ValidationError("store packet destination is not empty")
     for artifact in packet.artifacts:
-        _atomic_write(root / safe_relative_path(artifact.relative_path), artifact.content)
+        path = root / safe_relative_path(artifact.relative_path)
+        _validate_parent(path.parent, "store packet artifact")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _atomic_write(path, artifact.content)
     _atomic_write(
         root / "manifest.json",
         (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8"),
@@ -320,8 +310,8 @@ def _read_manifest(
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError):
+        value = _strict_json_loads(read_text(path, field="store packet manifest"))
+    except (OSError, UnicodeError, ValueError, ValidationError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -491,8 +481,8 @@ def verify_release_assurance_attestation_registry_store_packet(
             missing.append(path)
             continue
         try:
-            payload = target.read_bytes()
-        except OSError:
+            payload = read_bytes(target, field=f"store packet artifact {path}")
+        except (OSError, ValidationError):
             tampered.append(path)
             continue
         try:
@@ -579,8 +569,10 @@ def load_release_assurance_attestation_registry_store_packet(
         raise ValidationError("store packet is not accepted")
     path = root / "store" / "store.json"
     try:
-        store_payload = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        store_payload = _strict_json_loads(
+            read_text(path, field="store packet store payload")
+        )
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError("store packet store payload is not valid JSON") from exc
     store = ReleaseAssuranceAttestationRegistryStore.from_mapping(store_payload)
     if store.store_id != manifest.get("store_id"):
