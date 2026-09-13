@@ -1256,7 +1256,10 @@ class ResourceScheduler:
         self._lock = threading.Lock()
         self._total_invocations = 0
         self._network_requests = 0
-        self._active: dict[str, ResourceEnvelope] = {}
+        self._mission_invocations: dict[str, int] = {}
+        self._mission_network_requests: dict[str, int] = {}
+        self._mission_seconds: dict[str, int] = {}
+        self._active: dict[str, tuple[str, ResourceEnvelope, bool]] = {}
 
     def admit(self, request: InvocationRequest, tool: ToolContract) -> ScheduleDecision:
         resource = request.effective_resource(tool)
@@ -1267,20 +1270,27 @@ class ResourceScheduler:
                 return self._snapshot(False, "requested resources exceed scheduler capacity")
             if resource.max_seconds > request.deadline_seconds:
                 return self._snapshot(False, "resource deadline exceeds invocation deadline")
-            if self._total_invocations >= request.budget.max_invocations:
+            mission_id = request.mission.mission_id
+            mission_invocations = self._mission_invocations.get(mission_id, 0)
+            if mission_invocations >= request.budget.max_invocations:
                 return self._snapshot(False, "mission invocation budget exhausted")
             is_network = resource.network_egress or tool.network_egress
-            if is_network and self._network_requests >= request.budget.max_network_requests:
+            mission_network_requests = self._mission_network_requests.get(mission_id, 0)
+            if is_network and mission_network_requests >= request.budget.max_network_requests:
                 return self._snapshot(False, "mission network request budget exhausted")
-            projected_seconds = (
-                sum(item.max_seconds for item in self._active.values()) + resource.max_seconds
-            )
+            if not self._fits_active_capacity(resource):
+                return self._snapshot(False, "active resource capacity is exhausted")
+            projected_seconds = self._mission_seconds.get(mission_id, 0) + resource.max_seconds
             if projected_seconds > request.budget.max_seconds:
                 return self._snapshot(False, "mission wall-time budget exhausted")
             self._total_invocations += 1
             if is_network:
                 self._network_requests += 1
-            self._active[request.request_id] = resource
+            self._mission_invocations[mission_id] = mission_invocations + 1
+            if is_network:
+                self._mission_network_requests[mission_id] = mission_network_requests + 1
+            self._mission_seconds[mission_id] = projected_seconds
+            self._active[request.request_id] = (mission_id, resource, is_network)
             return self._snapshot(True, "admitted")
 
     def release(self, request_id: str) -> None:
@@ -1298,14 +1308,15 @@ class ResourceScheduler:
                 return self._snapshot(False, "requested resources exceed scheduler capacity")
             if resource.max_seconds > request.deadline_seconds:
                 return self._snapshot(False, "resource deadline exceeds invocation deadline")
-            if self._total_invocations >= request.budget.max_invocations:
+            mission_id = request.mission.mission_id
+            if self._mission_invocations.get(mission_id, 0) >= request.budget.max_invocations:
                 return self._snapshot(False, "mission invocation budget exhausted")
             if resource.network_egress or tool.network_egress:
-                if self._network_requests >= request.budget.max_network_requests:
+                if self._mission_network_requests.get(mission_id, 0) >= request.budget.max_network_requests:
                     return self._snapshot(False, "mission network request budget exhausted")
-            projected_seconds = (
-                sum(item.max_seconds for item in self._active.values()) + resource.max_seconds
-            )
+            if not self._fits_active_capacity(resource):
+                return self._snapshot(False, "active resource capacity is exhausted")
+            projected_seconds = self._mission_seconds.get(mission_id, 0) + resource.max_seconds
             if projected_seconds > request.budget.max_seconds:
                 return self._snapshot(False, "mission wall-time budget exhausted")
             return self._snapshot(True, "request would be admitted")
@@ -1321,6 +1332,17 @@ class ResourceScheduler:
             total_invocations=self._total_invocations,
             network_requests=self._network_requests,
             active_requests=len(self._active),
+        )
+
+    def _fits_active_capacity(self, resource: ResourceEnvelope) -> bool:
+        """Check aggregate live resources, not only each request in isolation."""
+
+        active = tuple(item[1] for item in self._active.values())
+        return (
+            sum(item.cpu for item in active) + resource.cpu <= self.capacity.cpu
+            and sum(item.memory_gb for item in active) + resource.memory_gb <= self.capacity.memory_gb
+            and sum(item.gpu_count for item in active) + resource.gpu_count <= self.capacity.gpu_count
+            and sum(item.storage_gb for item in active) + resource.storage_gb <= self.capacity.storage_gb
         )
 
 

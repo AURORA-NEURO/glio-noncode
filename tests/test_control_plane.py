@@ -15,6 +15,7 @@ from glio_noncode.control_plane import (
     MissionPlanner,
     Plane,
     ProvenanceContext,
+    ResourceScheduler,
     WorkflowBudget,
     WorkflowDecision,
     default_control_plane_registry,
@@ -22,6 +23,7 @@ from glio_noncode.control_plane import (
 from glio_noncode.errors import SourceError
 from glio_noncode.models import EvidenceState, EvidenceTier
 from glio_noncode.serialization import content_hash
+from glio_noncode.workflow import ResourceEnvelope
 
 
 def _mission(*, network: bool = False, release: bool = False) -> MissionContext:
@@ -145,6 +147,60 @@ class ControlPlaneTests(unittest.TestCase):
     def test_executor_rejects_non_callable_handlers_at_registration(self) -> None:
         with self.assertRaises(Exception):
             ControlPlaneExecutor().register("A08.publish", object())  # type: ignore[arg-type]
+
+    def test_scheduler_scopes_budgets_to_missions_and_retains_consumed_seconds(self) -> None:
+        scheduler = ResourceScheduler(
+            capacity=ResourceEnvelope(cpu=1, memory_gb=2, storage_gb=2, max_seconds=100)
+        )
+        tool = default_control_plane_registry().tool("A08.publish")
+        budget = WorkflowBudget(max_invocations=1, max_network_requests=0, max_seconds=5)
+        first = _request("A08", "A08.publish", request_id="scheduler-first")
+        first = replace(
+            first,
+            resource=ResourceEnvelope(cpu=1, memory_gb=1, storage_gb=1, max_seconds=4),
+            budget=budget,
+        )
+        self.assertTrue(scheduler.admit(first, tool).admitted)
+        same_mission = replace(
+            first,
+            request_id="scheduler-same-mission",
+            idempotency_key="idem-scheduler-same-mission",
+        )
+        denied = scheduler.admit(same_mission, tool)
+        self.assertFalse(denied.admitted)
+        self.assertIn("invocation budget", denied.reason)
+        scheduler.release(first.request_id)
+        still_denied = scheduler.admit(same_mission, tool)
+        self.assertFalse(still_denied.admitted)
+        other_mission = replace(
+            same_mission,
+            request_id="scheduler-other-mission",
+            idempotency_key="idem-scheduler-other-mission",
+            mission=replace(first.mission, mission_id="another-mission"),
+        )
+        self.assertTrue(scheduler.admit(other_mission, tool).admitted)
+
+    def test_scheduler_rejects_aggregate_live_resource_overcommit(self) -> None:
+        scheduler = ResourceScheduler(
+            capacity=ResourceEnvelope(cpu=1, memory_gb=2, storage_gb=2, max_seconds=100)
+        )
+        tool = default_control_plane_registry().tool("A08.publish")
+        first = replace(
+            _request("A08", "A08.publish", request_id="capacity-first"),
+            resource=ResourceEnvelope(cpu=1, memory_gb=1, storage_gb=1, max_seconds=4),
+        )
+        second = replace(
+            first,
+            request_id="capacity-second",
+            idempotency_key="idem-capacity-second",
+            mission=replace(first.mission, mission_id="capacity-other"),
+        )
+        self.assertTrue(scheduler.admit(first, tool).admitted)
+        denied = scheduler.admit(second, tool)
+        self.assertFalse(denied.admitted)
+        self.assertIn("active resource capacity", denied.reason)
+        scheduler.release(first.request_id)
+        self.assertTrue(scheduler.admit(second, tool).admitted)
 
     def test_network_policy_and_source_failure_are_explicit(self) -> None:
         executor = ControlPlaneExecutor()
