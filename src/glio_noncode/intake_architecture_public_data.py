@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .intake_architecture_contracts import (
     INTAKE_ARCHITECTURE_BOUNDARY,
@@ -625,8 +626,8 @@ def intake_architecture_fixture_json(fixture: IntakeArchitectureFixture | None =
 
 def load_intake_architecture_fixture(path: str | Path) -> IntakeArchitectureFixture:
     try:
-        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
+        raw = _strict_json_loads(read_text(path, field="intake architecture input path", encoding="utf-8"))
+    except (OSError, ValueError, ValidationError) as exc:
         raise ValidationError(f"unable to read intake architecture fixture: {path}") from exc
     if not isinstance(raw, Mapping):
         raise ValidationError("intake architecture fixture must be a JSON object")

@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .cohort_alpha_frontier_fixture_eval import evaluate_cohort_alpha_frontier_fixture
 from .cohort_alpha_frontier_public_data import default_cohort_alpha_frontier_fixture
 from .cohort_architecture_contracts import (
@@ -521,7 +522,7 @@ def cohort_architecture_fixture_json(fixture: CohortArchitectureFixture | None =
 
 
 def load_cohort_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="cohort architecture input path", encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D12 aggregate JSON must be an object")
     return dict(raw)

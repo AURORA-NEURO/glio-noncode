@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .sequence_architecture_contracts import (
     SEQUENCE_ARCHITECTURE_BOUNDARY,
     SEQUENCE_ARCHITECTURE_CONTEXT,
@@ -60,7 +61,7 @@ def default_sequence_architecture_fixture(
 
 
 def load_sequence_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="sequence architecture input path", encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D06 sequence architecture JSON must be an object")
     return dict(raw)

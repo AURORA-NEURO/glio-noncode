@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .causal_alpha_frontier_fixture_eval import evaluate_causal_alpha_frontier_fixture_deep
 from .causal_alpha_frontier_public_data import default_causal_alpha_frontier_fixture
 from .causal_architecture_contracts import (
@@ -281,7 +282,7 @@ def causal_architecture_fixture_json(fixture: CausalArchitectureFixture | None =
 
 
 def load_causal_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="causal architecture input path", encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D11 fixture JSON must be an object")
     return dict(raw)

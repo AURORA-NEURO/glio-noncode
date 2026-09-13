@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .cell_context_alpha_frontier_fixture_eval import evaluate_cell_context_alpha_frontier_fixture
 from .cell_context_alpha_frontier_public_data import default_cell_context_alpha_frontier_fixture
 from .cell_context_beta_frontier_fixture_eval import evaluate_cell_context_beta_frontier_fixture
@@ -458,7 +459,7 @@ def cell_state_architecture_fixture_json(
 
 
 def load_cell_state_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="cell-state architecture input path", encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D08 cell state architecture JSON must be an object")
     return dict(raw)

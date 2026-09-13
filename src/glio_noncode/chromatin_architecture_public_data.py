@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .chromatin_alpha_frontier_fixture_eval import evaluate_chromatin_alpha_frontier_fixture
 from .chromatin_alpha_frontier_public_data import default_chromatin_alpha_frontier_fixture
 from .chromatin_architecture_contracts import (
@@ -446,7 +447,7 @@ def default_chromatin_architecture_fixture(
 
 
 def load_chromatin_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="chromatin architecture input path", encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D07 chromatin architecture JSON must be an object")
     return dict(raw)
