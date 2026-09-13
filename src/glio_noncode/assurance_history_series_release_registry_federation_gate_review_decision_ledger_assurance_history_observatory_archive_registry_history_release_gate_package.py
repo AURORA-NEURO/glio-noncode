@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate as gate_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, content_hash, hash_bytes
 
@@ -87,16 +88,24 @@ def package_manifest_json(value: gate_model.RegistryHistoryReleaseGate) -> str:
 
 
 def _write_atomic_directory(destination: Path, payload: Mapping[str, bytes], *, overwrite: bool) -> Path:
-    if destination.exists():
-        if not overwrite:
-            raise ValidationError("registry history release gate package destination exists; explicit overwrite is required")
-        if destination.is_symlink() or not destination.is_dir() or {item.name for item in destination.iterdir()} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in destination.iterdir()):
-            raise ValidationError("registry history release gate package destination is not an exact compatible directory")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "registry history release gate package destination")
+        if destination.is_symlink():
+            raise ValidationError("registry history release gate package destination cannot be a symlink")
+        if destination.exists():
+            if not overwrite:
+                raise ValidationError("registry history release gate package destination exists; explicit overwrite is required")
+            if not destination.is_dir() or {item.name for item in destination.iterdir()} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in destination.iterdir()):
+                raise ValidationError("registry history release gate package destination is not an exact compatible directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("registry history release gate package destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=".gnd-history-release-gate-", dir=str(destination.parent)))
     try:
         for name in FILES:
-            (temporary / name).write_bytes(payload[name])
+            atomic_write_bytes(temporary / name, payload[name], field=f"registry history release gate package staging artifact {name}")
         if destination.exists():
             shutil.rmtree(destination)
         temporary.replace(destination)
@@ -113,15 +122,18 @@ def write_package(value: gate_model.RegistryHistoryReleaseGate, destination: str
 def _read_directory(source: str | Path) -> dict[str, bytes]:
     try:
         directory = Path(source)
+        _validate_parent(directory.parent, "registry history release gate package input")
         if directory.is_symlink() or not directory.is_dir():
             raise ValidationError("registry history release gate package input must be a regular directory")
         members = tuple(directory.iterdir())
+        if {item.name for item in members} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in members):
+            raise ValidationError("registry history release gate package member set is invalid")
     except OSError as error:
         raise ValidationError("registry history release gate package input directory could not be inspected") from error
-    if {item.name for item in members} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in members):
-        raise ValidationError("registry history release gate package member set is invalid")
     try:
-        return {name: (directory / name).read_bytes() for name in FILES}
+        return {name: read_bytes(directory / name, field=f"registry history release gate package member {name}") for name in FILES}
+    except ValidationError:
+        raise
     except OSError as error:
         raise ValidationError("registry history release gate package artifact could not be read") from error
 
