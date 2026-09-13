@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+from math import isfinite
 from typing import Iterable
 
 from .errors import ValidationError
@@ -32,10 +33,21 @@ class ResourceEnvelope:
     max_seconds: int = 300
 
     def __post_init__(self) -> None:
-        if self.cpu <= 0 or self.memory_gb <= 0 or self.storage_gb <= 0 or self.max_seconds <= 0:
-            raise ValidationError("resource envelope values must be positive")
-        if self.gpu_count < 0:
-            raise ValidationError("gpu_count cannot be negative")
+        for value, name in (
+            (self.cpu, "cpu"),
+            (self.memory_gb, "memory_gb"),
+            (self.storage_gb, "storage_gb"),
+        ):
+            if type(value) not in {int, float} or not isfinite(float(value)) or value <= 0:
+                raise ValidationError(
+                    f"resource envelope {name} must be a finite positive number"
+                )
+        if type(self.gpu_count) is not int or self.gpu_count < 0:
+            raise ValidationError("gpu_count must be a non-negative integer")
+        if type(self.max_seconds) is not int or self.max_seconds <= 0:
+            raise ValidationError("max_seconds must be a positive integer")
+        if type(self.network_egress) is not bool:
+            raise ValidationError("network_egress must be boolean")
 
     def fits(self, capacity: "ResourceEnvelope") -> bool:
         return (

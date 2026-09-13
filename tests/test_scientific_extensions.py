@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import unittest
+from math import nan
 
 from glio_noncode.causal import CausalLattice
 from glio_noncode.cohort import CohortObservation, RecurrenceModel
+from glio_noncode.errors import ValidationError
 from glio_noncode.models import EdgeType, HypothesisEdge, SupportLevel
 from glio_noncode.variation import AlternateEventGraph
 from glio_noncode.workflow import ResourceEnvelope, StepKind, WorkflowCompiler, WorkflowStep
@@ -36,6 +38,17 @@ class ScientificExtensionTests(unittest.TestCase):
         )
         with self.assertRaises(Exception):
             WorkflowCompiler().compile("cycle", steps)
+
+    def test_resource_envelope_rejects_non_finite_and_wrong_scalar_types(self) -> None:
+        for kwargs in (
+            {"cpu": nan},
+            {"memory_gb": "2"},
+            {"gpu_count": True},
+            {"max_seconds": 1.5},
+            {"network_egress": 1},
+        ):
+            with self.assertRaises(ValidationError):
+                ResourceEnvelope(**kwargs)
 
     def test_causal_lattice_identifies_weakest_edge(self) -> None:
         edges = (

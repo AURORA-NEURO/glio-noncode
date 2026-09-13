@@ -18,6 +18,7 @@ import threading
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field, replace
 from enum import StrEnum
+from math import isfinite
 from typing import Any, Protocol, TypeAlias
 
 from .errors import GlioError, PolicyViolation, SourceError, ValidationError
@@ -218,10 +219,14 @@ class WorkflowBudget:
     max_cost_units: float = 1_000.0
 
     def __post_init__(self) -> None:
-        if self.max_invocations < 1 or self.max_network_requests < 0 or self.max_seconds < 1:
-            raise ValidationError("workflow budget limits must be non-negative and useful")
-        if self.max_cost_units <= 0:
-            raise ValidationError("max_cost_units must be positive")
+        if type(self.max_invocations) is not int or self.max_invocations < 1:
+            raise ValidationError("max_invocations must be a positive integer")
+        if type(self.max_network_requests) is not int or self.max_network_requests < 0:
+            raise ValidationError("max_network_requests must be a non-negative integer")
+        if type(self.max_seconds) is not int or self.max_seconds < 1:
+            raise ValidationError("max_seconds must be a positive integer")
+        if type(self.max_cost_units) not in {int, float} or not isfinite(float(self.max_cost_units)) or self.max_cost_units <= 0:
+            raise ValidationError("max_cost_units must be a finite positive number")
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -246,8 +251,8 @@ class InvocationRequest:
     def __post_init__(self) -> None:
         for name in ("request_id", "agent_id", "tool_id", "idempotency_key"):
             require_non_empty(getattr(self, name), name)
-        if self.deadline_seconds < 1:
-            raise ValidationError("deadline_seconds must be positive")
+        if type(self.deadline_seconds) is not int or self.deadline_seconds < 1:
+            raise ValidationError("deadline_seconds must be a positive integer")
         if not isinstance(self.input_payload, Mapping):
             raise ValidationError("invocation input_payload must be an object")
         try:

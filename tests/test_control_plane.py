@@ -15,6 +15,7 @@ from glio_noncode.control_plane import (
     MissionPlanner,
     Plane,
     ProvenanceContext,
+    WorkflowBudget,
     WorkflowDecision,
     default_control_plane_registry,
 )
@@ -132,6 +133,14 @@ class ControlPlaneTests(unittest.TestCase):
         self.assertIsNotNone(conflicting.error)
         self.assertEqual(conflicting.error.code, "idempotency_conflict")
         self.assertEqual(calls["count"], 1)
+
+    def test_workflow_budget_and_deadline_require_finite_integer_limits(self) -> None:
+        with self.assertRaises(Exception):
+            WorkflowBudget(max_invocations=1.0)  # type: ignore[arg-type]
+        with self.assertRaises(Exception):
+            WorkflowBudget(max_cost_units=float("nan"))
+        with self.assertRaises(Exception):
+            _ = replace(_request("A08", "A08.publish"), deadline_seconds=1.5)  # type: ignore[arg-type]
 
     def test_network_policy_and_source_failure_are_explicit(self) -> None:
         executor = ControlPlaneExecutor()
