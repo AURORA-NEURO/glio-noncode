@@ -23,6 +23,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit as audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_query as audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query as query_model
+from ._safe_persistence import read_bytes
 from .errors import ValidationError
 from .serialization import canonical_json, content_hash, hash_bytes
 
@@ -281,7 +282,11 @@ def address_diff(value: RegistryHistoryReleaseEvidencePipelineObservabilityBundl
 def _snapshot(source: str | Path) -> tuple[bundle_model.RegistryHistoryReleaseEvidencePipelineObservabilityBundle, dict[str, bytes]]:
     loaded = bundle_model.load_bundle(source)
     directory = Path(source)
-    return loaded, {name: (directory / name).read_bytes() for name in bundle_model.FILES}
+    try:
+        payload = {name: read_bytes(directory / name, field=f"release evidence observability bundle diff member {name}") for name in bundle_model.FILES}
+    except (OSError, ValidationError) as error:
+        raise ValidationError("release evidence observability bundle diff member could not be read") from error
+    return loaded, payload
 
 
 def _artifact(payload: bytes) -> tuple[int, str]:
