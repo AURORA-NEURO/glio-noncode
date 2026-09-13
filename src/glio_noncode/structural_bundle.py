@@ -11,6 +11,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .serialization import content_hash, jsonable, require_non_empty
 from .structural_contracts import default_structural_contract_registry
@@ -273,9 +274,10 @@ class StructuralEvidenceBundleBuilder:
     ) -> StructuralEvidenceBundle:
         bundle = self.build(path, bundle_id=bundle_id, allow_review=allow_review)
         output_path = Path(output)
-        output_path.write_text(
+        atomic_write_text(
+            output_path,
             bundle.render(self._format_for_path(output_path, output_format)),
-            encoding="utf-8",
+            field="structural bundle output",
         )
         return bundle
 
