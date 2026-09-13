@@ -10,6 +10,7 @@ import threading
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -370,6 +371,18 @@ class HistoryPersistenceTests(HistoryFixture):
             with self.assertRaises(ValidationError):
                 history.load_history(destination)
 
+    def test_history_loader_normalizes_inspection_and_read_failures(self):
+        value = self.build_history()
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = self.write_history(value, Path(temporary))
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    history.load_history(destination)
+
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    history.load_history(destination)
+
     def test_history_rejects_extra_file(self):
         value = self.build_history()
         with tempfile.TemporaryDirectory() as temporary:
@@ -424,6 +437,19 @@ class HistoryPersistenceTests(HistoryFixture):
             (destination / "extra.json").write_text("{}", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 history.load_diff(destination)
+
+    def test_diff_loader_normalizes_inspection_and_read_failures(self):
+        value = history.build_diff(self.build_history(), self.build_history())
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "diff"
+            history.write_diff(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    history.load_diff(destination)
+
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    history.load_diff(destination)
 
 
 class HistoryCliTests(HistoryFixture):
