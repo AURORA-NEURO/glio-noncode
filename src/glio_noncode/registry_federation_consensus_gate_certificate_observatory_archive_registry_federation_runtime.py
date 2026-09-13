@@ -266,17 +266,28 @@ def write_runtime(value: RegistryFederationConsensusGateCertificateObservatoryAr
 
 def _read_directory(source: str | Path) -> dict[str, bytes]:
     path = Path(source)
-    if path.is_symlink() or not path.is_dir():
-        raise ValidationError("federation runtime input must be a regular directory")
-    names = tuple(item.name for item in path.iterdir())
+    try:
+        if path.is_symlink() or not path.is_dir():
+            raise ValidationError("federation runtime input must be a regular directory")
+        members = tuple(path.iterdir())
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("federation runtime input directory could not be inspected") from error
+    names = tuple(item.name for item in members)
     if set(names) != set(FILES) or len(names) != len(FILES):
         raise ValidationError("federation runtime member set is not exact")
     result = {}
     for name in FILES:
         member = path / name
-        if member.is_symlink() or not member.is_file():
-            raise ValidationError("federation runtime member must be a regular file")
-        result[name] = member.read_bytes()
+        try:
+            if member.is_symlink() or not member.is_file():
+                raise ValidationError("federation runtime member must be a regular file")
+            result[name] = member.read_bytes()
+        except ValidationError:
+            raise
+        except OSError as error:
+            raise ValidationError("federation runtime member could not be read") from error
     return result
 
 

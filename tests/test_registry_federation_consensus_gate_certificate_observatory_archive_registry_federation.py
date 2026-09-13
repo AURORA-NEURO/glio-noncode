@@ -17,6 +17,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -250,6 +251,19 @@ class ArchiveRegistryFederationContractTests(unittest.TestCase):
             (destination / runtime_model.MANIFEST_NAME).write_bytes(manifest_raw.rstrip()[:-1] + b',"runtime_id":"shadow"}')
             with self.assertRaises(ValidationError):
                 runtime_model.load_runtime(destination)
+
+    def test_runtime_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            left, right = self.pair(root)
+            destination = root / "runtime"
+            runtime_model.run_runtime((self.persist_registry(left, root / "left"), self.persist_registry(right, root / "right")), peer_ids=("left", "right"), quorum=2, destination=destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("unreadable")):
+                with self.assertRaisesRegex(ValidationError, "could not be inspected"):
+                    runtime_model.load_runtime(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("unreadable")):
+                with self.assertRaisesRegex(ValidationError, "could not be read"):
+                    runtime_model.load_runtime(destination)
 
     def test_runtime_accepts_registry_json_and_quorum_is_addressed(self):
         with tempfile.TemporaryDirectory() as temporary:
