@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from glio_noncode.atlas_alpha_evidence_fixture_eval import evaluate_atlas_alpha_evidence_fixture
+from glio_noncode.atlas_alpha_evidence_bundle import write_atlas_alpha_evidence_bundle
 from glio_noncode.atlas_alpha_evidence_lineage import (
     build_atlas_alpha_evidence_lineage,
     verify_atlas_alpha_evidence_lineage,
@@ -23,7 +24,10 @@ from glio_noncode.atlas_alpha_evidence_public_data import (
 )
 from glio_noncode.atlas_alpha_evidence_quality_gate import run_atlas_alpha_evidence_quality_gate
 from glio_noncode.atlas_alpha_evidence_reconciliation import reconcile_atlas_alpha_evidence
-from glio_noncode.atlas_alpha_evidence_release import build_atlas_alpha_evidence_release
+from glio_noncode.atlas_alpha_evidence_release import (
+    build_atlas_alpha_evidence_release,
+    write_atlas_alpha_evidence_release,
+)
 from glio_noncode.atlas_alpha_evidence_replay import replay_atlas_alpha_evidence_evaluation
 from glio_noncode.atlas_alpha_evidence_runtime import (
     AtlasAlphaEvidenceRuntimeOptions,
@@ -32,6 +36,7 @@ from glio_noncode.atlas_alpha_evidence_runtime import (
 from glio_noncode.atlas_alpha_evidence_scenario_matrix import (
     evaluate_atlas_alpha_evidence_scenarios,
 )
+from glio_noncode.errors import ValidationError
 
 
 class AtlasAlphaEvidenceTests(unittest.TestCase):
@@ -136,6 +141,31 @@ class AtlasAlphaEvidenceTests(unittest.TestCase):
             path.write_text(duplicate, encoding="utf-8")
             with self.assertRaises(ValueError):
                 load_atlas_alpha_evidence_fixture(path)
+
+    def test_bundle_and_release_writers_reject_symlink_targets(self) -> None:
+        quality = run_atlas_alpha_evidence_quality_gate(self.fixture)
+        runtime = run_atlas_alpha_evidence_pipeline(
+            AtlasAlphaEvidenceRuntimeOptions(run_id="writer-run"), fixture=self.fixture
+        )
+        release = build_atlas_alpha_evidence_release(quality, runtime)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            bundle_path = root / "bundle.json"
+            release_path = root / "release.json"
+            write_atlas_alpha_evidence_bundle(quality.bundle, bundle_path)
+            write_atlas_alpha_evidence_release(release, release_path)
+            self.assertEqual(json.loads(bundle_path.read_text(encoding="utf-8"))["accepted"], True)
+            self.assertEqual(json.loads(release_path.read_text(encoding="utf-8"))["accepted"], True)
+            target = root / "target.json"
+            target.write_text("keep", encoding="utf-8")
+            link = root / "link.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                write_atlas_alpha_evidence_bundle(quality.bundle, link)
+            self.assertEqual(target.read_text(encoding="utf-8"), "keep")
 
 
 if __name__ == "__main__":

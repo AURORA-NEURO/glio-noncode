@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .frontier_atlas_quality_gate import FrontierAtlasQualityReport
 from .frontier_atlas_runtime import FrontierAtlasRuntimeResult
 from .serialization import content_hash, jsonable, require_non_empty
@@ -71,11 +72,10 @@ def build_frontier_atlas_release(
 
 
 def write_frontier_atlas_release(manifest: FrontierAtlasReleaseManifest, path: str) -> None:
-    from pathlib import Path
-
-    Path(path).write_text(
+    atomic_write_text(
+        path,
         __import__("json").dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+        field="frontier atlas release path",
     )
 
 

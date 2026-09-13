@@ -6561,7 +6561,9 @@ def _downloaded_ingest_diff_from_document(raw: Mapping[str, Any]):
 def _write_json(payload: Any, output: str | None) -> None:
     text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if output:
-        Path(output).write_text(text, encoding="utf-8")
+        from ._safe_persistence import atomic_write_text
+
+        atomic_write_text(output, text, field="CLI JSON output path")
     else:
         sys.stdout.write(text)
 
@@ -6570,7 +6572,9 @@ def _write_text(text: str, output: str | None) -> None:
     """Write a text export or stream it to standard output."""
 
     if output:
-        Path(output).write_text(text, encoding="utf-8")
+        from ._safe_persistence import atomic_write_text
+
+        atomic_write_text(output, text, field="CLI text output path")
     else:
         sys.stdout.write(text)
 

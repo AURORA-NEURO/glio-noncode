@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .atlas_alpha_evidence_fixture_eval import AtlasAlphaEvidenceEvaluationReport
 from .atlas_alpha_evidence_lineage import AtlasAlphaEvidenceLineageReport
 from .atlas_alpha_evidence_metrics import AtlasAlphaEvidenceMetrics
@@ -88,11 +89,10 @@ def build_atlas_alpha_evidence_bundle(
 def write_atlas_alpha_evidence_bundle(bundle: AtlasAlphaEvidenceBundle, path: str) -> None:
     """Write a stable JSON bundle to a caller-selected path."""
 
-    from pathlib import Path
-
-    Path(path).write_text(
+    atomic_write_text(
+        path,
         __import__("json").dumps(bundle.to_dict(), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+        field="atlas alpha evidence bundle path",
     )
 
 

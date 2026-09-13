@@ -8358,7 +8358,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                     raw = history_diff_archive_transfer_model.assemble_transfer_directory(input_path)
                     archive_output = self._query_value(query, "archive_output")
                     if archive_output:
-                        Path(archive_output).write_bytes(raw)
+                        from ._safe_persistence import atomic_write_bytes
+
+                        atomic_write_bytes(archive_output, raw, field="archive output path")
                     value = history_diff_archive_model.load_archive_bytes(raw)
                     self._write_contract(value, self._query_value(query, "format") or "summary", history_diff_archive_model, json_name="archive_json", csv_name="archive_csv", markdown_name="render_archive_markdown")
                     return

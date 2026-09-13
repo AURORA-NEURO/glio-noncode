@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .frontier_atlas_fixture_eval import FrontierAtlasEvaluationReport
 from .frontier_atlas_lineage import FrontierAtlasLineageReport
 from .frontier_atlas_metrics import FrontierAtlasMetrics
@@ -81,11 +82,10 @@ def build_frontier_atlas_bundle(
 
 
 def write_frontier_atlas_bundle(bundle: FrontierAtlasBundle, path: str) -> None:
-    from pathlib import Path
-
-    Path(path).write_text(
+    atomic_write_text(
+        path,
         __import__("json").dumps(bundle.to_dict(), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+        field="frontier atlas bundle path",
     )
 
 

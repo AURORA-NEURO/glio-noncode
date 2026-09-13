@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .atlas_alpha_evidence_bundle import AtlasAlphaEvidenceBundle
 from .atlas_alpha_evidence_quality_gate import AtlasAlphaEvidenceQualityReport
 from .atlas_alpha_evidence_runtime import AtlasAlphaEvidenceRuntimeResult
@@ -82,11 +83,10 @@ def write_atlas_alpha_evidence_release(
 ) -> None:
     """Write the release manifest as stable JSON."""
 
-    from pathlib import Path
-
-    Path(path).write_text(
+    atomic_write_text(
+        path,
         __import__("json").dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+        field="atlas alpha evidence release path",
     )
 
 

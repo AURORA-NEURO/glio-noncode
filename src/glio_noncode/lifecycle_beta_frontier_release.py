@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .lifecycle_beta_frontier_contracts import LifecycleBetaFrontierEvaluation, LifecycleBetaFrontierFixture
 from .lifecycle_beta_frontier_lineage import LifecycleBetaFrontierLineageReport
 from .lifecycle_beta_frontier_quality_gate import LifecycleBetaFrontierQualityReport
@@ -35,8 +36,11 @@ def build_lifecycle_beta_frontier_release(fixture: LifecycleBetaFrontierFixture,
 
 
 def write_lifecycle_beta_frontier_release(manifest: LifecycleBetaFrontierReleaseManifest, path: str) -> None:
-    from pathlib import Path
-    Path(path).write_text(__import__("json").dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    atomic_write_text(
+        path,
+        __import__("json").dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n",
+        field="lifecycle beta release path",
+    )
 
 
 __all__ = ["LifecycleBetaFrontierReleaseManifest", "build_lifecycle_beta_frontier_release", "write_lifecycle_beta_frontier_release"]

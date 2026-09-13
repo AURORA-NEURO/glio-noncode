@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .lifecycle_beta_frontier_metrics import LifecycleBetaFrontierMetrics
 from .lifecycle_beta_frontier_release import LifecycleBetaFrontierReleaseManifest
 from .lifecycle_beta_frontier_views import LifecycleBetaFrontierView
@@ -24,7 +25,7 @@ def lifecycle_beta_frontier_export_payload(value: Any) -> dict[str, Any]:
 def export_lifecycle_beta_frontier_json(value: Any, path: str | Path) -> str:
     payload = lifecycle_beta_frontier_export_payload(value)
     output = json.dumps(payload, indent=2, sort_keys=True) + "\n"
-    Path(path).write_text(output, encoding="utf-8")
+    atomic_write_text(path, output, field="lifecycle beta JSON export path")
     return content_hash(payload)
 
 
@@ -35,7 +36,7 @@ def export_lifecycle_beta_frontier_review_csv(view: LifecycleBetaFrontierView, p
     for item in view.entries:
         writer.writerow({"record_id": item.record_id, "operation": item.operation.value, "role": item.role.value, "state": item.state.value, "issue_codes": "|".join(item.issue_codes), "accepted": item.accepted, "detail": item.detail})
     output = buffer.getvalue()
-    Path(path).write_text(output, encoding="utf-8")
+    atomic_write_text(path, output, field="lifecycle beta review CSV export path")
     return content_hash(output)
 
 
@@ -46,7 +47,7 @@ def export_lifecycle_beta_frontier_metrics_csv(metrics: LifecycleBetaFrontierMet
     for item in metrics.operation_metrics:
         writer.writerow({"operation": item.operation.value, "record_count": item.record_count, "positive_count": item.positive_count, "control_count": item.control_count, "accepted_count": item.accepted_count, "state_counts": json.dumps(item.state_counts, sort_keys=True), "issue_counts": json.dumps(item.issue_counts, sort_keys=True)})
     output = buffer.getvalue()
-    Path(path).write_text(output, encoding="utf-8")
+    atomic_write_text(path, output, field="lifecycle beta metrics CSV export path")
     return content_hash(output)
 
 
