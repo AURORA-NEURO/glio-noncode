@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .sequence_regulation_frontier_pipeline import SequenceRegulationPipelineReport
 from .serialization import jsonable
@@ -24,9 +25,10 @@ def write_sequence_regulation_json(
     path = Path(output)
     if not path.parent.exists():
         raise ValidationError("output directory does not exist")
-    path.write_text(
+    atomic_write_text(
+        path,
         json.dumps(jsonable(sequence_regulation_payload(report)), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+        field="sequence regulation JSON output",
     )
     return path
 
