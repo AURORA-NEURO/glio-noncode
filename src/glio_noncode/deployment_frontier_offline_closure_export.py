@@ -35,6 +35,33 @@ DEPLOYMENT_FRONTIER_CLOSURE_EXPORT_VERSION = "deployment-frontier-closure-export
 DEPLOYMENT_FRONTIER_CLOSURE_EXPORT_ARTIFACT_COUNT = 14
 
 
+def _safe_export_path(root: Path, relative_path: str) -> Path:
+    current = root
+    for component in Path(relative_path).parts:
+        current /= component
+        try:
+            if current.is_symlink():
+                raise ValueError(f"unsafe D16 closure export path: {relative_path}")
+        except ValueError:
+            raise
+        except OSError as exc:
+            raise ValueError("D16 closure export path could not be inspected") from exc
+    return current
+
+
+def _prepare_export_root(root: Path) -> None:
+    try:
+        if root.is_symlink():
+            raise ValueError("D16 closure export destination is unsafe")
+        root.mkdir(parents=True, exist_ok=True)
+        if root.is_symlink() or not root.is_dir():
+            raise ValueError("D16 closure export destination must be a directory")
+    except ValueError:
+        raise
+    except OSError as exc:
+        raise ValueError("D16 closure export destination could not be prepared") from exc
+
+
 @dataclass(frozen=True, slots=True)
 class DeploymentFrontierClosureExportArtifact:
     relative_path: str
@@ -208,14 +235,19 @@ def write_deployment_frontier_closure_export(
     packet: DeploymentFrontierClosureExportPacket, destination: str | Path
 ) -> Path:
     root = Path(destination)
-    root.mkdir(parents=True, exist_ok=True)
+    _prepare_export_root(root)
     for artifact in packet.artifacts:
         if not safe_relative_path(artifact.relative_path):
             raise ValueError(f"unsafe D16 closure export path: {artifact.relative_path}")
-        target = root / artifact.relative_path
+        target = _safe_export_path(root, artifact.relative_path)
         target.parent.mkdir(parents=True, exist_ok=True)
+        if target.parent.is_symlink() or not target.parent.is_dir() or target.is_symlink():
+            raise ValueError("D16 closure export artifact path is unsafe")
         target.write_bytes(artifact.content)
-    (root / "manifest.json").write_bytes(
+    manifest_path = _safe_export_path(root, "manifest.json")
+    if manifest_path.is_symlink():
+        raise ValueError("D16 closure export manifest path is unsafe")
+    manifest_path.write_bytes(
         (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8")
     )
     return root
@@ -230,15 +262,15 @@ def verify_deployment_frontier_closure_export(
         {
             path.relative_to(root).as_posix(): path
             for path in root.rglob("*")
-            if path.is_file() and path.name != "manifest.json"
+            if path.is_file() and not path.is_symlink() and path.name != "manifest.json"
         }
-        if root.exists()
+        if root.exists() and root.is_dir() and not root.is_symlink()
         else {}
     )
     missing = set(expected) - set(actual)
     manifest_path = root / "manifest.json"
     expected_manifest = (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8")
-    if not manifest_path.is_file():
+    if not manifest_path.is_file() or manifest_path.is_symlink():
         missing.add("manifest.json")
     unexpected = set(actual) - set(expected)
     changed = {
@@ -246,7 +278,7 @@ def verify_deployment_frontier_closure_export(
         for path in set(expected) & set(actual)
         if actual[path].read_bytes() != expected[path].content
     }
-    if manifest_path.is_file() and manifest_path.read_bytes() != expected_manifest:
+    if manifest_path.is_file() and not manifest_path.is_symlink() and manifest_path.read_bytes() != expected_manifest:
         changed.add("manifest.json")
     body = {
         "bundle_id": packet.bundle_id,

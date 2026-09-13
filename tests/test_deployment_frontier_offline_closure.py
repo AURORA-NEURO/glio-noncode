@@ -175,6 +175,31 @@ class DeploymentFrontierClosureTests(unittest.TestCase):
             self.assertTrue(verification.accepted)
             self.assertEqual(verification.checked_artifact_count, 14)
 
+    def test_exact_byte_export_rejects_symlink_paths(self) -> None:
+        packet = build_deployment_frontier_closure_export(self.bundle)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            destination = root / "closure-export"
+            write_deployment_frontier_closure_export(packet, destination)
+            linked = root / "linked-export"
+            try:
+                linked.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(ValueError, "destination"):
+                write_deployment_frontier_closure_export(packet, linked)
+
+            artifact = destination / "boundary.json"
+            external = root / "external-boundary.json"
+            external_body = artifact.read_bytes()
+            external.write_bytes(external_body)
+            artifact.unlink()
+            artifact.symlink_to(external)
+            verification = verify_deployment_frontier_closure_export(packet, destination)
+            self.assertFalse(verification.accepted)
+            self.assertIn("boundary.json", verification.missing_paths)
+            self.assertEqual(external.read_bytes(), external_body)
+
     def test_cli_and_api_closure_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

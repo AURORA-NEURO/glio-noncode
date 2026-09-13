@@ -233,6 +233,33 @@ class FrontierReleaseClosureTests(unittest.TestCase):
             self.assertTrue(verification.accepted)
             self.assertEqual(verification.checked_artifact_count, 13)
 
+    def test_exact_byte_export_rejects_symlink_paths(self) -> None:
+        packet = build_frontier_release_export(
+            run_frontier_release_closure_runtime(run_id="test-frontier-release-symlink")
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            destination = root / "frontier-release-export"
+            write_frontier_release_export(packet, destination)
+            linked = root / "linked-export"
+            try:
+                linked.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(ValueError, "destination"):
+                write_frontier_release_export(packet, linked)
+
+            artifact = destination / "plan.json"
+            external = root / "external-plan.json"
+            external_body = artifact.read_bytes()
+            external.write_bytes(external_body)
+            artifact.unlink()
+            artifact.symlink_to(external)
+            verification = verify_frontier_release_export(packet, destination)
+            self.assertFalse(verification.accepted)
+            self.assertIn("plan.json", verification.missing_paths)
+            self.assertEqual(external.read_bytes(), external_body)
+
     def test_cli_surfaces_emit_json_and_exact_byte_export(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
