@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 
 from glio_noncode.control_plane import (
     Abstention,
@@ -100,6 +101,37 @@ class ControlPlaneTests(unittest.TestCase):
         self.assertIsInstance(first.response, EvidenceEnvelope)
         self.assertTrue(second.cached)
         self.assertTrue(executor.event_log.verify())
+
+    def test_idempotency_keys_are_bound_to_the_original_invocation(self) -> None:
+        executor = ControlPlaneExecutor()
+        calls = {"count": 0}
+
+        def handler(request: InvocationRequest) -> EvidenceEnvelope:
+            calls["count"] += 1
+            return EvidenceEnvelope(
+                evidence_id="evidence-identity-1",
+                agent_id=request.agent_id,
+                tool_id=request.tool_id,
+                state=EvidenceState.SUPPORTED,
+                tier=EvidenceTier.COMPUTED,
+                claim_summary="canonical identity was derived from declared input",
+                payload_hash=content_hash({"canonical": "GRCh38:7:55249071:A:T"}),
+                provenance_digest=request.provenance.digest,
+            )
+
+        executor.register("A08.publish", handler)
+        request = _request("A08", "A08.publish", request_id="bound")
+        first = executor.execute(request)
+        replay = executor.execute(request)
+        conflicting = executor.execute(
+            replace(request, input_payload={"case_hash": "sha256:other", "question": "different"})
+        )
+        self.assertEqual(first.state, InvocationState.COMPLETED)
+        self.assertTrue(replay.cached)
+        self.assertEqual(conflicting.state, InvocationState.REJECTED)
+        self.assertIsNotNone(conflicting.error)
+        self.assertEqual(conflicting.error.code, "idempotency_conflict")
+        self.assertEqual(calls["count"], 1)
 
     def test_network_policy_and_source_failure_are_explicit(self) -> None:
         executor = ControlPlaneExecutor()

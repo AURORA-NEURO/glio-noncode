@@ -24,7 +24,7 @@ from .errors import GlioError, PolicyViolation, SourceError, ValidationError
 from .events import EventLog
 from .models import EvidenceState, EvidenceTier
 from .policy import ResearchPolicy
-from .serialization import content_hash, jsonable, require_non_empty, utc_now
+from .serialization import canonical_bytes, content_hash, jsonable, require_non_empty, utc_now
 from .workflow import ResourceEnvelope
 
 
@@ -73,6 +73,8 @@ _CLAIM_RANK = {
     ClaimCeiling.HYPOTHESIS: 2,
     ClaimCeiling.RESEARCH_RELEASE: 3,
 }
+
+MAX_INVOCATION_INPUT_BYTES = 16 * 1024 * 1024
 
 
 def _claim_allowed(agent: ClaimCeiling, mission: ClaimCeiling) -> bool:
@@ -246,6 +248,17 @@ class InvocationRequest:
             require_non_empty(getattr(self, name), name)
         if self.deadline_seconds < 1:
             raise ValidationError("deadline_seconds must be positive")
+        if not isinstance(self.input_payload, Mapping):
+            raise ValidationError("invocation input_payload must be an object")
+        try:
+            input_size = len(canonical_bytes(self.input_payload))
+        except (RecursionError, TypeError, ValueError, OverflowError, UnicodeError) as exc:
+            raise ValidationError("invocation input_payload must be canonical JSON") from exc
+        if input_size > MAX_INVOCATION_INPUT_BYTES:
+            raise ValidationError(
+                "invocation input_payload exceeds "
+                f"{MAX_INVOCATION_INPUT_BYTES} bytes"
+            )
 
     def effective_resource(self, tool: ToolContract) -> ResourceEnvelope:
         return self.resource or tool.resource
@@ -1354,6 +1367,8 @@ class ControlPlaneExecutor:
         self.event_log = EventLog("control-plane")
         self._handlers: dict[str, Handler] = {}
         self._idempotent: dict[str, InvocationResult] = {}
+        self._idempotent_fingerprints: dict[str, str] = {}
+        self._inflight_idempotency_keys: set[str] = set()
         self._lock = threading.Lock()
 
     def register(self, tool_id: str, handler: Handler) -> None:
@@ -1371,8 +1386,21 @@ class ControlPlaneExecutor:
             return self._rejected(
                 request, started, "tool is not allowlisted for the selected agent"
             )
+        fingerprint = self._request_fingerprint(request, tool)
         with self._lock:
             cached = self._idempotent.get(request.idempotency_key)
+            cached_fingerprint = self._idempotent_fingerprints.get(request.idempotency_key)
+        if cached is not None and cached_fingerprint != fingerprint:
+            return self._result(
+                request,
+                InvocationState.REJECTED,
+                started,
+                error=TypedInvocationError(
+                    "idempotency_conflict",
+                    "idempotency key is already bound to a different invocation",
+                    retryable=False,
+                ),
+            )
         if cached is not None:
             return replace(cached, cached=True)
         policy = self.policy_gate.inspect(request, agent, tool)
@@ -1388,18 +1416,40 @@ class ControlPlaneExecutor:
                 policy=policy,
                 schedule=schedule,
             )
-        self.event_log.append(
-            "control_invocation_admitted",
-            {
-                "request_id": request.request_id,
-                "mission_id": request.mission.mission_id,
-                "agent_id": request.agent_id,
-                "tool_id": request.tool_id,
-                "input_digest": request.input_digest,
-                "provenance_digest": request.provenance.digest,
-            },
-            event_id=f"{request.request_id}:admitted",
-        )
+        with self._lock:
+            if request.idempotency_key in self._inflight_idempotency_keys:
+                self.scheduler.release(request.request_id)
+                return self._result(
+                    request,
+                    InvocationState.REJECTED,
+                    started,
+                    error=TypedInvocationError(
+                        "idempotency_in_flight",
+                        "an invocation with this idempotency key is still running",
+                        retryable=True,
+                    ),
+                    policy=policy,
+                    schedule=schedule,
+                )
+            self._inflight_idempotency_keys.add(request.idempotency_key)
+        try:
+            self.event_log.append(
+                "control_invocation_admitted",
+                {
+                    "request_id": request.request_id,
+                    "mission_id": request.mission.mission_id,
+                    "agent_id": request.agent_id,
+                    "tool_id": request.tool_id,
+                    "input_digest": request.input_digest,
+                    "provenance_digest": request.provenance.digest,
+                },
+                event_id=f"{request.request_id}:admitted",
+            )
+        except Exception:
+            self.scheduler.release(request.request_id)
+            with self._lock:
+                self._inflight_idempotency_keys.discard(request.idempotency_key)
+            raise
         try:
             handler = self._handlers.get(tool.tool_id)
             if handler is None:
@@ -1444,6 +1494,8 @@ class ControlPlaneExecutor:
             )
         finally:
             self.scheduler.release(request.request_id)
+            with self._lock:
+                self._inflight_idempotency_keys.discard(request.idempotency_key)
         self.event_log.append(
             "control_invocation_completed",
             {
@@ -1461,7 +1513,27 @@ class ControlPlaneExecutor:
         )
         with self._lock:
             self._idempotent[request.idempotency_key] = result
+            self._idempotent_fingerprints[request.idempotency_key] = fingerprint
         return result
+
+    @staticmethod
+    def _request_fingerprint(request: InvocationRequest, tool: ToolContract) -> str:
+        """Bind an idempotency key to every semantically relevant request fact."""
+
+        return content_hash(
+            {
+                "request_id": request.request_id,
+                "mission": request.mission,
+                "agent_id": request.agent_id,
+                "tool_id": tool.tool_id,
+                "input_digest": request.input_digest,
+                "provenance_digest": request.provenance.digest,
+                "resource": request.effective_resource(tool),
+                "budget": request.budget,
+                "deadline_seconds": request.deadline_seconds,
+            },
+            prefix="control-invocation",
+        )
 
     def _classify(
         self,
