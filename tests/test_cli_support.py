@@ -85,6 +85,20 @@ class CliSupportTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "canonical Unicode JSON"):
                 read_json(path, "surrogate")
 
+    def test_text_normalizes_missing_directory_and_encoding_failures(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            with self.assertRaisesRegex(ValueError, "could not be read"):
+                read_text(str(root / "missing.txt"), label="missing")
+            directory = root / "directory"
+            directory.mkdir()
+            with self.assertRaisesRegex(ValueError, "could not be read"):
+                read_text(str(directory), label="directory")
+            invalid = root / "invalid.txt"
+            invalid.write_bytes(b"\xff")
+            with self.assertRaisesRegex(ValueError, "not valid UTF-8"):
+                read_text(str(invalid), label="invalid")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -75,12 +75,20 @@ def read_text(
             raise ValueError(f"{label} exceeds the {max_bytes}-byte limit")
         return text
     source = Path(location)
-    if source.stat().st_size > max_bytes:
-        raise ValueError(f"{label} exceeds the {max_bytes}-byte limit")
-    payload = source.read_bytes()
+    try:
+        if source.stat().st_size > max_bytes:
+            raise ValueError(f"{label} exceeds the {max_bytes}-byte limit")
+        payload = source.read_bytes()
+    except ValueError:
+        raise
+    except OSError as error:
+        raise ValueError(f"{label} could not be read") from error
     if len(payload) > max_bytes:
         raise ValueError(f"{label} exceeds the {max_bytes}-byte limit")
-    return payload.decode("utf-8-sig")
+    try:
+        return payload.decode("utf-8-sig")
+    except UnicodeDecodeError as error:
+        raise ValueError(f"{label} is not valid UTF-8") from error
 
 
 def read_mapping(
