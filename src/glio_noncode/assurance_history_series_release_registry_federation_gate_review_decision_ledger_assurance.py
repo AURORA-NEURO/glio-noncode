@@ -1143,10 +1143,10 @@ def write_assurance_gate(value: DecisionLedgerAssuranceGate, directory: str | Pa
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
     try:
+        raw = path.read_bytes()
         value = _strict_json_loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is invalid JSON") from exc
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} is not canonical JSON")
@@ -1157,7 +1157,10 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
     artifact = next((item for item in _mapping_sequence(manifest.get("artifacts"), "assurance artifacts") if item.get("name") == name), None)
     if artifact is None:
         raise ValidationError(f"assurance manifest is missing {name}")
-    raw = path.read_bytes()
+    try:
+        raw = path.read_bytes()
+    except OSError as error:
+        raise ValidationError(f"assurance {name} could not be read") from error
     byte_address = hash_bytes(raw)
     if artifact.get("bytes") != len(raw) or artifact.get("byte_address") != byte_address:
         raise ValidationError(f"assurance {name} bytes are not addressed")
@@ -1167,7 +1170,13 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
 
 def load_assurance_gate(directory: str | Path) -> DecisionLedgerAssuranceGate:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir() or any(item.is_symlink() for item in source.iterdir()) or {item.name for item in source.iterdir()} != set(FILES):
+    if source.is_symlink() or not source.is_dir():
+        raise ValidationError("assurance gate file set is invalid")
+    try:
+        children = tuple(source.iterdir())
+    except OSError as error:
+        raise ValidationError("assurance gate directory could not be inspected") from error
+    if any(item.is_symlink() for item in children) or {item.name for item in children} != set(FILES):
         raise ValidationError("assurance gate file set is invalid")
     manifest = _read_json(source / MANIFEST_NAME, "assurance manifest")
     fields = {"version", "boundary", "ledger_id", "ledger_address", "assurance_address", "gate_address", "artifact_count", "files", "artifacts", "manifest_address"}
@@ -1220,7 +1229,13 @@ def write_diff(value: AssuranceDiff, directory: str | Path, *, overwrite: bool =
 
 def load_diff(directory: str | Path) -> AssuranceDiff:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir() or any(item.is_symlink() for item in source.iterdir()) or {item.name for item in source.iterdir()} != set(DIFF_FILES):
+    if source.is_symlink() or not source.is_dir():
+        raise ValidationError("assurance diff file set is invalid")
+    try:
+        children = tuple(source.iterdir())
+    except OSError as error:
+        raise ValidationError("assurance diff directory could not be inspected") from error
+    if any(item.is_symlink() for item in children) or {item.name for item in children} != set(DIFF_FILES):
         raise ValidationError("assurance diff file set is invalid")
     manifest = _read_json(source / MANIFEST_NAME, "assurance diff manifest")
     fields = {"version", "boundary", "diff_id", "baseline_address", "candidate_address", "artifact_count", "files", "artifact", "manifest_address"}
@@ -1228,7 +1243,10 @@ def load_diff(directory: str | Path) -> AssuranceDiff:
     if manifest["version"] != VERSION or manifest["boundary"] != BOUNDARY or manifest["artifact_count"] != 1 or tuple(manifest["files"]) != DIFF_FILES or manifest["manifest_address"] != _diff_manifest_address({**manifest, "manifest_address": None}):
         raise ValidationError("assurance diff manifest contract is invalid")
     artifact = _mapping(manifest["artifact"], "assurance diff artifact")
-    raw = (source / DIFF_NAME).read_bytes()
+    try:
+        raw = (source / DIFF_NAME).read_bytes()
+    except OSError as error:
+        raise ValidationError("assurance diff document could not be read") from error
     if artifact.get("name") != DIFF_NAME or artifact.get("bytes") != len(raw) or artifact.get("byte_address") != hash_bytes(raw) or artifact.get("file_address") != content_hash({"name": DIFF_NAME, "byte_address": hash_bytes(raw)}, prefix=DIFF_PREFIX + "-file"):
         raise ValidationError("assurance diff artifact is invalid")
     value = diff_from_mapping(_read_json(source / DIFF_NAME, "assurance diff"))

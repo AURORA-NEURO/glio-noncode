@@ -11,6 +11,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -355,6 +356,17 @@ class AssurancePersistenceTests(AssuranceFixture):
             with self.assertRaises(ValidationError):
                 assurance.load_assurance_gate(target)
 
+    def test_bundle_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            target = self.write_assurance(self.build(self.ready_ledger), Path(temporary))
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    assurance.load_assurance_gate(target)
+
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    assurance.load_assurance_gate(target)
+
     def test_bundle_rejects_extra_file(self):
         with tempfile.TemporaryDirectory() as temporary:
             target = self.write_assurance(self.build(self.ready_ledger), Path(temporary))
@@ -490,6 +502,20 @@ class AssuranceDiffTests(AssuranceFixture):
             (target / assurance.MANIFEST_NAME).write_bytes(canonical_bytes(manifest))
             with self.assertRaises(ValidationError):
                 assurance.load_diff(target)
+
+    def test_diff_loader_normalizes_inspection_and_read_failures(self):
+        diff = assurance.build_diff(self.build(self.ready_ledger), self.build(self.held_ledger))
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary) / "diff"
+            assurance.write_diff(diff, target)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    assurance.load_diff(target)
+
+            assurance.write_diff(diff, target, overwrite=True)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    assurance.load_diff(target)
 
 
 class AssuranceCliTests(AssuranceFixture):
