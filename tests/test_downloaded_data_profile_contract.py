@@ -103,6 +103,12 @@ class DownloadedDataProfileContractTests(unittest.TestCase):
             self.assertEqual(loaded.content_address, runtime.content_address)
             runtime_audit = contract_runtime_audit_model.audit_runtime(loaded)
             self.assertEqual((runtime_audit.check_count, runtime_audit.passed_count, runtime_audit.accepted), (13, 13, True))
+            manifest = root / "runtime" / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"runtime_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                contract_runtime_model.load_runtime(root / "runtime")
+            manifest.write_bytes(raw_manifest)
             (root / "runtime" / "contract.json").write_text("{}", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 contract_runtime_model.load_runtime(root / "runtime")

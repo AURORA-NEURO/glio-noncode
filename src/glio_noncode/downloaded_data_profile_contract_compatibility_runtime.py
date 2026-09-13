@@ -17,7 +17,7 @@ from . import downloaded_data_profile_contract_compatibility_query as query_mode
 from . import downloaded_data_profile_contract_compatibility_query_audit as query_audit_model
 from . import downloaded_data_profile_contract_diff as diff_model
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 VERSION = "downloaded-data-profile-contract-compatibility-runtime-v1"
 BOUNDARY = "public_downloaded_data_profile_contract_compatibility_runtime"
@@ -291,8 +291,8 @@ def persist_runtime(value: DownloadedDataProfileContractCompatibilityRuntime, de
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("compatibility runtime artifact is not valid JSON") from error
     return _mapping(value, "compatibility runtime artifact")
 

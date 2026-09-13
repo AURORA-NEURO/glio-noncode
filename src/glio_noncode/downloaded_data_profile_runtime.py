@@ -16,7 +16,7 @@ from . import downloaded_data_profile_audit as audit_model
 from . import downloaded_data_profile_query as query_model
 from . import downloaded_data_profile_query_audit as query_audit_model
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 VERSION = "downloaded-data-profile-runtime-v1"
 BOUNDARY = "public_downloaded_data_profile_runtime"
@@ -279,8 +279,8 @@ def persist_runtime(value: DownloadedDataProfileRuntime, destination: str | Path
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("profile runtime artifact is not valid JSON") from error
     return _mapping(value, "profile runtime artifact")
 
