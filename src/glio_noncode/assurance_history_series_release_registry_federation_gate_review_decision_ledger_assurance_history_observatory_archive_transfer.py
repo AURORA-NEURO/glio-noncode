@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive as archive_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -423,20 +424,28 @@ def _validate_directory_shape(directory: Path, value: ArchiveTransfer) -> None:
 
 
 def _write_atomic_directory(destination: Path, value: ArchiveTransfer, *, overwrite: bool) -> Path:
-    if destination.exists():
-        if not overwrite:
-            raise ValidationError("transfer destination exists; explicit overwrite is required")
-        if destination.is_symlink() or not destination.is_dir():
-            raise ValidationError("transfer destination is not an exact compatible directory")
-        _validate_directory_shape(destination, value)
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "transfer destination")
+        if destination.is_symlink():
+            raise ValidationError("transfer destination cannot be a symlink")
+        if destination.exists():
+            if not overwrite:
+                raise ValidationError("transfer destination exists; explicit overwrite is required")
+            if not destination.is_dir():
+                raise ValidationError("transfer destination is not an exact compatible directory")
+            _validate_directory_shape(destination, value)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("transfer destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=".gnd-observatory-transfer-", dir=str(destination.parent)))
     try:
         (temporary / CHUNK_PREFIX.rstrip("/")).mkdir(parents=True, exist_ok=True)
-        (temporary / MANIFEST_NAME).write_bytes(canonical_bytes(_manifest(value)))
+        atomic_write_bytes(temporary / MANIFEST_NAME, canonical_bytes(_manifest(value)), field="transfer staging manifest")
         payload = value.payload_bytes()
         for index in range(value.chunk_count):
-            (temporary / chunk_name(index)).write_bytes(payload[index])
+            atomic_write_bytes(temporary / chunk_name(index), payload[index], field=f"transfer staging chunk {index}")
         if destination.exists():
             shutil.rmtree(destination)
         os.replace(temporary, destination)
@@ -497,22 +506,30 @@ def write_partial_transfer(assembler: TransferAssembler, destination: str | Path
         raise ValidationError("partial transfer writer requires a transfer assembler")
     assembler.value._validate()
     target = Path(destination)
-    if target.exists():
-        if not overwrite:
-            raise ValidationError("partial transfer destination exists; explicit overwrite is required")
-        if target.is_symlink() or not target.is_dir():
-            raise ValidationError("partial transfer destination must be a directory")
-        existing, _ = _read_manifest(target)
-        if existing.content_address != assembler.value.content_address:
-            raise ValidationError("partial transfer destination belongs to another transfer")
-        _validate_partial_directory_shape(target, existing)
-    target.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(target.parent, "partial transfer destination")
+        if target.is_symlink():
+            raise ValidationError("partial transfer destination cannot be a symlink")
+        if target.exists():
+            if not overwrite:
+                raise ValidationError("partial transfer destination exists; explicit overwrite is required")
+            if not target.is_dir():
+                raise ValidationError("partial transfer destination must be a directory")
+            existing, _ = _read_manifest(target)
+            if existing.content_address != assembler.value.content_address:
+                raise ValidationError("partial transfer destination belongs to another transfer")
+            _validate_partial_directory_shape(target, existing)
+        target.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("partial transfer destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=".gnd-observatory-partial-", dir=str(target.parent)))
     try:
         (temporary / CHUNK_PREFIX.rstrip("/")).mkdir(parents=True, exist_ok=True)
-        (temporary / MANIFEST_NAME).write_bytes(canonical_bytes(_manifest(assembler.value)))
+        atomic_write_bytes(temporary / MANIFEST_NAME, canonical_bytes(_manifest(assembler.value)), field="partial transfer staging manifest")
         for index in assembler.received_indices():
-            (temporary / chunk_name(index)).write_bytes(assembler._parts[index])
+            atomic_write_bytes(temporary / chunk_name(index), assembler._parts[index], field=f"partial transfer staging chunk {index}")
         if target.exists():
             shutil.rmtree(target)
         os.replace(temporary, target)
@@ -524,14 +541,17 @@ def write_partial_transfer(assembler: TransferAssembler, destination: str | Path
 
 def _read_manifest(source: str | Path) -> tuple[ArchiveTransfer, Path]:
     directory = Path(source)
-    if directory.is_symlink() or not directory.is_dir():
-        raise ValidationError("transfer input must be a regular directory")
-    manifest_path = directory / MANIFEST_NAME
-    if manifest_path.is_symlink() or not manifest_path.is_file():
-        raise ValidationError("transfer manifest is missing")
     try:
-        raw = manifest_path.read_bytes()
+        _validate_parent(directory.parent, "transfer input")
+        if directory.is_symlink() or not directory.is_dir():
+            raise ValidationError("transfer input must be a regular directory")
+        manifest_path = directory / MANIFEST_NAME
+        if manifest_path.is_symlink() or not manifest_path.is_file():
+            raise ValidationError("transfer manifest is missing")
+        raw = read_bytes(manifest_path, field="transfer manifest")
         decoded = _strict_json_loads(raw.decode("utf-8"))
+    except ValidationError:
+        raise
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("transfer manifest is invalid JSON") from error
     manifest = dict(_mapping(decoded, "transfer manifest"))
@@ -554,7 +574,9 @@ def load_transfer(source: str | Path) -> ArchiveTransfer:
     payload = {}
     for index, chunk in enumerate(value.chunks):
         try:
-            raw = (directory / chunk_name(index)).read_bytes()
+            raw = read_bytes(directory / chunk_name(index), field=f"transfer chunk {index}")
+        except ValidationError:
+            raise
         except OSError as error:
             raise ValidationError(f"transfer chunk {index} could not be read") from error
         if len(raw) != chunk.size or address_chunk(raw) != chunk.content_address:
@@ -570,7 +592,9 @@ def load_partial_transfer(source: str | Path) -> TransferAssembler:
     indices = _validate_partial_directory_shape(directory, value)
     assembler = TransferAssembler(value)
     try:
-        payload = {index: (directory / chunk_name(index)).read_bytes() for index in indices}
+        payload = {index: read_bytes(directory / chunk_name(index), field=f"partial transfer chunk {index}") for index in indices}
+    except ValidationError:
+        raise
     except OSError as error:
         raise ValidationError("partial transfer chunk could not be read") from error
     assembler.add_chunks(payload)

@@ -498,19 +498,19 @@ class TransferDirectoryTests(TransferFixture):
                     transfer.load_transfer(destination)
 
             transfer.write_transfer(value, destination, overwrite=True)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(transfer, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     transfer.load_transfer(destination)
 
             transfer.write_transfer(value, destination, overwrite=True)
-            real_read_bytes = Path.read_bytes
+            real_read_bytes = transfer.read_bytes
 
-            def fail_chunks(path: Path) -> bytes:
+            def fail_chunks(path: Path, **kwargs) -> bytes:
                 if path.name.startswith("chunk-"):
                     raise OSError("chunk denied")
-                return real_read_bytes(path)
+                return real_read_bytes(path, **kwargs)
 
-            with patch.object(Path, "read_bytes", fail_chunks):
+            with patch.object(transfer, "read_bytes", fail_chunks):
                 with self.assertRaises(ValidationError):
                     transfer.load_transfer(destination)
 
