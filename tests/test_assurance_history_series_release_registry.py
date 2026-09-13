@@ -10,6 +10,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib.request import urlopen
 
 from glio_noncode import assurance_history_series_release_registry as registry
@@ -246,6 +247,20 @@ class RegistryPersistenceTests(RegistryFixture):
                 self.skipTest("symlink creation unavailable")
             with self.assertRaises(ValidationError):
                 registry.load_decision_assurance_history_series_release_registry(destination)
+
+    def test_registry_loader_normalizes_inspection_and_read_failures(self):
+        value = self.build((self.ready(),))
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "registry"
+            self.write(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    registry.load_decision_assurance_history_series_release_registry(destination)
+
+            self.write(value, destination, overwrite=True)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    registry.load_decision_assurance_history_series_release_registry(destination)
 
 
 class RegistryDiffTests(RegistryFixture):

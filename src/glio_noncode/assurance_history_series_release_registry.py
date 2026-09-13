@@ -886,10 +886,10 @@ def write_decision_assurance_history_series_release_registry(
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
     try:
+        raw = path.read_bytes()
         value = _strict_json_loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is invalid JSON") from exc
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} is not canonical JSON")
@@ -912,7 +912,10 @@ def _check_artifact(
     path = source / name
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"release registry artifact {name} must be a regular file")
-    raw = path.read_bytes()
+    try:
+        raw = path.read_bytes()
+    except OSError as error:
+        raise ValidationError(f"release registry artifact {name} could not be read") from error
     if (
         artifact.get("bytes") != len(raw)
         or artifact.get("byte_address") != hash_bytes(raw)
@@ -928,7 +931,10 @@ def load_decision_assurance_history_series_release_registry(
     source = Path(directory)
     if source.is_symlink() or not source.is_dir():
         raise ValidationError("release registry input must be a directory")
-    children = tuple(source.iterdir())
+    try:
+        children = tuple(source.iterdir())
+    except OSError as error:
+        raise ValidationError("release registry directory could not be inspected") from error
     if any(item.is_symlink() for item in children) or {item.name for item in children} != set(
         FILES
     ):
@@ -1710,7 +1716,10 @@ def load_decision_assurance_history_series_release_registry_diff(
     source = Path(directory)
     if source.is_symlink() or not source.is_dir():
         raise ValidationError("release registry diff input must be a directory")
-    children = tuple(source.iterdir())
+    try:
+        children = tuple(source.iterdir())
+    except OSError as error:
+        raise ValidationError("release registry diff directory could not be inspected") from error
     if any(item.is_symlink() for item in children) or {item.name for item in children} != set(
         DIFF_FILES
     ):
