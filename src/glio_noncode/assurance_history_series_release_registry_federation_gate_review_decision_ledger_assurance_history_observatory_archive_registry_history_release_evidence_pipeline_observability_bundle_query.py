@@ -22,7 +22,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle as bundle_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query as observability_query_model
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 VERSION = bundle_model.VERSION + "-query-v1"
@@ -180,8 +180,8 @@ def _read_documents(source: str | Path) -> tuple[bundle_model.RegistryHistoryRel
     value = bundle_model.load_bundle(source)
     directory = Path(source)
     try:
-        documents = {name: json.loads((directory / name).read_text(encoding="utf-8")) for name in bundle_model.FILES}
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        documents = {name: _strict_json_loads((directory / name).read_text(encoding="utf-8")) for name in bundle_model.FILES}
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("release evidence observability bundle query input contains invalid JSON") from error
     return value, documents
 

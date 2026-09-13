@@ -21,7 +21,7 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package as package_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
 
 VERSION = package_model.VERSION + "-registry-v1"
@@ -345,10 +345,10 @@ def load_registry(directory: str | Path) -> RegistryHistoryReleaseEvidencePipeli
     names = tuple(sorted(item.name for item in directory.iterdir()))
     if names != tuple(sorted(FILES)):
         raise ValidationError("catalog promotion package registry directory has an unexpected member set")
-    manifest = json.loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
+    manifest = _strict_json_loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
     if isinstance(manifest.get("files"), list):
         manifest["files"] = tuple(manifest["files"])
-    value = registry_from_mapping(json.loads((directory / REGISTRY_NAME).read_text(encoding="utf-8")))
+    value = registry_from_mapping(_strict_json_loads((directory / REGISTRY_NAME).read_text(encoding="utf-8")))
     if manifest != value.manifest:
         raise ValidationError("catalog promotion package registry manifest does not match the registry")
     payload = package_bytes(value)
