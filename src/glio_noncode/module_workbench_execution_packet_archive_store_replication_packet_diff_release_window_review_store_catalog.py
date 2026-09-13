@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -22,6 +21,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store import (
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store,
@@ -52,7 +52,13 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     address_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_operation,
     address_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_verification,
 )
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 
 def _text(value: Any, field: str, maximum: int = 4096) -> str:
@@ -643,10 +649,20 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
     if not verification.accepted:
         raise ValidationError("cannot persist an unverified catalog")
     destination = Path(destination)
-    if destination.exists() and not overwrite:
-        raise ValidationError("catalog destination already exists")
-    parent = destination.parent
-    parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "catalog destination")
+        if destination.is_symlink():
+            raise ValidationError("catalog destination cannot be a symlink")
+        if destination.exists() and not overwrite:
+            raise ValidationError("catalog destination already exists")
+        if destination.exists() and not destination.is_dir():
+            raise ValidationError("catalog destination is not a regular directory")
+        parent = destination.parent
+        parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("catalog destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=parent))
     try:
         entries_bytes = canonical_bytes({"entries": [item.to_dict() for item in value.entries]})
@@ -654,18 +670,24 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
             {"operations": [item.to_dict() for item in value.operations]}
         )
         manifest_bytes = canonical_bytes(_manifest(value, entries_bytes, operations_bytes))
-        (
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_ENTRIES
-        ).write_bytes(entries_bytes)
-        (
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_ENTRIES,
+            entries_bytes,
+            field="catalog staging entries",
+        )
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_OPERATIONS
-        ).write_bytes(operations_bytes)
-        (
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_OPERATIONS,
+            operations_bytes,
+            field="catalog staging operations",
+        )
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_MANIFEST
-        ).write_bytes(manifest_bytes)
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_MANIFEST,
+            manifest_bytes,
+            field="catalog staging manifest",
+        )
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("catalog destination is not a regular directory")
@@ -681,8 +703,14 @@ def _read_catalog_files(
     directory: str | Path,
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     directory = Path(directory)
-    if not directory.is_dir() or directory.is_symlink():
-        raise ValidationError("catalog directory is invalid")
+    try:
+        _validate_parent(directory.parent, "catalog input")
+        if not directory.is_dir() or directory.is_symlink():
+            raise ValidationError("catalog directory is invalid")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("catalog directory could not be inspected") from error
     expected = {
         MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_MANIFEST,
         MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_ENTRIES,
@@ -693,18 +721,26 @@ def _read_catalog_files(
         raise ValidationError("catalog directory contains a non-regular artifact")
     if {item.name for item in children} != expected:
         raise ValidationError("catalog files do not match the published set")
-    manifest_bytes = (
-        directory
-        / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_MANIFEST
-    ).read_bytes()
-    entries_bytes = (
-        directory
-        / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_ENTRIES
-    ).read_bytes()
-    operations_bytes = (
-        directory
-        / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_OPERATIONS
-    ).read_bytes()
+    try:
+        manifest_bytes = read_bytes(
+            directory
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_MANIFEST,
+            field="catalog manifest",
+        )
+        entries_bytes = read_bytes(
+            directory
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_ENTRIES,
+            field="catalog entries",
+        )
+        operations_bytes = read_bytes(
+            directory
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_OPERATIONS,
+            field="catalog operations",
+        )
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("catalog artifact could not be read") from error
     manifest = _json_object(manifest_bytes, "catalog manifest")
     entries = _json_object(entries_bytes, "catalog entries")
     operations = _json_object(operations_bytes, "catalog operations")
