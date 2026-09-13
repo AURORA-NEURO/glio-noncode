@@ -10,6 +10,7 @@ from typing import Any, Mapping
 
 from .capability_registry import CapabilityRegistry, default_capability_registry
 from .errors import ValidationError
+from ._safe_persistence import read_text
 from .module_fabric_contracts import (
     FabricFixture,
     FabricRecord,
@@ -256,7 +257,9 @@ def load_module_fabric_fixture(path: str | Path) -> FabricFixture:
     """Load a checked-in or caller-supplied fixture and recompute all addresses."""
 
     location = Path(path)
-    root = parse_fixture_text(location.read_text(encoding="utf-8"))
+    root = parse_fixture_text(
+        read_text(location, field="module-fabric fixture")
+    )
     sources_raw = root.get("sources", ())
     records_raw = root.get("records", ())
     if not isinstance(sources_raw, list) or not isinstance(records_raw, list):

@@ -9,6 +9,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, canonical_json, content_hash, require_non_empty
 from .validation_design_frontier_bundle_contracts import (
     VALIDATION_DESIGN_BUNDLE_DEFAULT_LIMIT,
@@ -43,8 +44,10 @@ def _load_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise ValidationError("validation-design bundle manifest is missing")
     try:
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        manifest = _strict_json_loads(
+            read_text(manifest_path, field="validation-design bundle manifest")
+        )
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"cannot load validation-design bundle manifest: {exc}") from exc
     if not isinstance(manifest, Mapping):
         raise ValidationError("validation-design bundle manifest must be an object")
@@ -86,8 +89,11 @@ def load_validation_design_offline_bundle(destination: str | Path, *, include_pa
             try:
                 if not artifact_path.is_file():
                     raise ValidationError(f"validation-design artifact is missing: {relative_path!r}")
-                payload = artifact_path.read_text(encoding="utf-8")
-            except (OSError, UnicodeDecodeError) as exc:
+                payload = read_text(
+                    artifact_path,
+                    field=f"validation-design bundle artifact {relative_path}",
+                )
+            except (OSError, UnicodeDecodeError, ValidationError) as exc:
                 raise ValidationError(f"cannot hydrate artifact {relative_path}: {exc}") from exc
         artifacts.append(
             ValidationDesignBundleArtifact(

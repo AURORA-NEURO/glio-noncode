@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import read_bytes, read_text
 from .module_fabric_support import contains_private_key
 from .review_workspace_execution import (
     REVIEW_WORKSPACE_EXECUTION_EVENT_VERSION,
@@ -314,15 +315,17 @@ def _canonical_event_line(event: ReviewPlanExecutionEvent) -> bytes:
 
 def _safe_read(path: Path) -> tuple[bytes | None, str | None]:
     try:
-        return path.read_bytes(), None
-    except (OSError, UnicodeError) as exc:
+        return read_bytes(path, field="review workspace execution events"), None
+    except (OSError, UnicodeError, ValidationError) as exc:
         return None, str(exc)
 
 
 def _safe_manifest(path: Path) -> tuple[dict[str, Any] | None, str | None]:
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        value = _strict_json_loads(
+            read_text(path, field="review workspace execution manifest")
+        )
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         return None, str(exc)
     if not isinstance(value, Mapping):
         return None, "manifest root is not an object"

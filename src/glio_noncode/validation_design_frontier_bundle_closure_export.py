@@ -7,6 +7,12 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import (
+    _validate_parent,
+    atomic_write_bytes,
+    read_bytes,
+    read_text,
+)
 from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable
 from .validation_design_frontier_bundle_closure_contracts import (
     ValidationDesignClosureRuntimeReport,
@@ -190,15 +196,26 @@ def write_validation_design_closure_export(
     if not manifest.accepted:
         raise ValidationError("cannot write a rejected D13 closure export")
     root = Path(destination)
+    _validate_parent(root.parent, "D13 closure export destination")
+    if root.is_symlink():
+        raise ValidationError("D13 closure export destination must not be a symlink")
     root.mkdir(parents=True, exist_ok=True)
+    _validate_parent(root, "D13 closure export destination")
     for artifact in manifest.artifacts:
         if artifact.payload is None or not _safe_path(artifact.relative_path):
             raise ValidationError(f"invalid D13 closure export artifact: {artifact.artifact_id}")
         target = root / Path(*PurePosixPath(artifact.relative_path).parts)
+        _validate_parent(target.parent, "D13 closure export artifact")
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(artifact.payload.encode("utf-8"))
-    (root / VALIDATION_DESIGN_CLOSURE_EXPORT_MANIFEST).write_bytes(
-        (canonical_json(manifest.to_dict()) + "\n").encode("utf-8")
+        atomic_write_bytes(
+            target,
+            artifact.payload.encode("utf-8"),
+            field="D13 closure export artifact",
+        )
+    atomic_write_bytes(
+        root / VALIDATION_DESIGN_CLOSURE_EXPORT_MANIFEST,
+        (canonical_json(manifest.to_dict()) + "\n").encode("utf-8"),
+        field="D13 closure export manifest",
     )
     return root
 
@@ -212,8 +229,10 @@ def verify_validation_design_closure_export(
     manifest_path = root / VALIDATION_DESIGN_CLOSURE_EXPORT_MANIFEST
     checks: list[dict[str, Any]] = []
     try:
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        manifest = _strict_json_loads(
+            read_text(manifest_path, field="D13 closure export manifest")
+        )
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         return ValidationDesignClosureExportVerification(
             bundle_id="",
             artifact_count=0,
@@ -270,11 +289,11 @@ def verify_validation_design_closure_export(
             root / Path(*PurePosixPath(path).parts) if _safe_path(path) else root / "__invalid__"
         )
         try:
-            data = target.read_bytes()
+            data = read_bytes(target, field=f"D13 closure export artifact {artifact_id}")
             actual = hash_bytes(data, prefix=VALIDATION_DESIGN_CLOSURE_EXPORT_ARTIFACT_PREFIX)
             passed = actual == raw.get("content_address") and len(data) == raw.get("byte_count")
             detail = "exact bytes and address match" if passed else "byte count or address mismatch"
-        except OSError as exc:
+        except (OSError, ValidationError) as exc:
             passed = False
             actual = ""
             detail = str(exc)
