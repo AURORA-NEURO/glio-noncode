@@ -19,6 +19,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -275,6 +276,19 @@ class ArchiveRegistryFederationReconciliationContractTests(unittest.TestCase):
             (destination / runtime_model.MANIFEST_NAME).write_bytes(manifest_raw.rstrip()[:-1] + b',"runtime_id":"shadow"}')
             with self.assertRaises(ValidationError):
                 runtime_model.load_runtime(destination)
+
+    def test_runtime_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            left, right = self.matching_registries(root)
+            destination = root / "runtime"
+            runtime_model.run_runtime((self.persist_registry(left, root / "alpha"), self.persist_registry(right, root / "beta")), peer_ids=("alpha", "beta"), quorum=2, destination=destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    runtime_model.load_runtime(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    runtime_model.load_runtime(destination)
 
     def test_noop_runtime_does_not_mutate_source_registry_bytes(self):
         with tempfile.TemporaryDirectory() as temporary:
