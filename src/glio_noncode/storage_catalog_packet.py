@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .release_assurance_support import (
     artifact_address,
@@ -299,20 +298,7 @@ def build_storage_catalog_packet(
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
-    )
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_name, path)
-    finally:
-        temporary = Path(temporary_name)
-        if temporary.exists():
-            temporary.unlink()
+    atomic_write_bytes(path, payload, field="storage catalog packet artifact")
 
 
 def write_storage_catalog_packet(
@@ -326,13 +312,19 @@ def write_storage_catalog_packet(
     if not isinstance(packet, StorageCatalogPacket):
         raise ValidationError("catalog packet writer requires a typed packet")
     root = Path(destination)
+    _validate_parent(root.parent, "catalog packet destination")
     if root.exists() and root.is_symlink():
         raise ValidationError("catalog packet destination must not be a symlink")
+    if root.exists() and not root.is_dir():
+        raise ValidationError("catalog packet destination must be a directory")
     root.mkdir(parents=True, exist_ok=True)
     if any(root.iterdir()) and not allow_existing:
         raise ValidationError("catalog packet destination is not empty")
     for artifact in packet.artifacts:
-        _atomic_write(root / safe_relative_path(artifact.relative_path), artifact.content)
+        path = root / safe_relative_path(artifact.relative_path)
+        _validate_parent(path.parent, "catalog packet artifact")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _atomic_write(path, artifact.content)
     _atomic_write(
         root / "manifest.json", (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8")
     )
@@ -345,9 +337,9 @@ def _read_manifest(directory: str | Path) -> tuple[Path, dict[str, Any], tuple[s
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        raw_bytes = path.read_bytes()
+        raw_bytes = read_bytes(path, field="catalog packet manifest")
         value = _strict_json_loads(raw_bytes.decode("utf-8"))
-    except (OSError, UnicodeError, ValueError):
+    except (OSError, UnicodeError, ValueError, ValidationError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -505,8 +497,8 @@ def verify_storage_catalog_packet(directory: str | Path) -> StorageCatalogPacket
             missing.append(path)
             continue
         try:
-            payload = target.read_bytes()
-        except OSError:
+            payload = read_bytes(target, field=f"catalog packet artifact {path}")
+        except (OSError, ValidationError):
             tampered.append(path)
             continue
         try:
@@ -610,10 +602,13 @@ def load_storage_catalog_packet(directory: str | Path) -> StorageCatalogPacketOf
         raise ValidationError("storage catalog packet is not accepted")
     try:
         catalog_payload = _strict_json_loads(
-            (root / "catalog" / "catalog.json").read_text(encoding="utf-8")
+            read_text(root / "catalog" / "catalog.json", field="catalog packet catalog payload")
         )
         observability_payload = _strict_json_loads(
-            (root / "catalog" / "observability.json").read_text(encoding="utf-8")
+            read_text(
+                root / "catalog" / "observability.json",
+                field="catalog packet observability payload",
+            )
         )
     except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError("storage catalog packet JSON payload is not valid") from exc

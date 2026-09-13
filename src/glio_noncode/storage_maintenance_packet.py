@@ -12,13 +12,12 @@ from __future__ import annotations
 
 import csv
 import json
-import os
-import tempfile
 from collections.abc import Iterable, Mapping
 from io import StringIO
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .release_assurance_support import (
     artifact_address,
@@ -255,22 +254,7 @@ def build_storage_maintenance_packet(
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-        dir=path.parent,
-    )
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_name, path)
-    finally:
-        temporary = Path(temporary_name)
-        if temporary.exists():
-            temporary.unlink()
+    atomic_write_bytes(path, payload, field="storage maintenance packet artifact")
 
 
 def write_storage_maintenance_packet(
@@ -284,13 +268,19 @@ def write_storage_maintenance_packet(
     if not isinstance(packet, StorageMaintenancePacket):
         raise ValidationError("storage maintenance packet writer requires a typed packet")
     root = Path(destination)
+    _validate_parent(root.parent, "storage maintenance packet destination")
     if root.exists() and root.is_symlink():
         raise ValidationError("storage maintenance packet destination must not be a symlink")
+    if root.exists() and not root.is_dir():
+        raise ValidationError("storage maintenance packet destination must be a directory")
     root.mkdir(parents=True, exist_ok=True)
     if any(root.iterdir()) and not allow_existing:
         raise ValidationError("storage maintenance packet destination is not empty")
     for artifact in packet.artifacts:
-        _atomic_write(root / safe_relative_path(artifact.relative_path), artifact.content)
+        path = root / safe_relative_path(artifact.relative_path)
+        _validate_parent(path.parent, "storage maintenance packet artifact")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _atomic_write(path, artifact.content)
     _atomic_write(
         root / "manifest.json",
         (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8"),
@@ -304,8 +294,8 @@ def _read_manifest(directory: str | Path) -> tuple[Path, dict[str, Any], tuple[s
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError):
+        value = _strict_json_loads(read_text(path, field="storage maintenance packet manifest"))
+    except (OSError, UnicodeError, ValueError, ValidationError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -463,8 +453,8 @@ def verify_storage_maintenance_packet(
             missing.append(path)
             continue
         try:
-            payload = target.read_bytes()
-        except OSError:
+            payload = read_bytes(target, field=f"storage maintenance packet artifact {path}")
+        except (OSError, ValidationError):
             tampered.append(path)
             continue
         try:
@@ -582,8 +572,10 @@ def load_storage_maintenance_packet(
     if not verification.accepted:
         raise ValidationError("storage maintenance packet is not accepted")
     try:
-        payload = _strict_json_loads((root / "maintenance" / "plan.json").read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        payload = _strict_json_loads(
+            read_text(root / "maintenance" / "plan.json", field="storage maintenance packet plan payload")
+        )
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError("storage maintenance packet plan payload is not valid JSON") from exc
     plan = StorageMaintenancePlan.from_mapping(payload)
     if plan.plan_id != manifest.get("plan_id") or plan.content_address != manifest.get(
