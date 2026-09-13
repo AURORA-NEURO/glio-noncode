@@ -305,6 +305,37 @@ class DurableReviewStoreTests(unittest.TestCase):
             )
             self.assertTrue((destination / "review-store.json").is_file())
 
+    def test_store_persistence_rejects_symlinked_destination_paths(self) -> None:
+        store = self._ready_store()
+        with tempfile.TemporaryDirectory() as root:
+            base = Path(root)
+            external = base / "external"
+            external.mkdir()
+            linked_parent = base / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaises(ValidationError):
+                write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store(
+                    store,
+                    linked_parent / "review-store",
+                )
+
+            destination = base / "review-store"
+            write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store(
+                store, destination
+            )
+            linked_store = base / "linked-store"
+            try:
+                linked_store.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaises(ValidationError):
+                load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store(
+                    linked_store
+                )
+
     def test_load_rejects_missing_extra_and_noncanonical_artifacts(self) -> None:
         store = self._ready_store()
         with tempfile.TemporaryDirectory() as root:

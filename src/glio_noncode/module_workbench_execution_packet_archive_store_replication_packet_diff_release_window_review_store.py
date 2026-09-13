@@ -22,6 +22,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review import (
     append_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_decision,
@@ -546,8 +547,13 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
     if ledger is None:
         raise ValidationError("review store writing requires a hydrated ledger")
     destination = Path(destination)
+    _validate_parent(destination.parent, "review store destination")
+    if destination.is_symlink():
+        raise ValidationError("review store destination must not be a symlink")
     if destination.exists() and not overwrite:
         raise ValidationError("review store destination already exists")
+    if destination.exists() and not destination.is_dir():
+        raise ValidationError("review store destination is not a regular directory")
     parent = destination.parent
     parent.mkdir(parents=True, exist_ok=True)
     temp = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=parent))
@@ -557,18 +563,24 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
             {"operations": [item.to_dict() for item in value.operations]}
         )
         manifest_bytes = canonical_bytes(_manifest(value, ledger_bytes, operation_bytes))
-        (
+        atomic_write_bytes(
             temp
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_LEDGER
-        ).write_bytes(ledger_bytes)
-        (
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_LEDGER,
+            ledger_bytes,
+            field="review store ledger artifact",
+        )
+        atomic_write_bytes(
             temp
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_OPERATIONS
-        ).write_bytes(operation_bytes)
-        (
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_OPERATIONS,
+            operation_bytes,
+            field="review store operations artifact",
+        )
+        atomic_write_bytes(
             temp
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_MANIFEST
-        ).write_bytes(manifest_bytes)
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_MANIFEST,
+            manifest_bytes,
+            field="review store manifest artifact",
+        )
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("review store destination is not a regular directory")
@@ -584,6 +596,7 @@ def _read_store_files(
     directory: str | Path,
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     directory = Path(directory)
+    _validate_parent(directory.parent, "review store directory")
     if not directory.is_dir() or directory.is_symlink():
         raise ValidationError("review store directory is invalid")
     expected = {
@@ -597,18 +610,21 @@ def _read_store_files(
     actual = {item.name for item in children}
     if actual != expected:
         raise ValidationError("review store files do not match the published set")
-    manifest_bytes = (
+    manifest_path = (
         directory
         / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_MANIFEST
-    ).read_bytes()
-    ledger_bytes = (
+    )
+    ledger_path = (
         directory
         / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_LEDGER
-    ).read_bytes()
-    operation_bytes = (
+    )
+    operations_path = (
         directory
         / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_OPERATIONS
-    ).read_bytes()
+    )
+    manifest_bytes = read_bytes(manifest_path, field="review store manifest")
+    ledger_bytes = read_bytes(ledger_path, field="review store ledger")
+    operation_bytes = read_bytes(operations_path, field="review store operations")
     manifest = _json_object(manifest_bytes, "review store manifest")
     ledger = _json_object(ledger_bytes, "review store ledger")
     operations = _json_object(operation_bytes, "review store operations")
