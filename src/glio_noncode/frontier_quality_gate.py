@@ -23,6 +23,7 @@ from .frontier_fixture_eval import FrontierFixtureEvaluator
 from .frontier_public_data import audit_public_fixture
 from .frontier_replay import FrontierReplayRunner, ReplayExpectation
 from .frontier_scenario_matrix import evaluate_frontier_scenarios
+from ._safe_persistence import atomic_write_text
 from .serialization import content_hash, jsonable, require_non_empty
 
 
@@ -166,7 +167,11 @@ class FrontierQualityGate:
         if fixture_path is None:
             with tempfile.TemporaryDirectory(prefix="glio-frontier-gate-") as directory:
                 temporary_path = Path(directory) / "fixture.json"
-                temporary_path.write_text(json.dumps(fixture), encoding="utf-8")
+                atomic_write_text(
+                    temporary_path,
+                    json.dumps(fixture),
+                    field="frontier quality fixture",
+                )
                 replay_report = self.replay_runner.replay(
                     [temporary_path],
                     expectations={str(temporary_path): replay_expectation},
