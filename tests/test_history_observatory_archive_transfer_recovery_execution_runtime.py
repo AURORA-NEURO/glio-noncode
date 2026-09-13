@@ -11,6 +11,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -107,6 +108,20 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeTests(unittest.Te
             execution_path.write_text(runtime_model.runtime_json(runtime), encoding="utf-8")
             with self.assertRaises(ValidationError):
                 runtime_model.load_runtime(destination)
+
+    def test_runtime_loader_normalizes_inspection_and_read_failures(self):
+        _, execution = self._execution()
+        runtime = runtime_model.build_runtime(execution, runtime_id="execution-runtime-failure-fixture")
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "runtime"
+            runtime_model.persist_runtime(runtime, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    runtime_model.load_runtime(destination)
+
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    runtime_model.load_runtime(destination)
 
     def test_cli_api_schemas_and_public_inventory(self):
         _, execution = self._execution()

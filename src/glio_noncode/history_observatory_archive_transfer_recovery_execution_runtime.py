@@ -427,7 +427,10 @@ def load_runtime(destination: str | Path) -> RecoveryExecutionRuntime:
     root = Path(destination)
     if root.is_symlink() or not root.is_dir():
         raise ValidationError("runtime source must be a regular directory")
-    entries = tuple(root.iterdir())
+    try:
+        entries = tuple(root.iterdir())
+    except OSError as error:
+        raise ValidationError("runtime directory could not be inspected") from error
     if tuple(sorted(item.name for item in entries)) != tuple(sorted(FILES)) or any(item.is_symlink() or not item.is_file() for item in entries):
         raise ValidationError("runtime directory has an unexpected file set")
     manifest_raw, manifest_bytes = _read_json(root / "manifest.json")
@@ -449,7 +452,11 @@ def load_runtime(destination: str | Path) -> RecoveryExecutionRuntime:
     documents = _documents(candidate)
     expected_members = {"manifest.json": canonical_bytes(expected_manifest.to_dict()), **documents}
     for filename in FILES:
-        if (root / filename).read_bytes() != expected_members[filename]:
+        try:
+            raw = (root / filename).read_bytes()
+        except OSError as error:
+            raise ValidationError(f"runtime member {filename} could not be read") from error
+        if raw != expected_members[filename]:
             raise ValidationError(f"runtime member {filename} does not replay")
     for receipt in manifest.artifacts:
         raw = expected_members[receipt.name]
