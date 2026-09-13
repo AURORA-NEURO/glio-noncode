@@ -114,6 +114,34 @@ class EvidenceLifecycleOfflineBundleTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 load_evidence_lifecycle_offline_bundle(destination)
 
+    def test_bundle_rejects_symlinked_destination_and_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            destination = root / "bundle"
+            write_evidence_lifecycle_offline_bundle(self.bundle, destination)
+            linked_destination = root / "linked-bundle"
+            try:
+                linked_destination.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+
+            with self.assertRaisesRegex(ValidationError, "destination"):
+                write_evidence_lifecycle_offline_bundle(self.bundle, linked_destination)
+            verification = verify_evidence_lifecycle_offline_bundle(linked_destination)
+            self.assertFalse(verification.accepted)
+
+            artifact = destination / "review.csv"
+            external = root / "external-review.csv"
+            external_body = artifact.read_bytes()
+            external.write_bytes(external_body)
+            artifact.unlink()
+            artifact.symlink_to(external)
+            with self.assertRaisesRegex(ValidationError, "path is unsafe"):
+                load_evidence_lifecycle_offline_bundle(destination, include_payloads=True)
+            verification = verify_evidence_lifecycle_offline_bundle(destination)
+            self.assertFalse(verification.accepted)
+            self.assertEqual(external.read_bytes(), external_body)
+
     def test_queries_cover_records_checks_sources_events_and_artifacts(self) -> None:
         records = query_evidence_lifecycle_offline_bundle(self.bundle, resource="records", operation="graph_construction")
         self.assertTrue(records.accepted)

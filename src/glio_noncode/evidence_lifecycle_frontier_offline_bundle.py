@@ -400,18 +400,64 @@ def evidence_lifecycle_offline_manifest_text(bundle: EvidenceLifecycleOfflineBun
     return canonical_json(bundle.to_dict(include_payloads=False)) + "\n"
 
 
+def _offline_path(root: Path, relative_path: str) -> Path:
+    """Resolve a validated relative path while refusing symlink traversal."""
+
+    current = root
+    for component in PurePosixPath(relative_path).parts:
+        current /= component
+        try:
+            if current.is_symlink():
+                raise ValidationError("evidence lifecycle path is unsafe")
+        except ValidationError:
+            raise
+        except OSError as exc:
+            raise ValidationError("evidence lifecycle path could not be inspected") from exc
+    return current
+
+
+def _prepare_offline_parent(root: Path, relative_path: str) -> None:
+    current = root
+    for component in PurePosixPath(relative_path).parts[:-1]:
+        current /= component
+        try:
+            if current.is_symlink():
+                raise ValidationError("evidence lifecycle artifact parent is unsafe")
+            current.mkdir(exist_ok=True)
+            if current.is_symlink() or not current.is_dir():
+                raise ValidationError("evidence lifecycle artifact parent is unsafe")
+        except ValidationError:
+            raise
+        except OSError as exc:
+            raise ValidationError("evidence lifecycle artifact parent could not be prepared") from exc
+
+
 def write_evidence_lifecycle_offline_bundle(bundle: EvidenceLifecycleOfflineBundle, destination: str | Path) -> Path:
     """Write exact artifact bytes and the canonical root manifest."""
 
     root = Path(destination)
-    root.mkdir(parents=True, exist_ok=True)
+    try:
+        if root.is_symlink():
+            raise ValidationError("evidence lifecycle destination is unsafe")
+        root.mkdir(parents=True, exist_ok=True)
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("evidence lifecycle destination must be a directory")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise ValidationError("evidence lifecycle destination could not be prepared") from exc
     for artifact in bundle.artifacts:
         if artifact.payload is None:
             raise ValidationError(f"artifact {artifact.artifact_id} has no payload")
-        target = root / Path(*PurePosixPath(artifact.relative_path).parts)
-        target.parent.mkdir(parents=True, exist_ok=True)
+        target = _offline_path(root, artifact.relative_path)
+        _prepare_offline_parent(root, artifact.relative_path)
+        if target.is_symlink():
+            raise ValidationError("evidence lifecycle artifact path is unsafe")
         target.write_bytes(artifact.payload.encode("utf-8"))
-    (root / EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST).write_bytes(evidence_lifecycle_offline_manifest_text(bundle).encode("utf-8"))
+    manifest_path = _offline_path(root, EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST)
+    if manifest_path.is_symlink():
+        raise ValidationError("evidence lifecycle manifest path is unsafe")
+    manifest_path.write_bytes(evidence_lifecycle_offline_manifest_text(bundle).encode("utf-8"))
     return root
 
 
@@ -431,7 +477,7 @@ def _check_manifest_address(manifest: Mapping[str, Any]) -> bool:
 def _path_for(root: Path, relative_path: str) -> Path:
     if not _safe_relative_path(relative_path):
         raise ValidationError(f"unsafe evidence lifecycle artifact path: {relative_path!r}")
-    return root / Path(*PurePosixPath(relative_path).parts)
+    return _offline_path(root, relative_path)
 
 
 def verify_evidence_lifecycle_offline_bundle(destination: str | Path) -> EvidenceLifecycleOfflineVerification:
@@ -439,7 +485,7 @@ def verify_evidence_lifecycle_offline_bundle(destination: str | Path) -> Evidenc
 
     root = Path(destination)
     manifest_path = root / EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST
-    if not root.exists() or not root.is_dir():
+    if root.is_symlink() or not root.exists() or not root.is_dir():
         return _verification("missing-bundle", [_check("bundle-directory", EvidenceLifecycleOfflineCheckPlane.MANIFEST, False, str(root), "directory", "bundle directory is missing")])
     if not manifest_path.exists() or not manifest_path.is_file() or manifest_path.is_symlink():
         return _verification("missing-manifest", [_check("manifest-present", EvidenceLifecycleOfflineCheckPlane.MANIFEST, False, False, True, "bundle manifest is missing or is not a regular file")])
@@ -487,7 +533,7 @@ def verify_evidence_lifecycle_offline_bundle(destination: str | Path) -> Evidenc
             if str(raw.get("media_type")) == EVIDENCE_LIFECYCLE_OFFLINE_JSON_MEDIA_TYPE:
                 parsed = _strict_json_loads(raw_bytes.decode("utf-8"))
                 checks.append(_check(f"artifact:{artifact_id}:public", EvidenceLifecycleOfflineCheckPlane.PUBLIC_BOUNDARY, not _has_forbidden_key(parsed) and not contains_private_key(parsed), True, True, "JSON artifact remains public"))
-        except (OSError, UnicodeDecodeError, UnicodeError, ValueError) as exc:
+        except (OSError, UnicodeDecodeError, UnicodeError, ValueError, ValidationError) as exc:
             checks.append(_check(f"artifact:{artifact_id}:readable", EvidenceLifecycleOfflineCheckPlane.ARTIFACT, False, type(exc).__name__, "UTF-8 regular file", "artifact cannot be read or decoded"))
     checks.append(_check("artifact-identities", EvidenceLifecycleOfflineCheckPlane.CLOSURE, len(seen_ids) == len(artifacts_value), len(seen_ids), len(artifacts_value), "artifact identifiers are unique"))
     checks.append(_check("artifact-paths", EvidenceLifecycleOfflineCheckPlane.CLOSURE, len(seen_paths) == len(artifacts_value), len(seen_paths), len(artifacts_value), "artifact paths are unique"))

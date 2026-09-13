@@ -11,6 +11,7 @@ from typing import Any
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash, require_non_empty
 from .evidence_lifecycle_frontier_offline_bundle import verify_evidence_lifecycle_offline_bundle
+from .evidence_lifecycle_frontier_offline_bundle import _offline_path
 from .evidence_lifecycle_frontier_offline_contracts import (
     EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_DEFAULT_LIMIT,
     EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST,
@@ -37,7 +38,14 @@ def _safe_relative_path(value: str) -> bool:
 def _load_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(value)
     try:
-        manifest = _strict_json_loads((root / EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST).read_text(encoding="utf-8"))
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("evidence lifecycle offline root must be a regular directory")
+        manifest_path = _offline_path(root, EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST)
+        if manifest_path.is_symlink() or not manifest_path.is_file():
+            raise ValidationError("evidence lifecycle offline manifest is missing")
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except ValidationError:
+        raise
     except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"cannot load evidence lifecycle offline manifest: {exc}") from exc
     if not isinstance(manifest, Mapping):
@@ -73,11 +81,16 @@ def load_evidence_lifecycle_offline_bundle(destination: str | Path, *, include_p
         if not _safe_relative_path(relative_path):
             raise ValidationError(f"unsafe evidence lifecycle artifact path: {relative_path!r}")
         payload: str | None = None
-        if include_payloads:
-            try:
-                payload = (root / Path(*relative_path.split("/"))).read_text(encoding="utf-8")
-            except (OSError, UnicodeDecodeError) as exc:
-                raise ValidationError(f"cannot hydrate evidence lifecycle artifact {relative_path}: {exc}") from exc
+        path = _offline_path(root, relative_path)
+        try:
+            if path.is_symlink() or not path.is_file():
+                raise ValidationError(f"evidence lifecycle artifact {relative_path} is unsafe")
+            if include_payloads:
+                payload = path.read_text(encoding="utf-8")
+        except ValidationError:
+            raise
+        except (OSError, UnicodeDecodeError) as exc:
+            raise ValidationError(f"cannot hydrate evidence lifecycle artifact {relative_path}: {exc}") from exc
         artifacts.append(
             EvidenceLifecycleOfflineArtifact(
                 artifact_id=str(raw.get("artifact_id", "")),
