@@ -130,6 +130,37 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         self.assertEqual(identity.state, InvocationState.COMPLETED)
         self.assertEqual(identity.response.state.value, "supported")
 
+    def test_core_handlers_reject_coercible_scalar_misuse(self) -> None:
+        app = ControlPlaneApplication()
+        intake = app.executor.execute(
+            _request(
+                "A07.publish",
+                {
+                    "text": "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n7\t100\tv1\tA\tT\t.\tPASS\t.",
+                    "source_id": "strict-intake",
+                    "include_no_call": "false",
+                },
+                "strict-intake-1",
+            )
+        )
+        self.assertEqual(intake.state, InvocationState.ABSTAINED)
+        self.assertEqual(intake.response.reason_code, "invalid_intake_payload")
+
+        with self.assertRaises(Exception):
+            ControlPlaneApplication._hypothesis_edge(
+                {
+                    "edge_id": "edge-1",
+                    "edge_type": "variant_to_element",
+                    "source_id": "variant",
+                    "target_id": "element",
+                    "support": "0.8",
+                    "uncertainty": 0.1,
+                    "context_fit": 0.9,
+                    "claim_ids": ["claim-1"],
+                    "support_level": "high",
+                }
+            )
+
     def test_power_drift_and_human_review_bindings_are_typed(self) -> None:
         app = ControlPlaneApplication()
         power = app.executor.execute(

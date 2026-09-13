@@ -6,6 +6,7 @@ import base64
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from functools import partial
+from math import isfinite
 from tempfile import TemporaryDirectory
 from typing import Any
 
@@ -91,6 +92,36 @@ from .validation_controls import (
 )
 from .validation_design import AssayRouter, DesignStatus, GuideDesigner, PowerPlanner
 from .variant_normalization import NormalizationState, VRSNormalizer
+
+
+def _input_text(value: object, field: str) -> str:
+    if type(value) is not str or not value.strip():
+        raise ValidationError(f"{field} must be a non-empty string")
+    return value.strip()
+
+
+def _input_bool(value: object, field: str) -> bool:
+    if type(value) is not bool:
+        raise ValidationError(f"{field} must be a boolean")
+    return value
+
+
+def _input_number(value: object, field: str) -> float:
+    if type(value) not in {int, float} or isinstance(value, bool):
+        raise ValidationError(f"{field} must be a number")
+    result = float(value)
+    if not isfinite(result):
+        raise ValidationError(f"{field} must be finite")
+    return result
+
+
+def _input_strings(value: object, field: str) -> tuple[str, ...]:
+    if not isinstance(value, (list, tuple)):
+        raise ValidationError(f"{field} must be an array")
+    result = tuple(_input_text(item, f"{field}[]") for item in value)
+    if len(result) != len(set(result)):
+        raise ValidationError(f"{field} must not contain duplicates")
+    return result
 
 
 @dataclass(frozen=True, slots=True)
@@ -424,7 +455,11 @@ class ControlPlaneApplication:
                 "Mission planning requires a requested_agent_ids list.",
                 ("requested_agent_ids",),
             )
-        return self.planner.plan(request.mission, (str(item) for item in requested))
+        try:
+            requested_ids = _input_strings(requested, "requested_agent_ids")
+        except ValidationError as exc:
+            return Abstention("invalid_requested_roles", "mission", str(exc), ("requested_agent_ids",))
+        return self.planner.plan(request.mission, requested_ids)
 
     def _compile(self, request: InvocationRequest) -> WorkflowDecision | Abstention:
         requested = request.input_payload.get("requested_agent_ids", ())
@@ -436,7 +471,8 @@ class ControlPlaneApplication:
                 ("requested_agent_ids",),
             )
         try:
-            decision = self.planner.plan(request.mission, (str(item) for item in requested))
+            requested_ids = _input_strings(requested, "requested_agent_ids")
+            decision = self.planner.plan(request.mission, requested_ids)
         except (TypeError, ValueError, ValidationError) as exc:
             return Abstention(
                 "invalid_workflow_request",
@@ -574,51 +610,68 @@ class ControlPlaneApplication:
     def _evidence_envelope(raw: object) -> EvidenceEnvelope:
         if not isinstance(raw, Mapping):
             raise ValidationError("evidence envelope must be a mapping")
+        source_ids = _input_strings(raw.get("source_ids", ()), "evidence source_ids")
+        limitations = _input_strings(raw.get("limitations", ()), "evidence limitations")
         return EvidenceEnvelope(
-            evidence_id=str(raw["evidence_id"]),
-            agent_id=str(raw["agent_id"]),
-            tool_id=str(raw["tool_id"]),
-            state=EvidenceState(str(raw["state"])),
-            tier=EvidenceTier(str(raw["tier"])),
-            claim_summary=str(raw["claim_summary"]),
-            payload_hash=str(raw["payload_hash"]),
-            source_ids=tuple(str(value) for value in raw.get("source_ids", ())),
-            provenance_digest=str(raw.get("provenance_digest", "declared")),
-            confidence=(float(raw["confidence"]) if raw.get("confidence") is not None else None),
-            limitations=tuple(str(value) for value in raw.get("limitations", ())),
+            evidence_id=_input_text(raw["evidence_id"], "evidence_id"),
+            agent_id=_input_text(raw["agent_id"], "agent_id"),
+            tool_id=_input_text(raw["tool_id"], "tool_id"),
+            state=EvidenceState(_input_text(raw["state"], "evidence state")),
+            tier=EvidenceTier(_input_text(raw["tier"], "evidence tier")),
+            claim_summary=_input_text(raw["claim_summary"], "claim_summary"),
+            payload_hash=_input_text(raw["payload_hash"], "payload_hash"),
+            source_ids=source_ids,
+            provenance_digest=_input_text(
+                raw.get("provenance_digest", "declared"), "provenance_digest"
+            ),
+            confidence=(
+                _input_number(raw["confidence"], "confidence")
+                if raw.get("confidence") is not None
+                else None
+            ),
+            limitations=limitations,
         )
 
     @classmethod
     def _control_output(cls, raw: object) -> Any:
         if not isinstance(raw, Mapping):
             raise ValidationError("review response must be a mapping")
-        kind = str(raw.get("kind", raw.get("type", "abstention")))
+        kind = _input_text(raw.get("kind", raw.get("type", "abstention")), "response kind")
         if kind == "abstention":
             return Abstention(
-                str(raw["reason_code"]),
-                str(raw["scope"]),
-                str(raw["explanation"]),
-                tuple(str(value) for value in raw.get("missing_inputs", ())),
-                str(raw.get("remediation", "Route the case for review.")),
+                _input_text(raw["reason_code"], "reason_code"),
+                _input_text(raw["scope"], "scope"),
+                _input_text(raw["explanation"], "explanation"),
+                _input_strings(raw.get("missing_inputs", ()), "missing_inputs"),
+                _input_text(raw.get("remediation", "Route the case for review."), "remediation"),
             )
         if kind == "typed_error":
+            details = raw.get("details", {})
+            if not isinstance(details, Mapping):
+                raise ValidationError("typed error details must be a mapping")
             return TypedInvocationError(
-                str(raw["code"]),
-                str(raw["message"]),
-                bool(raw.get("retryable", False)),
-                raw.get("details", {}),
+                _input_text(raw["code"], "typed error code"),
+                _input_text(raw["message"], "typed error message"),
+                _input_bool(raw.get("retryable", False), "typed error retryable"),
+                details,
             )
         if kind == "evidence_envelope":
             return cls._evidence_envelope(raw)
         if kind == "workflow_decision":
             return WorkflowDecision(
-                decision=str(raw["decision"]),
-                selected_agent_ids=tuple(str(value) for value in raw.get("selected_agent_ids", ())),
-                selected_tool_ids=tuple(str(value) for value in raw.get("selected_tool_ids", ())),
-                requires_human_review=bool(raw.get("requires_human_review", False)),
-                reasons=tuple(str(value) for value in raw.get("reasons", ())),
-                warnings=tuple(str(value) for value in raw.get("warnings", ())),
-                abstained=bool(raw.get("abstained", False)),
+                decision=_input_text(raw["decision"], "decision"),
+                selected_agent_ids=_input_strings(
+                    raw.get("selected_agent_ids", ()), "selected_agent_ids"
+                ),
+                selected_tool_ids=_input_strings(
+                    raw.get("selected_tool_ids", ()), "selected_tool_ids"
+                ),
+                requires_human_review=_input_bool(
+                    raw.get("requires_human_review", False), "requires_human_review"
+                ),
+                reasons=_input_strings(raw.get("reasons", ()), "reasons"),
+                warnings=_input_strings(raw.get("warnings", ()), "warnings"),
+                abstained=_input_bool(raw.get("abstained", False), "abstained"),
             )
         raise ValidationError(f"unsupported review response type: {kind}")
 
@@ -635,14 +688,22 @@ class ControlPlaneApplication:
                 "Intake requires text or bytes_base64 together with source_id.",
                 ("text", "bytes_base64", "source_id"),
             )
-        try:
-            sample_id = (
-                str(request.input_payload["sample_id"])
-                if request.input_payload.get("sample_id") is not None
-                else None
+        if isinstance(text, str) and isinstance(binary_b64, str):
+            return Abstention(
+                "ambiguous_intake_payload",
+                "variant_intake",
+                "Intake accepts either text or bytes_base64, not both.",
+                ("text", "bytes_base64"),
             )
-            build = str(
-                request.input_payload.get("genome_build", self.intake.default_build)
+        try:
+            sample_raw = request.input_payload.get("sample_id")
+            sample_id = None if sample_raw is None else _input_text(sample_raw, "sample_id")
+            build = _input_text(
+                request.input_payload.get("genome_build", self.intake.default_build),
+                "genome_build",
+            )
+            include_no_call = _input_bool(
+                request.input_payload.get("include_no_call", False), "include_no_call"
             )
             if isinstance(binary_b64, str):
                 data = base64.b64decode(binary_b64, validate=True)
@@ -651,7 +712,7 @@ class ControlPlaneApplication:
                     source_id=source_id,
                     genome_build=build,
                     sample_id=sample_id,
-                    include_no_call=bool(request.input_payload.get("include_no_call", False)),
+                    include_no_call=include_no_call,
                 )
             else:
                 batch = self.intake.parse_text(
@@ -660,7 +721,7 @@ class ControlPlaneApplication:
                     input_format=request.input_payload.get("input_format"),
                     genome_build=build,
                     sample_id=sample_id,
-                    include_no_call=bool(request.input_payload.get("include_no_call", False)),
+                    include_no_call=include_no_call,
                 )
         except (TypeError, ValueError, ValidationError) as exc:
             return Abstention(
@@ -695,21 +756,31 @@ class ControlPlaneApplication:
                 "Identity normalization requires a notation field.",
                 ("notation",),
             )
-        report = VRSNormalizer().normalize(
-            notation,
-            genome_build=str(raw.get("genome_build", "GRCh38")),
-            sequence_digest=(
-                str(raw["sequence_digest"]) if raw.get("sequence_digest") is not None else None
-            ),
-            reference_sequence=(
-                str(raw["reference_sequence"])
-                if raw.get("reference_sequence") is not None
-                else None
-            ),
-            reference_start=(
-                int(raw["reference_start"]) if raw.get("reference_start") is not None else None
-            ),
-        )
+        try:
+            genome_build = _input_text(raw.get("genome_build", "GRCh38"), "genome_build")
+            sequence_digest = raw.get("sequence_digest")
+            if sequence_digest is not None:
+                sequence_digest = _input_text(sequence_digest, "sequence_digest")
+            reference_sequence = raw.get("reference_sequence")
+            if reference_sequence is not None:
+                reference_sequence = _input_text(reference_sequence, "reference_sequence")
+            reference_start = raw.get("reference_start")
+            if reference_start is not None and type(reference_start) is not int:
+                raise ValidationError("reference_start must be an integer")
+            report = VRSNormalizer().normalize(
+                notation,
+                genome_build=genome_build,
+                sequence_digest=sequence_digest,
+                reference_sequence=reference_sequence,
+                reference_start=reference_start,
+            )
+        except (TypeError, ValueError, ValidationError) as exc:
+            return Abstention(
+                "invalid_variant_payload",
+                "variant_identity",
+                str(exc),
+                ("notation", "genome_build"),
+            )
         if report.state == NormalizationState.INVALID:
             return Abstention(
                 "invalid_variant_notation",
@@ -1293,21 +1364,27 @@ class ControlPlaneApplication:
         query_raw = raw.get("query", raw)
         if not isinstance(query_raw, Mapping):
             raise ValidationError("atlas query must be a mapping")
+        window_bp = query_raw.get("window_bp", 2_000)
+        encode_limit = query_raw.get("encode_limit", 25)
+        if type(window_bp) is not int or type(encode_limit) is not int:
+            raise ValidationError("atlas query limits must be integers")
         return AtlasQuery(
-            variant_id=str(query_raw.get("variant_id", variant.variant_id)),
-            window_bp=int(query_raw.get("window_bp", 2_000)),
-            include_encode_catalog=bool(query_raw.get("include_encode_catalog", False)),
+            variant_id=_input_text(query_raw.get("variant_id", variant.variant_id), "variant_id"),
+            window_bp=window_bp,
+            include_encode_catalog=_input_bool(
+                query_raw.get("include_encode_catalog", False), "include_encode_catalog"
+            ),
             encode_assay_title=(
-                str(query_raw["encode_assay_title"])
+                _input_text(query_raw["encode_assay_title"], "encode_assay_title")
                 if query_raw.get("encode_assay_title") is not None
                 else None
             ),
             encode_biosample=(
-                str(query_raw["encode_biosample"])
+                _input_text(query_raw["encode_biosample"], "encode_biosample")
                 if query_raw.get("encode_biosample") is not None
                 else None
             ),
-            encode_limit=int(query_raw.get("encode_limit", 25)),
+            encode_limit=encode_limit,
         )
 
     def _sequence(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
@@ -1582,16 +1659,29 @@ class ControlPlaneApplication:
     def _motifs(raw: object) -> tuple[MotifDefinition, ...]:
         if not isinstance(raw, (list, tuple)):
             raise ValidationError("motifs must be a list")
-        return tuple(
-            MotifDefinition(
-                motif_id=str(item["motif_id"]),
-                name=str(item.get("name", item.get("label", ""))),
-                pattern=str(item["pattern"]),
-                source_id=str(item.get("source_id", "declared_motif")),
+        if len(raw) > 10_000:
+            raise ValidationError("motifs exceed the maximum count")
+        motifs: list[MotifDefinition] = []
+        for index, item in enumerate(raw):
+            if not isinstance(item, Mapping):
+                raise ValidationError(f"motifs[{index}] must be a mapping")
+            motifs.append(
+                MotifDefinition(
+                    motif_id=_input_text(item["motif_id"], f"motifs[{index}].motif_id"),
+                    name=_input_text(
+                        item.get("name", item.get("label", "")),
+                        f"motifs[{index}].name",
+                    ),
+                    pattern=_input_text(item["pattern"], f"motifs[{index}].pattern"),
+                    source_id=_input_text(
+                        item.get("source_id", "declared_motif"),
+                        f"motifs[{index}].source_id",
+                    ),
+                )
             )
-            for item in raw
-            if isinstance(item, Mapping)
-        )
+        if len({motif.motif_id for motif in motifs}) != len(motifs):
+            raise ValidationError("motifs must contain unique motif_id values")
+        return tuple(motifs)
 
     def _uncertainty(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
         raw = request.input_payload
@@ -1651,22 +1741,36 @@ class ControlPlaneApplication:
         context_raw = raw.get("context")
         if not isinstance(context_raw, Mapping):
             raise ValidationError("each uncertainty claim requires a context mapping")
+        depends_on = _input_strings(raw.get("depends_on", ()), "claim depends_on")
+        payload = raw.get("payload", {})
+        if not isinstance(payload, Mapping):
+            raise ValidationError("claim payload must be a mapping")
+        score_raw = raw.get("score")
+        score = None if score_raw is None else _input_number(score_raw, "claim score")
         return EvidenceClaim(
-            evidence_id=str(raw["evidence_id"]),
-            edge_id=str(raw["edge_id"]),
-            source_id=str(raw["source_id"]),
-            channel=str(raw["channel"]),
-            state=EvidenceState(str(raw["state"])),
-            tier=EvidenceTier(str(raw["tier"])),
-            score=float(raw["score"]) if raw.get("score") is not None else None,
-            confidence=float(raw["confidence"]),
+            evidence_id=_input_text(raw["evidence_id"], "claim evidence_id"),
+            edge_id=_input_text(raw["edge_id"], "claim edge_id"),
+            source_id=_input_text(raw["source_id"], "claim source_id"),
+            channel=_input_text(raw["channel"], "claim channel"),
+            state=EvidenceState(_input_text(raw["state"], "claim state")),
+            tier=EvidenceTier(_input_text(raw["tier"], "claim tier")),
+            score=score,
+            confidence=_input_number(raw["confidence"], "claim confidence"),
             context=ReferenceContext.from_dict(context_raw),
-            summary=str(raw["summary"]),
-            payload=dict(raw.get("payload", {})),
-            depends_on=tuple(str(item) for item in raw.get("depends_on", ())),
-            produced_by=str(raw.get("produced_by", "control_plane_input")),
-            created_at=str(raw.get("created_at", "control-plane-input")),
-            supersedes=(str(raw["supersedes"]) if raw.get("supersedes") is not None else None),
+            summary=_input_text(raw["summary"], "claim summary"),
+            payload=payload,
+            depends_on=depends_on,
+            produced_by=_input_text(
+                raw.get("produced_by", "control_plane_input"), "claim produced_by"
+            ),
+            created_at=_input_text(
+                raw.get("created_at", "control-plane-input"), "claim created_at"
+            ),
+            supersedes=(
+                _input_text(raw["supersedes"], "claim supersedes")
+                if raw.get("supersedes") is not None
+                else None
+            ),
         )
 
     @staticmethod
@@ -1675,20 +1779,31 @@ class ControlPlaneApplication:
             return None
         if not isinstance(raw, Mapping):
             raise ValidationError("domain_profile must be a mapping")
-        ranges = {
-            str(key): (float(value[0]), float(value[1]))
-            for key, value in dict(raw["feature_ranges"]).items()
-        }
+        feature_ranges = raw.get("feature_ranges")
+        if not isinstance(feature_ranges, Mapping):
+            raise ValidationError("domain_profile.feature_ranges must be a mapping")
+        ranges: dict[str, tuple[float, float]] = {}
+        for key, value in feature_ranges.items():
+            name = _input_text(key, "domain feature name")
+            if not isinstance(value, (list, tuple)) or len(value) != 2:
+                raise ValidationError(f"domain feature range for {name} must have two values")
+            low = _input_number(value[0], f"domain feature range {name}[0]")
+            high = _input_number(value[1], f"domain feature range {name}[1]")
+            if low > high:
+                raise ValidationError(f"domain feature range for {name} is reversed")
+            ranges[name] = (low, high)
         return DomainProfile(
-            profile_id=str(raw["profile_id"]),
-            context_key=str(raw["context_key"]),
-            required_features=tuple(str(item) for item in raw["required_features"]),
+            profile_id=_input_text(raw["profile_id"], "domain profile_id"),
+            context_key=_input_text(raw["context_key"], "domain context_key"),
+            required_features=_input_strings(raw["required_features"], "domain required_features"),
             feature_ranges=ranges,
-            source_version=str(raw["source_version"]),
+            source_version=_input_text(raw["source_version"], "domain source_version"),
             model_digest=(
-                str(raw["model_digest"]) if raw.get("model_digest") is not None else None
+                _input_text(raw["model_digest"], "domain model_digest")
+                if raw.get("model_digest") is not None
+                else None
             ),
-            watch_threshold=float(raw.get("watch_threshold", 0.15)),
+            watch_threshold=_input_number(raw.get("watch_threshold", 0.15), "domain watch_threshold"),
         )
 
     def _assay_route(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
@@ -2183,15 +2298,15 @@ class ControlPlaneApplication:
         if not isinstance(context_raw, Mapping):
             raise ValidationError("each cohort observation requires a context mapping")
         return CohortObservation(
-            observation_id=str(raw["observation_id"]),
-            subject_id=str(raw["subject_id"]),
-            locus_id=str(raw["locus_id"]),
-            mutated=bool(raw["mutated"]),
-            callable=bool(raw["callable"]),
-            mutability_score=float(raw["mutability_score"]),
-            chromatin_score=float(raw["chromatin_score"]),
-            ancestry_group=str(raw["ancestry_group"]),
-            disease_class=str(raw["disease_class"]),
+            observation_id=_input_text(raw["observation_id"], "cohort observation_id"),
+            subject_id=_input_text(raw["subject_id"], "cohort subject_id"),
+            locus_id=_input_text(raw["locus_id"], "cohort locus_id"),
+            mutated=_input_bool(raw["mutated"], "cohort mutated"),
+            callable=_input_bool(raw["callable"], "cohort callable"),
+            mutability_score=_input_number(raw["mutability_score"], "cohort mutability_score"),
+            chromatin_score=_input_number(raw["chromatin_score"], "cohort chromatin_score"),
+            ancestry_group=_input_text(raw["ancestry_group"], "cohort ancestry_group"),
+            disease_class=_input_text(raw["disease_class"], "cohort disease_class"),
             context=ReferenceContext.from_dict(context_raw),
         )
 
@@ -2243,16 +2358,16 @@ class ControlPlaneApplication:
         if not isinstance(raw, Mapping):
             raise ValidationError("each causal edge must be a mapping")
         return HypothesisEdge(
-            edge_id=str(raw["edge_id"]),
-            edge_type=EdgeType(str(raw["edge_type"])),
-            source_id=str(raw["source_id"]),
-            target_id=str(raw["target_id"]),
-            support=float(raw["support"]),
-            uncertainty=float(raw["uncertainty"]),
-            context_fit=float(raw["context_fit"]),
-            claim_ids=tuple(str(item) for item in raw["claim_ids"]),
-            support_level=SupportLevel(str(raw["support_level"])),
-            alternatives=tuple(str(item) for item in raw.get("alternatives", ())),
+            edge_id=_input_text(raw["edge_id"], "edge_id"),
+            edge_type=EdgeType(_input_text(raw["edge_type"], "edge_type")),
+            source_id=_input_text(raw["source_id"], "edge source_id"),
+            target_id=_input_text(raw["target_id"], "edge target_id"),
+            support=_input_number(raw["support"], "edge support"),
+            uncertainty=_input_number(raw["uncertainty"], "edge uncertainty"),
+            context_fit=_input_number(raw["context_fit"], "edge context_fit"),
+            claim_ids=_input_strings(raw["claim_ids"], "edge claim_ids"),
+            support_level=SupportLevel(_input_text(raw["support_level"], "support_level")),
+            alternatives=_input_strings(raw.get("alternatives", ()), "edge alternatives"),
         )
 
     def _reclassify(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
@@ -2396,8 +2511,12 @@ class ControlPlaneApplication:
         if isinstance(notation, str) and notation.strip():
             return parse_variant(
                 notation,
-                genome_build=str(raw.get("genome_build", "GRCh38")),
-                variant_id=str(raw.get("variant_id")) if raw.get("variant_id") else None,
+                genome_build=_input_text(raw.get("genome_build", "GRCh38"), "genome_build"),
+                variant_id=(
+                    _input_text(raw["variant_id"], "variant_id")
+                    if raw.get("variant_id") is not None
+                    else None
+                ),
             )
         raise ValidationError("variant notation or variant mapping is required")
 
