@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -29,8 +28,15 @@ from typing import Any
 from . import (
     module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate as gate_model,
 )
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 FederationReleaseGate = gate_model.FederationReleaseGate
 FederationAssurance = gate_model.FederationAssurance
@@ -741,17 +747,28 @@ def _manifest_address(value: Mapping[str, Any]) -> str:
 def write_review_queue(value: FederationReviewQueue, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_review_queue(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
-        raise ValidationError("review queue destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "review queue destination")
+        if destination.is_symlink():
+            raise ValidationError("review queue destination cannot be a symlink")
+        if destination.exists():
+            if (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
+                raise ValidationError("review queue destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("review queue destination is not a regular directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("review queue destination could not be prepared") from error
     raw = canonical_bytes(value.to_dict())
     manifest_body = _manifest_body(value, raw)
     manifest_body["manifest_address"] = _manifest_address(manifest_body)
     manifest = canonical_bytes(manifest_body)
     temporary = Path(tempfile.mkdtemp(prefix=f".{REVIEW_PREFIX}-", dir=str(destination.parent)))
     try:
-        (temporary / REVIEW_NAME).write_bytes(raw)
-        (temporary / MANIFEST_NAME).write_bytes(manifest)
+        atomic_write_bytes(temporary / REVIEW_NAME, raw, field="review queue staging document")
+        atomic_write_bytes(temporary / MANIFEST_NAME, manifest, field="review manifest staging document")
         if destination.exists():
             if not destination.is_dir() or any(destination.iterdir()):
                 if not overwrite:
@@ -767,7 +784,7 @@ def write_review_queue(value: FederationReviewQueue, directory: str | Path, *, o
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -779,8 +796,14 @@ def _read_json(path: Path, field: str) -> dict[str, Any]:
 
 def load_review_queue(directory: str | Path) -> FederationReviewQueue:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir():
-        raise ValidationError("review queue input must be a directory")
+    try:
+        _validate_parent(source.parent, "review queue input")
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("review queue input must be a directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("review queue input could not be inspected") from error
     children = tuple(source.iterdir())
     if any(item.is_symlink() for item in children) or {item.name for item in children} != set(FILES):
         raise ValidationError("review queue file set is invalid")
@@ -795,7 +818,7 @@ def load_review_queue(directory: str | Path) -> FederationReviewQueue:
         raise ValidationError("review manifest metadata is invalid")
     artifact = _mapping(manifest["artifact"], "review artifact")
     _strict(artifact, {"name", "bytes", "byte_address", "file_address"}, "review artifact")
-    raw = (source / REVIEW_NAME).read_bytes()
+    raw = read_bytes(source / REVIEW_NAME, field="review queue artifact")
     if artifact["name"] != REVIEW_NAME or artifact["bytes"] != len(raw) or artifact["byte_address"] != hash_bytes(raw) or artifact["file_address"] != _file_address(REVIEW_NAME, raw):
         raise ValidationError("review artifact address mismatch")
     queue = review_queue_from_mapping(_read_json(source / REVIEW_NAME, "review queue"))
