@@ -52,7 +52,7 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     address_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_operation,
     address_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_verification,
 )
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 def _text(value: Any, field: str, maximum: int = 4096) -> str:
@@ -85,8 +85,8 @@ def _bounded(value: Any, field: str, maximum: int) -> int:
 
 def _json_object(payload: bytes, field: str) -> dict[str, Any]:
     try:
-        value = json.loads(payload.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is not valid UTF-8 JSON") from exc
     if not isinstance(value, dict):
         raise ValidationError(f"{field} must be a JSON object")

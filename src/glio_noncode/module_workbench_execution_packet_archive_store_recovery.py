@@ -18,7 +18,7 @@ from .module_workbench_execution_packet_archive_store_contracts import (
     MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_OBJECTS_DIRECTORY,
 )
 from .run_workspace import _has_forbidden_key
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_RECOVERY_VERSION = (
     "module-workbench-execution-packet-archive-store-recovery-v1"
@@ -323,7 +323,7 @@ def inspect_module_workbench_execution_packet_archive_store(
     else:
         try:
             manifest_bytes = manifest_path.read_bytes()
-            decoded = json.loads(manifest_bytes.decode("utf-8"))
+            decoded = _strict_json_loads(manifest_bytes.decode("utf-8"))
             manifest = decoded if isinstance(decoded, Mapping) else None
             findings.append(
                 _finding(
@@ -336,7 +336,7 @@ def inspect_module_workbench_execution_packet_archive_store(
                     "manifest can be decoded as a JSON object",
                 )
             )
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError):
+        except (OSError, UnicodeDecodeError, ValueError, TypeError):
             findings.append(
                 _finding(
                     len(findings),
