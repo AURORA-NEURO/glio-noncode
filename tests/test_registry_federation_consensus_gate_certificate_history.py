@@ -89,6 +89,23 @@ class CertificateHistoryTests(CertificateFixture):
             history_model.write_history(value, destination, overwrite=True)
             self.assertEqual(history_model.load_history(destination).content_address, value.content_address)
 
+    def test_history_persistence_rejects_symlinked_root(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            issued, _ = self._values(root)
+            value = history_model.build_history(((issued.certificate, issued.certificate_audit),), history_id="symlink-history")
+            destination = root / "history"
+            history_model.write_history(value, destination)
+            linked = root / "linked-history"
+            try:
+                linked.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                history_model.load_history(linked)
+            with self.assertRaises(ValidationError):
+                history_model.write_history(value, linked, overwrite=True)
+
     def test_history_loader_rejects_duplicate_manifest_fields(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -128,7 +145,7 @@ class CertificateHistoryTests(CertificateFixture):
             with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
                 with self.assertRaises(ValidationError):
                     history_model.load_history(destination)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(history_model, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     history_model.load_history(destination)
 

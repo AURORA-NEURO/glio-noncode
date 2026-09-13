@@ -12,6 +12,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, read_bytes
 from . import registry_federation_consensus_gate_certificate as certificate_model
 from . import registry_federation_consensus_gate_certificate_audit as audit_model
 from .errors import ValidationError
@@ -263,6 +264,8 @@ def history_bytes(value: RegistryFederationConsensusGateCertificateHistory) -> d
 def write_history(value: RegistryFederationConsensusGateCertificateHistory, directory: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_history(value)
     destination = Path(directory)
+    if destination.exists() and destination.is_symlink():
+        raise ValidationError("certificate history destination cannot be a symlink")
     if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
         raise ValidationError("certificate history destination already exists")
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -270,7 +273,7 @@ def write_history(value: RegistryFederationConsensusGateCertificateHistory, dire
     try:
         staging = Path(tempfile.mkdtemp(prefix="consensus-certificate-history-staging-", dir=str(destination.parent)))
         for name, raw in history_bytes(value).items():
-            (staging / name).write_bytes(raw)
+            atomic_write_bytes(staging / name, raw, field="certificate history staging path")
         if destination.exists():
             shutil.rmtree(destination)
         staging.replace(destination)
@@ -284,7 +287,7 @@ def write_history(value: RegistryFederationConsensusGateCertificateHistory, dire
 def load_history(directory: str | Path) -> RegistryFederationConsensusGateCertificateHistory:
     try:
         source = Path(directory)
-        if not source.is_dir():
+        if source.is_symlink() or not source.is_dir():
             raise ValidationError("certificate history directory does not contain exact canonical members")
         members = tuple(source.iterdir())
     except OSError as error:
@@ -292,8 +295,8 @@ def load_history(directory: str | Path) -> RegistryFederationConsensusGateCertif
     if tuple(sorted(path.name for path in members)) != tuple(sorted(FILES)) or any(path.is_symlink() or not path.is_file() for path in members):
         raise ValidationError("certificate history directory does not contain exact canonical members")
     try:
-        raw = {name: (source / name).read_bytes() for name in FILES}
-    except OSError as error:
+        raw = {name: read_bytes(source / name, field="certificate history artifact") for name in FILES}
+    except (OSError, ValidationError) as error:
         raise ValidationError("certificate history artifact could not be read") from error
     try:
         decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
