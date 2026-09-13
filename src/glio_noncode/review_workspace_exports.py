@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .review_workspace import ReviewWorkspaceReport
@@ -460,8 +461,9 @@ def write_review_workspace_release(
     """Write a bundle without deleting unrelated files or following a symlink root."""
 
     root = Path(destination)
-    if root.exists() and root.is_symlink():
-        raise ValidationError("review release destination must not be a symlink")
+    _validate_parent(root.parent, "review release destination")
+    if root.exists() and (root.is_symlink() or not root.is_dir()):
+        raise ValidationError("review release destination must be a regular directory")
     root.mkdir(parents=True, exist_ok=True)
     if any(root.iterdir()) and not allow_existing:
         raise ValueError("review release destination is not empty; pass allow_existing=True to overwrite")
@@ -470,11 +472,15 @@ def write_review_workspace_release(
         target = root / filename
         if target.exists() and target.is_symlink():
             raise ValidationError(f"review release artifact must not be a symlink: {filename}")
-        target.write_bytes(artifact.payload)
+        atomic_write_bytes(target, artifact.payload, field=f"review release artifact {filename}")
     manifest_target = root / REVIEW_WORKSPACE_RELEASE_MANIFEST
     if manifest_target.exists() and manifest_target.is_symlink():
         raise ValidationError("review release manifest must not be a symlink")
-    manifest_target.write_bytes((canonical_json(bundle.manifest) + "\n").encode("utf-8"))
+    atomic_write_bytes(
+        manifest_target,
+        (canonical_json(bundle.manifest) + "\n").encode("utf-8"),
+        field="review release manifest",
+    )
     return root
 
 
@@ -537,9 +543,9 @@ def verify_review_workspace_release(destination: str | Path) -> ReviewWorkspaceR
             verified_artifact_count=0, missing_files=(REVIEW_WORKSPACE_RELEASE_MANIFEST,),
         )
     try:
-        manifest_bytes = manifest_path.read_bytes()
+        manifest_bytes = read_bytes(manifest_path, field="review release manifest")
         manifest = _strict_json_loads(manifest_bytes.decode("utf-8"))
-    except (OSError, UnicodeError, ValueError):
+    except (OSError, UnicodeError, ValueError, ValidationError):
         return _verification(
             root=root, release_id="", accepted=False, manifest_version_valid=False,
             manifest_address_valid=False, public_boundary_valid=False, artifact_count=0,
@@ -595,13 +601,13 @@ def verify_review_workspace_release(destination: str | Path) -> ReviewWorkspaceR
             continue
         payload = b""
         try:
-            payload = target.read_bytes()
+            payload = read_bytes(target, field=f"review release artifact {filename}")
             valid = (
                 len(payload) == int(raw_artifact.get("byte_count", -1))
                 and len(payload.decode("utf-8").splitlines()) == int(raw_artifact.get("line_count", -1))
                 and hash_bytes(payload, prefix=REVIEW_WORKSPACE_RELEASE_ARTIFACT_PREFIX) == raw_artifact.get("content_address")
             )
-        except (OSError, UnicodeError, ValueError, TypeError):
+        except (OSError, UnicodeError, ValueError, TypeError, ValidationError):
             valid = False
         if not valid:
             tampered.append(filename)
