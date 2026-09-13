@@ -21,15 +21,13 @@ from __future__ import annotations
 import csv
 import io
 import json
-import os
-import shutil
-import tempfile
 import zipfile
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 from . import registry_federation_consensus_gate_certificate_observatory_package as package_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -320,22 +318,21 @@ def archive_bytes(value: RegistryFederationConsensusGateCertificateObservatoryAr
 
 
 def _write_atomic_file(destination: Path, raw: bytes, *, overwrite: bool) -> Path:
+    _validate_parent(destination.parent, "certificate observatory archive destination")
+    if destination.is_symlink():
+        raise ValidationError("archive destination must not be a symlink")
     if destination.exists():
         if not overwrite:
             raise ValidationError("archive destination exists; explicit overwrite is required")
-        if destination.is_symlink() or not destination.is_file():
+        if not destination.is_file():
             raise ValidationError("archive destination must be a regular file")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, name = tempfile.mkstemp(prefix=".certificate-observatory-archive-", suffix=".zip", dir=str(destination.parent))
-    os.close(descriptor)
-    temporary = Path(name)
-    try:
-        temporary.write_bytes(raw)
-        os.replace(temporary, destination)
-    except Exception:
-        temporary.unlink(missing_ok=True)
-        raise
-    return destination
+    _validate_parent(destination.parent, "certificate observatory archive destination")
+    return atomic_write_bytes(
+        destination,
+        raw,
+        field="certificate observatory archive destination",
+    )
 
 
 def write_archive(value: RegistryFederationConsensusGateCertificateObservatoryArchive, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -362,7 +359,6 @@ def _package_from_payload(decoded: Mapping[str, Any], raw: Mapping[str, bytes]) 
 
 def load_archive(source: str | Path | bytes) -> RegistryFederationConsensusGateCertificateObservatoryArchive:
     stream: io.BytesIO | Any
-    close_stream = False
     physical_size = len(source) if isinstance(source, bytes) else None
     if isinstance(source, bytes):
         stream = io.BytesIO(source)
@@ -370,9 +366,9 @@ def load_archive(source: str | Path | bytes) -> RegistryFederationConsensusGateC
         path = Path(source)
         if path.is_symlink() or not path.is_file():
             raise ValidationError("archive input must be a regular file")
-        stream = path.open("rb")
-        close_stream = True
-        physical_size = path.stat().st_size
+        raw_source = read_bytes(path, field="certificate observatory archive input")
+        stream = io.BytesIO(raw_source)
+        physical_size = len(raw_source)
     try:
         try:
             archive = zipfile.ZipFile(stream, "r")
@@ -387,8 +383,7 @@ def load_archive(source: str | Path | bytes) -> RegistryFederationConsensusGateC
                 raise ValidationError("archive member vocabulary or safety contract failed")
             raw = {name: archive.read(name) for name in FILES}
     finally:
-        if close_stream:
-            stream.close()
+        stream.close()
     try:
         decoded = {name: _strict_json_loads(raw[name].decode("utf-8")) for name in FILES}
     except (UnicodeDecodeError, ValueError) as error:
