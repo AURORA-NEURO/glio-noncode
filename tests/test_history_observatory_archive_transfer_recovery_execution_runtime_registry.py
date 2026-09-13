@@ -11,6 +11,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -114,6 +115,16 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryTests(uni
             (destination / "unexpected.json").write_text("{}", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 registry_model.load_registry(destination)
+
+    def test_registry_loader_normalizes_directory_inspection_failures(self):
+        primary, secondary = self._runtimes()
+        value = registry_model.build_registry((primary, secondary), registry_id="execution-runtime-registry-failure-fixture")
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "registry"
+            registry_model.persist_registry(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    registry_model.load_registry(destination)
 
     def test_cli_api_schemas_and_public_inventory(self):
         primary, secondary = self._runtimes()

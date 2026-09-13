@@ -453,7 +453,10 @@ def load_registry(destination: str | Path) -> RecoveryExecutionRuntimeRegistry:
     destination = Path(destination)
     if not destination.is_dir() or destination.is_symlink():
         raise ValidationError("runtime registry source must be a regular directory")
-    children = tuple(destination.iterdir())
+    try:
+        children = tuple(destination.iterdir())
+    except OSError as error:
+        raise ValidationError("runtime registry directory could not be inspected") from error
     if tuple(sorted(item.name for item in children)) != tuple(sorted(FILES)):
         raise ValidationError("runtime registry directory must contain the exact file set")
     if any(item.is_symlink() or not item.is_file() for item in children):
