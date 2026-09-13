@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
+from .errors import ValidationError
 from .serialization import canonical_json, hash_bytes, jsonable
 from .workbench_release_frontier_offline_closure_certification import (
     certify_workbench_release_closure,
@@ -216,15 +218,24 @@ def write_workbench_release_closure_export(
     destination: str | Path,
 ) -> Path:
     root = Path(destination)
+    _validate_parent(root.parent, "workbench release closure export")
+    if root.exists() and (root.is_symlink() or not root.is_dir()):
+        raise ValidationError("workbench release closure export destination must be a regular directory")
     root.mkdir(parents=True, exist_ok=True)
     for artifact in packet.artifacts:
         if not safe_relative_path(artifact.relative_path):
             raise ValueError(f"unsafe D15 closure export path: {artifact.relative_path}")
         target = root / artifact.relative_path
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(artifact.content)
-    (root / "manifest.json").write_bytes(
-        (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8")
+        atomic_write_bytes(
+            target,
+            artifact.content,
+            field=f"workbench release closure artifact {artifact.relative_path}",
+        )
+    atomic_write_bytes(
+        root / "manifest.json",
+        (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8"),
+        field="workbench release closure manifest",
     )
     return root
 
@@ -239,7 +250,7 @@ def verify_workbench_release_closure_export(
         {
             path.relative_to(root).as_posix(): path
             for path in root.rglob("*")
-            if path.is_file() and path.name != "manifest.json"
+        if path.is_file() and not path.is_symlink() and path.name != "manifest.json"
         }
         if root.exists()
         else {}
@@ -253,9 +264,9 @@ def verify_workbench_release_closure_export(
     changed = {
         path
         for path in set(expected) & set(actual)
-        if actual[path].read_bytes() != expected[path].content
+        if read_bytes(actual[path], field=f"workbench release closure artifact {path}") != expected[path].content
     }
-    if manifest_path.is_file() and manifest_path.read_bytes() != expected_manifest:
+    if manifest_path.is_file() and not manifest_path.is_symlink() and read_bytes(manifest_path, field="workbench release closure manifest") != expected_manifest:
         changed.add("manifest.json")
     body = {
         "bundle_id": packet.bundle_id,

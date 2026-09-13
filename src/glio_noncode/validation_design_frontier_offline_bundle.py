@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
@@ -300,6 +301,7 @@ def write_validation_design_offline_bundle(bundle: ValidationDesignBundle, desti
 
     root = Path(destination)
     try:
+        _validate_parent(root.parent, "validation-design destination")
         if root.is_symlink():
             raise ValidationError("validation-design destination is unsafe")
         root.mkdir(parents=True, exist_ok=True)
@@ -316,11 +318,19 @@ def write_validation_design_offline_bundle(bundle: ValidationDesignBundle, desti
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.parent.is_symlink() or not target.parent.is_dir() or target.is_symlink():
             raise ValidationError("validation-design artifact path is unsafe")
-        target.write_bytes(artifact.payload.encode("utf-8"))
+        atomic_write_bytes(
+            target,
+            artifact.payload.encode("utf-8"),
+            field=f"validation-design artifact {artifact.relative_path}",
+        )
     manifest_path = _offline_path(root, VALIDATION_DESIGN_BUNDLE_MANIFEST)
     if manifest_path.is_symlink():
         raise ValidationError("validation-design manifest path is unsafe")
-    manifest_path.write_bytes(validation_design_bundle_manifest_text(bundle).encode("utf-8"))
+    atomic_write_bytes(
+        manifest_path,
+        validation_design_bundle_manifest_text(bundle).encode("utf-8"),
+        field="validation-design manifest",
+    )
     return root
 
 
@@ -348,9 +358,9 @@ def verify_validation_design_offline_bundle(destination: str | Path) -> Validati
         return _verification("missing-manifest", [_check("manifest-present", ValidationDesignBundleCheckPlane.MANIFEST, False, False, True, "bundle manifest is missing or is not a regular file")])
     checks: list[ValidationDesignBundleCheck] = []
     try:
-        raw_manifest = manifest_path.read_bytes()
+        raw_manifest = read_bytes(manifest_path, field="validation-design manifest")
         manifest = _strict_json_loads(raw_manifest.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         return _verification("invalid-manifest", [_check("manifest-readable", ValidationDesignBundleCheckPlane.MANIFEST, False, type(exc).__name__, "valid UTF-8 JSON", "bundle manifest cannot be decoded")])
     if not isinstance(manifest, Mapping):
         return _verification("invalid-manifest", [_check("manifest-object", ValidationDesignBundleCheckPlane.MANIFEST, False, type(manifest).__name__, "object", "bundle manifest root must be an object")])
@@ -393,7 +403,7 @@ def verify_validation_design_offline_bundle(destination: str | Path) -> Validati
         if not regular:
             continue
         try:
-            raw = target.read_bytes()
+            raw = read_bytes(target, field=f"validation-design artifact {relative_path}")
             text = raw.decode("utf-8")
             address = hash_bytes(raw, prefix=VALIDATION_DESIGN_BUNDLE_ARTIFACT_PREFIX)
             exact = len(raw) == item.get("byte_count") and _line_count(text) == item.get("line_count") and address == item.get("content_address")
@@ -405,7 +415,7 @@ def verify_validation_design_offline_bundle(destination: str | Path) -> Validati
                 except ValueError:
                     public = False
                 checks.append(_check(f"json-public:{artifact_id}", ValidationDesignBundleCheckPlane.PUBLIC_BOUNDARY, public, public, True, "JSON artifact is valid and public-boundary safe"))
-        except (OSError, UnicodeDecodeError) as exc:
+        except (OSError, UnicodeDecodeError, ValidationError) as exc:
             checks.append(_check(f"readable:{artifact_id}", ValidationDesignBundleCheckPlane.ARTIFACT, False, type(exc).__name__, "readable UTF-8 file", "artifact cannot be decoded"))
     actual_paths: set[str] = set()
     for path in root.rglob("*"):
