@@ -11,6 +11,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -234,6 +235,19 @@ class ReviewPersistenceTests(ReviewFixture):
             (destination / "extra.json").write_bytes(b"{}")
             with self.assertRaises(ValidationError):
                 review.load_review(destination)
+
+    def test_queue_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "review"
+            review.write_review(self.ready_review, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    review.load_review(destination)
+
+            review.write_review(self.ready_review, destination, overwrite=True)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    review.load_review(destination)
 
     def test_queue_loader_rejects_noncanonical_bytes(self):
         with tempfile.TemporaryDirectory() as temporary:

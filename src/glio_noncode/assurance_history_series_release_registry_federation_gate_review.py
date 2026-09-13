@@ -1045,14 +1045,21 @@ def write_review(value: FederationReviewBundle, directory: str | Path, *, overwr
 def _load_documents(directory: str | Path, files: Sequence[str], label: str) -> tuple[dict[str, dict[str, Any]], dict[str, bytes]]:
     target = Path(directory)
     _require_directory(target, f"{label} directory")
-    if {item.name for item in target.iterdir()} != set(files):
+    try:
+        members = tuple(target.iterdir())
+    except OSError as error:
+        raise ValidationError(f"{label} directory could not be inspected") from error
+    if {item.name for item in members} != set(files):
         raise ValidationError(f"{label} file set is invalid")
     parsed: dict[str, dict[str, Any]] = {}
     raw_documents: dict[str, bytes] = {}
     for name in files:
         path = target / name
         _require_regular_file(path, f"{label} {name}")
-        raw = path.read_bytes()
+        try:
+            raw = path.read_bytes()
+        except OSError as error:
+            raise ValidationError(f"{label} {name} could not be read") from error
         parsed[name] = _read_json(path, f"{label} {name}")
         if raw != canonical_bytes(parsed[name]):
             raise ValidationError(f"{label} {name} is not canonical JSON")
