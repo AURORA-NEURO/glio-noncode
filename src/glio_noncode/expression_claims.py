@@ -14,7 +14,6 @@ the native aggregator cannot double count them.
 
 from __future__ import annotations
 
-import json
 import math
 import re
 from collections.abc import Iterable, Mapping, Sequence
@@ -25,7 +24,7 @@ from typing import Any
 from .errors import ValidationError
 from .expression_evidence import RNAConsequenceEvidence, RNAEvidenceState
 from .models import EdgeType, EvidenceClaim, EvidenceState, EvidenceTier, ReferenceContext
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 SCHEMA_VERSION = "1.0.0"
 RNA_CONSEQUENCE_CHANNEL = "matched_rna_consequence"
@@ -133,8 +132,8 @@ def _bounded_batch_rows(values: Iterable[Any], label: str) -> tuple[Any, ...]:
 
 def _json_mapping(text: str, label: str) -> Mapping[str, Any]:
     try:
-        value = json.loads(text)
-    except (TypeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(text)
+    except (TypeError, ValueError) as error:
         raise ValidationError(f"{label} must be valid JSON") from error
     return _mapping(value, label)
 

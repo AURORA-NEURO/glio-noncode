@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -20,7 +19,7 @@ from math import isfinite
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 class SequenceAdapterState(StrEnum):
@@ -202,8 +201,8 @@ class _EffectTableAdapter:
         first = next(line.strip() for line in text.splitlines() if line.strip())
         if first.startswith(("{", "[")):
             try:
-                payload = json.loads(text)
-            except json.JSONDecodeError as exc:
+                payload = _strict_json_loads(text)
+            except ValueError as exc:
                 raise ValidationError(f"invalid effect adapter JSON: {exc}") from exc
             rows = payload.get("observations", payload) if isinstance(payload, Mapping) else payload
             if not isinstance(rows, list):

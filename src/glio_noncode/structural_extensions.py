@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -21,7 +20,7 @@ from typing import Any
 
 from .errors import ValidationError
 from .identity import normalize_chromosome
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 from .variation import StructuralEvent
 
 
@@ -225,8 +224,8 @@ class SVConsensusImporter:
     @staticmethod
     def _json_rows(text: str) -> tuple[Mapping[str, Any], ...]:
         try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
+            payload = _strict_json_loads(text)
+        except ValueError as exc:
             raise ValidationError(f"invalid SV caller JSON: {exc}") from exc
         rows = payload.get("observations", payload) if isinstance(payload, Mapping) else payload
         if not isinstance(rows, list):

@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -30,7 +29,7 @@ from typing import Any
 
 from .errors import ValidationError
 from .identity import normalize_chromosome
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 class CohortBetaState(StrEnum):
@@ -526,8 +525,8 @@ class RegionalBurdenParser:
     ) -> RegionalBurdenBatch:
         require_non_empty(source_id, "regional burden source_id")
         try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
+            payload = _strict_json_loads(text)
+        except ValueError as exc:
             raise ValidationError(f"invalid regional burden JSON: {exc}") from exc
         if not isinstance(payload, Mapping):
             raise ValidationError("regional burden JSON must be an object")
@@ -1449,8 +1448,8 @@ def _rows(
         selected = "json" if text.lstrip().startswith(("{", "[")) else "tsv"
     if selected == "json":
         try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
+            payload = _strict_json_loads(text)
+        except ValueError as exc:
             raise ValidationError(f"invalid cohort beta JSON: {exc}") from exc
         rows: Any = payload
         if isinstance(payload, Mapping):

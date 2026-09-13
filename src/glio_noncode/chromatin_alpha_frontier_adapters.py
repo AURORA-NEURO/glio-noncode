@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -18,7 +17,7 @@ from .chromatin_alpha_frontier_public_data import (
     ChromatinAlphaFrontierRecord,
 )
 from .errors import ValidationError
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,8 +88,8 @@ class ChromatinAlphaFrontierAdapterRegistry:
 def _rows(record: ChromatinAlphaFrontierRecord) -> list[dict[str, Any]]:
     raw = record.payload.get("input_text", "[]")
     try:
-        value = json.loads(str(raw))
-    except (TypeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(str(raw))
+    except (TypeError, ValueError) as error:
         raise ValidationError("input_text must be a JSON list") from error
     if not isinstance(value, list):
         raise ValidationError("input_text must contain a list")

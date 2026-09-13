@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -22,7 +21,7 @@ from typing import Any
 
 from .errors import ValidationError
 from .models import EvidenceClaim, EvidenceState
-from .serialization import content_hash, hash_bytes, jsonable, require_non_empty, utc_now
+from .serialization import _strict_json_loads, content_hash, hash_bytes, jsonable, require_non_empty, utc_now
 
 
 class LifecycleState(StrEnum):
@@ -242,12 +241,12 @@ class CitationResolver:
         source_version: str = "unspecified",
     ) -> CitationBatch:
         try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
+            payload = _strict_json_loads(text)
+        except ValueError as exc:
             issue = CitationIssue(
                 1,
                 "invalid_json",
-                f"citation JSON could not be decoded: {exc.msg}",
+                f"citation JSON could not be decoded: {getattr(exc, 'msg', str(exc))}",
                 hash_bytes(text.encode("utf-8")),
             )
             return self._batch(source_id, source_version, text, (), (issue,))

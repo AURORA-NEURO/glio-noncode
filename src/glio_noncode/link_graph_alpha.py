@@ -41,7 +41,7 @@ from .link_graph import (
     LinkType,
 )
 from .models import ReferenceContext
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 class LinkGraphAlphaState(StrEnum):
@@ -1158,11 +1158,9 @@ def _rows(
     if not selected:
         selected = "json" if text.lstrip().startswith(("{", "[")) else "tsv"
     if selected == "json":
-        import json
-
         try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
+            payload = _strict_json_loads(text)
+        except ValueError as exc:
             raise ValidationError(f"invalid link graph alpha JSON: {exc}") from exc
         rows = payload.get(collection_key, payload) if isinstance(payload, Mapping) else payload
         if isinstance(rows, Mapping):

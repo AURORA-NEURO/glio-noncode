@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -26,7 +25,7 @@ from .link_graph import (
     LinkType,
 )
 from .models import ReferenceContext
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 class LinkGraphBetaDirection(StrEnum):
@@ -467,8 +466,8 @@ def _rows(
         selected = "json" if text.lstrip().startswith(("{", "[")) else "tsv"
     if selected == "json":
         try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
+            payload = _strict_json_loads(text)
+        except ValueError as exc:
             raise ValidationError(f"invalid link graph beta JSON: {exc}") from exc
         rows = payload.get(collection_key, payload) if isinstance(payload, Mapping) else payload
         if isinstance(rows, Mapping):

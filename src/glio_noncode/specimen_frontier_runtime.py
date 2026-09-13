@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .specimen_frontier_fixture_eval import (
     SpecimenFrontierExecution,
     _execute,
@@ -311,10 +310,10 @@ def _input_count(
             return 0
         if str(payload.get("input_format", "tsv")) == "json":
             try:
-                parsed = json.loads(text)
+                parsed = _strict_json_loads(text)
                 rows = parsed.get("records", parsed) if isinstance(parsed, Mapping) else parsed
                 return len(rows) if isinstance(rows, list) else 0
-            except (TypeError, json.JSONDecodeError):
+            except (TypeError, ValueError):
                 return 0
         return max(len([line for line in text.splitlines() if line.strip()]) - 1, 0)
     value = payload.get("fingerprints", ())

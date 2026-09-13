@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -30,7 +29,7 @@ from statistics import fmean
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 class ValidationAlphaState(StrEnum):
@@ -834,8 +833,8 @@ def _rows(
         selected = "json" if text.lstrip().startswith(("{", "[")) else "tsv"
     if selected == "json":
         try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
+            payload = _strict_json_loads(text)
+        except ValueError as exc:
             raise ValidationError(f"invalid validation alpha JSON: {exc}") from exc
         rows = payload.get(collection_key, payload) if isinstance(payload, Mapping) else payload
         if isinstance(rows, Mapping):

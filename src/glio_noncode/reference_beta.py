@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
@@ -27,7 +26,7 @@ from typing import Any
 
 from .errors import ValidationError
 from .identity import normalize_chromosome
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 class ReferenceBetaState(StrEnum):
@@ -175,8 +174,8 @@ class GencodeTranscriptAdapter:
             selected = "json" if text.lstrip().startswith(("{", "[")) else "gtf"
         if selected == "json":
             try:
-                payload = json.loads(text)
-            except json.JSONDecodeError as exc:
+                payload = _strict_json_loads(text)
+            except ValueError as exc:
                 return self._catalog(
                     source_id,
                     source_version,
@@ -482,8 +481,8 @@ class ManeTranscriptAdapter:
             selected = "json" if text.lstrip().startswith(("{", "[")) else "tsv"
         if selected == "json":
             try:
-                payload = json.loads(text)
-            except json.JSONDecodeError as exc:
+                payload = _strict_json_loads(text)
+            except ValueError as exc:
                 return self._catalog(
                     source_id,
                     source_version,
@@ -735,8 +734,8 @@ class RegulatoryOntologyAdapter:
             selected = "json" if text.lstrip().startswith(("{", "[")) else "tsv"
         if selected == "json":
             try:
-                payload = json.loads(text)
-            except json.JSONDecodeError as exc:
+                payload = _strict_json_loads(text)
+            except ValueError as exc:
                 return self._catalog(
                     source_id,
                     source_version,
@@ -976,7 +975,7 @@ class DiseaseOntologyMapper:
         if not selected:
             selected = "json" if text.lstrip().startswith(("{", "[")) else "tsv"
         if selected == "json":
-            payload = json.loads(text)
+            payload = _strict_json_loads(text)
             rows = (
                 payload.get("mappings", payload.get("records"))
                 if isinstance(payload, Mapping)

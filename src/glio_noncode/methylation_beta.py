@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -20,7 +19,7 @@ from typing import Any
 
 from .errors import ValidationError
 from .identity import normalize_chromosome
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 _MISSING = object()
 
@@ -140,8 +139,8 @@ class MethylationRecordParser:
             selected = "json" if text.lstrip().startswith(("{", "[")) else "tsv"
         if selected == "json":
             try:
-                payload = json.loads(text)
-            except json.JSONDecodeError as exc:
+                payload = _strict_json_loads(text)
+            except ValueError as exc:
                 raise ValidationError(f"invalid methylation JSON: {exc}") from exc
             if isinstance(payload, Mapping):
                 rows = payload.get("records", payload.get("methylation", payload))

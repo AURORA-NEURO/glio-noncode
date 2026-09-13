@@ -18,7 +18,6 @@ unknown.
 
 from __future__ import annotations
 
-import json
 import math
 import re
 from collections.abc import Iterable, Mapping, Sequence
@@ -29,7 +28,7 @@ from statistics import median
 from typing import Any, TypeVar
 
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 SCHEMA_VERSION = "1.0.0"
 MAX_EXACT_BINOMIAL_TRIALS = 100_000
@@ -182,8 +181,8 @@ def _bounded_batch_rows(
 
 def _json_mapping(text: str, label: str) -> Mapping[str, Any]:
     try:
-        value = json.loads(text)
-    except (TypeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(text)
+    except (TypeError, ValueError) as error:
         raise ValidationError(f"{label} must be valid JSON") from error
     return _mapping(value, label)
 

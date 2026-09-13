@@ -28,7 +28,7 @@ from typing import Any
 from .errors import ValidationError
 from .identity import normalize_allele, normalize_chromosome, normalize_variant
 from .models import VariantIdentity, VariantKind
-from .serialization import content_hash, hash_bytes, jsonable, require_non_empty, utc_now
+from .serialization import _strict_json_loads, content_hash, hash_bytes, jsonable, require_non_empty, utc_now
 
 
 class BetaState(StrEnum):
@@ -226,11 +226,11 @@ class CategoricalCatalogParser:
         source_version: str = "unspecified",
     ) -> CategoricalCatalogBatch:
         try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
+            payload = _strict_json_loads(text)
+        except ValueError as exc:
             issue = VariantBetaIssue(
                 "invalid_json",
-                f"categorical catalog JSON could not be decoded: {exc.msg}",
+                f"categorical catalog JSON could not be decoded: {getattr(exc, 'msg', str(exc))}",
                 hash_bytes(text.encode("utf-8")),
             )
             return self._batch(source_id, source_version, text, (), (issue,))
@@ -1438,8 +1438,8 @@ def _mapping_value(value: Any) -> dict[str, Any]:
         return dict(value)
     if isinstance(value, str) and value.strip():
         try:
-            parsed = json.loads(value)
-        except json.JSONDecodeError:
+            parsed = _strict_json_loads(value)
+        except (TypeError, ValueError):
             return {}
         return dict(parsed) if isinstance(parsed, Mapping) else {}
     return {}
