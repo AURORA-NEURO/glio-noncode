@@ -8,6 +8,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .specimen_lineage import (
@@ -308,8 +309,8 @@ def specimen_lineage_pipeline_request_from_file(path: str | Path) -> SpecimenLin
 
     source = Path(path)
     try:
-        raw = _strict_json_loads(source.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
+        raw = _strict_json_loads(read_text(source, field="specimen lineage pipeline request"))
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"invalid lineage pipeline request: {exc}") from exc
     if not isinstance(raw, Mapping):
         raise ValidationError("lineage pipeline request root must be an object")
