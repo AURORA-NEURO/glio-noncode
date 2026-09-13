@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .variant_beta import (
@@ -98,8 +99,8 @@ class VariationFixtureEvaluator:
     def load_file(self, path: str | Path) -> Mapping[str, Any]:
         fixture_path = Path(path)
         try:
-            raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
-        except ValueError as exc:
+            raw = _strict_json_loads(read_text(fixture_path, field="variation fixture"))
+        except (OSError, ValueError, ValidationError) as exc:
             raise ValidationError(f"variation fixture is not valid JSON: {fixture_path}") from exc
         if not isinstance(raw, Mapping):
             raise ValidationError("variation fixture must be an object")
