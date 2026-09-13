@@ -25,6 +25,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, atomic_write_text, read_bytes, read_text
 from .errors import StoreError, ValidationError
 from .module_fabric_support import contains_private_key
 from .review_workspace_plan import (
@@ -1049,9 +1050,9 @@ class ReviewPlanExecutionStore:
         if unexpected:
             raise StoreError(f"execution ledger has unexpected files: {sorted(unexpected)}")
         try:
-            event_bytes = events_path.read_bytes()
-            manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, ValueError) as exc:
+            event_bytes = read_bytes(events_path, field="execution ledger events")
+            manifest = _strict_json_loads(read_text(manifest_path, field="execution ledger manifest"))
+        except (OSError, UnicodeError, ValueError, ValidationError) as exc:
             raise StoreError(f"execution ledger is unreadable: {exc}") from exc
         if not isinstance(manifest, Mapping):
             raise StoreError("execution ledger manifest must be an object")
@@ -1126,22 +1127,28 @@ class ReviewPlanExecutionStore:
             raise ValidationError("execution event count exceeds the bound")
         report = replay_review_workspace_plan_execution(plan, (*existing, *pending))
         directory, events_path, manifest_path = self._paths(plan)
+        _validate_parent(self.root.parent, "execution ledger root")
         _safe_file(self.root, directory=True)
         self.root.mkdir(parents=True, exist_ok=True)
         directory.mkdir(parents=True, exist_ok=True)
         _safe_file(directory, directory=True)
-        old_bytes = events_path.read_bytes() if events_path.exists() else b""
+        try:
+            old_bytes = read_bytes(events_path, field="execution ledger events") if events_path.exists() else b""
+        except (OSError, ValidationError) as exc:
+            raise StoreError(f"execution ledger events cannot be read: {exc}") from exc
         new_bytes = old_bytes + b"".join(_canonical_event_line(event) for event in pending)
-        temporary_events = events_path.with_suffix(".tmp")
-        temporary_events.write_bytes(new_bytes)
-        temporary_events.replace(events_path)
+        try:
+            atomic_write_bytes(events_path, new_bytes, field="execution ledger events")
+        except (OSError, ValidationError) as exc:
+            raise StoreError(f"execution ledger events cannot be written: {exc}") from exc
         manifest_body = _manifest_body(plan, (*existing, *pending), new_bytes)
         manifest = manifest_body | {
             "manifest_address": _address(manifest_body, "review-plan-execution-manifest")
         }
-        temporary_manifest = manifest_path.with_suffix(".tmp")
-        temporary_manifest.write_text(canonical_json(manifest), encoding="utf-8")
-        temporary_manifest.replace(manifest_path)
+        try:
+            atomic_write_text(manifest_path, canonical_json(manifest), field="execution ledger manifest")
+        except (OSError, ValidationError) as exc:
+            raise StoreError(f"execution ledger manifest cannot be written: {exc}") from exc
         return report
 
     def report(self, plan: ReviewWorkspacePlan) -> ReviewWorkspaceExecutionReport:
