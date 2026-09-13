@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import os
-import tempfile
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .release_assurance_attestation import (
     release_assurance_attestation_json,
@@ -278,20 +277,7 @@ def build_release_assurance_attestation_packet(
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
-    )
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_name, path)
-    finally:
-        temporary = Path(temporary_name)
-        if temporary.exists():
-            temporary.unlink()
+    atomic_write_bytes(path, payload, field="attestation packet artifact")
 
 
 def write_release_assurance_attestation_packet(
@@ -303,13 +289,19 @@ def write_release_assurance_attestation_packet(
     """Write exact bytes with atomic replacement and explicit overwrite opt-in."""
 
     root = Path(destination)
+    _validate_parent(root.parent, "attestation packet destination")
     if root.exists() and root.is_symlink():
         raise ValidationError("attestation packet destination must not be a symlink")
+    if root.exists() and not root.is_dir():
+        raise ValidationError("attestation packet destination must be a directory")
     root.mkdir(parents=True, exist_ok=True)
     if any(root.iterdir()) and not allow_existing:
         raise ValidationError("attestation packet destination is not empty")
     for artifact in packet.artifacts:
-        _atomic_write(root / safe_relative_path(artifact.relative_path), artifact.content)
+        path = root / safe_relative_path(artifact.relative_path)
+        _validate_parent(path.parent, "attestation packet artifact")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _atomic_write(path, artifact.content)
     _atomic_write(
         root / "manifest.json", (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8")
     )
@@ -322,8 +314,8 @@ def _read_manifest(directory: str | Path) -> tuple[Path, dict[str, Any], tuple[s
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError):
+        value = _strict_json_loads(read_text(path, field="attestation packet manifest"))
+    except (OSError, UnicodeError, ValueError, ValidationError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -460,8 +452,8 @@ def verify_release_assurance_attestation_packet(
             missing.append(path)
             continue
         try:
-            payload = target.read_bytes()
-        except OSError:
+            payload = read_bytes(target, field=f"attestation packet artifact {path}")
+        except (OSError, ValidationError):
             tampered.append(path)
             continue
         if (
@@ -526,9 +518,9 @@ def load_release_assurance_attestation_packet(
     path = root / "attestation" / "attestation.json"
     try:
         attestation = ReleaseAssuranceAttestation.from_mapping(
-            _strict_json_loads(path.read_text(encoding="utf-8"))
+            _strict_json_loads(read_text(path, field="attestation packet attestation payload"))
         )
-    except (OSError, UnicodeError, ValueError) as exc:
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError("attestation packet attestation payload is invalid") from exc
     body = {
         "packet_id": str(manifest.get("packet_id", "")),
