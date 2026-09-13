@@ -30,7 +30,7 @@ from .identity_public_data import (
     IdentityFixtureRecord,
     IdentityRecordKind,
 )
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 @dataclass(frozen=True, slots=True)
@@ -109,8 +109,8 @@ class IdentityFixtureEvaluator:
     def load_file(self, path: str | Path) -> Mapping[str, Any]:
         fixture_path = Path(path)
         try:
-            raw = json.loads(fixture_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
+            raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
+        except ValueError as exc:
             raise ValidationError(f"identity fixture is not valid JSON: {fixture_path}") from exc
         if not isinstance(raw, Mapping):
             raise ValidationError("identity fixture must be an object")

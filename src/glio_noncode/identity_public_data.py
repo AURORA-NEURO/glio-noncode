@@ -8,7 +8,6 @@ restricted field names before a fixture can contribute evidence.
 
 from __future__ import annotations
 
-import json
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -17,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 IDENTITY_FIXTURE_SCHEMA_VERSION = "identity-evidence-v1"
 
@@ -297,8 +296,8 @@ class IdentityFixtureCatalog:
     def from_file(cls, path: str | Path) -> IdentityFixtureCatalog:
         fixture_path = Path(path)
         try:
-            raw = json.loads(fixture_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
+            raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
+        except ValueError as exc:
             raise ValidationError(f"identity fixture is not valid JSON: {fixture_path}") from exc
         if not isinstance(raw, Mapping):
             raise ValidationError("identity fixture must be an object")

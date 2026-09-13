@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -10,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .variation_fixture_eval import VariationFixtureEvaluator
 from .variation_public_data import (
     VariationDataState,
@@ -97,8 +96,8 @@ class VariationScenarioMatrix:
     @classmethod
     def from_file(cls, path: str | Path) -> VariationScenarioMatrix:
         try:
-            raw = json.loads(Path(path).read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
+            raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+        except ValueError as exc:
             raise ValidationError(f"variation scenario fixture is not valid JSON: {path}") from exc
         if not isinstance(raw, Mapping):
             raise ValidationError("variation scenario fixture must be an object")

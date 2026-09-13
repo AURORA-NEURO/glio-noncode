@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
@@ -21,7 +20,7 @@ from .intake_public_data import (
     IntakeFixtureCatalog,
     IntakeFixtureRecord,
 )
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 class IntakeScenarioClass(StrEnum):
@@ -105,10 +104,10 @@ class IntakeScenarioMatrix:
     def from_file(cls, path: str | Path) -> IntakeScenarioMatrix:
         fixture_path = Path(path)
         try:
-            raw = json.loads(fixture_path.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
         except OSError as exc:
             raise ValidationError(f"unable to read intake scenario fixture: {path}") from exc
-        except json.JSONDecodeError as exc:
+        except ValueError as exc:
             raise ValidationError(f"intake scenario fixture is not valid JSON: {path}") from exc
         if not isinstance(raw, Mapping):
             raise ValidationError("intake scenario fixture must be an object")

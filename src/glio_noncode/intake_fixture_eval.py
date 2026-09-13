@@ -31,7 +31,7 @@ from .intake_public_data import (
     IntakeFixtureRecord,
     IntakeRecordKind,
 )
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,10 +106,10 @@ class IntakeFixtureEvaluator:
     def load_file(self, path: str | Path) -> Mapping[str, Any]:
         fixture_path = Path(path)
         try:
-            raw = json.loads(fixture_path.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
         except OSError as exc:
             raise ValidationError(f"unable to read intake fixture: {fixture_path}") from exc
-        except json.JSONDecodeError as exc:
+        except ValueError as exc:
             raise ValidationError(f"intake fixture is not valid JSON: {fixture_path}") from exc
         if not isinstance(raw, Mapping):
             raise ValidationError("intake fixture must be an object")

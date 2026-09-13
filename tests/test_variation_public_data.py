@@ -221,6 +221,13 @@ class VariationPublicDataTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 VariationFixtureCatalog.from_file(path)
 
+    def test_duplicate_json_keys_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                VariationFixtureCatalog.from_file(path)
+
     def test_record_kind_is_enum_backed(self) -> None:
         catalog = VariationFixtureCatalog.from_file(FIXTURE)
         for record in catalog.records:

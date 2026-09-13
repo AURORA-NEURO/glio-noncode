@@ -135,6 +135,13 @@ class VariationScenarioMatrixTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 VariationScenarioMatrix.from_file(path)
 
+    def test_duplicate_fixture_keys_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                VariationScenarioMatrix.from_file(path)
+
     def test_missing_control_payload_is_rejected(self) -> None:
         raw = copy.deepcopy(self.raw)
         raw["negative_controls"][0].pop("payload")

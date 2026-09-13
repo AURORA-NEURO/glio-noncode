@@ -251,6 +251,13 @@ class IdentityPublicDataTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 IdentityFixtureCatalog.from_file(path)
 
+    def test_duplicate_json_keys_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                IdentityFixtureCatalog.from_file(path)
+
     def test_report_serializes_counts_and_issue_paths(self) -> None:
         fixture = copy.deepcopy(self.fixture)
         fixture["negative_controls"][0]["payload"]["mrn"] = "restricted"
