@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -13,7 +12,7 @@ from .frontier_inference_alpha import (
     ThreeDEvidencePublisher,
     TopologyUncertaintyTransportModel,
 )
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 from .topology_frontier_contracts import (
     TopologyFrontierContractRegistry,
     default_topology_frontier_contracts,
@@ -96,8 +95,8 @@ class TopologyFrontierEvaluationReport:
 def _rows(record: TopologyFrontierRecord) -> list[Any]:
     raw = record.payload.get("input_text", "[]")
     try:
-        value = json.loads(raw)
-    except (TypeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(raw)
+    except (TypeError, ValueError) as exc:
         raise ValidationError(f"{record.record_id} has invalid input_text") from exc
     if not isinstance(value, list):
         raise ValidationError(f"{record.record_id} input_text must contain a list")

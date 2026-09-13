@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -27,7 +26,7 @@ from .atlas_alpha_evidence_public_data import (
     default_atlas_alpha_evidence_fixture,
 )
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 @dataclass(frozen=True, slots=True)
@@ -133,7 +132,7 @@ def _check(check_id: str, record_id: str, passed: bool, detail: str) -> AtlasAlp
 
 
 def _rows(record: AtlasAlphaEvidenceRecord) -> list[dict[str, Any]]:
-    payload = json.loads(str(record.payload["input_text"]))
+    payload = _strict_json_loads(str(record.payload["input_text"]))
     rows = payload.get("records", payload.get("observations", payload.get("elements", ())))
     if not isinstance(rows, list):
         raise ValidationError("atlas alpha fixture input must contain a records list")
@@ -323,7 +322,7 @@ def evaluate_atlas_alpha_evidence_fixture(
         try:
             state, primary, secondary, issue_codes, summary = _execute(record)
             execution_error = None
-        except (KeyError, TypeError, ValueError, ValidationError, json.JSONDecodeError) as exc:
+        except (KeyError, TypeError, ValueError, ValidationError) as exc:
             state, primary, secondary, issue_codes, summary = (
                 "invalid",
                 0,

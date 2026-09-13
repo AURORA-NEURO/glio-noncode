@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -25,7 +24,7 @@ from .chromatin_frontier_public_data import (
     default_chromatin_frontier_fixture,
 )
 from .errors import ValidationError
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 @dataclass(frozen=True, slots=True)
@@ -96,8 +95,8 @@ class ChromatinFrontierEvaluationReport:
 def _rows(record: ChromatinFrontierRecord) -> list[dict[str, Any]]:
     raw = record.payload.get("input_text", "[]")
     try:
-        value = json.loads(raw)
-    except (TypeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(raw)
+    except (TypeError, ValueError) as exc:
         raise ValidationError(f"{record.record_id} has invalid input_text") from exc
     if not isinstance(value, list):
         raise ValidationError(f"{record.record_id} input_text must contain a list")
