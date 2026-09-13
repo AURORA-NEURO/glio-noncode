@@ -19,6 +19,7 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate as gate_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package as package_model
+from ._safe_persistence import _validate_parent, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
@@ -219,15 +220,16 @@ def _check(check_id: str, passed: bool, detail: str, evidence: str) -> RegistryH
 def _read_directory(source: str | Path) -> tuple[dict[str, bytes], set[str], bool]:
     try:
         directory = Path(source)
+        _validate_parent(directory.parent, "release-gate package audit input")
         if directory.is_symlink() or not directory.is_dir():
             return {}, set(), False
         members = tuple(directory.iterdir())
         names = {item.name for item in members}
         if any(item.is_symlink() or not item.is_file() for item in members):
             return {}, names, False
-        payload = {name: (directory / name).read_bytes() for name in package_model.FILES if (directory / name).is_file()}
+        payload = {name: read_bytes(directory / name, field=f"release-gate package audit member {name}") for name in package_model.FILES if (directory / name).is_file()}
         return payload, names, names == set(package_model.FILES) and set(payload) == set(package_model.FILES)
-    except (OSError, ValueError):
+    except (OSError, ValueError, ValidationError):
         return {}, set(), False
 
 
