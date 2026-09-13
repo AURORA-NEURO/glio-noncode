@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package as package_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
@@ -315,19 +316,27 @@ def package_bytes(value: RegistryHistoryReleaseEvidencePipelineObservabilityBund
 def write_registry(value: RegistryHistoryReleaseEvidencePipelineObservabilityBundleCatalogPromotionGateReleasePacketPackageRegistry, directory: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_registry(value)
     destination = Path(directory)
-    if destination.exists():
-        if not destination.is_dir():
-            raise ValidationError("catalog promotion package registry destination must be a directory")
-        existing = tuple(sorted(item.name for item in destination.iterdir()))
-        if not overwrite or existing != tuple(sorted(FILES)):
-            raise ValidationError("catalog promotion package registry destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "catalog promotion package registry destination")
+        if destination.is_symlink():
+            raise ValidationError("catalog promotion package registry destination cannot be a symlink")
+        if destination.exists():
+            if not destination.is_dir():
+                raise ValidationError("catalog promotion package registry destination must be a directory")
+            existing = tuple(sorted(item.name for item in destination.iterdir()))
+            if not overwrite or existing != tuple(sorted(FILES)):
+                raise ValidationError("catalog promotion package registry destination already exists")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("catalog promotion package registry destination could not be prepared") from error
     staging: Path | None = None
     try:
         staging = Path(tempfile.mkdtemp(prefix="registry-staging-", dir=str(destination.parent)))
         payload = package_bytes(value)
         for name, raw in payload.items():
-            (staging / name).write_bytes(raw)
+            atomic_write_bytes(staging / name, raw, field=f"catalog promotion package registry staging artifact {name}")
         if destination.exists():
             shutil.rmtree(destination)
         staging.replace(destination)
@@ -341,7 +350,8 @@ def write_registry(value: RegistryHistoryReleaseEvidencePipelineObservabilityBun
 def load_registry(directory: str | Path) -> RegistryHistoryReleaseEvidencePipelineObservabilityBundleCatalogPromotionGateReleasePacketPackageRegistry:
     try:
         directory = Path(directory)
-        if not directory.is_dir():
+        _validate_parent(directory.parent, "catalog promotion package registry input")
+        if directory.is_symlink() or not directory.is_dir():
             raise ValidationError("catalog promotion package registry directory does not exist")
         members = tuple(directory.iterdir())
     except OSError as error:
@@ -352,8 +362,8 @@ def load_registry(directory: str | Path) -> RegistryHistoryReleaseEvidencePipeli
     if any(item.is_symlink() or not item.is_file() for item in members):
         raise ValidationError("catalog promotion package registry directory has an invalid member")
     try:
-        manifest = _strict_json_loads((directory / MANIFEST_NAME).read_text(encoding="utf-8"))
-        registry_document = _strict_json_loads((directory / REGISTRY_NAME).read_text(encoding="utf-8"))
+        manifest = _strict_json_loads(read_bytes(directory / MANIFEST_NAME, field="catalog promotion package registry manifest").decode("utf-8"))
+        registry_document = _strict_json_loads(read_bytes(directory / REGISTRY_NAME, field="catalog promotion package registry document").decode("utf-8"))
     except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("catalog promotion package registry contains invalid JSON") from error
     manifest = _mapping(manifest, "catalog promotion package registry manifest")
@@ -365,8 +375,10 @@ def load_registry(directory: str | Path) -> RegistryHistoryReleaseEvidencePipeli
     payload = package_bytes(value)
     try:
         for name, raw in payload.items():
-            if (directory / name).read_bytes() != raw:
+            if read_bytes(directory / name, field=f"catalog promotion package registry member {name}") != raw:
                 raise ValidationError(f"catalog promotion package registry member {name} does not match its canonical bytes")
+    except ValidationError:
+        raise
     except OSError as error:
         raise ValidationError("catalog promotion package registry artifact could not be read") from error
     return value

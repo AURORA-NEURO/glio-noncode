@@ -242,7 +242,7 @@ class CatalogPromotionPackageRegistryTests(PublicBoundaryMixin, DurableCatalogPr
             with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
                 with self.assertRaises(ValidationError):
                     registry.load_registry(destination)
-            with patch.object(Path, "read_text", side_effect=OSError("read denied")):
+            with patch.object(registry, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     registry.load_registry(destination)
             (destination / registry.MANIFEST_NAME).write_text("[]", encoding="utf-8")
