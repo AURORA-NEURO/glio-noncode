@@ -23,6 +23,7 @@ from typing import Any
 
 from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot as snapshot_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
@@ -560,7 +561,7 @@ def render_diff_markdown(value) -> str:
 
 
 def _write(path: Path, value: Mapping[str, Any]) -> None:
-    path.write_bytes(canonical_bytes(value))
+    atomic_write_bytes(path, canonical_bytes(value), field="comparison artifact")
 
 
 def persist_diff(value, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -568,6 +569,7 @@ def persist_diff(value, destination: str | Path, *, overwrite: bool = False) -> 
     target = Path(destination)
     if target.exists() and (target.is_symlink() or not target.is_dir() or not overwrite):
         raise ValidationError("comparison destination exists; explicit overwrite is required")
+    _validate_parent(target.parent, "comparison destination")
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=target.name + ".", dir=target.parent))
     try:
@@ -585,9 +587,9 @@ def persist_diff(value, destination: str | Path, *, overwrite: bool = False) -> 
 
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=f"comparison member {path.name}")
         value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"comparison member {path.name}")
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError(f"comparison member {path.name} is not valid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"comparison member {path.name} is not canonical")

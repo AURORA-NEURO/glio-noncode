@@ -20,6 +20,7 @@ from typing import Any
 
 from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot as snapshot_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -802,13 +803,14 @@ def persist_registry(value, destination: str | Path, *, overwrite: bool = False)
     if destination.exists() and not overwrite:
         raise ValidationError("registry destination already exists")
     parent = destination.parent
+    _validate_parent(parent, "registry destination")
     parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=str(parent)))
     backup: Path | None = None
     try:
         documents = _documents(value)
         for name in FILES:
-            (temporary / name).write_bytes(documents[name])
+            atomic_write_bytes(temporary / name, documents[name], field="registry artifact")
         if destination.exists():
             if not destination.is_dir():
                 raise ValidationError("registry destination must be a directory")
@@ -830,7 +832,7 @@ def persist_registry(value, destination: str | Path, *, overwrite: bool = False)
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError("registry artifact must be a regular file")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field="registry artifact")
     if len(raw) > MAX_REGISTRY_BYTES:
         raise ValidationError("registry artifact exceeds the size bound")
     try:
@@ -875,7 +877,7 @@ def run_registry(value: Sequence[Any] | str | Path | Mapping[str, Any], *, regis
             if not paths:
                 raise ValidationError("registry input must contain snapshot JSON documents")
             for path in paths:
-                raw = _strict_json_loads(path.read_text(encoding="utf-8"))
+                raw = _strict_json_loads(read_text(path, field="registry input artifact"))
                 values.append(raw.get("snapshot", raw))
             result = build_registry(values, registry_id=registry_id)
     elif isinstance(value, Mapping):

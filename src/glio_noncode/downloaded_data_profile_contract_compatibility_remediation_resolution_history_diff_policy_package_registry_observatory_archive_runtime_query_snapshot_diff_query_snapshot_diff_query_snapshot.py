@@ -16,6 +16,7 @@ from typing import Any
 from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query as query_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_audit as query_audit_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -448,11 +449,12 @@ def persist_snapshot(value, destination: str | Path, *, overwrite: bool = False)
     target = Path(destination)
     if target.exists() and (target.is_symlink() or not target.is_dir() or not overwrite):
         raise ValidationError("comparison-query snapshot destination exists; explicit overwrite is required")
+    _validate_parent(target.parent, "comparison-query snapshot destination")
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=target.name + ".", dir=target.parent))
     try:
         for filename in FILES:
-            (temporary / filename).write_bytes(members[filename])
+            atomic_write_bytes(temporary / filename, members[filename], field="comparison-query snapshot artifact")
         if target.exists():
             shutil.rmtree(target)
         os.replace(temporary, target)
@@ -466,7 +468,7 @@ def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
         if path.stat().st_size > MAX_SNAPSHOT_BYTES:
             raise ValidationError(f"comparison-query snapshot member {path.name} exceeds its bound")
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=f"comparison-query snapshot member {path.name}")
         value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"comparison-query snapshot member {path.name}")
     except ValidationError:
         raise
