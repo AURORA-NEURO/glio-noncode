@@ -12,7 +12,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from ._safe_persistence import atomic_write_bytes, read_bytes
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from . import registry_federation_consensus_gate_certificate as certificate_model
 from . import registry_federation_consensus_gate_certificate_audit as audit_model
 from .errors import ValidationError
@@ -264,9 +264,12 @@ def history_bytes(value: RegistryFederationConsensusGateCertificateHistory) -> d
 def write_history(value: RegistryFederationConsensusGateCertificateHistory, directory: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_history(value)
     destination = Path(directory)
-    if destination.exists() and destination.is_symlink():
+    _validate_parent(destination.parent, "certificate history destination")
+    if destination.is_symlink():
         raise ValidationError("certificate history destination cannot be a symlink")
-    if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
+    if destination.exists() and not destination.is_dir():
+        raise ValidationError("certificate history destination must be a directory")
+    if destination.exists() and not overwrite and any(destination.iterdir()):
         raise ValidationError("certificate history destination already exists")
     destination.parent.mkdir(parents=True, exist_ok=True)
     staging: Path | None = None
