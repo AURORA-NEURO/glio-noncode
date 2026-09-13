@@ -79,7 +79,7 @@ class RegistryHistoryReleaseEvidencePipelineBundleBuildTests(RegistryHistoryRele
             with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
                 with self.assertRaises(ValidationError):
                     bundle.load_bundle(destination)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(bundle, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     bundle.load_bundle(destination)
 
