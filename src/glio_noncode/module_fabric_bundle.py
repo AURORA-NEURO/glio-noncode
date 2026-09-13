@@ -515,7 +515,7 @@ def verify_module_fabric_bundle(destination: str | Path) -> FabricBundleVerifica
     try:
         raw_manifest = manifest_path.read_bytes()
         manifest = _strict_json_loads(raw_manifest.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         return _verification(
             "invalid-manifest",
             (_check("manifest-readable", FabricBundleCheckPlane.MANIFEST, False, type(exc).__name__, "valid UTF-8 JSON", "bundle manifest cannot be decoded"),),

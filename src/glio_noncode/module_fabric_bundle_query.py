@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -27,7 +26,7 @@ from .module_fabric_bundle_contracts import (
     FabricBundleQueryResult,
     FabricBundleState,
 )
-from .serialization import canonical_json, content_hash, require_non_empty
+from .serialization import _strict_json_loads, canonical_json, content_hash, require_non_empty
 
 
 def _safe_relative_path(value: str) -> bool:
@@ -41,8 +40,8 @@ def _load_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(value)
     manifest_path = root / MODULE_FABRIC_BUNDLE_MANIFEST
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"cannot load module-fabric bundle manifest: {exc}") from exc
     if not isinstance(manifest, Mapping):
         raise ValidationError("module-fabric bundle manifest must be an object")
@@ -141,8 +140,8 @@ def _json_payload(bundle: FabricBundle, artifact_id: str) -> Any:
     if artifact is None or artifact.payload is None:
         return None
     try:
-        return json.loads(artifact.payload)
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload)
+    except ValueError:
         return None
 
 

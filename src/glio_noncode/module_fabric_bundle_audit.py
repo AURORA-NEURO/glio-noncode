@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
@@ -17,7 +16,7 @@ from .module_fabric_bundle_contracts import (
 )
 from .module_fabric_support import contains_private_key
 from .run_workspace import _has_forbidden_key
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 MODULE_FABRIC_BUNDLE_AUDIT_VERSION = "module-fabric-bundle-audit-v1"
 MODULE_FABRIC_RECORD_COUNT = 32
@@ -134,8 +133,8 @@ def _json_artifact(artifacts: Mapping[str, Any], artifact_id: str) -> tuple[Any,
     if artifact is None or artifact.payload is None:
         return None, False
     try:
-        return json.loads(artifact.payload), True
-    except json.JSONDecodeError:
+        return _strict_json_loads(artifact.payload), True
+    except ValueError:
         return None, False
 
 
@@ -159,9 +158,9 @@ def _public_json_artifacts(artifacts: Mapping[str, Any]) -> bool:
         if artifact.media_type != "application/json" or artifact.payload is None:
             continue
         try:
-            if not _public(json.loads(artifact.payload)):
+            if not _public(_strict_json_loads(artifact.payload)):
                 return False
-        except json.JSONDecodeError:
+        except ValueError:
             return False
     return True
 

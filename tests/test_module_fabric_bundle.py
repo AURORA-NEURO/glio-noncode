@@ -90,6 +90,19 @@ class ModuleFabricBundleTests(unittest.TestCase):
                 any(item.check_id == "bytes:summary" and not item.passed for item in non_finite.checks)
             )
 
+    def test_ambiguous_manifest_json_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            write_module_fabric_bundle(self.bundle, directory)
+            manifest_path = Path(directory) / "bundle.json"
+            manifest = manifest_path.read_text(encoding="utf-8")
+            manifest_path.write_text(
+                manifest.rstrip()[:-1] + ',"bundle_id":"shadow"}\n', encoding="utf-8"
+            )
+            verification = verify_module_fabric_bundle(directory)
+            self.assertFalse(verification.accepted)
+            with self.assertRaises(ValidationError):
+                load_module_fabric_bundle(directory)
+
     def test_unexpected_files_and_symlinks_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             write_module_fabric_bundle(self.bundle, directory)

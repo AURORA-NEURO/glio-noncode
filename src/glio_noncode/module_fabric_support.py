@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import importlib
-import json
 import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
@@ -20,7 +19,7 @@ from .module_fabric_contracts import (
     MODULE_FABRIC_CONTEXT_KEY,
     MODULE_FABRIC_DOMAIN_IDS,
 )
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 _CAPABILITY_RE = re.compile(r"^GNC-(D\d{2})-C(\d{2})$")
@@ -232,8 +231,8 @@ def context_mismatch(value: Any) -> bool:
 
 def parse_fixture_text(text: str) -> Mapping[str, Any]:
     try:
-        value = json.loads(text)
-    except json.JSONDecodeError as exc:
+        value = _strict_json_loads(text)
+    except ValueError as exc:
         raise ValidationError(f"module-fabric fixture is not valid JSON: {exc}") from exc
     if not isinstance(value, Mapping):
         raise ValidationError("module-fabric fixture root must be an object")
