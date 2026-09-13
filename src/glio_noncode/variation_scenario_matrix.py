@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .variation_fixture_eval import VariationFixtureEvaluator
 from .variation_public_data import (
@@ -96,8 +97,10 @@ class VariationScenarioMatrix:
     @classmethod
     def from_file(cls, path: str | Path) -> VariationScenarioMatrix:
         try:
-            raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
-        except ValueError as exc:
+            raw = _strict_json_loads(
+                read_text(path, field="variation scenario fixture")
+            )
+        except (ValueError, ValidationError) as exc:
             raise ValidationError(f"variation scenario fixture is not valid JSON: {path}") from exc
         if not isinstance(raw, Mapping):
             raise ValidationError("variation scenario fixture must be an object")

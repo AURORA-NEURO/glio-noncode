@@ -18,6 +18,7 @@ from typing import Any
 from .errors import ValidationError
 from .frontier_data_alpha import FrontierState
 from .frontier_end_to_end import run_end_to_end_operation
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
@@ -104,7 +105,9 @@ class FrontierScenarioMatrix:
 
     @classmethod
     def from_file(cls, path: str | Path) -> FrontierScenarioMatrix:
-        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(
+            read_text(path, field="frontier scenario fixture")
+        )
         if not isinstance(raw, Mapping):
             raise ValidationError("scenario fixture must be an object")
         return cls(raw)

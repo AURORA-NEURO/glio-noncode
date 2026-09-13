@@ -12,6 +12,7 @@ from .identity_public_data import (
     IdentityDataState,
     IdentityFixtureCatalog,
 )
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
@@ -218,9 +219,7 @@ def _collect_signals(value: Any, signals: set[str]) -> None:
 def evaluate_identity_scenarios(path: str) -> IdentityScenarioMatrixReport:
     """Load and execute one identity scenario matrix."""
 
-    from pathlib import Path
-
-    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(path, field="identity scenario fixture"))
     if not isinstance(raw, Mapping):
         raise TypeError("identity scenario fixture must be an object")
     return IdentityScenarioMatrix(raw).run()

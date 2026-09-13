@@ -20,6 +20,7 @@ from .intake_public_data import (
     IntakeFixtureCatalog,
     IntakeFixtureRecord,
 )
+from ._safe_persistence import read_text
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
@@ -104,8 +105,10 @@ class IntakeScenarioMatrix:
     def from_file(cls, path: str | Path) -> IntakeScenarioMatrix:
         fixture_path = Path(path)
         try:
-            raw = _strict_json_loads(fixture_path.read_text(encoding="utf-8"))
-        except OSError as exc:
+            raw = _strict_json_loads(
+                read_text(fixture_path, field="intake scenario fixture")
+            )
+        except (OSError, ValidationError) as exc:
             raise ValidationError(f"unable to read intake scenario fixture: {path}") from exc
         except ValueError as exc:
             raise ValidationError(f"intake scenario fixture is not valid JSON: {path}") from exc
