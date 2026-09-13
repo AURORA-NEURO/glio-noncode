@@ -1093,28 +1093,83 @@ def deployment_frontier_offline_manifest_text(bundle: DeploymentFrontierOfflineB
     return canonical_json(bundle.to_dict(include_payloads=False)) + "\n"
 
 
+def _offline_path(root: Path, relative_path: str) -> Path:
+    """Resolve one validated relative path without traversing symlinks."""
+
+    current = root
+    for component in PurePosixPath(relative_path).parts:
+        current /= component
+        try:
+            if current.is_symlink():
+                raise ValidationError("deployment offline path is unsafe")
+        except ValidationError:
+            raise
+        except OSError as exc:
+            raise ValidationError("deployment offline path could not be inspected") from exc
+    return current
+
+
+def _prepare_offline_parent(root: Path, relative_path: str) -> Path:
+    """Create and validate every directory leading to one relative path."""
+
+    current = root
+    parts = PurePosixPath(relative_path).parts
+    for component in parts[:-1]:
+        current /= component
+        try:
+            if current.is_symlink():
+                raise ValidationError("deployment offline artifact parent is unsafe")
+            current.mkdir(exist_ok=True)
+            if current.is_symlink() or not current.is_dir():
+                raise ValidationError("deployment offline artifact parent is unsafe")
+        except ValidationError:
+            raise
+        except OSError as exc:
+            raise ValidationError("deployment offline artifact parent could not be prepared") from exc
+    return current
+
+
 def write_deployment_frontier_offline_bundle(
     bundle: DeploymentFrontierOfflineBundle, destination: str | Path
 ) -> Path:
     """Write a closed bundle directory using only relative manifest paths."""
 
     root = Path(destination)
-    root.mkdir(parents=True, exist_ok=True)
-    (root / DEPLOYMENT_FRONTIER_OFFLINE_MANIFEST).write_text(
-        deployment_frontier_offline_manifest_text(bundle), encoding="utf-8"
-    )
+    try:
+        if root.is_symlink():
+            raise ValidationError("deployment offline destination is unsafe")
+        root.mkdir(parents=True, exist_ok=True)
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("deployment offline destination must be a directory")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise ValidationError("deployment offline destination could not be prepared") from exc
+    manifest_path = _offline_path(root, DEPLOYMENT_FRONTIER_OFFLINE_MANIFEST)
+    if manifest_path.is_symlink():
+        raise ValidationError("deployment offline manifest path is unsafe")
+    manifest_path.write_text(deployment_frontier_offline_manifest_text(bundle), encoding="utf-8")
     for artifact in bundle.artifacts:
-        path = root / Path(*PurePosixPath(artifact.relative_path).parts)
-        path.parent.mkdir(parents=True, exist_ok=True)
+        path = _offline_path(root, artifact.relative_path)
+        _prepare_offline_parent(root, artifact.relative_path)
+        if path.is_symlink():
+            raise ValidationError("deployment offline artifact path is unsafe")
         path.write_bytes((artifact.payload or "").encode("utf-8"))
     return root
 
 
 def _manifest_mapping(destination: str | Path) -> tuple[Path, dict[str, Any]]:
     root = Path(destination)
-    manifest_path = root / DEPLOYMENT_FRONTIER_OFFLINE_MANIFEST
-    if not manifest_path.is_file():
-        raise ValidationError("deployment offline manifest is missing")
+    try:
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("deployment offline root must be a regular directory")
+        manifest_path = _offline_path(root, DEPLOYMENT_FRONTIER_OFFLINE_MANIFEST)
+        if manifest_path.is_symlink() or not manifest_path.is_file():
+            raise ValidationError("deployment offline manifest is missing")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise ValidationError("deployment offline manifest could not be inspected") from exc
     try:
         value = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
@@ -1141,8 +1196,15 @@ def load_deployment_frontier_offline_bundle(
         relative_path = str(item.get("relative_path", ""))
         if not _safe_relative_path(relative_path):
             raise ValidationError("deployment offline artifact path is unsafe")
-        path = root / Path(*PurePosixPath(relative_path).parts)
-        payload = path.read_text(encoding="utf-8") if include_payloads and path.is_file() else None
+        path = _offline_path(root, relative_path)
+        try:
+            unsafe = path.is_symlink()
+            present = path.is_file()
+        except OSError as exc:
+            raise ValidationError("deployment offline artifact path could not be inspected") from exc
+        if unsafe:
+            raise ValidationError("deployment offline artifact path is unsafe")
+        payload = path.read_text(encoding="utf-8") if include_payloads and present else None
         try:
             kind = DeploymentFrontierOfflineArtifactKind(str(item["kind"]))
             artifacts.append(
