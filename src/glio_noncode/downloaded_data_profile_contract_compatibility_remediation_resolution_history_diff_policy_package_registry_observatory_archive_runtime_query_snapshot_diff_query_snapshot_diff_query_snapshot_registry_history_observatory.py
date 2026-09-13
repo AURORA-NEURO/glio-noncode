@@ -20,6 +20,7 @@ from typing import Any
 
 from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry_history as history_model
+from ._safe_persistence import _validate_parent, atomic_write_text, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -596,15 +597,18 @@ def summary_json(value: Any) -> str:
 
 
 def _write(path: Path, value: Mapping[str, Any]) -> None:
-    path.write_text(canonical_json(value), encoding="utf-8", newline="\n")
+    atomic_write_text(path, canonical_json(value), field="observatory artifact")
 
 
 def persist_observatory(value: Any, destination: str | Path, *, overwrite: bool = False) -> Path:
     value = observatory_from_mapping(value.to_dict())
     destination = Path(destination)
+    if destination.is_symlink():
+        raise ValidationError("observatory destination must not be a symlink")
     if destination.exists() and (not destination.is_dir() or not overwrite):
         raise ValidationError("observatory destination exists or is not a directory")
     parent = destination.parent
+    _validate_parent(parent, "observatory destination")
     parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".downloaded-comparison-history-observatory-", dir=str(parent)))
     try:
@@ -624,16 +628,16 @@ def persist_observatory(value: Any, destination: str | Path, *, overwrite: bool 
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+        value = _strict_json_loads(read_text(path, field="observatory artifact"))
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError("observatory artifact is not valid JSON") from error
     return _mapping(value, "observatory artifact")
 
 
 def _read_canonical(path: Path, value: Mapping[str, Any]) -> None:
     try:
-        actual = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError) as error:
+        actual = read_text(path, field="observatory artifact")
+    except (OSError, UnicodeDecodeError, ValidationError) as error:
         raise ValidationError("observatory artifact cannot be read") from error
     if actual != canonical_json(value):
         raise ValidationError("observatory artifact is not canonical")

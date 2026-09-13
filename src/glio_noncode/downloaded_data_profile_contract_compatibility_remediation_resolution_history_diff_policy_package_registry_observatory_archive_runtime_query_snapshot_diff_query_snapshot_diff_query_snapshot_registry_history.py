@@ -20,6 +20,7 @@ from typing import Any
 
 from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry as registry_model
+from ._safe_persistence import _validate_parent, atomic_write_text, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -647,15 +648,18 @@ def render_history_markdown(value) -> str:
 
 
 def _write(path: Path, value: Any) -> None:
-    path.write_text(canonical_json(value), encoding="utf-8", newline="\n")
+    atomic_write_text(path, canonical_json(value), field="history artifact")
 
 
 def persist_history(value, destination: str | Path, *, overwrite: bool = False) -> Path:
     typed = verify_history(value)
     destination = Path(destination)
+    if destination.is_symlink():
+        raise ValidationError("history destination must not be a symlink")
     if destination.exists() and (not destination.is_dir() or not overwrite):
         raise ValidationError("history destination exists or is not a directory")
     parent = destination.parent
+    _validate_parent(parent, "history destination")
     parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".comparison-query-snapshot-registry-history-", dir=str(parent)))
     try:
@@ -674,9 +678,9 @@ def persist_history(value, destination: str | Path, *, overwrite: bool = False) 
 
 def _read_json(path: Path) -> tuple[Mapping[str, Any], str]:
     try:
-        text = path.read_text(encoding="utf-8")
+        text = read_text(path, field="history artifact")
         value = _strict_json_loads(text)
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError("history artifact is not valid JSON") from error
     mapping = _mapping(value, "history artifact")
     if canonical_json(mapping) != text:

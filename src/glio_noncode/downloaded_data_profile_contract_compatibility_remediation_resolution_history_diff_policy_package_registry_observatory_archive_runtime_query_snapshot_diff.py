@@ -22,6 +22,7 @@ from typing import Any
 
 from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot as snapshot_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
@@ -471,7 +472,7 @@ def summary_document(value: DownloadedDataProfileContractCompatibilityRemediatio
 
 
 def _write(path: Path, value: Mapping[str, Any]) -> None:
-    path.write_bytes(canonical_bytes(value))
+    atomic_write_bytes(path, canonical_bytes(value), field="snapshot diff artifact")
 
 
 def persist_diff(value: DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiffPolicyPackageRegistryObservatoryArchiveRuntimeQuerySnapshotDiff, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -479,9 +480,12 @@ def persist_diff(value: DownloadedDataProfileContractCompatibilityRemediationRes
         raise ValidationError("snapshot diff persistence requires a typed diff")
     value = diff_from_mapping(value.to_dict())
     destination = Path(destination)
+    if destination.is_symlink():
+        raise ValidationError("snapshot diff destination must not be a symlink")
     if destination.exists() and (not destination.is_dir() or not overwrite):
         raise ValidationError("snapshot diff destination exists or is not a directory")
     parent = destination.parent
+    _validate_parent(parent, "snapshot diff destination")
     parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".downloaded-runtime-query-snapshot-diff-", dir=str(parent)))
     try:
@@ -499,16 +503,16 @@ def persist_diff(value: DownloadedDataProfileContractCompatibilityRemediationRes
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+        value = _strict_json_loads(read_text(path, field="snapshot diff artifact"))
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError("snapshot diff artifact is not valid JSON") from error
     return _mapping(value, "snapshot diff artifact")
 
 
 def _read_canonical(path: Path, value: Mapping[str, Any]) -> None:
     try:
-        actual = path.read_bytes()
-    except OSError as error:
+        actual = read_bytes(path, field="snapshot diff artifact")
+    except (OSError, ValidationError) as error:
         raise ValidationError("snapshot diff artifact cannot be read") from error
     if actual != canonical_bytes(value):
         raise ValidationError("snapshot diff artifact is not canonical")
