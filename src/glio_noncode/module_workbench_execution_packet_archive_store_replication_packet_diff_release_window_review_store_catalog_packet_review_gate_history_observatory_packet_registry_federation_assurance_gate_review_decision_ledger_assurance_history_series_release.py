@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -29,10 +28,21 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from . import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series as series_model
-from . import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series_policy as policy_model
+from . import (
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series as series_model,
+)
+from . import (
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series_policy as policy_model,
+)
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 DecisionAssuranceHistorySeries = series_model.DecisionAssuranceHistorySeries
 DecisionAssuranceHistorySeriesPolicy = policy_model.DecisionAssuranceHistorySeriesPolicy
@@ -886,9 +896,20 @@ def _manifest_address(value: Mapping[str, Any], *, prefix: str = MANIFEST_PREFIX
 def write_decision_assurance_history_series_release_package(value: DecisionAssuranceHistorySeriesReleasePackage, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_decision_assurance_history_series_release_package(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
-        raise ValidationError("series release package destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "series release package destination")
+        if destination.is_symlink():
+            raise ValidationError("series release package destination cannot be a symlink")
+        if destination.exists():
+            if (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
+                raise ValidationError("series release package destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("series release package destination is not a regular directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("series release package destination could not be prepared") from error
     raws = {SERIES_NAME: canonical_bytes(value.series.to_dict()), POLICY_NAME: canonical_bytes(value.policy.to_dict()), EVALUATION_NAME: canonical_bytes(value.evaluation.to_dict()), RELEASE_NAME: canonical_bytes(value.release.to_dict())}
     manifest = _manifest_body(value, raws)
     manifest["manifest_address"] = _manifest_address(manifest)
@@ -896,8 +917,8 @@ def write_decision_assurance_history_series_release_package(value: DecisionAssur
     temporary = Path(tempfile.mkdtemp(prefix=f".{PACKAGE_PREFIX}-", dir=str(destination.parent)))
     try:
         for name, raw in raws.items():
-            (temporary / name).write_bytes(raw)
-        (temporary / MANIFEST_NAME).write_bytes(manifest_raw)
+            atomic_write_bytes(temporary / name, raw, field=f"series release {name} staging document")
+        atomic_write_bytes(temporary / MANIFEST_NAME, manifest_raw, field="series release manifest staging document")
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("series release package destination is not a directory")
@@ -915,7 +936,7 @@ def write_decision_assurance_history_series_release_package(value: DecisionAssur
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -933,7 +954,7 @@ def _check_manifest_artifact(manifest: Mapping[str, Any], source: Path, name: st
     path = source / name
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"series release artifact {name} must be a regular file")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=f"series release artifact {name}")
     byte_address = hash_bytes(raw)
     if artifact.get("bytes") != len(raw) or artifact.get("byte_address") != byte_address or artifact.get("file_address") != _file_address(name, raw, prefix=prefix):
         raise ValidationError(f"series release artifact {name} address mismatch")
@@ -942,8 +963,14 @@ def _check_manifest_artifact(manifest: Mapping[str, Any], source: Path, name: st
 
 def load_decision_assurance_history_series_release_package(directory: str | Path) -> DecisionAssuranceHistorySeriesReleasePackage:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir():
-        raise ValidationError("series release package input must be a directory")
+    try:
+        _validate_parent(source.parent, "series release package input")
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("series release package input must be a directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("series release package input could not be inspected") from error
     children = tuple(source.iterdir())
     if any(item.is_symlink() for item in children) or {item.name for item in children} != set(FILES):
         raise ValidationError("series release package file set is invalid")
@@ -979,16 +1006,27 @@ def _diff_manifest_body(value: DecisionAssuranceHistorySeriesReleaseDiff, raw: b
 def write_decision_assurance_history_series_release_diff(value: DecisionAssuranceHistorySeriesReleaseDiff, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_decision_assurance_history_series_release_diff(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
-        raise ValidationError("series release diff destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "series release diff destination")
+        if destination.is_symlink():
+            raise ValidationError("series release diff destination cannot be a symlink")
+        if destination.exists():
+            if (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
+                raise ValidationError("series release diff destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("series release diff destination is not a regular directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("series release diff destination could not be prepared") from error
     raw = canonical_bytes(value.to_dict())
     manifest = _diff_manifest_body(value, raw)
     manifest["manifest_address"] = _manifest_address(manifest, prefix=DIFF_MANIFEST_PREFIX)
     temporary = Path(tempfile.mkdtemp(prefix=f".{DIFF_PREFIX}-", dir=str(destination.parent)))
     try:
-        (temporary / DIFF_NAME).write_bytes(raw)
-        (temporary / MANIFEST_NAME).write_bytes(canonical_bytes(manifest))
+        atomic_write_bytes(temporary / DIFF_NAME, raw, field="series release diff staging document")
+        atomic_write_bytes(temporary / MANIFEST_NAME, canonical_bytes(manifest), field="series release diff manifest staging document")
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("series release diff destination is not a directory")
@@ -1005,8 +1043,14 @@ def write_decision_assurance_history_series_release_diff(value: DecisionAssuranc
 
 def load_decision_assurance_history_series_release_diff(directory: str | Path) -> DecisionAssuranceHistorySeriesReleaseDiff:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir():
-        raise ValidationError("series release diff input must be a directory")
+    try:
+        _validate_parent(source.parent, "series release diff input")
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("series release diff input must be a directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("series release diff input could not be inspected") from error
     children = tuple(source.iterdir())
     if any(item.is_symlink() for item in children) or {item.name for item in children} != set(DIFF_FILES):
         raise ValidationError("series release diff file set is invalid")
