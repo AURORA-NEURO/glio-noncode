@@ -154,6 +154,10 @@ def read_bytes_bounded(
         metadata = os.fstat(descriptor)
         if not stat.S_ISREG(metadata.st_mode):
             raise ValidationError(f"{field} must be a regular file")
+        # Reject oversized files from metadata before allocating any payload.
+        # The extra-byte read below still covers a concurrent growth.
+        if metadata.st_size > max_bytes:
+            raise ValidationError(f"{field} exceeds the byte ceiling")
         with os.fdopen(descriptor, "rb") as handle:
             descriptor = -1
             payload = handle.read(max_bytes + 1)

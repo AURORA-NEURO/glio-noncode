@@ -422,7 +422,7 @@ class ArchiveRegistryFixture(unittest.TestCase):
             with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
                 with self.assertRaises(ValidationError):
                     history_model.load_history(destination)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(history_model, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     history_model.load_history(destination)
 

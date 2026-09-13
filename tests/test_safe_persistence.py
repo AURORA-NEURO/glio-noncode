@@ -8,6 +8,7 @@ from glio_noncode._safe_persistence import (
     atomic_write_bytes,
     atomic_write_text,
     read_bytes,
+    read_bytes_bounded,
     read_text,
 )
 from glio_noncode.errors import ValidationError
@@ -70,6 +71,18 @@ class SafePersistenceTests(unittest.TestCase):
                 read_bytes(link)
             with self.assertRaises(ValidationError):
                 read_text(link)
+
+    def test_bounded_reads_reject_oversized_members_before_materialization(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "bounded.bin"
+            target.write_bytes(b"12345")
+            self.assertEqual(read_bytes_bounded(target, max_bytes=5), b"12345")
+            with self.assertRaises(ValidationError):
+                read_bytes_bounded(target, max_bytes=4)
+            with self.assertRaises(ValidationError):
+                read_bytes_bounded(target, max_bytes=-1)
+            with self.assertRaises(ValidationError):
+                read_bytes_bounded(target, max_bytes=True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

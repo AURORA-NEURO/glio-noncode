@@ -304,13 +304,13 @@ class CertificateObservatoryArchiveTests(CertificateFixture):
             manifest_raw = (destination / transfer_model.MANIFEST_NAME).read_bytes()
             calls = {"count": 0}
 
-            def fail_after_manifest() -> bytes:
+            def fail_after_manifest(*_args, **_kwargs) -> bytes:
                 calls["count"] += 1
                 if calls["count"] == 1:
                     return manifest_raw
                 raise OSError("chunk denied")
 
-            with patch.object(Path, "read_bytes", side_effect=fail_after_manifest):
+            with patch.object(transfer_model, "read_bytes", side_effect=fail_after_manifest):
                 with self.assertRaisesRegex(ValidationError, "chunk could not be read"):
                     transfer_model.load_transfer(destination)
 

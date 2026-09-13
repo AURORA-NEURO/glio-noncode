@@ -28,6 +28,7 @@ from typing import Any
 
 from . import registry_federation_consensus_gate_certificate_observatory_package as package_model
 from ._safe_persistence import _validate_parent, _validate_target, atomic_write_bytes
+from ._safe_persistence import read_bytes_bounded
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -47,14 +48,7 @@ def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
 
     target = Path(path)
     _validate_target(target, field)
-    try:
-        if target.stat().st_size > MAX_ARCHIVE_BYTES:
-            raise ValidationError(f"{field} exceeds the archive byte ceiling")
-    except ValidationError:
-        raise
-    except OSError:
-        raise
-    payload = target.read_bytes()
+    payload = read_bytes_bounded(target, max_bytes=MAX_ARCHIVE_BYTES, field=field)
     _validate_target(target, field)
     if len(payload) > MAX_ARCHIVE_BYTES:
         raise ValidationError(f"{field} exceeds the archive byte ceiling")

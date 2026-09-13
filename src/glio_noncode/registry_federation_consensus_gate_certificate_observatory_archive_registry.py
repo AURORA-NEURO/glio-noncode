@@ -30,6 +30,7 @@ from typing import Any
 from . import registry_federation_consensus_gate_certificate_observatory_archive as archive_model
 from . import registry_federation_consensus_gate_certificate_observatory_package as package_model
 from ._safe_persistence import _validate_parent, atomic_write_bytes, _validate_target
+from ._safe_persistence import read_bytes_bounded
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -39,7 +40,9 @@ def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
 
     target = Path(path)
     _validate_target(target, field)
-    payload = target.read_bytes()
+    payload = read_bytes_bounded(target, max_bytes=MAX_REGISTRY_MEMBER_BYTES, field=field)
+    if len(payload) > MAX_REGISTRY_MEMBER_BYTES:
+        raise ValidationError(f"{field} exceeds the registry member byte ceiling")
     _validate_target(target, field)
     return payload
 
@@ -66,6 +69,7 @@ MAX_ENTRIES = 128
 MAX_QUERY_ITEMS = 4096
 MAX_ARCHIVE_BYTES = archive_model.MAX_ARCHIVE_BYTES
 MAX_TOTAL_ARCHIVE_BYTES = MAX_ENTRIES * MAX_ARCHIVE_BYTES
+MAX_REGISTRY_MEMBER_BYTES = 16 * 1024 * 1024
 
 
 def _text(value: Any, field: str, maximum: int = 512, *, required: bool = True) -> str:
@@ -644,7 +648,7 @@ def manifest_schema() -> dict[str, Any]:
 
 
 def capabilities() -> dict[str, Any]:
-    return {"version": VERSION, "boundary": BOUNDARY, "registry_prefix": REGISTRY_PREFIX, "entry_prefix": ENTRY_PREFIX, "group_prefix": GROUP_PREFIX, "index_prefix": INDEX_PREFIX, "files": FILES, "limits": {"max_entries": MAX_ENTRIES, "max_query_items": MAX_QUERY_ITEMS, "max_archive_bytes": MAX_ARCHIVE_BYTES, "max_total_archive_bytes": MAX_TOTAL_ARCHIVE_BYTES}, "features": ("verified archive ingestion", "package-group index", "conserved metrics", "content-addressed entries", "atomic five-file persistence", "canonical reload", "JSON CSV and Markdown exports"), "schemas": ("entry", "metrics", "group", "index", "manifest", "registry")}
+    return {"version": VERSION, "boundary": BOUNDARY, "registry_prefix": REGISTRY_PREFIX, "entry_prefix": ENTRY_PREFIX, "group_prefix": GROUP_PREFIX, "index_prefix": INDEX_PREFIX, "files": FILES, "limits": {"max_entries": MAX_ENTRIES, "max_query_items": MAX_QUERY_ITEMS, "max_archive_bytes": MAX_ARCHIVE_BYTES, "max_total_archive_bytes": MAX_TOTAL_ARCHIVE_BYTES, "max_registry_member_bytes": MAX_REGISTRY_MEMBER_BYTES}, "features": ("verified archive ingestion", "package-group index", "conserved metrics", "content-addressed entries", "atomic five-file persistence", "canonical reload", "JSON CSV and Markdown exports"), "schemas": ("entry", "metrics", "group", "index", "manifest", "registry")}
 
 
 __all__ = [
