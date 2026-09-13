@@ -299,6 +299,28 @@ class RegulatoryAtlasQualityRuntimeReleaseTests(unittest.TestCase):
             report = run_regulatory_atlas_pipeline_file(path)
         self.assertTrue(report.published)
 
+    def test_runtime_request_rejects_coerced_flags_and_symlinked_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            invalid = root / "invalid.json"
+            invalid.write_text(
+                json.dumps({"fixture": "default_regulatory_atlas_fixture", "accepted_only": "false"}),
+                encoding="utf-8",
+            )
+            with self.assertRaises(ValidationError):
+                RegulatoryAtlasPipelineRequest.from_file(invalid)
+            target = root / "target.json"
+            target.write_text(
+                json.dumps({"fixture": "default_regulatory_atlas_fixture"}), encoding="utf-8"
+            )
+            link = root / "linked.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                RegulatoryAtlasPipelineRequest.from_file(link)
+
     def test_release_manifest_is_publishable(self) -> None:
         quality = evaluate_regulatory_atlas_quality_gate(self.fixture)
         replay = replay_regulatory_atlas_evaluation(self.evaluation, fixture=self.fixture)

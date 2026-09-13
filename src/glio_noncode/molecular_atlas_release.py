@@ -8,6 +8,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .molecular_atlas_bundle import MolecularAtlasBundle, MolecularAtlasBundleBuilder
 from .molecular_atlas_fixture_eval import MolecularAtlasEvaluationReport
@@ -210,8 +211,9 @@ def write_molecular_atlas_release_manifest(
         )
     output = Path(path)
     require_non_empty(str(output), "molecular atlas release output path")
-    output.write_text(
-        json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    atomic_write_text(
+        output,
+        json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n",
     )
 
 

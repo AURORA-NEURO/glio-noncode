@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .regulatory_atlas_bundle import RegulatoryAtlasBundleBuilder
 from .regulatory_atlas_fixture_eval import evaluate_regulatory_atlas_fixture
@@ -21,7 +21,7 @@ from .regulatory_atlas_quality_gate import evaluate_regulatory_atlas_quality_gat
 from .regulatory_atlas_reconciliation import reconcile_regulatory_atlas_views
 from .regulatory_atlas_replay import replay_regulatory_atlas_evaluation
 from .regulatory_atlas_scenario_matrix import evaluate_regulatory_atlas_scenarios
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 class RegulatoryAtlasRuntimeStage(StrEnum):
@@ -46,10 +46,22 @@ class RegulatoryAtlasPipelineRequest:
     expected_context_key: str = REGULATORY_ATLAS_CONTEXT_KEY
     accepted_only: bool = True
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.fixture, dict):
+            raise ValidationError("regulatory atlas pipeline fixture must be an object")
+        if not isinstance(self.expected_context_key, str) or not self.expected_context_key.strip():
+            raise ValidationError("regulatory atlas pipeline context must be non-empty text")
+        if not isinstance(self.accepted_only, bool):
+            raise ValidationError("regulatory atlas pipeline accepted_only must be boolean")
+
     @classmethod
     def from_file(cls, path: str | Path) -> RegulatoryAtlasPipelineRequest:
-        with Path(path).open("r", encoding="utf-8") as handle:
-            payload = json.load(handle)
+        try:
+            payload = _strict_json_loads(
+                read_text(Path(path), field="regulatory atlas pipeline request")
+            )
+        except (ValueError, TypeError) as error:
+            raise ValidationError("regulatory atlas pipeline request is invalid JSON") from error
         if not isinstance(payload, dict):
             raise ValidationError("regulatory atlas pipeline request must be an object")
         fixture = payload.get("fixture", payload)
@@ -57,11 +69,11 @@ class RegulatoryAtlasPipelineRequest:
             fixture = {"fixture": fixture}
         if not isinstance(fixture, dict):
             raise ValidationError("regulatory atlas pipeline fixture must be an object")
-        return cls(
-            fixture,
-            str(payload.get("expected_context_key", REGULATORY_ATLAS_CONTEXT_KEY)),
-            bool(payload.get("accepted_only", True)),
-        )
+        expected_context_key = payload.get("expected_context_key", REGULATORY_ATLAS_CONTEXT_KEY)
+        accepted_only = payload.get("accepted_only", True)
+        if not isinstance(expected_context_key, str) or not isinstance(accepted_only, bool):
+            raise ValidationError("regulatory atlas pipeline fields have invalid types")
+        return cls(fixture, expected_context_key, accepted_only)
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)

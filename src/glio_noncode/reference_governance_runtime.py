@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .reference_governance_bundle import ReferenceGovernanceBundleBuilder
 from .reference_governance_fixture_eval import evaluate_reference_governance_fixture
@@ -21,7 +21,7 @@ from .reference_governance_quality_gate import evaluate_reference_governance_qua
 from .reference_governance_reconciliation import reconcile_reference_governance_views
 from .reference_governance_replay import replay_reference_governance_evaluation
 from .reference_governance_scenario_matrix import evaluate_reference_governance_scenarios
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 class ReferenceGovernanceRuntimeStage(StrEnum):
@@ -46,20 +46,32 @@ class ReferenceGovernancePipelineRequest:
     expected_context_key: str = REFERENCE_GOVERNANCE_CONTEXT_KEY
     accepted_only: bool = True
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.fixture, dict):
+            raise ValidationError("governance pipeline fixture must be an object")
+        if not isinstance(self.expected_context_key, str) or not self.expected_context_key.strip():
+            raise ValidationError("governance pipeline context must be non-empty text")
+        if not isinstance(self.accepted_only, bool):
+            raise ValidationError("governance pipeline accepted_only must be boolean")
+
     @classmethod
     def from_file(cls, path: str | Path) -> ReferenceGovernancePipelineRequest:
-        with Path(path).open("r", encoding="utf-8") as handle:
-            payload = json.load(handle)
+        try:
+            payload = _strict_json_loads(
+                read_text(Path(path), field="reference governance pipeline request")
+            )
+        except (ValueError, TypeError) as error:
+            raise ValidationError("governance pipeline request is invalid JSON") from error
         if not isinstance(payload, dict):
             raise ValidationError("governance pipeline request must be an object")
         fixture = payload.get("fixture", payload)
         if not isinstance(fixture, dict):
             raise ValidationError("governance pipeline fixture must be an object")
-        return cls(
-            fixture,
-            str(payload.get("expected_context_key", REFERENCE_GOVERNANCE_CONTEXT_KEY)),
-            bool(payload.get("accepted_only", True)),
-        )
+        expected_context_key = payload.get("expected_context_key", REFERENCE_GOVERNANCE_CONTEXT_KEY)
+        accepted_only = payload.get("accepted_only", True)
+        if not isinstance(expected_context_key, str) or not isinstance(accepted_only, bool):
+            raise ValidationError("governance pipeline fields have invalid types")
+        return cls(fixture, expected_context_key, accepted_only)
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)

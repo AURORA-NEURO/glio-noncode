@@ -8,6 +8,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .reference_governance_bundle import ReferenceGovernanceBundle, ReferenceGovernanceBundleBuilder
 from .reference_governance_fixture_eval import ReferenceGovernanceEvaluationReport
@@ -210,8 +211,9 @@ def write_reference_governance_release_manifest(
         raise ValidationError(f"cannot write invalid governance release: {', '.join(failures)}")
     output = Path(path)
     require_non_empty(str(output), "release output path")
-    output.write_text(
-        json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    atomic_write_text(
+        output,
+        json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n",
     )
 
 

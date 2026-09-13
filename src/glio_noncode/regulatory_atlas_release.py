@@ -8,6 +8,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text
 from .errors import ValidationError
 from .regulatory_atlas_bundle import RegulatoryAtlasBundle, RegulatoryAtlasBundleBuilder
 from .regulatory_atlas_fixture_eval import RegulatoryAtlasEvaluationReport
@@ -210,8 +211,9 @@ def write_regulatory_atlas_release_manifest(
         )
     output = Path(path)
     require_non_empty(str(output), "regulatory atlas release output path")
-    output.write_text(
-        json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    atomic_write_text(
+        output,
+        json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n",
     )
 
 

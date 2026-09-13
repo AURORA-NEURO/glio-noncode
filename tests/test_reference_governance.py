@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.reference_governance_bundle import (
     ReferenceGovernanceBundleBuilder,
     ReferenceGovernanceBundleFormat,
@@ -287,6 +288,26 @@ class ReferenceGovernanceRuntimeTests(unittest.TestCase):
         report = run_reference_governance_pipeline(request)
         self.assertFalse(report.published)
         self.assertIn("context", report.failed_stages)
+
+    def test_runtime_request_rejects_coerced_flags_and_symlinked_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            invalid = root / "invalid.json"
+            invalid.write_text(
+                '{"fixture":"default_reference_governance_fixture","accepted_only":"false"}',
+                encoding="utf-8",
+            )
+            with self.assertRaises(ValidationError):
+                ReferenceGovernancePipelineRequest.from_file(invalid)
+            target = root / "target.json"
+            target.write_text('{"fixture":"default_reference_governance_fixture"}', encoding="utf-8")
+            link = root / "linked.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                ReferenceGovernancePipelineRequest.from_file(link)
 
     def test_release_manifest_is_publishable_and_addressed(self) -> None:
         fixture = default_reference_governance_fixture()
