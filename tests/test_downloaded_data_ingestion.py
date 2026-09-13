@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import tempfile
 import threading
 import unittest
@@ -163,6 +164,21 @@ class DownloadedDataIngestionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValidationError, "runtime member catalog.json is unsafe"):
                 runtime_model.load_runtime(destination)
             self.assertEqual(external.read_text(encoding="utf-8"), external_body)
+
+    def test_source_reader_rejects_symlinked_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            real_parent = root / "real-parent"
+            real_parent.mkdir()
+            source = real_parent / "source.zip"
+            source.write_bytes(self._zip())
+            linked_parent = root / "linked-parent"
+            try:
+                os.symlink(real_parent, linked_parent, target_is_directory=True)
+            except OSError:
+                self.skipTest("directory symlinks unavailable")
+            with self.assertRaises(ValidationError):
+                ingestion_model.build_ingest(linked_parent / source.name)
 
     def test_diff_classifies_record_change_and_audits_query(self):
         left = ingestion_model.build_ingest(self._zip(), batch_id="left-batch", record_limit=100)

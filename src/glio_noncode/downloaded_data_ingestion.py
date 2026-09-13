@@ -20,6 +20,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from . import downloaded_data_catalog as catalog_model
+from ._safe_persistence import read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes
 
@@ -715,8 +716,8 @@ def _read_source(source: str | Path | bytes) -> tuple[bytes, str, str]:
             raise ValidationError("downloaded data source must be a regular file")
         source_name = path.name
         try:
-            raw_zip = path.read_bytes()
-        except OSError as error:
+            raw_zip = read_bytes(path, field="downloaded data source")
+        except (OSError, ValidationError) as error:
             raise ValidationError("downloaded data source could not be read") from error
     if len(raw_zip) > catalog_model.MAX_TOTAL_BYTES:
         raise ValidationError("downloaded data source exceeds the total byte bound")
