@@ -13,6 +13,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet import (
     load_module_workbench_execution_packet,
@@ -109,8 +110,8 @@ def _read_archive(value: bytes | bytearray | str | Path) -> bytes:
         return bytes(value)
     if isinstance(value, (str, Path)):
         try:
-            return Path(value).read_bytes()
-        except OSError as exc:
+            return read_bytes(value, field="packet archive")
+        except (OSError, ValidationError) as exc:
             raise ValidationError(f"cannot read packet archive: {exc}") from exc
     raise ValidationError("packet archive input must be bytes or a path")
 
@@ -272,22 +273,7 @@ def module_workbench_execution_packet_archive_bytes(
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-        dir=str(path.parent),
-    )
-    temporary = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-    except BaseException:
-        temporary.unlink(missing_ok=True)
-        raise
+    atomic_write_bytes(path, payload, field="packet archive destination")
 
 
 def write_module_workbench_execution_packet_archive(
@@ -309,6 +295,7 @@ def write_module_workbench_execution_packet_archive(
         raise ValidationError("packet archive destination already exists")
     if path.exists() and not path.is_file():
         raise ValidationError("packet archive destination is not a file")
+    _validate_parent(path.parent, "packet archive destination")
     _atomic_write(path, archive.archive_bytes)
     return archive
 
@@ -755,6 +742,9 @@ def unpack_module_workbench_execution_packet_archive(
     if not verification.accepted:
         raise ValidationError("cannot unpack a blocked packet archive")
     root = Path(destination)
+    _validate_parent(root.parent, "packet unpack destination")
+    if root.is_symlink():
+        raise ValidationError("packet unpack destination must not be a symlink")
     if root.exists() and not root.is_dir():
         raise ValidationError("packet unpack destination is not a directory")
     if root.exists() and not allow_existing:
@@ -768,11 +758,9 @@ def unpack_module_workbench_execution_packet_archive(
             if not _safe_path(relative_path):
                 raise ValidationError(f"unsafe packet archive member: {relative_path}")
             path = staging.joinpath(*relative_path.split("/"))
+            _validate_parent(path.parent, "packet archive extraction target")
             path.parent.mkdir(parents=True, exist_ok=True)
-            with path.open("wb") as handle:
-                handle.write(payload)
-                handle.flush()
-                os.fsync(handle.fileno())
+            atomic_write_bytes(path, payload, field="packet archive extraction target")
         if root.exists():
             shutil.rmtree(root)
         os.replace(staging, root)

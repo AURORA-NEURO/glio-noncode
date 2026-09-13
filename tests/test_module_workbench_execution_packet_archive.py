@@ -363,6 +363,62 @@ class ModuleWorkbenchExecutionPacketArchiveTests(unittest.TestCase):
             )
             self.assertTrue((destination / "manifest.json").is_file())
 
+    def test_archive_file_io_rejects_symlinked_paths(self) -> None:
+        archive = self.archive()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaises(ValidationError):
+                write_module_workbench_execution_packet_archive(
+                    archive,
+                    linked_parent / "archive.zip",
+                )
+
+            archive_path = root / "archive.zip"
+            write_module_workbench_execution_packet_archive(archive, archive_path)
+            linked_archive = root / "linked.zip"
+            try:
+                linked_archive.symlink_to(archive_path)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"file symlinks unavailable: {exc}")
+            with self.assertRaises(ValidationError):
+                verify_module_workbench_execution_packet_archive(linked_archive)
+
+    def test_unpack_rejects_symlinked_destination_and_parent(self) -> None:
+        archive = self.archive()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaises(ValidationError):
+                unpack_module_workbench_execution_packet_archive(
+                    archive.archive_bytes,
+                    linked_parent / "packet",
+                )
+            target = root / "target"
+            target.mkdir()
+            linked_destination = root / "linked-destination"
+            try:
+                linked_destination.symlink_to(target, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaises(ValidationError):
+                unpack_module_workbench_execution_packet_archive(
+                    archive.archive_bytes,
+                    linked_destination,
+                )
+
     def test_chunking_preserves_order_offsets_and_addresses(self) -> None:
         archive = self.archive()
         chunks = chunk_module_workbench_execution_packet_archive(archive, chunk_size=128)
