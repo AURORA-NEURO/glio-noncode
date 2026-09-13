@@ -36,7 +36,7 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry,
     verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry,
 )
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_PACKET_REGISTRY_FEDERATION_VERSION = "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-v1"
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_PACKET_REGISTRY_FEDERATION_BOUNDARY = "public_registry_federation_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet"
@@ -1880,8 +1880,8 @@ def _read_canonical_document(path: Path) -> dict[str, Any]:
         raise ValidationError(f"federation artifact is not a regular file: {path.name}")
     try:
         raw = path.read_bytes()
-        document = json.loads(raw.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        document = _strict_json_loads(raw.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"federation artifact is not valid JSON: {path.name}") from exc
     if not isinstance(document, Mapping) or canonical_bytes(document) != raw:
         raise ValidationError(f"federation artifact is not canonical: {path.name}")

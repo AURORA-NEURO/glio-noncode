@@ -34,7 +34,7 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     packet_from_mapping,
     verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet,
 )
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_PACKET_REGISTRY_VERSION = "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-v1"
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_PACKET_REGISTRY_BOUNDARY = "public_registry_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet"
@@ -922,7 +922,7 @@ def _manifest(value: Registry, payloads: Mapping[str, bytes]) -> dict[str, Any]:
                 "byte_count": len(raw),
                 "byte_address": _file_address(kind, raw),
                 "content_address": content_hash(
-                    json.loads(raw.decode("utf-8")),
+                    _strict_json_loads(raw.decode("utf-8")),
                     prefix=MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_PACKET_REGISTRY_PREFIX
                     + "-"
                     + kind,
@@ -982,8 +982,8 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
 def _read_value(path: Path, field: str) -> Any:
     raw = path.read_bytes()
     try:
-        value = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is not valid canonical JSON") from exc
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} must be canonical JSON")
@@ -1059,7 +1059,7 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
         ):
             raise ValidationError(f"registry {kind} byte receipt is invalid")
         expected_content = content_hash(
-            json.loads(raw.decode("utf-8")),
+            _strict_json_loads(raw.decode("utf-8")),
             prefix=MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_PACKET_REGISTRY_PREFIX
             + "-"
             + kind,

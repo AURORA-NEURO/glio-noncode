@@ -20,7 +20,7 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketReviewGate,
     verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate,
 )
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_VERSION = "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-v1"
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_BOUNDARY = "public_aggregate_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history"
@@ -985,9 +985,9 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
     manifest_raw = manifest_path.read_bytes()
     document_raw = document_path.read_bytes()
     try:
-        manifest = json.loads(manifest_raw.decode("utf-8"))
-        document = json.loads(document_raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        manifest = _strict_json_loads(manifest_raw.decode("utf-8"))
+        document = _strict_json_loads(document_raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("packet review gate history files are not valid JSON") from exc
     if (
         not isinstance(manifest, dict)

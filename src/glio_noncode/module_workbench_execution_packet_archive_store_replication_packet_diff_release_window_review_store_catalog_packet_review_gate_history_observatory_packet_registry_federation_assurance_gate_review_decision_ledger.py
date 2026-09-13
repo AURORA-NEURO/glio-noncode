@@ -38,7 +38,7 @@ from . import (
     module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review as review_model,
 )
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 FederationReviewQueue = review_model.FederationReviewQueue
 FederationReviewItem = review_model.FederationReviewItem
@@ -1231,8 +1231,8 @@ def _read_json(path: Path, field: str) -> dict[str, Any]:
         raise ValidationError(f"{field} must be a regular file")
     raw = path.read_bytes()
     try:
-        value = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is invalid JSON") from exc
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} is not canonical JSON")
