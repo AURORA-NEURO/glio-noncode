@@ -31,6 +31,7 @@ from typing import Any
 from . import (
     assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance as assurance_model,
 )
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import (
     _strict_json_loads,
@@ -1270,16 +1271,21 @@ def _diff_manifest_address(value: Mapping[str, Any]) -> str:
 
 
 def _write_exact(destination: Path, files: Mapping[str, bytes], *, overwrite: bool, prefix: str) -> Path:
+    _validate_parent(destination.parent, "history destination")
+    if destination.is_symlink():
+        raise ValidationError("history destination must not be a symlink")
     if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
         raise ValidationError("history destination already exists")
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=prefix, dir=str(destination.parent)))
     try:
         for name, raw in files.items():
-            (temporary / name).write_bytes(raw)
+            atomic_write_bytes(temporary / name, raw, field="history artifact")
         if destination.exists():
             if not destination.is_dir() or not overwrite:
                 raise ValidationError("history destination cannot be replaced")
+            if destination.is_symlink():
+                raise ValidationError("history destination must not be a symlink")
             shutil.rmtree(destination)
         os.replace(temporary, destination)
     except Exception:
@@ -1310,9 +1316,9 @@ def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=field)
         value = _strict_json_loads(raw.decode("utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+    except (OSError, ValidationError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError(f"{field} is invalid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} is not canonical JSON")
@@ -1333,8 +1339,8 @@ def _verify_artifact(manifest: Mapping[str, Any], source: Path, name: str, field
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} {name} must be a regular file")
     try:
-        raw = path.read_bytes()
-    except OSError as error:
+        raw = read_bytes(path, field=f"{field} {name}")
+    except (OSError, ValidationError) as error:
         raise ValidationError(f"{field} {name} could not be read") from error
     expected = _artifact(name, raw)
     if dict(artifact) != expected:
@@ -1343,6 +1349,7 @@ def _verify_artifact(manifest: Mapping[str, Any], source: Path, name: str, field
 
 
 def _verify_directory(source: Path, files: Sequence[str], field: str) -> Mapping[str, Any]:
+    _validate_parent(source, field)
     if source.is_symlink() or not source.is_dir():
         raise ValidationError(f"{field} directory must be a regular directory")
     try:

@@ -379,7 +379,7 @@ class HistoryPersistenceTests(HistoryFixture):
                 with self.assertRaises(ValidationError):
                     history.load_history(destination)
 
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(history, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     history.load_history(destination)
 
@@ -419,6 +419,21 @@ class HistoryPersistenceTests(HistoryFixture):
             history.write_history(value, destination, overwrite=True)
             self.assertEqual(history.load_history(destination).content_address, value.content_address)
 
+    def test_history_writer_rejects_symlinked_destination_parent(self):
+        value = self.build_history()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("directory symlinks are unavailable")
+            with self.assertRaises(ValidationError):
+                history.write_history(value, linked_parent / "history")
+            self.assertEqual(tuple(external.iterdir()), ())
+
     def test_diff_writes_exact_two_files_and_reloads(self):
         baseline = self.build_history()
         candidate = history.build_history((self.ready_gate, self.held_gate), snapshot_ids=("snapshot:0", "snapshot:1"))
@@ -447,7 +462,7 @@ class HistoryPersistenceTests(HistoryFixture):
                 with self.assertRaises(ValidationError):
                     history.load_diff(destination)
 
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(history, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     history.load_diff(destination)
 
