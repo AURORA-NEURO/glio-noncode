@@ -8,6 +8,7 @@ from glio_noncode.api import (
     MAX_JSON_NESTING_DEPTH,
     MAX_JSON_REQUEST_BYTES,
     ApiHandler,
+    _json_bytes,
     _strict_json_loads,
 )
 
@@ -32,6 +33,12 @@ class ApiJsonReaderTests(unittest.TestCase):
                 ValueError, "non-finite number"
             ):
                 _strict_json_loads(raw)
+
+    def test_response_serializer_rejects_non_finite_values(self) -> None:
+        with self.assertRaises(ValueError):
+            _json_bytes({"value": float("nan")})
+        with self.assertRaises(ValueError):
+            _json_bytes({"value": float("inf")})
 
     def test_valid_object_uses_the_declared_byte_length(self) -> None:
         body = '{"label":"café","score":1.5}'.encode()

@@ -3122,7 +3122,7 @@ def _intake_pipeline_report_schema() -> dict[str, Any]:
 
 
 def _json_bytes(value: Any) -> bytes:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, allow_nan=False, separators=(",", ":")).encode("utf-8")
 
 
 def _strict_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
