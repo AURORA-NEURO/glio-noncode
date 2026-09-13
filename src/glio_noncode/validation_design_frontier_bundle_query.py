@@ -25,6 +25,7 @@ from .validation_design_frontier_bundle_contracts import (
     ValidationDesignBundleVerification,
 )
 from .validation_design_frontier_offline_bundle import verify_validation_design_offline_bundle
+from .validation_design_frontier_offline_bundle import _offline_path
 
 
 def _safe_relative_path(value: str) -> bool:
@@ -36,8 +37,13 @@ def _safe_relative_path(value: str) -> bool:
 
 def _load_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(value)
+    if root.is_symlink() or not root.is_dir():
+        raise ValidationError("validation-design bundle root must be a regular directory")
+    manifest_path = _offline_path(root, VALIDATION_DESIGN_BUNDLE_MANIFEST)
+    if manifest_path.is_symlink() or not manifest_path.is_file():
+        raise ValidationError("validation-design bundle manifest is missing")
     try:
-        manifest = _strict_json_loads((root / VALIDATION_DESIGN_BUNDLE_MANIFEST).read_text(encoding="utf-8"))
+        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"cannot load validation-design bundle manifest: {exc}") from exc
     if not isinstance(manifest, Mapping):
@@ -73,9 +79,14 @@ def load_validation_design_offline_bundle(destination: str | Path, *, include_pa
         if not _safe_relative_path(relative_path):
             raise ValidationError(f"unsafe validation-design artifact path: {relative_path!r}")
         payload: str | None = None
+        artifact_path = _offline_path(root, relative_path)
+        if artifact_path.is_symlink():
+            raise ValidationError(f"validation-design artifact path is unsafe: {relative_path!r}")
         if include_payloads:
             try:
-                payload = (root / Path(*relative_path.split("/"))).read_text(encoding="utf-8")
+                if not artifact_path.is_file():
+                    raise ValidationError(f"validation-design artifact is missing: {relative_path!r}")
+                payload = artifact_path.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError) as exc:
                 raise ValidationError(f"cannot hydrate artifact {relative_path}: {exc}") from exc
         artifacts.append(

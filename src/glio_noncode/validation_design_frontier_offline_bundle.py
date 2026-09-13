@@ -86,6 +86,22 @@ def _safe_relative_path(value: str) -> bool:
     return not path.is_absolute() and bool(path.parts) and all(part not in {"", ".", ".."} for part in path.parts)
 
 
+def _offline_path(root: Path, relative_path: str) -> Path:
+    """Resolve a validated artifact path without following symlinks."""
+
+    current = root
+    for component in PurePosixPath(relative_path).parts:
+        current /= component
+        try:
+            if current.is_symlink():
+                raise ValidationError("validation-design bundle path is unsafe")
+        except ValidationError:
+            raise
+        except OSError as exc:
+            raise ValidationError("validation-design bundle path could not be inspected") from exc
+    return current
+
+
 def _public_projection(value: Any) -> Any:
     value = jsonable(value)
     if isinstance(value, Mapping):
@@ -283,14 +299,28 @@ def write_validation_design_offline_bundle(bundle: ValidationDesignBundle, desti
     """Write exact artifact bytes and the root manifest without hidden files."""
 
     root = Path(destination)
-    root.mkdir(parents=True, exist_ok=True)
+    try:
+        if root.is_symlink():
+            raise ValidationError("validation-design destination is unsafe")
+        root.mkdir(parents=True, exist_ok=True)
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("validation-design destination must be a directory")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise ValidationError("validation-design destination could not be prepared") from exc
     for artifact in bundle.artifacts:
         if artifact.payload is None:
             raise ValidationError(f"artifact {artifact.artifact_id} has no payload")
-        target = root / Path(*PurePosixPath(artifact.relative_path).parts)
+        target = _offline_path(root, artifact.relative_path)
         target.parent.mkdir(parents=True, exist_ok=True)
+        if target.parent.is_symlink() or not target.parent.is_dir() or target.is_symlink():
+            raise ValidationError("validation-design artifact path is unsafe")
         target.write_bytes(artifact.payload.encode("utf-8"))
-    (root / VALIDATION_DESIGN_BUNDLE_MANIFEST).write_bytes(validation_design_bundle_manifest_text(bundle).encode("utf-8"))
+    manifest_path = _offline_path(root, VALIDATION_DESIGN_BUNDLE_MANIFEST)
+    if manifest_path.is_symlink():
+        raise ValidationError("validation-design manifest path is unsafe")
+    manifest_path.write_bytes(validation_design_bundle_manifest_text(bundle).encode("utf-8"))
     return root
 
 
@@ -312,7 +342,7 @@ def verify_validation_design_offline_bundle(destination: str | Path) -> Validati
 
     root = Path(destination)
     manifest_path = root / VALIDATION_DESIGN_BUNDLE_MANIFEST
-    if not root.exists() or not root.is_dir():
+    if root.is_symlink() or not root.exists() or not root.is_dir():
         return _verification("missing-bundle", [_check("bundle-directory", ValidationDesignBundleCheckPlane.MANIFEST, False, str(root), "directory", "bundle directory is missing")])
     if not manifest_path.exists() or not manifest_path.is_file() or manifest_path.is_symlink():
         return _verification("missing-manifest", [_check("manifest-present", ValidationDesignBundleCheckPlane.MANIFEST, False, False, True, "bundle manifest is missing or is not a regular file")])
@@ -353,8 +383,12 @@ def verify_validation_design_offline_bundle(destination: str | Path) -> Validati
         if not safe:
             continue
         expected_paths.add(relative_path)
-        target = root / Path(*PurePosixPath(relative_path).parts)
-        regular = target.exists() and target.is_file() and not target.is_symlink()
+        try:
+            target = _offline_path(root, relative_path)
+            regular = target.exists() and target.is_file() and not target.is_symlink()
+        except (OSError, ValidationError) as exc:
+            checks.append(_check(f"present:{artifact_id}", ValidationDesignBundleCheckPlane.ARTIFACT, False, type(exc).__name__, "regular file", "manifest artifact path is unsafe"))
+            continue
         checks.append(_check(f"present:{artifact_id}", ValidationDesignBundleCheckPlane.ARTIFACT, regular, str(target) if target.exists() else "missing", "regular file", "every manifest artifact is materialized"))
         if not regular:
             continue

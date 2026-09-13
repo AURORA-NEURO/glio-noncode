@@ -103,6 +103,33 @@ class ValidationDesignFrontierBundleTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 load_validation_design_offline_bundle(destination)
 
+    def test_bundle_rejects_symlinked_destination_and_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            destination = root / "bundle"
+            write_validation_design_offline_bundle(self.bundle, destination)
+            linked = root / "linked-bundle"
+            try:
+                linked.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(ValidationError, "destination"):
+                write_validation_design_offline_bundle(self.bundle, linked)
+            with self.assertRaisesRegex(ValidationError, "regular directory"):
+                load_validation_design_offline_bundle(linked)
+
+            artifact = destination / "review.csv"
+            external = root / "external-review.csv"
+            external_body = artifact.read_bytes()
+            external.write_bytes(external_body)
+            artifact.unlink()
+            artifact.symlink_to(external)
+            with self.assertRaisesRegex(ValidationError, "path is unsafe"):
+                load_validation_design_offline_bundle(destination, include_payloads=True)
+            verification = verify_validation_design_offline_bundle(destination)
+            self.assertFalse(verification.accepted)
+            self.assertEqual(external.read_bytes(), external_body)
+
     def test_queries_cover_records_checks_sources_and_artifacts(self) -> None:
         records = query_validation_design_offline_bundle(self.bundle, resource="records", operation="gap_analysis")
         self.assertTrue(records.accepted)

@@ -25,6 +25,7 @@ from .workbench_release_frontier_offline_contracts import (
     WorkbenchReleaseOfflineVerification,
 )
 from .workbench_release_frontier_offline_bundle import verify_workbench_release_offline_bundle
+from .workbench_release_frontier_offline_bundle import _offline_path
 
 
 def _safe_relative_path(value: str) -> bool:
@@ -40,8 +41,10 @@ def _safe_relative_path(value: str) -> bool:
 
 def _manifest_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(value)
-    manifest_path = root / WORKBENCH_RELEASE_OFFLINE_MANIFEST
-    if not manifest_path.is_file():
+    if root.is_symlink() or not root.is_dir():
+        raise ValidationError("workbench offline root must be a regular directory")
+    manifest_path = _offline_path(root, WORKBENCH_RELEASE_OFFLINE_MANIFEST)
+    if manifest_path.is_symlink() or not manifest_path.is_file():
         raise ValidationError(f"workbench offline manifest is missing: {manifest_path}")
     try:
         parsed = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
@@ -71,8 +74,10 @@ def _artifact(
     if not _safe_relative_path(relative_path):
         raise ValidationError(f"workbench artifact path is unsafe: {relative_path!r}")
     payload: str | None = None
+    target = _offline_path(root, relative_path)
+    if target.is_symlink():
+        raise ValidationError(f"workbench artifact path is unsafe: {target}")
     if include_payloads:
-        target = root / Path(*PurePosixPath(relative_path).parts)
         if not target.is_file():
             raise ValidationError(f"workbench artifact file is missing: {target}")
         try:

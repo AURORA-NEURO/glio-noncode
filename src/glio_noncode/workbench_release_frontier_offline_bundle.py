@@ -98,6 +98,22 @@ def _safe_relative_path(value: str) -> bool:
     )
 
 
+def _offline_path(root: Path, relative_path: str) -> Path:
+    """Resolve a validated artifact path without following symlinks."""
+
+    current = root
+    for component in PurePosixPath(relative_path).parts:
+        current /= component
+        try:
+            if current.is_symlink():
+                raise ValidationError("workbench offline bundle path is unsafe")
+        except ValidationError:
+            raise
+        except OSError as exc:
+            raise ValidationError("workbench offline bundle path could not be inspected") from exc
+    return current
+
+
 def _public_projection(value: Any) -> Any:
     value = jsonable(value)
     if isinstance(value, Mapping):
@@ -960,14 +976,28 @@ def write_workbench_release_offline_bundle(
     """Write exact payload bytes and a canonical root manifest."""
 
     root = Path(destination)
-    root.mkdir(parents=True, exist_ok=True)
+    try:
+        if root.is_symlink():
+            raise ValidationError("workbench offline destination is unsafe")
+        root.mkdir(parents=True, exist_ok=True)
+        if root.is_symlink() or not root.is_dir():
+            raise ValidationError("workbench offline destination must be a directory")
+    except ValidationError:
+        raise
+    except OSError as exc:
+        raise ValidationError("workbench offline destination could not be prepared") from exc
     for artifact in bundle.artifacts:
         if artifact.payload is None:
             raise ValidationError(f"artifact {artifact.artifact_id} has no payload")
-        target = root / Path(*PurePosixPath(artifact.relative_path).parts)
+        target = _offline_path(root, artifact.relative_path)
         target.parent.mkdir(parents=True, exist_ok=True)
+        if target.parent.is_symlink() or not target.parent.is_dir() or target.is_symlink():
+            raise ValidationError("workbench offline artifact path is unsafe")
         target.write_bytes(artifact.payload.encode("utf-8"))
-    (root / WORKBENCH_RELEASE_OFFLINE_MANIFEST).write_bytes(
+    manifest_path = _offline_path(root, WORKBENCH_RELEASE_OFFLINE_MANIFEST)
+    if manifest_path.is_symlink():
+        raise ValidationError("workbench offline manifest path is unsafe")
+    manifest_path.write_bytes(
         workbench_release_offline_manifest_text(bundle).encode("utf-8")
     )
     return root

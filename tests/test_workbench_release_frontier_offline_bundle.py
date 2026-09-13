@@ -130,6 +130,32 @@ class WorkbenchReleaseOfflineBundleTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 load_workbench_release_offline_bundle(destination)
 
+    def test_bundle_rejects_symlinked_destination_and_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            destination = root / "bundle"
+            write_workbench_release_offline_bundle(self.bundle, destination)
+            linked = root / "linked-bundle"
+            try:
+                linked.symlink_to(destination, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(ValidationError, "destination"):
+                write_workbench_release_offline_bundle(self.bundle, linked)
+            with self.assertRaisesRegex(ValidationError, "regular directory"):
+                load_workbench_release_offline_bundle(linked)
+
+            relative_path = self.bundle.artifacts[0].relative_path
+            artifact = destination / Path(*relative_path.split("/"))
+            external = root / "external-artifact"
+            external_body = artifact.read_bytes()
+            external.write_bytes(external_body)
+            artifact.unlink()
+            artifact.symlink_to(external)
+            with self.assertRaisesRegex(ValidationError, "path is unsafe"):
+                load_workbench_release_offline_bundle(destination, include_payloads=True)
+            self.assertEqual(external.read_bytes(), external_body)
+
     def test_queries_cover_runtime_resources_and_filters(self) -> None:
         records = query_workbench_release_offline_bundle(
             self.bundle, resource="records", filters={"operation": "review_form"}
