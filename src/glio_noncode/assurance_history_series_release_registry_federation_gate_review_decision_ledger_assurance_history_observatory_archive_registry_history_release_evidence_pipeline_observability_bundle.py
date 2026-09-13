@@ -23,6 +23,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit as audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_query as audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query as query_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import (
     _strict_json_loads,
@@ -197,16 +198,24 @@ def build_bundle(value: pipeline_model.RegistryHistoryReleaseEvidencePipeline) -
 
 
 def _write_atomic_directory(destination: Path, payload: Mapping[str, bytes], *, overwrite: bool) -> Path:
-    if destination.exists():
-        if not overwrite:
-            raise ValidationError("release evidence observability bundle destination exists; explicit overwrite is required")
-        if destination.is_symlink() or not destination.is_dir() or {item.name for item in destination.iterdir()} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in destination.iterdir()):
-            raise ValidationError("release evidence observability bundle destination is not an exact compatible directory")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "release evidence observability bundle destination")
+        if destination.is_symlink():
+            raise ValidationError("release evidence observability bundle destination cannot be a symlink")
+        if destination.exists():
+            if not overwrite:
+                raise ValidationError("release evidence observability bundle destination exists; explicit overwrite is required")
+            if not destination.is_dir() or {item.name for item in destination.iterdir()} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in destination.iterdir()):
+                raise ValidationError("release evidence observability bundle destination is not an exact compatible directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("release evidence observability bundle destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=".gnd-release-evidence-observability-bundle-", dir=str(destination.parent)))
     try:
         for name in FILES:
-            (temporary / name).write_bytes(payload[name])
+            atomic_write_bytes(temporary / name, payload[name], field=f"release evidence observability bundle staging artifact {name}")
         if destination.exists():
             shutil.rmtree(destination)
         temporary.replace(destination)
@@ -223,15 +232,18 @@ def write_bundle(value: pipeline_model.RegistryHistoryReleaseEvidencePipeline, d
 def _read_directory(source: str | Path) -> dict[str, bytes]:
     try:
         directory = Path(source)
+        _validate_parent(directory.parent, "release evidence observability bundle input")
         if directory.is_symlink() or not directory.is_dir():
             raise ValidationError("release evidence observability bundle input must be a regular directory")
         members = tuple(directory.iterdir())
+        if {item.name for item in members} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in members):
+            raise ValidationError("release evidence observability bundle member set is invalid")
     except OSError as error:
         raise ValidationError("release evidence observability bundle input directory could not be inspected") from error
-    if {item.name for item in members} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in members):
-        raise ValidationError("release evidence observability bundle member set is invalid")
     try:
-        return {name: (directory / name).read_bytes() for name in FILES}
+        return {name: read_bytes(directory / name, field=f"release evidence observability bundle member {name}") for name in FILES}
+    except ValidationError:
+        raise
     except OSError as error:
         raise ValidationError("release evidence observability bundle artifact could not be read") from error
 
