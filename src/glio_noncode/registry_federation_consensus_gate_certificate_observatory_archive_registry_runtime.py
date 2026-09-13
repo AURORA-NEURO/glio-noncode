@@ -16,6 +16,7 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_query as query_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_query_audit as query_audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_package as package_model
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -137,8 +138,8 @@ def _load_archive_input(source: str | Path, *, archive_id: str | None = None) ->
             raise ValidationError("archive file identity does not match requested archive ID")
         return archive
     try:
-        raw = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+        raw = _strict_json_loads(read_text(path, field="registry runtime input"))
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError("registry runtime input is not a package directory, archive ZIP, or archive JSON") from error
     if not isinstance(raw, Mapping):
         raise ValidationError("registry runtime JSON input must be an object")

@@ -16,7 +16,8 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_consensus as consensus_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_consensus_audit as consensus_audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_report as report_model
-from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
+from ._safe_persistence import _validate_parent, _validate_target, atomic_write_bytes
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -35,6 +36,16 @@ CONSENSUS_NAME = "consensus.json"
 REPORT_NAME = "report.json"
 FILES = (MANIFEST_NAME, RUNTIME_NAME, FEDERATION_NAME, AUDITS_NAME, CONSENSUS_NAME, REPORT_NAME)
 MAX_SOURCE_COUNT = federation_model.MAX_PEERS
+
+
+def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
+    """Read a validated runtime member while preserving the test seam."""
+
+    target = Path(path)
+    _validate_target(target, field)
+    payload = target.read_bytes()
+    _validate_target(target, field)
+    return payload
 
 
 def _text(value: Any, field: str, maximum: int = 4096, *, required: bool = True) -> str:
@@ -151,8 +162,8 @@ def _load_json_file(source: Path) -> Mapping[str, Any]:
     if source.is_symlink() or not source.is_file():
         raise ValidationError("federation registry input must be a regular file")
     try:
-        value = _strict_json_loads(source.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+        value = _strict_json_loads(read_text(source, field="federation registry input"))
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError("federation registry JSON is invalid") from error
     return _mapping(value, "federation registry JSON")
 

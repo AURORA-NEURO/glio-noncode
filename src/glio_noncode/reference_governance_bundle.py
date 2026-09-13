@@ -10,6 +10,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_text
 from .errors import ValidationError
 from .reference_governance_fixture_eval import ReferenceGovernanceEvaluationReport
 from .reference_governance_public_data import ReferenceGovernanceFixture, ReferenceGovernanceRole
@@ -186,7 +187,13 @@ class ReferenceGovernanceBundleBuilder:
             raise ValidationError(f"cannot write invalid governance bundle: {', '.join(failures)}")
         output = Path(path)
         require_non_empty(str(output), "bundle output path")
-        output.write_text(self.render(bundle), encoding="utf-8")
+        _validate_parent(output.parent, "governance bundle output")
+        output.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write_text(
+            output,
+            self.render(bundle),
+            field="governance bundle output",
+        )
 
 
 __all__ = [

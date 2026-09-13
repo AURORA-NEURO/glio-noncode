@@ -29,9 +29,19 @@ from typing import Any
 
 from . import registry_federation_consensus_gate_certificate_observatory_archive as archive_model
 from . import registry_federation_consensus_gate_certificate_observatory_package as package_model
-from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
+from ._safe_persistence import _validate_parent, atomic_write_bytes, _validate_target
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+
+
+def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
+    """Read a validated member while retaining the module's fault-injection seam."""
+
+    target = Path(path)
+    _validate_target(target, field)
+    payload = target.read_bytes()
+    _validate_target(target, field)
+    return payload
 
 
 VERSION = archive_model.VERSION + "-registry-v1"

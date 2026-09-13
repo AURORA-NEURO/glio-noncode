@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from . import registry_federation_consensus_gate_certificate_observatory_archive as archive_model
-from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
+from ._safe_persistence import _validate_parent, _validate_target, atomic_write_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -47,6 +47,16 @@ MAX_CHUNKS = 4096
 MAX_TRANSFER_BYTES = 128 * 1024 * 1024
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 200
+
+
+def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
+    """Read a validated transfer member while preserving the fault seam."""
+
+    target = Path(path)
+    _validate_target(target, field)
+    payload = target.read_bytes()
+    _validate_target(target, field)
+    return payload
 
 
 def _text(value: Any, field: str, maximum: int = 512, *, required: bool = True) -> str:

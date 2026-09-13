@@ -28,7 +28,8 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution as resolution_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_audit as resolution_audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_runtime as source_runtime_model
-from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
+from ._safe_persistence import _validate_parent, _validate_target, atomic_write_bytes
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -50,6 +51,16 @@ PLAN_NAME = "plan.json"
 PLAN_AUDIT_NAME = "plan-audit.json"
 FILES = (MANIFEST_NAME, RUNTIME_NAME, FEDERATION_NAME, FEDERATION_AUDIT_NAME, CONSENSUS_NAME, RESOLUTION_NAME, RESOLUTION_AUDIT_NAME, PLAN_NAME, PLAN_AUDIT_NAME)
 MAX_SOURCE_COUNT = federation_model.MAX_PEERS
+
+
+def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
+    """Read a validated runtime member while preserving the test seam."""
+
+    target = Path(path)
+    _validate_target(target, field)
+    payload = target.read_bytes()
+    _validate_target(target, field)
+    return payload
 
 
 def _text(value: Any, field: str, maximum: int = 4096, *, required: bool = True) -> str:
@@ -187,8 +198,8 @@ def _load_json_file(source: Path) -> Mapping[str, Any]:
     if source.is_symlink() or not source.is_file():
         raise ValidationError("reconciliation runtime source must be a regular file")
     try:
-        value = _strict_json_loads(source.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+        value = _strict_json_loads(read_text(source, field="reconciliation runtime source"))
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError("reconciliation runtime source JSON is invalid") from error
     return _mapping(value, "reconciliation runtime source JSON")
 

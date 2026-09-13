@@ -15,6 +15,7 @@ from . import registry_federation_consensus_gate_certificate_observatory_query_a
 from . import registry_federation_consensus_gate_certificate_observatory_report as report_model
 from . import registry_federation_consensus_gate_certificate_observatory_report_audit as report_audit_model
 from . import registry_federation_consensus_gate_certificate_history as history_model
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -117,7 +118,11 @@ def _history(value: str | Path) -> history_model.RegistryFederationConsensusGate
     source = Path(value)
     if source.is_dir():
         return history_model.load_history(source)
-    return history_model.history_from_mapping(_strict_json_loads(source.read_text(encoding="utf-8")))
+    return history_model.history_from_mapping(
+        _strict_json_loads(
+            read_text(source, field="certificate observatory runtime history")
+        )
+    )
 
 
 def run_runtime(inputs: Sequence[str | Path], *, runtime_id: str = "consensus-certificate-observatory-runtime", observatory_id: str = "consensus-certificate-observatory", report_id: str = "consensus-certificate-observatory-report", package_id: str = "consensus-certificate-observatory-package", resources: Sequence[str] = observatory_model.DEFAULT_RESOURCES, limit: int = 100, destination: str | Path | None = None) -> RegistryFederationConsensusGateCertificateObservatoryRuntime:
