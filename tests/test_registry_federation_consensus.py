@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from glio_noncode import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry as registry_model
 from glio_noncode import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_federation as federation_model
@@ -100,6 +101,23 @@ class RegistryFederationConsensusTests(DurableCatalogPromotionPackageFixture):
             path = destination / registry_federation_consensus.MANIFEST_NAME
             duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"consensus_address":"shadow"}'
             path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                registry_federation_consensus.load_consensus(destination)
+
+    def test_consensus_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self._receipt(root, "primary", "replica")
+            destination = root / "consensus"
+            registry_federation_consensus.write_consensus(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    registry_federation_consensus.load_consensus(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    registry_federation_consensus.load_consensus(destination)
+
+            (destination / registry_federation_consensus.MANIFEST_NAME).write_text("[]", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 registry_federation_consensus.load_consensus(destination)
 

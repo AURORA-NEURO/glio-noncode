@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import shutil
 import tempfile
 from collections import defaultdict
@@ -517,10 +516,19 @@ def write_consensus(value: RegistryFederationConsensus, directory: str | Path, *
 
 
 def load_consensus(directory: str | Path) -> RegistryFederationConsensus:
-    source = Path(directory)
-    if not source.is_dir() or tuple(sorted(path.name for path in source.iterdir())) != tuple(sorted(FILES)):
+    try:
+        source = Path(directory)
+        if not source.is_dir():
+            raise ValidationError("consensus directory does not contain exact canonical members")
+        members = tuple(source.iterdir())
+    except OSError as error:
+        raise ValidationError("consensus directory could not be inspected") from error
+    if tuple(sorted(path.name for path in members)) != tuple(sorted(FILES)) or any(path.is_symlink() or not path.is_file() for path in members):
         raise ValidationError("consensus directory does not contain exact canonical members")
-    raw = {name: (source / name).read_bytes() for name in FILES}
+    try:
+        raw = {name: (source / name).read_bytes() for name in FILES}
+    except OSError as error:
+        raise ValidationError("consensus artifact could not be read") from error
     try:
         decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
     except (UnicodeDecodeError, ValueError) as error:
@@ -528,7 +536,8 @@ def load_consensus(directory: str | Path) -> RegistryFederationConsensus:
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("consensus member is not canonical JSON")
     value = consensus_from_mapping(decoded[CONSENSUS_NAME])
-    manifest = decoded[MANIFEST_NAME]
+    manifest = _mapping(decoded[MANIFEST_NAME], "consensus manifest")
+    _strict(manifest, {"version", "boundary", "consensus_id", "federation_id", "quorum", "files", "consensus_address", "manifest_address"}, "consensus manifest")
     if manifest.get("consensus_address") != value.content_address or manifest.get("consensus_id") != value.consensus_id or manifest.get("federation_id") != value.federation_id:
         raise ValidationError("consensus manifest does not match receipt")
     if canonical_bytes(manifest) != canonical_bytes(_manifest(value)):
