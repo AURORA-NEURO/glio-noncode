@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory as observatory_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import (
     _strict_json_loads,
@@ -152,13 +153,14 @@ def _embedded_manifest_bytes(value: observatory_model.AssuranceHistoryObservator
 
 
 def _read_package_artifacts(directory: Path) -> dict[str, bytes]:
+    _validate_parent(directory, "observatory source")
     if directory.is_symlink() or not directory.is_dir():
         raise ValidationError("observatory source must be a regular directory")
     package = observatory_model.load_package(directory)
     del package
     try:
-        return {PAYLOAD_PREFIX + name: (directory / name).read_bytes() for name in observatory_model.FILES}
-    except OSError as error:
+        return {PAYLOAD_PREFIX + name: read_bytes(directory / name, field="observatory source artifact") for name in observatory_model.FILES}
+    except (OSError, ValidationError) as error:
         raise ValidationError("observatory source artifact could not be read") from error
 
 
@@ -301,22 +303,21 @@ def archive_bytes(value: ObservatoryArchive) -> bytes:
 
 
 def _write_atomic_file(destination: Path, raw: bytes, *, overwrite: bool) -> Path:
+    _validate_parent(destination.parent, "archive destination")
+    if destination.is_symlink():
+        raise ValidationError("archive destination must not be a symlink")
     if destination.exists():
         if not overwrite:
             raise ValidationError("archive destination exists; explicit overwrite is required")
         if destination.is_symlink() or not destination.is_file():
             raise ValidationError("archive destination must be a regular file")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(prefix=".gnd-observatory-archive-", suffix=".zip", dir=str(destination.parent))
-    os.close(descriptor)
-    temporary = Path(temporary_name)
     try:
-        temporary.write_bytes(raw)
-        os.replace(temporary, destination)
-    except Exception:
-        temporary.unlink(missing_ok=True)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        return atomic_write_bytes(destination, raw, field="archive destination")
+    except ValidationError:
         raise
-    return destination
+    except OSError as error:
+        raise ValidationError("archive destination could not be written") from error
 
 
 def write_archive(value: ObservatoryArchive, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -336,11 +337,12 @@ def _read_archive(source: str | Path | bytes) -> tuple[dict[str, Any], dict[str,
         stream = io.BytesIO(source)
     else:
         path = Path(source)
+        _validate_parent(path.parent, "archive input")
         if path.is_symlink() or not path.is_file():
             raise ValidationError("archive input must be a regular file")
         try:
-            stream = path.open("rb")
-        except OSError as error:
+            stream = io.BytesIO(read_bytes(path, field="archive input"))
+        except (OSError, ValidationError) as error:
             raise ValidationError("archive input could not be read") from error
     try:
         try:
@@ -378,7 +380,7 @@ def _package_from_payload(payload: Mapping[str, bytes]) -> observatory_model.Obs
     with tempfile.TemporaryDirectory(prefix="gnd-observatory-archive-load-") as temporary:
         directory = Path(temporary)
         for name in observatory_model.FILES:
-            (directory / name).write_bytes(payload[PAYLOAD_PREFIX + name])
+            atomic_write_bytes(directory / name, payload[PAYLOAD_PREFIX + name], field="archive payload artifact")
         return observatory_model.load_package(directory)
 
 
@@ -446,6 +448,9 @@ def extract_archive(source: str | Path, destination: str | Path, *, overwrite: b
     value = load_archive(source)
     payload = value.payload_bytes()
     target = Path(destination)
+    _validate_parent(target.parent, "extraction destination")
+    if target.is_symlink():
+        raise ValidationError("extraction destination must not be a symlink")
     if target.exists():
         if not overwrite:
             raise ValidationError("extraction destination exists; explicit overwrite is required")
@@ -456,9 +461,11 @@ def extract_archive(source: str | Path, destination: str | Path, *, overwrite: b
     temporary = Path(tempfile.mkdtemp(prefix=".gnd-observatory-extract-", dir=str(target.parent)))
     try:
         for name in observatory_model.FILES:
-            (temporary / name).write_bytes(payload[PAYLOAD_PREFIX + name])
+            atomic_write_bytes(temporary / name, payload[PAYLOAD_PREFIX + name], field="extraction artifact")
         observatory_model.load_package(temporary)
         if target.exists():
+            if target.is_symlink() or not target.is_dir():
+                raise ValidationError("extraction destination must be a regular directory")
             shutil.rmtree(target)
         os.replace(temporary, target)
     except Exception:

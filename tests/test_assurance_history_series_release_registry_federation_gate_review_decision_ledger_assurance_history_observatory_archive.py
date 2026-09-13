@@ -382,9 +382,24 @@ class ArchiveZipTests(ArchiveFixture):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             target = self.write_archive(self.archive_value(root), root)
-            with patch.object(Path, "open", side_effect=OSError("read denied")):
+            with patch.object(archive, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     archive.load_archive(target)
+
+    def test_archive_writer_rejects_symlinked_destination_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self.archive_value(root)
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("directory symlinks are unavailable")
+            with self.assertRaises(ValidationError):
+                archive.write_archive(value, linked_parent / "archive.zip")
+            self.assertEqual(tuple(external.iterdir()), ())
 
 
 class ArchiveExtractionTests(ArchiveFixture):
@@ -427,6 +442,21 @@ class ArchiveExtractionTests(ArchiveFixture):
             (target / "extra.json").write_text("{}", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 archive.extract_archive(source, target, overwrite=True)
+
+    def test_extract_rejects_symlinked_destination_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = self.write_archive(self.archive_value(root), root)
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("directory symlinks are unavailable")
+            with self.assertRaises(ValidationError):
+                archive.extract_archive(source, linked_parent / "extracted")
+            self.assertEqual(tuple(external.iterdir()), ())
 
     def test_write_archive_requires_explicit_overwrite(self):
         with tempfile.TemporaryDirectory() as temporary:
