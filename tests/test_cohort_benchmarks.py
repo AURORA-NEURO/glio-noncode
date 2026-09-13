@@ -26,6 +26,7 @@ from glio_noncode.cohort_benchmarks import (
     build_cohort_split,
     cohort_benchmark_capabilities,
     cohort_benchmark_schema,
+    load_cohort_benchmark_records,
     run_cohort_benchmark,
 )
 from glio_noncode.serialization import content_hash
@@ -65,6 +66,17 @@ class CohortBenchmarkTests(unittest.TestCase):
         self.assertEqual(record.to_dict(), CohortBenchmarkRecord.from_mapping(record.to_dict()).to_dict())
         with self.assertRaises(Exception):
             CohortBenchmarkRecord.from_mapping(records(1)[0] | {"sample_id": "forbidden"})
+
+    def test_record_loader_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "records.json"
+            source.write_text('{"records":[],"records":[]}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_cohort_benchmark_records(source)
+            source = Path(directory) / "records.jsonl"
+            source.write_text('{"record_id":"one","record_id":"shadow"}\n', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_cohort_benchmark_records(source)
 
     def test_group_split_keeps_groups_together_and_is_deterministic(self) -> None:
         selected = typed_records()

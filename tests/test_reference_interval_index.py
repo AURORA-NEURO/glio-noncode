@@ -16,6 +16,7 @@ from glio_noncode.reference_interval_index import (
     ReferenceIndexQueryState,
     ReferenceIntervalIndex,
     build_reference_interval_index,
+    load_reference_rows,
     match_context,
     reference_interval_index_capabilities,
     reference_interval_index_schema,
@@ -284,6 +285,17 @@ class ReferenceIntervalIndexTests(unittest.TestCase):
         self.assertEqual(report.rejected_count, 2)
         self.assertEqual(report.issues[0].code, "duplicate_record")
         self.assertEqual(report.issues[1].code, "invalid_record")
+
+    def test_row_loader_rejects_duplicate_json_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "rows.json"
+            source.write_text('{"records":[],"records":[]}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_reference_rows(source)
+            source = Path(directory) / "rows.jsonl"
+            source.write_text('{"record_id":"one","record_id":"shadow"}\n', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_reference_rows(source)
 
     def test_round_trip_reverifies_columns_blocks_and_address(self) -> None:
         index = build_reference_interval_index(_rows(), block_size=2).index

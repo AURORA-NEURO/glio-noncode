@@ -12,7 +12,6 @@ and offline handoff, not for executing repair operations.
 from __future__ import annotations
 
 import csv
-import json
 from collections import deque
 from collections.abc import Mapping
 from io import StringIO
@@ -21,7 +20,7 @@ from typing import Any
 
 from .errors import ValidationError
 from .release_assurance_support import text_matches
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 from .storage_audit import (
     StorageAuditReport,
     _object_references,
@@ -174,8 +173,8 @@ def _edge_key(
 
 def _load_object(path: Path) -> Any | None:
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        return _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
         return None
 
 

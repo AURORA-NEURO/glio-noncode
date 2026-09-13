@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from bisect import bisect_left, bisect_right
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
@@ -30,7 +29,7 @@ from typing import Any
 from .errors import ValidationError
 from .identity import normalize_chromosome
 from .models import ReferenceContext
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 REFERENCE_INTERVAL_INDEX_VERSION = "reference-interval-index-v1"
@@ -1210,13 +1209,13 @@ def load_reference_rows(path: str | Path) -> tuple[Mapping[str, Any], ...]:
         ):
             if not line.strip():
                 continue
-            value = json.loads(line)
+            value = _strict_json_loads(line)
             if not isinstance(value, Mapping):
                 raise ValidationError(f"JSONL row {line_number} must be an object")
             rows.append(value)
         return tuple(rows)
     if suffix == ".json":
-        value = json.loads(source.read_text(encoding="utf-8"))
+        value = _strict_json_loads(source.read_text(encoding="utf-8"))
         if isinstance(value, Mapping):
             value = value.get("records", value.get("rows", ()))
         if not isinstance(value, list):

@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
@@ -27,7 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 
 COHORT_BENCHMARK_VERSION = "cohort-benchmark-v1"
@@ -1485,13 +1484,13 @@ def load_cohort_benchmark_records(path: str | Path) -> tuple[Mapping[str, Any], 
         ):
             if not line.strip():
                 continue
-            value = json.loads(line)
+            value = _strict_json_loads(line)
             if not isinstance(value, Mapping):
                 raise ValidationError(f"JSONL benchmark row {line_number} must be an object")
             rows.append(value)
         return tuple(rows)
     if suffix == ".json":
-        value = json.loads(source.read_text(encoding="utf-8"))
+        value = _strict_json_loads(source.read_text(encoding="utf-8"))
         if isinstance(value, Mapping):
             value = value.get("records", value.get("rows", ()))
         if not isinstance(value, list) or not all(isinstance(row, Mapping) for row in value):
