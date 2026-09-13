@@ -2467,9 +2467,13 @@ class ControlPlaneApplication:
             plan = self.reclassifier.plan(
                 previous,
                 current,
-                source_version_before=str(raw["source_version_before"]),
-                source_version_after=str(raw["source_version_after"]),
-                reason=str(raw["reason"]),
+                source_version_before=_input_text(
+                    raw["source_version_before"], "source_version_before"
+                ),
+                source_version_after=_input_text(
+                    raw["source_version_after"], "source_version_after"
+                ),
+                reason=_input_text(raw["reason"], "reclassification reason"),
             )
         except (TypeError, ValueError, ValidationError, KeyError) as exc:
             return Abstention(
@@ -2500,31 +2504,42 @@ class ControlPlaneApplication:
 
     @classmethod
     def _dossier_from_mapping(cls, raw: Mapping[str, Any]) -> Dossier:
+        if not isinstance(raw, Mapping):
+            raise ValidationError("dossier must be a mapping")
         hypotheses = tuple(cls._hypothesis_from_mapping(item) for item in raw["hypotheses"])
         evidence = tuple(cls._claim_from_mapping(item) for item in raw["evidence"])
         experiments = tuple(cls._experiment_from_mapping(item) for item in raw["experiments"])
         review_raw = raw.get("review")
         review = cls._review_from_mapping(review_raw) if isinstance(review_raw, Mapping) else None
+        if review_raw is not None and review is None:
+            raise ValidationError("dossier review must be a mapping or null")
+        warnings = _input_strings(raw.get("warnings", ()), "dossier warnings")
+        source_bundle_addresses = _input_strings(
+            raw.get("source_bundle_addresses", ()), "dossier source_bundle_addresses"
+        )
+        receipts_raw = raw.get("source_receipts", ())
+        if not isinstance(receipts_raw, (list, tuple)):
+            raise ValidationError("dossier source_receipts must be an array")
+        if any(not isinstance(item, Mapping) for item in receipts_raw):
+            raise ValidationError("dossier source_receipts must contain mappings")
         return Dossier(
-            dossier_id=str(raw["dossier_id"]),
-            case_id=str(raw["case_id"]),
-            run_id=str(raw["run_id"]),
-            created_at=str(raw["created_at"]),
-            input_address=str(raw["input_address"]),
+            dossier_id=_input_text(raw["dossier_id"], "dossier_id"),
+            case_id=_input_text(raw["case_id"], "case_id"),
+            run_id=_input_text(raw["run_id"], "run_id"),
+            created_at=_input_text(raw["created_at"], "dossier created_at"),
+            input_address=_input_text(raw["input_address"], "dossier input_address"),
             hypotheses=hypotheses,
             evidence=evidence,
             experiments=experiments,
             review=review,
-            research_use_only=bool(raw["research_use_only"]),
-            policy_version=str(raw["policy_version"]),
-            event_head=str(raw["event_head"]),
-            content_address=str(raw["content_address"]),
-            status=ResearchStatus(str(raw["status"])),
-            warnings=tuple(str(item) for item in raw.get("warnings", ())),
-            source_receipts=tuple(dict(item) for item in raw.get("source_receipts", ())),
-            source_bundle_addresses=tuple(
-                str(item) for item in raw.get("source_bundle_addresses", ())
-            ),
+            research_use_only=_input_bool(raw["research_use_only"], "research_use_only"),
+            policy_version=_input_text(raw["policy_version"], "policy_version"),
+            event_head=_input_text(raw["event_head"], "event_head"),
+            content_address=_input_text(raw["content_address"], "dossier content_address"),
+            status=ResearchStatus(_input_text(raw["status"], "dossier status")),
+            warnings=warnings,
+            source_receipts=tuple(dict(item) for item in receipts_raw),
+            source_bundle_addresses=source_bundle_addresses,
         )
 
     @classmethod
@@ -2534,22 +2549,31 @@ class ControlPlaneApplication:
         context_raw = raw.get("context")
         if not isinstance(context_raw, Mapping):
             raise ValidationError("each hypothesis requires a context mapping")
+        edges_raw = raw["edges"]
+        if not isinstance(edges_raw, (list, tuple)):
+            raise ValidationError("hypothesis edges must be an array")
         return Hypothesis(
-            hypothesis_id=str(raw["hypothesis_id"]),
-            variant_id=str(raw["variant_id"]),
-            element_id=str(raw["element_id"]),
-            gene_id=str(raw["gene_id"]),
-            state_id=str(raw["state_id"]),
-            mechanism=str(raw["mechanism"]),
+            hypothesis_id=_input_text(raw["hypothesis_id"], "hypothesis_id"),
+            variant_id=_input_text(raw["variant_id"], "hypothesis variant_id"),
+            element_id=_input_text(raw["element_id"], "hypothesis element_id"),
+            gene_id=_input_text(raw["gene_id"], "hypothesis gene_id"),
+            state_id=_input_text(raw["state_id"], "hypothesis state_id"),
+            mechanism=_input_text(raw["mechanism"], "hypothesis mechanism"),
             context=ReferenceContext.from_dict(context_raw),
-            edges=tuple(cls._hypothesis_edge(item) for item in raw["edges"]),
-            support=float(raw["support"]),
-            uncertainty=float(raw["uncertainty"]),
-            status=ResearchStatus(str(raw.get("status", ResearchStatus.DRAFT.value))),
-            missing_evidence=tuple(str(item) for item in raw.get("missing_evidence", ())),
-            negative_evidence=tuple(str(item) for item in raw.get("negative_evidence", ())),
-            alternatives=tuple(str(item) for item in raw.get("alternatives", ())),
-            provenance=tuple(str(item) for item in raw.get("provenance", ())),
+            edges=tuple(cls._hypothesis_edge(item) for item in edges_raw),
+            support=_input_number(raw["support"], "hypothesis support"),
+            uncertainty=_input_number(raw["uncertainty"], "hypothesis uncertainty"),
+            status=ResearchStatus(
+                _input_text(raw.get("status", ResearchStatus.DRAFT.value), "hypothesis status")
+            ),
+            missing_evidence=_input_strings(
+                raw.get("missing_evidence", ()), "hypothesis missing_evidence"
+            ),
+            negative_evidence=_input_strings(
+                raw.get("negative_evidence", ()), "hypothesis negative_evidence"
+            ),
+            alternatives=_input_strings(raw.get("alternatives", ()), "hypothesis alternatives"),
+            provenance=_input_strings(raw.get("provenance", ()), "hypothesis provenance"),
         )
 
     @staticmethod
@@ -2557,29 +2581,35 @@ class ControlPlaneApplication:
         if not isinstance(raw, Mapping):
             raise ValidationError("each dossier experiment must be a mapping")
         return ExperimentOption(
-            option_id=str(raw["option_id"]),
-            assay=AssayType(str(raw["assay"])),
-            tests_edges=tuple(str(item) for item in raw["tests_edges"]),
-            expected_information_gain=float(raw["expected_information_gain"]),
-            feasibility=float(raw["feasibility"]),
-            cost_class=str(raw["cost_class"]),
-            required_context=tuple(str(item) for item in raw["required_context"]),
-            controls=tuple(str(item) for item in raw["controls"]),
-            readouts=tuple(str(item) for item in raw["readouts"]),
-            limitations=tuple(str(item) for item in raw["limitations"]),
+            option_id=_input_text(raw["option_id"], "option_id"),
+            assay=AssayType(_input_text(raw["assay"], "assay")),
+            tests_edges=_input_strings(raw["tests_edges"], "tests_edges"),
+            expected_information_gain=_input_number(
+                raw["expected_information_gain"], "expected_information_gain"
+            ),
+            feasibility=_input_number(raw["feasibility"], "feasibility"),
+            cost_class=_input_text(raw["cost_class"], "cost_class"),
+            required_context=_input_strings(raw["required_context"], "required_context"),
+            controls=_input_strings(raw["controls"], "controls"),
+            readouts=_input_strings(raw["readouts"], "readouts"),
+            limitations=_input_strings(raw["limitations"], "limitations"),
         )
 
     @staticmethod
     def _review_from_mapping(raw: Mapping[str, Any]) -> ReviewDecision:
         return ReviewDecision(
-            review_id=str(raw["review_id"]),
-            case_id=str(raw["case_id"]),
-            reviewer=str(raw["reviewer"]),
-            state=ReviewState(str(raw["state"])),
-            reviewed_hypothesis_ids=tuple(str(item) for item in raw["reviewed_hypothesis_ids"]),
-            rationale=str(raw["rationale"]),
-            checked_claim_ids=tuple(str(item) for item in raw["checked_claim_ids"]),
-            created_at=str(raw.get("created_at", "control-plane-input")),
+            review_id=_input_text(raw["review_id"], "review_id"),
+            case_id=_input_text(raw["case_id"], "review case_id"),
+            reviewer=_input_text(raw["reviewer"], "reviewer"),
+            state=ReviewState(_input_text(raw["state"], "review state")),
+            reviewed_hypothesis_ids=_input_strings(
+                raw["reviewed_hypothesis_ids"], "reviewed_hypothesis_ids"
+            ),
+            rationale=_input_text(raw["rationale"], "review rationale"),
+            checked_claim_ids=_input_strings(raw["checked_claim_ids"], "checked_claim_ids"),
+            created_at=_input_text(
+                raw.get("created_at", "control-plane-input"), "review created_at"
+            ),
         )
 
     @staticmethod
