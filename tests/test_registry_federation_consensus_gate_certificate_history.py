@@ -89,6 +89,19 @@ class CertificateHistoryTests(CertificateFixture):
             history_model.write_history(value, destination, overwrite=True)
             self.assertEqual(history_model.load_history(destination).content_address, value.content_address)
 
+    def test_history_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            issued, _ = self._values(root)
+            value = history_model.build_history(((issued.certificate, issued.certificate_audit),), history_id="duplicate-history")
+            destination = root / "history"
+            history_model.write_history(value, destination)
+            path = destination / history_model.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"history_id":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                history_model.load_history(destination)
+
     def test_persistence_rejects_extra_member_noncanonical_projection_and_tamper(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

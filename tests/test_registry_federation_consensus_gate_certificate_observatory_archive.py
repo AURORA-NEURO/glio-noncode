@@ -147,6 +147,20 @@ class CertificateObservatoryArchiveTests(CertificateFixture):
                 with self.assertRaises(ValidationError):
                     archive_model.load_archive_bytes(stream.getvalue())
 
+    def test_archive_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            _, archive = self._archive(Path(temporary))
+            raw = archive_model.archive_bytes(archive)
+            with zipfile.ZipFile(io.BytesIO(raw), "r") as source:
+                members = {info.filename: source.read(info.filename) for info in source.infolist()}
+            members[archive_model.ARCHIVE_MANIFEST_NAME] = members[archive_model.ARCHIVE_MANIFEST_NAME].rstrip()[:-1] + b',"package_id":"shadow"}'
+            stream = io.BytesIO()
+            with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as target:
+                for name in archive_model.FILES:
+                    target.writestr(name, members[name])
+            with self.assertRaises(ValidationError):
+                archive_model.load_archive_bytes(stream.getvalue())
+
     def test_archive_audit_exposes_all_independent_checks(self):
         with tempfile.TemporaryDirectory() as temporary:
             _, archive = self._archive(Path(temporary))

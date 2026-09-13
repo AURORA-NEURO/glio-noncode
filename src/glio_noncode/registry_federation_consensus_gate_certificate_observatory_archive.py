@@ -31,7 +31,7 @@ from typing import Any
 
 from . import registry_federation_consensus_gate_certificate_observatory_package as package_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = package_model.VERSION + "-archive-v1"
@@ -390,8 +390,8 @@ def load_archive(source: str | Path | bytes) -> RegistryFederationConsensusGateC
         if close_stream:
             stream.close()
     try:
-        decoded = {name: json.loads(raw[name].decode("utf-8")) for name in FILES}
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        decoded = {name: _strict_json_loads(raw[name].decode("utf-8")) for name in FILES}
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("archive contains invalid JSON") from error
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("archive contains non-canonical JSON")

@@ -180,6 +180,18 @@ class ArchiveRegistryFixture(unittest.TestCase):
             registry_model.write_registry(value, destination, overwrite=True)
             self.assertEqual(registry_model.load_registry(destination).content_address, value.content_address)
 
+    def test_registry_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self.registry(root, "duplicate-a")
+            destination = root / "registry"
+            registry_model.write_registry(value, destination)
+            path = destination / registry_model.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"registry_id":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                registry_model.load_registry(destination)
+
     def test_registry_persistence_rejects_extra_member_noncanonical_json_and_tampered_hash(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

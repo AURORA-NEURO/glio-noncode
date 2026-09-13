@@ -91,6 +91,18 @@ class RegistryFederationConsensusTests(DurableCatalogPromotionPackageFixture):
             self.assertEqual(loaded.to_dict(), value.to_dict())
             self.assertEqual(registry_federation_consensus.package_bytes(loaded), registry_federation_consensus.package_bytes(value))
 
+    def test_consensus_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self._receipt(root, "primary", "replica")
+            destination = root / "consensus"
+            registry_federation_consensus.write_consensus(value, destination)
+            path = destination / registry_federation_consensus.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"consensus_address":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                registry_federation_consensus.load_consensus(destination)
+
     def test_independent_audit_passes_for_accepted_and_rejected_receipts(self):
         with tempfile.TemporaryDirectory() as temporary:
             clean = self._receipt(Path(temporary) / "clean", "primary", "replica")
