@@ -226,6 +226,23 @@ class CertificateCoreTests(CertificateFixture):
             loaded = package_model.load_package(root / "certificate-package")
             self.assertEqual(loaded.content_address, value.package_address)
 
+    def test_certificate_package_loader_rejects_symlinked_member(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self.certificate_runtime(root, "primary", "replica", destination=root / "certificate-package")
+            package_path = root / "certificate-package"
+            external = root / "external-package.json"
+            member = package_path / package_model.PACKAGE_NAME
+            external.write_bytes(member.read_bytes())
+            member.unlink()
+            try:
+                member.symlink_to(external)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                package_model.load_package(package_path)
+            self.assertTrue(value.persisted)
+
 
 if __name__ == "__main__":
     unittest.main()

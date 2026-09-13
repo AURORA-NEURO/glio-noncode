@@ -17,6 +17,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_bytes
 from . import registry_federation_consensus_gate as gate_model
 from . import registry_federation_consensus_gate_audit as gate_audit_model
 from . import registry_federation_consensus_gate_certificate as certificate_model
@@ -224,8 +225,8 @@ def load_package(directory: str | Path) -> RegistryFederationConsensusGateCertif
     if {item.name for item in members} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in members):
         raise ValidationError("certificate package directory does not contain exact canonical members")
     try:
-        raw = {name: (source / name).read_bytes() for name in FILES}
-    except OSError as error:
+        raw = {name: read_bytes(source / name, field="certificate package artifact") for name in FILES}
+    except (OSError, ValidationError) as error:
         raise ValidationError("certificate package artifact could not be read") from error
     try:
         decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
