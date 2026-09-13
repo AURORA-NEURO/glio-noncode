@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Mapping
 
 from .cohort_discovery import (
     CohortDiscoveryEvidenceBuilder,
@@ -30,6 +30,13 @@ from .workspace_frontier_public_data import (
     WorkspaceFrontierRole,
     default_workspace_frontier_fixture,
 )
+
+
+def _bool_field(payload: Mapping[str, Any], name: str, default: bool) -> bool:
+    value = payload.get(name, default)
+    if not isinstance(value, bool):
+        raise ValidationError(f"{name} must be boolean")
+    return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,7 +150,7 @@ def _cohort_record(raw: dict[str, Any]) -> CohortVariantRecord:
         context_key=str(raw["context_key"]),
         source_id=str(raw["source_id"]),
         sample_id=str(raw["sample_id"]),
-        callable=bool(raw.get("callable", True)),
+        callable=_bool_field(raw, "callable", True),
         sequence_context=raw.get("sequence_context"),
         chromatin_features=dict(raw.get("chromatin_features", {})),
         annotations=dict(raw.get("annotations", {})),
@@ -156,7 +163,7 @@ def _cohort_workspace(payload: dict[str, Any], fixture_context: str) -> tuple[st
     query = CohortQuery(
         query_id=str(payload["query_id"]),
         context_key=context_key,
-        require_callable=bool(payload.get("require_callable", True)),
+        require_callable=_bool_field(payload, "require_callable", True),
     )
     result = CohortQueryBuilder().build(query, values)
     evidence = CohortDiscoveryEvidenceBuilder().build(str(payload["evidence_id"]), result)

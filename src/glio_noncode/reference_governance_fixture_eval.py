@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 from .errors import ValidationError
 from .reference_alpha import (
@@ -30,6 +30,13 @@ from .reference_governance_public_data import (
     load_reference_governance_fixture,
 )
 from .serialization import content_hash, jsonable, require_non_empty
+
+
+def _bool_field(payload: Mapping[str, Any], name: str, default: bool) -> bool:
+    value = payload.get(name, default)
+    if not isinstance(value, bool):
+        raise ValidationError(f"{name} must be boolean")
+    return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -240,8 +247,8 @@ def _execute_record(
             payload["resources"],
             payload["restrictions"],
             requested_use=payload["requested_use"],
-            redistribution=bool(payload.get("redistribution", False)),
-            commercial=bool(payload.get("commercial", False)),
+            redistribution=_bool_field(payload, "redistribution", False),
+            commercial=_bool_field(payload, "commercial", False),
             as_of=payload.get("as_of"),
         )
         summary = {

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Mapping
 
 from .errors import ValidationError
 from .frontier_data_alpha import (
@@ -21,6 +21,13 @@ from .reference_release_frontier_public_data import (
     default_reference_release_fixture,
 )
 from .serialization import content_hash, jsonable
+
+
+def _bool_field(payload: Mapping[str, Any], name: str, default: bool) -> bool:
+    value = payload.get(name, default)
+    if not isinstance(value, bool):
+        raise ValidationError(f"{name} must be boolean")
+    return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -123,7 +130,7 @@ def _provenance(record: ReferenceReleaseRecord, context_key: str) -> ReferenceRe
     report = SourceProvenanceChecker().check(
         payload.get("records", ()),
         context_key=context_key,
-        require_checksum_match=bool(payload.get("require_checksum_match", True)),
+        require_checksum_match=_bool_field(payload, "require_checksum_match", True),
     )
     issues = tuple(sorted({issue.code for item in report.checks for issue in item.issues}))
     state = "accepted" if not report.review_ids else "review"
@@ -188,7 +195,7 @@ def _bundle(record: ReferenceReleaseRecord, context_key: str) -> ReferenceReleas
             bundle_id=str(payload.get("bundle_id", f"bundle:{record.record_id}")),
             context_key=context_key,
             schema_hash=str(payload.get("schema_hash", "")),
-            require_available=bool(payload.get("require_available", True)),
+            require_available=_bool_field(payload, "require_available", True),
         )
     except (TypeError, ValueError, ValidationError, KeyError) as exc:
         code = _bundle_error_code(str(exc))
