@@ -1378,6 +1378,8 @@ class ControlPlaneExecutor:
 
     def register(self, tool_id: str, handler: Handler) -> None:
         self.registry.tool(tool_id)
+        if not callable(handler):
+            raise ValidationError(f"handler for {tool_id} must be callable")
         with self._lock:
             if tool_id in self._handlers:
                 raise ValidationError(f"handler already registered for {tool_id}")

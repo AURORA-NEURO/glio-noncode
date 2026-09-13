@@ -142,6 +142,10 @@ class ControlPlaneTests(unittest.TestCase):
         with self.assertRaises(Exception):
             _ = replace(_request("A08", "A08.publish"), deadline_seconds=1.5)  # type: ignore[arg-type]
 
+    def test_executor_rejects_non_callable_handlers_at_registration(self) -> None:
+        with self.assertRaises(Exception):
+            ControlPlaneExecutor().register("A08.publish", object())  # type: ignore[arg-type]
+
     def test_network_policy_and_source_failure_are_explicit(self) -> None:
         executor = ControlPlaneExecutor()
         executor.register(
