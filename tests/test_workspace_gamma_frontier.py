@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
 from glio_noncode.workspace_gamma_frontier_accessibility import (
     evaluate_gamma_frontier_accessibility,
@@ -47,6 +50,7 @@ from glio_noncode.workspace_gamma_frontier_public_data import (
     audit_gamma_frontier_data,
     build_gamma_frontier_catalog,
     default_gamma_frontier_fixture,
+    load_gamma_frontier_fixture,
 )
 from glio_noncode.workspace_gamma_frontier_quality_gate import evaluate_gamma_frontier_quality
 from glio_noncode.workspace_gamma_frontier_reconciliation import reconcile_gamma_frontier
@@ -93,6 +97,15 @@ class WorkspaceGammaFrontierTests(unittest.TestCase):
         self.assertEqual(len(self.fixture.records), 16)
         self.assertEqual(len(self.fixture.positive_records), 4)
         self.assertEqual(len(self.fixture.control_records), 12)
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_gamma_frontier_fixture(path)
         self.assertEqual(self.fixture.context_key, GAMMA_FRONTIER_CONTEXT_KEY)
         self.assertTrue(audit_gamma_frontier_data(self.fixture).accepted)
 

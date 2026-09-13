@@ -28,7 +28,7 @@ from .intake_architecture_contracts import (
     IntakeArchitectureState,
 )
 from .module_fabric_support import contains_private_key
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 INTAKE_ARCHITECTURE_SOURCE_COUNT = 6
 
@@ -625,8 +625,8 @@ def intake_architecture_fixture_json(fixture: IntakeArchitectureFixture | None =
 
 def load_intake_architecture_fixture(path: str | Path) -> IntakeArchitectureFixture:
     try:
-        raw = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
         raise ValidationError(f"unable to read intake architecture fixture: {path}") from exc
     if not isinstance(raw, Mapping):
         raise ValidationError("intake architecture fixture must be a JSON object")

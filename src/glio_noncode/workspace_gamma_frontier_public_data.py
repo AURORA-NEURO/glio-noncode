@@ -15,7 +15,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 GAMMA_FRONTIER_FIXTURE_VERSION = "2026.08.d15-c09-c12.v1"
 GAMMA_FRONTIER_CONTEXT_KEY = "GRCh38|glioma|adult|stem_like|core|untreated"
@@ -628,7 +628,7 @@ def load_gamma_frontier_fixture(path: str | Path | None = None) -> GammaFrontier
 
     if path is None:
         return default_gamma_frontier_fixture()
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     sources = tuple(GammaFrontierSourceReceipt(**item) for item in payload["sources"])
     records = []
     for item in payload["records"]:

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 
 from glio_noncode.editing_design_frontier_adapters import build_editing_design_adapters, execute_editing_design_adapter
 from glio_noncode.editing_design_frontier_contracts import EditingDesignOperation, EditingDesignState
@@ -27,6 +29,16 @@ class EditingDesignExtensionTests(unittest.TestCase):
         fixture = default_editing_design_frontier_fixture(); text = editing_design_frontier_fixture_json(fixture)
         self.assertIn(fixture.content_address, text)
         self.assertEqual(load_editing_design_frontier_fixture("examples/editing-design-public-aggregate.json").content_address, fixture.content_address)
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        fixture = default_editing_design_frontier_fixture()
+        payload = editing_design_frontier_fixture_json(fixture).rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_editing_design_frontier_fixture(path)
 
 
 if __name__ == "__main__":

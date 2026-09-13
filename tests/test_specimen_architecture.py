@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.specimen_architecture_access import specimen_architecture_access_policy
 from glio_noncode.specimen_architecture_compliance import (
     assess_specimen_architecture_compliance,
@@ -11,6 +15,7 @@ from glio_noncode.specimen_architecture_compliance import (
 from glio_noncode.specimen_architecture_contracts import (
     SPECIMEN_ARCHITECTURE_CASE_COUNT,
     SPECIMEN_ARCHITECTURE_CONTEXT,
+    SpecimenArchitectureFixture,
     SpecimenArchitectureScenario,
     SpecimenArchitectureState,
 )
@@ -58,6 +63,15 @@ class SpecimenArchitectureFixtureTests(unittest.TestCase):
         self.assertTrue(report.accepted)
         self.assertEqual(len(report.checks), 15)
         self.assertTrue(all(item.content_address for item in report.checks))
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                SpecimenArchitectureFixture.from_file(path)
 
     def test_operations_are_four_scenario_contracts(self) -> None:
         for operation in self.fixture.operation_ids:

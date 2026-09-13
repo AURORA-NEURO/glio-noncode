@@ -301,6 +301,15 @@ class WorkspaceFrontierEvidenceTests(unittest.TestCase):
         self.assertEqual(loaded.content_address, self.fixture.content_address)
         self.assertEqual(evaluate_workspace_frontier_fixture(loaded).content_address, self.evaluation.content_address)
 
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_workspace_frontier_fixture(path)
+
     def test_adapters_report_required_fields_and_input_addresses(self) -> None:
         registry = default_workspace_frontier_adapters()
         self.assertEqual(len(registry.adapters), 4)

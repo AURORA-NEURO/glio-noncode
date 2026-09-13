@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 SPECIMEN_ARCHITECTURE_VERSION = "2026.08.specimen-architecture.v1"
 SPECIMEN_ARCHITECTURE_BOUNDARY = "public_aggregate_specimen_context_and_release"
@@ -299,10 +299,10 @@ class SpecimenArchitectureFixture:
     def from_file(cls, path: str | Path) -> SpecimenArchitectureFixture:
         file_path = Path(path)
         try:
-            raw = json.loads(file_path.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(file_path.read_text(encoding="utf-8"))
         except FileNotFoundError as exc:
             raise ValidationError(f"specimen architecture fixture not found: {file_path}") from exc
-        except json.JSONDecodeError as exc:
+        except ValueError as exc:
             raise ValidationError(f"invalid specimen architecture JSON: {exc}") from exc
         return cls.from_mapping(raw)
 

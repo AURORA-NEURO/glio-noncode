@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.capability_registry import CapabilityState, default_capability_registry
 from glio_noncode.intake_architecture_access import build_intake_architecture_access_manifest
 from glio_noncode.intake_architecture_bundle import (
@@ -66,6 +68,7 @@ from glio_noncode.intake_architecture_public_data import (
     audit_intake_architecture_data,
     default_intake_architecture_fixture,
     intake_architecture_fixture_json,
+    load_intake_architecture_fixture,
 )
 from glio_noncode.intake_architecture_quality import run_intake_architecture_quality_gate
 from glio_noncode.intake_architecture_quarantine import build_intake_quarantine
@@ -133,6 +136,15 @@ class IntakeArchitectureFixtureTests(unittest.TestCase):
         payload = json.loads(first)
         self.assertEqual(payload["content_address"], self.fixture.content_address)
         self.assertEqual(len(payload["cases"]), 64)
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = intake_architecture_fixture_json(self.fixture).rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaisesRegex(ValidationError, "unable to read intake architecture fixture"):
+                load_intake_architecture_fixture(path)
 
     def test_source_receipt_addresses(self) -> None:
         self.assertTrue(all(":" in item.content_address for item in self.fixture.sources))

@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 REFERENCE_RELEASE_FRONTIER_FIXTURE_VERSION = "2026.08.d04-c13-c16.v1"
 REFERENCE_RELEASE_FRONTIER_CONTEXT_KEY = (
@@ -884,7 +884,7 @@ def load_reference_release_fixture(
     if isinstance(source, Mapping):
         payload = dict(source)
     else:
-        payload = json.loads(Path(source).read_text(encoding="utf-8"))
+        payload = _strict_json_loads(Path(source).read_text(encoding="utf-8"))
     if payload.get("fixture") == "default_reference_release_fixture":
         return default_reference_release_fixture()
     sources: list[ReferenceReleaseSourceReceipt] = []

@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
+from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.reference_architecture_exports import (
     default_reference_architecture_fixture,
+    load_reference_architecture_mapping,
     evaluate_reference_architecture_fixture,
     normalize_reference_architecture_mapping,
     reference_architecture_fixture_json,
@@ -26,6 +30,15 @@ class ReferenceArchitectureExportTests(unittest.TestCase):
         self.assertIn(
             "reference-architecture-public-aggregate", reference_architecture_fixture_json(fixture)
         )
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = reference_architecture_fixture_json().rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                load_reference_architecture_mapping(path)
 
     def test_queries_are_bounded(self) -> None:
         fixture = default_reference_architecture_fixture()

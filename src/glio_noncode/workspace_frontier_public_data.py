@@ -14,7 +14,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 WORKSPACE_FRONTIER_FIXTURE_VERSION = "2026.08.d15-c01-c04.v1"
 WORKSPACE_FRONTIER_CONTEXT_KEY = "GRCh38|glioma|adult|stem_like|core|untreated"
@@ -366,9 +366,7 @@ def audit_workspace_frontier_data(fixture: WorkspaceFrontierFixture) -> Workspac
 
 
 def load_workspace_frontier_fixture(path: str | Path) -> WorkspaceFrontierFixture:
-    import json
-
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not raw.get("sources") or not raw.get("records"):
         raise ValueError("workspace frontier fixture requires sources and records")
     sources = tuple(WorkspaceFrontierSourceReceipt(**item) for item in raw.get("sources", ()))

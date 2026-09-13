@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 REFERENCE_ARCHITECTURE_VERSION = "2026.08.reference-architecture.v1"
 REFERENCE_ARCHITECTURE_BOUNDARY = "public_aggregate_reference_context_and_release"
@@ -300,10 +300,10 @@ class ReferenceArchitectureFixture:
     @classmethod
     def from_file(cls, path: str | Path) -> ReferenceArchitectureFixture:
         try:
-            raw = json.loads(Path(path).read_text(encoding="utf-8"))
+            raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
         except FileNotFoundError as exc:
             raise ValidationError(f"reference architecture fixture not found: {path}") from exc
-        except json.JSONDecodeError as exc:
+        except ValueError as exc:
             raise ValidationError(f"invalid reference architecture JSON: {exc}") from exc
         return cls.from_mapping(raw)
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
@@ -333,6 +334,15 @@ class ReferenceReleaseOperationsTests(unittest.TestCase):
         self.assertEqual(payload["operational"]["failed_check_ids"], [])
         self.assertEqual(payload["addresses"]["operational"], payload["operational"]["content_address"])
         self.assertGreater(payload["operational"]["counters"]["total_work_units"], 0)
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_reference_release_fixture(path)
 
 
 if __name__ == "__main__":
