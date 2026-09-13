@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -18,7 +17,7 @@ from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query as query_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_audit as query_audit_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = query_model.VERSION + "-snapshot-v1"
@@ -468,10 +467,10 @@ def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
         if path.stat().st_size > MAX_SNAPSHOT_BYTES:
             raise ValidationError(f"comparison-query snapshot member {path.name} exceeds its bound")
         raw = path.read_bytes()
-        value = _mapping(json.loads(raw.decode("utf-8")), f"comparison-query snapshot member {path.name}")
+        value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"comparison-query snapshot member {path.name}")
     except ValidationError:
         raise
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError(f"comparison-query snapshot member {path.name} is not valid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"comparison-query snapshot member {path.name} is not canonical")

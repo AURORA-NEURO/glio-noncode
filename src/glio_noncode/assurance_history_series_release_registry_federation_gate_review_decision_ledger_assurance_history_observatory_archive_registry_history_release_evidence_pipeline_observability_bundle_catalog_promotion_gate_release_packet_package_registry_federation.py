@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import shutil
 import tempfile
 from collections.abc import Mapping, Sequence
@@ -23,7 +22,7 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry as registry_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
 
 VERSION = registry_model.VERSION + "-federation-v1"
@@ -608,17 +607,17 @@ def load_federation(directory: str | Path) -> RegistryHistoryReleaseEvidencePipe
     if not source.is_dir() or tuple(sorted(item.name for item in source.iterdir())) != tuple(sorted(FILES)):
         raise ValidationError("federation directory does not contain the exact canonical members")
     raw = {name: (source / name).read_bytes() for name in FILES}
-    if any(canonical_bytes(json.loads(payload.decode("utf-8"))) != payload for payload in raw.values()):
+    if any(canonical_bytes(_strict_json_loads(payload.decode("utf-8"))) != payload for payload in raw.values()):
         raise ValidationError("federation member is not canonical JSON")
-    value = federation_from_mapping(json.loads(raw[FEDERATION_NAME].decode("utf-8")))
-    manifest = json.loads(raw[MANIFEST_NAME].decode("utf-8"))
+    value = federation_from_mapping(_strict_json_loads(raw[FEDERATION_NAME].decode("utf-8")))
+    manifest = _strict_json_loads(raw[MANIFEST_NAME].decode("utf-8"))
     if isinstance(manifest.get("files"), list):
         manifest["files"] = tuple(manifest["files"])
     if manifest != value.manifest:
         raise ValidationError("federation manifest does not match federation document")
-    peers = json.loads(raw[PEERS_NAME].decode("utf-8"))
-    reconciliation = json.loads(raw[RECONCILIATION_NAME].decode("utf-8"))
-    actions = json.loads(raw[ACTIONS_NAME].decode("utf-8"))
+    peers = _strict_json_loads(raw[PEERS_NAME].decode("utf-8"))
+    reconciliation = _strict_json_loads(raw[RECONCILIATION_NAME].decode("utf-8"))
+    actions = _strict_json_loads(raw[ACTIONS_NAME].decode("utf-8"))
     expected_peers, expected_reconciliation, expected_actions = _documents(value)
     for actual, expected in ((peers, expected_peers), (reconciliation, expected_reconciliation), (actions, expected_actions)):
         if canonical_bytes(actual) != canonical_bytes(expected):

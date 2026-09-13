@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -21,7 +20,7 @@ from typing import Any
 from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_snapshot_diff_query_snapshot_diff_query_snapshot_registry as registry_model
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 RegistryType = registry_model.DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiffPolicyPackageRegistryObservatoryArchiveRuntimeQuerySnapshotDiffQuerySnapshotDiffQuerySnapshotRegistry
 
@@ -675,8 +674,8 @@ def persist_history(value, destination: str | Path, *, overwrite: bool = False) 
 def _read_json(path: Path) -> tuple[Mapping[str, Any], str]:
     try:
         text = path.read_text(encoding="utf-8")
-        value = json.loads(text)
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(text)
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("history artifact is not valid JSON") from error
     mapping = _mapping(value, "history artifact")
     if canonical_json(mapping) != text:

@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import shutil
 import tempfile
 from collections.abc import Mapping
@@ -25,7 +24,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_audit as gate_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet as packet_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = packet_model.VERSION + "-package-v1"
@@ -114,7 +113,7 @@ def _manifest(package_id: str, gate: gate_model.RegistryHistoryReleaseEvidencePi
         "gate_address": gate.content_address,
         "gate_audit_address": gate_audit.content_address,
         "packet_address": packet.content_address,
-        "actions_address": address_actions(json.loads(payload[ACTIONS_NAME].decode("utf-8"))),
+        "actions_address": address_actions(_strict_json_loads(payload[ACTIONS_NAME].decode("utf-8"))),
         "artifact_count": MAX_ARTIFACTS,
         "files": ARTIFACT_FILES,
         "artifacts": tuple(_artifact(name, payload[name]) for name in ARTIFACT_FILES),
@@ -341,8 +340,8 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
 def load_package(source: str | Path) -> RegistryHistoryReleaseEvidencePipelineObservabilityBundleCatalogPromotionGateReleasePacketPackage:
     payload = _read_directory(source)
     try:
-        documents = {name: json.loads(payload[name].decode("utf-8")) for name in FILES}
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        documents = {name: _strict_json_loads(payload[name].decode("utf-8")) for name in FILES}
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("observability bundle catalog promotion package contains invalid JSON") from error
     if any(canonical_bytes(documents[name]) != payload[name] for name in FILES):
         raise ValidationError("observability bundle catalog promotion package artifacts are not canonical")

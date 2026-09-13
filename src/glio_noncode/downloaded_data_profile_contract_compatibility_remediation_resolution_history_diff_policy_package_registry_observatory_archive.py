@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import tempfile
 import zipfile
@@ -24,7 +23,7 @@ from typing import Any
 from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory as observatory_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = observatory_model.VERSION + "-archive-v1"
@@ -361,9 +360,9 @@ def _decode_canonical(raw: Mapping[str, bytes]) -> dict[str, Mapping[str, Any]]:
     decoded: dict[str, Mapping[str, Any]] = {}
     try:
         for name in FILES:
-            value = json.loads(raw[name].decode("utf-8"))
+            value = _strict_json_loads(raw[name].decode("utf-8"))
             decoded[name] = _mapping(value, f"archive member {name}")
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("archive contains invalid JSON") from error
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("archive contains non-canonical JSON")
