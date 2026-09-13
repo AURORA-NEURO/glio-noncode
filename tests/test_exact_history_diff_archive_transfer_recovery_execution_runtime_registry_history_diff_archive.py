@@ -84,8 +84,14 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiff
                 members["history-diff/summary.json"] = canonical_bytes(value)
                 return members
 
+            def duplicate_manifest(members):
+                members["manifest.json"] = members["manifest.json"].rstrip()[:-1] + b',"archive_id":"shadow"}'
+                return members
+
             with self.assertRaises(ValidationError):
                 archive_model.load_archive_bytes(self._repack(raw, mutate=tamper))
+            with self.assertRaises(ValidationError):
+                archive_model.load_archive_bytes(self._repack(raw, mutate=duplicate_manifest))
             with self.assertRaises(ValidationError):
                 archive_model.load_archive_bytes(self._repack(raw, reverse=True))
 

@@ -65,6 +65,12 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryTest
             self.assertEqual(loaded.to_dict(), history.to_dict())
             self.assertEqual(tuple(sorted(item.name for item in destination.iterdir())), tuple(sorted(history_model.FILES)))
             self.assertEqual(json.loads((destination / "manifest.json").read_text(encoding="utf-8"))["files"], list(history_model.FILES))
+            manifest = destination / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"history_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                history_model.load_history(destination)
+            manifest.write_bytes(raw_manifest)
             self.assertEqual(history_model.history_from_mapping(json.loads(history_model.history_json(history))).to_dict(), history.to_dict())
 
             history_path = destination / "history.json"

@@ -85,6 +85,12 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryHistoryDiff
             tampered_chunk.write_bytes(bytes((original[0] ^ 1,)) + original[1:])
             with self.assertRaises(ValidationError):
                 transfer_model.load_transfer(complete_directory)
+            transfer_model.write_transfer(transfer, complete_directory, overwrite=True)
+            manifest = complete_directory / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"transfer_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                transfer_model.load_transfer(complete_directory)
 
     def test_cli_http_schema_and_public_inventory_surfaces(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -63,6 +63,12 @@ class ExactHistoryDiffArchiveTransferRecoveryExecutionRuntimeRegistryTests(unitt
             self.assertEqual(loaded.to_dict(), registry.to_dict())
             self.assertEqual(tuple(sorted(item.name for item in destination.iterdir())), tuple(sorted(registry_model.FILES)))
             self.assertEqual(json.loads((destination / "manifest.json").read_text(encoding="utf-8"))["files"], list(registry_model.FILES))
+            manifest = destination / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"registry_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                registry_model.load_registry(destination)
+            manifest.write_bytes(raw_manifest)
             self.assertEqual(registry_model.registry_from_mapping(json.loads(registry_model.registry_json(registry))).to_dict(), registry.to_dict())
 
     def test_tampered_registry_and_query_fail_closed(self):
