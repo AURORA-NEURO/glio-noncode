@@ -317,8 +317,23 @@ class ObjectStore:
             raise
         except OSError as exc:
             raise StoreError("object store root could not be inspected") from exc
-        self._locks = self.root / ".locks" / "objects"
-        self._locks.mkdir(parents=True, exist_ok=True)
+        locks_root = self.root / ".locks"
+        try:
+            if locks_root.is_symlink():
+                raise StoreError("object store lock root must be a regular directory")
+            locks_root.mkdir(parents=True, exist_ok=True)
+            if not locks_root.is_dir():
+                raise StoreError("object store lock root must be a regular directory")
+            self._locks = locks_root / "objects"
+            if self._locks.is_symlink():
+                raise StoreError("object store lock directory must be a regular directory")
+            self._locks.mkdir(parents=True, exist_ok=True)
+            if not self._locks.is_dir():
+                raise StoreError("object store lock directory must be a regular directory")
+        except StoreError:
+            raise
+        except OSError as exc:
+            raise StoreError("object store lock directories could not be inspected") from exc
         self._lock = _run_lock(self.objects)
 
     def put(self, value: Any) -> str:
@@ -462,8 +477,20 @@ class RunStore:
             raise
         except OSError as exc:
             raise StoreError("run store root could not be inspected") from exc
-        self._locks = self.root / ".locks" / "runs"
-        self._locks.mkdir(parents=True, exist_ok=True)
+        locks_root = self.root / ".locks"
+        try:
+            if locks_root.is_symlink() or not locks_root.is_dir():
+                raise StoreError("run store lock root must be a regular directory")
+            self._locks = locks_root / "runs"
+            if self._locks.is_symlink():
+                raise StoreError("run store lock directory must be a regular directory")
+            self._locks.mkdir(parents=True, exist_ok=True)
+            if not self._locks.is_dir():
+                raise StoreError("run store lock directory must be a regular directory")
+        except StoreError:
+            raise
+        except OSError as exc:
+            raise StoreError("run store lock directories could not be inspected") from exc
         self._lock = _run_lock(self.runs)
 
     def _run_path(self, run_id: str) -> Path:

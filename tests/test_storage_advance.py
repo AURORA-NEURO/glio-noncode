@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import multiprocessing
+import shutil
 import tempfile
 import threading
 import unittest
@@ -148,6 +149,20 @@ class RunStoreAdvanceTests(unittest.TestCase):
                     dossier_address=_address(20),
                 )
             self.assertEqual(external.read_bytes(), before)
+
+    def test_store_rejects_symlinked_lock_roots(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "store"
+            ObjectStore(root)
+            shutil.rmtree(root / ".locks")
+            external = Path(directory) / "external-locks"
+            external.mkdir()
+            try:
+                (root / ".locks").symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(StoreError, "lock root"):
+                ObjectStore(root)
 
     def test_create_run_succeeds_once_and_preserves_declared_history(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
