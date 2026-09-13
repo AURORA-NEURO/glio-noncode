@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import re
-import tempfile
+import stat
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -13,7 +13,8 @@ from pathlib import Path
 from threading import Lock, RLock
 from typing import Any, cast
 
-from .errors import StoreError
+from ._safe_persistence import _validate_parent, atomic_write_text, read_bytes
+from .errors import StoreError, ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
 _RUN_ID_RE = re.compile(r"run-[A-Za-z0-9][A-Za-z0-9._-]{0,123}\Z")
@@ -40,40 +41,24 @@ _LEGACY_RUN_RECORD_FIELDS = frozenset(
 _LEGACY_DOSSIER_HISTORY_FIELDS = _LEGACY_RUN_RECORD_FIELDS | {"dossier_history"}
 
 
-def _sync_directory(path: Path) -> None:
-    """Best-effort metadata durability after a same-directory rename."""
-
-    try:
-        descriptor = os.open(path, os.O_RDONLY)
-    except OSError:
-        return
-    try:
-        os.fsync(descriptor)
-    except OSError:
-        pass
-    finally:
-        os.close(descriptor)
-
-
 def _atomic_write_text(path: Path, text: str) -> None:
-    """Atomically replace one file using a flushed unique sibling temporary."""
+    """Atomically replace one storage file without traversing symlinks."""
 
-    descriptor, temporary_name = tempfile.mkstemp(
-        dir=path.parent,
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-        text=True,
-    )
-    temporary = Path(temporary_name)
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as handle:
-            handle.write(text)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-        _sync_directory(path.parent)
-    finally:
-        temporary.unlink(missing_ok=True)
+        atomic_write_text(path, text, field="storage output path")
+    except ValidationError as exc:
+        # Keep storage's stable error category at its filesystem boundary while
+        # preserving the underlying validation detail for callers.
+        raise StoreError(str(exc)) from exc
+
+
+def _validate_storage_parent(path: Path, field: str) -> None:
+    """Reject symlinked ancestors before creating a storage tree."""
+
+    try:
+        _validate_parent(path, field)
+    except ValidationError as exc:
+        raise StoreError(str(exc)) from exc
 
 
 def _run_lock(root: Path) -> RLock:
@@ -282,15 +267,29 @@ def _decode_stored_object(payload: bytes, *, address: str) -> Any:
 def _read_run_index_bytes(path: Path) -> bytes:
     """Read at most one complete bounded run-index payload."""
 
+    descriptor = -1
     try:
         if path.is_symlink():
             raise StoreError(f"run record path is unsafe: {path.name}")
-        with path.open("rb") as handle:
+        flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(path, flags)
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise StoreError(f"run record path is not a regular file: {path.name}")
+        with os.fdopen(descriptor, "rb") as handle:
+            descriptor = -1
             payload = handle.read(_MAX_RUN_INDEX_BYTES + 1)
     except StoreError:
         raise
     except OSError as exc:
+        if path.is_symlink():
+            raise StoreError(f"run record path is unsafe: {path.name}") from exc
         raise StoreError(f"run record could not be read: {path.name}") from exc
+    finally:
+        if descriptor != -1:
+            os.close(descriptor)
+    if path.is_symlink():
+        raise StoreError(f"run record path is unsafe: {path.name}")
     if len(payload) > _MAX_RUN_INDEX_BYTES:
         raise StoreError(f"run record exceeds {_MAX_RUN_INDEX_BYTES} bytes: {path.name}")
     return payload
@@ -303,6 +302,7 @@ class ObjectStore:
         self.root = Path(root)
         self.objects = self.root / "objects"
         try:
+            _validate_storage_parent(self.root, "object store root")
             if self.root.is_symlink():
                 raise StoreError("object store root must contain regular directories")
             self.root.mkdir(parents=True, exist_ok=True)
@@ -319,6 +319,7 @@ class ObjectStore:
             raise StoreError("object store root could not be inspected") from exc
         locks_root = self.root / ".locks"
         try:
+            _validate_storage_parent(locks_root, "object store lock root")
             if locks_root.is_symlink():
                 raise StoreError("object store lock root must be a regular directory")
             locks_root.mkdir(parents=True, exist_ok=True)
@@ -357,8 +358,8 @@ class ObjectStore:
                 raise StoreError(f"stored object path is unsafe: {address}")
             if present:
                 try:
-                    payload = path.read_bytes()
-                except OSError as exc:
+                    payload = read_bytes(path, field="stored object path")
+                except (OSError, ValidationError) as exc:
                     raise StoreError(f"stored object could not be read: {address}") from exc
                 existing = _decode_stored_object(payload, address=address)
                 if canonical_json(existing) != serialized:
@@ -380,8 +381,8 @@ class ObjectStore:
         if not present:
             raise StoreError(f"object not found: {address}")
         try:
-            payload = path.read_bytes()
-        except OSError as exc:
+            payload = read_bytes(path, field="stored object path")
+        except (OSError, ValidationError) as exc:
             raise StoreError(f"stored object could not be read: {address}") from exc
         return _decode_stored_object(payload, address=address)
 
@@ -406,11 +407,27 @@ class ObjectStore:
             raise StoreError(f"stored object path is unsafe: {address}")
         if not present:
             raise StoreError(f"object not found: {address}")
+        descriptor = -1
         try:
-            with path.open("rb") as handle:
+            flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+            descriptor = os.open(path, flags)
+            metadata = os.fstat(descriptor)
+            if not stat.S_ISREG(metadata.st_mode):
+                raise StoreError(f"stored object path is not a regular file: {address}")
+            with os.fdopen(descriptor, "rb") as handle:
+                descriptor = -1
                 payload = handle.read(max_bytes + 1)
+        except StoreError:
+            raise
         except OSError as exc:
+            if path.is_symlink():
+                raise StoreError(f"stored object path is unsafe: {address}") from exc
             raise StoreError(f"stored object could not be read: {address}") from exc
+        finally:
+            if descriptor != -1:
+                os.close(descriptor)
+        if path.is_symlink():
+            raise StoreError(f"stored object path is unsafe: {address}")
         if len(payload) > max_bytes:
             raise StoreError(f"stored object exceeds {max_bytes} bytes: {address}")
         return payload
@@ -468,6 +485,7 @@ class RunStore:
         self.store = ObjectStore(self.root)
         self.runs = self.root / "runs"
         try:
+            _validate_storage_parent(self.runs, "run store root")
             if self.runs.is_symlink():
                 raise StoreError("run store root must contain a regular runs directory")
             self.runs.mkdir(parents=True, exist_ok=True)
@@ -479,6 +497,7 @@ class RunStore:
             raise StoreError("run store root could not be inspected") from exc
         locks_root = self.root / ".locks"
         try:
+            _validate_storage_parent(locks_root, "run store lock root")
             if locks_root.is_symlink() or not locks_root.is_dir():
                 raise StoreError("run store lock root must be a regular directory")
             self._locks = locks_root / "runs"

@@ -120,6 +120,60 @@ class StorageBoundaryTests(unittest.TestCase):
             self.assertFalse(store.exists("sha256:" + "../" * 21 + "x"))
             self.assertFalse(store.exists("sha256:" + "g" * 64))
 
+    def test_storage_rejects_symlinked_roots_and_object_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            external = root / "external"
+            external.mkdir()
+            linked_root = root / "linked-root"
+            try:
+                linked_root.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(StoreError, "symlink"):
+                ObjectStore(linked_root)
+
+            store = ObjectStore(root / "store")
+            address = _address(123)
+            target = external / "outside.json"
+            target.write_text('{"outside":true}', encoding="utf-8")
+            object_path = store.objects / f"{address.split(':', 1)[1]}.json"
+            object_path.symlink_to(target)
+            with self.assertRaisesRegex(StoreError, "unsafe"):
+                store.get(address)
+            with self.assertRaisesRegex(StoreError, "unsafe"):
+                store.put_at(address, {"outside": True})
+            self.assertEqual(target.read_text(encoding="utf-8"), '{"outside":true}')
+
+    def test_run_store_rejects_symlinked_run_target(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = RunStore(root / "runtime")
+            store.save_run(
+                "run-safe",
+                input_address=_address(1),
+                event_address=_address(2),
+                dossier_address=_address(3),
+            )
+            run_path = root / "runtime" / "runs" / "run-safe.json"
+            external = root / "external-run.json"
+            external.write_bytes(run_path.read_bytes())
+            run_path.unlink()
+            try:
+                run_path.symlink_to(external)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"file symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(StoreError, "unsafe"):
+                store.get_run("run-safe")
+            with self.assertRaisesRegex(StoreError, "unsafe"):
+                store.save_run(
+                    "run-safe",
+                    input_address=_address(1),
+                    event_address=_address(4),
+                    dossier_address=_address(5),
+                )
+            self.assertEqual(external.read_bytes(), run_path.resolve().read_bytes())
+
     def test_run_id_grammar_prevents_path_escape(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
