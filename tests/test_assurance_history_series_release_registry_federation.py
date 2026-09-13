@@ -384,7 +384,7 @@ class FederationPersistenceTests(FederationFixture):
                 with self.assertRaises(ValidationError):
                     federation.load_federation(destination)
 
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(federation, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     federation.load_federation(destination)
 
@@ -587,7 +587,7 @@ class FederationDiffTests(FederationFixture):
                 with self.assertRaises(ValidationError):
                     federation.load_federation_diff(destination)
 
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(federation, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     federation.load_federation_diff(destination)
 

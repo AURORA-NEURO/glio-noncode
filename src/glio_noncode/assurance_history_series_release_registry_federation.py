@@ -36,6 +36,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry as registry_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .serialization import (
     _strict_json_loads,
@@ -240,8 +241,8 @@ def _require_directory(path: Path, field: str) -> None:
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     _require_regular_file(path, field)
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        value = _strict_json_loads(read_text(path, field=field))
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"{field} is not valid UTF-8 JSON") from exc
     return dict(_mapping(value, field))
 
@@ -1582,6 +1583,7 @@ def write_federation(
     documents = _bundle_documents(value)
     destination = Path(directory)
     parent = destination.parent
+    _validate_parent(parent, "federation destination")
     parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         if destination.is_symlink() or not destination.is_dir():
@@ -1592,8 +1594,8 @@ def write_federation(
     temporary = Path(tempfile.mkdtemp(prefix=".glio-fed-", dir=str(parent)))
     try:
         for name, raw in documents.items():
-            (temporary / name).write_bytes(raw)
-        (temporary / MANIFEST_NAME).write_bytes(_canonical_document(manifest))
+            atomic_write_bytes(temporary / name, raw, field=f"federation member {name}")
+        atomic_write_bytes(temporary / MANIFEST_NAME, _canonical_document(manifest), field="federation manifest")
         if destination.exists():
             shutil.rmtree(destination)
         os.replace(temporary, destination)
@@ -1643,8 +1645,8 @@ def load_federation(directory: str | Path) -> DecisionAssuranceHistorySeriesRele
         path = destination / name
         _require_regular_file(path, f"federation {name}")
         try:
-            raw = path.read_bytes()
-        except OSError as error:
+            raw = read_bytes(path, field=f"federation {name}")
+        except (OSError, ValidationError) as error:
             raise ValidationError(f"federation {name} could not be read") from error
         value = _read_json(path, f"federation {name}")
         if raw != _canonical_document(value):
@@ -2271,6 +2273,7 @@ def write_federation_diff(value: FederationDiff, directory: str | Path, *, overw
     raw = canonical_bytes(value.to_dict())
     destination = Path(directory)
     parent = destination.parent
+    _validate_parent(parent, "federation diff destination")
     parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         if destination.is_symlink() or not destination.is_dir():
@@ -2279,8 +2282,12 @@ def write_federation_diff(value: FederationDiff, directory: str | Path, *, overw
             raise ValidationError("federation diff destination already exists")
     temporary = Path(tempfile.mkdtemp(prefix=".glio-fdiff-", dir=str(parent)))
     try:
-        (temporary / DIFF_NAME).write_bytes(raw)
-        (temporary / MANIFEST_NAME).write_bytes(canonical_bytes(_diff_manifest_body(value, raw)))
+        atomic_write_bytes(temporary / DIFF_NAME, raw, field="federation diff")
+        atomic_write_bytes(
+            temporary / MANIFEST_NAME,
+            canonical_bytes(_diff_manifest_body(value, raw)),
+            field="federation diff manifest",
+        )
         if destination.exists():
             shutil.rmtree(destination)
         os.replace(temporary, destination)
@@ -2304,8 +2311,9 @@ def load_federation_diff(directory: str | Path) -> FederationDiff:
     _require_regular_file(manifest_path, "federation diff manifest")
     _require_regular_file(diff_path, "federation diff document")
     try:
-        manifest_raw, diff_raw = manifest_path.read_bytes(), diff_path.read_bytes()
-    except OSError as error:
+        manifest_raw = read_bytes(manifest_path, field="federation diff manifest")
+        diff_raw = read_bytes(diff_path, field="federation diff document")
+    except (OSError, ValidationError) as error:
         raise ValidationError("federation diff artifact could not be read") from error
     manifest, body = _read_json(manifest_path, "federation diff manifest"), _read_json(diff_path, "federation diff document")
     if manifest_raw != canonical_bytes(manifest) or diff_raw != canonical_bytes(body):
