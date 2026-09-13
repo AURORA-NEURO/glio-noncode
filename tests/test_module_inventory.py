@@ -324,6 +324,35 @@ class ModuleInventoryPacketTests(ModuleInventoryFixture):
         verification = verify_module_inventory_packet(second)
         self.assertFalse(verification.accepted)
 
+    def test_packet_persistence_rejects_symlinked_parent_and_artifact(self) -> None:
+        inventory = self.build()
+        packet = build_module_inventory_packet(
+            inventory, run_module_inventory(inventory=inventory), packet_id="symlink-packet"
+        )
+        root = Path(self.directory.name)
+        external = root / "external"
+        external.mkdir()
+        linked_parent = root / "linked-parent"
+        try:
+            linked_parent.symlink_to(external, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("directory symlinks unavailable")
+        with self.assertRaises(ValidationError):
+            write_module_inventory_packet(packet, linked_parent / "packet")
+        destination = root / "symlink-artifact"
+        write_module_inventory_packet(packet, destination)
+        artifact = destination / packet.artifacts[0].relative_path
+        target = external / "artifact.txt"
+        target.write_text("do-not-follow", encoding="utf-8")
+        artifact.unlink()
+        try:
+            artifact.symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("file symlinks unavailable")
+        verification = verify_module_inventory_packet(destination)
+        self.assertFalse(verification.accepted)
+        self.assertEqual(target.read_text(encoding="utf-8"), "do-not-follow")
+
     def test_packet_rejects_ambiguous_manifest(self) -> None:
         inventory = self.build()
         packet = build_module_inventory_packet(

@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import csv
 import io
-import os
-import tempfile
 from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .module_inventory import build_module_inventory
 from .module_inventory_audit import audit_module_inventory
@@ -57,19 +56,7 @@ def _safe_path(value: str) -> bool:
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent)
-    )
-    temporary = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-    except BaseException:
-        temporary.unlink(missing_ok=True)
-        raise
+    atomic_write_bytes(path, payload, field="module inventory packet artifact")
 
 
 def _json_text(value: Any) -> str:
@@ -361,6 +348,9 @@ def write_module_inventory_packet(
     """Write all packet files atomically into a dedicated directory."""
 
     root = Path(destination)
+    _validate_parent(root.parent, "module inventory packet destination")
+    if root.is_symlink():
+        raise ValidationError("module inventory packet destination must not be a symlink")
     if root.exists() and not allow_existing:
         raise ValidationError("module inventory packet destination already exists")
     if root.exists() and not root.is_dir():
@@ -369,6 +359,7 @@ def write_module_inventory_packet(
     _atomic_write(root / MODULE_INVENTORY_PACKET_MANIFEST, _manifest_text(packet).encode("utf-8"))
     for artifact in packet.artifacts:
         path = root.joinpath(*artifact.relative_path.split("/"))
+        _validate_parent(path.parent, "module inventory packet artifact")
         path.parent.mkdir(parents=True, exist_ok=True)
         if artifact.payload is None:
             raise ValidationError(f"packet artifact has no payload: {artifact.artifact_id}")
@@ -379,8 +370,8 @@ def write_module_inventory_packet(
 def _manifest_mapping(directory: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(directory)
     try:
-        raw = _strict_json_loads((root / MODULE_INVENTORY_PACKET_MANIFEST).read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        raw = _strict_json_loads(read_text(root / MODULE_INVENTORY_PACKET_MANIFEST, field="module inventory packet manifest"))
+    except (OSError, ValidationError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"cannot load module inventory packet manifest: {exc}") from exc
     if not isinstance(raw, Mapping):
         raise ValidationError("module inventory packet manifest must be an object")
@@ -463,13 +454,13 @@ def verify_module_inventory_packet(directory: str | Path) -> ModuleInventoryPack
             continue
         path = root.joinpath(*relative.split("/"))
         try:
-            payload = path.read_bytes()
+            payload = read_bytes(path, field=f"module inventory packet artifact {relative}")
             actual_address = hash_bytes(payload, prefix=MODULE_INVENTORY_PACKET_ARTIFACT_PREFIX)
             if actual_address != item.get("content_address") or len(payload) != int(
                 item.get("byte_count", -1)
             ):
                 byte_failures.append(relative)
-        except (OSError, ValueError):
+        except (OSError, ValidationError, ValueError):
             byte_failures.append(relative)
     checks.append(
         _check(
@@ -519,7 +510,7 @@ def load_module_inventory_packet(
         relative = str(raw.get("relative_path", ""))
         payload = None
         if include_payloads:
-            payload = root.joinpath(*relative.split("/")).read_text(encoding="utf-8")
+            payload = read_text(root.joinpath(*relative.split("/")), field=f"module inventory packet artifact {relative}")
         artifacts.append(
             ModuleInventoryPacketArtifact(
                 artifact_id=str(raw.get("artifact_id", "")),
