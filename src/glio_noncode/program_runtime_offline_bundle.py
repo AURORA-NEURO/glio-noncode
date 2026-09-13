@@ -19,6 +19,7 @@ from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes, atomic_write_text, read_text
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .program_runtime_bundle import build_program_release, program_release_payloads
@@ -703,14 +704,12 @@ def write_program_runtime_offline_bundle(
             raise ValidationError(f"artifact {artifact.artifact_id!r} has no payload")
         if path.parent.is_symlink() or not path.parent.is_dir() or path.is_symlink():
             raise ValidationError("program offline artifact path is unsafe")
-        path.write_bytes(artifact.payload.encode("utf-8"))
+        atomic_write_bytes(path, artifact.payload.encode("utf-8"), field="program offline artifact path")
     manifest = bundle.to_dict(include_payloads=include_payloads)
     manifest_path = _offline_path(root, PROGRAM_RUNTIME_OFFLINE_MANIFEST_FILENAME)
     if manifest_path.is_symlink():
         raise ValidationError("program offline manifest path is unsafe")
-    manifest_path.write_text(
-        _json_text(manifest), encoding="utf-8"
-    )
+    atomic_write_text(manifest_path, _json_text(manifest), field="program offline manifest path")
     return root
 
 
@@ -721,7 +720,7 @@ def _artifact_from_manifest(root: Path, value: Mapping[str, Any]) -> ProgramRunt
     path = _offline_path(root, relative_path)
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"missing program artifact: {relative_path}")
-    payload = path.read_text(encoding="utf-8")
+    payload = read_text(path, field=f"program offline artifact {relative_path}")
     kind = ProgramRuntimeOfflineArtifactKind(str(value["kind"]))
     return ProgramRuntimeOfflineArtifact(
         artifact_id=str(value["artifact_id"]),
@@ -748,7 +747,7 @@ def load_program_runtime_offline_bundle(
     manifest_path = _offline_path(root, PROGRAM_RUNTIME_OFFLINE_MANIFEST_FILENAME)
     if manifest_path.is_symlink() or not manifest_path.is_file():
         raise ValidationError("program offline manifest is missing")
-    raw = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(manifest_path, field="program offline manifest path"))
     if not isinstance(raw, Mapping):
         raise ValidationError("program offline manifest must be an object")
     artifacts = tuple(

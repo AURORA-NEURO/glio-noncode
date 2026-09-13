@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text, read_bytes, read_text
+from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .program_runtime import architecture_program_domain_matrix
 from .program_runtime_contracts import ProgramRuntime
@@ -369,7 +371,7 @@ def _manifest_body(manifest: ProgramReleaseManifest) -> dict[str, Any]:
 
 
 def _write_text(path: Path, text: str) -> None:
-    path.write_text(text, encoding="utf-8", newline="\n")
+    atomic_write_text(path, text, field="program release artifact path")
 
 
 def write_program_release(
@@ -395,7 +397,11 @@ def write_program_release(
     else:
         selected_release = release
     root = Path(output_dir)
+    if root.exists() and root.is_symlink():
+        raise ValueError("program release output directory cannot be a symlink")
     root.mkdir(parents=True, exist_ok=True)
+    if root.is_symlink() or not root.is_dir():
+        raise ValueError("program release output directory must be a directory")
     source_runtime = selected_release_runtime(selected_release, selected_runtime)
     payloads = program_release_payloads(
         source_runtime,
@@ -426,7 +432,9 @@ def load_program_release_manifest(output_dir: str | Path) -> ProgramReleaseManif
     """Load only the portable manifest from a release directory."""
 
     root = Path(output_dir)
-    value = _strict_json_loads((root / PROGRAM_RELEASE_MANIFEST_FILENAME).read_text(encoding="utf-8"))
+    value = _strict_json_loads(
+        read_text(root / PROGRAM_RELEASE_MANIFEST_FILENAME, field="program release manifest path")
+    )
     if not isinstance(value, dict):
         raise ValueError("program release manifest must be an object")
     return ProgramReleaseManifest.from_mapping(value)
@@ -447,7 +455,9 @@ def _artifact_from_mapping(value: dict[str, Any]) -> ProgramReleaseArtifact:
 
 
 def _loaded_inventory(root: Path) -> tuple[ProgramReleaseManifest, tuple[ProgramReleaseArtifact, ...]]:
-    descriptor = _strict_json_loads((root / PROGRAM_RELEASE_DESCRIPTOR_FILENAME).read_text(encoding="utf-8"))
+    descriptor = _strict_json_loads(
+        read_text(root / PROGRAM_RELEASE_DESCRIPTOR_FILENAME, field="program release descriptor path")
+    )
     if not isinstance(descriptor, dict) or not isinstance(descriptor.get("manifest"), dict):
         raise ValueError("program release descriptor is malformed")
     manifest = ProgramReleaseManifest.from_mapping(descriptor["manifest"])
@@ -482,7 +492,7 @@ def verify_program_release(
             else _loaded_inventory(root)
         )
         descriptor_ok = True
-    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, KeyError, TypeError, ValueError, ValidationError, json.JSONDecodeError) as exc:
         manifest = None
         artifacts = ()
         descriptor_ok = False
@@ -506,8 +516,8 @@ def verify_program_release(
         manifest_path = root / PROGRAM_RELEASE_MANIFEST_FILENAME
         if manifest_path.exists():
             try:
-                loaded = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-            except (OSError, UnicodeError, ValueError):
+                loaded = _strict_json_loads(read_text(manifest_path, field="program release manifest path"))
+            except (OSError, UnicodeError, ValueError, ValidationError):
                 loaded = None
             try:
                 loaded_manifest = (
@@ -560,7 +570,7 @@ def verify_program_release(
                 artifact.filename
             ).parts
             path = root / artifact.filename
-            present = safe_name and path.exists() and path.is_file()
+            present = safe_name and path.exists() and path.is_file() and not path.is_symlink()
             add(
                 f"{artifact.artifact_id}:present",
                 ProgramReleaseCheckCategory.PORTABILITY,
@@ -571,8 +581,19 @@ def verify_program_release(
             )
             if not present:
                 continue
-            data = path.read_bytes()
-            text = data.decode("utf-8")
+            try:
+                data = read_bytes(path, field="program release artifact path")
+                text = data.decode("utf-8")
+            except (OSError, UnicodeError, ValidationError):
+                add(
+                    f"{artifact.artifact_id}:readable",
+                    ProgramReleaseCheckCategory.PORTABILITY,
+                    False,
+                    "unreadable",
+                    "valid UTF-8 artifact",
+                    "the release artifact can be read without following unsafe paths",
+                )
+                continue
             add(
                 f"{artifact.artifact_id}:hash",
                 ProgramReleaseCheckCategory.INTEGRITY,

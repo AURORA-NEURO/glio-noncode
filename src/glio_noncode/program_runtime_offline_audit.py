@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .module_fabric_support import contains_private_key
 from .program_runtime_offline_bundle import (
     PROGRAM_RUNTIME_OFFLINE_JSON_MEDIA_TYPE,
@@ -243,7 +244,7 @@ def verify_program_runtime_offline_bundle(
     bundle = load_program_runtime_offline_bundle(root, include_payloads=True)
     checks = list(audit_program_runtime_offline_bundle(bundle).checks)
     manifest_path = root / "bundle.json"
-    raw = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+    raw = _strict_json_loads(read_text(manifest_path, field="program offline manifest path"))
     manifest_body = dict(raw)
     supplied_address = str(manifest_body.pop("content_address", ""))
     checks.append(
