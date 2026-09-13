@@ -25,7 +25,13 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_query as audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query as query_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 
 VERSION = pipeline_model.VERSION + "-observability-bundle-v1"
@@ -166,7 +172,7 @@ def _query_payload(observability: observability_model.RegistryHistoryReleaseEvid
 
 
 def _manifest(value: pipeline_model.RegistryHistoryReleaseEvidencePipeline, observability: observability_model.RegistryHistoryReleaseEvidencePipelineObservability, audit: audit_model.RegistryHistoryReleaseEvidencePipelineObservabilityAudit, payload: Mapping[str, bytes]) -> dict[str, Any]:
-    query_documents = [json.loads(payload[name].decode("utf-8")) for name in QUERY_ARTIFACTS]
+    query_documents = [_strict_json_loads(payload[name].decode("utf-8")) for name in QUERY_ARTIFACTS]
     manifest = {"version": VERSION, "boundary": BOUNDARY, "pipeline_address": value.content_address, "observability_address": observability.content_address, "audit_address": audit.content_address, "audit_accepted": audit.accepted, "artifact_count": len(ARTIFACT_FILES), "files": ARTIFACT_FILES, "query_addresses": tuple(document["content_address"] for document in query_documents), "artifacts": tuple(_artifact(name, payload[name]) for name in ARTIFACT_FILES)}
     manifest["manifest_address"] = content_hash(manifest | {"manifest_address": None}, prefix=MANIFEST_PREFIX)
     return manifest
@@ -186,7 +192,7 @@ def bundle_bytes(value: pipeline_model.RegistryHistoryReleaseEvidencePipeline) -
 
 def build_bundle(value: pipeline_model.RegistryHistoryReleaseEvidencePipeline) -> RegistryHistoryReleaseEvidencePipelineObservabilityBundle:
     payload = bundle_bytes(value)
-    manifest = json.loads(payload[MANIFEST_NAME].decode("utf-8"))
+    manifest = _strict_json_loads(payload[MANIFEST_NAME].decode("utf-8"))
     provisional = RegistryHistoryReleaseEvidencePipelineObservabilityBundle(value.content_address, value.state, value.accepted, manifest["observability_address"], value.state, manifest["audit_address"], "complete", manifest["audit_accepted"], tuple(manifest["query_addresses"]), len(ARTIFACT_FILES), manifest["manifest_address"], "pending:observability-bundle")
     return RegistryHistoryReleaseEvidencePipelineObservabilityBundle(**provisional.to_dict() | {"content_address": address_bundle(provisional)})
 
@@ -228,8 +234,8 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
 def load_bundle(source: str | Path) -> RegistryHistoryReleaseEvidencePipelineObservabilityBundle:
     payload = _read_directory(source)
     try:
-        documents = {name: json.loads(payload[name].decode("utf-8")) for name in FILES}
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        documents = {name: _strict_json_loads(payload[name].decode("utf-8")) for name in FILES}
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("release evidence observability bundle contains invalid JSON") from error
     if any(len(payload[name]) > MAX_ARTIFACT_BYTES for name in FILES) or any(canonical_bytes(documents[name]) != payload[name] for name in FILES):
         raise ValidationError("release evidence observability bundle artifacts are not canonical or exceed the byte limit")

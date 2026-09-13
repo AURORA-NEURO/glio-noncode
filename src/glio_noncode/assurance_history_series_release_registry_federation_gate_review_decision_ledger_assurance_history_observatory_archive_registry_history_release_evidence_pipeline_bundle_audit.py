@@ -21,7 +21,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle as bundle_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query as query_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = bundle_model.VERSION + "-audit-v1"
@@ -272,11 +272,11 @@ def _decode_documents(payload: Mapping[str, bytes]) -> tuple[dict[str, Mapping[s
             canonical = False
             continue
         try:
-            document = json.loads(raw.decode("utf-8"))
+            document = _strict_json_loads(raw.decode("utf-8"))
             documents[name] = _mapping(document, f"release evidence bundle {name}")
             if canonical_bytes(document) != raw:
                 canonical = False
-        except (UnicodeDecodeError, json.JSONDecodeError, ValidationError):
+        except (UnicodeDecodeError, ValueError, ValidationError):
             canonical = False
     return documents, canonical
 
@@ -367,7 +367,7 @@ def _audit_documents(payload: Mapping[str, bytes], documents: Mapping[str, Mappi
         content_ok = all(expected_payload[name] == payload[name] for name in bundle_model.FILES)
         if content_ok:
             bundle_address = bundle_model.address_bundle(bundle_model.build_bundle(typed_pipeline))
-            manifest_address = json.loads(expected_payload[bundle_model.MANIFEST_NAME].decode("utf-8"))["manifest_address"]
+            manifest_address = _strict_json_loads(expected_payload[bundle_model.MANIFEST_NAME].decode("utf-8"))["manifest_address"]
     mapping_round_trip_ok = typed_pipeline is not None and all(query is not None for query in typed_queries.values())
     if mapping_round_trip_ok:
         try:

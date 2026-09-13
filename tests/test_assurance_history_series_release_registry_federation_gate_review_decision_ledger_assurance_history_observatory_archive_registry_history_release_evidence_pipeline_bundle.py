@@ -57,6 +57,18 @@ class RegistryHistoryReleaseEvidencePipelineBundleBuildTests(RegistryHistoryRele
             with self.assertRaises(ValidationError):
                 bundle.load_bundle(destination)
 
+    def test_bundle_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = pipeline.build_pipeline(self.directories(root))
+            destination = root / "bundle"
+            bundle.write_bundle(value, destination)
+            path = destination / bundle.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"pipeline_address":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                bundle.load_bundle(destination)
+
     def test_bundle_schemas_capabilities_and_limits_are_public(self):
         self.assert_public(bundle.bundle_schema())
         self.assert_public(bundle.manifest_schema())
