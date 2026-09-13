@@ -32,7 +32,13 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory as observatory_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 
 VERSION = observatory_model.VERSION + "-archive-v1"
@@ -344,8 +350,8 @@ def _read_archive(source: str | Path | bytes) -> tuple[dict[str, Any], dict[str,
                 raise ValidationError("archive contains a non-regular or encrypted member")
             raw_by_name = {info.filename: archive.read(info) for info in infos}
         try:
-            manifest_value = json.loads(raw_by_name[ARCHIVE_MANIFEST_NAME].decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            manifest_value = _strict_json_loads(raw_by_name[ARCHIVE_MANIFEST_NAME].decode("utf-8"))
+        except (UnicodeDecodeError, ValueError) as error:
             raise ValidationError("archive manifest is invalid JSON") from error
         manifest = dict(_mapping(manifest_value, "archive manifest"))
         if canonical_bytes(manifest) != raw_by_name[ARCHIVE_MANIFEST_NAME]:

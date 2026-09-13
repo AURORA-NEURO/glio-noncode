@@ -128,6 +128,18 @@ class RegistryHistoryPersistenceTests(RegistryHistoryFixture):
             with self.assertRaises(ValidationError):
                 history.load_history(destination)
 
+    def test_history_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            result = history.build_history(self.snapshots(root, "duplicate-a", "duplicate-b"))
+            destination = root / "history"
+            history.write_history(result, destination)
+            path = destination / history.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"history_id":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                history.load_history(destination)
+
     def test_mapping_rejects_forged_fields_and_history_constructor_rejects_nonadjacent_transition(self):
         with tempfile.TemporaryDirectory() as temporary:
             result = history.build_history(self.snapshots(Path(temporary), "forged-a", "forged-b"))

@@ -240,6 +240,24 @@ class ArchiveZipTests(ArchiveFixture):
             self.assertEqual(manifest["archive_address"], archive.load_archive(target).content_address)
             self.assertEqual(manifest["files"], list(archive.ARCHIVE_PAYLOAD_FILES))
 
+    def test_archive_duplicate_manifest_fields_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = self.write_archive(self.archive_value(root), root)
+            target = root / "duplicate-manifest.zip"
+
+            def duplicate(entries):
+                result = []
+                for info, raw in entries:
+                    if info.filename == archive.ARCHIVE_MANIFEST_NAME:
+                        raw = raw.rstrip()[:-1] + b',"archive_id":"shadow"}'
+                    result.append((info, raw))
+                return result
+
+            self.rewrite_zip(source, target, duplicate)
+            with self.assertRaises(ValidationError):
+                archive.load_archive(target)
+
     def test_archive_comment_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

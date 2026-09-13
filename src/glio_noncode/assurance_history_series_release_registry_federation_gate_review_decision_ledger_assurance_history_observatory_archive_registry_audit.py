@@ -25,7 +25,7 @@ from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry as registry_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
 
 VERSION = registry_model.VERSION + "-audit-v1"
@@ -179,7 +179,10 @@ def _object_documents(value: registry_model.ObservatoryArchiveRegistry) -> tuple
     manifest = registry_model._manifest(value, payload)
     payload = dict(payload)
     payload[registry_model.MANIFEST_NAME] = canonical_bytes(manifest)
-    documents = {name: json.loads(payload[name].decode("utf-8")) for name in registry_model.FILES}
+    documents = {
+        name: _strict_json_loads(payload[name].decode("utf-8"))
+        for name in registry_model.FILES
+    }
     return payload, documents
 
 
@@ -207,11 +210,11 @@ def _decode_documents(payload: Mapping[str, bytes]) -> tuple[dict[str, Mapping[s
             canonical = False
             continue
         try:
-            document = json.loads(raw.decode("utf-8"))
+            document = _strict_json_loads(raw.decode("utf-8"))
             documents[name] = _mapping(document, f"registry {name}")
             if canonical_bytes(document) != raw:
                 canonical = False
-        except (UnicodeDecodeError, json.JSONDecodeError, ValidationError):
+        except (UnicodeDecodeError, ValueError, ValidationError):
             canonical = False
     return documents, canonical
 

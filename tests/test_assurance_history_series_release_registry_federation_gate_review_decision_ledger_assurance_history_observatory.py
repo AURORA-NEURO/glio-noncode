@@ -400,6 +400,16 @@ class ObservatoryPersistenceTests(ObservatoryFixture):
             with self.assertRaises(ValidationError):
                 observatory.load_observatory(destination)
 
+    def test_manifest_duplicate_fields_are_rejected(self):
+        value = self.make_observatory()
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = self.write_observatory(value, Path(temporary))
+            path = destination / observatory.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"observatory_id":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                observatory.load_observatory(destination)
+
     def test_metrics_tampering_is_rejected(self):
         value = self.make_observatory()
         with tempfile.TemporaryDirectory() as temporary:

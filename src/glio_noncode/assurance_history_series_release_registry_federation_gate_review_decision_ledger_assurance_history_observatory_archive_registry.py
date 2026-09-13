@@ -32,7 +32,13 @@ from typing import Any
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory as observatory_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive as archive_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 
 VERSION = archive_model.VERSION + "-registry-v1"
@@ -565,12 +571,12 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
 def load_registry(source: str | Path) -> ObservatoryArchiveRegistry:
     payload = _read_directory(source)
     try:
-        manifest = json.loads(payload[MANIFEST_NAME].decode("utf-8"))
-        registry = json.loads(payload[REGISTRY_NAME].decode("utf-8"))
-        entries = json.loads(payload[ENTRIES_NAME].decode("utf-8"))
-        verification = json.loads(payload[VERIFICATION_NAME].decode("utf-8"))
-        metrics = json.loads(payload[METRICS_NAME].decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        manifest = _strict_json_loads(payload[MANIFEST_NAME].decode("utf-8"))
+        registry = _strict_json_loads(payload[REGISTRY_NAME].decode("utf-8"))
+        entries = _strict_json_loads(payload[ENTRIES_NAME].decode("utf-8"))
+        verification = _strict_json_loads(payload[VERIFICATION_NAME].decode("utf-8"))
+        metrics = _strict_json_loads(payload[METRICS_NAME].decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("registry package contains invalid JSON") from error
     decoded = {MANIFEST_NAME: _mapping(manifest, "registry manifest"), REGISTRY_NAME: _mapping(registry, "registry document"), ENTRIES_NAME: _mapping(entries, "registry entries"), VERIFICATION_NAME: _mapping(verification, "registry verification"), METRICS_NAME: _mapping(metrics, "registry metrics")}
     for name, document in decoded.items():

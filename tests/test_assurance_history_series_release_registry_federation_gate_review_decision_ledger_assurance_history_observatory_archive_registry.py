@@ -255,6 +255,18 @@ class RegistryPersistenceTests(RegistryFixture):
             self.assertEqual(manifest["manifest_address"], registry.registry_manifest_json(value) and manifest["manifest_address"])
             self.assert_public(manifest)
 
+    def test_registry_loader_rejects_duplicate_manifest_fields(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self.registry_value(root)
+            destination = root / "registry"
+            registry.write_registry(value, destination)
+            path = destination / registry.MANIFEST_NAME
+            duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"registry_id":"shadow"}'
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                registry.load_registry(destination)
+
     def test_tampering_any_registry_artifact_fails_closed(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
