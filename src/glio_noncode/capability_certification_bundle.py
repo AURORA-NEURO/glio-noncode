@@ -8,6 +8,7 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import atomic_write_bytes
 from .capability_certification_bundle_contracts import (
     CAPABILITY_CERTIFICATION_BUNDLE_ARTIFACT_PREFIX,
     CAPABILITY_CERTIFICATION_BUNDLE_BOUNDARY,
@@ -332,11 +333,19 @@ def write_capability_certification_bundle(
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.parent.is_symlink() or not target.parent.is_dir() or target.is_symlink():
             raise ValidationError("certification bundle artifact path is unsafe")
-        target.write_bytes(artifact.payload.encode("utf-8"))
+        atomic_write_bytes(
+            target,
+            artifact.payload.encode("utf-8"),
+            field="certification bundle artifact path",
+        )
     manifest_path = _bundle_path(root, CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST)
     if manifest_path.is_symlink():
         raise ValidationError("certification bundle manifest path is unsafe")
-    manifest_path.write_bytes(bundle_manifest_text(bundle).encode("utf-8"))
+    atomic_write_bytes(
+        manifest_path,
+        bundle_manifest_text(bundle).encode("utf-8"),
+        field="certification bundle manifest path",
+    )
     return root
 
 

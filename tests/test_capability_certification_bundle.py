@@ -149,6 +149,8 @@ class CapabilityCertificationBundleTests(unittest.TestCase):
             external.write_bytes(external_body)
             artifact.unlink()
             artifact.symlink_to(external)
+            with self.assertRaisesRegex(ValidationError, "path is unsafe"):
+                write_capability_certification_bundle(self.bundle, destination)
             with self.assertRaisesRegex(ValueError, "certification artifact"):
                 load_capability_certification_bundle(destination, include_payloads=True)
             verification = verify_capability_certification_bundle(destination)

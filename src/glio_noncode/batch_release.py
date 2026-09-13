@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import atomic_write_text, read_bytes, read_text
 from .batch_runtime import MAX_BATCH_INPUT_BYTES, BatchResult, BatchRuntime
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
@@ -509,12 +510,20 @@ def write_batch_release_bundle(bundle: BatchReleaseBundle, destination: str | Pa
         target = root / artifact.filename
         if target.is_symlink():
             raise ValidationError("release artifact path is unsafe")
-        target.write_text(artifact.payload, encoding="utf-8", newline="")
+        atomic_write_text(
+            target,
+            artifact.payload,
+            field="release artifact path",
+            encoding="utf-8",
+        )
     manifest_path = root / BATCH_RELEASE_MANIFEST
     if manifest_path.is_symlink():
         raise ValidationError("release manifest path is unsafe")
-    manifest_path.write_text(
-        canonical_json(bundle.manifest_dict()), encoding="utf-8", newline=""
+    atomic_write_text(
+        manifest_path,
+        canonical_json(bundle.manifest_dict()),
+        field="release manifest path",
+        encoding="utf-8",
     )
     return root
 
@@ -529,8 +538,10 @@ def verify_batch_release_bundle(destination: str | Path) -> BatchReleaseVerifica
     if manifest_path.is_symlink() or not manifest_path.exists():
         raise ValidationError("release manifest is missing")
     try:
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        manifest = _strict_json_loads(
+            read_text(manifest_path, field="release manifest path", encoding="utf-8")
+        )
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError("release manifest is not valid JSON") from exc
     if not isinstance(manifest, dict):
         raise ValidationError("release manifest must be a JSON object")
@@ -577,8 +588,8 @@ def verify_batch_release_bundle(destination: str | Path) -> BatchReleaseVerifica
             failed.append(artifact_id)
             continue
         try:
-            payload = path.read_bytes()
-        except OSError:
+            payload = read_bytes(path, field="release artifact path")
+        except (OSError, ValidationError):
             failed.append(artifact_id)
             continue
         if hash_bytes(payload, prefix="batch-release-artifact") != str(
@@ -616,9 +627,15 @@ def verify_batch_release_bundle(destination: str | Path) -> BatchReleaseVerifica
             continue
         copy = dict(artifact)
         path = safe_path(str(copy.get("filename", "")))
-        copy["payload"] = (
-            path.read_text(encoding="utf-8", errors="replace") if path and path.is_file() else ""
-        )
+        if path and path.is_file():
+            try:
+                copy["payload"] = read_text(
+                    path, field="release artifact path", encoding="utf-8"
+                )
+            except (OSError, UnicodeError, ValidationError):
+                copy["payload"] = ""
+        else:
+            copy["payload"] = ""
         reconstructed_artifacts.append(copy)
     reconstructed["artifacts"] = reconstructed_artifacts
     manifest_address_valid = content_hash(reconstructed, prefix="batch-release") == manifest.get(
