@@ -15,6 +15,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history import (
     ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketReviewGateHistory,
@@ -22,7 +23,13 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history,
     verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history,
 )
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_VERSION = "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-v1"
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_BOUNDARY = "public_aggregate_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory"
@@ -1628,9 +1635,20 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
 ) -> Path:
     _require_verified(value)
     destination = Path(destination)
-    if destination.exists() and not overwrite:
-        raise ValidationError("observatory destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "observatory destination")
+        if destination.is_symlink():
+            raise ValidationError("observatory destination cannot be a symlink")
+        if destination.exists():
+            if not overwrite:
+                raise ValidationError("observatory destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("observatory destination is not a regular directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("observatory destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
     try:
         document = canonical_bytes(value.to_dict())
@@ -1651,14 +1669,18 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
                 + "-manifest",
             )
         }
-        (
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_DOCUMENT
-        ).write_bytes(document)
-        (
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_DOCUMENT,
+            document,
+            field="observatory staging document",
+        )
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_MANIFEST
-        ).write_bytes(canonical_bytes(manifest))
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_MANIFEST,
+            canonical_bytes(manifest),
+            field="observatory staging manifest",
+        )
         if destination.exists():
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError("observatory destination is not a regular directory")
@@ -1674,8 +1696,14 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
     directory: str | Path,
 ) -> ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketReviewGateHistoryObservatory:
     directory = Path(directory)
-    if not directory.is_dir() or directory.is_symlink():
-        raise ValidationError("observatory directory is invalid")
+    try:
+        _validate_parent(directory.parent, "observatory input")
+        if not directory.is_dir() or directory.is_symlink():
+            raise ValidationError("observatory directory is invalid")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("observatory directory could not be inspected") from error
     expected = {
         MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_MANIFEST,
         MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_DOCUMENT,
@@ -1686,17 +1714,23 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
         or {item.name for item in children} != expected
     ):
         raise ValidationError("observatory files do not match the published set")
-    manifest_raw = (
-        directory
-        / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_MANIFEST
-    ).read_bytes()
-    document_raw = (
-        directory
-        / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_DOCUMENT
-    ).read_bytes()
     try:
+        manifest_raw = read_bytes(
+            directory
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_MANIFEST,
+            field="observatory manifest",
+        )
+        document_raw = read_bytes(
+            directory
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_GATE_HISTORY_OBSERVATORY_DOCUMENT,
+            field="observatory document",
+        )
         manifest = _strict_json_loads(manifest_raw.decode("utf-8"))
         document = _strict_json_loads(document_raw.decode("utf-8"))
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("observatory files could not be read") from error
     except (UnicodeDecodeError, ValueError) as exc:
         raise ValidationError("observatory files are not valid JSON") from exc
     if (
