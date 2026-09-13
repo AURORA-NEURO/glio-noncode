@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 from .specimen_beta import (
@@ -273,8 +274,8 @@ def specimen_beta_frontier_pipeline_request_from_file(
     from pathlib import Path
 
     try:
-        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
+        raw = _strict_json_loads(read_text(Path(path), field="specimen beta pipeline request"))
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"invalid beta pipeline request: {exc}") from exc
     if not isinstance(raw, Mapping):
         raise ValidationError("beta pipeline request root must be an object")
