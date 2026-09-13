@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .release_assurance_contracts import (
     RELEASE_ASSURANCE_EXPORT_ARTIFACT_COUNT,
@@ -111,13 +112,18 @@ def write_release_assurance_export(
     """Write an exact-byte packet under a dedicated directory."""
 
     root = Path(destination)
+    _validate_parent(root.parent, "release-assurance export")
+    if root.exists() and (root.is_symlink() or not root.is_dir()):
+        raise ValidationError("release-assurance export destination must be a regular directory")
     root.mkdir(parents=True, exist_ok=True)
     for artifact in packet.artifacts:
         path = root / safe_relative_path(artifact.relative_path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(artifact.content)
-    (root / "manifest.json").write_bytes(
-        (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8")
+        atomic_write_bytes(path, artifact.content, field=f"release-assurance artifact {artifact.relative_path}")
+    atomic_write_bytes(
+        root / "manifest.json",
+        (canonical_json(packet.manifest.to_dict()) + "\n").encode("utf-8"),
+        field="release-assurance manifest",
     )
     return root
 
@@ -136,12 +142,14 @@ def verify_release_assurance_export(
     boundary: list[str] = []
     manifest_path = root / "manifest.json"
     manifest: dict[str, object] = {}
-    if not manifest_path.is_file():
+    if root.is_symlink() or not root.is_dir():
+        unsafe.append(".")
+    elif not manifest_path.is_file() or manifest_path.is_symlink():
         missing.append("manifest.json")
     else:
         try:
-            manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, ValueError):
+            manifest = _strict_json_loads(read_text(manifest_path, field="release-assurance manifest"))
+        except (OSError, UnicodeError, ValueError, ValidationError):
             tampered.append("manifest.json")
     expected_paths: list[str] = []
     listed = manifest.get("artifacts", ()) if isinstance(manifest, dict) else ()
@@ -159,12 +167,12 @@ def verify_release_assurance_export(
             duplicate.append(path)
         expected_paths.append(path)
         target = root / path
-        if not target.is_file():
+        if target.is_symlink() or not target.is_file():
             missing.append(path)
             continue
         try:
-            payload = target.read_bytes()
-        except OSError:
+            payload = read_bytes(target, field=f"release-assurance artifact {path}")
+        except (OSError, ValidationError):
             tampered.append(path)
             continue
         if len(payload) != int(item.get("byte_count", -1)) or artifact_address(payload) != item.get("content_address"):
