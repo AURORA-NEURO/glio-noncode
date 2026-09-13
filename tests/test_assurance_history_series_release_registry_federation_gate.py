@@ -13,6 +13,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
@@ -617,6 +618,18 @@ class FederationGatePersistenceTests(FederationGateFixture):
             loaded = gate.load_federation_assurance_gate(destination)
             self.assertEqual(loaded.to_dict(), self.value.to_dict())
             self.assertEqual(gate.verify_federation_assurance_gate_directory(destination).to_dict(), self.value.to_dict())
+
+    def test_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = self.persist(Path(temporary))
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    gate.load_federation_assurance_gate(destination)
+
+            self.write_gate(self.value, destination, overwrite=True)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    gate.load_federation_assurance_gate(destination)
 
     def test_write_rejects_existing_nonempty_destination_without_overwrite(self):
         with tempfile.TemporaryDirectory() as temporary:

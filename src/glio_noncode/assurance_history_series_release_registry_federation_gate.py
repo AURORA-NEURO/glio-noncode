@@ -942,14 +942,21 @@ def write_federation_assurance_gate(
 def load_federation_assurance_gate(directory: str | Path) -> FederationAssuranceGateBundle:
     destination = Path(directory)
     _require_directory(destination, "federation gate directory")
-    if {item.name for item in destination.iterdir()} != set(FILES):
+    try:
+        members = tuple(destination.iterdir())
+    except OSError as error:
+        raise ValidationError("federation gate directory could not be inspected") from error
+    if {item.name for item in members} != set(FILES):
         raise ValidationError("federation gate file set is invalid")
     parsed: dict[str, dict[str, Any]] = {}
     raw_documents: dict[str, bytes] = {}
     for name in FILES:
         path = destination / name
         _require_regular_file(path, f"federation gate {name}")
-        raw = path.read_bytes()
+        try:
+            raw = path.read_bytes()
+        except OSError as error:
+            raise ValidationError(f"federation gate {name} could not be read") from error
         parsed[name] = _read_json(path, f"federation gate {name}")
         if raw != canonical_bytes(parsed[name]):
             raise ValidationError(f"federation gate {name} is not canonical JSON")
