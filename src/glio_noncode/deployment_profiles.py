@@ -945,8 +945,8 @@ def load_deployment_credentials(path: str) -> dict[str, str]:
     if not raw:
         raise ValidationError("deployment credential file is empty")
     try:
-        value = json.loads(raw)
-    except json.JSONDecodeError:
+        value = _strict_json_loads(raw)
+    except ValueError:
         return {"default": raw}
     if not isinstance(value, Mapping):
         raise ValidationError("deployment credential JSON must be an object")

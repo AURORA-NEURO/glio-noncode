@@ -42,7 +42,7 @@ from .molecular_atlas_fixture_eval import evaluate_molecular_atlas_fixture
 from .molecular_atlas_public_data import default_molecular_atlas_fixture
 from .regulatory_atlas_fixture_eval import evaluate_regulatory_atlas_fixture
 from .regulatory_atlas_public_data import default_regulatory_atlas_fixture
-from .serialization import canonical_json
+from .serialization import _strict_json_loads, canonical_json
 
 ATLAS_ARCHITECTURE_FIXTURE_FILE = "atlas-architecture-public-aggregate.json"
 
@@ -433,8 +433,8 @@ def _normalize_payload(payload: dict[str, Any], family: AtlasArchitectureFamily)
     if not isinstance(raw, str):
         return result
     try:
-        parsed = json.loads(raw)
-    except json.JSONDecodeError:
+        parsed = _strict_json_loads(raw)
+    except ValueError:
         return result
     rows = parsed.get("records") if isinstance(parsed, dict) else None
     if not isinstance(rows, list):
