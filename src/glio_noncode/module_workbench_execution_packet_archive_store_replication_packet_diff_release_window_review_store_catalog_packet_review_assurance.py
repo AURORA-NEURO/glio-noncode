@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -15,6 +14,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff import (
     ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketDiff,
@@ -24,7 +24,13 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketReview,
     verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review,
 )
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_VERSION = "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-assurance-v1"
 MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_BOUNDARY = "public_aggregate_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance"
@@ -856,9 +862,29 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
     ).accepted:
         raise ValidationError("cannot persist an unverified packet review assurance")
     destination = Path(destination)
-    if destination.exists() and not overwrite:
-        raise ValidationError("packet review assurance destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    replace_directory = not destination.exists()
+    try:
+        _validate_parent(destination.parent, "packet review assurance destination")
+        if destination.is_symlink():
+            raise ValidationError("packet review assurance destination cannot be a symlink")
+        if destination.exists():
+            if not overwrite:
+                raise ValidationError("packet review assurance destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("packet review assurance destination is not a regular directory")
+            expected_names = {
+                MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_DOCUMENT,
+                MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_MANIFEST,
+            }
+            members = tuple(destination.iterdir())
+            replace_directory = {item.name for item in members} == expected_names and not any(
+                item.is_symlink() or not item.is_file() for item in members
+            )
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("packet review assurance destination could not be prepared") from error
     temporary = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
     try:
         document = canonical_bytes(value.to_dict())
@@ -879,21 +905,41 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
                 + "-manifest",
             )
         }
-        (
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_DOCUMENT
-        ).write_bytes(document)
-        (
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_DOCUMENT,
+            document,
+            field="packet review assurance staging document",
+        )
+        atomic_write_bytes(
             temporary
-            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_MANIFEST
-        ).write_bytes(canonical_bytes(manifest))
-        if destination.exists():
+            / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_MANIFEST,
+            canonical_bytes(manifest),
+            field="packet review assurance staging manifest",
+        )
+        if destination.exists() and replace_directory:
             if destination.is_symlink() or not destination.is_dir():
                 raise ValidationError(
                     "packet review assurance destination is not a regular directory"
                 )
             shutil.rmtree(destination)
-        os.replace(temporary, destination)
+            os.replace(temporary, destination)
+        elif destination.exists():
+            atomic_write_bytes(
+                destination
+                / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_DOCUMENT,
+                document,
+                field="packet review assurance document",
+            )
+            atomic_write_bytes(
+                destination
+                / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_MANIFEST,
+                canonical_bytes(manifest),
+                field="packet review assurance manifest",
+            )
+            shutil.rmtree(temporary)
+        else:
+            os.replace(temporary, destination)
     except Exception:
         shutil.rmtree(temporary, ignore_errors=True)
         raise
@@ -901,7 +947,7 @@ def write_module_workbench_execution_packet_archive_store_replication_packet_dif
 
 
 def _read_json(path: Path, field: str) -> dict[str, Any]:
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -915,8 +961,14 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
     directory: str | Path,
 ) -> ModuleWorkbenchExecutionPacketArchiveStoreReplicationPacketDiffReleaseWindowReviewStoreCatalogPacketReviewAssurance:
     directory = Path(directory)
-    if not directory.is_dir() or directory.is_symlink():
-        raise ValidationError("packet review assurance directory is invalid")
+    try:
+        _validate_parent(directory.parent, "packet review assurance input")
+        if not directory.is_dir() or directory.is_symlink():
+            raise ValidationError("packet review assurance directory is invalid")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("packet review assurance directory could not be inspected") from error
     expected = {
         MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_MANIFEST,
         MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_DOCUMENT,
@@ -950,7 +1002,7 @@ def load_module_workbench_execution_packet_archive_store_replication_packet_diff
         directory
         / MODULE_WORKBENCH_EXECUTION_PACKET_ARCHIVE_STORE_REPLICATION_PACKET_DIFF_RELEASE_WINDOW_REVIEW_STORE_CATALOG_PACKET_REVIEW_ASSURANCE_DOCUMENT
     )
-    document = document_path.read_bytes()
+    document = read_bytes(document_path, field="packet review assurance document")
     if (
         len(document) != manifest["byte_count"]
         or hash_bytes(
