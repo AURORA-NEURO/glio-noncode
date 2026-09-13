@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry as registry_model
+from ._safe_persistence import _validate_parent, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
@@ -189,15 +190,16 @@ def _object_documents(value: registry_model.ObservatoryArchiveRegistry) -> tuple
 def _read_directory(source: str | Path) -> tuple[dict[str, bytes], set[str], bool]:
     try:
         directory = Path(source)
+        _validate_parent(directory.parent, "registry audit input")
         if directory.is_symlink() or not directory.is_dir():
             return {}, set(), False
         members = tuple(directory.iterdir())
         names = {item.name for item in members}
         if any(item.is_symlink() or not item.is_file() for item in members):
             return {}, names, False
-        payload = {name: (directory / name).read_bytes() for name in registry_model.FILES if (directory / name).is_file()}
+        payload = {name: read_bytes(directory / name, field=f"registry audit member {name}") for name in registry_model.FILES if (directory / name).is_file()}
         return payload, names, names == set(registry_model.FILES) and set(payload) == set(registry_model.FILES)
-    except (OSError, ValueError):
+    except (OSError, ValueError, ValidationError):
         return {}, set(), False
 
 
