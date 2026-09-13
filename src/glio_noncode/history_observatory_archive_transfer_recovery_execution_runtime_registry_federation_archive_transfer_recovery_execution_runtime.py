@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -16,7 +15,7 @@ from typing import Any
 
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution as execution_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 VERSION = execution_model.VERSION + "-runtime-v1"
 BOUNDARY = execution_model.BOUNDARY + "_runtime"
@@ -407,8 +406,8 @@ def persist_runtime(value: RecoveryExecutionRuntime, destination: str | Path, *,
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
         raw = path.read_bytes()
-        value = _mapping(json.loads(raw.decode("utf-8")), f"runtime member {path.name}")
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"runtime member {path.name}")
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError(f"runtime member {path.name} is not valid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"runtime member {path.name} is not canonical")

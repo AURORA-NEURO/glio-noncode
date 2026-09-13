@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -22,7 +21,7 @@ from typing import Any
 
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive as archive_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = archive_model.VERSION + "-transfer-v1"
@@ -457,8 +456,8 @@ def _read_manifest(directory: Path) -> ArchiveTransfer:
         raise ValidationError("transfer manifest is missing or unsafe")
     raw = manifest_path.read_bytes()
     try:
-        document = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        document = _strict_json_loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("transfer manifest is invalid JSON") from error
     if canonical_bytes(document) != raw:
         raise ValidationError("transfer manifest is not canonical JSON")

@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import tempfile
 import zipfile
@@ -16,7 +15,7 @@ from typing import Any
 
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger_runtime_registry_history_diff as diff_model
 from .errors import ValidationError
-from .serialization import canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
 
 VERSION = diff_model.VERSION + "-archive-v1"
@@ -342,9 +341,9 @@ def _decode_canonical(raw: Mapping[str, bytes]) -> dict[str, Mapping[str, Any]]:
     decoded: dict[str, Mapping[str, Any]] = {}
     try:
         for name in FILES:
-            value = json.loads(raw[name].decode("utf-8"))
+            value = _strict_json_loads(raw[name].decode("utf-8"))
             decoded[name] = _mapping(value, f"history diff archive member {name}")
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+    except (UnicodeDecodeError, ValueError) as error:
         raise ValidationError("history diff archive contains invalid JSON") from error
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("history diff archive contains non-canonical JSON")
