@@ -16,7 +16,7 @@ from typing import Any
 
 from . import history_observatory_archive_transfer_recovery_execution_runtime as runtime_model
 from .errors import ValidationError
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 
 VERSION = runtime_model.VERSION + "-registry-v1"
@@ -434,8 +434,8 @@ def persist_registry(value: RecoveryExecutionRuntimeRegistry, destination: str |
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError("runtime registry artifact is not valid JSON") from error
     return _mapping(value, "runtime registry artifact")
 

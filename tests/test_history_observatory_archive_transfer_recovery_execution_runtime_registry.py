@@ -98,6 +98,12 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryTests(uni
             loaded = registry_model.load_registry(destination)
             self.assertEqual(loaded.content_address, registry.content_address)
             self.assertEqual(registry_model.registry_json(loaded), registry_model.registry_json(registry))
+            manifest = destination / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"registry_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                registry_model.load_registry(destination)
+            manifest.write_bytes(raw_manifest)
 
             entries_path = destination / "entries.json"
             entries_path.write_text(entries_path.read_text(encoding="utf-8") + " ", encoding="utf-8")
