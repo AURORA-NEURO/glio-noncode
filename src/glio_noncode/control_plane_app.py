@@ -1701,7 +1701,12 @@ class ControlPlaneApplication:
             if profile is not None:
                 if not isinstance(features_raw, Mapping):
                     raise ValidationError("uncertainty features must be a mapping")
-                features = {str(key): float(value) for key, value in features_raw.items()}
+                features: dict[str, float] = {}
+                for key, value in features_raw.items():
+                    name = _input_text(key, "uncertainty feature name")
+                    if name in features:
+                        raise ValidationError("uncertainty features must have unique names")
+                    features[name] = _input_number(value, f"uncertainty feature {name}")
                 ood = OutOfDomainDetector().assess(features, profile)
             report = self.uncertainty.summarize(claims, ood=ood)
         except (TypeError, ValueError, ValidationError, KeyError) as exc:
@@ -1863,39 +1868,67 @@ class ControlPlaneApplication:
 
     @staticmethod
     def _uncertainty_report_from_mapping(raw: Mapping[str, Any]) -> UncertaintyReport:
-        components = tuple(
-            UncertaintyComponent(
-                name=str(item.get("name", item.get("component_id", item.get("label", "")))),
-                value=float(item["value"]),
-                rationale=str(item["rationale"]),
-                evidence_ids=tuple(str(value) for value in item.get("evidence_ids", ())),
+        if not isinstance(raw, Mapping):
+            raise ValidationError("uncertainty report must be a mapping")
+        components_raw = raw.get("components", ())
+        if not isinstance(components_raw, (list, tuple)):
+            raise ValidationError("uncertainty report components must be an array")
+        components_list: list[UncertaintyComponent] = []
+        for index, item in enumerate(components_raw):
+            if not isinstance(item, Mapping):
+                raise ValidationError(f"uncertainty component[{index}] must be a mapping")
+            name_raw = item.get("name", item.get("component_id", item.get("label")))
+            components_list.append(
+                UncertaintyComponent(
+                    name=_input_text(name_raw, f"uncertainty component[{index}].name"),
+                    value=_input_number(
+                        item["value"], f"uncertainty component[{index}].value"
+                    ),
+                    rationale=_input_text(
+                        item["rationale"], f"uncertainty component[{index}].rationale"
+                    ),
+                    evidence_ids=_input_strings(
+                        item.get("evidence_ids", ()),
+                        f"uncertainty component[{index}].evidence_ids",
+                    ),
+                )
             )
-            for item in raw.get("components", ())
-            if isinstance(item, Mapping)
-        )
+        components = tuple(components_list)
         if not components:
             raise ValidationError("uncertainty report requires components")
         ood_raw = raw.get("ood")
         ood: OODAssessment | None = None
         if isinstance(ood_raw, Mapping):
             ood = OODAssessment(
-                status=OODStatus(str(ood_raw["status"])),
-                distance=float(ood_raw["distance"]),
-                missing_features=tuple(str(item) for item in ood_raw.get("missing_features", ())),
-                out_of_range_features=tuple(
-                    str(item) for item in ood_raw.get("out_of_range_features", ())
+                status=OODStatus(_input_text(ood_raw["status"], "uncertainty OOD status")),
+                distance=_input_number(ood_raw["distance"], "uncertainty OOD distance"),
+                missing_features=_input_strings(
+                    ood_raw.get("missing_features", ()),
+                    "uncertainty OOD missing_features",
                 ),
-                warnings=tuple(str(item) for item in ood_raw.get("warnings", ())),
-                profile_id=str(ood_raw["profile_id"]),
-                content_address=str(ood_raw["content_address"]),
+                out_of_range_features=_input_strings(
+                    ood_raw.get("out_of_range_features", ()),
+                    "uncertainty OOD out_of_range_features",
+                ),
+                warnings=_input_strings(
+                    ood_raw.get("warnings", ()), "uncertainty OOD warnings"
+                ),
+                profile_id=_input_text(ood_raw["profile_id"], "uncertainty OOD profile_id"),
+                content_address=_input_text(
+                    ood_raw["content_address"], "uncertainty OOD content_address"
+                ),
             )
         return UncertaintyReport(
-            overall=float(raw["overall"]),
-            band=UncertaintyBand(str(raw["band"])),
+            overall=_input_number(raw["overall"], "uncertainty overall"),
+            band=UncertaintyBand(_input_text(raw["band"], "uncertainty band")),
             components=components,
             ood=ood,
-            limitations=tuple(str(item) for item in raw.get("limitations", ())),
-            content_address=str(raw["content_address"]),
+            limitations=_input_strings(
+                raw.get("limitations", ()), "uncertainty limitations"
+            ),
+            content_address=_input_text(
+                raw["content_address"], "uncertainty content_address"
+            ),
         )
 
     def _guide_design(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:

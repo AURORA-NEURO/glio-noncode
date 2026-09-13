@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from math import nan
 
 from glio_noncode.models import EvidenceClaim, EvidenceState, EvidenceTier, ReferenceContext
 from glio_noncode.uncertainty import (
@@ -11,7 +12,9 @@ from glio_noncode.uncertainty import (
     OutOfDomainDetector,
     UncertaintyBand,
     UncertaintyPropagator,
+    UncertaintyComponent,
 )
+from glio_noncode.errors import ValidationError
 
 
 class UncertaintyTests(unittest.TestCase):
@@ -112,6 +115,35 @@ class UncertaintyTests(unittest.TestCase):
         self.assertIn("glioma", report.group_metrics)
         self.assertGreaterEqual(report.expected_calibration_error, 0.0)
         self.assertTrue(report.content_address.startswith("sha256:"))
+
+    def test_uncertainty_contracts_reject_coercion_and_non_finite_values(self) -> None:
+        with self.assertRaises(ValidationError):
+            DomainProfile(
+                "p",
+                "ctx",
+                ["x"],  # type: ignore[arg-type]
+                {"x": (0.0, 1.0)},
+                "source",
+            )
+        with self.assertRaises(ValidationError):
+            DomainProfile("p", "ctx", ("x", "x"), {"x": (0.0, 1.0)}, "source")
+        profile = DomainProfile("p", "ctx", ("x",), {"x": (0.0, 1.0)}, "source")
+        with self.assertRaises(ValidationError):
+            OutOfDomainDetector().assess({"x": "0.5"}, profile)  # type: ignore[arg-type]
+        with self.assertRaises(ValidationError):
+            OutOfDomainDetector().assess({"x": nan}, profile)
+        with self.assertRaises(ValidationError):
+            UncertaintyComponent("x", nan, "bad")
+
+    def test_calibration_contracts_reject_invalid_rows_and_bins(self) -> None:
+        with self.assertRaises(ValidationError):
+            CalibrationDatum(1, 0.0)  # type: ignore[arg-type]
+        with self.assertRaises(ValidationError):
+            CalibrationDatum(0.5, 0.5, "")
+        with self.assertRaises(ValidationError):
+            CalibrationEvaluator().evaluate((CalibrationDatum(0.5, 0.5),), bins=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValidationError):
+            CalibrationEvaluator().evaluate((object(),))  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

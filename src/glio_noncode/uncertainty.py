@@ -5,11 +5,77 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
+from math import isfinite
+from types import MappingProxyType
 from typing import Any
 
 from .errors import ValidationError
 from .models import EvidenceClaim, EvidenceState
 from .serialization import content_hash, jsonable
+
+
+MAX_DOMAIN_FEATURES = 2048
+MAX_UNCERTAINTY_COMPONENTS = 256
+MAX_UNCERTAINTY_EVIDENCE_IDS = 100_000
+MAX_UNCERTAINTY_TEXT = 8_192
+MAX_CALIBRATION_DATUM = 100_000
+MAX_CALIBRATION_GROUPS = 4_096
+
+
+def _text(value: object, label: str, *, maximum: int = MAX_UNCERTAINTY_TEXT) -> str:
+    """Validate a bounded, non-empty text field without coercion."""
+
+    if type(value) is not str or not value.strip():
+        raise ValidationError(f"{label} must be a non-empty string")
+    if len(value) > maximum:
+        raise ValidationError(f"{label} exceeds the maximum length of {maximum}")
+    if value != value.strip():
+        raise ValidationError(f"{label} must not have surrounding whitespace")
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValidationError(f"{label} must be valid UTF-8") from exc
+    if any(ord(character) < 32 or ord(character) == 127 for character in value):
+        raise ValidationError(f"{label} must not contain control characters")
+    return value
+
+
+def _strings(
+    value: object,
+    label: str,
+    *,
+    maximum: int,
+    unique: bool = False,
+) -> tuple[str, ...]:
+    if type(value) is not tuple or len(value) > maximum:
+        raise ValidationError(f"{label} must be a tuple of at most {maximum} items")
+    result = tuple(_text(item, f"{label}[{index}]", maximum=MAX_UNCERTAINTY_TEXT) for index, item in enumerate(value))
+    if unique and len(result) != len(set(result)):
+        raise ValidationError(f"{label} must not contain duplicates")
+    return result
+
+
+def _unit_float(value: object, label: str) -> float:
+    if type(value) is not float or not isfinite(value) or not 0.0 <= value <= 1.0:
+        raise ValidationError(f"{label} must be a finite float between 0 and 1")
+    return value
+
+
+def _finite_float(value: object, label: str) -> float:
+    if type(value) is not float or not isfinite(value):
+        raise ValidationError(f"{label} must be a finite float")
+    return value
+
+
+def _bounded_tuple(value: Iterable[Any], label: str, maximum: int) -> tuple[Any, ...]:
+    """Materialize an iterable while detecting over-ceiling inputs early."""
+
+    result: list[Any] = []
+    for item in value:
+        if len(result) >= maximum:
+            raise ValidationError(f"{label} exceeds the supported ceiling")
+        result.append(item)
+    return tuple(result)
 
 
 class OODStatus(StrEnum):
@@ -43,20 +109,47 @@ class DomainProfile:
     watch_threshold: float = 0.15
 
     def __post_init__(self) -> None:
-        for name in ("profile_id", "context_key", "source_version"):
-            if not str(getattr(self, name)).strip():
-                raise ValidationError(f"{name} must not be empty")
-        if not self.required_features:
+        profile_id = _text(self.profile_id, "profile_id", maximum=256)
+        context_key = _text(self.context_key, "context_key")
+        source_version = _text(self.source_version, "source_version")
+        required_features = _strings(
+            self.required_features,
+            "required_features",
+            maximum=MAX_DOMAIN_FEATURES,
+            unique=True,
+        )
+        if not required_features:
             raise ValidationError("domain profile requires at least one feature")
+        if type(self.feature_ranges) is not dict and not isinstance(
+            self.feature_ranges, Mapping
+        ):
+            raise ValidationError("feature_ranges must be a mapping")
+        if len(self.feature_ranges) > MAX_DOMAIN_FEATURES:
+            raise ValidationError("feature_ranges exceeds the domain feature ceiling")
+        ranges: dict[str, tuple[float, float]] = {}
+        for feature, bounds in self.feature_ranges.items():
+            feature_name = _text(feature, "feature range name", maximum=256)
+            if type(bounds) is not tuple or len(bounds) != 2:
+                raise ValidationError("feature ranges must be two-float tuples")
+            minimum = _finite_float(bounds[0], f"feature range {feature_name} minimum")
+            maximum = _finite_float(bounds[1], f"feature range {feature_name} maximum")
+            if maximum <= minimum:
+                raise ValidationError(f"feature range is invalid: {feature_name}")
+            ranges[feature_name] = (minimum, maximum)
+        if type(self.watch_threshold) is not float or not isfinite(self.watch_threshold):
+            raise ValidationError("watch_threshold must be a finite float")
         if not 0.0 < self.watch_threshold < 1.0:
             raise ValidationError("watch_threshold must be between 0 and 1")
-        for feature in self.required_features:
-            bounds = self.feature_ranges.get(feature)
-            if bounds is None:
+        for feature in required_features:
+            if feature not in ranges:
                 raise ValidationError(f"required feature has no declared range: {feature}")
-            minimum, maximum = bounds
-            if maximum <= minimum:
-                raise ValidationError(f"feature range is invalid: {feature}")
+        if self.model_digest is not None:
+            _text(self.model_digest, "model_digest", maximum=512)
+        object.__setattr__(self, "profile_id", profile_id)
+        object.__setattr__(self, "context_key", context_key)
+        object.__setattr__(self, "source_version", source_version)
+        object.__setattr__(self, "required_features", required_features)
+        object.__setattr__(self, "feature_ranges", MappingProxyType(dict(sorted(ranges.items()))))
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -74,6 +167,31 @@ class OODAssessment:
     profile_id: str
     content_address: str
 
+    def __post_init__(self) -> None:
+        if type(self.status) is not OODStatus:
+            raise ValidationError("OOD status must be an OODStatus")
+        _unit_float(self.distance, "OOD distance")
+        _strings(
+            self.missing_features,
+            "missing_features",
+            maximum=MAX_UNCERTAINTY_EVIDENCE_IDS,
+            unique=True,
+        )
+        _strings(
+            self.out_of_range_features,
+            "out_of_range_features",
+            maximum=MAX_UNCERTAINTY_EVIDENCE_IDS,
+            unique=True,
+        )
+        _strings(
+            self.warnings,
+            "warnings",
+            maximum=MAX_UNCERTAINTY_COMPONENTS,
+            unique=True,
+        )
+        _text(self.profile_id, "profile_id", maximum=256)
+        _text(self.content_address, "content_address", maximum=256)
+
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
 
@@ -82,6 +200,19 @@ class OutOfDomainDetector:
     """Compare declared numeric features with a versioned support profile."""
 
     def assess(self, features: Mapping[str, float], profile: DomainProfile) -> OODAssessment:
+        if type(profile) is not DomainProfile:
+            raise ValidationError("profile must be a DomainProfile")
+        if not isinstance(features, Mapping):
+            raise ValidationError("features must be a mapping")
+        if len(features) > MAX_DOMAIN_FEATURES:
+            raise ValidationError("features exceeds the domain feature ceiling")
+        validated_features: dict[str, float] = {}
+        for key, value in features.items():
+            name = _text(key, "feature name", maximum=256)
+            if type(value) is not float or not isfinite(value):
+                raise ValidationError(f"feature {name} must be a finite float")
+            validated_features[name] = value
+        features = validated_features
         missing = tuple(
             sorted(feature for feature in profile.required_features if feature not in features)
         )
@@ -91,12 +222,7 @@ class OutOfDomainDetector:
         for feature in profile.required_features:
             if feature not in features:
                 continue
-            try:
-                value = float(features[feature])
-            except (TypeError, ValueError):
-                out_of_range.append(feature)
-                warnings.append(f"feature is not numeric: {feature}")
-                continue
+            value = features[feature]
             minimum, maximum = profile.feature_ranges[feature]
             span = maximum - minimum
             if value < minimum:
@@ -148,10 +274,15 @@ class UncertaintyComponent:
     evidence_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        if not self.name.strip() or not self.rationale.strip():
-            raise ValidationError("uncertainty component name and rationale are required")
-        if not 0.0 <= self.value <= 1.0:
-            raise ValidationError("uncertainty component value must be between 0 and 1")
+        _text(self.name, "uncertainty component name", maximum=256)
+        _unit_float(self.value, "uncertainty component value")
+        _text(self.rationale, "uncertainty component rationale")
+        _strings(
+            self.evidence_ids,
+            "uncertainty component evidence_ids",
+            maximum=MAX_UNCERTAINTY_EVIDENCE_IDS,
+            unique=True,
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -168,6 +299,19 @@ class UncertaintyReport:
     limitations: tuple[str, ...]
     content_address: str
 
+    def __post_init__(self) -> None:
+        _unit_float(self.overall, "uncertainty overall")
+        if type(self.band) is not UncertaintyBand:
+            raise ValidationError("uncertainty band must be an UncertaintyBand")
+        if type(self.components) is not tuple or len(self.components) > MAX_UNCERTAINTY_COMPONENTS:
+            raise ValidationError("uncertainty components exceed the supported ceiling")
+        if any(type(component) is not UncertaintyComponent for component in self.components):
+            raise ValidationError("uncertainty components must be typed objects")
+        if self.ood is not None and type(self.ood) is not OODAssessment:
+            raise ValidationError("uncertainty OOD assessment must be typed or null")
+        _strings(self.limitations, "uncertainty limitations", maximum=MAX_UNCERTAINTY_COMPONENTS, unique=True)
+        _text(self.content_address, "uncertainty content_address", maximum=256)
+
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
 
@@ -181,7 +325,13 @@ class UncertaintyPropagator:
         *,
         ood: OODAssessment | None = None,
     ) -> UncertaintyReport:
-        values = tuple(claims)
+        values = _bounded_tuple(
+            claims,
+            "uncertainty claims",
+            MAX_UNCERTAINTY_EVIDENCE_IDS,
+        )
+        if any(type(claim) is not EvidenceClaim for claim in values):
+            raise ValidationError("uncertainty claims must be EvidenceClaim objects")
         total = max(1, len(values))
         missing = tuple(
             claim.evidence_id
@@ -275,8 +425,9 @@ class CalibrationDatum:
     group: str = "all"
 
     def __post_init__(self) -> None:
-        if not 0.0 <= self.prediction <= 1.0 or not 0.0 <= self.outcome <= 1.0:
-            raise ValidationError("calibration values must be between 0 and 1")
+        _unit_float(self.prediction, "calibration prediction")
+        _unit_float(self.outcome, "calibration outcome")
+        _text(self.group, "calibration group", maximum=256)
 
 
 @dataclass(frozen=True, slots=True)
@@ -291,6 +442,30 @@ class CalibrationReport:
     warnings: tuple[str, ...]
     content_address: str
 
+    def __post_init__(self) -> None:
+        if type(self.sample_count) is not int or not 0 <= self.sample_count <= MAX_CALIBRATION_DATUM:
+            raise ValidationError("calibration sample_count is outside the supported range")
+        _unit_float(self.mean_absolute_error, "calibration mean_absolute_error")
+        _unit_float(self.brier_score, "calibration brier_score")
+        _unit_float(self.expected_calibration_error, "calibration expected_calibration_error")
+        if not isinstance(self.group_metrics, Mapping):
+            raise ValidationError("calibration group_metrics must be a mapping")
+        if len(self.group_metrics) > MAX_CALIBRATION_GROUPS:
+            raise ValidationError("calibration group_metrics exceed the supported ceiling")
+        for group, metrics in self.group_metrics.items():
+            _text(group, "calibration group", maximum=256)
+            if not isinstance(metrics, Mapping):
+                raise ValidationError("calibration group metrics must be mappings")
+            if set(metrics) != {"count", "mae", "brier"}:
+                raise ValidationError("calibration group metrics have an invalid shape")
+            count = metrics["count"]
+            if type(count) is not float or not isfinite(count) or count < 0.0:
+                raise ValidationError("calibration group count must be a finite non-negative float")
+            _unit_float(metrics["mae"], "calibration group mae")
+            _unit_float(metrics["brier"], "calibration group brier")
+        _strings(self.warnings, "calibration warnings", maximum=MAX_UNCERTAINTY_COMPONENTS, unique=True)
+        _text(self.content_address, "calibration content_address", maximum=256)
+
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
 
@@ -299,9 +474,13 @@ class CalibrationEvaluator:
     """Compute bounded calibration summaries without declaring validity."""
 
     def evaluate(self, data: Iterable[CalibrationDatum], *, bins: int = 10) -> CalibrationReport:
-        values = tuple(data)
-        if bins < 2 or bins > 100:
+        if type(bins) is not int or bins < 2 or bins > 100:
             raise ValidationError("calibration bins must be between 2 and 100")
+        values = _bounded_tuple(data, "calibration observations", MAX_CALIBRATION_DATUM)
+        if any(type(item) is not CalibrationDatum for item in values):
+            raise ValidationError("calibration data must contain CalibrationDatum objects")
+        if len({item.group for item in values}) > MAX_CALIBRATION_GROUPS:
+            raise ValidationError("calibration groups exceed the supported ceiling")
         if not values:
             return CalibrationReport(
                 0,

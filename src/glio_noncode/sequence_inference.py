@@ -13,7 +13,9 @@ from .models import EvidenceClaim, EvidenceState, EvidenceTier, ReferenceContext
 from .serialization import content_hash, jsonable
 
 MAX_MOTIF_DEFINITIONS = 2_048
-MAX_MOTIF_PATTERN_LENGTH = 256
+# Keep a standalone ceiling while allowing Atlas to enforce its narrower
+# public-surface limit (currently 1,024) when motifs enter a retrieval run.
+MAX_MOTIF_PATTERN_LENGTH = 4_096
 
 
 class SequenceAnalysisState(StrEnum):
