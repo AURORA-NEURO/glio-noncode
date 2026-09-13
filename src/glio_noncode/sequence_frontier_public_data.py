@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 SEQUENCE_FRONTIER_FIXTURE_VERSION = "2026.08.d06-c13-c16.v1"
 SEQUENCE_FRONTIER_CONTEXT_KEY = "GRCh38|diffuse_glioma|adult|stem_like|core|untreated"
@@ -816,7 +816,7 @@ def audit_sequence_frontier_data(
 
 
 def load_sequence_frontier_fixture(path: str) -> SequenceFrontierFixture:
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     sources = tuple(SequenceFrontierSourceReceipt(**row) for row in payload["sources"])
     records = tuple(
         SequenceFrontierRecord(

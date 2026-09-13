@@ -6,6 +6,7 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.sequence_effect_frontier_accessibility import audit_sequence_effect_accessibility
 from glio_noncode.sequence_effect_frontier_adapters import build_sequence_effect_adapters
 from glio_noncode.sequence_effect_frontier_artifacts import build_sequence_effect_artifacts
@@ -107,6 +108,10 @@ class SequenceEffectFrontierTests(unittest.TestCase):
                 json.dumps(self.fixture.to_dict(include_payload=True)), encoding="utf-8"
             )
             loaded = load_sequence_effect_fixture(path)
+            duplicate = Path(directory) / "duplicate.json"
+            duplicate.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                load_sequence_effect_fixture(duplicate)
         self.assertEqual(loaded.content_address, self.fixture.content_address)
         self.assertEqual(
             evaluate_sequence_effect_fixture(loaded).content_address,

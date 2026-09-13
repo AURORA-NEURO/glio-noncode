@@ -33,7 +33,7 @@ from .sequence_grammar_frontier_fixture_eval import evaluate_sequence_grammar_fi
 from .sequence_grammar_frontier_public_data import default_sequence_grammar_fixture
 from .sequence_regulation_frontier_fixture_eval import evaluate_sequence_regulation_fixture
 from .sequence_regulation_frontier_public_data import default_sequence_regulation_fixture
-from .serialization import jsonable
+from .serialization import _strict_json_loads, jsonable
 
 SEQUENCE_ARCHITECTURE_FIXTURE_FILE = "sequence-architecture-public-aggregate.json"
 
@@ -60,7 +60,7 @@ def default_sequence_architecture_fixture(
 
 
 def load_sequence_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D06 sequence architecture JSON must be an object")
     return dict(raw)

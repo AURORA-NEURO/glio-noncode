@@ -10,7 +10,6 @@ interaction paths without representing a person or a clinical conclusion.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
@@ -18,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 SEQUENCE_GRAMMAR_FIXTURE_VERSION = "2026.08.d06-c05-c08.v1"
 SEQUENCE_GRAMMAR_CONTEXT_KEY = (
@@ -799,7 +798,7 @@ def audit_sequence_grammar_data(fixture: SequenceGrammarFixture) -> SequenceGram
 def load_sequence_grammar_fixture(path: str | Path) -> SequenceGrammarFixture:
     """Load a complete fixture JSON document and preserve its supplied hashes."""
 
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValidationError("sequence-grammar fixture must be an object")
     sources = tuple(SequenceGrammarSourceReceipt(**dict(item)) for item in raw.get("sources", ()))

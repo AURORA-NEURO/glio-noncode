@@ -8,7 +8,6 @@ promotion of model deltas into clinical claims.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
@@ -16,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 SEQUENCE_EFFECT_FIXTURE_VERSION = "2026.08.d06-c01-c04.v1"
 SEQUENCE_EFFECT_CONTEXT_KEY = "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline"
@@ -687,8 +686,8 @@ def load_sequence_effect_fixture(path: str | Path) -> SequenceEffectFixture:
     """Load a sanitized fixture mapping; payloads are retained for execution only."""
 
     try:
-        raw = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
         raise ValidationError(f"unable to load sequence-effect fixture: {path}") from exc
     if not isinstance(raw, Mapping):
         raise ValidationError("sequence-effect fixture must be an object")

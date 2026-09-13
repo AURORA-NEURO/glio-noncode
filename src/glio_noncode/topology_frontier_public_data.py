@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 TOPOLOGY_FRONTIER_FIXTURE_VERSION = "2026.08.d09-c13-c16.v1"
 TOPOLOGY_FRONTIER_CONTEXT_KEY = "GRCh38|glioma|adult|stem_like|tumor|unknown"
@@ -640,7 +640,7 @@ def audit_topology_frontier_data(
 
 
 def load_topology_frontier_fixture(path: str | Path) -> TopologyFrontierFixture:
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     sources = tuple(TopologyFrontierSourceReceipt(**row) for row in payload["sources"])
     records = tuple(
         TopologyFrontierRecord(

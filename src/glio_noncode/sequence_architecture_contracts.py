@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -10,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 SEQUENCE_ARCHITECTURE_VERSION = "2026.08.d06-sequence-architecture.v1"
 SEQUENCE_ARCHITECTURE_BOUNDARY = "public_aggregate_sequence_grammar_variant_effect"
@@ -299,7 +298,7 @@ class SequenceArchitectureFixture:
 
     @classmethod
     def from_file(cls, path: str | Path) -> SequenceArchitectureFixture:
-        raw = json.loads(Path(path).read_text(encoding="utf-8"))
+        raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
         if not isinstance(raw, Mapping):
             raise ValidationError("D06 fixture JSON must be an object")
         return cls.from_mapping(raw)

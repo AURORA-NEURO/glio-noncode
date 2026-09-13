@@ -210,6 +210,10 @@ class TopologyFrontierDepthTests(unittest.TestCase):
             self.assertEqual(loaded.fixture_id, self.fixture.fixture_id)
             self.assertEqual(loaded.content_address, self.fixture.content_address)
             self.assertEqual(tuple(item.record_id for item in loaded.records), tuple(item.record_id for item in self.fixture.records))
+            duplicate = Path(directory) / "duplicate.json"
+            duplicate.write_text('{"fixture_id":"one","fixture_id":"shadow"}', encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_topology_frontier_fixture(duplicate)
 
     def test_source_receipts_are_https(self) -> None:
         self.assertTrue(all(item.uri.startswith("https://") for item in self.fixture.sources))

@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from .serialization import jsonable
+from .serialization import _strict_json_loads, jsonable
 from .topology_alpha_frontier_fixture_eval import evaluate_topology_alpha_frontier_fixture
 from .topology_alpha_frontier_public_data import default_topology_alpha_frontier_fixture
 from .topology_architecture_contracts import (
@@ -391,7 +391,7 @@ def topology_architecture_fixture_json(fixture: TopologyArchitectureFixture | No
 
 
 def load_topology_architecture_mapping(path: str | Path) -> dict[str, Any]:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping):
         raise ValueError("D09 topology architecture JSON must be an object")
     return dict(raw)
