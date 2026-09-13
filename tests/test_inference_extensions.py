@@ -200,6 +200,23 @@ class InferenceExtensionTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             self.suite.driver_posterior({"hypothesis_id": "hyp-1"}, {"evidence_id": "evidence-1"})
 
+    def test_observation_boundary_rejects_coercible_scalars_and_invalid_payloads(self) -> None:
+        with self.assertRaises(ValidationError):
+            self.suite.accessibility_delta(
+                {"observations": [{"observation_id": 1}]},
+                {},
+            )
+        with self.assertRaises(ValidationError):
+            self.suite.accessibility_delta(
+                {"observations": [{"observation_id": "o1", "confidence": "0.8"}]},
+                {},
+            )
+        with self.assertRaises(ValidationError):
+            self.suite.accessibility_delta(
+                {"observations": [{"observation_id": "o1", "payload": []}]},
+                {},
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

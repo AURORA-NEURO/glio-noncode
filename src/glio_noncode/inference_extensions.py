@@ -13,11 +13,18 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from math import isfinite
+from types import MappingProxyType
 from typing import Any
 
 from .errors import ValidationError
 from .models import EvidenceState
 from .serialization import content_hash, jsonable
+
+
+MAX_INFERENCE_OBSERVATIONS = 100_000
+MAX_INFERENCE_PAYLOAD_KEYS = 4_096
+MAX_INFERENCE_TEXT = 8_192
+MAX_INFERENCE_IDS = 100_000
 
 
 class InferenceState(StrEnum):
@@ -46,12 +53,23 @@ class InferenceObservation:
 
     def __post_init__(self) -> None:
         for name in ("observation_id", "source_id", "channel"):
-            if not str(getattr(self, name)).strip():
-                raise ValidationError(f"inference {name} is required")
+            _text(getattr(self, name), f"inference {name}")
+        if type(self.state) is not EvidenceState:
+            raise ValidationError("inference state must be an EvidenceState")
         for name in ("score", "confidence", "context_score"):
             value = getattr(self, name)
-            if value is not None and not 0.0 <= value <= 1.0:
-                raise ValidationError(f"inference {name} must be between 0 and 1")
+            if name == "confidence" and value is None:
+                raise ValidationError("inference confidence is required")
+            if value is not None:
+                normalized = _unit(value, f"inference {name}")
+                object.__setattr__(self, name, normalized)
+        if not isinstance(self.payload, Mapping):
+            raise ValidationError("inference observation payload must be a mapping")
+        if len(self.payload) > MAX_INFERENCE_PAYLOAD_KEYS or any(
+            type(key) is not str for key in self.payload
+        ):
+            raise ValidationError("inference observation payload has invalid keys")
+        object.__setattr__(self, "payload", MappingProxyType(dict(self.payload)))
 
     @classmethod
     def from_mapping(
@@ -65,8 +83,8 @@ class InferenceObservation:
             raise ValidationError("inference observation must be a mapping")
         state_raw = raw.get("state", EvidenceState.SUPPORTED.value)
         try:
-            state = EvidenceState(str(state_raw))
-        except ValueError as exc:
+            state = EvidenceState(state_raw)
+        except (TypeError, ValueError) as exc:
             raise ValidationError(f"unsupported inference evidence state: {state_raw}") from exc
         score_raw = raw.get("score", raw.get("support"))
         score = _optional_unit(score_raw, "score")
@@ -79,9 +97,9 @@ class InferenceObservation:
         if not isinstance(payload, Mapping):
             raise ValidationError("inference observation payload must be a mapping")
         return cls(
-            observation_id=str(raw.get("observation_id", raw.get("evidence_id", fallback_id))),
-            source_id=str(raw.get("source_id", "declared_input")),
-            channel=str(raw.get("channel", fallback_channel)),
+            observation_id=raw.get("observation_id", raw.get("evidence_id", fallback_id)),
+            source_id=raw.get("source_id", "declared_input"),
+            channel=raw.get("channel", fallback_channel),
             state=state,
             score=score,
             confidence=confidence,
@@ -294,10 +312,9 @@ class DriverPosteriorResult:
 
 
 def _unit(value: Any, field_name: str) -> float:
-    try:
-        result = float(value)
-    except (TypeError, ValueError) as exc:
-        raise ValidationError(f"{field_name} must be numeric") from exc
+    if type(value) not in {int, float} or isinstance(value, bool):
+        raise ValidationError(f"{field_name} must be numeric")
+    result = float(value)
     if not isfinite(result) or not 0.0 <= result <= 1.0:
         raise ValidationError(f"{field_name} must be between 0 and 1")
     return result
@@ -310,25 +327,36 @@ def _optional_unit(value: Any, field_name: str) -> float | None:
 def _optional_number(value: Any, field_name: str) -> float | None:
     if value is None:
         return None
-    try:
-        result = float(value)
-    except (TypeError, ValueError) as exc:
-        raise ValidationError(f"{field_name} must be numeric") from exc
+    if type(value) not in {int, float} or isinstance(value, bool):
+        raise ValidationError(f"{field_name} must be numeric")
+    result = float(value)
     if not isfinite(result):
         raise ValidationError(f"{field_name} must be finite")
     return result
 
 
 def _text(value: Any, field_name: str, default: str = "") -> str:
-    result = str(value if value is not None else default).strip()
-    if not result:
+    result = value if value is not None else default
+    if type(result) is not str or not result.strip():
         raise ValidationError(f"{field_name} is required")
+    if len(result) > MAX_INFERENCE_TEXT:
+        raise ValidationError(f"{field_name} exceeds the maximum length")
+    if result != result.strip():
+        raise ValidationError(f"{field_name} must not have surrounding whitespace")
+    try:
+        result.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValidationError(f"{field_name} must be valid UTF-8") from exc
+    if any(ord(character) < 32 or ord(character) == 127 for character in result):
+        raise ValidationError(f"{field_name} must not contain control characters")
     return result
 
 
 def _mapping(value: Any, field_name: str) -> Mapping[str, Any]:
     if not isinstance(value, Mapping):
         raise ValidationError(f"{field_name} must be a mapping")
+    if len(value) > MAX_INFERENCE_PAYLOAD_KEYS or any(type(key) is not str for key in value):
+        raise ValidationError(f"{field_name} must have bounded string keys")
     return value
 
 
@@ -345,6 +373,8 @@ def _rows(value: Any, *, fallback_channel: str) -> tuple[InferenceObservation, .
         raise ValidationError("evidence input must be a mapping or sequence")
     if not isinstance(raw_rows, (list, tuple)):
         raise ValidationError("observations must be a sequence")
+    if len(raw_rows) > MAX_INFERENCE_OBSERVATIONS:
+        raise ValidationError("observations exceed the supported ceiling")
     return tuple(
         InferenceObservation.from_mapping(
             _mapping(row, "observation"),
