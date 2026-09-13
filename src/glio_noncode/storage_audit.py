@@ -307,16 +307,36 @@ def _object_audit(path: Path, address: str) -> tuple[StorageObjectAudit, Any | N
     return StorageObjectAudit(**body, content_address=_addressed(body, "storage-object-audit")), value
 
 
+def _scan_directory(path: Path, label: str) -> tuple[tuple[Path, ...] | None, tuple[str, ...]]:
+    """List one store directory without allowing filesystem errors to escape an audit."""
+
+    try:
+        if path.is_symlink():
+            return None, (label,)
+        if not path.is_dir():
+            return (), ()
+        return tuple(path.iterdir()), ()
+    except OSError:
+        return None, (f"{label}/<unreadable>",)
+
+
 def _scan_objects(root: Path) -> tuple[tuple[StorageObjectAudit, ...], dict[str, Any], tuple[str, ...]]:
     objects_root = root / "objects"
-    if not objects_root.is_dir():
-        return (), {}, ()
+    entries, initial_unexpected = _scan_directory(objects_root, "objects")
+    if entries is None:
+        return (), {}, initial_unexpected
     audits: list[StorageObjectAudit] = []
     parsed: dict[str, Any] = {}
-    unexpected: list[str] = []
-    for entry in sorted(objects_root.iterdir(), key=lambda item: item.name):
+    unexpected: list[str] = list(initial_unexpected)
+    for entry in sorted(entries, key=lambda item: item.name):
         relative = f"objects/{entry.name}"
-        if entry.is_symlink() or not entry.is_file() or entry.suffix != ".json":
+        try:
+            unsafe = entry.is_symlink()
+            regular = entry.is_file()
+        except OSError:
+            unexpected.append(relative)
+            continue
+        if unsafe or not regular or entry.suffix != ".json":
             unexpected.append(relative)
             continue
         stem = entry.stem
@@ -362,12 +382,19 @@ def _index_pointer(value: Any, field: str, warnings: list[str]) -> str | None:
 
 def _scan_runs(runtime: CaseRuntime) -> tuple[tuple[StorageRunAudit, ...], tuple[str, ...]]:
     root = Path(runtime.store.root) / "runs"
-    if not root.is_dir():
-        return (), ()
+    entries, initial_unexpected = _scan_directory(root, "runs")
+    if entries is None:
+        return (), initial_unexpected
     audits: list[StorageRunAudit] = []
-    unexpected: list[str] = []
-    for path in sorted(root.iterdir(), key=lambda item: item.name):
-        if path.is_symlink() or not path.is_file() or path.suffix != ".json" or not path.name.startswith("run-"):
+    unexpected: list[str] = list(initial_unexpected)
+    for path in sorted(entries, key=lambda item: item.name):
+        try:
+            unsafe = path.is_symlink()
+            regular = path.is_file()
+        except OSError:
+            unexpected.append(f"runs/{path.name}")
+            continue
+        if unsafe or not regular or path.suffix != ".json" or not path.name.startswith("run-"):
             unexpected.append(f"runs/{path.name}")
             continue
         try:
@@ -433,13 +460,20 @@ def _scan_runs(runtime: CaseRuntime) -> tuple[tuple[StorageRunAudit, ...], tuple
 
 def _scan_batches(runtime: CaseRuntime) -> tuple[tuple[StorageBatchAudit, ...], tuple[str, ...]]:
     root = Path(runtime.store.root) / "batches"
-    if not root.is_dir():
-        return (), ()
+    entries, initial_unexpected = _scan_directory(root, "batches")
+    if entries is None:
+        return (), initial_unexpected
     audits: list[StorageBatchAudit] = []
-    unexpected: list[str] = []
+    unexpected: list[str] = list(initial_unexpected)
     batch_runtime = BatchRuntime(runtime=runtime)
-    for path in sorted(root.iterdir(), key=lambda item: item.name):
-        if path.is_symlink() or not path.is_file() or path.suffix != ".json" or len(path.stem) != 64:
+    for path in sorted(entries, key=lambda item: item.name):
+        try:
+            unsafe = path.is_symlink()
+            regular = path.is_file()
+        except OSError:
+            unexpected.append(f"batches/{path.name}")
+            continue
+        if unsafe or not regular or path.suffix != ".json" or len(path.stem) != 64:
             unexpected.append(f"batches/{path.name}")
             continue
         batch_id = f"batch-{path.stem}"

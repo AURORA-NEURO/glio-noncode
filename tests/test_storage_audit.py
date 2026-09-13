@@ -9,6 +9,7 @@ from dataclasses import replace
 from http.client import HTTPConnection
 from pathlib import Path
 from threading import Thread
+from unittest.mock import patch
 
 from glio_noncode.api import create_server
 from glio_noncode.batch_runtime import BatchRuntime
@@ -135,6 +136,18 @@ class StorageAuditTests(unittest.TestCase):
             malformed = next(item for item in report.runs if item.filename == "run-malformed.json")
             self.assertEqual(malformed.run_id, "run-malformed")
             self.assertFalse(malformed.accepted)
+
+    def test_directory_scan_failures_become_explicit_unexpected_entries(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime, _ = self._runtime(directory)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                report = build_storage_audit(runtime)
+            self.assertFalse(report.accepted)
+            self.assertEqual(
+                report.unexpected_entries,
+                ("objects/<unreadable>", "runs/<unreadable>"),
+            )
+            self.assertTrue(any("unexpected filesystem entries" in warning for warning in report.warnings))
 
     def test_audit_rejects_content_addressed_batch_with_invalid_counts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
