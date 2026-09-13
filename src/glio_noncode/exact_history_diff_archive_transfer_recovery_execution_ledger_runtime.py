@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from . import exact_history_diff_archive_transfer_recovery_execution_ledger as ledger_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
 
@@ -389,7 +390,7 @@ def capabilities() -> dict[str, Any]:
 
 
 def _write(path: Path, raw: bytes) -> None:
-    path.write_bytes(raw)
+    atomic_write_bytes(path, raw, field="ledger runtime artifact")
 
 
 def persist_runtime(value: ExactHistoryDiffArchiveTransferRecoveryExecutionLedgerRuntime, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -403,7 +404,10 @@ def persist_runtime(value: ExactHistoryDiffArchiveTransferRecoveryExecutionLedge
             raise ValidationError("ledger runtime destination exists; explicit overwrite is required")
         if target.is_symlink() or not target.is_dir():
             raise ValidationError("ledger runtime destination must be a regular directory")
+    _validate_parent(target.parent, "ledger runtime destination")
     target.parent.mkdir(parents=True, exist_ok=True)
+    if target.is_symlink():
+        raise ValidationError("ledger runtime destination must not be a symlink")
     temporary = Path(tempfile.mkdtemp(prefix=target.name + ".", dir=target.parent))
     try:
         for filename in FILES:
@@ -419,9 +423,9 @@ def persist_runtime(value: ExactHistoryDiffArchiveTransferRecoveryExecutionLedge
 
 def _read_json(path: Path) -> tuple[Mapping[str, Any], bytes]:
     try:
-        raw = path.read_bytes()
+        raw = read_bytes(path, field=f"ledger runtime member {path.name}")
         value = _mapping(_strict_json_loads(raw.decode("utf-8")), f"ledger runtime member {path.name}")
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError(f"ledger runtime member {path.name} is not valid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"ledger runtime member {path.name} is not canonical")
@@ -463,7 +467,11 @@ def load_runtime(destination: str | Path) -> ExactHistoryDiffArchiveTransferReco
     documents = _documents(candidate)
     expected_members = {"manifest.json": canonical_bytes(expected_manifest.to_dict()), **documents}
     for filename in FILES:
-        if (root / filename).read_bytes() != expected_members[filename]:
+        try:
+            actual = read_bytes(root / filename, field=f"ledger runtime member {filename}")
+        except (OSError, ValidationError) as error:
+            raise ValidationError(f"ledger runtime member {filename} could not be read") from error
+        if actual != expected_members[filename]:
             raise ValidationError(f"ledger runtime member {filename} does not replay")
     for receipt in manifest.artifacts:
         raw = expected_members[receipt.name]
