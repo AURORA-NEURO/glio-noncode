@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry as registry_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
@@ -583,15 +584,23 @@ def package_bytes(value: RegistryHistoryReleaseEvidencePipelineObservabilityBund
 def write_federation(value: RegistryHistoryReleaseEvidencePipelineObservabilityBundleCatalogPromotionGateReleasePacketPackageRegistryFederation, directory: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_federation(value)
     destination = Path(directory)
-    if destination.exists():
-        if not destination.is_dir() or not overwrite or tuple(sorted(item.name for item in destination.iterdir())) != tuple(sorted(FILES)):
-            raise ValidationError("federation destination already exists or has an incompatible shape")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "federation destination")
+        if destination.is_symlink():
+            raise ValidationError("federation destination cannot be a symlink")
+        if destination.exists():
+            if not destination.is_dir() or not overwrite or tuple(sorted(item.name for item in destination.iterdir())) != tuple(sorted(FILES)):
+                raise ValidationError("federation destination already exists or has an incompatible shape")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("federation destination could not be prepared") from error
     staging: Path | None = None
     try:
         staging = Path(tempfile.mkdtemp(prefix="federation-staging-", dir=str(destination.parent)))
         for name, raw in package_bytes(value).items():
-            (staging / name).write_bytes(raw)
+            atomic_write_bytes(staging / name, raw, field=f"federation staging artifact {name}")
         if destination.exists():
             shutil.rmtree(destination)
         staging.replace(destination)
@@ -605,14 +614,17 @@ def write_federation(value: RegistryHistoryReleaseEvidencePipelineObservabilityB
 def load_federation(directory: str | Path) -> RegistryHistoryReleaseEvidencePipelineObservabilityBundleCatalogPromotionGateReleasePacketPackageRegistryFederation:
     source = Path(directory)
     try:
-        members = tuple(sorted(item.name for item in source.iterdir())) if source.is_dir() else ()
+        _validate_parent(source.parent, "federation input")
+        members = tuple(source.iterdir()) if source.is_dir() and not source.is_symlink() else ()
     except OSError as error:
         raise ValidationError("federation directory could not be inspected") from error
-    if members != tuple(sorted(FILES)):
+    if tuple(sorted(item.name for item in members)) != tuple(sorted(FILES)) or any(item.is_symlink() or not item.is_file() for item in members):
         raise ValidationError("federation directory does not contain the exact canonical members")
 
     try:
-        raw = {name: (source / name).read_bytes() for name in FILES}
+        raw = {name: read_bytes(source / name, field=f"federation member {name}") for name in FILES}
+    except ValidationError:
+        raise
     except OSError as error:
         raise ValidationError("federation member could not be read") from error
 

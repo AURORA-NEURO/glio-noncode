@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import shutil
 import tempfile
 from collections.abc import Mapping, Sequence
@@ -16,6 +15,7 @@ from typing import Any
 from . import registry_federation_consensus as consensus_model
 from . import registry_federation_consensus_audit as audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry as registry_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
 
@@ -240,14 +240,22 @@ def package_bytes(value: RegistryFederationConsensusHistory) -> dict[str, bytes]
 def write_history(value: RegistryFederationConsensusHistory, directory: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_history(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
-        raise ValidationError("history destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "history destination")
+        if destination.is_symlink():
+            raise ValidationError("history destination cannot be a symlink")
+        if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
+            raise ValidationError("history destination already exists")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("history destination could not be prepared") from error
     staging: Path | None = None
     try:
         staging = Path(tempfile.mkdtemp(prefix="consensus-history-staging-", dir=str(destination.parent)))
         for name, raw in package_bytes(value).items():
-            (staging / name).write_bytes(raw)
+            atomic_write_bytes(staging / name, raw, field=f"history staging artifact {name}")
         if destination.exists():
             shutil.rmtree(destination)
         staging.replace(destination)
@@ -261,6 +269,7 @@ def write_history(value: RegistryFederationConsensusHistory, directory: str | Pa
 def _read_directory(directory: str | Path) -> dict[str, bytes]:
     source = Path(directory)
     try:
+        _validate_parent(source.parent, "history input")
         if source.is_symlink() or not source.is_dir():
             raise ValidationError("history input must be a regular directory")
         members = tuple(source.iterdir())
@@ -277,7 +286,9 @@ def _read_directory(directory: str | Path) -> dict[str, bytes]:
     result: dict[str, bytes] = {}
     for name in FILES:
         try:
-            result[name] = (source / name).read_bytes()
+            result[name] = read_bytes(source / name, field=f"history member {name}")
+        except ValidationError:
+            raise
         except OSError as error:
             raise ValidationError("history member could not be read") from error
     return result

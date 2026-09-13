@@ -111,7 +111,7 @@ class RegistryFederationTests(DurableCatalogPromotionPackageFixture):
                 federation_model.load_federation(destination)
 
             federation_model.write_federation(value, destination, overwrite=True)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(federation_model, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     federation_model.load_federation(destination)
 

@@ -17,7 +17,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from ._safe_persistence import read_bytes
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from . import registry_federation_consensus_gate as gate_model
 from . import registry_federation_consensus_gate_audit as gate_audit_model
 from . import registry_federation_consensus_gate_certificate as certificate_model
@@ -193,14 +193,21 @@ def package_bytes(value: RegistryFederationConsensusGateCertificatePackage) -> d
 
 
 def _write_atomic(destination: Path, payload: Mapping[str, bytes], *, overwrite: bool) -> Path:
-    if destination.exists():
-        if destination.is_symlink() or not destination.is_dir() or (not overwrite and any(destination.iterdir())):
+    try:
+        _validate_parent(destination.parent, "certificate package destination")
+        if destination.is_symlink():
+            raise ValidationError("certificate package destination cannot be a symlink")
+        if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
             raise ValidationError("certificate package destination is not writable")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("certificate package destination could not be prepared") from error
     staging = Path(tempfile.mkdtemp(prefix="certificate-package-staging-", dir=str(destination.parent)))
     try:
         for name in FILES:
-            (staging / name).write_bytes(payload[name])
+            atomic_write_bytes(staging / name, payload[name], field=f"certificate package staging artifact {name}")
         if destination.exists():
             shutil.rmtree(destination)
         os.replace(staging, destination)
@@ -217,9 +224,12 @@ def write_package(value: RegistryFederationConsensusGateCertificatePackage, dire
 def load_package(directory: str | Path) -> RegistryFederationConsensusGateCertificatePackage:
     try:
         source = Path(directory)
+        _validate_parent(source.parent, "certificate package input")
         if source.is_symlink() or not source.is_dir():
             raise ValidationError("certificate package directory does not contain exact canonical members")
         members = tuple(source.iterdir())
+    except ValidationError:
+        raise
     except OSError as error:
         raise ValidationError("certificate package directory could not be inspected") from error
     if {item.name for item in members} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in members):

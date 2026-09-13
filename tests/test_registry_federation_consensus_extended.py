@@ -159,7 +159,7 @@ class RegistryFederationConsensusExtendedTests(DurableCatalogPromotionPackageFix
             with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
                 with self.assertRaisesRegex(ValidationError, "could not be inspected"):
                     history_model.load_history(destination)
-            with patch.object(Path, "read_bytes", side_effect=OSError("member denied")):
+            with patch.object(history_model, "read_bytes", side_effect=OSError("member denied")):
                 with self.assertRaisesRegex(ValidationError, "could not be read"):
                     history_model.load_history(destination)
 

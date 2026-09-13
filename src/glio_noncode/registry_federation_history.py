@@ -9,12 +9,14 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_federation as federation_model
+from . import (
+    assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_federation as federation_model,
+)
 from . import registry_federation_audit as audit_model
 from . import registry_federation_gate as gate_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash
-
 
 VERSION = federation_model.VERSION + "-history-v1"
 BOUNDARY = federation_model.BOUNDARY + "_history"
@@ -209,14 +211,22 @@ def package_bytes(value: RegistryFederationHistory) -> dict[str, bytes]:
 def write_history(value: RegistryFederationHistory, directory: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_history(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
-        raise ValidationError("history destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "history destination")
+        if destination.is_symlink():
+            raise ValidationError("history destination cannot be a symlink")
+        if destination.exists() and (not destination.is_dir() or (not overwrite and any(destination.iterdir()))):
+            raise ValidationError("history destination already exists")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("history destination could not be prepared") from error
     staging: Path | None = None
     try:
         staging = Path(tempfile.mkdtemp(prefix="federation-history-staging-", dir=str(destination.parent)))
         for name, raw in package_bytes(value).items():
-            (staging / name).write_bytes(raw)
+            atomic_write_bytes(staging / name, raw, field=f"history staging artifact {name}")
         if destination.exists():
             shutil.rmtree(destination)
         staging.replace(destination)
@@ -229,10 +239,27 @@ def write_history(value: RegistryFederationHistory, directory: str | Path, *, ov
 
 def load_history(directory: str | Path) -> RegistryFederationHistory:
     source = Path(directory)
-    if not source.is_dir() or tuple(sorted(path.name for path in source.iterdir())) != tuple(sorted(FILES)):
-        raise ValidationError("history directory does not contain exact canonical members")
-    raw = {name: (source / name).read_bytes() for name in FILES}
-    decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
+    try:
+        _validate_parent(source.parent, "history input")
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("history directory does not contain exact canonical members")
+        members = tuple(source.iterdir())
+        if tuple(sorted(path.name for path in members)) != tuple(sorted(FILES)) or any(path.is_symlink() or not path.is_file() for path in members):
+            raise ValidationError("history directory does not contain exact canonical members")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("history directory could not be inspected") from error
+    try:
+        raw = {name: read_bytes(source / name, field=f"history member {name}") for name in FILES}
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("history member could not be read") from error
+    try:
+        decoded = {name: _strict_json_loads(payload.decode("utf-8")) for name, payload in raw.items()}
+    except (UnicodeDecodeError, ValueError) as error:
+        raise ValidationError("history contains invalid JSON") from error
     if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("history member is not canonical JSON")
     value = history_from_mapping(decoded[HISTORY_NAME])
