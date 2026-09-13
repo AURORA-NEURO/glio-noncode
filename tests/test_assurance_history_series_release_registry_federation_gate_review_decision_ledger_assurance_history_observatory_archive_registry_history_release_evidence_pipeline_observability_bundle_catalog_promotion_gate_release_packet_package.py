@@ -10,6 +10,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -129,6 +130,19 @@ class CatalogPromotionPackageBuildTests(DurableCatalogPromotionPackageFixture):
             package_model.write_package(value, destination)
             (destination / "actions.json").unlink()
             self.assertRaises(ValidationError, package_model.load_package, destination)
+
+    def test_package_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value = self.package_for(root)
+            destination = root / "persisted-package"
+            package_model.write_package(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    package_model.load_package(destination)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    package_model.load_package(destination)
             destination = Path(temporary) / "tampered-package"
             package_model.write_package(value, destination)
             actions = destination / "actions.json"

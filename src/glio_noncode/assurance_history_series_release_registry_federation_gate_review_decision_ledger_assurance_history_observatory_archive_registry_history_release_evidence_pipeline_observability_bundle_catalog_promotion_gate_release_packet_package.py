@@ -328,13 +328,19 @@ def write_package(value: RegistryHistoryReleaseEvidencePipelineObservabilityBund
 
 
 def _read_directory(source: str | Path) -> dict[str, bytes]:
-    directory = Path(source)
-    if directory.is_symlink() or not directory.is_dir():
-        raise ValidationError("observability bundle catalog promotion package input must be a regular directory")
-    members = tuple(directory.iterdir())
+    try:
+        directory = Path(source)
+        if directory.is_symlink() or not directory.is_dir():
+            raise ValidationError("observability bundle catalog promotion package input must be a regular directory")
+        members = tuple(directory.iterdir())
+    except OSError as error:
+        raise ValidationError("observability bundle catalog promotion package input directory could not be inspected") from error
     if {item.name for item in members} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in members):
         raise ValidationError("observability bundle catalog promotion package member set is invalid")
-    return {name: (directory / name).read_bytes() for name in FILES}
+    try:
+        return {name: (directory / name).read_bytes() for name in FILES}
+    except OSError as error:
+        raise ValidationError("observability bundle catalog promotion package artifact could not be read") from error
 
 
 def load_package(source: str | Path) -> RegistryHistoryReleaseEvidencePipelineObservabilityBundleCatalogPromotionGateReleasePacketPackage:
