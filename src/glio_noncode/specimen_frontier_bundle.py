@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import _validate_parent, atomic_write_text
 from .serialization import content_hash, jsonable, require_non_empty
 from .specimen_frontier_contracts import default_specimen_frontier_contract_registry
 from .specimen_frontier_fixture_eval import evaluate_specimen_frontier_fixture
@@ -291,9 +292,12 @@ class SpecimenFrontierEvidenceBundleBuilder:
     ) -> SpecimenFrontierEvidenceBundle:
         bundle = self.build(path, bundle_id=bundle_id, allow_review=allow_review)
         output_path = Path(output)
-        output_path.write_text(
+        _validate_parent(output_path.parent, "specimen frontier bundle destination")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write_text(
+            output_path,
             bundle.render(self._format_for_path(output_path, output_format)),
-            encoding="utf-8",
+            field="specimen frontier bundle destination",
         )
         return bundle
 

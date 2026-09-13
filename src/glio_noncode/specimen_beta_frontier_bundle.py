@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import _validate_parent, atomic_write_text
 from .serialization import content_hash, jsonable, require_non_empty
 from .specimen_beta_frontier_fixture_eval import evaluate_specimen_beta_frontier_fixture
 from .specimen_beta_frontier_public_data import SpecimenBetaFrontierFixtureCatalog
@@ -191,7 +192,9 @@ class SpecimenBetaFrontierEvidenceBundleBuilder:
             text = _markdown_text(bundle)
         else:
             raise ValidationError(f"unsupported beta bundle format: {format}")
-        destination.write_text(text, encoding="utf-8")
+        _validate_parent(destination.parent, "beta bundle destination")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write_text(destination, text, field="beta bundle destination")
 
 
 def _csv_text(bundle: SpecimenBetaFrontierEvidenceBundle) -> str:

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import _validate_parent, atomic_write_text
 from .serialization import content_hash, jsonable, require_non_empty
 from .specimen_lineage_fixture_eval import evaluate_specimen_lineage_fixture
 from .specimen_lineage_lineage import build_specimen_lineage_lineage
@@ -174,17 +175,28 @@ class SpecimenLineageEvidenceBundleBuilder:
         format: SpecimenLineageBundleFormat = SpecimenLineageBundleFormat.JSON,
     ) -> None:
         destination = Path(path)
+        _validate_parent(destination.parent, "specimen lineage bundle destination")
         destination.parent.mkdir(parents=True, exist_ok=True)
         if format == SpecimenLineageBundleFormat.JSON:
-            destination.write_text(
-                json.dumps(bundle.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            atomic_write_text(
+                destination,
+                json.dumps(bundle.to_dict(), indent=2, sort_keys=True) + "\n",
+                field="specimen lineage bundle destination",
             )
             return
         if format == SpecimenLineageBundleFormat.CSV:
-            destination.write_text(self._csv(bundle), encoding="utf-8")
+            atomic_write_text(
+                destination,
+                self._csv(bundle),
+                field="specimen lineage bundle destination",
+            )
             return
         if format == SpecimenLineageBundleFormat.MARKDOWN:
-            destination.write_text(self._markdown(bundle), encoding="utf-8")
+            atomic_write_text(
+                destination,
+                self._markdown(bundle),
+                field="specimen lineage bundle destination",
+            )
             return
         raise ValidationError(f"unsupported lineage bundle format: {format}")
 

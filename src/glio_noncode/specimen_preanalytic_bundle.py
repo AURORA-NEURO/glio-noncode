@@ -10,6 +10,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_text
 from .serialization import content_hash, jsonable, require_non_empty
 from .specimen_preanalytic_fixture_eval import (
     SpecimenPreanalyticReceipt,
@@ -163,7 +164,13 @@ class SpecimenPreanalyticEvidenceBundleBuilder:
     ) -> None:
         destination = Path(path)
         selected = format or _format_from_suffix(destination)
-        destination.write_text(self.render(bundle, selected), encoding="utf-8")
+        _validate_parent(destination.parent, "specimen preanalytic bundle destination")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write_text(
+            destination,
+            self.render(bundle, selected),
+            field="specimen preanalytic bundle destination",
+        )
 
 
 def _entry(receipt: SpecimenPreanalyticReceipt) -> SpecimenPreanalyticBundleEntry:
