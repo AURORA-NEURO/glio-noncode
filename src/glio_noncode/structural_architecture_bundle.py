@@ -7,6 +7,8 @@ import io
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_text
+from .errors import ValidationError
 from .serialization import canonical_json, content_hash
 from .structural_architecture_contracts import (
     STRUCTURAL_ARCHITECTURE_ARTIFACT_COUNT,
@@ -184,21 +186,30 @@ def write_structural_architecture_bundle(
     """Write JSON, CSV, and Markdown siblings below an output directory."""
 
     directory = Path(output)
+    _validate_parent(directory.parent, "structural architecture output")
+    if directory.exists() and (directory.is_symlink() or not directory.is_dir()):
+        raise ValidationError("structural architecture output must be a regular directory")
     directory.mkdir(parents=True, exist_ok=True)
     artifacts = build_structural_architecture_artifacts(fixture, evaluation, ledger)
     release = build_structural_architecture_release(fixture, artifacts, evaluation, ledger)
-    (directory / "fixture.json").write_text(canonical_json(fixture.to_dict()), encoding="utf-8")
-    (directory / "evaluation.json").write_text(
-        canonical_json(evaluation.to_dict()), encoding="utf-8"
+    atomic_write_text(directory / "fixture.json", canonical_json(fixture.to_dict()), field="fixture output")
+    atomic_write_text(
+        directory / "evaluation.json",
+        canonical_json(evaluation.to_dict()),
+        field="evaluation output",
     )
-    (directory / "lineage.json").write_text(canonical_json(ledger.to_dict()), encoding="utf-8")
-    (directory / "review.csv").write_text(
-        render_structural_architecture_review_csv(evaluation), encoding="utf-8"
+    atomic_write_text(directory / "lineage.json", canonical_json(ledger.to_dict()), field="lineage output")
+    atomic_write_text(
+        directory / "review.csv",
+        render_structural_architecture_review_csv(evaluation),
+        field="review output",
     )
-    (directory / "release.md").write_text(
-        render_structural_architecture_markdown(release), encoding="utf-8"
+    atomic_write_text(
+        directory / "release.md",
+        render_structural_architecture_markdown(release),
+        field="release markdown output",
     )
-    (directory / "release.json").write_text(canonical_json(release.to_dict()), encoding="utf-8")
+    atomic_write_text(directory / "release.json", canonical_json(release.to_dict()), field="release output")
     return release
 
 

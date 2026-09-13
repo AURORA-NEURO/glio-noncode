@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -287,6 +288,21 @@ class StructuralArchitectureRuntimeTests(unittest.TestCase):
             self.assertEqual(
                 json.loads((Path(directory) / "release.json").read_text())["state"], "published"
             )
+
+    def test_bundle_writer_rejects_symlinked_output_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            target.mkdir()
+            linked = root / "linked"
+            try:
+                os.symlink(target, linked, target_is_directory=True)
+            except OSError:
+                self.skipTest("directory symlinks unavailable")
+            with self.assertRaises(ValidationError):
+                write_structural_architecture_bundle(
+                    self.fixture, self.runtime.evaluation, self.runtime.ledger, linked
+                )
 
 
 if __name__ == "__main__":
