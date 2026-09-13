@@ -604,20 +604,38 @@ def write_federation(value: RegistryHistoryReleaseEvidencePipelineObservabilityB
 
 def load_federation(directory: str | Path) -> RegistryHistoryReleaseEvidencePipelineObservabilityBundleCatalogPromotionGateReleasePacketPackageRegistryFederation:
     source = Path(directory)
-    if not source.is_dir() or tuple(sorted(item.name for item in source.iterdir())) != tuple(sorted(FILES)):
+    try:
+        members = tuple(sorted(item.name for item in source.iterdir())) if source.is_dir() else ()
+    except OSError as error:
+        raise ValidationError("federation directory could not be inspected") from error
+    if members != tuple(sorted(FILES)):
         raise ValidationError("federation directory does not contain the exact canonical members")
-    raw = {name: (source / name).read_bytes() for name in FILES}
-    if any(canonical_bytes(_strict_json_loads(payload.decode("utf-8"))) != payload for payload in raw.values()):
+
+    try:
+        raw = {name: (source / name).read_bytes() for name in FILES}
+    except OSError as error:
+        raise ValidationError("federation member could not be read") from error
+
+    def decode_member(name: str) -> Any:
+        try:
+            return _strict_json_loads(raw[name].decode("utf-8"))
+        except (UnicodeDecodeError, ValueError, TypeError) as error:
+            raise ValidationError(f"federation member {name} is not valid JSON") from error
+
+    decoded = {name: decode_member(name) for name in FILES}
+    if any(canonical_bytes(decoded[name]) != raw[name] for name in FILES):
         raise ValidationError("federation member is not canonical JSON")
-    value = federation_from_mapping(_strict_json_loads(raw[FEDERATION_NAME].decode("utf-8")))
-    manifest = _strict_json_loads(raw[MANIFEST_NAME].decode("utf-8"))
+    value = federation_from_mapping(decoded[FEDERATION_NAME])
+    manifest = decoded[MANIFEST_NAME]
+    if not isinstance(manifest, dict):
+        raise ValidationError("federation manifest must be a JSON object")
     if isinstance(manifest.get("files"), list):
         manifest["files"] = tuple(manifest["files"])
     if manifest != value.manifest:
         raise ValidationError("federation manifest does not match federation document")
-    peers = _strict_json_loads(raw[PEERS_NAME].decode("utf-8"))
-    reconciliation = _strict_json_loads(raw[RECONCILIATION_NAME].decode("utf-8"))
-    actions = _strict_json_loads(raw[ACTIONS_NAME].decode("utf-8"))
+    peers = decoded[PEERS_NAME]
+    reconciliation = decoded[RECONCILIATION_NAME]
+    actions = decoded[ACTIONS_NAME]
     expected_peers, expected_reconciliation, expected_actions = _documents(value)
     for actual, expected in ((peers, expected_peers), (reconciliation, expected_reconciliation), (actions, expected_actions)):
         if canonical_bytes(actual) != canonical_bytes(expected):

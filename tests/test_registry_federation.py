@@ -10,6 +10,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -91,6 +92,28 @@ class RegistryFederationTests(DurableCatalogPromotionPackageFixture):
             self.assertEqual(federation_model.package_bytes(loaded), federation_model.package_bytes(value))
             with self.assertRaises(ValidationError):
                 federation_model.write_federation(value, destination)
+
+    def test_loader_normalizes_malformed_members_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            value, _, _ = self._federations(root)
+            destination = root / "federation"
+            federation_model.write_federation(value, destination)
+
+            manifest = destination / federation_model.MANIFEST_NAME
+            manifest.write_bytes(b"\xff")
+            with self.assertRaises(ValidationError):
+                federation_model.load_federation(destination)
+
+            federation_model.write_federation(value, destination, overwrite=True)
+            manifest.write_text("[]", encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                federation_model.load_federation(destination)
+
+            federation_model.write_federation(value, destination, overwrite=True)
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    federation_model.load_federation(destination)
 
     def test_query_covers_resources_filters_and_pagination(self):
         with tempfile.TemporaryDirectory() as temporary:
