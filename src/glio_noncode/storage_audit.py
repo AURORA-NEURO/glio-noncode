@@ -28,7 +28,7 @@ from .module_fabric_support import contains_private_key
 from .run_catalog import inspect_run
 from .run_workspace import _has_forbidden_key
 from .runtime import CaseRuntime
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 
 STORAGE_AUDIT_VERSION = "storage-audit-v1"
 
@@ -278,7 +278,7 @@ def _object_audit(path: Path, address: str) -> tuple[StorageObjectAudit, Any | N
     canonical_valid = False
     hash_valid = False
     try:
-        value = json.loads(payload.decode("utf-8"))
+        value = _strict_json_loads(payload.decode("utf-8"))
         json_valid = True
         canonical_valid = canonical_json(value).encode("utf-8") == payload
         hash_valid = _canonical_hash_valid(value, address)
@@ -334,8 +334,8 @@ def _scan_objects(root: Path) -> tuple[tuple[StorageObjectAudit, ...], dict[str,
 def _decode_index(payload: bytes) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
     warnings: list[str] = []
     try:
-        value = json.loads(payload.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError, TypeError) as exc:
+        value = _strict_json_loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError, TypeError) as exc:
         return None, (f"index JSON is invalid: {exc}",)
     if not isinstance(value, dict):
         return None, ("index root must be an object",)

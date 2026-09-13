@@ -96,6 +96,13 @@ class StorageAuditTests(unittest.TestCase):
             self.assertFalse(audited.hash_valid)
             self.assertFalse(audited.canonical_bytes_valid)
             self.assertTrue(any("content" in warning for warning in audited.warnings))
+            event_path.write_bytes(event_path.read_bytes().rstrip()[:-1] + b',"events":[]}')
+            duplicate_report = build_storage_audit(runtime)
+            duplicate_audited = next(
+                item for item in duplicate_report.objects if item.address == run_record["event_address"]
+            )
+            self.assertFalse(duplicate_audited.json_valid)
+            self.assertTrue(any("duplicate JSON object field" in warning for warning in duplicate_audited.warnings))
 
     def test_missing_and_orphan_references_are_explicit(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

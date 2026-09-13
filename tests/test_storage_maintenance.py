@@ -322,6 +322,12 @@ class StorageMaintenanceTests(unittest.TestCase):
                     "manifest.json",
                 ],
             )
+            manifest = destination / "manifest.json"
+            original_manifest = manifest.read_bytes()
+            manifest.write_bytes(original_manifest.rstrip()[:-1] + b',"packet_id":"shadow"}\n')
+            verification = verify_storage_maintenance_packet(destination)
+            self.assertFalse(verification.accepted)
+            self.assertIn("manifest.json", verification.missing_paths)
             with self.assertRaises(ValidationError):
                 write_storage_maintenance_packet(packet, destination)
 

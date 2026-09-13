@@ -27,7 +27,7 @@ from .release_assurance_support import (
     line_count,
     safe_relative_path,
 )
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 from .storage_maintenance import (
     storage_maintenance_capabilities,
     storage_maintenance_csv,
@@ -304,8 +304,8 @@ def _read_manifest(directory: str | Path) -> tuple[Path, dict[str, Any], tuple[s
     if not path.is_file() or path.is_symlink():
         return root, {}, ("manifest.json",)
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -482,7 +482,7 @@ def verify_storage_maintenance_packet(
             tampered.append(path)
         if item.get("media_type") == "application/json":
             try:
-                decoded = json.loads(payload.decode("utf-8"))
+                decoded = _strict_json_loads(payload.decode("utf-8"))
                 boundary.extend(f"{path}:{value}" for value in forbidden_keys(decoded))
                 if artifact_id == "plan-json" and isinstance(decoded, Mapping):
                     plan_payload = decoded
@@ -490,7 +490,7 @@ def verify_storage_maintenance_packet(
                     observability_payload = decoded
                 if artifact_id == "review-queue-json" and isinstance(decoded, Mapping):
                     review_payload = decoded
-            except (UnicodeError, json.JSONDecodeError):
+            except (UnicodeError, ValueError):
                 tampered.append(path)
         else:
             boundary.extend(f"{path}:{value}" for value in _text_boundary(payload))
@@ -582,8 +582,8 @@ def load_storage_maintenance_packet(
     if not verification.accepted:
         raise ValidationError("storage maintenance packet is not accepted")
     try:
-        payload = json.loads((root / "maintenance" / "plan.json").read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        payload = _strict_json_loads((root / "maintenance" / "plan.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError("storage maintenance packet plan payload is not valid JSON") from exc
     plan = StorageMaintenancePlan.from_mapping(payload)
     if plan.plan_id != manifest.get("plan_id") or plan.content_address != manifest.get(

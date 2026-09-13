@@ -354,6 +354,12 @@ class StorageCatalogTests(unittest.TestCase):
             self.assertEqual(loaded.catalog.content_address, catalog.content_address)
             self.assertEqual(loaded.observability.catalog_address, catalog.content_address)
             self.assertEqual(loaded.packet_id, packet.packet_id)
+            manifest_path = Path(packet_directory) / "manifest.json"
+            original_manifest = manifest_path.read_bytes()
+            manifest_path.write_bytes(original_manifest.rstrip()[:-1] + b',"packet_id":"shadow"}\n')
+            verification = verify_storage_catalog_packet(packet_directory)
+            self.assertFalse(verification.accepted)
+            self.assertIn("manifest.json", verification.missing_paths)
 
     def test_packet_verifier_detects_tamper_extra_and_nonempty_destination(self) -> None:
         with (

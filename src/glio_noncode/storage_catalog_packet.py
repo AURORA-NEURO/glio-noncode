@@ -18,7 +18,7 @@ from .release_assurance_support import (
     safe_relative_path,
 )
 from .runtime import CaseRuntime
-from .serialization import canonical_json, content_hash
+from .serialization import _strict_json_loads, canonical_json, content_hash
 from .storage_catalog import (
     _as_catalog,
     build_storage_catalog,
@@ -346,8 +346,8 @@ def _read_manifest(directory: str | Path) -> tuple[Path, dict[str, Any], tuple[s
         return root, {}, ("manifest.json",)
     try:
         raw_bytes = path.read_bytes()
-        value = json.loads(raw_bytes.decode("utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        value = _strict_json_loads(raw_bytes.decode("utf-8"))
+    except (OSError, UnicodeError, ValueError):
         return root, {}, ("manifest.json",)
     if not isinstance(value, dict):
         return root, {}, ("manifest.json",)
@@ -525,13 +525,13 @@ def verify_storage_catalog_packet(directory: str | Path) -> StorageCatalogPacket
         media_type = str(item.get("media_type", ""))
         if media_type == "application/json":
             try:
-                decoded = json.loads(payload.decode("utf-8"))
+                decoded = _strict_json_loads(payload.decode("utf-8"))
                 boundary.extend(f"{path}:{violation}" for violation in forbidden_keys(decoded))
                 if artifact_id == "catalog-json" and isinstance(decoded, Mapping):
                     catalog_payload = decoded
                 if artifact_id == "observability-json" and isinstance(decoded, Mapping):
                     observability_payload = decoded
-            except (UnicodeError, json.JSONDecodeError):
+            except (UnicodeError, ValueError):
                 tampered.append(path)
         else:
             boundary.extend(f"{path}:{value}" for value in _text_boundary(payload))
@@ -609,13 +609,13 @@ def load_storage_catalog_packet(directory: str | Path) -> StorageCatalogPacketOf
     if not verification.accepted:
         raise ValidationError("storage catalog packet is not accepted")
     try:
-        catalog_payload = json.loads(
+        catalog_payload = _strict_json_loads(
             (root / "catalog" / "catalog.json").read_text(encoding="utf-8")
         )
-        observability_payload = json.loads(
+        observability_payload = _strict_json_loads(
             (root / "catalog" / "observability.json").read_text(encoding="utf-8")
         )
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError("storage catalog packet JSON payload is not valid") from exc
     catalog = StorageCatalog.from_mapping(catalog_payload)
     observability = StorageCatalogObservability.from_mapping(observability_payload)
