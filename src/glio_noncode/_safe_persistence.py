@@ -124,6 +124,47 @@ def read_bytes(path: str | Path, *, field: str = "input path") -> bytes:
             os.close(descriptor)
 
 
+def read_bytes_bounded(
+    path: str | Path,
+    *,
+    max_bytes: int,
+    field: str = "input path",
+) -> bytes:
+    """Read at most ``max_bytes + 1`` bytes without following symlinks.
+
+    Callers can distinguish an exact payload from an oversized artifact while
+    retaining the same descriptor-level protections as :func:`read_bytes`.
+    The extra byte is intentional: it lets bounded callers reject an input
+    before decoding or allocating an unbounded representation.
+    """
+
+    if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes < 0:
+        raise ValidationError("byte ceiling must be a non-negative integer")
+    target = Path(path)
+    _validate_target(target, field)
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
+    flags |= getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(target, flags)
+    except OSError as exc:
+        if target.is_symlink():
+            raise ValidationError(f"{field} must not be a symlink") from exc
+        raise
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise ValidationError(f"{field} must be a regular file")
+        with os.fdopen(descriptor, "rb") as handle:
+            descriptor = -1
+            payload = handle.read(max_bytes + 1)
+        if target.is_symlink():
+            raise ValidationError(f"{field} must not be a symlink")
+        return payload
+    finally:
+        if descriptor != -1:
+            os.close(descriptor)
+
+
 def read_text(
     path: str | Path,
     *,

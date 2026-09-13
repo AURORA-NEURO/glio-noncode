@@ -22,6 +22,7 @@ from .errors import GlioError, StoreError, ValidationError
 from .models import CaseManifest
 from .module_fabric_support import contains_private_key
 from .runtime import CaseRuntime
+from ._safe_persistence import read_bytes_bounded
 from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, utc_now
 from .storage import _address_digest, _atomic_write_text, _filesystem_lock, _run_lock
 
@@ -590,8 +591,13 @@ class BatchRuntime:
         if not present:
             raise StoreError("batch not found")
         try:
-            with path.open("rb") as handle:
-                payload = handle.read(_HARD_MAX_BATCH_INDEX_BYTES + 1)
+            payload = read_bytes_bounded(
+                path,
+                max_bytes=_HARD_MAX_BATCH_INDEX_BYTES,
+                field="batch index path",
+            )
+        except ValidationError as exc:
+            raise StoreError("batch index path is unsafe") from exc
         except OSError as exc:
             raise StoreError("batch index could not be read") from exc
         if len(payload) > _HARD_MAX_BATCH_INDEX_BYTES:
