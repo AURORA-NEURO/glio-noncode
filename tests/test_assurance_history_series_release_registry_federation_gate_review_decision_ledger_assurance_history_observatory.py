@@ -10,6 +10,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -409,6 +410,18 @@ class ObservatoryPersistenceTests(ObservatoryFixture):
             path.write_text(duplicate, encoding="utf-8")
             with self.assertRaises(ValidationError):
                 observatory.load_observatory(destination)
+
+    def test_loader_normalizes_inspection_and_read_failures(self):
+        value = self.make_observatory()
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = self.write_observatory(value, Path(temporary))
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    observatory.load_package(destination)
+
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    observatory.load_package(destination)
 
     def test_metrics_tampering_is_rejected(self):
         value = self.make_observatory()

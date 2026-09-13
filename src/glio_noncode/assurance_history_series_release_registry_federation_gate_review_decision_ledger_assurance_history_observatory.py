@@ -1685,10 +1685,10 @@ def write_diff(value: ObservatoryDiff, directory: str | Path, *, overwrite: bool
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
     try:
+        raw = path.read_bytes()
         value = _strict_json_loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError) as error:
+    except (OSError, UnicodeDecodeError, ValueError) as error:
         raise ValidationError(f"{field} is invalid JSON") from error
     if canonical_bytes(value) != raw:
         raise ValidationError(f"{field} is not canonical JSON")
@@ -1698,7 +1698,11 @@ def _read_json(path: Path, field: str) -> dict[str, Any]:
 def _verify_directory(source: Path, files: Sequence[str], field: str) -> Mapping[str, Any]:
     if source.is_symlink() or not source.is_dir():
         raise ValidationError(f"{field} directory must be a regular directory")
-    if any(item.is_symlink() for item in source.iterdir()) or {item.name for item in source.iterdir()} != set(files):
+    try:
+        children = tuple(source.iterdir())
+    except OSError as error:
+        raise ValidationError(f"{field} directory could not be inspected") from error
+    if any(item.is_symlink() for item in children) or {item.name for item in children} != set(files):
         raise ValidationError(f"{field} file set is invalid")
     return _read_json(source / MANIFEST_NAME, f"{field} manifest")
 
@@ -1711,7 +1715,10 @@ def _verify_artifact(manifest: Mapping[str, Any], source: Path, name: str, field
     path = source / name
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} {name} must be a regular file")
-    raw = path.read_bytes()
+    try:
+        raw = path.read_bytes()
+    except OSError as error:
+        raise ValidationError(f"{field} {name} could not be read") from error
     if dict(_mapping(matches[0], f"{field} artifact")) != _artifact(name, raw):
         raise ValidationError(f"{field} {name} bytes are not addressed")
     return raw
@@ -1770,7 +1777,10 @@ def _load_diff(directory: str | Path) -> ObservatoryDiff:
     if manifest.get("version") != VERSION or manifest.get("boundary") != BOUNDARY or manifest.get("artifact_count") != 1 or tuple(manifest.get("files", ())) != (DIFF_NAME,) or manifest.get("manifest_address") != _diff_manifest_address(dict(manifest) | {"manifest_address": None}):
         raise ValidationError("assurance history observatory diff manifest contract is invalid")
     artifact = _mapping(manifest.get("artifact"), "assurance history observatory diff artifact")
-    raw = (source / DIFF_NAME).read_bytes()
+    try:
+        raw = (source / DIFF_NAME).read_bytes()
+    except OSError as error:
+        raise ValidationError("assurance history observatory diff document could not be read") from error
     if source.joinpath(DIFF_NAME).is_symlink() or not source.joinpath(DIFF_NAME).is_file() or dict(artifact) != _artifact(DIFF_NAME, raw):
         raise ValidationError("assurance history observatory diff artifact is not addressed")
     value = diff_from_mapping(_read_json(source / DIFF_NAME, "assurance history observatory diff"))
