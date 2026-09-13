@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from . import history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_transfer_recovery_execution_runtime as runtime_model
+from ._safe_persistence import _validate_parent, atomic_write_text, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -407,14 +408,17 @@ def manifest_json(value: RecoveryExecutionRuntimeRegistryManifest) -> str:
 
 
 def _write(path: Path, value: Mapping[str, Any]) -> None:
-    path.write_text(canonical_json(value), encoding="utf-8", newline="\n")
+    atomic_write_text(path, canonical_json(value), field="runtime registry artifact")
 
 
 def persist_registry(value: RecoveryExecutionRuntimeRegistry, destination: str | Path, *, overwrite: bool = False) -> Path:
     value = verify_registry(value)
     destination = Path(destination)
+    if destination.is_symlink():
+        raise ValidationError("runtime registry destination must not be a symlink")
     if destination.exists() and (not destination.is_dir() or not overwrite):
         raise ValidationError("runtime registry destination exists or is not a directory")
+    _validate_parent(destination.parent, "runtime registry destination")
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".federation-recovery-execution-runtime-registry-", dir=str(destination.parent)))
     try:
@@ -433,16 +437,16 @@ def persist_registry(value: RecoveryExecutionRuntimeRegistry, destination: str |
 
 def _read_json(path: Path) -> Mapping[str, Any]:
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as error:
+        value = _strict_json_loads(read_text(path, field="runtime registry artifact"))
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as error:
         raise ValidationError("runtime registry artifact is not valid JSON") from error
     return _mapping(value, "runtime registry artifact")
 
 
 def _read_canonical(path: Path, value: Mapping[str, Any]) -> None:
     try:
-        actual = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError) as error:
+        actual = read_text(path, field="runtime registry artifact")
+    except (OSError, UnicodeDecodeError, ValidationError) as error:
         raise ValidationError("runtime registry artifact cannot be read") from error
     if actual != canonical_json(value):
         raise ValidationError("runtime registry artifact is not canonical")
