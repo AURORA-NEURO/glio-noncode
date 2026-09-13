@@ -17,6 +17,7 @@ from glio_noncode.control_plane import (
     Plane,
     ProvenanceContext,
     ResourceScheduler,
+    TypedInvocationError,
     WorkflowBudget,
     WorkflowDecision,
     default_control_plane_registry,
@@ -184,6 +185,18 @@ class ControlPlaneTests(unittest.TestCase):
                 allowed_tool_ids=("A99.inspect",),
                 review_required="false",  # type: ignore[arg-type]
             )
+        with self.assertRaises(Exception):
+            EvidenceEnvelope(
+                evidence_id="evidence",
+                agent_id="A08",
+                tool_id="A08.publish",
+                state="supported",  # type: ignore[arg-type]
+                tier=EvidenceTier.COMPUTED,
+                claim_summary="summary",
+                payload_hash="sha256:payload",
+            )
+        with self.assertRaises(Exception):
+            TypedInvocationError("invalid", "message", retryable="false")  # type: ignore[arg-type]
 
     def test_scheduler_scopes_budgets_to_missions_and_retains_consumed_seconds(self) -> None:
         scheduler = ResourceScheduler(

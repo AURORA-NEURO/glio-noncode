@@ -383,8 +383,22 @@ class EvidenceEnvelope:
     def __post_init__(self) -> None:
         for name in ("evidence_id", "agent_id", "tool_id", "claim_summary", "payload_hash"):
             require_non_empty(getattr(self, name), name)
-        if self.confidence is not None and not 0 <= self.confidence <= 1:
-            raise ValidationError("evidence confidence must be between 0 and 1")
+        if type(self.state) is not EvidenceState:
+            raise ValidationError("evidence state must be an EvidenceState")
+        if type(self.tier) is not EvidenceTier:
+            raise ValidationError("evidence tier must be an EvidenceTier")
+        _validate_string_tuple(self.source_ids, "evidence source_ids")
+        if type(self.provenance_digest) is not str:
+            raise ValidationError("evidence provenance_digest must be a string")
+        _validate_string_tuple(self.limitations, "evidence limitations")
+        if self.confidence is not None:
+            if (
+                type(self.confidence) not in {int, float}
+                or isinstance(self.confidence, bool)
+                or not isfinite(float(self.confidence))
+                or not 0 <= self.confidence <= 1
+            ):
+                raise ValidationError("evidence confidence must be a finite number between 0 and 1")
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -404,6 +418,16 @@ class WorkflowDecision:
 
     def __post_init__(self) -> None:
         require_non_empty(self.decision, "decision")
+        _validate_string_tuple(self.selected_agent_ids, "selected_agent_ids")
+        _validate_string_tuple(self.selected_tool_ids, "selected_tool_ids")
+        _validate_string_tuple(self.reasons, "decision reasons")
+        _validate_string_tuple(self.warnings, "decision warnings")
+        for value, field_name in (
+            (self.requires_human_review, "requires_human_review"),
+            (self.abstained, "abstained"),
+        ):
+            if type(value) is not bool:
+                raise ValidationError(f"{field_name} must be boolean")
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -421,6 +445,15 @@ class TypedInvocationError:
     def __post_init__(self) -> None:
         require_non_empty(self.code, "code")
         require_non_empty(self.message, "message")
+        if type(self.retryable) is not bool:
+            raise ValidationError("error retryable must be boolean")
+        if not isinstance(self.details, Mapping):
+            raise ValidationError("error details must be a mapping")
+        try:
+            if len(canonical_bytes(self.details)) > 1_048_576:
+                raise ValidationError("error details exceed the byte ceiling")
+        except (RecursionError, TypeError, ValueError, OverflowError, UnicodeError) as exc:
+            raise ValidationError("error details must be canonical JSON") from exc
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -439,6 +472,7 @@ class Abstention:
     def __post_init__(self) -> None:
         for name in ("reason_code", "scope", "explanation", "remediation"):
             require_non_empty(getattr(self, name), name)
+        _validate_string_tuple(self.missing_inputs, "abstention missing_inputs")
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -456,6 +490,13 @@ class ControlPolicyDecision:
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
 
+    def __post_init__(self) -> None:
+        if type(self.allowed) is not bool:
+            raise ValidationError("policy allowed must be boolean")
+        _validate_string_tuple(self.violations, "policy violations")
+        _validate_string_tuple(self.warnings, "policy warnings")
+        require_non_empty(self.policy_version, "policy_version")
+
 
 @dataclass(frozen=True, slots=True)
 class ScheduleDecision:
@@ -466,6 +507,18 @@ class ScheduleDecision:
     total_invocations: int
     network_requests: int
     active_requests: int
+
+    def __post_init__(self) -> None:
+        if type(self.admitted) is not bool:
+            raise ValidationError("schedule admitted must be boolean")
+        require_non_empty(self.reason, "schedule reason")
+        for value, field_name in (
+            (self.total_invocations, "total_invocations"),
+            (self.network_requests, "network_requests"),
+            (self.active_requests, "active_requests"),
+        ):
+            if type(value) is not int or value < 0:
+                raise ValidationError(f"schedule {field_name} must be a non-negative integer")
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
