@@ -283,8 +283,12 @@ def _read_run_index_bytes(path: Path) -> bytes:
     """Read at most one complete bounded run-index payload."""
 
     try:
+        if path.is_symlink():
+            raise StoreError(f"run record path is unsafe: {path.name}")
         with path.open("rb") as handle:
             payload = handle.read(_MAX_RUN_INDEX_BYTES + 1)
+    except StoreError:
+        raise
     except OSError as exc:
         raise StoreError(f"run record could not be read: {path.name}") from exc
     if len(payload) > _MAX_RUN_INDEX_BYTES:
@@ -298,7 +302,21 @@ class ObjectStore:
     def __init__(self, root: str | Path) -> None:
         self.root = Path(root)
         self.objects = self.root / "objects"
-        self.objects.mkdir(parents=True, exist_ok=True)
+        try:
+            if self.root.is_symlink():
+                raise StoreError("object store root must contain regular directories")
+            self.root.mkdir(parents=True, exist_ok=True)
+            if not self.root.is_dir():
+                raise StoreError("object store root must contain regular directories")
+            if self.objects.is_symlink():
+                raise StoreError("object store root must contain regular directories")
+            self.objects.mkdir(parents=True, exist_ok=True)
+            if not self.objects.is_dir():
+                raise StoreError("object store root must contain regular directories")
+        except StoreError:
+            raise
+        except OSError as exc:
+            raise StoreError("object store root could not be inspected") from exc
         self._locks = self.root / ".locks" / "objects"
         self._locks.mkdir(parents=True, exist_ok=True)
         self._lock = _run_lock(self.objects)
@@ -315,7 +333,14 @@ class ObjectStore:
         path = self.objects / f"{digest}.json"
         serialized = canonical_json(value)
         with _run_lock(path), _filesystem_lock(self._locks / f"{digest}.lock"):
-            if path.exists():
+            try:
+                existing = path.is_symlink()
+                present = path.exists()
+            except OSError as exc:
+                raise StoreError(f"stored object path could not be inspected: {address}") from exc
+            if existing:
+                raise StoreError(f"stored object path is unsafe: {address}")
+            if present:
                 try:
                     payload = path.read_bytes()
                 except OSError as exc:
@@ -330,7 +355,14 @@ class ObjectStore:
     def get(self, address: str) -> Any:
         digest = _address_digest(address)
         path = self.objects / f"{digest}.json"
-        if not path.exists():
+        try:
+            unsafe = path.is_symlink()
+            present = path.exists()
+        except OSError as exc:
+            raise StoreError(f"stored object path could not be inspected: {address}") from exc
+        if unsafe:
+            raise StoreError(f"stored object path is unsafe: {address}")
+        if not present:
             raise StoreError(f"object not found: {address}")
         try:
             payload = path.read_bytes()
@@ -350,7 +382,14 @@ class ObjectStore:
                 f"{_MAX_VERIFIED_OBJECT_BYTES} bytes"
             )
         path = self.objects / f"{digest}.json"
-        if not path.exists():
+        try:
+            unsafe = path.is_symlink()
+            present = path.exists()
+        except OSError as exc:
+            raise StoreError(f"stored object path could not be inspected: {address}") from exc
+        if unsafe:
+            raise StoreError(f"stored object path is unsafe: {address}")
+        if not present:
             raise StoreError(f"object not found: {address}")
         try:
             with path.open("rb") as handle:
@@ -399,7 +438,11 @@ class ObjectStore:
             digest = _address_digest(address)
         except StoreError:
             return False
-        return (self.objects / f"{digest}.json").exists()
+        path = self.objects / f"{digest}.json"
+        try:
+            return not path.is_symlink() and path.exists()
+        except OSError:
+            return False
 
 
 class RunStore:
@@ -409,7 +452,16 @@ class RunStore:
         self.root = Path(root)
         self.store = ObjectStore(self.root)
         self.runs = self.root / "runs"
-        self.runs.mkdir(parents=True, exist_ok=True)
+        try:
+            if self.runs.is_symlink():
+                raise StoreError("run store root must contain a regular runs directory")
+            self.runs.mkdir(parents=True, exist_ok=True)
+            if not self.runs.is_dir():
+                raise StoreError("run store root must contain a regular runs directory")
+        except StoreError:
+            raise
+        except OSError as exc:
+            raise StoreError("run store root could not be inspected") from exc
         self._locks = self.root / ".locks" / "runs"
         self._locks.mkdir(parents=True, exist_ok=True)
         self._lock = _run_lock(self.runs)
@@ -428,7 +480,14 @@ class RunStore:
     ) -> dict[str, Any] | None:
         """Load a record while the caller holds this run's two locks."""
 
-        if not path.exists():
+        try:
+            unsafe = path.is_symlink()
+            present = path.exists()
+        except OSError as exc:
+            raise StoreError(f"run record path could not be inspected: {run_id}") from exc
+        if unsafe:
+            raise StoreError(f"run record path is unsafe: {run_id}")
+        if not present:
             if required:
                 raise StoreError(f"run not found: {run_id}")
             return None
@@ -505,7 +564,14 @@ class RunStore:
 
         path = self._run_path(run_id)
         with _run_lock(path), _filesystem_lock(self._locks / f"{run_id}.lock"):
-            if not path.exists():
+            try:
+                unsafe = path.is_symlink()
+                present = path.exists()
+            except OSError as exc:
+                raise StoreError(f"run record path could not be inspected: {run_id}") from exc
+            if unsafe:
+                raise StoreError(f"run record path is unsafe: {run_id}")
+            if not present:
                 raise StoreError(f"run not found: {run_id}")
             return _read_run_index_bytes(path)
 
@@ -570,7 +636,14 @@ class RunStore:
             () if dossier_history is None else _history_values(dossier_history, "dossier_history")
         )
         with _run_lock(path), _filesystem_lock(self._locks / f"{run_id}.lock"):
-            if path.exists():
+            try:
+                unsafe = path.is_symlink()
+                present = path.exists()
+            except OSError as exc:
+                raise StoreError(f"run record path could not be inspected: {run_id}") from exc
+            if unsafe:
+                raise StoreError(f"run record path is unsafe: {run_id}")
+            if present:
                 raise StoreError(f"run already exists: {run_id}")
             record = self._next_run_record(
                 run_id,

@@ -109,6 +109,46 @@ class RunStoreAdvanceTests(unittest.TestCase):
                         store.put_at(address, {"value": "replacement"})
                     self.assertEqual(path.read_bytes(), malformed)
 
+    def test_object_store_rejects_symlinked_object_without_following_target(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = ObjectStore(directory)
+            address = _address(501)
+            path = Path(directory) / "objects" / f"{address.removeprefix('sha256:')}.json"
+            external = Path(directory) / "external-object.json"
+            external.write_text('{"value":"outside"}', encoding="utf-8")
+            try:
+                path.symlink_to(external)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"file symlinks unavailable: {exc}")
+            before = external.read_bytes()
+            with self.assertRaisesRegex(StoreError, "path is unsafe"):
+                store.get(address)
+            with self.assertRaisesRegex(StoreError, "path is unsafe"):
+                store.put_at(address, {"value": "replacement"})
+            self.assertEqual(external.read_bytes(), before)
+
+    def test_run_store_rejects_symlinked_index_without_following_target(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = RunStore(directory)
+            external = Path(directory) / "external-run.json"
+            external.write_bytes(b'{"outside":true}')
+            path = Path(directory) / "runs" / "run-symlink.json"
+            try:
+                path.symlink_to(external)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"file symlinks unavailable: {exc}")
+            before = external.read_bytes()
+            with self.assertRaisesRegex(StoreError, "path is unsafe"):
+                store.get_run("run-symlink")
+            with self.assertRaisesRegex(StoreError, "path is unsafe"):
+                store.create_run(
+                    "run-symlink",
+                    input_address=_address(1),
+                    event_address=_address(10),
+                    dossier_address=_address(20),
+                )
+            self.assertEqual(external.read_bytes(), before)
+
     def test_create_run_succeeds_once_and_preserves_declared_history(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             store = RunStore(directory)
