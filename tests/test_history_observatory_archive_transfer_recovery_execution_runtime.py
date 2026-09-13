@@ -7,6 +7,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import os
 import tempfile
 import threading
 import unittest
@@ -118,10 +119,24 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeTests(unittest.Te
             with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
                 with self.assertRaises(ValidationError):
                     runtime_model.load_runtime(destination)
-
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(runtime_model, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     runtime_model.load_runtime(destination)
+
+    def test_runtime_writer_rejects_symlinked_parent(self):
+        _, execution = self._execution()
+        runtime = runtime_model.build_runtime(execution, runtime_id="execution-runtime-symlink-parent")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            real_parent = root / "real-parent"
+            real_parent.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                os.symlink(real_parent, linked_parent, target_is_directory=True)
+            except OSError:
+                self.skipTest("directory symlinks unavailable")
+            with self.assertRaises(ValidationError):
+                runtime_model.persist_runtime(runtime, linked_parent / "runtime")
 
     def test_cli_api_schemas_and_public_inventory(self):
         _, execution = self._execution()
