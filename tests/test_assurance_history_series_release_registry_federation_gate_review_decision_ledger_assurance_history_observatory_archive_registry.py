@@ -8,6 +8,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -264,6 +265,35 @@ class RegistryPersistenceTests(RegistryFixture):
             path = destination / registry.MANIFEST_NAME
             duplicate = path.read_text(encoding="utf-8").rstrip()[:-1] + ',"registry_id":"shadow"}'
             path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                registry.load_registry(destination)
+
+    def test_registry_loader_normalizes_inspection_and_read_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            destination = root / "registry"
+            registry.write_registry(self.registry_value(root), destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    registry.load_registry(destination)
+
+            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+                with self.assertRaises(ValidationError):
+                    registry.load_registry(destination)
+
+    def test_registry_loader_rejects_manifest_receipt_set_mismatch(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            destination = root / "registry"
+            registry.write_registry(self.registry_value(root), destination)
+            manifest_path = destination / registry.MANIFEST_NAME
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["artifacts"] = list(manifest["artifacts"]) + [dict(manifest["artifacts"][0])]
+            manifest["manifest_address"] = registry.content_hash(
+                dict(manifest) | {"manifest_address": None},
+                prefix=registry.REGISTRY_MANIFEST_PREFIX,
+            )
+            manifest_path.write_bytes(canonical_bytes(manifest))
             with self.assertRaises(ValidationError):
                 registry.load_registry(destination)
 

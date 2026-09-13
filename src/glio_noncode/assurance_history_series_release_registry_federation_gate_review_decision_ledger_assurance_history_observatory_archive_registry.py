@@ -563,9 +563,16 @@ def _read_directory(source: str | Path) -> dict[str, bytes]:
     directory = Path(source)
     if directory.is_symlink() or not directory.is_dir():
         raise ValidationError("registry input must be a regular directory")
-    if {item.name for item in directory.iterdir()} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in directory.iterdir()):
+    try:
+        children = tuple(directory.iterdir())
+    except OSError as error:
+        raise ValidationError("registry directory could not be inspected") from error
+    if {item.name for item in children} != set(FILES) or any(item.is_symlink() or not item.is_file() for item in children):
         raise ValidationError("registry directory member set is invalid")
-    return {name: (directory / name).read_bytes() for name in FILES}
+    try:
+        return {name: (directory / name).read_bytes() for name in FILES}
+    except OSError as error:
+        raise ValidationError("registry artifact could not be read") from error
 
 
 def load_registry(source: str | Path) -> ObservatoryArchiveRegistry:
@@ -586,8 +593,20 @@ def load_registry(source: str | Path) -> ObservatoryArchiveRegistry:
     expected_manifest_address = content_hash(dict(decoded[MANIFEST_NAME]) | {"manifest_address": None}, prefix=REGISTRY_MANIFEST_PREFIX)
     if decoded[MANIFEST_NAME].get("version") != VERSION or decoded[MANIFEST_NAME].get("boundary") != BOUNDARY or decoded[MANIFEST_NAME].get("manifest_address") != expected_manifest_address or decoded[MANIFEST_NAME].get("files") != list(FILES[1:]) or decoded[MANIFEST_NAME].get("artifact_count") != len(FILES) - 1:
         raise ValidationError("registry manifest contract is invalid")
+    receipts = _sequence(decoded[MANIFEST_NAME].get("artifacts"), "registry manifest artifacts", len(FILES) - 1)
+    if len(receipts) != len(FILES) - 1:
+        raise ValidationError("registry manifest artifact set is invalid")
+    receipt_by_name: dict[str, Mapping[str, Any]] = {}
+    for item in receipts:
+        receipt = _mapping(item, "registry manifest artifact")
+        name = _text(receipt.get("name"), "registry manifest artifact name", 128)
+        if name in receipt_by_name:
+            raise ValidationError("registry manifest artifact set is invalid")
+        receipt_by_name[name] = receipt
+    if set(receipt_by_name) != set(FILES) - {MANIFEST_NAME}:
+        raise ValidationError("registry manifest artifact set is invalid")
     for name in (REGISTRY_NAME, ENTRIES_NAME, VERIFICATION_NAME, METRICS_NAME):
-        receipt = next((item for item in decoded[MANIFEST_NAME]["artifacts"] if item.get("name") == name), None)
+        receipt = receipt_by_name[name]
         if receipt != _artifact(name, payload[name]):
             raise ValidationError("registry artifact receipt mismatch")
     _strict(decoded[ENTRIES_NAME], {"version", "boundary", "registry_id", "entry_count", "entries"}, "registry entries")
