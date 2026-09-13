@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import read_text
 from .module_impact import verify_module_impact_diff
 from .module_impact_audit import audit_module_impact
 from .module_impact_packet import load_module_impact_packet, verify_module_impact_packet
@@ -24,8 +25,10 @@ from .serialization import _strict_json_loads, content_hash
 def _json_artifact(directory: str | Path, filename: str) -> dict[str, Any]:
     path = Path(directory) / filename
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        value = _strict_json_loads(
+            read_text(path, field=f"impact packet artifact {filename}")
+        )
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"impact packet artifact is unreadable: {filename}") from exc
     if not isinstance(value, dict):
         raise ValidationError(f"impact packet artifact is not an object: {filename}")

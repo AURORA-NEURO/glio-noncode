@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import read_text
 from .module_fabric_support import contains_private_key
 from .review_workspace_exports import (
     REVIEW_WORKSPACE_RELEASE_MANIFEST,
@@ -52,8 +53,10 @@ def _mapping(value: Any, field: str) -> dict[str, Any]:
 def _manifest(root: Path) -> dict[str, Any]:
     path = root / REVIEW_WORKSPACE_RELEASE_MANIFEST
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        value = _strict_json_loads(
+            read_text(path, field="review workspace release manifest")
+        )
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"cannot load review workspace release manifest: {exc}") from exc
     return _mapping(value, "review workspace release manifest")
 
@@ -61,8 +64,10 @@ def _manifest(root: Path) -> dict[str, Any]:
 def _report(root: Path) -> dict[str, Any]:
     path = root / "review-workspace.json"
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        value = _strict_json_loads(
+            read_text(path, field="review workspace release report")
+        )
+    except (OSError, UnicodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"cannot load review workspace report: {exc}") from exc
     report = _mapping(value, "review workspace report")
     if contains_private_key(report):

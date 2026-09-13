@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import read_text
 from .portfolio_release import verify_portfolio_release_bundle
 from .portfolio_release_contracts import (
     PORTFOLIO_RELEASE_MANIFEST,
@@ -46,8 +47,10 @@ def _manifest(path: str | Path) -> dict[str, Any]:
     if not root.is_dir() or not manifest_path.is_file():
         raise ValidationError("portfolio release manifest is missing")
     try:
-        value = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        value = _strict_json_loads(
+            read_text(manifest_path, field="portfolio release manifest")
+        )
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         raise ValidationError("portfolio release manifest is not valid JSON") from exc
     if not isinstance(value, dict):
         raise ValidationError("portfolio release manifest must be an object")
@@ -106,8 +109,11 @@ def _artifact(
         if not target.is_file():
             raise ValidationError(f"portfolio release artifact is missing: {relative_path}")
         try:
-            payload = target.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError) as exc:
+            payload = read_text(
+                target,
+                field=f"portfolio release artifact {relative_path}",
+            )
+        except (OSError, UnicodeDecodeError, ValidationError) as exc:
             raise ValidationError(f"portfolio release artifact is unreadable: {relative_path}") from exc
     return PortfolioReleaseArtifact(
         artifact_id=_text(value.get("artifact_id", "")),

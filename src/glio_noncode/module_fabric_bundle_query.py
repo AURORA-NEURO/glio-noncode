@@ -9,6 +9,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import read_text
 from .module_fabric_bundle import (
     module_fabric_bundle_filesystem_integrity_ok,
     verify_module_fabric_bundle,
@@ -40,8 +41,10 @@ def _load_mapping(value: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(value)
     manifest_path = root / MODULE_FABRIC_BUNDLE_MANIFEST
     try:
-        manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        manifest = _strict_json_loads(
+            read_text(manifest_path, field="module-fabric bundle manifest")
+        )
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"cannot load module-fabric bundle manifest: {exc}") from exc
     if not isinstance(manifest, Mapping):
         raise ValidationError("module-fabric bundle manifest must be an object")
@@ -93,8 +96,11 @@ def load_module_fabric_bundle(
         payload: str | None = None
         if include_payloads:
             try:
-                payload = (root / Path(*relative_path.split("/"))).read_text(encoding="utf-8")
-            except (OSError, UnicodeDecodeError) as exc:
+                payload = read_text(
+                    root / Path(*relative_path.split("/")),
+                    field=f"module-fabric bundle artifact {relative_path}",
+                )
+            except (OSError, UnicodeDecodeError, ValidationError) as exc:
                 raise ValidationError(f"cannot hydrate artifact {relative_path}: {exc}") from exc
         artifacts.append(
             FabricBundleArtifact(
