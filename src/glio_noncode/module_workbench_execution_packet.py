@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import csv
 import io
-import os
-import tempfile
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_text
 from .errors import ValidationError
 from .module_workbench_contracts import ModuleWorkbenchReport
 from .module_workbench_execution import (
@@ -87,19 +86,8 @@ def _safe_path(value: str) -> bool:
 def _atomic_write(path: Path, payload: bytes) -> None:
     """Replace one packet file only after the complete bytes are durable."""
 
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent)
-    )
-    temporary = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(payload)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary, path)
-    except BaseException:
-        temporary.unlink(missing_ok=True)
-        raise
+    path.parent.mkdir(parents=True, exist_ok=True)
+    atomic_write_bytes(path, payload, field=f"execution packet member {path.name}")
 
 
 def _public_json(value: Any) -> str:
@@ -599,13 +587,16 @@ def verify_module_workbench_execution_packet(
     checks: list[ModuleWorkbenchExecutionPacketCheck] = []
     manifest: Mapping[str, Any] = {}
     try:
-        raw = (root / MODULE_WORKBENCH_EXECUTION_PACKET_MANIFEST).read_text(encoding=_UTF8)
+        raw = read_text(
+            root / MODULE_WORKBENCH_EXECUTION_PACKET_MANIFEST,
+            field="execution packet manifest",
+        )
         loaded = _strict_json_loads(raw)
         if isinstance(loaded, Mapping):
             manifest = loaded
         else:
             raise ValueError("manifest must be an object")
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         checks.append(
             _check(
                 "manifest-readable",
@@ -692,10 +683,10 @@ def verify_module_workbench_execution_packet(
         path_value = str(row.get("relative_path", ""))
         path = root.joinpath(*path_value.split("/")) if _safe_path(path_value) else root
         try:
-            payload = path.read_text(encoding=_UTF8)
+            payload = read_text(path, field=f"execution packet artifact {path_value}")
             present += 1
             payloads[artifact_id] = payload
-        except (OSError, UnicodeDecodeError):
+        except (OSError, UnicodeDecodeError, ValidationError):
             missing += 1
     checks.append(
         _check(
@@ -909,9 +900,12 @@ def _manifest_mapping(directory: str | Path) -> tuple[Path, Mapping[str, Any]]:
     root = Path(directory)
     try:
         loaded = _strict_json_loads(
-            (root / MODULE_WORKBENCH_EXECUTION_PACKET_MANIFEST).read_text(encoding=_UTF8)
+            read_text(
+                root / MODULE_WORKBENCH_EXECUTION_PACKET_MANIFEST,
+                field="execution packet manifest",
+            )
         )
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+    except (OSError, UnicodeDecodeError, ValueError, ValidationError) as exc:
         raise ValidationError(f"cannot load execution packet manifest: {exc}") from exc
     if not isinstance(loaded, Mapping):
         raise ValidationError("execution packet manifest must be an object")
@@ -929,9 +923,10 @@ def write_module_workbench_execution_packet(
     if not isinstance(packet, ModuleWorkbenchExecutionPacket):
         raise ValidationError("execution packet writer requires a typed packet")
     root = Path(destination)
+    _validate_parent(root.parent, "execution packet destination")
     if root.exists() and not allow_existing:
         raise ValidationError("execution packet destination already exists")
-    if root.exists() and not root.is_dir():
+    if root.exists() and (root.is_symlink() or not root.is_dir()):
         raise ValidationError("execution packet destination is not a directory")
     root.mkdir(parents=True, exist_ok=True)
     _atomic_write(
@@ -967,7 +962,10 @@ def load_module_workbench_execution_packet(
         if not isinstance(row, Mapping):
             raise ValidationError("execution packet artifact row is invalid")
         relative_path = str(row.get("relative_path", ""))
-        payload = root.joinpath(*relative_path.split("/")).read_text(encoding=_UTF8)
+        payload = read_text(
+            root.joinpath(*relative_path.split("/")),
+            field=f"execution packet artifact {relative_path}",
+        )
         artifacts.append(
             ModuleWorkbenchExecutionPacketArtifact(
                 artifact_id=str(row.get("artifact_id", "")),
