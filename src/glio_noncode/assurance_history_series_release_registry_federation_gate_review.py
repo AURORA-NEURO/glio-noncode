@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from . import assurance_history_series_release_registry_federation_gate as gate_model
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes, read_text
 from .errors import ValidationError
 from .serialization import (
     _strict_json_loads,
@@ -252,11 +253,13 @@ def _file_address(name: str, raw: bytes) -> str:
 
 
 def _require_directory(path: Path, field: str) -> None:
+    _validate_parent(path, field)
     if path.is_symlink() or not path.is_dir():
         raise ValidationError(f"{field} must be a regular directory")
 
 
 def _require_regular_file(path: Path, field: str) -> None:
+    _validate_parent(path.parent, field)
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
 
@@ -264,8 +267,8 @@ def _require_regular_file(path: Path, field: str) -> None:
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     _require_regular_file(path, field)
     try:
-        value = _strict_json_loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        value = _strict_json_loads(read_text(path, field=field))
+    except (OSError, ValidationError, UnicodeDecodeError, ValueError) as exc:
         raise ValidationError(f"{field} is not valid UTF-8 JSON") from exc
     if not isinstance(value, dict):
         raise ValidationError(f"{field} must be a JSON object")
@@ -1013,6 +1016,9 @@ def _manifest_address(value: Mapping[str, Any], prefix: str) -> str:
 
 def _write_exact(destination: str | Path, documents: Mapping[str, bytes], manifest: Mapping[str, Any], files: Sequence[str], label: str, overwrite: bool) -> Path:
     target = Path(destination)
+    _validate_parent(target.parent, f"{label} destination")
+    if target.is_symlink():
+        raise ValidationError(f"{label} destination must not be a symlink")
     target.parent.mkdir(parents=True, exist_ok=True)
     if target.exists():
         _require_directory(target, f"{label} destination")
@@ -1024,8 +1030,10 @@ def _write_exact(destination: str | Path, documents: Mapping[str, bytes], manife
     try:
         for name in files:
             raw = canonical_bytes(manifest) if name == MANIFEST_NAME else documents[name]
-            (temporary / name).write_bytes(raw)
+            atomic_write_bytes(temporary / name, raw, field=f"{label} artifact")
         if target.exists():
+            if target.is_symlink() or not target.is_dir():
+                raise ValidationError(f"{label} destination must be a regular directory")
             shutil.rmtree(target)
         os.replace(temporary, target)
     except Exception:
@@ -1057,8 +1065,8 @@ def _load_documents(directory: str | Path, files: Sequence[str], label: str) -> 
         path = target / name
         _require_regular_file(path, f"{label} {name}")
         try:
-            raw = path.read_bytes()
-        except OSError as error:
+            raw = read_bytes(path, field=f"{label} {name}")
+        except (OSError, ValidationError) as error:
             raise ValidationError(f"{label} {name} could not be read") from error
         parsed[name] = _read_json(path, f"{label} {name}")
         if raw != canonical_bytes(parsed[name]):

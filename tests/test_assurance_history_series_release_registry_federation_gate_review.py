@@ -245,7 +245,7 @@ class ReviewPersistenceTests(ReviewFixture):
                     review.load_review(destination)
 
             review.write_review(self.ready_review, destination, overwrite=True)
-            with patch.object(Path, "read_bytes", side_effect=OSError("read denied")):
+            with patch.object(review, "read_bytes", side_effect=OSError("read denied")):
                 with self.assertRaises(ValidationError):
                     review.load_review(destination)
 
@@ -301,6 +301,20 @@ class ReviewPersistenceTests(ReviewFixture):
                 self.skipTest("directory symlinks unavailable")
             with self.assertRaises(ValidationError):
                 review.write_review(self.ready_review, destination)
+
+    def test_queue_writer_rejects_symlinked_destination_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            external = root / "external"
+            external.mkdir()
+            linked_parent = root / "linked-parent"
+            try:
+                linked_parent.symlink_to(external, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("directory symlinks unavailable")
+            with self.assertRaises(ValidationError):
+                review.write_review(self.ready_review, linked_parent / "review")
+            self.assertEqual(tuple(external.iterdir()), ())
 
     def test_review_mapping_round_trip_is_exact(self):
         self.assertEqual(review.review_from_mapping(self.ready_review.to_dict()).to_dict(), self.ready_review.to_dict())
