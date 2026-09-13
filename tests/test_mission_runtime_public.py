@@ -137,6 +137,34 @@ class MissionRuntimePublicTests(unittest.TestCase):
         self.assertIsInstance(request, MissionRequest)
         self.assertEqual(request.workflow_id, "public-workflow")
 
+    def test_request_parser_rejects_coercible_but_wrong_scalar_types(self) -> None:
+        with self.assertRaises(ValidationError):
+            mission_request_from_mapping(
+                self._payload() | {"mission": self._payload()["mission"] | {"allow_network": "false"}}
+            )
+        with self.assertRaises(ValidationError):
+            mission_request_from_mapping(
+                self._payload()
+                | {
+                    "workflow_steps": [
+                        {
+                            "step_id": "root",
+                            "kind": "ingest",
+                            "resource": {"gpu_count": 1.5},
+                        }
+                    ]
+                }
+            )
+        with self.assertRaises(ValidationError):
+            mission_request_from_mapping(
+                self._payload()
+                | {
+                    "workflow_steps": [
+                        {"step_id": "root", "kind": "ingest", "optional": "false"}
+                    ]
+                }
+            )
+
     def test_hydration_and_tamper_detection_reconcile_address(self) -> None:
         receipt = build_public_mission_plan(self._payload())
         hydrated = MissionPlanPublicReceipt.from_mapping(receipt.to_dict())

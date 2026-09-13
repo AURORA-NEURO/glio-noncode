@@ -124,9 +124,9 @@ class MissionPublicDecisionState(StrEnum):
 
 
 def _text(value: Any, field: str, *, maximum: int | None = None) -> str:
-    if value is None:
-        raise ValidationError(f"{field} must not be empty")
-    normalized = str(value).strip()
+    if not isinstance(value, str):
+        raise ValidationError(f"{field} must be a string")
+    normalized = value.strip()
     if not normalized:
         raise ValidationError(f"{field} must not be empty")
     if maximum is not None and len(normalized) > maximum:
@@ -146,7 +146,30 @@ def _string_tuple(value: Any, field: str, *, maximum: int = 256) -> tuple[str, .
 def _mapping(value: Any, field: str) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise ValidationError(f"{field} must be an object")
-    return {str(key): item for key, item in value.items()}
+    if any(not isinstance(key, str) for key in value):
+        raise ValidationError(f"{field} keys must be strings")
+    return dict(value)
+
+
+def _bool_field(value: Any, field: str) -> bool:
+    if type(value) is not bool:
+        raise ValidationError(f"{field} must be a boolean")
+    return value
+
+
+def _number_field(value: Any, field: str) -> float:
+    if type(value) not in {int, float} or isinstance(value, bool):
+        raise ValidationError(f"{field} must be a number")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValidationError(f"{field} must be finite")
+    return result
+
+
+def _integer_field(value: Any, field: str) -> int:
+    if type(value) is not int:
+        raise ValidationError(f"{field} must be an integer")
+    return value
 
 
 def _forbidden_paths(value: Any, path: str = "") -> tuple[str, ...]:
@@ -183,22 +206,19 @@ def _resource_from_mapping(value: Any, field: str) -> ResourceEnvelope:
     unexpected = set(body) - _PUBLIC_RESOURCE_KEYS
     if unexpected:
         raise ValidationError(f"{field} contains unsupported fields: {sorted(unexpected)}")
-    try:
-        cpu = float(body.get("cpu", 1.0))
-        memory_gb = float(body.get("memory_gb", 1.0))
-        storage_gb = float(body.get("storage_gb", 1.0))
-        gpu_count = int(body.get("gpu_count", 0))
-        max_seconds = int(body.get("max_seconds", 300))
-    except (TypeError, ValueError, OverflowError) as exc:
-        raise ValidationError(f"{field} contains an invalid numeric value") from exc
-    if not all(math.isfinite(value) for value in (cpu, memory_gb, storage_gb)):
-        raise ValidationError(f"{field} contains a non-finite numeric value")
+    cpu = _number_field(body.get("cpu", 1.0), f"{field}.cpu")
+    memory_gb = _number_field(body.get("memory_gb", 1.0), f"{field}.memory_gb")
+    storage_gb = _number_field(body.get("storage_gb", 1.0), f"{field}.storage_gb")
+    gpu_count = _integer_field(body.get("gpu_count", 0), f"{field}.gpu_count")
+    max_seconds = _integer_field(body.get("max_seconds", 300), f"{field}.max_seconds")
     return ResourceEnvelope(
         cpu=cpu,
         memory_gb=memory_gb,
         gpu_count=gpu_count,
         storage_gb=storage_gb,
-        network_egress=bool(body.get("network_egress", False)),
+        network_egress=_bool_field(
+            body.get("network_egress", False), f"{field}.network_egress"
+        ),
         max_seconds=max_seconds,
     )
 
@@ -221,6 +241,16 @@ class MissionPublicWorkflowStep:
         _text(self.kind, "kind")
         _text(self.input_contract, "input_contract")
         _text(self.output_contract, "output_contract")
+        if type(self.depends_on) is not tuple:
+            raise ValidationError("workflow step dependencies must be a tuple")
+        if any(type(value) is not str or not value.strip() for value in self.depends_on):
+            raise ValidationError("workflow step dependencies must be non-empty strings")
+        if len(self.depends_on) != len(set(self.depends_on)):
+            raise ValidationError("workflow step dependencies must be unique")
+        if not isinstance(self.resource, Mapping):
+            raise ValidationError("workflow step resource must be an object")
+        if type(self.optional) is not bool or type(self.deterministic) is not bool:
+            raise ValidationError("workflow step flags must be booleans")
         if len(self.depends_on) > MISSION_PLAN_PUBLIC_MAX_DEPENDENCIES:
             raise ValidationError("workflow step dependency count exceeds the public bound")
 
@@ -245,8 +275,10 @@ class MissionPublicWorkflowStep:
             kind=kind,
             depends_on=_string_tuple(body.get("depends_on", ()), f"{field}.depends_on"),
             resource=resource,
-            optional=bool(body.get("optional", False)),
-            deterministic=bool(body.get("deterministic", True)),
+            optional=_bool_field(body.get("optional", False), f"{field}.optional"),
+            deterministic=_bool_field(
+                body.get("deterministic", True), f"{field}.deterministic"
+            ),
             input_contract=_text(body.get("input_contract", "unspecified"), f"{field}.input_contract"),
             output_contract=_text(body.get("output_contract", "unspecified"), f"{field}.output_contract"),
         )
@@ -287,6 +319,36 @@ class MissionPlanPublicReceipt:
             _text(self.workflow_id, "workflow_id", maximum=MISSION_PLAN_PUBLIC_MAX_WORKFLOW_ID)
         _text(self.decision, "decision")
         _text(self.registry_address, "registry_address")
+        if type(self.state) is not MissionPublicDecisionState:
+            raise ValidationError("mission public receipt state is invalid")
+        for value, field in (
+            (self.accepted, "accepted"),
+            (self.abstained, "abstained"),
+            (self.requires_human_review, "requires_human_review"),
+            (self.boundary_accepted, "boundary_accepted"),
+        ):
+            if type(value) is not bool:
+                raise ValidationError(f"receipt.{field} must be a boolean")
+        if type(self.steps) is not tuple or any(
+            type(step) is not MissionPublicWorkflowStep for step in self.steps
+        ):
+            raise ValidationError("mission public receipt steps must be typed")
+        if type(self.step_count) is not int or type(self.max_seconds) is not int:
+            raise ValidationError("mission public receipt counts must be integers")
+        for value, field in (
+            (self.total_cpu, "total_cpu"),
+            (self.peak_memory_gb, "peak_memory_gb"),
+            (self.total_storage_gb, "total_storage_gb"),
+        ):
+            if type(value) not in {int, float} or isinstance(value, bool) or not math.isfinite(float(value)):
+                raise ValidationError(f"receipt.{field} must be a finite number")
+        for value, field in (
+            (self.selected_role_count, "selected_role_count"),
+            (self.selected_operation_count, "selected_operation_count"),
+            (self.warning_count, "warning_count"),
+        ):
+            if type(value) is not int:
+                raise ValidationError(f"receipt.{field} must be an integer")
         if self.step_count != len(self.steps):
             raise ValidationError("mission public step count does not reconcile")
         if self.step_count > MISSION_PLAN_PUBLIC_MAX_STEPS:
@@ -353,22 +415,34 @@ class MissionPlanPublicReceipt:
             "plan_id": _text(body.get("plan_id"), "receipt.plan_id"),
             "mission_id": _text(body.get("mission_id"), "receipt.mission_id"),
             "state": state,
-            "accepted": bool(body.get("accepted")),
+            "accepted": _bool_field(body.get("accepted"), "receipt.accepted"),
             "decision": _text(body.get("decision"), "receipt.decision"),
-            "abstained": bool(body.get("abstained")),
-            "requires_human_review": bool(body.get("requires_human_review")),
+            "abstained": _bool_field(body.get("abstained"), "receipt.abstained"),
+            "requires_human_review": _bool_field(
+                body.get("requires_human_review"), "receipt.requires_human_review"
+            ),
             "workflow_id": None if body.get("workflow_id") in (None, "") else _text(body.get("workflow_id"), "receipt.workflow_id"),
             "steps": steps,
-            "step_count": int(body.get("step_count")),
-            "total_cpu": float(body.get("total_cpu")),
-            "peak_memory_gb": float(body.get("peak_memory_gb")),
-            "total_storage_gb": float(body.get("total_storage_gb")),
-            "max_seconds": int(body.get("max_seconds")),
-            "selected_role_count": int(body.get("selected_role_count")),
-            "selected_operation_count": int(body.get("selected_operation_count")),
+            "step_count": _integer_field(body.get("step_count"), "receipt.step_count"),
+            "total_cpu": _number_field(body.get("total_cpu"), "receipt.total_cpu"),
+            "peak_memory_gb": _number_field(
+                body.get("peak_memory_gb"), "receipt.peak_memory_gb"
+            ),
+            "total_storage_gb": _number_field(
+                body.get("total_storage_gb"), "receipt.total_storage_gb"
+            ),
+            "max_seconds": _integer_field(body.get("max_seconds"), "receipt.max_seconds"),
+            "selected_role_count": _integer_field(
+                body.get("selected_role_count"), "receipt.selected_role_count"
+            ),
+            "selected_operation_count": _integer_field(
+                body.get("selected_operation_count"), "receipt.selected_operation_count"
+            ),
             "registry_address": _text(body.get("registry_address"), "receipt.registry_address"),
-            "warning_count": int(body.get("warning_count")),
-            "boundary_accepted": bool(body.get("boundary_accepted")),
+            "warning_count": _integer_field(body.get("warning_count"), "receipt.warning_count"),
+            "boundary_accepted": _bool_field(
+                body.get("boundary_accepted"), "receipt.boundary_accepted"
+            ),
         }
         receipt = cls(**values, content_address=_text(body.get("content_address"), "receipt.content_address"))
         if content_hash(receipt._body(), prefix="mission-plan-public") != receipt.content_address:
@@ -459,9 +533,13 @@ def _mission_context_from_mapping(value: Any) -> MissionContext:
             body.get("allowed_mutations", ("none", "event_log", "content_addressed_store")),
             "mission.allowed_mutations",
         ),
-        research_use_only=bool(body.get("research_use_only", True)),
-        allow_network=bool(body.get("allow_network", False)),
-        private_data_allowed=bool(body.get("private_data_allowed", False)),
+        research_use_only=_bool_field(
+            body.get("research_use_only", True), "mission.research_use_only"
+        ),
+        allow_network=_bool_field(body.get("allow_network", False), "mission.allow_network"),
+        private_data_allowed=_bool_field(
+            body.get("private_data_allowed", False), "mission.private_data_allowed"
+        ),
         subject_scope=_text(
             body.get("subject_scope", "pseudonymous_research_subject"),
             "mission.subject_scope",
@@ -498,8 +576,12 @@ def _workflow_steps_from_mapping(value: Any) -> tuple[WorkflowStep, ...]:
                     body.get("resource", {}),
                     f"workflow_steps[{index}].resource",
                 ),
-                optional=bool(body.get("optional", False)),
-                deterministic=bool(body.get("deterministic", True)),
+                optional=_bool_field(
+                    body.get("optional", False), f"workflow_steps[{index}].optional"
+                ),
+                deterministic=_bool_field(
+                    body.get("deterministic", True), f"workflow_steps[{index}].deterministic"
+                ),
                 input_contract=_text(
                     body.get("input_contract", "unspecified"),
                     f"workflow_steps[{index}].input_contract",
