@@ -56,6 +56,12 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
             policy_runtime_model.persist_runtime(runtime, destination)
             self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(policy_runtime_model.FILES)))
             self.assertEqual(policy_runtime_model.load_runtime(destination).content_address, runtime.content_address)
+            manifest = destination / "manifest.json"
+            raw_manifest = manifest.read_bytes()
+            manifest.write_bytes(raw_manifest.rstrip()[:-1] + b',"runtime_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                policy_runtime_model.load_runtime(destination)
+            manifest.write_bytes(raw_manifest)
             (destination / "policy.json").write_text("{}", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 policy_runtime_model.load_runtime(destination)
