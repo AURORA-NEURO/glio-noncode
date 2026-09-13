@@ -15,6 +15,7 @@ from . import downloaded_data_ingestion as ingestion_model
 from . import downloaded_data_ingestion_audit as ingestion_audit_model
 from . import downloaded_data_ingestion_query as query_model
 from . import downloaded_data_ingestion_query_audit as query_audit_model
+from ._safe_persistence import atomic_write_text, read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash
 
@@ -266,7 +267,12 @@ def render_runtime_markdown(value: DownloadedDataIngestionRuntime) -> str:
 
 
 def _write(path: Path, value: Any) -> None:
-    path.write_text(canonical_json(value), encoding="utf-8", newline="\n")
+    atomic_write_text(
+        path,
+        canonical_json(value),
+        field="runtime member path",
+        encoding="utf-8",
+    )
 
 
 def persist_runtime(value: DownloadedDataIngestionRuntime, destination: str | Path, *, overwrite: bool = False) -> Path:
@@ -325,11 +331,9 @@ def persist_runtime(value: DownloadedDataIngestionRuntime, destination: str | Pa
 
 def _read_text(path: Path) -> str:
     try:
-        if path.is_symlink() or not path.is_file():
-            raise ValidationError(f"runtime member {path.name} is unsafe")
-        return path.read_text(encoding="utf-8")
-    except ValidationError:
-        raise
+        return read_text(path, field=f"runtime member {path.name}", encoding="utf-8")
+    except ValidationError as error:
+        raise ValidationError(f"runtime member {path.name} is unsafe") from error
     except OSError as error:
         raise ValidationError(f"runtime member {path.name} could not be read") from error
 
