@@ -93,10 +93,18 @@ class DownloadedDataCatalogTests(unittest.TestCase):
 
     def test_disk_source_and_public_schemas(self):
         with tempfile.TemporaryDirectory() as temporary:
-            source = Path(temporary) / "download.zip"
+            root = Path(temporary)
+            source = root / "download.zip"
             source.write_bytes(self._zip())
             value = catalog_model.build_catalog(source)
             self.assertEqual(value.source_name, "download.zip")
+            linked = root / "linked-download.zip"
+            try:
+                linked.symlink_to(source)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                catalog_model.build_catalog(linked)
         for schema in (catalog_model.member_schema(), catalog_model.catalog_schema(), audit_model.check_schema(), audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
             self._assert_public(schema)

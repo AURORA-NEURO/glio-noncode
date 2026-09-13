@@ -18,6 +18,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._safe_persistence import read_bytes
 from .errors import ValidationError
 from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes
 
@@ -346,8 +347,8 @@ def build_catalog(source: str | Path | bytes, *, catalog_id: str = "glio-noncode
             raise ValidationError("downloaded data source must be a regular file")
         source_name = path.name
         try:
-            raw_zip = path.read_bytes()
-        except OSError as error:
+            raw_zip = read_bytes(path, field="downloaded data source")
+        except (OSError, ValidationError) as error:
             raise ValidationError("downloaded data source could not be read") from error
     if len(raw_zip) > MAX_TOTAL_BYTES:
         raise ValidationError("downloaded data source exceeds the total byte bound")
