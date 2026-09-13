@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -19,7 +18,7 @@ from .program_runtime_offline_contracts import (
     ProgramRuntimeOfflineBundle,
 )
 from .program_runtime_offline_query import _payload, _rows
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 
 
 @dataclass(frozen=True, slots=True)
@@ -109,8 +108,8 @@ def _json_ok(bundle: ProgramRuntimeOfflineBundle) -> bool:
         if item.media_type != "application/json":
             continue
         try:
-            json.loads(item.payload or "{}")
-        except json.JSONDecodeError:
+            _strict_json_loads(item.payload or "{}")
+        except ValueError:
             return False
     return True
 
