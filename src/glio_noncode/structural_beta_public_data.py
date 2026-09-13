@@ -10,7 +10,6 @@ complete callset or a biological truth set.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -18,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 STRUCTURAL_BETA_FIXTURE_SCHEMA_VERSION = "structural-beta-evidence-v1"
 STRUCTURAL_BETA_OPERATION_FLOOR = 4
@@ -197,10 +196,10 @@ class StructuralBetaFixtureCatalog:
     def from_file(cls, path: str | Path) -> StructuralBetaFixtureCatalog:
         file_path = Path(path)
         try:
-            raw = json.loads(file_path.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(file_path.read_text(encoding="utf-8"))
         except FileNotFoundError as exc:
             raise ValidationError(f"beta fixture file not found: {file_path}") from exc
-        except json.JSONDecodeError as exc:
+        except ValueError as exc:
             raise ValidationError(f"invalid beta fixture JSON: {exc}") from exc
         return cls.from_mapping(raw)
 

@@ -10,7 +10,6 @@ repeat overlap, context drift, and malformed-input review states.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -18,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 STRUCTURAL_HAPLOTYPE_FIXTURE_SCHEMA_VERSION = "structural-haplotype-evidence-v1"
 STRUCTURAL_HAPLOTYPE_OPERATION_FLOOR = 4
@@ -197,10 +196,10 @@ class StructuralHaplotypeFixtureCatalog:
     def from_file(cls, path: str | Path) -> StructuralHaplotypeFixtureCatalog:
         file_path = Path(path)
         try:
-            raw = json.loads(file_path.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(file_path.read_text(encoding="utf-8"))
         except FileNotFoundError as exc:
             raise ValidationError(f"structural haplotype fixture file not found: {file_path}") from exc
-        except json.JSONDecodeError as exc:
+        except ValueError as exc:
             raise ValidationError(f"invalid structural haplotype fixture JSON: {exc}") from exc
         return cls.from_mapping(raw)
 

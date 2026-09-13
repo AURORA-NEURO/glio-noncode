@@ -11,7 +11,6 @@ of that source.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -19,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 STRUCTURAL_FIXTURE_SCHEMA_VERSION = "structural-evidence-v1"
 STRUCTURAL_OPERATION_FLOOR = 4
@@ -190,8 +189,8 @@ class StructuralFixtureCatalog:
     def from_file(cls, path: str | Path) -> StructuralFixtureCatalog:
         file_path = Path(path)
         try:
-            raw = json.loads(file_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
+            raw = _strict_json_loads(file_path.read_text(encoding="utf-8"))
+        except ValueError as exc:
             raise ValidationError(f"invalid structural fixture JSON: {exc}") from exc
         return cls.from_mapping(raw)
 

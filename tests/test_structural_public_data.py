@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -125,6 +126,15 @@ class StructuralPublicDataTests(unittest.TestCase):
         )
         self.assertEqual(missing_mate.required_issue_codes, ("missing_mate_id",))
         self.assertEqual(missing_mate.expected_counts["errors"], 1)
+
+    def test_from_file_rejects_duplicate_json_keys(self) -> None:
+        payload = FIXTURE_PATH.read_text(encoding="utf-8").rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaisesRegex(ValidationError, "invalid structural fixture JSON"):
+                StructuralFixtureCatalog.from_file(path)
 
 
 if __name__ == "__main__":

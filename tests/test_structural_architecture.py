@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.structural_architecture_access import (
     build_structural_architecture_access_manifest,
 )
@@ -94,6 +95,15 @@ class StructuralArchitectureFixtureTests(unittest.TestCase):
         second = structural_architecture_fixture_json(default_structural_architecture_fixture())
         self.assertEqual(first, second)
         self.assertIn("structural-architecture-public-aggregate", first)
+
+    def test_from_file_rejects_duplicate_json_keys(self) -> None:
+        payload = structural_architecture_fixture_json(self.fixture).rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaisesRegex(ValidationError, "invalid architecture fixture JSON"):
+                type(self.fixture).from_file(path)
 
     def test_source_and_case_audit(self) -> None:
         report = audit_structural_architecture_data(self.fixture)

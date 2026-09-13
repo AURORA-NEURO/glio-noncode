@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -95,6 +96,15 @@ class StructuralBetaPublicDataTests(unittest.TestCase):
             StructuralBetaFixtureCatalog.from_file(ROOT / "examples" / "missing-beta-fixture.json")
         with self.assertRaises(ValidationError):
             StructuralBetaFixtureCatalog.from_mapping({"schema_version": "wrong"})
+
+    def test_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = FIXTURE.read_text(encoding="utf-8").rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaisesRegex(ValidationError, "invalid beta fixture JSON"):
+                StructuralBetaFixtureCatalog.from_file(path)
 
     def test_source_receipt_requires_explicit_web_url(self) -> None:
         with self.assertRaises(ValidationError):

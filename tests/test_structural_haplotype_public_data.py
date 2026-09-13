@@ -118,6 +118,15 @@ class StructuralHaplotypePublicDataTests(unittest.TestCase):
             with self.assertRaisesRegex(ValidationError, "invalid"):
                 StructuralHaplotypeFixtureCatalog.from_file(path)
 
+    def test_from_file_rejects_duplicate_json_keys(self) -> None:
+        payload = FIXTURE.read_text(encoding="utf-8").rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaisesRegex(ValidationError, "invalid structural haplotype fixture JSON"):
+                StructuralHaplotypeFixtureCatalog.from_file(path)
+
     def test_source_receipt_rejects_non_web_url(self) -> None:
         raw = copy.deepcopy(json.loads(FIXTURE.read_text(encoding="utf-8")))
         raw["sources"][0]["url"] = "ftp://example.org/source"

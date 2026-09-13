@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -161,6 +162,15 @@ class StructuralFrontierPublicDataTests(unittest.TestCase):
         self.assertEqual(catalog.content_address, round_trip.content_address)
         self.assertEqual(catalog.source_ids, round_trip.source_ids)
         self.assertEqual(catalog.record_ids, round_trip.record_ids)
+
+    def test_from_file_rejects_duplicate_json_keys(self) -> None:
+        payload = FIXTURE.read_text(encoding="utf-8").rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaisesRegex(ValidationError, "invalid structural frontier fixture JSON"):
+                StructuralFrontierFixtureCatalog.from_file(path)
 
 
 if __name__ == "__main__":

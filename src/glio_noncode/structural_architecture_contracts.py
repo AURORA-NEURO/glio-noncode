@@ -9,7 +9,6 @@ and stores only bounded summaries and public identifiers.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -17,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 STRUCTURAL_ARCHITECTURE_VERSION = "2026.08.structural-architecture.v1"
 STRUCTURAL_ARCHITECTURE_BOUNDARY = "public_aggregate_structural_evidence_and_reconstruction"
@@ -291,10 +290,10 @@ class StructuralArchitectureFixture:
     def from_file(cls, path: str | Path) -> StructuralArchitectureFixture:
         file_path = Path(path)
         try:
-            raw = json.loads(file_path.read_text(encoding="utf-8"))
+            raw = _strict_json_loads(file_path.read_text(encoding="utf-8"))
         except FileNotFoundError as exc:
             raise ValidationError(f"architecture fixture not found: {file_path}") from exc
-        except json.JSONDecodeError as exc:
+        except ValueError as exc:
             raise ValidationError(f"invalid architecture fixture JSON: {exc}") from exc
         return cls.from_mapping(raw)
 
