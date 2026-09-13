@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 
 from glio_noncode.evidence_release_frontier_contracts import EvidenceReleaseOperation, EvidenceReleaseRole, EvidenceReleaseState
 from glio_noncode.evidence_release_frontier_fixture_eval import audit_evidence_release_context, evaluate_evidence_release_fixture
 from glio_noncode.evidence_release_frontier_operations import evaluate_reclassification, evaluate_reproducibility_bundle, evaluate_supersession, sign_dossier, verify_signed_dossier
-from glio_noncode.evidence_release_frontier_public_data import audit_evidence_release_frontier_data, default_evidence_release_frontier_fixture
+from glio_noncode.evidence_release_frontier_public_data import audit_evidence_release_frontier_data, default_evidence_release_frontier_fixture, evidence_release_frontier_fixture_json, load_evidence_release_frontier_fixture
 from glio_noncode.evidence_release_frontier_runtime import run_evidence_release_runtime
 
 
@@ -90,6 +92,15 @@ class EvidenceReleaseFrontierTests(unittest.TestCase):
         self.assertTrue(runtime.replay.deterministic)
         self.assertTrue(runtime.release.accepted)
         self.assertTrue(runtime.bundle.accepted)
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = evidence_release_frontier_fixture_json(self.fixture).rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_evidence_release_frontier_fixture(path)
 
 
 if __name__ == "__main__":

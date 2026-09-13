@@ -20,7 +20,7 @@ from .evidence_release_frontier_contracts import (
     EvidenceReleaseSourceReceipt,
     EvidenceReleaseState,
 )
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 EVIDENCE_RELEASE_FRONTIER_SOURCE_COUNT = 5
 EVIDENCE_RELEASE_FRONTIER_RECORD_COUNT = 16
@@ -151,7 +151,7 @@ def audit_evidence_release_frontier_data(fixture: EvidenceReleaseFixture) -> Evi
 
 
 def load_evidence_release_frontier_fixture(path: str | Path) -> EvidenceReleaseFixture:
-    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    raw = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, Mapping) or raw.get("fixture_version") != EVIDENCE_RELEASE_FRONTIER_VERSION:
         raise ValueError("evidence-release fixture version mismatch")
     expected = default_evidence_release_frontier_fixture()

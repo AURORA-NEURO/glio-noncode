@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from dataclasses import replace
+from pathlib import Path
 
+from glio_noncode.errors import ValidationError
 from glio_noncode.coordination_architecture_access import build_coordination_access_manifest
 from glio_noncode.coordination_architecture_contracts import (
     COORDINATION_CASE_COUNT,
@@ -38,6 +41,7 @@ from glio_noncode.coordination_architecture_public_data import (
     audit_coordination_data,
     coordination_fixture_json,
     default_coordination_fixture,
+    load_coordination_fixture,
 )
 from glio_noncode.coordination_architecture_query import query_coordination
 from glio_noncode.coordination_architecture_quality import run_coordination_quality_gate
@@ -79,6 +83,15 @@ class CoordinationArchitectureTests(unittest.TestCase):
         self.assertEqual(self.fixture.content_address, payload["content_address"])
         self.assertEqual(64, len(payload["cases"]))
         self.assertNotIn("subject_id", json.dumps(payload))
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = coordination_fixture_json(self.fixture).rstrip()
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaisesRegex(ValidationError, "unable to read coordination fixture"):
+                load_coordination_fixture(path)
 
     def test_operation_evaluation_reconciles_all_cases(self) -> None:
         evaluation = evaluate_coordination_fixture(self.fixture)

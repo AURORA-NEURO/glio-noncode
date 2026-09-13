@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
 from glio_noncode.atlas_alpha_evidence_fixture_eval import evaluate_atlas_alpha_evidence_fixture
 from glio_noncode.atlas_alpha_evidence_lineage import (
@@ -16,6 +19,7 @@ from glio_noncode.atlas_alpha_evidence_public_data import (
     audit_atlas_alpha_evidence_data,
     build_atlas_alpha_evidence_catalog,
     default_atlas_alpha_evidence_fixture,
+    load_atlas_alpha_evidence_fixture,
 )
 from glio_noncode.atlas_alpha_evidence_quality_gate import run_atlas_alpha_evidence_quality_gate
 from glio_noncode.atlas_alpha_evidence_reconciliation import reconcile_atlas_alpha_evidence
@@ -123,6 +127,15 @@ class AtlasAlphaEvidenceTests(unittest.TestCase):
             self.assertIn(
                 receipt.role, (AtlasAlphaEvidenceRole.POSITIVE, AtlasAlphaEvidenceRole.CONTROL)
             )
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_atlas_alpha_evidence_fixture(path)
 
 
 if __name__ == "__main__":

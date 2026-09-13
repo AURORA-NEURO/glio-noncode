@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
 from glio_noncode.frontier_atlas_exports import (
     export_frontier_atlas_metrics_csv,
@@ -28,6 +31,7 @@ from glio_noncode.frontier_atlas_public_data import (
     audit_frontier_atlas_data,
     build_frontier_atlas_catalog,
     default_frontier_atlas_fixture,
+    load_frontier_atlas_fixture,
 )
 from glio_noncode.frontier_atlas_quality_gate import run_frontier_atlas_quality_gate
 from glio_noncode.frontier_atlas_reconciliation import reconcile_frontier_atlas
@@ -63,6 +67,15 @@ class FrontierAtlasEvidenceTests(unittest.TestCase):
         catalog = build_frontier_atlas_catalog(self.fixture)
         self.assertEqual(set(catalog.operations), set(FrontierAtlasOperation))
         self.assertEqual(len(catalog.record_ids), 16)
+
+    def test_fixture_loader_rejects_duplicate_json_keys(self) -> None:
+        payload = json.dumps(self.fixture.to_dict(), sort_keys=True)
+        duplicate = payload[:-1] + ',"fixture_id":"shadow"}'
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text(duplicate, encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_frontier_atlas_fixture(path)
 
     def test_evaluation_has_120_checks_and_explicit_states(self) -> None:
         self.assertTrue(self.evaluation.accepted)

@@ -9,7 +9,7 @@ from typing import Any, Mapping
 
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
-from .serialization import content_hash, jsonable
+from .serialization import _strict_json_loads, content_hash, jsonable
 from .coordination_architecture_contracts import (
     COORDINATION_BOUNDARY,
     COORDINATION_CASE_COUNT,
@@ -261,8 +261,8 @@ def coordination_fixture_json(fixture: CoordinationFixture | None = None) -> str
 
 def load_coordination_fixture(path: str | Path) -> CoordinationFixture:
     try:
-        value = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
         raise ValidationError(f"unable to read coordination fixture: {path}") from exc
     if not isinstance(value, Mapping):
         raise ValidationError("coordination fixture must be a JSON object")

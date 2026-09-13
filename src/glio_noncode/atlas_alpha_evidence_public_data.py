@@ -16,7 +16,7 @@ from enum import StrEnum
 from typing import Any
 
 from .errors import ValidationError
-from .serialization import content_hash, jsonable, require_non_empty
+from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
 
 ATLAS_ALPHA_EVIDENCE_FIXTURE_VERSION = "2026.08.d05-c09-c12.v1"
 ATLAS_ALPHA_EVIDENCE_CONTEXT_KEY = "GRCh38|diffuse_glioma|adult|stem_like|unknown|unknown"
@@ -905,7 +905,7 @@ def load_atlas_alpha_evidence_fixture(path: str) -> AtlasAlphaEvidenceFixture:
 
     from pathlib import Path
 
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
     sources = tuple(AtlasAlphaEvidenceSourceReceipt(**row) for row in payload["sources"])
     records = tuple(
         AtlasAlphaEvidenceRecord(
