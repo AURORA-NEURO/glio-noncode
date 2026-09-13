@@ -73,6 +73,14 @@ class ReviewWorkspaceReleaseQueryTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 load_review_workspace_release(clean_release)
 
+            duplicate_release = self._release(directory, "duplicate-release", report)
+            duplicate_manifest = duplicate_release / "manifest.json"
+            original_manifest = duplicate_manifest.read_bytes().rstrip()
+            self.assertTrue(original_manifest.endswith(b"}"))
+            duplicate_manifest.write_bytes(original_manifest[:-1] + b',"release_id":"shadow"}')
+            with self.assertRaises(ValidationError):
+                load_review_workspace_release(duplicate_release)
+
     def test_diff_reports_artifact_and_collection_changes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime = CaseRuntime(directory)

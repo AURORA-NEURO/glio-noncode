@@ -9,7 +9,6 @@ live API.  No local runtime, dossier store, or raw evidence payload is needed.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -30,7 +29,7 @@ from .review_workspace_query import (
     build_review_workspace_index,
     query_review_workspace,
 )
-from .serialization import content_hash
+from .serialization import _strict_json_loads, content_hash
 
 
 REVIEW_WORKSPACE_RELEASE_QUERY_VERSION = "review-workspace-release-query-v1"
@@ -53,8 +52,8 @@ def _mapping(value: Any, field: str) -> dict[str, Any]:
 def _manifest(root: Path) -> dict[str, Any]:
     path = root / REVIEW_WORKSPACE_RELEASE_MANIFEST
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError(f"cannot load review workspace release manifest: {exc}") from exc
     return _mapping(value, "review workspace release manifest")
 
@@ -62,8 +61,8 @@ def _manifest(root: Path) -> dict[str, Any]:
 def _report(root: Path) -> dict[str, Any]:
     path = root / "review-workspace.json"
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
         raise ValidationError(f"cannot load review workspace report: {exc}") from exc
     report = _mapping(value, "review workspace report")
     if contains_private_key(report):

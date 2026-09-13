@@ -205,7 +205,15 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
             report = store.append(plan, complete)
             self.assertEqual(len(store.read_events(plan)), 2)
             self.assertEqual(report.event_count, 2)
-            ledger = Path(directory) / "review-plan-execution" / plan.content_address.split(":", 1)[1] / "events.jsonl"
+            _, events_path, manifest_path = store.paths(plan)
+            original_manifest = manifest_path.read_bytes()
+            duplicate_manifest = original_manifest.rstrip()
+            self.assertTrue(duplicate_manifest.endswith(b"}"))
+            manifest_path.write_bytes(duplicate_manifest[:-1] + b',"plan_address":"shadow"}')
+            with self.assertRaises(StoreError):
+                store.read_events(plan)
+            manifest_path.write_bytes(original_manifest)
+            ledger = events_path
             ledger.write_bytes(ledger.read_bytes().replace(b"evt-start", b"evt-altered"))
             with self.assertRaises(StoreError):
                 store.read_events(plan)

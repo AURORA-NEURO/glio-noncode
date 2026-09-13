@@ -16,7 +16,6 @@ event.
 
 from __future__ import annotations
 
-import json
 import re
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
@@ -32,7 +31,7 @@ from .review_workspace_plan import (
     ReviewPlanAction,
     ReviewWorkspacePlan,
 )
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable
 
 
 REVIEW_WORKSPACE_EXECUTION_VERSION = "review-workspace-execution-v1"
@@ -1051,8 +1050,8 @@ class ReviewPlanExecutionStore:
             raise StoreError(f"execution ledger has unexpected files: {sorted(unexpected)}")
         try:
             event_bytes = events_path.read_bytes()
-            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            manifest = _strict_json_loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, ValueError) as exc:
             raise StoreError(f"execution ledger is unreadable: {exc}") from exc
         if not isinstance(manifest, Mapping):
             raise StoreError("execution ledger manifest must be an object")
@@ -1062,8 +1061,8 @@ class ReviewPlanExecutionStore:
                 raise StoreError("execution ledger event file must end with a newline")
             for line in event_bytes.splitlines():
                 try:
-                    raw = json.loads(line.decode("utf-8"))
-                except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                    raw = _strict_json_loads(line.decode("utf-8"))
+                except (UnicodeDecodeError, ValueError) as exc:
                     raise StoreError(f"execution ledger contains invalid event JSON: {exc}") from exc
                 if not isinstance(raw, Mapping):
                     raise StoreError("execution ledger event must be an object")

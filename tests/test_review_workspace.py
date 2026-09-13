@@ -141,10 +141,20 @@ class ReviewWorkspaceTests(unittest.TestCase):
             verified = verify_review_workspace_release(release)
             self.assertTrue(verified.accepted)
             self.assertEqual(verified.artifact_count, 9)
-            (release / "edges.csv").write_bytes((release / "edges.csv").read_bytes() + b"tamper")
+            edges_path = release / "edges.csv"
+            original_edges = edges_path.read_bytes()
+            edges_path.write_bytes(original_edges + b"tamper")
             tampered = verify_review_workspace_release(release)
             self.assertFalse(tampered.accepted)
             self.assertIn("edges.csv", tampered.tampered_files)
+            edges_path.write_bytes(original_edges)
+            manifest_path = release / "manifest.json"
+            original_manifest = manifest_path.read_bytes().rstrip()
+            self.assertTrue(original_manifest.endswith(b"}"))
+            manifest_path.write_bytes(original_manifest[:-1] + b',"release_id":"shadow"}')
+            duplicate_manifest = verify_review_workspace_release(release)
+            self.assertFalse(duplicate_manifest.accepted)
+            self.assertIn("manifest.json", duplicate_manifest.tampered_files)
 
     def test_export_cli_and_raw_api_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

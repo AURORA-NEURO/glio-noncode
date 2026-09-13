@@ -12,7 +12,6 @@ scientific decision.
 from __future__ import annotations
 
 import csv
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
@@ -35,7 +34,7 @@ from .review_workspace_execution import (
     review_workspace_execution_report_from_mapping,
 )
 from .review_workspace_plan import ReviewWorkspacePlan, build_persisted_review_workspace_plan
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable
 
 
 REVIEW_WORKSPACE_EXECUTION_AUDIT_VERSION = "review-workspace-execution-audit-v1"
@@ -322,8 +321,8 @@ def _safe_read(path: Path) -> tuple[bytes | None, str | None]:
 
 def _safe_manifest(path: Path) -> tuple[dict[str, Any] | None, str | None]:
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        value = _strict_json_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
         return None, str(exc)
     if not isinstance(value, Mapping):
         return None, "manifest root is not an object"
@@ -340,8 +339,8 @@ def _parse_events(
     events: list[ReviewPlanExecutionEvent] = []
     for sequence, line in enumerate(event_bytes.splitlines()):
         try:
-            raw = json.loads(line.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raw = _strict_json_loads(line.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError) as exc:
             return (), False, f"event line {sequence} is invalid JSON: {exc}"
         if not isinstance(raw, Mapping):
             return (), False, f"event line {sequence} is not an object"

@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Mapping
@@ -25,7 +24,7 @@ from typing import Any, Iterable, Mapping
 from .errors import ValidationError
 from .module_fabric_support import contains_private_key
 from .review_workspace import ReviewWorkspaceReport
-from .serialization import canonical_json, content_hash, hash_bytes, jsonable
+from .serialization import _strict_json_loads, canonical_json, content_hash, hash_bytes, jsonable
 
 
 REVIEW_WORKSPACE_EXPORT_VERSION = "review-workspace-export-v1"
@@ -539,8 +538,8 @@ def verify_review_workspace_release(destination: str | Path) -> ReviewWorkspaceR
         )
     try:
         manifest_bytes = manifest_path.read_bytes()
-        manifest = json.loads(manifest_bytes.decode("utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
+        manifest = _strict_json_loads(manifest_bytes.decode("utf-8"))
+    except (OSError, UnicodeError, ValueError):
         return _verification(
             root=root, release_id="", accepted=False, manifest_version_valid=False,
             manifest_address_valid=False, public_boundary_valid=False, artifact_count=0,
@@ -610,9 +609,9 @@ def verify_review_workspace_release(destination: str | Path) -> ReviewWorkspaceR
             verified_count += 1
         if raw_artifact.get("media_type") == "application/json":
             try:
-                artifact_body = json.loads(payload.decode("utf-8"))
+                artifact_body = _strict_json_loads(payload.decode("utf-8"))
                 boundary.extend(f"{filename}:{item}" for item in _private_key_paths(artifact_body))
-            except (UnboundLocalError, UnicodeError, json.JSONDecodeError):
+            except (UnboundLocalError, UnicodeError, ValueError):
                 tampered.append(filename)
     actual = sorted(
         path.relative_to(root).as_posix()
