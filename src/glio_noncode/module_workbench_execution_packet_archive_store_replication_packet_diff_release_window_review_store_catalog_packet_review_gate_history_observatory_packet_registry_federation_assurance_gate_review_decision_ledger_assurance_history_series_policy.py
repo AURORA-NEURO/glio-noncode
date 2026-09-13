@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import os
 import shutil
 import tempfile
@@ -28,9 +27,18 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from . import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series as series_model
+from . import (
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series as series_model,
+)
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
-from .serialization import _strict_json_loads, canonical_bytes, canonical_json, content_hash, hash_bytes
+from .serialization import (
+    _strict_json_loads,
+    canonical_bytes,
+    canonical_json,
+    content_hash,
+    hash_bytes,
+)
 
 DecisionAssuranceHistorySeries = series_model.DecisionAssuranceHistorySeries
 
@@ -418,9 +426,20 @@ def _manifest_address(value: Mapping[str, Any]) -> str:
 def write_decision_assurance_history_series_policy_evaluation(value: DecisionAssuranceHistorySeriesPolicyEvaluation, directory: str | Path, *, overwrite: bool = False) -> Path:
     verify_decision_assurance_history_series_policy_evaluation(value)
     destination = Path(directory)
-    if destination.exists() and (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
-        raise ValidationError("series policy evaluation destination already exists")
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        _validate_parent(destination.parent, "series policy evaluation destination")
+        if destination.is_symlink():
+            raise ValidationError("series policy evaluation destination cannot be a symlink")
+        if destination.exists():
+            if (not destination.is_dir() or any(destination.iterdir())) and not overwrite:
+                raise ValidationError("series policy evaluation destination already exists")
+            if not destination.is_dir():
+                raise ValidationError("series policy evaluation destination is not a regular directory")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("series policy evaluation destination could not be prepared") from error
     policy_raw = canonical_bytes(value.policy.to_dict())
     evaluation_raw = canonical_bytes(value.to_dict())
     manifest = _manifest_body(value, policy_raw, evaluation_raw)
@@ -428,9 +447,9 @@ def write_decision_assurance_history_series_policy_evaluation(value: DecisionAss
     manifest_raw = canonical_bytes(manifest)
     temporary = Path(tempfile.mkdtemp(prefix=f".{POLICY_PREFIX}-", dir=str(destination.parent)))
     try:
-        (temporary / POLICY_NAME).write_bytes(policy_raw)
-        (temporary / EVALUATION_NAME).write_bytes(evaluation_raw)
-        (temporary / MANIFEST_NAME).write_bytes(manifest_raw)
+        atomic_write_bytes(temporary / POLICY_NAME, policy_raw, field="series policy staging document")
+        atomic_write_bytes(temporary / EVALUATION_NAME, evaluation_raw, field="series policy evaluation staging document")
+        atomic_write_bytes(temporary / MANIFEST_NAME, manifest_raw, field="series policy manifest staging document")
         if destination.exists():
             if not destination.is_dir():
                 raise ValidationError("series policy evaluation destination is not a directory")
@@ -448,7 +467,7 @@ def write_decision_assurance_history_series_policy_evaluation(value: DecisionAss
 def _read_json(path: Path, field: str) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{field} must be a regular file")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=field)
     try:
         value = _strict_json_loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValueError) as exc:
@@ -462,7 +481,7 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
     artifact = next((item for item in _mapping_sequence(manifest.get("artifacts"), "policy manifest artifacts") if item.get("name") == name), None)
     if artifact is None:
         raise ValidationError(f"policy manifest is missing {name}")
-    raw = path.read_bytes()
+    raw = read_bytes(path, field=f"series policy {name} artifact")
     byte_address = hash_bytes(raw)
     if artifact.get("bytes") != len(raw) or artifact.get("byte_address") != byte_address:
         raise ValidationError(f"series policy {name} bytes are not addressed")
@@ -472,8 +491,14 @@ def _check_artifact(manifest: Mapping[str, Any], path: Path, name: str) -> None:
 
 def load_decision_assurance_history_series_policy_evaluation(directory: str | Path) -> DecisionAssuranceHistorySeriesPolicyEvaluation:
     source = Path(directory)
-    if source.is_symlink() or not source.is_dir():
-        raise ValidationError("series policy evaluation input must be a directory")
+    try:
+        _validate_parent(source.parent, "series policy evaluation input")
+        if source.is_symlink() or not source.is_dir():
+            raise ValidationError("series policy evaluation input must be a directory")
+    except ValidationError:
+        raise
+    except OSError as error:
+        raise ValidationError("series policy evaluation input could not be inspected") from error
     children = tuple(source.iterdir())
     if any(item.is_symlink() for item in children) or {item.name for item in children} != set(FILES):
         raise ValidationError("series policy evaluation file set is invalid")
