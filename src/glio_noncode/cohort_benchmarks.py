@@ -25,9 +25,9 @@ from math import log
 from pathlib import Path
 from typing import Any
 
+from ._safe_persistence import read_text
 from .errors import ValidationError
 from .serialization import _strict_json_loads, content_hash, jsonable, require_non_empty
-
 
 COHORT_BENCHMARK_VERSION = "cohort-benchmark-v1"
 COHORT_BENCHMARK_SCHEMA_VERSION = "cohort-benchmark-schema-v1"
@@ -1480,7 +1480,7 @@ def load_cohort_benchmark_records(path: str | Path) -> tuple[Mapping[str, Any], 
     if suffix == ".jsonl":
         rows: list[Mapping[str, Any]] = []
         for line_number, line in enumerate(
-            source.read_text(encoding="utf-8").splitlines(), start=1
+            read_text(source, field="cohort benchmark input").splitlines(), start=1
         ):
             if not line.strip():
                 continue
@@ -1490,14 +1490,14 @@ def load_cohort_benchmark_records(path: str | Path) -> tuple[Mapping[str, Any], 
             rows.append(value)
         return tuple(rows)
     if suffix == ".json":
-        value = _strict_json_loads(source.read_text(encoding="utf-8"))
+        value = _strict_json_loads(read_text(source, field="cohort benchmark input"))
         if isinstance(value, Mapping):
             value = value.get("records", value.get("rows", ()))
         if not isinstance(value, list) or not all(isinstance(row, Mapping) for row in value):
             raise ValidationError("JSON benchmark input must be a list of objects")
         return tuple(value)
     delimiter = "\t" if suffix == ".tsv" else ","
-    reader = csv.DictReader(io.StringIO(source.read_text(encoding="utf-8")), delimiter=delimiter)
+    reader = csv.DictReader(io.StringIO(read_text(source, field="cohort benchmark input")), delimiter=delimiter)
     if not reader.fieldnames:
         raise ValidationError("delimited benchmark input requires a header")
     return tuple(dict(row) for row in reader)

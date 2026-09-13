@@ -29,8 +29,8 @@ from glio_noncode.cohort_benchmarks import (
     load_cohort_benchmark_records,
     run_cohort_benchmark,
 )
+from glio_noncode.errors import ValidationError
 from glio_noncode.serialization import content_hash
-
 
 CONTEXT = "GRCh38|glioma|adult|stem_like|unknown|unknown"
 
@@ -77,6 +77,19 @@ class CohortBenchmarkTests(unittest.TestCase):
             source.write_text('{"record_id":"one","record_id":"shadow"}\n', encoding="utf-8")
             with self.assertRaises(ValueError):
                 load_cohort_benchmark_records(source)
+
+    def test_record_loader_rejects_symlinked_input(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "records.json"
+            target.write_text('{"records": []}', encoding="utf-8")
+            link = root / "linked-records.json"
+            try:
+                link.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation is unavailable")
+            with self.assertRaises(ValidationError):
+                load_cohort_benchmark_records(link)
 
     def test_group_split_keeps_groups_together_and_is_deterministic(self) -> None:
         selected = typed_records()
