@@ -9,7 +9,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from ._safe_persistence import atomic_write_bytes, atomic_write_text
+from ._safe_persistence import atomic_write_bytes, atomic_write_text, read_text as _safe_read_text
 
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND = "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-archive"
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND = COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND + "-transfer"
@@ -5180,8 +5180,17 @@ from .workspace_release import (
 )
 
 
+def _legacy_read_text(path: str) -> str:
+    """Read a legacy CLI input without following symlinked fixture paths."""
+
+    try:
+        return _safe_read_text(path, field="legacy CLI input")
+    except (OSError, ValidationError) as error:
+        raise ValueError(f"legacy CLI input could not be read: {path}") from error
+
+
 def _read_json(path: str) -> dict[str, Any]:
-    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(_legacy_read_text(path))
     if not isinstance(payload, dict):
         raise ValueError("input JSON must be an object")
     return payload
@@ -5190,7 +5199,7 @@ def _read_json(path: str) -> dict[str, Any]:
 def _read_json_document(path: str) -> Any:
     """Read an object or list document for batch-oriented commands."""
 
-    return _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    return _strict_json_loads(_legacy_read_text(path))
 
 
 def _decision_mapping(values: list[str]) -> dict[str, str]:
@@ -7324,7 +7333,7 @@ def _platform_execution_architecture_fixture(input_path: str | None):
 
 
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
-    payload = _strict_json_loads(Path(path).read_text(encoding="utf-8"))
+    payload = _strict_json_loads(_legacy_read_text(path))
     if isinstance(payload, dict):
         for key in keys:
             if key in payload:
