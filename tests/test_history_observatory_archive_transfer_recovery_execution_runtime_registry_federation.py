@@ -11,6 +11,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
@@ -102,11 +103,20 @@ class HistoryObservatoryArchiveTransferRecoveryExecutionRuntimeRegistryFederatio
             members_path.write_text(members_path.read_text(encoding="utf-8") + " ", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 federation_model.load_federation(destination)
-
             federation_model.persist_federation(federation, destination, overwrite=True)
             (destination / "unexpected.json").write_text("{}", encoding="utf-8")
             with self.assertRaises(ValidationError):
                 federation_model.load_federation(destination)
+
+    def test_federation_loader_normalizes_directory_inspection_failures(self):
+        primary, secondary = self._registries()
+        value = federation_model.build_federation((primary, secondary), federation_id="execution-runtime-registry-federation-failure-fixture")
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "federation"
+            federation_model.persist_federation(value, destination)
+            with patch.object(Path, "iterdir", side_effect=OSError("directory denied")):
+                with self.assertRaises(ValidationError):
+                    federation_model.load_federation(destination)
 
     def test_cli_api_schemas_and_public_inventory(self):
         primary, secondary = self._registries()
