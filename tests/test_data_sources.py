@@ -915,6 +915,7 @@ class DataSourceTests(unittest.TestCase):
         url = "https://ensembl.example/invalid"
         invalid_bodies = (
             b'{"score":NaN}',
+            b'{"score":1e999}',
             b'{"id":1,"id":2}',
             b'{"description":"\\ud800"}',
         )

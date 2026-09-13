@@ -99,6 +99,7 @@ class RunStoreAdvanceTests(unittest.TestCase):
             for malformed in (
                 b'{"value":"first","value":"second"}',
                 b'{"value":NaN}',
+                b'{"value":1e999}',
             ):
                 with self.subTest(malformed=malformed):
                     path.write_bytes(malformed)
