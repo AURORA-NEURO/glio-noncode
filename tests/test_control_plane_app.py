@@ -16,6 +16,7 @@ from glio_noncode.control_plane import (
 )
 from glio_noncode.control_plane_app import ControlPlaneApplication
 from glio_noncode.data_sources import FetchReceipt, FetchStatus, ReferenceBundle, SequenceSlice
+from glio_noncode.errors import ValidationError
 from glio_noncode.models import (
     CandidateElement,
     EdgeType,
@@ -181,6 +182,51 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         review = app.executor.execute(_request("A45.publish", {}, "review-1", release=True))
         self.assertEqual(review.state, InvocationState.ABSTAINED)
         self.assertEqual(review.response.reason_code, "human_adjudication_required")
+
+    def test_scientific_handlers_reject_coercive_and_malformed_boundary_inputs(self) -> None:
+        app = ControlPlaneApplication()
+        causal_path = app.executor.execute(
+            _request(
+                "A34.publish",
+                {"path_id": 123, "edges": [], "alternatives": ["candidate-a"]},
+                "causal-invalid-path",
+            )
+        )
+        self.assertEqual(causal_path.state, InvocationState.ABSTAINED)
+        self.assertEqual(causal_path.response.reason_code, "invalid_causal_payload")
+
+        causal_alternatives = app.executor.execute(
+            _request(
+                "A34.publish",
+                {"path_id": "path-1", "edges": [], "alternatives": "candidate-a"},
+                "causal-invalid-alternatives",
+            )
+        )
+        self.assertEqual(causal_alternatives.state, InvocationState.ABSTAINED)
+        self.assertEqual(causal_alternatives.response.reason_code, "invalid_causal_payload")
+
+        power = app.executor.execute(
+            _request(
+                "A41.publish",
+                {"effect_size": "0.2", "controls": ["matched", "matched"]},
+                "power-invalid-number",
+            )
+        )
+        self.assertEqual(power.state, InvocationState.ABSTAINED)
+        self.assertEqual(power.response.reason_code, "invalid_power_inputs")
+
+        drift = app.executor.execute(
+            _request(
+                "A47.publish",
+                {"baseline": {"metric": "0.1"}, "current": {"metric": 0.2}},
+                "drift-invalid-number",
+            )
+        )
+        self.assertEqual(drift.state, InvocationState.ABSTAINED)
+        self.assertEqual(drift.response.reason_code, "invalid_drift_metrics")
+
+        with self.assertRaisesRegex(ValidationError, "metrics must have bounded string keys"):
+            ControlPlaneApplication._metric_mapping({1: 0.1}, "baseline")
 
     def test_atlas_binding_requires_network_boundary_and_returns_reference_envelope(self) -> None:
         blocked = ControlPlaneApplication().executor.execute(

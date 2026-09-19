@@ -2394,7 +2394,7 @@ class ControlPlaneApplication:
         raw = request.input_payload
         path_id = raw.get("path_id")
         edges_raw = raw.get("edges")
-        if not isinstance(path_id, str) or not isinstance(edges_raw, (list, tuple)):
+        if not isinstance(edges_raw, (list, tuple)):
             return Abstention(
                 "missing_causal_payload",
                 "causal_lattice",
@@ -2402,11 +2402,12 @@ class ControlPlaneApplication:
                 ("path_id", "edges"),
             )
         try:
+            path_id = _input_text(path_id, "path_id")
             edges = tuple(self._hypothesis_edge(item) for item in edges_raw)
             summary = self.causal.summarize(
                 path_id,
                 edges,
-                alternatives=tuple(str(item) for item in raw.get("alternatives", ())),
+                alternatives=_input_strings(raw.get("alternatives", ()), "alternatives"),
             )
         except (TypeError, ValueError, ValidationError, KeyError) as exc:
             return Abstention(
@@ -2641,11 +2642,11 @@ class ControlPlaneApplication:
         raw = request.input_payload
         try:
             plan = self.power.plan(
-                effect_size=float(raw["effect_size"]),
-                baseline_rate=float(raw.get("baseline_rate", 0.5)),
-                alpha=float(raw.get("alpha", 0.05)),
-                target_power=float(raw.get("target_power", 0.80)),
-                controls=tuple(str(item) for item in raw.get("controls", ())),
+                effect_size=_input_number(raw["effect_size"], "effect_size"),
+                baseline_rate=_input_number(raw.get("baseline_rate", 0.5), "baseline_rate"),
+                alpha=_input_number(raw.get("alpha", 0.05), "alpha"),
+                target_power=_input_number(raw.get("target_power", 0.80), "target_power"),
+                controls=_input_strings(raw.get("controls", ()), "controls"),
             )
         except (KeyError, TypeError, ValueError, ValidationError) as exc:
             return Abstention("invalid_power_inputs", "power_plan", str(exc), ("effect_size",))
@@ -2684,11 +2685,21 @@ class ControlPlaneApplication:
                 "Drift monitoring requires baseline and current metric mappings.",
                 ("baseline", "current"),
             )
-        report = self.drift.compare(
-            {str(key): self._optional_float(value) for key, value in baseline.items()},
-            {str(key): self._optional_float(value) for key, value in current.items()},
-            case_id=request.mission.mission_id,
-        )
+        try:
+            baseline_values = self._metric_mapping(baseline, "baseline")
+            current_values = self._metric_mapping(current, "current")
+            report = self.drift.compare(
+                baseline_values,
+                current_values,
+                case_id=request.mission.mission_id,
+            )
+        except (TypeError, ValueError, ValidationError) as exc:
+            return Abstention(
+                "invalid_drift_metrics",
+                "drift_monitor",
+                str(exc),
+                ("baseline", "current"),
+            )
         return EvidenceEnvelope(
             evidence_id=f"drift:{report.content_address}",
             agent_id=request.agent_id,
@@ -2707,10 +2718,19 @@ class ControlPlaneApplication:
     def _optional_float(value: object) -> float | None:
         if value is None:
             return None
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return None
+        return _input_number(value, "drift metric")
+
+    @classmethod
+    def _metric_mapping(cls, raw: Mapping[str, Any], field: str) -> dict[str, float | None]:
+        if len(raw) > 4096 or any(type(key) is not str for key in raw):
+            raise ValidationError(f"{field} metrics must have bounded string keys")
+        result: dict[str, float | None] = {}
+        for key, value in raw.items():
+            name = _input_text(key, f"{field} metric name")
+            if name in result:
+                raise ValidationError(f"{field} metrics must have unique names")
+            result[name] = cls._optional_float(value)
+        return result
 
     def manifest(self) -> dict[str, Any]:
         return {

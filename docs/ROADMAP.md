@@ -147,6 +147,8 @@
 127. Complete the typed intake-pipeline service boundary. **Implemented:** bounded and canonical request validation; strict unknown-field and numeric handling; replay-validated stage/report partitions; shared adapter ceilings; local HTTP POST execution with accepted/review/blocked status semantics; schema and capability discovery routes; path-free reports; and focused CLI, HTTP, and regression coverage. See [INTAKE_EVIDENCE_GATE.md](INTAKE_EVIDENCE_GATE.md).
 128. Add independent replay verification for typed intake-pipeline reports. **Implemented:** strict stage-receipt typing; report rehydration with unknown/derived-field rejection; content-address replay; a local HTTP verification endpoint and report schema; tamper regression coverage; and explicit surface documentation. See [INTAKE_EVIDENCE_GATE.md](INTAKE_EVIDENCE_GATE.md).
 
+129. Harden scientific control-plane input boundaries. **Implemented:** strict causal path and alternative validation; finite numeric power-planning inputs; duplicate-control rejection; finite drift metrics with bounded string names; typed abstention reason codes; focused regression coverage for coercion and malformed payloads; and control-plane boundary documentation. See [CONTROL_PLANE.md](CONTROL_PLANE.md).
+
 Every wave should preserve the same contracts, add fixtures and failure cases, and distinguish implemented behavior from externally evaluated science.
 
 ## Change acceptance checklist

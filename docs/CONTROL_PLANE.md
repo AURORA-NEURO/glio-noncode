@@ -138,6 +138,14 @@ uncertainty band, and blockers. A candidate control is always emitted as
 `unsupported` until an assay produces a measurement; selection is never treated
 as a negative result.
 
+The scientific boundary handlers also enforce strict input shapes at the
+application edge. Causal paths require a real path identifier and string-array
+alternatives; power planning rejects numeric strings, non-finite numbers, and
+duplicate controls; drift monitoring accepts only finite numeric metrics with
+bounded string names. Malformed values abstain with typed reason codes instead
+of being coerced into a plausible scientific result. The focused application
+regression suite covers each boundary, including direct metric-map validation.
+
 Atlas roles `A16`–`A22` share the context-evidence builder. It carries source
 versions, context-match scores, channel identity, and the original observation
 payload into each claim. A supported observation below the declared context
