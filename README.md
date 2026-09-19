@@ -77,6 +77,11 @@ archive. The complete workflow and HTTP surface are documented in
 [docs/DOWNLOADED_DATA_INGESTION.md](docs/DOWNLOADED_DATA_INGESTION.md).
 For the value-free schema-contract demo, run
 `python examples/downloaded_data_contract_demo.py` against the same archive.
+For an explicit structural quality decision over real downloaded data, run
+`python examples/downloaded_data_quality_demo.py` against the same archive;
+it reports accepted/review/blocked policy results, per-field findings,
+independent audits, deterministic queries, and content addresses. See
+[docs/DOWNLOADED_DATA_QUALITY.md](docs/DOWNLOADED_DATA_QUALITY.md).
 For a real value-free schema-evolution comparison over two member selections,
 run `python examples/downloaded_data_contract_diff_demo.py` against the same
 archive; it reports structural additions, removals, changes, queries, and

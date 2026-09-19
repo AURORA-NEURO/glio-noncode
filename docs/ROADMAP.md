@@ -149,6 +149,8 @@
 
 129. Harden scientific control-plane input boundaries. **Implemented:** strict causal path and alternative validation; finite numeric power-planning inputs; duplicate-control rejection; finite drift metrics with bounded string names; typed abstention reason codes; focused regression coverage for coercion and malformed payloads; and control-plane boundary documentation. See [CONTROL_PLANE.md](CONTROL_PLANE.md).
 
+130. Add a deterministic structural quality decision above downloaded-data profiles. **Implemented:** reusable bounded policies for record/member/field coverage, missingness, nullness, value types, cardinality, and serialized size; accepted/review/blocked decisions with per-target evidence; independent 18-check result audits; summary/findings queries with deterministic pagination; independent 12-check query audits; an exact seven-file atomic runtime with nested tamper rejection; strict schemas and public capabilities; focused tamper, coercion, filter, persistence, and replay coverage; and a real downloaded-ZIP demonstration. See [DOWNLOADED_DATA_QUALITY.md](DOWNLOADED_DATA_QUALITY.md).
+
 Every wave should preserve the same contracts, add fixtures and failure cases, and distinguish implemented behavior from externally evaluated science.
 
 ## Change acceptance checklist

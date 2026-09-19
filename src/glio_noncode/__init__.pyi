@@ -14575,6 +14575,11 @@ from . import downloaded_data_profile_query as downloaded_data_profile_query
 from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit
 from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime
 from . import downloaded_data_profile_runtime_audit as downloaded_data_profile_runtime_audit
+from . import downloaded_data_quality as downloaded_data_quality
+from . import downloaded_data_quality_audit as downloaded_data_quality_audit
+from . import downloaded_data_quality_query as downloaded_data_quality_query
+from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit
+from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime
 from . import editing_design_frontier_access as editing_design_frontier_access
 from . import editing_design_frontier_adapters as editing_design_frontier_adapters
 from . import editing_design_frontier_artifact_manifest as editing_design_frontier_artifact_manifest
