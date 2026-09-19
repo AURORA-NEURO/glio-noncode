@@ -68,3 +68,24 @@ The demo selects data-bearing catalog members, reuses the bounded ingestion
 runtime, builds a value-free profile, evaluates a review policy, writes JSON and
 Markdown projections, and reports the quality/audit/query addresses. The
 source ZIP is never copied into the emitted quality artifacts.
+
+## CLI and HTTP replay surface
+
+The same typed result can be replayed without reopening the source ZIP. A
+profile JSON or the persisted profile runtime is accepted by the focused CLI:
+
+```powershell
+python -m glio_noncode downloaded-data-quality artifacts/downloaded-data-profile-demo/profile-runtime --format summary
+python -m glio_noncode downloaded-data-quality-runtime artifacts/downloaded-data-profile-demo/profile-runtime --destination artifacts/downloaded-data-quality-demo/quality-runtime --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-query artifacts/downloaded-data-quality-demo/quality-runtime --resource findings --severity blocked --limit 25 --format markdown
+python -m glio_noncode downloaded-data-quality-runtime-audit artifacts/downloaded-data-quality-demo/quality-runtime --format json
+```
+
+The loopback API exposes the corresponding routes under
+`/v1/downloaded-data/quality`: the root builds a result, `/audit` verifies a
+result, `/query` applies bounded filters, `/query-audit` verifies a query,
+`/runtime` builds and optionally persists the exact seven-file handoff, and
+`/runtime/audit` verifies the runtime closure. `/schema`, `/capabilities`, and
+the nested audit/query/runtime schema routes are available for machine clients.
+All routes accept `input`, `policy`, `resource`, filter, pagination, format,
+destination, and overwrite query parameters where applicable.

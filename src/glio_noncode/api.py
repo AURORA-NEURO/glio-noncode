@@ -737,6 +737,11 @@ from . import downloaded_data_profile_query as downloaded_data_profile_query_mod
 from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit_model
 from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime_model
 from . import downloaded_data_profile_runtime_audit as downloaded_data_profile_runtime_audit_model
+from . import downloaded_data_quality as downloaded_data_quality_model
+from . import downloaded_data_quality_audit as downloaded_data_quality_audit_model
+from . import downloaded_data_quality_query as downloaded_data_quality_query_model
+from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
+from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
 from . import registry_federation_audit as registry_federation_audit_model
 from . import registry_federation_consensus as registry_federation_consensus_model
 from . import registry_federation_consensus_audit as registry_federation_consensus_audit_model
@@ -3746,6 +3751,50 @@ class ApiHandler(BaseHTTPRequestHandler):
         return downloaded_data_profile_query_model.query_from_mapping(nested if isinstance(nested, dict) else raw)
 
     @staticmethod
+    def _downloaded_quality_policy_from_input(input_path: str):
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality policy input must be an object")
+        nested = raw.get("policy")
+        return downloaded_data_quality_model.policy_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_quality_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            expected = tuple(sorted(downloaded_data_quality_runtime_model.FILES))
+            actual = tuple(sorted(path.name for path in source.iterdir()))
+            if actual != expected:
+                raise ValueError("downloaded-data quality runtime directory must contain the exact runtime files")
+            return downloaded_data_quality_runtime_model.load_runtime(source).quality
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality input must be an object")
+        nested = raw.get("quality")
+        return downloaded_data_quality_model.quality_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_quality_query_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_quality_runtime_model.load_runtime(source).query
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality query input must be an object")
+        nested = raw.get("query")
+        return downloaded_data_quality_query_model.query_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_quality_runtime_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_quality_runtime_model.load_runtime(source)
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality runtime input must be an object")
+        return downloaded_data_quality_runtime_model.runtime_from_mapping(raw)
+
+    @staticmethod
     def _downloaded_contract_runtime_from_input(input_path: str):
         source = Path(input_path)
         if source.is_dir():
@@ -5403,6 +5452,63 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if path == profile_prefix + "/runtime/audit":
                     value = downloaded_data_profile_runtime_audit_model.audit_runtime(self._downloaded_profile_runtime_from_input(self._query_value(query, "input") or ""))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                quality_prefix = downloaded_data_prefix + "/quality"
+                if path == quality_prefix:
+                    policy = self._downloaded_quality_policy_from_input(self._query_value(query, "policy")) if self._query_value(query, "policy") else None
+                    value = downloaded_data_quality_model.build_quality(
+                        self._downloaded_profile_from_input(self._query_value(query, "input") or ""),
+                        policy=policy,
+                        result_id=self._query_value(query, "result_id") or "glio-noncode-downloaded-data-quality",
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_model, json_name="quality_json", csv_name="quality_csv", markdown_name="render_quality_markdown")
+                    return
+                if path == quality_prefix + "/audit":
+                    value = downloaded_data_quality_audit_model.audit_quality(self._downloaded_quality_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == quality_prefix + "/query":
+                    value = downloaded_data_quality_query_model.query_quality(
+                        self._downloaded_quality_from_input(self._query_value(query, "input") or ""),
+                        resources=self._query_values(query, "resource") or downloaded_data_quality_query_model.RESOURCES,
+                        rule_id=self._query_value(query, "rule_id") or "",
+                        scope=self._query_value(query, "scope") or "",
+                        severity=self._query_value(query, "severity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_quality_runtime_model.DEFAULT_LIMIT),
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == quality_prefix + "/query-audit":
+                    value = downloaded_data_quality_query_audit_model.audit_query(self._downloaded_quality_query_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == quality_prefix + "/runtime":
+                    policy = self._downloaded_quality_policy_from_input(self._query_value(query, "policy")) if self._query_value(query, "policy") else None
+                    value = downloaded_data_quality_runtime_model.build_runtime(
+                        self._downloaded_profile_from_input(self._query_value(query, "input") or ""),
+                        policy=policy,
+                        runtime_id=self._query_value(query, "runtime_id") or downloaded_data_quality_runtime_model.DEFAULT_RUNTIME_ID,
+                        result_id=self._query_value(query, "result_id") or "glio-noncode-downloaded-data-quality",
+                        resources=self._query_values(query, "resource") or downloaded_data_quality_query_model.RESOURCES,
+                        rule_id=self._query_value(query, "rule_id") or "",
+                        scope=self._query_value(query, "scope") or "",
+                        severity=self._query_value(query, "severity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_quality_runtime_model.DEFAULT_LIMIT),
+                    )
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_quality_runtime_model.persist_runtime(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_model, json_name="runtime_json", markdown_name="render_runtime_markdown")
+                    return
+                if path == quality_prefix + "/runtime/audit":
+                    runtime = self._downloaded_quality_runtime_from_input(self._query_value(query, "input") or "")
+                    quality_audit = downloaded_data_quality_audit_model.audit_quality(runtime.quality)
+                    query_audit = downloaded_data_quality_query_audit_model.audit_query(runtime.query)
+                    self._write(HTTPStatus.OK, {"runtime_address": runtime.content_address, "quality_audit": quality_audit.to_dict(), "query_audit": query_audit.to_dict(), "accepted": quality_audit.accepted and query_audit.accepted})
                     return
                 contract_prefix = profile_prefix + "/contract"
                 if path == contract_prefix:
@@ -9542,6 +9648,22 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/profile/runtime/audit/check-schema": downloaded_data_profile_runtime_audit_model.check_schema,
                     "/profile/runtime/audit/schema": downloaded_data_profile_runtime_audit_model.audit_schema,
                     "/profile/runtime/audit/capabilities": downloaded_data_profile_runtime_audit_model.capabilities,
+                    "/quality/policy-schema": downloaded_data_quality_model.policy_schema,
+                    "/quality/finding-schema": downloaded_data_quality_model.finding_schema,
+                    "/quality/schema": downloaded_data_quality_model.quality_schema,
+                    "/quality/capabilities": downloaded_data_quality_model.capabilities,
+                    "/quality/audit/check-schema": downloaded_data_quality_audit_model.check_schema,
+                    "/quality/audit/schema": downloaded_data_quality_audit_model.audit_schema,
+                    "/quality/audit/capabilities": downloaded_data_quality_audit_model.capabilities,
+                    "/quality/query/row-schema": downloaded_data_quality_query_model.row_schema,
+                    "/quality/query/schema": downloaded_data_quality_query_model.query_schema,
+                    "/quality/query/capabilities": downloaded_data_quality_query_model.capabilities,
+                    "/quality/query-audit/check-schema": downloaded_data_quality_query_audit_model.check_schema,
+                    "/quality/query-audit/schema": downloaded_data_quality_query_audit_model.audit_schema,
+                    "/quality/query-audit/capabilities": downloaded_data_quality_query_audit_model.capabilities,
+                    "/quality/runtime/manifest-schema": downloaded_data_quality_runtime_model.manifest_schema,
+                    "/quality/runtime/schema": downloaded_data_quality_runtime_model.runtime_schema,
+                    "/quality/runtime/capabilities": downloaded_data_quality_runtime_model.capabilities,
                     "/profile/contract/type-schema": downloaded_data_profile_contract_model.type_schema,
                     "/profile/contract/field-schema": downloaded_data_profile_contract_model.field_schema,
                     "/profile/contract/member-schema": downloaded_data_profile_contract_model.member_schema,

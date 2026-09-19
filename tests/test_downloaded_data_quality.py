@@ -127,6 +127,53 @@ class DownloadedDataQualityTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 runtime_model.load_runtime(destination)
 
+    def test_cli_and_api_surface_replays_profile_json(self) -> None:
+        from urllib.parse import urlencode
+        from urllib.request import urlopen
+
+        from glio_noncode.api import create_server
+        from glio_noncode.cli import main
+
+        profile = self._profile()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            profile_path = root / "profile.json"
+            profile_path.write_text(profile_model.profile_json(profile), encoding="utf-8")
+            quality_path = root / "quality.json"
+            self.assertEqual(main(["downloaded-data-quality", str(profile_path), "--format", "json", "--output", str(quality_path)]), 0)
+            self.assertEqual(main(["downloaded-data-quality-audit", str(quality_path), "--format", "json", "--output", str(root / "audit.json")]), 0)
+            self.assertEqual(main(["downloaded-data-quality-query", str(quality_path), "--resource", "findings", "--limit", "2", "--format", "json", "--output", str(root / "query.json")]), 0)
+            runtime_path = root / "runtime"
+            self.assertEqual(main(["downloaded-data-quality-runtime", str(profile_path), "--destination", str(runtime_path), "--overwrite", "--format", "summary", "--output", str(root / "runtime-summary.json")]), 0)
+            self.assertEqual(main(["downloaded-data-quality-query-audit", str(runtime_path), "--format", "json", "--output", str(root / "query-audit.json")]), 0)
+            self.assertEqual(main(["downloaded-data-quality-runtime-audit", str(runtime_path), "--format", "json", "--output", str(root / "runtime-audit.json")]), 0)
+            self.assertEqual(tuple(sorted(path.name for path in runtime_path.iterdir())), tuple(sorted(runtime_model.FILES)))
+
+            server = create_server("127.0.0.1", 0)
+            import threading
+
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                base = f"http://127.0.0.1:{server.server_port}/v1/downloaded-data/quality"
+                query = urlencode({"input": str(profile_path), "format": "json"})
+                api_quality = json.loads(urlopen(base + "?" + query, timeout=10).read().decode())
+                self.assertEqual((api_quality["accepted"], api_quality["record_count"]), (True, profile.record_count))
+                api_query = json.loads(urlopen(base + "/query?" + urlencode({"input": str(quality_path), "resource": "findings", "limit": "2"}), timeout=10).read().decode())
+                self.assertEqual(api_query["returned_count"], 2)
+                api_runtime = json.loads(urlopen(base + "/runtime?" + urlencode({"input": str(profile_path), "destination": str(root / "api-runtime"), "overwrite": "true"}), timeout=10).read().decode())
+                self.assertTrue(api_runtime["release_ready"])
+                api_runtime_audit = json.loads(urlopen(base + "/runtime/audit?" + urlencode({"input": str(runtime_path)}), timeout=10).read().decode())
+                self.assertTrue(api_runtime_audit["accepted"])
+                schema = json.loads(urlopen(base + "/schema", timeout=10).read().decode())
+                self.assertFalse(schema["additionalProperties"])
+                capabilities = json.loads(urlopen(base + "/capabilities", timeout=10).read().decode())
+                self.assertEqual(capabilities["version"], quality_model.VERSION)
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=10)
+
 
 if __name__ == "__main__":
     unittest.main()

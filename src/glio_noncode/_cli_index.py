@@ -7453,6 +7453,30 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print downloaded-data profile type schema',
     ),
     (
+        'downloaded-data-quality',
+        'evaluate structural quality of a downloaded-data profile',
+    ),
+    (
+        'downloaded-data-quality-audit',
+        'audit a downloaded-data quality result',
+    ),
+    (
+        'downloaded-data-quality-query',
+        'query downloaded-data quality findings',
+    ),
+    (
+        'downloaded-data-quality-query-audit',
+        'audit a downloaded-data quality query',
+    ),
+    (
+        'downloaded-data-quality-runtime',
+        'build and optionally persist a downloaded-data quality runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-audit',
+        'audit a downloaded-data quality runtime closure',
+    ),
+    (
         'editing-design-frontier-access',
         'emit D13 C05-C08 editing public access manifest',
     ),

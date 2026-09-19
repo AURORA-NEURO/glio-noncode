@@ -251,6 +251,11 @@ from . import (
 )
 from . import downloaded_data_profile as downloaded_data_profile_model
 from . import downloaded_data_profile_audit as downloaded_data_profile_audit_model
+from . import downloaded_data_quality as downloaded_data_quality_model
+from . import downloaded_data_quality_audit as downloaded_data_quality_audit_model
+from . import downloaded_data_quality_query as downloaded_data_quality_query_model
+from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
+from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
 from . import downloaded_data_profile_contract as downloaded_data_profile_contract_model
 from . import downloaded_data_profile_contract_audit as downloaded_data_profile_contract_audit_model
 from . import (
@@ -5277,6 +5282,40 @@ def _downloaded_profile_query_from_input(input_path: str):
     if "query" in raw and isinstance(raw["query"], Mapping):
         raw = raw["query"]
     return downloaded_data_profile_query_model.query_from_mapping(raw)
+
+
+def _downloaded_quality_policy_from_input(input_path: str):
+    raw = _read_json(input_path)
+    nested = raw.get("policy")
+    return downloaded_data_quality_model.policy_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        if tuple(sorted(path.name for path in source.iterdir())) == tuple(sorted(downloaded_data_quality_runtime_model.FILES)):
+            return downloaded_data_quality_runtime_model.load_runtime(source).quality
+        raise ValueError("downloaded-data quality input directory must be an exact quality runtime")
+    raw = _read_json(input_path)
+    nested = raw.get("quality")
+    return downloaded_data_quality_model.quality_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_query_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_quality_runtime_model.load_runtime(source).query
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    return downloaded_data_quality_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_quality_runtime_model.load_runtime(source)
+    raw = _read_json(input_path)
+    return downloaded_data_quality_runtime_model.runtime_from_mapping(raw)
 
 
 def _downloaded_contract_runtime_from_input(input_path: str):
@@ -21660,6 +21699,51 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_profile_runtime_audit.add_argument("input", type=str)
     downloaded_data_profile_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_profile_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_quality = subparsers.add_parser("downloaded-data-quality", help="evaluate structural quality of a downloaded-data profile")
+    downloaded_data_quality.add_argument("input", type=str)
+    downloaded_data_quality.add_argument("--policy", default=None)
+    downloaded_data_quality.add_argument("--result-id", default="glio-noncode-downloaded-data-quality")
+    downloaded_data_quality.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality.add_argument("--output", default=None)
+    downloaded_data_quality_audit = subparsers.add_parser("downloaded-data-quality-audit", help="audit a downloaded-data quality result")
+    downloaded_data_quality_audit.add_argument("input", type=str)
+    downloaded_data_quality_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_audit.add_argument("--output", default=None)
+    downloaded_data_quality_query = subparsers.add_parser("downloaded-data-quality-query", help="query downloaded-data quality findings")
+    downloaded_data_quality_query.add_argument("input", type=str)
+    downloaded_data_quality_query.add_argument("--resource", action="append", choices=downloaded_data_quality_query_model.RESOURCES)
+    downloaded_data_quality_query.add_argument("--rule-id", default="")
+    downloaded_data_quality_query.add_argument("--scope", default="")
+    downloaded_data_quality_query.add_argument("--severity", default="")
+    downloaded_data_quality_query.add_argument("--text", default="")
+    downloaded_data_quality_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_quality_query.add_argument("--limit", type=int, default=downloaded_data_quality_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_quality_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_query.add_argument("--output", default=None)
+    downloaded_data_quality_query_audit = subparsers.add_parser("downloaded-data-quality-query-audit", help="audit a downloaded-data quality query")
+    downloaded_data_quality_query_audit.add_argument("input", type=str)
+    downloaded_data_quality_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_query_audit.add_argument("--output", default=None)
+    downloaded_data_quality_runtime = subparsers.add_parser("downloaded-data-quality-runtime", help="build and optionally persist a downloaded-data quality runtime")
+    downloaded_data_quality_runtime.add_argument("input", type=str)
+    downloaded_data_quality_runtime.add_argument("--policy", default=None)
+    downloaded_data_quality_runtime.add_argument("--runtime-id", default=downloaded_data_quality_runtime_model.DEFAULT_RUNTIME_ID)
+    downloaded_data_quality_runtime.add_argument("--result-id", default="glio-noncode-downloaded-data-quality")
+    downloaded_data_quality_runtime.add_argument("--resource", action="append", choices=downloaded_data_quality_query_model.RESOURCES)
+    downloaded_data_quality_runtime.add_argument("--rule-id", default="")
+    downloaded_data_quality_runtime.add_argument("--scope", default="")
+    downloaded_data_quality_runtime.add_argument("--severity", default="")
+    downloaded_data_quality_runtime.add_argument("--text", default="")
+    downloaded_data_quality_runtime.add_argument("--offset", type=int, default=0)
+    downloaded_data_quality_runtime.add_argument("--limit", type=int, default=downloaded_data_quality_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_quality_runtime.add_argument("--destination", default=None)
+    downloaded_data_quality_runtime.add_argument("--overwrite", action="store_true")
+    downloaded_data_quality_runtime.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_runtime.add_argument("--output", default=None)
+    downloaded_data_quality_runtime_audit = subparsers.add_parser("downloaded-data-quality-runtime-audit", help="audit a downloaded-data quality runtime closure")
+    downloaded_data_quality_runtime_audit.add_argument("input", type=str)
+    downloaded_data_quality_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_runtime_audit.add_argument("--output", default=None)
     downloaded_data_profile_contract = subparsers.add_parser("downloaded-data-profile-contract", help="infer a value-free downloaded-data schema contract")
     downloaded_data_profile_contract.add_argument("input", type=str)
     downloaded_data_profile_contract.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
@@ -26152,6 +26236,40 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_profile_runtime_audit_model.audit_runtime(_downloaded_profile_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_profile_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality":
+            profile = _downloaded_profile_from_input(args.input)
+            policy = _downloaded_quality_policy_from_input(args.policy) if args.policy else None
+            value = downloaded_data_quality_model.build_quality(profile, policy=policy, result_id=args.result_id)
+            _emit_contract(value, args, downloaded_data_quality_model, json_name="quality_json", csv_name="quality_csv", markdown_name="render_quality_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-audit":
+            value = downloaded_data_quality_audit_model.audit_quality(_downloaded_quality_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-query":
+            quality = _downloaded_quality_from_input(args.input)
+            value = downloaded_data_quality_query_model.query_quality(quality, resources=tuple(args.resource or downloaded_data_quality_query_model.RESOURCES), rule_id=args.rule_id, scope=args.scope, severity=args.severity, text=args.text, offset=args.offset, limit=args.limit)
+            _emit_contract(value, args, downloaded_data_quality_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-quality-query-audit":
+            value = downloaded_data_quality_query_audit_model.audit_query(_downloaded_quality_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-runtime":
+            profile = _downloaded_profile_from_input(args.input)
+            policy = _downloaded_quality_policy_from_input(args.policy) if args.policy else None
+            value = downloaded_data_quality_runtime_model.build_runtime(profile, policy=policy, runtime_id=args.runtime_id, result_id=args.result_id, resources=tuple(args.resource or downloaded_data_quality_query_model.RESOURCES), rule_id=args.rule_id, scope=args.scope, severity=args.severity, text=args.text, offset=args.offset, limit=args.limit)
+            if args.destination:
+                downloaded_data_quality_runtime_model.persist_runtime(value, args.destination, overwrite=args.overwrite)
+            _emit_contract(value, args, downloaded_data_quality_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.release_ready else 2
+        if args.command == "downloaded-data-quality-runtime-audit":
+            runtime = _downloaded_quality_runtime_from_input(args.input)
+            quality_audit = downloaded_data_quality_audit_model.audit_quality(runtime.quality)
+            query_audit = downloaded_data_quality_query_audit_model.audit_query(runtime.query)
+            result = {"runtime_address": runtime.content_address, "quality_audit": quality_audit.to_dict(), "query_audit": query_audit.to_dict(), "accepted": quality_audit.accepted and query_audit.accepted}
+            _write_json(result, args.output)
+            return 0 if result["accepted"] else 2
         if args.command == "downloaded-data-profile-contract":
             value = _downloaded_contract_from_input(args.input)
             _emit_contract(value, args, downloaded_data_profile_contract_model, json_name="contract_json", csv_name="contract_csv", markdown_name="render_contract_markdown")
