@@ -875,7 +875,6 @@ candidate linkage. The live downloaded ZIP demo compares an empty baseline
 history to the ready candidate history and reports `improved`, one added
 snapshot, one unchanged snapshot, 30 query rows, and passing 16/16 and 13/13
 audits through both the CLI and HTTP API.
-+
 For a release-facing runtime closure above the portable registry-history diff,
 build a six-file package from the D161 diff. The closure carries the diff,
 its independent audit, the bounded query, the query audit, and a runtime
@@ -894,3 +893,23 @@ the independent runtime-audit schemas. The runtime audit has 15 checks. The
 live downloaded ZIP demo completes with `state=complete`, `accepted=true`,
 `release_ready=true`, and `direction=improved`; its D161 query remains
 bounded and fully returned.
+For deterministic admission above D162 runtime closures, build a registry from
+one or more persisted runtime packages. The registry rejects duplicate runtime
+identity or content addresses, folds readiness into a stable ready/blocked
+state, and exposes bounded entry, runtime, state, readiness, address, and
+bounds projections. Its exact four-file package is `manifest.json`,
+`registry.json`, `entries.json`, and `summary.json`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry runtime-registry-history-d161-runtime runtime-registry-history-d161-api-runtime --registry-id runtime-registry-history-d163 --destination runtime-registry-history-d163 --overwrite --format json --output runtime-registry-history-d163.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit runtime-registry-history-d163 --format json --output runtime-registry-history-d163-audit.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query runtime-registry-history-d163 --resource summary --resource entries --resource runtimes --resource states --resource readiness --resource addresses --resource bounds --limit 100 --format json --output runtime-registry-history-d163-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit runtime-registry-history-d163-query.json runtime-registry-history-d163 --format json --output runtime-registry-history-d163-query-audit.json
+```
+
+The API appends `/registry`, `/registry/audit`, `/registry/query`, and
+`/registry/query-audit` to the D162 runtime route. Discovery publishes registry,
+entry, entries, manifest, summary, query, and independent audit schemas. The
+live downloaded ZIP demo admits two closures with `state=ready`,
+`accepted=true`, 26/26 query rows, 16/16 registry-audit checks, and 12/12
+query-audit checks through both CLI and HTTP API.
