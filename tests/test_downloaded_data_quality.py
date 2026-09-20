@@ -279,6 +279,13 @@ class DownloadedDataQualityTests(unittest.TestCase):
         )
         self.assertTrue(diff_gate_audit_model.audit_gate(gate).accepted)
 
+    def test_quality_policy_rejects_noncanonical_content_addresses(self) -> None:
+        policy = quality_model.build_policy(policy_id="quality-address-boundary")
+        altered = policy.to_dict()
+        altered["content_address"] = quality_model.POLICY_PREFIX + ":short"
+        with self.assertRaisesRegex(ValidationError, "canonical content address"):
+            quality_model.policy_from_mapping(altered)
+
     def test_cli_and_api_surface_replays_profile_json(self) -> None:
         from urllib.parse import urlencode
         from urllib.request import urlopen
