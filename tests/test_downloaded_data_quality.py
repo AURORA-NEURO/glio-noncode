@@ -146,6 +146,10 @@ from glio_noncode import downloaded_data_quality_runtime_history_release_evidenc
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_audit as runtime_history_release_evidence_history_audit_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_query as runtime_history_release_evidence_history_query_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_query_audit as runtime_history_release_evidence_history_query_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime as runtime_history_release_evidence_history_runtime_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_audit as runtime_history_release_evidence_history_runtime_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_query as runtime_history_release_evidence_history_runtime_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_query_audit as runtime_history_release_evidence_history_runtime_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -1842,6 +1846,73 @@ class DownloadedDataQualityTests(unittest.TestCase):
                     ).read().decode()
                 )
                 self.assertEqual((api_evidence_history_d167_query_audit["passed_count"], api_evidence_history_d167_query_audit["accepted"]), (12, True))
+                d168_history = runtime_history_release_evidence_history_model.load_history(api_evidence_history_d167_destination)
+                d168_runtime = runtime_history_release_evidence_history_runtime_model.build_runtime(
+                    d168_history,
+                    runtime_id="quality-registry-history-d168-runtime",
+                    policy=runtime_history_release_evidence_history_runtime_model.build_policy(
+                        "quality-registry-history-d168-runtime",
+                        d168_history.history_id,
+                        minimum_entries=1,
+                        maximum_regressed=0,
+                        maximum_blocked=0,
+                    ),
+                )
+                self.assertEqual((d168_runtime.release_ready, d168_runtime.passed_count, d168_runtime.check_count), (True, 14, 14))
+                self.assertTrue(runtime_history_release_evidence_history_runtime_audit_model.audit_runtime(d168_runtime, d168_history).accepted)
+                d168_query = runtime_history_release_evidence_history_runtime_query_model.query_runtime(d168_runtime, limit=128)
+                self.assertEqual((d168_query.total_count, d168_query.returned_count, d168_query.truncated), (49, 49, False))
+                self.assertTrue(runtime_history_release_evidence_history_runtime_query_audit_model.audit_query(d168_query, d168_runtime).accepted)
+                d168_runtime_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-d168-api"
+                d168_runtime_json = Path(directory) / "runtime-history-release-evidence-history-runtime-d168-api.json"
+                self.assertEqual(
+                    main(
+                        [
+                            "downloaded-data-quality-runtime-history-release-evidence-history-runtime",
+                            str(api_evidence_history_d167_destination),
+                            "--runtime-id",
+                            "quality-registry-history-d168-cli",
+                            "--maximum-blocked",
+                            "0",
+                            "--destination",
+                            str(d168_runtime_destination),
+                            "--overwrite",
+                            "--format",
+                            "json",
+                            "--output",
+                            str(d168_runtime_json),
+                        ]
+                    ),
+                    0,
+                )
+                self.assertEqual(tuple(sorted(path.name for path in d168_runtime_destination.iterdir())), tuple(sorted(runtime_history_release_evidence_history_runtime_model.FILES)))
+                tampered_d168_runtime = json.loads((d168_runtime_destination / "summary.json").read_text(encoding="utf-8"))
+                tampered_d168_runtime["release_ready"] = False
+                (d168_runtime_destination / "summary.json").write_text(json.dumps(tampered_d168_runtime), encoding="utf-8")
+                with self.assertRaises(ValidationError):
+                    runtime_history_release_evidence_history_runtime_model.load_runtime(d168_runtime_destination)
+                runtime_history_release_evidence_history_runtime_model.persist_runtime(d168_runtime, d168_runtime_destination, overwrite=True)
+                d168_cli_runtime_audit_json = Path(directory) / "runtime-history-release-evidence-history-runtime-d168-cli-audit.json"
+                self.assertEqual(main(["downloaded-data-quality-runtime-history-release-evidence-history-runtime-audit", str(d168_runtime_destination), "--format", "json", "--output", str(d168_cli_runtime_audit_json)]), 0)
+                d168_cli_runtime_query_json = Path(directory) / "runtime-history-release-evidence-history-runtime-d168-cli-query.json"
+                self.assertEqual(main(["downloaded-data-quality-runtime-history-release-evidence-history-runtime-query", str(d168_runtime_destination), "--limit", "128", "--format", "json", "--output", str(d168_cli_runtime_query_json)]), 0)
+                d168_cli_runtime_query_audit_json = Path(directory) / "runtime-history-release-evidence-history-runtime-d168-cli-query-audit.json"
+                self.assertEqual(main(["downloaded-data-quality-runtime-history-release-evidence-history-runtime-query-audit", str(d168_cli_runtime_query_json), str(d168_runtime_destination), "--format", "json", "--output", str(d168_cli_runtime_query_audit_json)]), 0)
+                self.assertEqual((json.loads(d168_cli_runtime_audit_json.read_text(encoding="utf-8"))["passed_count"], json.loads(d168_cli_runtime_query_json.read_text(encoding="utf-8"))["returned_count"], json.loads(d168_cli_runtime_query_audit_json.read_text(encoding="utf-8"))["accepted"]), (14, 49, True))
+                d168_api_base = api_base + "/diff/gate/runtime-history/release-evidence-history/runtime"
+                d168_api_runtime_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-d168-http"
+                d168_api_runtime = json.loads(urlopen(d168_api_base + "?" + urlencode({"input": str(api_evidence_history_d167_destination), "runtime_id": "quality-registry-history-d168-http", "maximum_blocked": "0", "destination": str(d168_api_runtime_destination), "overwrite": "true", "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d168_api_runtime["release_ready"], d168_api_runtime["passed_count"], d168_api_runtime["check_count"]), (True, 14, 14))
+                d168_api_runtime_audit = json.loads(urlopen(d168_api_base + "/audit?" + urlencode({"input": str(d168_api_runtime_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d168_api_runtime_audit["passed_count"], d168_api_runtime_audit["accepted"]), (14, True))
+                d168_api_runtime_query = json.loads(urlopen(d168_api_base + "/query?" + urlencode({"input": str(d168_api_runtime_destination), "limit": "128", "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d168_api_runtime_query["returned_count"], d168_api_runtime_query["total_count"], d168_api_runtime_query["truncated"]), (49, 49, False))
+                d168_api_runtime_query_json = Path(directory) / "runtime-history-release-evidence-history-runtime-d168-http-query.json"
+                d168_api_runtime_query_json.write_text(json.dumps(d168_api_runtime_query), encoding="utf-8")
+                d168_api_runtime_query_audit = json.loads(urlopen(d168_api_base + "/query-audit?" + urlencode({"query": str(d168_api_runtime_query_json), "runtime": str(d168_api_runtime_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d168_api_runtime_query_audit["passed_count"], d168_api_runtime_query_audit["accepted"]), (12, True))
+                d168_schema = json.loads(urlopen(api_base + "/diff/gate/runtime-history/release-evidence-history/runtime/schema", timeout=10).read().decode())
+                self.assertEqual(d168_schema["title"], "HistoryRuntime")
             finally:
                 server.shutdown()
                 server.server_close()

@@ -1048,3 +1048,33 @@ Live downloaded-ZIP evidence for D167 used the persisted D166 release-evidence p
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-d167-live-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-d167-live-query-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-d167-api`
+
+## D168 downloaded-data quality runtime-history release-evidence history runtime
+
+D168 turns the append-only D167 evidence history into an explicit policy decision. The runtime evaluates minimum history depth, regression and blocked-snapshot budgets, latest state and evidence readiness, transition allowances, stable identity, canonical head/address namespaces, and the public boundary. It folds those checks into a deterministic `ready` or `blocked` release decision.
+
+The persisted runtime is an exact four-file directory:
+
+- `manifest.json`
+- `runtime.json`
+- `checks.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime HISTORY_DIR --runtime-id quality-release-evidence-runtime --minimum-entries 1 --maximum-regressed 0 --maximum-blocked 0 --destination RUNTIME_DIR --overwrite --format json --output runtime.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-audit RUNTIME_DIR --format json --output runtime-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-query RUNTIME_DIR --limit 128 --format json --output runtime-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-query-audit runtime-query.json RUNTIME_DIR --format json --output runtime-query-audit.json
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime`, with `/audit`, `/query`, and `/query-audit` suffixes. Schemas and capabilities are exposed beneath the same API family.
+
+Live downloaded-ZIP evidence for D168 used the persisted D167 history. The runtime produced `ready=true` with `14/14` policy checks; the independent runtime audit passed `14/14`; the bounded query returned `49/49` rows without truncation; and the independent query audit passed `12/12`. CLI and HTTP outputs were both generated, exact-file persistence and reload succeeded, and runtime tamper rejection is covered by the regression suite. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-runtime-d168-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-runtime-d168-live.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-runtime-d168-live-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-runtime-d168-live-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-runtime-d168-live-query-audit.json`
