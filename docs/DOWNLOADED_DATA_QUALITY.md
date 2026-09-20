@@ -725,3 +725,34 @@ pagination, row addresses, and registry linkage. The live ZIP demo builds two
 complete runtime handoffs, admits both, emits 26 bounded query rows, and
 persists the exact four-file registry without source paths, source records,
 payload bytes, private metadata, agent attributes, or language attributes.
+
+For append-only admission history above those runtime-handoff registries, build
+an empty baseline registry and a ready candidate registry. The history records
+the addressed registry snapshots, aggregate counts, ancestry, and deterministic
+`initial`/`improved`/`regressed`/`unchanged`/`changed` transitions. Persistence is
+an exact four-file package: `manifest.json`, `history.json`, `entries.json`, and
+`summary.json`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history `
+  empty-runtime-handoff-registry ready-runtime-handoff-registry `
+  --history-id runtime-handoff-registry-history --destination runtime-handoff-registry-history `
+  --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit `
+  runtime-handoff-registry-history --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query `
+  runtime-handoff-registry-history --resource summary --resource snapshots `
+  --resource transitions --resource states --resource readiness --resource addresses `
+  --resource bounds --limit 100 --format json --output runtime-handoff-registry-history-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit `
+  runtime-handoff-registry-history-query.json runtime-handoff-registry-history --format summary
+```
+
+The history API routes append `/runtime-registry/history/diff/runtime-registry/history`,
+`/audit`, `/query`, and `/query-audit` to the history-diff route. Discovery
+publishes entry, entries, manifest, summary, history, audit, query, and
+query-audit schemas and capabilities. The independent history audit has 16
+checks; the query audit has 12 checks and replays transition ordering, filters,
+pagination, row addresses, and history linkage. The live downloaded ZIP demo
+produces a ready two-entry history with `initial` then `improved` transitions,
+40 bounded query rows, and the exact four-file history package.

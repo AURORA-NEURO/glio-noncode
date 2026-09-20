@@ -99,6 +99,10 @@ from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolutio
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit as gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query as gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit as gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history as handoff_registry_history_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit as handoff_registry_history_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query as handoff_registry_history_query_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit as handoff_registry_history_query_audit_model
 
 
 def _permissive_policy(item_count: int) -> gate_model.DownloadedDataQualityDiffGatePolicy:
@@ -438,6 +442,24 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query,
         remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry,
     )
+    empty_handoff_registry = gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.build_registry(
+        (),
+        registry_id=remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry.registry_id,
+    )
+    handoff_registry_history = handoff_registry_history_model.build_history(
+        (empty_handoff_registry, remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry),
+        history_id="glio-noncode-downloaded-quality-diff-demo-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history",
+    )
+    handoff_registry_history_audit = handoff_registry_history_audit_model.audit_history(handoff_registry_history)
+    handoff_registry_history_query = handoff_registry_history_query_model.query_history(
+        handoff_registry_history,
+        resources=handoff_registry_history_query_model.RESOURCES,
+        limit=handoff_registry_history_query_model.MAX_LIMIT,
+    )
+    handoff_registry_history_query_audit = handoff_registry_history_query_audit_model.audit_query(
+        handoff_registry_history_query,
+        handoff_registry_history,
+    )
     summary: dict[str, object] = {
         "diff_address": diff.content_address,
         "diff_id": diff.diff_id,
@@ -636,6 +658,16 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_checks": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit.check_count,
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_rows": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query.returned_count,
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_accepted": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit.accepted,
+        "handoff_registry_history_state": handoff_registry_history.state,
+        "handoff_registry_history_entries": handoff_registry_history.entry_count,
+        "handoff_registry_history_transitions": tuple(item.transition for item in handoff_registry_history.entries),
+        "handoff_registry_history_accepted": handoff_registry_history.accepted,
+        "handoff_registry_history_audit_accepted": handoff_registry_history_audit.accepted,
+        "handoff_registry_history_audit_checks": handoff_registry_history_audit.check_count,
+        "handoff_registry_history_query_rows": handoff_registry_history_query.returned_count,
+        "handoff_registry_history_query_truncated": handoff_registry_history_query.truncated,
+        "handoff_registry_history_query_audit_accepted": handoff_registry_history_query_audit.accepted,
+        "handoff_registry_history_query_audit_checks": handoff_registry_history_query_audit.check_count,
         "permissive_state": permissive_gate.state,
         "permissive_decision": permissive_gate.decision,
         "permissive_accepted": permissive_gate.accepted,
@@ -774,6 +806,13 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit.json").write_text(gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model.audit_json(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit), encoding="utf-8")
         remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_root = root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry"
         gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.persist_registry(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry, remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_root, overwrite=True)
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history.json").write_text(handoff_registry_history_model.history_json(handoff_registry_history), encoding="utf-8")
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history.md").write_text(handoff_registry_history_model.render_history_markdown(handoff_registry_history), encoding="utf-8")
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit.json").write_text(handoff_registry_history_audit_model.audit_json(handoff_registry_history_audit), encoding="utf-8")
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query.json").write_text(handoff_registry_history_query_model.query_json(handoff_registry_history_query), encoding="utf-8")
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit.json").write_text(handoff_registry_history_query_audit_model.audit_json(handoff_registry_history_query_audit), encoding="utf-8")
+        handoff_registry_history_root = root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history"
+        handoff_registry_history_model.persist_history(handoff_registry_history, handoff_registry_history_root, overwrite=True)
         (root / "permissive-gate.json").write_text(gate_model.gate_json(permissive_gate), encoding="utf-8")
         summary["output_directory"] = str(root.resolve())
         summary["runtime_directory"] = str(runtime_root.resolve())
@@ -795,6 +834,8 @@ def main() -> int:
         "history_audit_accepted",
         "history_query_audit_accepted",
         "history_runtime_audit_accepted",
+         "handoff_registry_history_audit_accepted",
+         "handoff_registry_history_query_audit_accepted",
         "remediation_audit_accepted",
         "remediation_query_audit_accepted",
         "remediation_runtime_audit_accepted",
