@@ -154,6 +154,10 @@ from glio_noncode import downloaded_data_quality_runtime_history_release_evidenc
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_audit as runtime_history_release_evidence_history_runtime_registry_audit_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_query as runtime_history_release_evidence_history_runtime_registry_query_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_query_audit as runtime_history_release_evidence_history_runtime_registry_query_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history as runtime_history_release_evidence_history_runtime_registry_history_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_audit as runtime_history_release_evidence_history_runtime_registry_history_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_query as runtime_history_release_evidence_history_runtime_registry_history_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_query_audit as runtime_history_release_evidence_history_runtime_registry_history_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -1985,6 +1989,52 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 blocked_runtime = runtime_history_release_evidence_history_runtime_model.build_runtime(d168_history, runtime_id="quality-registry-history-d169-blocked-runtime", policy=blocked_policy)
                 blocked_registry = runtime_history_release_evidence_history_runtime_registry_model.build_registry((blocked_runtime,), registry_id="quality-registry-history-d169-blocked")
                 self.assertEqual((blocked_registry.state, blocked_registry.release_ready, blocked_registry.blocked_count), ("blocked", False, 1))
+                d170_blocked_runtime = runtime_history_release_evidence_history_runtime_model.build_runtime(
+                    d168_history,
+                    runtime_id="quality-registry-history-d170-blocked-runtime",
+                    policy=runtime_history_release_evidence_history_runtime_model.build_policy("quality-registry-history-d170-blocked-policy", d168_history.history_id, minimum_entries=2),
+                )
+                d170_blocked_registry = runtime_history_release_evidence_history_runtime_registry_model.build_registry((d170_blocked_runtime,), registry_id="quality-registry-history-d170")
+                d170_ready_registry = runtime_history_release_evidence_history_runtime_registry_model.build_registry((d168_runtime,), registry_id="quality-registry-history-d170")
+                d170_history = runtime_history_release_evidence_history_runtime_registry_history_model.build_history(d170_blocked_registry, history_id="quality-registry-history-d170-history", snapshot_id="blocked")
+                d170_history = runtime_history_release_evidence_history_runtime_registry_history_model.append_history(d170_history, d170_ready_registry, snapshot_id="ready", expected_head=d170_history.entries[-1].content_address)
+                self.assertEqual((d170_history.entry_count, d170_history.latest_state, d170_history.latest_release_ready, tuple(item.transition for item in d170_history.entries)), (2, "ready", True, ("initial", "improved")))
+                d170_history_audit = runtime_history_release_evidence_history_runtime_registry_history_audit_model.audit_history(d170_history)
+                self.assertEqual((d170_history_audit.passed_count, d170_history_audit.check_count, d170_history_audit.accepted), (16, 16, True))
+                d170_history_query = runtime_history_release_evidence_history_runtime_registry_history_query_model.query_history(d170_history, limit=128)
+                self.assertEqual((d170_history_query.total_count, d170_history_query.returned_count, d170_history_query.truncated), (30, 30, False))
+                d170_history_query_audit = runtime_history_release_evidence_history_runtime_registry_history_query_audit_model.audit_query(d170_history_query, d170_history)
+                self.assertEqual((d170_history_query_audit.passed_count, d170_history_query_audit.check_count, d170_history_query_audit.accepted), (12, 12, True))
+                d170_history_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d170"
+                runtime_history_release_evidence_history_runtime_registry_history_model.persist_history(d170_history, d170_history_destination)
+                self.assertEqual(tuple(sorted(path.name for path in d170_history_destination.iterdir())), tuple(sorted(runtime_history_release_evidence_history_runtime_registry_history_model.FILES)))
+                self.assertEqual(runtime_history_release_evidence_history_runtime_registry_history_model.load_history(d170_history_destination).content_address, d170_history.content_address)
+                tampered_d170_summary = json.loads((d170_history_destination / "summary.json").read_text(encoding="utf-8"))
+                tampered_d170_summary["improved_count"] = 0
+                (d170_history_destination / "summary.json").write_text(json.dumps(tampered_d170_summary), encoding="utf-8")
+                with self.assertRaises(ValidationError):
+                    runtime_history_release_evidence_history_runtime_registry_history_model.load_history(d170_history_destination)
+                runtime_history_release_evidence_history_runtime_registry_history_model.persist_history(d170_history, d170_history_destination, overwrite=True)
+                d170_history_cli_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d170-cli.json"
+                self.assertEqual(main(["downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history", str(d169_registry_destination), "--history-id", "quality-registry-history-d170-cli", "--snapshot-id", "initial", "--format", "json", "--output", str(d170_history_cli_json)]), 0)
+                d170_history_cli_loaded = json.loads(d170_history_cli_json.read_text(encoding="utf-8"))
+                self.assertEqual((d170_history_cli_loaded["entry_count"], d170_history_cli_loaded["latest_state"]), (1, "ready"))
+                d170_api_base = api_base + "/diff/gate/runtime-history/release-evidence-history/runtime/registry/history"
+                d170_api_history_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d170-http"
+                d170_api_history = json.loads(urlopen(d170_api_base + "?" + urlencode({"input": str(d169_registry_destination), "history_id": "quality-registry-history-d170-http", "snapshot_id": "initial", "destination": str(d170_api_history_destination), "overwrite": "true", "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d170_api_history["entry_count"], d170_api_history["latest_state"]), (1, "ready"))
+                d170_api_audit = json.loads(urlopen(d170_api_base + "/audit?" + urlencode({"input": str(d170_api_history_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d170_api_audit["passed_count"], d170_api_audit["accepted"]), (16, True))
+                d170_api_query = json.loads(urlopen(d170_api_base + "/query?" + urlencode({"input": str(d170_api_history_destination), "limit": "128", "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d170_api_query["returned_count"], d170_api_query["total_count"], d170_api_query["truncated"]), (29, 29, False))
+                d170_api_query_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d170-http-query.json"
+                d170_api_query_json.write_text(json.dumps(d170_api_query), encoding="utf-8")
+                d170_api_query_audit = json.loads(urlopen(d170_api_base + "/query-audit?" + urlencode({"query": str(d170_api_query_json), "history": str(d170_api_history_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d170_api_query_audit["passed_count"], d170_api_query_audit["accepted"]), (12, True))
+                d170_schema = json.loads(urlopen(api_base + "/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/schema", timeout=10).read().decode())
+                self.assertEqual(d170_schema["title"], "RegistryHistory")
+                with self.assertRaises(ValidationError):
+                    runtime_history_release_evidence_history_runtime_registry_history_model.append_history(d170_history, d170_ready_registry, snapshot_id="duplicate", expected_head=d170_history.entries[-1].content_address)
             finally:
                 server.shutdown()
                 server.server_close()

@@ -244,7 +244,7 @@ class RuntimeRegistrySummary:
 
     def _validate(self) -> None:
         expected_state = "empty" if self.entry_count == 0 else "ready" if self.blocked_count == 0 else "blocked"
-        if self.ready_count + self.blocked_count != self.entry_count or self.state != expected_state or self.accepted != (self.entry_count > 0) or self.release_ready != self.accepted:
+        if self.ready_count + self.blocked_count != self.entry_count or self.state != expected_state or self.accepted != (self.entry_count > 0) or self.release_ready != (self.state == "ready"):
             raise ValidationError("runtime registry summary disposition does not replay")
         if not self.content_address.startswith("pending:") and address_summary(self) != self.content_address:
             raise ValidationError("runtime registry summary address does not replay")
