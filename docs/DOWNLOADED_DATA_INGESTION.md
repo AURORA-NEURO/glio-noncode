@@ -1017,7 +1017,12 @@ The ingestion boundary is deliberately strict:
 - YAML support is intentionally conservative and accepts scalar, mapping,
   sequence, and block-scalar structures needed for bounded data inspection;
 - unknown contract fields are rejected during replay;
-- content addresses are recomputed from canonical values;
+- content addresses are canonical 64-hex digests and are recomputed from
+  canonical values;
+- catalog, selection, batch, and record versions/boundaries are replayed
+  against the current contract;
+- record fields, batch counts, and every record's source/catalog/selection
+  lineage are conserved rather than trusted from a caller projection;
 - public projections reject attribution and runtime-identity keys such as
   `agent`, `assistant`, `author`, `language`, and `model`;
 - schema and OpenAPI files are not silently interpreted as application data

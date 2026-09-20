@@ -109,6 +109,27 @@ class DownloadedDataIngestionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValidationError, "is invalid"):
             ingestion_model.build_ingest(stream.getvalue(), batch_id="nonfinite-batch")
 
+    def test_yaml_depth_and_replay_shape_boundaries_fail_closed(self):
+        nested = "value: 0\n"
+        for _ in range(ingestion_model.MAX_VALUE_DEPTH + 2):
+            nested = "  " + nested.replace("\n", "\n  ")
+            nested = "level:\n" + nested
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("data/deep.yaml", nested)
+        with self.assertRaisesRegex(ValidationError, "nesting bound"):
+            ingestion_model.build_ingest(stream.getvalue(), batch_id="deep-yaml-batch")
+
+        batch = ingestion_model.build_ingest(self._zip(), batch_id="shape-boundary-batch", record_limit=100)
+        altered = batch.records[0].to_dict()
+        altered["fields"] = ["forged-field"]
+        with self.assertRaisesRegex(ValidationError, "fields do not replay"):
+            ingestion_model.DownloadedDataRecord.from_mapping(altered)
+        batch_raw = batch.to_dict()
+        batch_raw["version"] = "downloaded-data-ingestion-v0"
+        with self.assertRaisesRegex(ValidationError, "version or boundary"):
+            ingestion_model.ingest_from_mapping(batch_raw)
+
     def test_query_and_query_audit_support_resources_and_empty_pages(self):
         batch = ingestion_model.build_ingest(self._zip(), batch_id="query-fixture-batch", record_limit=100)
         result = query_model.query_batch(batch, resources=("summary", "records", "lineage", "values"), member_name="data/table.csv", limit=100)

@@ -54,6 +54,9 @@ def _address(value: Any, field: str, prefix: str | None = None) -> str:
     value = _text(value, field, 2048)
     if "/" in value or "\\" in value or '"' in value or ":" not in value:
         raise ValidationError(f"{field} must be a public content address")
+    namespace, digest = value.split(":", 1)
+    if not namespace or len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest):
+        raise ValidationError(f"{field} must be a canonical content address")
     if prefix is not None and not value.startswith(prefix + ":"):
         raise ValidationError(f"{field} has the wrong address namespace")
     return value
@@ -240,11 +243,17 @@ class DownloadedDataMember:
         if "\\" in self.member_name or self.member_name.startswith("/") or any(part in {"", ".", ".."} for part in PurePosixPath(self.member_name).parts):
             raise ValidationError("downloaded data member name must be a safe POSIX path")
         self.suffix = _label(suffix, "downloaded data member suffix")
+        if self.suffix not in DATA_SUFFIXES:
+            raise ValidationError("downloaded data member suffix is unsupported")
         self.media_type = _label(media_type.replace("/", "-"), "downloaded data member media type")
         self.byte_size = _count(byte_size, "downloaded data member byte size", MAX_MEMBER_BYTES)
         self.digest = _address(digest, "downloaded data member digest", MEMBER_PREFIX)
         self.data_kind = _label(data_kind, "downloaded data member kind")
+        if self.data_kind != _data_kind(self.suffix):
+            raise ValidationError("downloaded data member kind does not match its suffix")
         self.shape = _label(shape, "downloaded data member shape")
+        if self.shape not in {"array", "lines", "object", "scalar", "table", "document"}:
+            raise ValidationError("downloaded data member shape is unsupported")
         self.record_count = _count(record_count, "downloaded data member record count", MAX_ROWS)
         self.field_count = _count(field_count, "downloaded data member field count", MAX_FIELDS)
         self.fields = _bounded_fields(fields, "downloaded data member")
@@ -287,6 +296,8 @@ class DownloadedDataCatalog:
         self.version = _text(version, "downloaded data catalog version")
         self.boundary = _text(boundary, "downloaded data catalog boundary", 512)
         self.source_name = _text(source_name, "downloaded data source name", 1024)
+        if "/" in self.source_name or "\\" in self.source_name or self.source_name in {".", ".."}:
+            raise ValidationError("downloaded data source name must be a safe file name")
         self.source_size = _count(source_size, "downloaded data source size", MAX_TOTAL_BYTES)
         self.member_count = _count(member_count, "downloaded data member count", MAX_MEMBERS)
         self.included_count = _count(included_count, "downloaded data included member count", MAX_MEMBERS)
@@ -299,6 +310,8 @@ class DownloadedDataCatalog:
         self._validate()
 
     def _validate(self) -> None:
+        if self.version != VERSION or self.boundary != BOUNDARY:
+            raise ValidationError("downloaded data catalog version or boundary is not current")
         if self.member_count != len(self.members) or self.included_count != self.member_count:
             raise ValidationError("downloaded data catalog member counts do not replay")
         if tuple(item.ordinal for item in self.members) != tuple(range(1, self.member_count + 1)) or len({item.member_name for item in self.members}) != self.member_count:

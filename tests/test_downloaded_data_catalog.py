@@ -70,6 +70,10 @@ class DownloadedDataCatalogTests(unittest.TestCase):
         altered["unknown"] = True
         with self.assertRaises(ValidationError):
             catalog_model.catalog_from_mapping(altered)
+        altered = value.to_dict()
+        altered["version"] = "downloaded-data-catalog-v0"
+        with self.assertRaisesRegex(ValidationError, "version or boundary"):
+            catalog_model.catalog_from_mapping(altered)
         stream = io.BytesIO()
         with zipfile.ZipFile(stream, "w") as archive:
             archive.writestr("../escape.json", "{}")

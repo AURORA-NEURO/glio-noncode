@@ -136,6 +136,9 @@ def _address(value: Any, field: str, prefix: str | None = None) -> str:
     value = _text(value, field, 2048)
     if "/" in value or "\\" in value or '"' in value or ":" not in value:
         raise ValidationError(f"{field} must be a public content address")
+    namespace, digest = value.split(":", 1)
+    if not namespace or len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest):
+        raise ValidationError(f"{field} must be a canonical content address")
     if prefix is not None and not value.startswith(prefix + ":"):
         raise ValidationError(f"{field} has the wrong address namespace")
     return value
@@ -223,7 +226,7 @@ def _fields(value: Any, fallback: Sequence[str] = ()) -> tuple[str, ...]:
         names = tuple(_key(item, "record field") for item in fallback)
     if len(names) > catalog_model.MAX_FIELDS or len(set(names)) != len(names):
         raise ValidationError("record fields are too numerous or duplicated")
-    return names
+    return tuple(sorted(names))
 
 
 def _safe_member_name(value: Any, field: str = "member name") -> str:
@@ -325,7 +328,9 @@ def _yaml_lines(text: str, name: str) -> list[tuple[int, str]]:
     return result
 
 
-def _parse_yaml_block(lines: list[tuple[int, str]], index: int, indent: int, name: str) -> tuple[Any, int]:
+def _parse_yaml_block(lines: list[tuple[int, str]], index: int, indent: int, name: str, depth: int = 0) -> tuple[Any, int]:
+    if depth > MAX_VALUE_DEPTH:
+        raise ValidationError(f"YAML member {name} exceeds the value nesting bound")
     if index >= len(lines) or lines[index][0] < indent:
         return None, index
     is_list = lines[index][0] == indent and lines[index][1].startswith("- ")
@@ -341,7 +346,7 @@ def _parse_yaml_block(lines: list[tuple[int, str]], index: int, indent: int, nam
                 raise ValidationError(f"YAML member {name} mixes mapping and sequence entries")
             item_text = content[2:].strip()
             if not item_text:
-                child, index = _parse_yaml_block(lines, index + 1, lines[index + 1][0], name) if index + 1 < len(lines) and lines[index + 1][0] > indent else (None, index + 1)
+                child, index = _parse_yaml_block(lines, index + 1, lines[index + 1][0], name, depth + 1) if index + 1 < len(lines) and lines[index + 1][0] > indent else (None, index + 1)
                 container.append(child)
                 continue
             if ":" in item_text and not item_text.startswith(('"', "'")):
@@ -349,7 +354,7 @@ def _parse_yaml_block(lines: list[tuple[int, str]], index: int, indent: int, nam
                 item: dict[str, Any] = {_key(raw_key.strip(), "YAML field"): _yaml_scalar(raw_value, name)}
                 index += 1
                 if index < len(lines) and lines[index][0] > indent:
-                    child, index = _parse_yaml_block(lines, index, lines[index][0], name)
+                    child, index = _parse_yaml_block(lines, index, lines[index][0], name, depth + 1)
                     if isinstance(child, Mapping):
                         item.update(child)
                     else:
@@ -377,7 +382,7 @@ def _parse_yaml_block(lines: list[tuple[int, str]], index: int, indent: int, nam
             else:
                 container[key] = _yaml_scalar(raw_value, name)
         elif index < len(lines) and lines[index][0] > indent:
-            child, index = _parse_yaml_block(lines, index, lines[index][0], name)
+            child, index = _parse_yaml_block(lines, index, lines[index][0], name, depth + 1)
             container[key] = child
         else:
             container[key] = None
@@ -463,6 +468,8 @@ class DownloadedDataSelection:
         self._validate()
 
     def _validate(self) -> None:
+        if self.version != VERSION or self.boundary != BOUNDARY:
+            raise ValidationError("selection version or boundary is not current")
         if not _public(self.to_dict()):
             raise ValidationError("selection crosses the public boundary")
         if not self.content_address.endswith(":pending") and address_selection(self) != self.content_address:
@@ -576,10 +583,15 @@ class DownloadedDataRecord:
         if self.data_kind not in DATA_KINDS:
             raise ValidationError("record data kind is unsupported")
         self.shape = _label(shape, "record shape")
+        if self.shape not in {"array", "document", "line", "object", "scalar", "table"}:
+            raise ValidationError("record shape is unsupported")
         self.fields = tuple(_key(item, "record field") for item in _sequence(fields, "record fields", catalog_model.MAX_FIELDS))
         if len(set(self.fields)) != len(self.fields):
             raise ValidationError("record fields are duplicated")
         self.value = _validated_value(value)
+        expected_fields = _fields(self.value)
+        if self.fields != expected_fields:
+            raise ValidationError("record fields do not replay the value")
         expected_size = len(canonical_json(self.value).encode("utf-8"))
         self.value_size = _count(value_size, "record value size", MAX_RECORD_BYTES)
         if self.value_size != expected_size or expected_size > MAX_RECORD_BYTES:
@@ -631,6 +643,8 @@ class DownloadedDataIngestBatch:
         self.version = _text(version, "downloaded data batch version")
         self.boundary = _text(boundary, "downloaded data batch boundary", 512)
         self.source_name = _text(source_name, "downloaded data source name", 1024)
+        if "/" in self.source_name or "\\" in self.source_name or self.source_name in {".", ".."}:
+            raise ValidationError("downloaded data source name must be a safe file name")
         self.source_address = _address(source_address, "downloaded data source address", SOURCE_PREFIX)
         self.catalog_address = _address(catalog_address, "downloaded data catalog address", catalog_model.CATALOG_PREFIX)
         self.selection = selection if isinstance(selection, DownloadedDataSelection) else DownloadedDataSelection.from_mapping(selection)
@@ -650,12 +664,18 @@ class DownloadedDataIngestBatch:
         self._validate()
 
     def _validate(self) -> None:
+        if self.version != VERSION or self.boundary != BOUNDARY:
+            raise ValidationError("downloaded data batch version or boundary is not current")
         if self.selected_member_count == 0 or self.record_count != len(self.records) or self.available_record_count != self.record_count + self.dropped_record_count:
             raise ValidationError("batch counts do not replay")
         if self.truncated != (self.dropped_record_count > 0) or self.complete != (not self.truncated) or self.state != ("truncated" if self.truncated else "complete"):
             raise ValidationError("batch truncation state does not replay")
         if tuple(item.ordinal for item in self.records) != tuple(range(1, self.record_count + 1)):
             raise ValidationError("batch record ordinals are not canonical")
+        if any((item.lineage.source_address, item.lineage.catalog_address, item.lineage.selection_address) != (self.source_address, self.catalog_address, self.selection.content_address) for item in self.records):
+            raise ValidationError("batch record lineage does not match the batch")
+        if self.selection.member_names and any(item.lineage.member_name not in self.selection.member_names for item in self.records):
+            raise ValidationError("batch record lineage is outside the selected members")
         if len({item.record_id for item in self.records}) != self.record_count or not _public(self.to_dict()):
             raise ValidationError("batch records are not unique or public")
         if not self.content_address.endswith(":pending") and address_batch(self) != self.content_address:
