@@ -756,3 +756,33 @@ checks; the query audit has 12 checks and replays transition ordering, filters,
 pagination, row addresses, and history linkage. The live downloaded ZIP demo
 produces a ready two-entry history with `initial` then `improved` transitions,
 40 bounded query rows, and the exact four-file history package.
+
+For a release-facing comparison above those runtime-handoff histories, build a
+baseline history and a candidate history with the same history identity. The
+diff replays each ordinal snapshot, records added/removed/changed/unchanged
+evidence, signs aggregate deltas, folds readiness into an `improved`,
+`regressed`, `changed`, or `unchanged` direction, and rejects value-private
+fields at construction and reload. Persistence is an exact four-file package:
+`manifest.json`, `diff.json`, `items.json`, and `summary.json`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff `
+  baseline-runtime-handoff-history candidate-runtime-handoff-history `
+  --diff-id runtime-handoff-history-diff --destination runtime-handoff-history-diff `
+  --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-audit `
+  runtime-handoff-history-diff --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query `
+  runtime-handoff-history-diff --resource summary --resource items --resource added `
+  --resource unchanged --resource addresses --resource bounds --limit 100 --format json
+```
+
+The API routes append `/runtime-registry/history/diff/runtime-registry/history/diff`,
+`/audit`, `/query`, and `/query-audit` to the history route. Discovery publishes
+item, items, manifest, summary, diff, audit, query, and query-audit schemas and
+capabilities. The independent diff audit has 16 checks; the query audit has 13
+checks and replays classification ordering, filters, pagination, row addresses,
+and baseline/candidate linkage. On the supplied downloaded ZIP, the live demo
+compares an empty baseline history to the ready candidate history and reports
+`improved`, one added snapshot, one unchanged snapshot, 30 query rows, and
+passing 16/16 and 13/13 audits.
