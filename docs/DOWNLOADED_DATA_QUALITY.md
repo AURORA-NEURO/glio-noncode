@@ -982,3 +982,37 @@ Live downloaded-ZIP evidence for D165 used the persisted D164 history at `C:/Use
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-gate-d165-live-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-gate-d165-live-query-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-gate-d165-api`
+
+## D166 downloaded-data quality runtime-history release evidence
+
+D166 packages one D165 release gate, its independent gate audit, the complete evidence query, and the independent query audit into one portable release-evidence contract. The summary records gate readiness, both audit decisions, query completeness, evidence readiness, checks, rows, and resource counts. Every nested artifact remains content-addressed and all cross-artifact identities and addresses replay before the package is accepted.
+
+The persisted evidence package is an exact seven-file directory:
+
+- `manifest.json`
+- `evidence.json`
+- `gate.json`
+- `gate-audit.json`
+- `query.json`
+- `query-audit.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence GATE_DIR HISTORY_DIR --evidence-id quality-release-evidence --destination EVIDENCE_DIR --overwrite --format json --output evidence.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-audit EVIDENCE_DIR --format json --output evidence-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-query EVIDENCE_DIR --limit 128 --format json --output evidence-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-query-audit evidence-query.json EVIDENCE_DIR --format json --output evidence-query-audit.json
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence`, with `/audit`, `/query`, and `/query-audit` suffixes.
+
+Live downloaded-ZIP evidence for D166 used the persisted D165 gate and D164 history. The CLI and HTTP API both produced `evidence_ready=true`; the embedded D165 query was `36/36`, the evidence query returned `55/55` rows without truncation, and the independent evidence and query audits each passed `12/12`. Exact-file reload succeeded and summary tampering was rejected. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-d166-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-d166-live.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-d166-live-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-d166-live-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-d166-live-query-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-d166-api`

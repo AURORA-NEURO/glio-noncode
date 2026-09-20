@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = 'c47b1ce0a64f8a1dc65ca9ba719971807978f15595783282a670d7e427fa057b'
+SURFACE_DIGEST = '20d990ae68b0fcfddbfd0215a8ab14b339029ddba2616b0129e2600e2ddf2c9b'
 
 ALL = (
     'CaseManifest',
@@ -42523,6 +42523,10 @@ CHILD_MODULES = {
     'downloaded_data_quality_query': 'glio_noncode.downloaded_data_quality_query',
     'downloaded_data_quality_query_audit': 'glio_noncode.downloaded_data_quality_query_audit',
     'downloaded_data_quality_runtime': 'glio_noncode.downloaded_data_quality_runtime',
+    'downloaded_data_quality_runtime_history_release_evidence': 'glio_noncode.downloaded_data_quality_runtime_history_release_evidence',
+    'downloaded_data_quality_runtime_history_release_evidence_audit': 'glio_noncode.downloaded_data_quality_runtime_history_release_evidence_audit',
+    'downloaded_data_quality_runtime_history_release_evidence_query': 'glio_noncode.downloaded_data_quality_runtime_history_release_evidence_query',
+    'downloaded_data_quality_runtime_history_release_evidence_query_audit': 'glio_noncode.downloaded_data_quality_runtime_history_release_evidence_query_audit',
     'downloaded_data_quality_runtime_history_release_gate': 'glio_noncode.downloaded_data_quality_runtime_history_release_gate',
     'downloaded_data_quality_runtime_history_release_gate_audit': 'glio_noncode.downloaded_data_quality_runtime_history_release_gate_audit',
     'downloaded_data_quality_runtime_history_release_gate_query': 'glio_noncode.downloaded_data_quality_runtime_history_release_gate_query',
@@ -46527,6 +46531,10 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_quality_query',
     'glio_noncode.downloaded_data_quality_query_audit',
     'glio_noncode.downloaded_data_quality_runtime',
+    'glio_noncode.downloaded_data_quality_runtime_history_release_evidence',
+    'glio_noncode.downloaded_data_quality_runtime_history_release_evidence_audit',
+    'glio_noncode.downloaded_data_quality_runtime_history_release_evidence_query',
+    'glio_noncode.downloaded_data_quality_runtime_history_release_evidence_query_audit',
     'glio_noncode.downloaded_data_quality_runtime_history_release_gate',
     'glio_noncode.downloaded_data_quality_runtime_history_release_gate_audit',
     'glio_noncode.downloaded_data_quality_runtime_history_release_gate_query',

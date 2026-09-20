@@ -862,6 +862,10 @@ from . import downloaded_data_quality_runtime_history_release_gate as downloaded
 from . import downloaded_data_quality_runtime_history_release_gate_audit as downloaded_data_quality_runtime_history_release_gate_audit_model
 from . import downloaded_data_quality_runtime_history_release_gate_query as downloaded_data_quality_runtime_history_release_gate_query_model
 from . import downloaded_data_quality_runtime_history_release_gate_query_audit as downloaded_data_quality_runtime_history_release_gate_query_audit_model
+from . import downloaded_data_quality_runtime_history_release_evidence as downloaded_data_quality_runtime_history_release_evidence_model
+from . import downloaded_data_quality_runtime_history_release_evidence_audit as downloaded_data_quality_runtime_history_release_evidence_audit_model
+from . import downloaded_data_quality_runtime_history_release_evidence_query as downloaded_data_quality_runtime_history_release_evidence_query_model
+from . import downloaded_data_quality_runtime_history_release_evidence_query_audit as downloaded_data_quality_runtime_history_release_evidence_query_audit_model
 from . import registry_federation_audit as registry_federation_audit_model
 from . import registry_federation_consensus as registry_federation_consensus_model
 from . import registry_federation_consensus_audit as registry_federation_consensus_audit_model
@@ -3951,6 +3955,25 @@ class ApiHandler(BaseHTTPRequestHandler):
             raise ValueError("downloaded-data quality release gate query input must be an object")
         nested = raw.get("query")
         return downloaded_data_quality_runtime_history_release_gate_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+    @staticmethod
+    def _downloaded_quality_runtime_history_release_evidence_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_quality_runtime_history_release_evidence_model.load_evidence(source)
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, Mapping):
+            raise ValueError("downloaded-data quality release evidence input must be an object")
+        nested = raw.get("evidence")
+        return downloaded_data_quality_runtime_history_release_evidence_model.evidence_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+    @staticmethod
+    def _downloaded_quality_runtime_history_release_evidence_query_from_input(input_path: str):
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
+        if not isinstance(raw, Mapping):
+            raise ValueError("downloaded-data quality release evidence query input must be an object")
+        nested = raw.get("query")
+        return downloaded_data_quality_runtime_history_release_evidence_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
     @staticmethod
     def _downloaded_quality_policy_from_input(input_path: str):
@@ -7432,6 +7455,44 @@ class ApiHandler(BaseHTTPRequestHandler):
                     gate = self._downloaded_quality_runtime_history_release_gate_from_input(self._query_value(query, "gate") or self._query_value(query, "source") or "")
                     value = downloaded_data_quality_runtime_history_release_gate_query_audit_model.audit_query(query_value, gate)
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_gate_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == gate_prefix + "/runtime-history/release-evidence":
+                    gate = self._downloaded_quality_runtime_history_release_gate_from_input(self._query_value(query, "gate") or self._query_value(query, "input") or "")
+                    history = self._downloaded_quality_runtime_history_from_input(self._query_value(query, "history") or self._query_value(query, "source") or "")
+                    gate_audit = downloaded_data_quality_runtime_history_release_gate_audit_model.audit_gate(gate, history)
+                    gate_query = downloaded_data_quality_runtime_history_release_gate_query_model.query_gate(gate, resources=downloaded_data_quality_runtime_history_release_gate_query_model.RESOURCES, limit=downloaded_data_quality_runtime_history_release_gate_query_model.MAX_LIMIT)
+                    gate_query_audit = downloaded_data_quality_runtime_history_release_gate_query_audit_model.audit_query(gate_query, gate)
+                    value = downloaded_data_quality_runtime_history_release_evidence_model.build_evidence(gate, gate_audit, gate_query, gate_query_audit, evidence_id=self._query_value(query, "evidence_id") or downloaded_data_quality_runtime_history_release_evidence_model.DEFAULT_EVIDENCE_ID)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_quality_runtime_history_release_evidence_model.persist_evidence(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_evidence_model, json_name="evidence_json", csv_name="evidence_csv", markdown_name="render_evidence_markdown")
+                    return
+                if path == gate_prefix + "/runtime-history/release-evidence/audit":
+                    value = downloaded_data_quality_runtime_history_release_evidence_audit_model.audit_evidence(self._downloaded_quality_runtime_history_release_evidence_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_evidence_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == gate_prefix + "/runtime-history/release-evidence/query":
+                    evidence = self._downloaded_quality_runtime_history_release_evidence_from_input(self._query_value(query, "input") or "")
+                    passed_raw = self._query_value(query, "passed_filter")
+                    passed_filter = None if not passed_raw else passed_raw.lower() == "true"
+                    value = downloaded_data_quality_runtime_history_release_evidence_query_model.query_evidence(
+                        evidence,
+                        resources=self._query_values(query, "resource") or downloaded_data_quality_runtime_history_release_evidence_query_model.RESOURCES,
+                        state_filter=self._query_value(query, "state") or "",
+                        passed_filter=passed_filter,
+                        severity_filter=self._query_value(query, "severity") or "",
+                        text_filter=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_quality_runtime_history_release_evidence_query_model.MAX_LIMIT),
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_evidence_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == gate_prefix + "/runtime-history/release-evidence/query-audit":
+                    query_value = self._downloaded_quality_runtime_history_release_evidence_query_from_input(self._query_value(query, "query") or self._query_value(query, "input") or "")
+                    evidence = self._downloaded_quality_runtime_history_release_evidence_from_input(self._query_value(query, "evidence") or self._query_value(query, "source") or "")
+                    value = downloaded_data_quality_runtime_history_release_evidence_query_audit_model.audit_query(query_value, evidence)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_evidence_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 history_prefix = gate_prefix + "/history"
                 if path == gate_prefix + "/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime/registry":
@@ -11774,6 +11835,19 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/quality/diff/gate/runtime-history/release-gate/query-audit/check-schema": downloaded_data_quality_runtime_history_release_gate_query_audit_model.check_schema,
                     "/quality/diff/gate/runtime-history/release-gate/query-audit/schema": downloaded_data_quality_runtime_history_release_gate_query_audit_model.audit_schema,
                     "/quality/diff/gate/runtime-history/release-gate/query-audit/capabilities": downloaded_data_quality_runtime_history_release_gate_query_audit_model.capabilities,
+                    "/quality/diff/gate/runtime-history/release-evidence/manifest-schema": downloaded_data_quality_runtime_history_release_evidence_model.manifest_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence/summary-schema": downloaded_data_quality_runtime_history_release_evidence_model.summary_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence/schema": downloaded_data_quality_runtime_history_release_evidence_model.evidence_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence/capabilities": downloaded_data_quality_runtime_history_release_evidence_model.capabilities,
+                    "/quality/diff/gate/runtime-history/release-evidence/audit/check-schema": downloaded_data_quality_runtime_history_release_evidence_audit_model.check_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence/audit/schema": downloaded_data_quality_runtime_history_release_evidence_audit_model.audit_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence/audit/capabilities": downloaded_data_quality_runtime_history_release_evidence_audit_model.capabilities,
+                    "/quality/diff/gate/runtime-history/release-evidence/query/row-schema": downloaded_data_quality_runtime_history_release_evidence_query_model.row_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence/query/schema": downloaded_data_quality_runtime_history_release_evidence_query_model.query_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence/query/capabilities": downloaded_data_quality_runtime_history_release_evidence_query_model.capabilities,
+                    "/quality/diff/gate/runtime-history/release-evidence/query-audit/check-schema": downloaded_data_quality_runtime_history_release_evidence_query_audit_model.check_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence/query-audit/schema": downloaded_data_quality_runtime_history_release_evidence_query_audit_model.audit_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence/query-audit/capabilities": downloaded_data_quality_runtime_history_release_evidence_query_audit_model.capabilities,
                     "/quality/diff/gate/remediation/resolution/history/entry-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_model.entry_schema,
                     "/quality/diff/gate/remediation/resolution/history/schema": downloaded_data_quality_diff_gate_remediation_resolution_history_model.history_schema,
                     "/quality/diff/gate/remediation/resolution/history/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_model.capabilities,

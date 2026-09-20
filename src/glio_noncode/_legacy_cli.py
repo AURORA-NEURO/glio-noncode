@@ -375,6 +375,10 @@ from . import downloaded_data_quality_runtime_history_release_gate as downloaded
 from . import downloaded_data_quality_runtime_history_release_gate_audit as downloaded_data_quality_runtime_history_release_gate_audit_model
 from . import downloaded_data_quality_runtime_history_release_gate_query as downloaded_data_quality_runtime_history_release_gate_query_model
 from . import downloaded_data_quality_runtime_history_release_gate_query_audit as downloaded_data_quality_runtime_history_release_gate_query_audit_model
+from . import downloaded_data_quality_runtime_history_release_evidence as downloaded_data_quality_runtime_history_release_evidence_model
+from . import downloaded_data_quality_runtime_history_release_evidence_audit as downloaded_data_quality_runtime_history_release_evidence_audit_model
+from . import downloaded_data_quality_runtime_history_release_evidence_query as downloaded_data_quality_runtime_history_release_evidence_query_model
+from . import downloaded_data_quality_runtime_history_release_evidence_query_audit as downloaded_data_quality_runtime_history_release_evidence_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
 from . import downloaded_data_profile_contract as downloaded_data_profile_contract_model
 from . import downloaded_data_profile_contract_audit as downloaded_data_profile_contract_audit_model
@@ -6277,6 +6281,21 @@ def _downloaded_quality_runtime_history_release_gate_query_from_input(input_path
     raw = _read_json(input_path)
     nested = raw.get("query")
     return downloaded_data_quality_runtime_history_release_gate_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_runtime_history_release_evidence_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_quality_runtime_history_release_evidence_model.load_evidence(source)
+    raw = _read_json(input_path)
+    nested = raw.get("evidence")
+    return downloaded_data_quality_runtime_history_release_evidence_model.evidence_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_runtime_history_release_evidence_query_from_input(input_path: str):
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    return downloaded_data_quality_runtime_history_release_evidence_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
 
 def _downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(input_path: str):
@@ -22510,6 +22529,32 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_quality_runtime_history_release_gate_query_audit.add_argument("input", nargs=2, type=str)
     downloaded_data_quality_runtime_history_release_gate_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_quality_runtime_history_release_gate_query_audit.add_argument("--output", default=None)
+    downloaded_data_quality_runtime_history_release_evidence = subparsers.add_parser("downloaded-data-quality-runtime-history-release-evidence", help="package downloaded-data quality release evidence")
+    downloaded_data_quality_runtime_history_release_evidence.add_argument("input", nargs=2, type=str)
+    downloaded_data_quality_runtime_history_release_evidence.add_argument("--evidence-id", default=downloaded_data_quality_runtime_history_release_evidence_model.DEFAULT_EVIDENCE_ID)
+    downloaded_data_quality_runtime_history_release_evidence.add_argument("--destination", default=None)
+    downloaded_data_quality_runtime_history_release_evidence.add_argument("--overwrite", action="store_true")
+    downloaded_data_quality_runtime_history_release_evidence.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_runtime_history_release_evidence.add_argument("--output", default=None)
+    downloaded_data_quality_runtime_history_release_evidence_audit = subparsers.add_parser("downloaded-data-quality-runtime-history-release-evidence-audit", help="audit downloaded-data quality release evidence")
+    downloaded_data_quality_runtime_history_release_evidence_audit.add_argument("input", type=str)
+    downloaded_data_quality_runtime_history_release_evidence_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_runtime_history_release_evidence_audit.add_argument("--output", default=None)
+    downloaded_data_quality_runtime_history_release_evidence_query = subparsers.add_parser("downloaded-data-quality-runtime-history-release-evidence-query", help="query downloaded-data quality release evidence")
+    downloaded_data_quality_runtime_history_release_evidence_query.add_argument("input", type=str)
+    downloaded_data_quality_runtime_history_release_evidence_query.add_argument("--resource", action="append", choices=downloaded_data_quality_runtime_history_release_evidence_query_model.RESOURCES)
+    downloaded_data_quality_runtime_history_release_evidence_query.add_argument("--state", default="", choices=("",) + downloaded_data_quality_runtime_history_release_evidence_query_model.STATES)
+    downloaded_data_quality_runtime_history_release_evidence_query.add_argument("--passed-filter", default="", choices=("", "true", "false"))
+    downloaded_data_quality_runtime_history_release_evidence_query.add_argument("--severity", default="", choices=("",) + downloaded_data_quality_runtime_history_release_evidence_query_model.SEVERITIES)
+    downloaded_data_quality_runtime_history_release_evidence_query.add_argument("--text", default="")
+    downloaded_data_quality_runtime_history_release_evidence_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_quality_runtime_history_release_evidence_query.add_argument("--limit", type=int, default=downloaded_data_quality_runtime_history_release_evidence_query_model.MAX_LIMIT)
+    downloaded_data_quality_runtime_history_release_evidence_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_runtime_history_release_evidence_query.add_argument("--output", default=None)
+    downloaded_data_quality_runtime_history_release_evidence_query_audit = subparsers.add_parser("downloaded-data-quality-runtime-history-release-evidence-query-audit", help="audit a release evidence query")
+    downloaded_data_quality_runtime_history_release_evidence_query_audit.add_argument("input", nargs=2, type=str)
+    downloaded_data_quality_runtime_history_release_evidence_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_runtime_history_release_evidence_query_audit.add_argument("--output", default=None)
     downloaded_data_quality = subparsers.add_parser("downloaded-data-quality", help="evaluate structural quality of a downloaded-data profile")
     downloaded_data_quality.add_argument("input", type=str)
     downloaded_data_quality.add_argument("--policy", default=None)
@@ -27899,6 +27944,33 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_quality_runtime_history_release_gate_query_audit_model.audit_query(query, gate)
             _emit_contract(value, args, downloaded_data_quality_runtime_history_release_gate_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-runtime-history-release-evidence":
+            gate = _downloaded_quality_runtime_history_release_gate_from_input(args.input[0])
+            history = _downloaded_quality_runtime_history_from_input(args.input[1])
+            gate_audit = downloaded_data_quality_runtime_history_release_gate_audit_model.audit_gate(gate, history)
+            gate_query = downloaded_data_quality_runtime_history_release_gate_query_model.query_gate(gate, resources=downloaded_data_quality_runtime_history_release_gate_query_model.RESOURCES, limit=downloaded_data_quality_runtime_history_release_gate_query_model.MAX_LIMIT)
+            gate_query_audit = downloaded_data_quality_runtime_history_release_gate_query_audit_model.audit_query(gate_query, gate)
+            value = downloaded_data_quality_runtime_history_release_evidence_model.build_evidence(gate, gate_audit, gate_query, gate_query_audit, evidence_id=args.evidence_id)
+            if args.destination:
+                downloaded_data_quality_runtime_history_release_evidence_model.persist_evidence(value, args.destination, overwrite=args.overwrite)
+            _emit_contract(value, args, downloaded_data_quality_runtime_history_release_evidence_model, json_name="evidence_json", csv_name="evidence_csv", markdown_name="render_evidence_markdown")
+            return 0 if value.summary.evidence_ready else 2
+        if args.command == "downloaded-data-quality-runtime-history-release-evidence-audit":
+            value = downloaded_data_quality_runtime_history_release_evidence_audit_model.audit_evidence(_downloaded_quality_runtime_history_release_evidence_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_runtime_history_release_evidence_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-runtime-history-release-evidence-query":
+            evidence = _downloaded_quality_runtime_history_release_evidence_from_input(args.input)
+            passed_filter = None if not args.passed_filter else args.passed_filter == "true"
+            value = downloaded_data_quality_runtime_history_release_evidence_query_model.query_evidence(evidence, resources=tuple(args.resource or downloaded_data_quality_runtime_history_release_evidence_query_model.RESOURCES), state_filter=args.state, passed_filter=passed_filter, severity_filter=args.severity, text_filter=args.text, offset=args.offset, limit=args.limit)
+            _emit_contract(value, args, downloaded_data_quality_runtime_history_release_evidence_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-quality-runtime-history-release-evidence-query-audit":
+            query = _downloaded_quality_runtime_history_release_evidence_query_from_input(args.input[0])
+            evidence = _downloaded_quality_runtime_history_release_evidence_from_input(args.input[1])
+            value = downloaded_data_quality_runtime_history_release_evidence_query_audit_model.audit_query(query, evidence)
+            _emit_contract(value, args, downloaded_data_quality_runtime_history_release_evidence_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "downloaded-data-quality":
             profile = _downloaded_profile_from_input(args.input)
             policy = _downloaded_quality_policy_from_input(args.policy) if args.policy else None
@@ -33064,6 +33136,19 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-quality-runtime-history-release-gate-query-audit-check-schema": downloaded_data_quality_runtime_history_release_gate_query_audit_model.check_schema,
             "downloaded-data-quality-runtime-history-release-gate-query-audit-schema": downloaded_data_quality_runtime_history_release_gate_query_audit_model.audit_schema,
             "downloaded-data-quality-runtime-history-release-gate-query-audit-capabilities": downloaded_data_quality_runtime_history_release_gate_query_audit_model.capabilities,
+            "downloaded-data-quality-runtime-history-release-evidence-manifest-schema": downloaded_data_quality_runtime_history_release_evidence_model.manifest_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-summary-schema": downloaded_data_quality_runtime_history_release_evidence_model.summary_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-schema": downloaded_data_quality_runtime_history_release_evidence_model.evidence_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-capabilities": downloaded_data_quality_runtime_history_release_evidence_model.capabilities,
+            "downloaded-data-quality-runtime-history-release-evidence-audit-check-schema": downloaded_data_quality_runtime_history_release_evidence_audit_model.check_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-audit-schema": downloaded_data_quality_runtime_history_release_evidence_audit_model.audit_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-audit-capabilities": downloaded_data_quality_runtime_history_release_evidence_audit_model.capabilities,
+            "downloaded-data-quality-runtime-history-release-evidence-query-row-schema": downloaded_data_quality_runtime_history_release_evidence_query_model.row_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-query-schema": downloaded_data_quality_runtime_history_release_evidence_query_model.query_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-query-capabilities": downloaded_data_quality_runtime_history_release_evidence_query_model.capabilities,
+            "downloaded-data-quality-runtime-history-release-evidence-query-audit-check-schema": downloaded_data_quality_runtime_history_release_evidence_query_audit_model.check_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-query-audit-schema": downloaded_data_quality_runtime_history_release_evidence_query_audit_model.audit_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-query-audit-capabilities": downloaded_data_quality_runtime_history_release_evidence_query_audit_model.capabilities,
             "downloaded-data-profile-contract-field-schema": downloaded_data_profile_contract_model.field_schema,
             "downloaded-data-profile-contract-member-schema": downloaded_data_profile_contract_model.member_schema,
             "downloaded-data-profile-contract-schema": downloaded_data_profile_contract_model.contract_schema,
