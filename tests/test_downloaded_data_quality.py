@@ -74,6 +74,10 @@ from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolutio
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit_model
 from glio_noncode import downloaded_data_quality_query as query_model
 from glio_noncode import downloaded_data_quality_query_audit as query_audit_model
 from glio_noncode import downloaded_data_quality_runtime as runtime_model
@@ -576,6 +580,43 @@ class DownloadedDataQualityTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.load_history(destination)
 
+    def test_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_replays_changes(self) -> None:
+        profile = self._profile()
+        left = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-registry-history-diff-left"), result_id="quality-registry-history-diff-left")
+        right = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-registry-history-diff-right", max_distinct_values=1), result_id="quality-registry-history-diff-right")
+        source_diff = diff_model.build_diff(left, right, diff_id="quality-registry-history-diff-source")
+        gate = diff_gate_model.evaluate(source_diff, gate_id="quality-registry-history-diff-gate")
+        plan = diff_gate_remediation_model.build_plan(gate, plan_id="quality-registry-history-diff-plan")
+        pending = diff_gate_remediation_resolution_model.build_resolution(plan, resolution_id="quality-registry-history-diff-pending")
+        closed = diff_gate_remediation_resolution_model.build_resolution(plan, resolution_id="quality-registry-history-diff-closed", statuses={item.content_address: "resolved" for item in plan.actions if item.required})
+        resolution_history = diff_gate_remediation_resolution_history_model.build_history((pending, closed), history_id="quality-registry-history-diff-resolution-history")
+        policy = diff_gate_remediation_resolution_history_diff_policy_model.default_policy(policy_id="quality-registry-history-diff-policy", max_added_count=1, max_improved_delta=1)
+        runtime = diff_gate_remediation_resolution_history_diff_policy_runtime_model.build_runtime(diff_gate_remediation_resolution_history_diff_model.build_diff(
+            diff_gate_remediation_resolution_history_model.build_history((pending,), history_id="quality-registry-history-diff-resolution-baseline"),
+            resolution_history,
+            diff_id="quality-registry-history-diff-source-history-diff",
+        ), policy=policy, runtime_id="quality-registry-history-diff-runtime", resources=("summary", "rules"), limit=100)
+        first = diff_gate_remediation_resolution_history_diff_policy_package_model.build_package(runtime, package_id="quality-registry-history-diff-package-a")
+        second = diff_gate_remediation_resolution_history_diff_policy_package_model.build_package(runtime, package_id="quality-registry-history-diff-package-b")
+        baseline_registry = diff_gate_remediation_resolution_history_diff_policy_package_registry_model.build_registry((first,), registry_id="quality-registry-history-diff-registry")
+        candidate_registry = diff_gate_remediation_resolution_history_diff_policy_package_registry_model.build_registry((second, first), registry_id="quality-registry-history-diff-registry")
+        baseline = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.build_history((baseline_registry,), history_id="quality-registry-history-diff")
+        candidate = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.build_history((baseline_registry, candidate_registry), history_id="quality-registry-history-diff")
+        value = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_model.build_diff(baseline, candidate, diff_id="quality-registry-history-diff")
+        self.assertEqual((value.added_count, value.removed_count, value.changed_count, value.unchanged_count, value.direction, value.state_transition), (1, 0, 0, 1, "improved", "ready->ready"))
+        self.assertEqual(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_model.diff_from_mapping(value.to_dict()).content_address, value.content_address)
+        audit = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_audit_model.audit_diff(value)
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_audit_model.MAX_CHECKS, diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_audit_model.MAX_CHECKS, True))
+        query = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_model.query_diff(value, resources=diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_model.RESOURCES, limit=100)
+        self.assertEqual((query.total_count, query.returned_count, query.truncated), (5, 5, False))
+        query_audit = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit_model.audit_query(query)
+        self.assertEqual((query_audit.check_count, query_audit.passed_count, query_audit.accepted), (diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit_model.MAX_CHECKS, diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit_model.MAX_CHECKS, True))
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "policy-package-registry-history-diff"
+            diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_model.persist_diff(value, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_model.FILES)))
+            self.assertEqual(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_model.load_diff(destination).content_address, value.content_address)
+
     def test_quality_diff_gate_history_replays_ancestry_transitions_and_queries(self) -> None:
         profile = self._profile()
         left = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-history-left"), result_id="quality-history-left")
@@ -792,6 +833,15 @@ class DownloadedDataQualityTests(unittest.TestCase):
             self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query", str(resolution_history_diff_policy_package_registry_history_path), "--resource", "summary", "--resource", "entries", "--resource", "ready", "--resource", "decisions", "--resource", "transitions", "--limit", "100", "--format", "json", "--output", str(resolution_history_diff_policy_package_registry_history_query_path)]), 0)
             self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-audit", str(resolution_history_diff_policy_package_registry_history_query_path), "--format", "json", "--output", str(root / "diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-audit.json")]), 0)
             self.assertEqual(tuple(sorted(path.name for path in resolution_history_diff_policy_package_registry_history_path.iterdir())), tuple(sorted(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.FILES)))
+            resolution_history_diff_policy_package_registry_history_baseline_path = root / "diff-gate-remediation-resolution-history-diff-policy-package-registry-history-baseline"
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history", str(resolution_history_diff_policy_package_registry_two_path), "--history-id", "quality-e2e-policy-registry-history", "--destination", str(resolution_history_diff_policy_package_registry_history_baseline_path), "--overwrite", "--format", "summary", "--output", str(root / "diff-gate-remediation-resolution-history-diff-policy-package-registry-history-baseline-summary.json")]), 0)
+            resolution_history_diff_policy_package_registry_history_diff_path = root / "diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff"
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff", str(resolution_history_diff_policy_package_registry_history_baseline_path), str(resolution_history_diff_policy_package_registry_history_path), "--diff-id", "quality-e2e-policy-registry-history-diff", "--destination", str(resolution_history_diff_policy_package_registry_history_diff_path), "--overwrite", "--format", "json", "--output", str(root / "diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff.json")]), 0)
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-audit", str(resolution_history_diff_policy_package_registry_history_diff_path), "--format", "json", "--output", str(root / "diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-audit.json")]), 0)
+            resolution_history_diff_policy_package_registry_history_diff_query_path = root / "diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-query.json"
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-query", str(resolution_history_diff_policy_package_registry_history_diff_path), "--resource", "summary", "--resource", "items", "--resource", "added", "--limit", "100", "--format", "json", "--output", str(resolution_history_diff_policy_package_registry_history_diff_query_path)]), 0)
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-query-audit", str(resolution_history_diff_policy_package_registry_history_diff_query_path), "--format", "json", "--output", str(root / "diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-query-audit.json")]), 0)
+            self.assertEqual(tuple(sorted(path.name for path in resolution_history_diff_policy_package_registry_history_diff_path.iterdir())), tuple(sorted(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_model.FILES)))
             self.assertEqual(main(["downloaded-data-quality-diff-gate-query", str(gate_path), "--resource", "blocked", "--outcome", "blocked", "--limit", "2", "--format", "json", "--output", str(root / "diff-gate-query.json")]), 0)
             self.assertEqual(main(["downloaded-data-quality-diff-gate-query-audit", str(root / "diff-gate-query.json"), "--format", "json", "--output", str(root / "diff-gate-query-audit.json")]), 0)
             diff_gate_runtime_path = root / "diff-gate-runtime"
@@ -922,6 +972,14 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 self.assertEqual((api_resolution_history_diff_policy_package_registry_history_query["returned_count"], api_resolution_history_diff_policy_package_registry_history_query["truncated"]), (9, False))
                 api_resolution_history_diff_policy_package_registry_history_query_audit = json.loads(urlopen(diff_base + "/gate/remediation/resolution/history/diff/policy/package/registry/history/query-audit?" + urlencode({"input": str(resolution_history_diff_policy_package_registry_history_query_path)}), timeout=10).read().decode())
                 self.assertTrue(api_resolution_history_diff_policy_package_registry_history_query_audit["accepted"])
+                api_resolution_history_diff_policy_package_registry_history_diff = json.loads(urlopen(diff_base + "/gate/remediation/resolution/history/diff/policy/package/registry/history/diff?" + urlencode({"input": [str(resolution_history_diff_policy_package_registry_history_baseline_path), str(resolution_history_diff_policy_package_registry_history_path)], "diff_id": "quality-api-policy-registry-history-diff", "format": "json"}, doseq=True), timeout=10).read().decode())
+                self.assertEqual((api_resolution_history_diff_policy_package_registry_history_diff["direction"], api_resolution_history_diff_policy_package_registry_history_diff["added_count"], api_resolution_history_diff_policy_package_registry_history_diff["unchanged_count"]), ("improved", 1, 1))
+                api_resolution_history_diff_policy_package_registry_history_diff_audit = json.loads(urlopen(diff_base + "/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/audit?" + urlencode({"input": str(resolution_history_diff_policy_package_registry_history_diff_path)}), timeout=10).read().decode())
+                self.assertTrue(api_resolution_history_diff_policy_package_registry_history_diff_audit["accepted"])
+                api_resolution_history_diff_policy_package_registry_history_diff_query = json.loads(urlopen(diff_base + "/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/query?" + urlencode({"input": str(resolution_history_diff_policy_package_registry_history_diff_path), "resource": ["summary", "items", "added"], "limit": "100"}, doseq=True), timeout=10).read().decode())
+                self.assertEqual((api_resolution_history_diff_policy_package_registry_history_diff_query["returned_count"], api_resolution_history_diff_policy_package_registry_history_diff_query["truncated"]), (4, False))
+                api_resolution_history_diff_policy_package_registry_history_diff_query_audit = json.loads(urlopen(diff_base + "/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/query-audit?" + urlencode({"input": str(resolution_history_diff_policy_package_registry_history_diff_query_path)}), timeout=10).read().decode())
+                self.assertTrue(api_resolution_history_diff_policy_package_registry_history_diff_query_audit["accepted"])
                 api_remediation_runtime = json.loads(urlopen(diff_base + "/gate/remediation/runtime?" + urlencode({"input": str(gate_path), "resource": ["summary", "blocked"], "limit": "100"}, doseq=True), timeout=10).read().decode())
                 self.assertEqual((api_remediation_runtime["state"], api_remediation_runtime["release_ready"], api_remediation_runtime["query_truncated"]), ("complete", False, False))
                 api_remediation_runtime_audit = json.loads(urlopen(diff_base + "/gate/remediation/runtime/audit?" + urlencode({"input": str(remediation_runtime_path)}), timeout=10).read().decode())

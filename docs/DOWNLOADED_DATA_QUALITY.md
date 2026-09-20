@@ -487,3 +487,30 @@ The history API routes append `/package/registry/history`, `/package/registry/hi
 to the policy route. Repeat `input` for each registry snapshot. History
 discovery publishes entry, entries, manifest, summary, history, audit, query,
 and query-audit schemas and capabilities.
+
+Two histories with the same logical registry identity can also be compared as
+a value-free diff. The comparison classifies snapshot ordinals as `added`,
+`removed`, `changed`, or `unchanged`, replays signed transition deltas, and
+folds a deterministic `improved`, `regressed`, `mixed`, or `unchanged`
+direction plus a state transition. Its exact four-file handoff contains
+`manifest.json`, `diff.json`, `items.json`, and `summary.json`. The diff has an
+independent 14-check audit and a 10-check query audit.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff `
+  policy-package-registry-history-baseline policy-package-registry-history-candidate `
+  --diff-id review-registry-history-diff --destination policy-package-registry-history-diff `
+  --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-audit `
+  policy-package-registry-history-diff --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-query `
+  policy-package-registry-history-diff --resource summary --resource items --resource added `
+  --change added --limit 100 --format json --output registry-history-diff-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-query-audit `
+  registry-history-diff-query.json --format summary
+```
+
+The diff API routes append `/package/registry/history/diff`, `/diff/audit`,
+`/diff/query`, and `/diff/query-audit` to the policy route. Diff discovery
+publishes item, items, manifest, summary, diff, audit, query, and query-audit
+schemas and capabilities.
