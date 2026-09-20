@@ -45,6 +45,12 @@ from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolutio
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_query_audit as gate_remediation_resolution_query_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_runtime as gate_remediation_resolution_runtime_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit as gate_remediation_resolution_runtime_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history as gate_remediation_resolution_history_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_audit as gate_remediation_resolution_history_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_query as gate_remediation_resolution_history_query_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_query_audit as gate_remediation_resolution_history_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_runtime as gate_remediation_resolution_history_runtime_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_runtime_audit as gate_remediation_resolution_history_runtime_audit_model
 
 
 def _permissive_policy(item_count: int) -> gate_model.DownloadedDataQualityDiffGatePolicy:
@@ -166,6 +172,30 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         limit=gate_remediation_resolution_query_model.MAX_LIMIT,
     )
     remediation_resolution_runtime_audit = gate_remediation_resolution_runtime_audit_model.audit_runtime(remediation_resolution_runtime)
+    resolved_statuses = {item.content_address: "resolved" for item in remediation.actions if item.required}
+    remediation_resolution_closed = gate_remediation_resolution_model.build_resolution(
+        remediation,
+        resolution_id="glio-noncode-downloaded-quality-diff-demo-remediation-resolution-closed",
+        statuses=resolved_statuses,
+    )
+    remediation_resolution_history = gate_remediation_resolution_history_model.build_history(
+        (remediation_resolution, remediation_resolution_closed),
+        history_id="glio-noncode-downloaded-quality-diff-demo-remediation-resolution-history",
+    )
+    remediation_resolution_history_audit = gate_remediation_resolution_history_audit_model.audit_history(remediation_resolution_history)
+    remediation_resolution_history_query = gate_remediation_resolution_history_query_model.query_history(
+        remediation_resolution_history,
+        resources=("summary", "entries", "improved", "latest"),
+        limit=gate_remediation_resolution_history_query_model.MAX_LIMIT,
+    )
+    remediation_resolution_history_query_audit = gate_remediation_resolution_history_query_audit_model.audit_query(remediation_resolution_history_query)
+    remediation_resolution_history_runtime = gate_remediation_resolution_history_runtime_model.build_runtime(
+        remediation_resolution_history,
+        runtime_id="glio-noncode-downloaded-quality-diff-demo-remediation-resolution-history-runtime",
+        resources=("summary", "entries", "improved", "latest"),
+        limit=gate_remediation_resolution_history_query_model.MAX_LIMIT,
+    )
+    remediation_resolution_history_runtime_audit = gate_remediation_resolution_history_runtime_audit_model.audit_runtime(remediation_resolution_history_runtime)
     summary: dict[str, object] = {
         "diff_address": diff.content_address,
         "diff_id": diff.diff_id,
@@ -226,6 +256,20 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "remediation_resolution_runtime_release_ready": remediation_resolution_runtime.release_ready,
         "remediation_resolution_runtime_audit_accepted": remediation_resolution_runtime_audit.accepted,
         "remediation_resolution_runtime_audit_checks": remediation_resolution_runtime_audit.check_count,
+        "remediation_resolution_history_entry_count": remediation_resolution_history.entry_count,
+        "remediation_resolution_history_state": remediation_resolution_history.state,
+        "remediation_resolution_history_decision": remediation_resolution_history.decision,
+        "remediation_resolution_history_transitions": tuple(item.transition for item in remediation_resolution_history.entries),
+        "remediation_resolution_history_release_ready": remediation_resolution_history.release_ready,
+        "remediation_resolution_history_audit_accepted": remediation_resolution_history_audit.accepted,
+        "remediation_resolution_history_audit_checks": remediation_resolution_history_audit.check_count,
+        "remediation_resolution_history_query_rows": remediation_resolution_history_query.returned_count,
+        "remediation_resolution_history_query_truncated": remediation_resolution_history_query.truncated,
+        "remediation_resolution_history_query_audit_accepted": remediation_resolution_history_query_audit.accepted,
+        "remediation_resolution_history_runtime_state": remediation_resolution_history_runtime.state,
+        "remediation_resolution_history_runtime_release_ready": remediation_resolution_history_runtime.release_ready,
+        "remediation_resolution_history_runtime_audit_accepted": remediation_resolution_history_runtime_audit.accepted,
+        "remediation_resolution_history_runtime_audit_checks": remediation_resolution_history_runtime_audit.check_count,
         "permissive_state": permissive_gate.state,
         "permissive_decision": permissive_gate.decision,
         "permissive_accepted": permissive_gate.accepted,
@@ -271,6 +315,15 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         gate_remediation_resolution_runtime_model.persist_runtime(remediation_resolution_runtime, remediation_resolution_runtime_root, overwrite=True)
         (root / "remediation-resolution-runtime.md").write_text(gate_remediation_resolution_runtime_model.render_runtime_markdown(remediation_resolution_runtime), encoding="utf-8")
         (root / "remediation-resolution-runtime-audit.json").write_text(gate_remediation_resolution_runtime_audit_model.audit_json(remediation_resolution_runtime_audit), encoding="utf-8")
+        (root / "remediation-resolution-history.json").write_text(gate_remediation_resolution_history_model.history_json(remediation_resolution_history), encoding="utf-8")
+        (root / "remediation-resolution-history.md").write_text(gate_remediation_resolution_history_model.render_history_markdown(remediation_resolution_history), encoding="utf-8")
+        (root / "remediation-resolution-history-audit.json").write_text(gate_remediation_resolution_history_audit_model.audit_json(remediation_resolution_history_audit), encoding="utf-8")
+        (root / "remediation-resolution-history-query.json").write_text(gate_remediation_resolution_history_query_model.query_json(remediation_resolution_history_query), encoding="utf-8")
+        (root / "remediation-resolution-history-query-audit.json").write_text(gate_remediation_resolution_history_query_audit_model.audit_json(remediation_resolution_history_query_audit), encoding="utf-8")
+        remediation_resolution_history_runtime_root = root / "remediation-resolution-history-runtime"
+        gate_remediation_resolution_history_runtime_model.persist_runtime(remediation_resolution_history_runtime, remediation_resolution_history_runtime_root, overwrite=True)
+        (root / "remediation-resolution-history-runtime.md").write_text(gate_remediation_resolution_history_runtime_model.render_runtime_markdown(remediation_resolution_history_runtime), encoding="utf-8")
+        (root / "remediation-resolution-history-runtime-audit.json").write_text(gate_remediation_resolution_history_runtime_audit_model.audit_json(remediation_resolution_history_runtime_audit), encoding="utf-8")
         (root / "permissive-gate.json").write_text(gate_model.gate_json(permissive_gate), encoding="utf-8")
         summary["output_directory"] = str(root.resolve())
         summary["runtime_directory"] = str(runtime_root.resolve())
@@ -285,7 +338,7 @@ def main() -> int:
     args = parser.parse_args()
     summary = build_demo(args.diff, args.destination)
     print(json.dumps(summary, indent=2, sort_keys=True))
-    return 0 if summary["default_gate_audit_accepted"] and summary["blocked_query_audit_accepted"] and summary["runtime_audit_accepted"] and summary["history_audit_accepted"] and summary["history_query_audit_accepted"] and summary["history_runtime_audit_accepted"] and summary["remediation_audit_accepted"] and summary["remediation_query_audit_accepted"] and summary["remediation_runtime_audit_accepted"] and summary["remediation_resolution_audit_accepted"] and summary["remediation_resolution_query_audit_accepted"] and summary["remediation_resolution_runtime_audit_accepted"] else 2
+    return 0 if summary["default_gate_audit_accepted"] and summary["blocked_query_audit_accepted"] and summary["runtime_audit_accepted"] and summary["history_audit_accepted"] and summary["history_query_audit_accepted"] and summary["history_runtime_audit_accepted"] and summary["remediation_audit_accepted"] and summary["remediation_query_audit_accepted"] and summary["remediation_runtime_audit_accepted"] and summary["remediation_resolution_audit_accepted"] and summary["remediation_resolution_query_audit_accepted"] and summary["remediation_resolution_runtime_audit_accepted"] and summary["remediation_resolution_history_audit_accepted"] and summary["remediation_resolution_history_query_audit_accepted"] and summary["remediation_resolution_history_runtime_audit_accepted"] else 2
 
 
 if __name__ == "__main__":

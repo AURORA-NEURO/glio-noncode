@@ -310,3 +310,23 @@ The API equivalents are nested under
 `/v1/downloaded-data/quality/diff/gate/remediation/resolution`, including
 `/audit`, `/query`, `/query-audit`, `/runtime`, and `/runtime/audit`; all
 schemas and capabilities are published through the quality discovery surface.
+
+Resolution snapshots can also be retained as an append-only trend history.
+The history compares required-open counts and state ranks to classify each
+snapshot as `initial`, `improved`, `regressed`, or `unchanged`. A promoted
+history describes the recorded remediation dispositions only; it never
+overrides the source quality gate decision.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history `
+  remediation-resolution.json --format markdown --output resolution-history.md
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-audit `
+  resolution-history.json --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-query `
+  resolution-history.json --resource entries --resource improved --resource latest `
+  --limit 100 --format markdown
+```
+
+The history runtime is an exact six-file package with canonical reload,
+ancestry, query-completeness, and tamper checks. Its API routes are nested
+under `/v1/downloaded-data/quality/diff/gate/remediation/resolution/history`.
