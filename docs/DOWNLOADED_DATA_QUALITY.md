@@ -390,3 +390,27 @@ subroutes. The policy runtime is an exact eight-file package containing the
 diff, policy, evaluation, source diff audit, query, query audit, manifest, and
 runtime receipt; its runtime audit requires all component links and readiness
 aggregates to replay.
+
+For transport or review handoff, seal the policy runtime into a portable
+five-file package. The package carries the runtime, policy-evaluation audit,
+runtime closure audit, a value-free summary, and a manifest that conserves all
+artifact addresses. Package queries expose the summary, policy-audit checks,
+policy rules, runtime closure checks, and the underlying history-diff checks.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package `
+  resolution-history-diff-policy-runtime --package-id review-package `
+  --destination resolution-history-diff-policy-package --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-audit `
+  resolution-history-diff-policy-package --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-query `
+  resolution-history-diff-policy-package --resource summary --resource policy-audit `
+  --resource runtime-checks --limit 100 --format json --output package-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-query-audit `
+  package-query.json --format summary
+```
+
+The package API routes append `/package`, `/package/audit`, `/package/query`,
+and `/package/query-audit` to the policy route. Package discovery publishes
+manifest, summary, package, audit, query, and query-audit schemas and
+capabilities.
