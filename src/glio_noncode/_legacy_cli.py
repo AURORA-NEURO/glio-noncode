@@ -295,6 +295,12 @@ from . import downloaded_data_quality_diff_gate_remediation_resolution_history_d
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_query_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_query_audit_model
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime_model
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -5782,6 +5788,30 @@ def _downloaded_quality_diff_gate_remediation_resolution_history_diff_runtime_fr
     return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime_model.runtime_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
 
+def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_evaluation_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_model.load_runtime(source).evaluation
+    raw = _read_json(input_path)
+    nested = raw.get("evaluation")
+    return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.evaluation_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_query_from_input(input_path: str):
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_model.load_runtime(source)
+    raw = _read_json(input_path)
+    nested = raw.get("runtime")
+    return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_model.runtime_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
 def _downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(input_path: str):
     source = Path(input_path)
     if source.is_dir():
@@ -6831,6 +6861,21 @@ def _downloaded_history_observatory_archive_transfer_recovery_execution_runtime_
 def _downloaded_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_from_args(args: Any):
     model = downloaded_data_history_observatory_archive_transfer_recovery_execution_runtime_registry_federation_archive_model
     return model.build_archive_from_directory(args.input, archive_id=args.archive_id)
+
+
+def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_from_args(args: Any):
+    baseline = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.default_policy()
+    return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.default_policy(
+        policy_id=args.policy_id,
+        allowed_directions=tuple(args.allow_direction or baseline.allowed_directions),
+        require_candidate_ready=baseline.require_candidate_ready if args.require_candidate_ready is None else args.require_candidate_ready,
+        max_added_count=baseline.max_added_count if args.max_added is None else args.max_added,
+        max_removed_count=baseline.max_removed_count if args.max_removed is None else args.max_removed,
+        max_changed_count=baseline.max_changed_count if args.max_changed is None else args.max_changed,
+        max_improved_delta=baseline.max_improved_delta if args.max_improved_delta is None else args.max_improved_delta,
+        max_regressed_delta=baseline.max_regressed_delta if args.max_regressed_delta is None else args.max_regressed_delta,
+        require_state_progression=baseline.require_state_progression if args.require_state_progression is None else args.require_state_progression,
+    )
 
 
 def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_from_args(args: Any):
@@ -22597,6 +22642,64 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit.add_argument("input", type=str)
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy", help="evaluate a policy against a quality remediation resolution history diff")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--policy-id", default=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.DEFAULT_POLICY_ID)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--allow-direction", action="append", choices=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_model.DIRECTIONS, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--require-candidate-ready", action=argparse.BooleanOptionalAction, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--max-added", type=int, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--max-removed", type=int, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--max-changed", type=int, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--max-improved-delta", type=int, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--max-regressed-delta", type=int, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--require-state-progression", action=argparse.BooleanOptionalAction, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-audit", help="audit a quality remediation resolution history diff policy evaluation")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query", help="query a quality remediation resolution history diff policy evaluation")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query.add_argument("--resource", action="append", choices=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.RESOURCES)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query.add_argument("--rule-id", default="", choices=("",) + downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.RULE_IDS)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query.add_argument("--passed", choices=("true", "false"), default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query.add_argument("--text", default="")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query.add_argument("--limit", type=int, default=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.MAX_LIMIT)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query-audit", help="audit a quality remediation resolution history diff policy query")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime", help="build and optionally persist a policy-governed quality remediation resolution history diff runtime")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--runtime-id", default=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_model.DEFAULT_RUNTIME_ID)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--evaluation-id", default=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.EVALUATION_PREFIX)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--policy-id", default=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.DEFAULT_POLICY_ID)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--allow-direction", action="append", choices=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_model.DIRECTIONS, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--require-candidate-ready", action=argparse.BooleanOptionalAction, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--max-added", type=int, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--max-removed", type=int, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--max-changed", type=int, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--max-improved-delta", type=int, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--max-regressed-delta", type=int, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--require-state-progression", action=argparse.BooleanOptionalAction, default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--resource", action="append", choices=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.RESOURCES)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--rule-id", default="", choices=("",) + downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.RULE_IDS)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--passed", choices=("true", "false"), default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--text", default="")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--offset", type=int, default=0)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--limit", type=int, default=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.MAX_LIMIT)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--destination", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--overwrite", action="store_true")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime-audit", help="audit a policy-governed quality remediation resolution history diff runtime")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit.add_argument("--output", default=None)
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy", help="evaluate a policy against a remediation resolution history diff")
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy.add_argument("input", type=str)
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy.add_argument("--policy-id", default=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.DEFAULT_POLICY_ID)
@@ -27523,6 +27626,54 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model.audit_runtime(_downloaded_contract_compatibility_remediation_resolution_history_diff_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy":
+            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.evaluate(
+                _downloaded_quality_diff_gate_remediation_resolution_history_diff_from_input(args.input),
+                policy=_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_from_args(args),
+            )
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model, json_name="evaluation_json", csv_name="evaluation_csv", markdown_name="render_evaluation_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-audit":
+            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit_model.audit_evaluation(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_evaluation_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query":
+            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.query_evaluation(
+                _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_evaluation_from_input(args.input),
+                resources=tuple(args.resource or downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.RESOURCES),
+                rule_id=args.rule_id,
+                passed=None if args.passed is None else args.passed == "true",
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query-audit":
+            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit_model.audit_query(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime":
+            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_model.run_runtime(
+                _downloaded_quality_diff_gate_remediation_resolution_history_diff_from_input(args.input),
+                policy=_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_from_args(args),
+                runtime_id=args.runtime_id,
+                evaluation_id=args.evaluation_id,
+                resources=tuple(args.resource or downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.RESOURCES),
+                rule_id=args.rule_id,
+                passed=None if args.passed is None else args.passed == "true",
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                destination=args.destination,
+                overwrite=args.overwrite,
+            )
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.release_ready else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime-audit":
+            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit_model.audit_runtime(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy":
             value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.evaluate(
                 _downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(args.input),
@@ -31536,6 +31687,25 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-runtime-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model.check_schema,
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-runtime-audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model.audit_schema,
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-runtime-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_runtime_audit_model.capabilities,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.policy_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-rule-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.rule_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-evaluation-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.evaluation_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_model.capabilities,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-audit-check-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit_model.check_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-audit-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit_model.audit_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-audit-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_audit_model.capabilities,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query-row-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.row_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.query_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_model.capabilities,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query-audit-check-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit_model.check_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query-audit-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit_model.audit_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query-audit-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_query_audit_model.capabilities,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime-manifest-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_model.manifest_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_model.runtime_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_model.capabilities,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime-audit-check-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit_model.check_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime-audit-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit_model.audit_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime-audit-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_runtime_audit_model.capabilities,
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.policy_schema,
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-rule-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.rule_schema,
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-evaluation-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.evaluation_schema,

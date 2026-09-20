@@ -356,3 +356,37 @@ The API equivalents are nested under
 with `/audit`, `/query`, `/query-audit`, `/runtime`, and `/runtime/audit`
 subroutes. Schema and capability discovery exposes the same comparison
 contract, including its bounded item and audit limits.
+
+The history-diff policy layer turns that measured comparison into an explicit
+bounded disposition. Ten replayable rules cover allowed direction, candidate
+readiness, added/removed/changed limits, improvement and regression deltas,
+entry conservation, state progression, and the public boundary. The result is
+`promote`/`eligible`, `hold`/`review`, or `block`/`blocked`; it does not rewrite
+the source gate or claim that unresolved remediation is complete.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy `
+  resolution-history-diff.json --allow-direction improved --max-added 1 `
+  --max-removed 0 --max-changed 0 --max-improved-delta 1 --max-regressed-delta 0 `
+  --require-candidate-ready --require-state-progression --format markdown `
+  --output resolution-history-diff-policy.md
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-audit `
+  resolution-history-diff-policy.json --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query `
+  resolution-history-diff-policy.json --resource summary --resource rules `
+  --passed true --limit 100 --format markdown
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime `
+  resolution-history-diff.json --allow-direction improved --max-added 1 `
+  --max-removed 0 --max-changed 0 --max-improved-delta 1 --max-regressed-delta 0 `
+  --require-candidate-ready --require-state-progression --resource summary `
+  --resource rules --limit 100 --destination resolution-history-diff-policy-runtime `
+  --overwrite --format summary
+```
+
+The policy API routes are nested under
+`/v1/downloaded-data/quality/diff/gate/remediation/resolution/history/diff/policy`,
+with `/audit`, `/query`, `/query-audit`, `/runtime`, and `/runtime/audit`
+subroutes. The policy runtime is an exact eight-file package containing the
+diff, policy, evaluation, source diff audit, query, query audit, manifest, and
+runtime receipt; its runtime audit requires all component links and readiness
+aggregates to replay.
