@@ -309,6 +309,10 @@ from . import downloaded_data_quality_diff_gate_remediation_resolution_history_d
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_audit_model
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_model
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -5875,6 +5879,36 @@ def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_pac
     registry = raw.get("registry")
     return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_model.query_registry(
         downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_model.registry_from_mapping(registry if isinstance(registry, Mapping) else raw)
+    )
+
+
+def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.load_history(source)
+    raw = _read_json(input_path)
+    nested = raw.get("history")
+    return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.history_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_registries_from_inputs(input_paths: list[str]):
+    return tuple(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_from_input(item) for item in input_paths)
+
+
+def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        history = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.load_history(source)
+        return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.query_history(history)
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    if isinstance(nested, Mapping):
+        return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.query_from_mapping(nested)
+    if "history_address" in raw:
+        return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.query_from_mapping(raw)
+    history = raw.get("history")
+    return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.query_history(
+        downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.history_from_mapping(history if isinstance(history, Mapping) else raw)
     )
 
 
@@ -22818,6 +22852,35 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_audit.add_argument("input", type=str)
     downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_audit.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history", help="build and optionally persist policy package registry history")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history.add_argument("input", nargs="+", type=str)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history.add_argument("--history-id", default=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.DEFAULT_HISTORY_ID)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history.add_argument("--destination", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history.add_argument("--overwrite", action="store_true")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-audit", help="audit policy package registry history")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query", help="query policy package registry history")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--resource", action="append", choices=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.RESOURCES)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--registry-id", default="")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--decision", default="", choices=("",) + downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.DECISIONS)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--state", default="", choices=("",) + downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.STATES)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--accepted", choices=("true", "false"), default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--release-ready", choices=("true", "false"), default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--transition", default="", choices=("",) + downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.TRANSITIONS)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--text", default="")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--limit", type=int, default=downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.MAX_LIMIT)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-audit", help="audit policy package registry history query")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit.add_argument("--output", default=None)
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy", help="evaluate a policy against a remediation resolution history diff")
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy.add_argument("input", type=str)
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy.add_argument("--policy-id", default=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.DEFAULT_POLICY_ID)
@@ -27852,6 +27915,39 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_audit_model.audit_query(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_from_input(args.input))
             _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history":
+            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.run_history(
+                _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_registries_from_inputs(args.input),
+                history_id=args.history_id,
+                destination=args.destination,
+                overwrite=args.overwrite,
+            )
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model, json_name="history_json", csv_name="history_csv", markdown_name="render_history_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-audit":
+            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit_model.audit_history(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query":
+            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.query_history(
+                _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_from_input(args.input),
+                resources=tuple(args.resource or downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.RESOURCES),
+                registry_id=args.registry_id,
+                decision=args.decision,
+                state=args.state,
+                accepted=None if args.accepted is None else args.accepted == "true",
+                release_ready=None if args.release_ready is None else args.release_ready == "true",
+                transition=args.transition,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-audit":
+            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit_model.audit_query(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy":
             value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.evaluate(
                 _downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(args.input),
@@ -31911,6 +32007,21 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-query-audit-check-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_audit_model.check_schema,
             "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-query-audit-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_audit_model.audit_schema,
             "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-query-audit-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_query_audit_model.capabilities,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-entry-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.entry_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-entries-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.entries_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-manifest-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.manifest_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-summary-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.summary_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.history_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_model.capabilities,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-audit-check-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit_model.check_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-audit-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit_model.audit_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-audit-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_audit_model.capabilities,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-row-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.row_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.query_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_model.capabilities,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-audit-check-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit_model.check_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-audit-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit_model.audit_schema,
+            "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-audit-capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_query_audit_model.capabilities,
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.policy_schema,
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-rule-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.rule_schema,
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-evaluation-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.evaluation_schema,

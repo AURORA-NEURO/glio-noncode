@@ -450,3 +450,40 @@ The registry API routes append `/package/registry`, `/package/registry/audit`,
 route. Repeat the `input` query parameter for each package when building a
 registry. Registry discovery publishes manifest, entry, summary, registry,
 audit, query, and query-audit schemas and capabilities.
+
+For longitudinal review, append registry snapshots to a registry history. The
+history accepts only one logical registry identity, rejects repeated snapshot
+addresses, links each snapshot to the previous address, and folds the latest
+snapshot into the current disposition. Transitions are deterministic:
+`initial`, `improved`, `regressed`, `unchanged`, or `changed`. It is an exact
+four-file package containing `manifest.json`, `history.json`, `entries.json`,
+and `summary.json`. The history audit independently checks ancestry, transition
+replay, latest linkage, disposition folding, address uniqueness, manifest
+closure, and public-boundary integrity.
+
+History queries expose summary, entries, release-ready snapshots, decisions,
+and transitions with registry, state, decision, acceptance, readiness,
+transition, text, and pagination filters. A separate 10-check query audit
+replays ordering, filters, counts, row addresses, row semantics, and the
+value-free boundary.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history `
+  policy-package-registry-baseline policy-package-registry-candidate `
+  --history-id review-registry-history --destination policy-package-registry-history `
+  --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-audit `
+  policy-package-registry-history --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query `
+  policy-package-registry-history --resource summary --resource entries --resource ready `
+  --resource decisions --resource transitions --transition improved --limit 100 `
+  --format json --output registry-history-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-audit `
+  registry-history-query.json --format summary
+```
+
+The history API routes append `/package/registry/history`, `/package/registry/history/audit`,
+`/package/registry/history/query`, and `/package/registry/history/query-audit`
+to the policy route. Repeat `input` for each registry snapshot. History
+discovery publishes entry, entries, manifest, summary, history, audit, query,
+and query-audit schemas and capabilities.
