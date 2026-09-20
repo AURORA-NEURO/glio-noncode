@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = 'eafd93aa99584f771fe5282b679f850fd5f2d0cb8b5a074b32dda27054395d9b'
+SURFACE_DIGEST = 'c47b1ce0a64f8a1dc65ca9ba719971807978f15595783282a670d7e427fa057b'
 
 ALL = (
     'CaseManifest',
@@ -42523,6 +42523,10 @@ CHILD_MODULES = {
     'downloaded_data_quality_query': 'glio_noncode.downloaded_data_quality_query',
     'downloaded_data_quality_query_audit': 'glio_noncode.downloaded_data_quality_query_audit',
     'downloaded_data_quality_runtime': 'glio_noncode.downloaded_data_quality_runtime',
+    'downloaded_data_quality_runtime_history_release_gate': 'glio_noncode.downloaded_data_quality_runtime_history_release_gate',
+    'downloaded_data_quality_runtime_history_release_gate_audit': 'glio_noncode.downloaded_data_quality_runtime_history_release_gate_audit',
+    'downloaded_data_quality_runtime_history_release_gate_query': 'glio_noncode.downloaded_data_quality_runtime_history_release_gate_query',
+    'downloaded_data_quality_runtime_history_release_gate_query_audit': 'glio_noncode.downloaded_data_quality_runtime_history_release_gate_query_audit',
     'editing_design_frontier_access': 'glio_noncode.editing_design_frontier_access',
     'editing_design_frontier_adapters': 'glio_noncode.editing_design_frontier_adapters',
     'editing_design_frontier_artifact_manifest': 'glio_noncode.editing_design_frontier_artifact_manifest',
@@ -46523,6 +46527,10 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_quality_query',
     'glio_noncode.downloaded_data_quality_query_audit',
     'glio_noncode.downloaded_data_quality_runtime',
+    'glio_noncode.downloaded_data_quality_runtime_history_release_gate',
+    'glio_noncode.downloaded_data_quality_runtime_history_release_gate_audit',
+    'glio_noncode.downloaded_data_quality_runtime_history_release_gate_query',
+    'glio_noncode.downloaded_data_quality_runtime_history_release_gate_query_audit',
     'glio_noncode.editing_design_frontier_access',
     'glio_noncode.editing_design_frontier_adapters',
     'glio_noncode.editing_design_frontier_artifact_manifest',

@@ -134,6 +134,10 @@ from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolutio
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit_model
 from glio_noncode import downloaded_data_quality_query_audit as query_audit_model
 from glio_noncode import downloaded_data_quality_runtime as runtime_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_gate as runtime_history_release_gate_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_gate_audit as runtime_history_release_gate_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_gate_query as runtime_history_release_gate_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_gate_query_audit as runtime_history_release_gate_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -1081,6 +1085,86 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 with self.assertRaises(ValidationError):
                     diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.load_history(history_destination_d164)
 
+            runtime_history_release_gate_d165 = runtime_history_release_gate_model.build_gate(
+                registry_history_d164,
+                gate_id="quality-registry-history-d165-gate",
+            )
+            self.assertEqual(
+                (
+                    runtime_history_release_gate_d165.state,
+                    runtime_history_release_gate_d165.release_ready,
+                    runtime_history_release_gate_d165.passed_count,
+                    runtime_history_release_gate_d165.check_count,
+                ),
+                ("ready", True, 12, 12),
+            )
+            runtime_history_release_gate_d165_audit = runtime_history_release_gate_audit_model.audit_gate(
+                runtime_history_release_gate_d165,
+                registry_history_d164,
+            )
+            self.assertEqual(
+                (
+                    runtime_history_release_gate_d165_audit.passed_count,
+                    runtime_history_release_gate_d165_audit.check_count,
+                    runtime_history_release_gate_d165_audit.accepted,
+                ),
+                (12, 12, True),
+            )
+            runtime_history_release_gate_d165_query = runtime_history_release_gate_query_model.query_gate(
+                runtime_history_release_gate_d165,
+                resources=runtime_history_release_gate_query_model.RESOURCES,
+                limit=runtime_history_release_gate_query_model.MAX_LIMIT,
+            )
+            self.assertEqual(
+                (
+                    runtime_history_release_gate_d165_query.returned_count,
+                    runtime_history_release_gate_d165_query.total_count,
+                    runtime_history_release_gate_d165_query.truncated,
+                ),
+                (36, 36, False),
+            )
+            runtime_history_release_gate_d165_query_audit = runtime_history_release_gate_query_audit_model.audit_query(
+                runtime_history_release_gate_d165_query,
+                runtime_history_release_gate_d165,
+            )
+            self.assertEqual(
+                (
+                    runtime_history_release_gate_d165_query_audit.passed_count,
+                    runtime_history_release_gate_d165_query_audit.check_count,
+                    runtime_history_release_gate_d165_query_audit.accepted,
+                ),
+                (12, 12, True),
+            )
+            self.assertEqual(
+                runtime_history_release_gate_model.gate_from_mapping(runtime_history_release_gate_d165.to_dict()).content_address,
+                runtime_history_release_gate_d165.content_address,
+            )
+            with tempfile.TemporaryDirectory() as gate_directory:
+                gate_destination_d165 = Path(gate_directory) / "runtime-history-release-gate-d165"
+                runtime_history_release_gate_model.persist_gate(runtime_history_release_gate_d165, gate_destination_d165)
+                self.assertEqual(
+                    tuple(sorted(path.name for path in gate_destination_d165.iterdir())),
+                    tuple(sorted(runtime_history_release_gate_model.FILES)),
+                )
+                self.assertEqual(
+                    runtime_history_release_gate_model.load_gate(gate_destination_d165).content_address,
+                    runtime_history_release_gate_d165.content_address,
+                )
+                tampered_gate_d165 = json.loads((gate_destination_d165 / "summary.json").read_text(encoding="utf-8"))
+                tampered_gate_d165["release_ready"] = False
+                (gate_destination_d165 / "summary.json").write_text(json.dumps(tampered_gate_d165), encoding="utf-8")
+                with self.assertRaises(ValidationError):
+                    runtime_history_release_gate_model.load_gate(gate_destination_d165)
+            empty_history_d165 = runtime_history_release_gate_model.history_model.build_history(
+                (empty_registry_d164,),
+                history_id="quality-registry-history-d165-empty",
+            )
+            blocked_release_gate_d165 = runtime_history_release_gate_model.build_gate(
+                empty_history_d165,
+                gate_id="quality-registry-history-d165-blocked",
+            )
+            self.assertEqual((blocked_release_gate_d165.state, blocked_release_gate_d165.release_ready), ("blocked", False))
+
             from urllib.parse import urlencode
             from urllib.request import urlopen
 
@@ -1245,6 +1329,128 @@ class DownloadedDataQualityTests(unittest.TestCase):
                     ).read().decode()
                 )
                 self.assertTrue(api_history_query_audit["accepted"])
+                cli_gate_d165_destination = Path(directory) / "runtime-history-release-gate-d165-cli"
+                cli_gate_d165_json = Path(directory) / "runtime-history-release-gate-d165-cli.json"
+                self.assertEqual(
+                    main(
+                        [
+                            "downloaded-data-quality-runtime-history-release-gate",
+                            str(cli_history_destination),
+                            "--gate-id",
+                            "quality-registry-history-d165-cli",
+                            "--destination",
+                            str(cli_gate_d165_destination),
+                            "--overwrite",
+                            "--format",
+                            "json",
+                            "--output",
+                            str(cli_gate_d165_json),
+                        ]
+                    ),
+                    0,
+                )
+                cli_gate_d165_audit_json = Path(directory) / "runtime-history-release-gate-d165-cli-audit.json"
+                self.assertEqual(
+                    main(
+                        [
+                            "downloaded-data-quality-runtime-history-release-gate-audit",
+                            str(cli_gate_d165_destination),
+                            str(cli_history_destination),
+                            "--format",
+                            "json",
+                            "--output",
+                            str(cli_gate_d165_audit_json),
+                        ]
+                    ),
+                    0,
+                )
+                cli_gate_d165_query_json = Path(directory) / "runtime-history-release-gate-d165-cli-query.json"
+                self.assertEqual(
+                    main(
+                        [
+                            "downloaded-data-quality-runtime-history-release-gate-query",
+                            str(cli_gate_d165_destination),
+                            "--resource",
+                            "summary",
+                            "--resource",
+                            "policy",
+                            "--resource",
+                            "checks",
+                            "--resource",
+                            "readiness",
+                            "--resource",
+                            "counters",
+                            "--resource",
+                            "addresses",
+                            "--resource",
+                            "bounds",
+                            "--limit",
+                            "64",
+                            "--format",
+                            "json",
+                            "--output",
+                            str(cli_gate_d165_query_json),
+                        ]
+                    ),
+                    0,
+                )
+                cli_gate_d165_query_audit_json = Path(directory) / "runtime-history-release-gate-d165-cli-query-audit.json"
+                self.assertEqual(
+                    main(
+                        [
+                            "downloaded-data-quality-runtime-history-release-gate-query-audit",
+                            str(cli_gate_d165_query_json),
+                            str(cli_gate_d165_destination),
+                            "--format",
+                            "json",
+                            "--output",
+                            str(cli_gate_d165_query_audit_json),
+                        ]
+                    ),
+                    0,
+                )
+                self.assertEqual(json.loads(cli_gate_d165_json.read_text(encoding="utf-8"))["release_ready"], True)
+                self.assertEqual(json.loads(cli_gate_d165_query_json.read_text(encoding="utf-8"))["returned_count"], 36)
+                d165_api_base = api_base + "/diff/gate/runtime-history/release-gate"
+                api_gate_d165_destination = Path(directory) / "runtime-history-release-gate-d165-api"
+                api_gate_d165 = json.loads(
+                    urlopen(
+                        d165_api_base + "?" + urlencode(
+                            {
+                                "input": str(api_history_destination),
+                                "gate_id": "quality-registry-history-d165-api",
+                                "destination": str(api_gate_d165_destination),
+                                "overwrite": "true",
+                                "format": "json",
+                            }
+                        ),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertEqual((api_gate_d165["state"], api_gate_d165["release_ready"], api_gate_d165["passed_count"]), ("ready", True, 12))
+                api_gate_d165_audit = json.loads(
+                    urlopen(
+                        d165_api_base + "/audit?" + urlencode({"input": str(api_gate_d165_destination), "history": str(api_history_destination), "format": "json"}),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertEqual((api_gate_d165_audit["passed_count"], api_gate_d165_audit["accepted"]), (12, True))
+                api_gate_d165_query = json.loads(
+                    urlopen(
+                        d165_api_base + "/query?" + urlencode({"input": str(api_gate_d165_destination), "resource": ["summary", "policy", "checks", "readiness", "counters", "addresses", "bounds"], "limit": "64", "format": "json"}, doseq=True),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertEqual((api_gate_d165_query["returned_count"], api_gate_d165_query["total_count"], api_gate_d165_query["truncated"]), (36, 36, False))
+                api_gate_d165_query_json = Path(directory) / "runtime-history-release-gate-d165-api-query.json"
+                api_gate_d165_query_json.write_text(json.dumps(api_gate_d165_query), encoding="utf-8")
+                api_gate_d165_query_audit = json.loads(
+                    urlopen(
+                        d165_api_base + "/query-audit?" + urlencode({"query": str(api_gate_d165_query_json), "gate": str(api_gate_d165_destination), "format": "json"}),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertEqual((api_gate_d165_query_audit["passed_count"], api_gate_d165_query_audit["accepted"]), (12, True))
             finally:
                 server.shutdown()
                 server.server_close()

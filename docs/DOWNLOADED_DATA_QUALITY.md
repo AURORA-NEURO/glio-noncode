@@ -952,3 +952,33 @@ Live downloaded-ZIP evidence for D164 used the real D163 registry package at `C:
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-d161-registry-history-d164-v2-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-d161-registry-history-d164-v2-query-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-d161-registry-history-d164-api-v2`
+
+## D165 downloaded-data quality runtime-history release gate
+
+D165 turns a D164 history into a deterministic release decision. The gate accepts explicit policy limits for minimum history depth, allowed regressions, allowed latest blocked entries, latest readiness, latest acceptance, and unchanged transitions. It emits twelve fixed checks, addressable explanations, a ready or blocked state, and a release-ready boolean without exposing source paths or payload values.
+
+The persisted gate is an exact four-file package:
+
+- `manifest.json`
+- `gate.json`
+- `checks.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-gate HISTORY_DIR --gate-id quality-gate --destination GATE_DIR --overwrite --format json --output gate.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-gate-audit GATE_DIR HISTORY_DIR --format json --output gate-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-gate-query GATE_DIR --resource summary --resource policy --resource checks --resource readiness --resource counters --resource addresses --resource bounds --limit 64 --format json --output gate-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-gate-query-audit gate-query.json GATE_DIR --format json --output gate-query-audit.json
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-gate`, with `/audit`, `/query`, and `/query-audit` suffixes.
+
+Live downloaded-ZIP evidence for D165 used the persisted D164 history at `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-d161-registry-history-d164-v2`. The CLI and HTTP API both produced `state=ready`, `release_ready=true`, and `12/12` release checks; the gate query returned `36/36` rows without truncation; and the independent gate and query audits each passed `12/12`. The empty-history negative case correctly produced `state=blocked`. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-gate-d165-live.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-gate-d165-live-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-gate-d165-live-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-gate-d165-live-query-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-gate-d165-api`
