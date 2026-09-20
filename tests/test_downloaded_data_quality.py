@@ -30,6 +30,8 @@ from glio_noncode import downloaded_data_quality_diff_gate_history as diff_gate_
 from glio_noncode import downloaded_data_quality_diff_gate_history_audit as diff_gate_history_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_history_query as diff_gate_history_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_history_query_audit as diff_gate_history_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_history_runtime as diff_gate_history_runtime_model
+from glio_noncode import downloaded_data_quality_diff_gate_history_runtime_audit as diff_gate_history_runtime_audit_model
 from glio_noncode import downloaded_data_quality_query as query_model
 from glio_noncode import downloaded_data_quality_query_audit as query_audit_model
 from glio_noncode import downloaded_data_quality_runtime as runtime_model
@@ -230,6 +232,29 @@ class DownloadedDataQualityTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             diff_gate_history_model.append_history(history, runtime, snapshot_id="candidate-3", expected_head="stale:head")
 
+    def test_quality_diff_gate_history_runtime_persists_and_replays_latest_readiness(self) -> None:
+        profile = self._profile()
+        left = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-history-runtime-left"), result_id="quality-history-runtime-left")
+        right = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-history-runtime-right", max_distinct_values=1), result_id="quality-history-runtime-right")
+        diff = diff_model.build_diff(left, right, diff_id="quality-history-runtime-diff")
+        gate_runtime = diff_gate_runtime_model.build_runtime(diff, runtime_id="quality-history-runtime-gate", resources=("summary", "findings"), limit=1000)
+        history = diff_gate_history_model.build_history(gate_runtime, history_id="quality-history-runtime-history", snapshot_id="blocked")
+        runtime = diff_gate_history_runtime_model.build_runtime(history, resources=("summary", "entries", "latest"), limit=1000)
+        self.assertEqual((runtime.accepted, runtime.release_ready, runtime.state, runtime.latest_state), (True, False, "complete", "blocked"))
+        audit = diff_gate_history_runtime_audit_model.audit_runtime(runtime)
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (19, 19, True))
+        self.assertEqual(diff_gate_history_runtime_model.runtime_from_mapping(runtime.to_dict()).content_address, runtime.content_address)
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "history-runtime"
+            diff_gate_history_runtime_model.persist_runtime(runtime, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(diff_gate_history_runtime_model.FILES)))
+            self.assertEqual(diff_gate_history_runtime_model.load_runtime(destination).content_address, runtime.content_address)
+            altered = json.loads((destination / "manifest.json").read_text(encoding="utf-8"))
+            altered["artifact_addresses"] = list(reversed(altered["artifact_addresses"]))
+            (destination / "manifest.json").write_text(json.dumps(altered), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                diff_gate_history_runtime_model.load_runtime(destination)
+
     def test_quality_diff_gate_replays_category_threshold_reasons(self) -> None:
         profile = self._profile()
         left = quality_model.build_quality(
@@ -335,6 +360,10 @@ class DownloadedDataQualityTests(unittest.TestCase):
             self.assertEqual(main(["downloaded-data-quality-diff-gate-history-audit", str(history_two_path), "--format", "json", "--output", str(root / "diff-gate-history-audit.json")]), 0)
             self.assertEqual(main(["downloaded-data-quality-diff-gate-history-query", str(history_two_path), "--resource", "entries", "--resource", "unchanged", "--transition", "unchanged", "--limit", "10", "--format", "json", "--output", str(root / "diff-gate-history-query.json")]), 0)
             self.assertEqual(main(["downloaded-data-quality-diff-gate-history-query-audit", str(root / "diff-gate-history-query.json"), "--format", "json", "--output", str(root / "diff-gate-history-query-audit.json")]), 0)
+            history_runtime_path = root / "diff-gate-history-runtime"
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-history-runtime", str(history_two_path), "--destination", str(history_runtime_path), "--overwrite", "--resource", "summary", "--resource", "entries", "--resource", "latest", "--limit", "1000", "--format", "summary", "--output", str(root / "diff-gate-history-runtime-summary.json")]), 2)
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-history-runtime-audit", str(history_runtime_path), "--format", "json", "--output", str(root / "diff-gate-history-runtime-audit.json")]), 0)
+            self.assertEqual(tuple(sorted(path.name for path in history_runtime_path.iterdir())), tuple(sorted(diff_gate_history_runtime_model.FILES)))
 
             server = create_server("127.0.0.1", 0)
             import threading
@@ -380,6 +409,10 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 self.assertEqual(api_history_query["returned_count"], 2)
                 api_history_query_audit = json.loads(urlopen(diff_base + "/gate/history/query-audit?" + urlencode({"input": str(root / "diff-gate-history-query.json")}), timeout=10).read().decode())
                 self.assertTrue(api_history_query_audit["accepted"])
+                api_history_runtime = json.loads(urlopen(diff_base + "/gate/history/runtime?" + urlencode({"input": str(history_two_path), "resource": ["summary", "entries", "latest"], "limit": "1000", "destination": str(root / "api-history-runtime"), "overwrite": "true"}, doseq=True), timeout=10).read().decode())
+                self.assertEqual((api_history_runtime["release_ready"], api_history_runtime["state"], api_history_runtime["latest_state"]), (False, "complete", "blocked"))
+                api_history_runtime_audit = json.loads(urlopen(diff_base + "/gate/history/runtime/audit?" + urlencode({"input": str(history_runtime_path)}), timeout=10).read().decode())
+                self.assertTrue(api_history_runtime_audit["accepted"])
                 diff_schema = json.loads(urlopen(diff_base + "/schema", timeout=10).read().decode())
                 self.assertFalse(diff_schema["additionalProperties"])
                 schema = json.loads(urlopen(base + "/schema", timeout=10).read().decode())

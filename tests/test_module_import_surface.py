@@ -1226,6 +1226,8 @@ MODULE_IDS = (
     "glio_noncode.downloaded_data_quality_diff_gate_history_audit",
     "glio_noncode.downloaded_data_quality_diff_gate_history_query",
     "glio_noncode.downloaded_data_quality_diff_gate_history_query_audit",
+    "glio_noncode.downloaded_data_quality_diff_gate_history_runtime",
+    "glio_noncode.downloaded_data_quality_diff_gate_history_runtime_audit",
     "glio_noncode.downloaded_data_quality_diff_gate_query",
     "glio_noncode.downloaded_data_quality_diff_gate_query_audit",
     "glio_noncode.downloaded_data_quality_diff_gate_runtime",

@@ -31,6 +31,8 @@ from glio_noncode import downloaded_data_quality_diff_gate_history as gate_histo
 from glio_noncode import downloaded_data_quality_diff_gate_history_audit as gate_history_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_history_query as gate_history_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_history_query_audit as gate_history_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_history_runtime as gate_history_runtime_model
+from glio_noncode import downloaded_data_quality_diff_gate_history_runtime_audit as gate_history_runtime_audit_model
 
 
 def _permissive_policy(item_count: int) -> gate_model.DownloadedDataQualityDiffGatePolicy:
@@ -111,6 +113,12 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         limit=gate_history_query_model.MAX_LIMIT,
     )
     history_query_audit = gate_history_query_audit_model.audit_query(history_query)
+    history_runtime = gate_history_runtime_model.build_runtime(
+        history,
+        resources=("summary", "entries", "latest"),
+        limit=gate_history_query_model.MAX_LIMIT,
+    )
+    history_runtime_audit = gate_history_runtime_audit_model.audit_runtime(history_runtime)
     summary: dict[str, object] = {
         "diff_address": diff.content_address,
         "diff_id": diff.diff_id,
@@ -139,6 +147,10 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "history_audit_checks": history_audit.check_count,
         "history_query_rows": history_query.returned_count,
         "history_query_audit_accepted": history_query_audit.accepted,
+        "history_runtime_state": history_runtime.state,
+        "history_runtime_release_ready": history_runtime.release_ready,
+        "history_runtime_audit_accepted": history_runtime_audit.accepted,
+        "history_runtime_audit_checks": history_runtime_audit.check_count,
         "permissive_state": permissive_gate.state,
         "permissive_decision": permissive_gate.decision,
         "permissive_accepted": permissive_gate.accepted,
@@ -162,6 +174,10 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         (root / "history-audit.json").write_text(gate_history_audit_model.audit_json(history_audit), encoding="utf-8")
         (root / "history-query.json").write_text(gate_history_query_model.query_json(history_query), encoding="utf-8")
         (root / "history-query-audit.json").write_text(gate_history_query_audit_model.audit_json(history_query_audit), encoding="utf-8")
+        history_runtime_root = root / "history-runtime"
+        gate_history_runtime_model.persist_runtime(history_runtime, history_runtime_root, overwrite=True)
+        (root / "history-runtime.md").write_text(gate_history_runtime_model.render_runtime_markdown(history_runtime), encoding="utf-8")
+        (root / "history-runtime-audit.json").write_text(gate_history_runtime_audit_model.audit_json(history_runtime_audit), encoding="utf-8")
         (root / "permissive-gate.json").write_text(gate_model.gate_json(permissive_gate), encoding="utf-8")
         summary["output_directory"] = str(root.resolve())
         summary["runtime_directory"] = str(runtime_root.resolve())
@@ -176,7 +192,7 @@ def main() -> int:
     args = parser.parse_args()
     summary = build_demo(args.diff, args.destination)
     print(json.dumps(summary, indent=2, sort_keys=True))
-    return 0 if summary["default_gate_audit_accepted"] and summary["blocked_query_audit_accepted"] and summary["runtime_audit_accepted"] and summary["history_audit_accepted"] and summary["history_query_audit_accepted"] else 2
+    return 0 if summary["default_gate_audit_accepted"] and summary["blocked_query_audit_accepted"] and summary["runtime_audit_accepted"] and summary["history_audit_accepted"] and summary["history_query_audit_accepted"] and summary["history_runtime_audit_accepted"] else 2
 
 
 if __name__ == "__main__":

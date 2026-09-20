@@ -205,3 +205,19 @@ python -m glio_noncode downloaded-data-quality-diff-gate-history-query `
 python -m glio_noncode downloaded-data-quality-diff-gate-history-query-audit `
   history-query.json --format summary
 ```
+
+The history can also be transferred as an exact six-file runtime package:
+`manifest.json`, `history.json`, `audit.json`, `query.json`,
+`query-audit.json`, and `runtime.json`. The runtime audit has nineteen checks,
+replays manifest component addresses, verifies the latest decision projection,
+and distinguishes structural acceptance from latest release readiness. A
+blocked latest snapshot can therefore produce `accepted: true`,
+`release_ready: false`, and `state: complete` when the history handoff itself
+is intact.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-history-runtime `
+  history.json --destination history-runtime --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-history-runtime-audit `
+  history-runtime --format summary
+```
