@@ -514,3 +514,25 @@ The diff API routes append `/package/registry/history/diff`, `/diff/audit`,
 `/diff/query`, and `/diff/query-audit` to the policy route. Diff discovery
 publishes item, items, manifest, summary, diff, audit, query, and query-audit
 schemas and capabilities.
+
+For reusable execution handoff, seal a registry-history diff into a runtime.
+The runtime composes the diff, its independent audit, bounded query, and query
+audit into an exact six-file package: `manifest.json`, `diff.json`,
+`audit.json`, `query.json`, `query-audit.json`, and `runtime.json`. It folds
+component acceptance into `complete` or `incomplete` state and only reports
+`release_ready` for accepted `improved` or `unchanged` comparisons. A separate
+15-check runtime audit replays manifest closure, component linkage, aggregate
+counts, readiness, addresses, and the public boundary.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime `
+  policy-package-registry-history-diff --runtime-id review-registry-history-diff-runtime `
+  --resource summary --resource items --resource added --limit 100 `
+  --destination policy-package-registry-history-diff-runtime --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-audit `
+  policy-package-registry-history-diff-runtime --format summary
+```
+
+The runtime API routes append `/package/registry/history/diff/runtime` and
+`/runtime/audit` to the diff route. Runtime discovery publishes manifest,
+runtime, audit, and capability contracts.

@@ -803,6 +803,8 @@ from . import downloaded_data_quality_diff_gate_remediation_resolution_history_d
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_audit_model
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_model
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -4248,6 +4250,21 @@ class ApiHandler(BaseHTTPRequestHandler):
         return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
     @staticmethod
+    def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            expected = tuple(sorted(downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_model.FILES))
+            actual = tuple(sorted(path.name for path in source.iterdir()))
+            if actual != expected:
+                raise ValueError("downloaded-data quality registry history diff runtime directory must contain the exact runtime files")
+            return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_model.load_runtime(source)
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality registry history diff runtime input must be an object")
+        nested = raw.get("runtime")
+        return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_model.runtime_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+    @staticmethod
     def _downloaded_quality_diff_gate_remediation_resolution_pairs(values: tuple[str, ...], field: str) -> dict[str, str]:
         result: dict[str, str] = {}
         for item in values:
@@ -6010,8 +6027,6 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._downloaded_quality_diff_from_input(self._query_value(query, "input") or ""),
                         resources=self._query_values(query, "resource") or downloaded_data_quality_diff_query_model.RESOURCES,
                         change=self._query_value(query, "change") or "",
-                        direction=self._query_value(query, "direction") or "",
-                        identity=self._query_value(query, "identity") or "",
                         text=self._query_value(query, "text") or "",
                         offset=self._query_int(query, "offset", 0),
                         limit=self._query_int(query, "limit", downloaded_data_quality_diff_runtime_model.DEFAULT_LIMIT),
@@ -6504,6 +6519,24 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if path == gate_prefix + "/remediation/resolution/history/diff/policy/package/registry/history/diff/query-audit":
                     value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit_model.audit_query(self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_from_input(self._query_value(query, "input") or ""))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == gate_prefix + "/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime":
+                    value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_model.run_runtime(
+                        self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_from_input(self._query_value(query, "input") or ""),
+                        runtime_id=self._query_value(query, "runtime_id") or downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_model.DEFAULT_RUNTIME_ID,
+                        resources=self._query_values(query, "resource") or downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_model.RESOURCES,
+                        change=self._query_value(query, "change") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_model.MAX_LIMIT),
+                        destination=self._query_value(query, "destination"),
+                        overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == gate_prefix + "/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime/audit":
+                    value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_audit_model.audit_runtime(self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 history_prefix = gate_prefix + "/history"
                 if path == history_prefix:
@@ -10907,6 +10940,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                      "/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/query-audit/check-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit_model.check_schema,
                      "/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/query-audit/schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit_model.audit_schema,
                      "/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/query-audit/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit_model.capabilities,
+                     "/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime/manifest-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_model.manifest_schema,
+                     "/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime/schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_model.runtime_schema,
+                     "/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_model.capabilities,
+                     "/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime/audit/check-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_audit_model.check_schema,
+                     "/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime/audit/schema": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_audit_model.audit_schema,
+                     "/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime/audit/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_audit_model.capabilities,
                      "/quality/diff/gate/history/entry-schema": downloaded_data_quality_diff_gate_history_model.entry_schema,
                     "/quality/diff/gate/history/schema": downloaded_data_quality_diff_gate_history_model.history_schema,
                     "/quality/diff/gate/history/capabilities": downloaded_data_quality_diff_gate_history_model.capabilities,
