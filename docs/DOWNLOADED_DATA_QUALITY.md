@@ -693,3 +693,35 @@ nested diff/audit/query/query-audit linkage, aggregate replay, readiness
 folding, address conservation, public-boundary enforcement, and mapping
 round-trip. Real downloaded-ZIP evidence produces a complete, release-ready
 runtime over the improved comparison.
+
+For deterministic admission above those portable runtime handoffs, build a
+runtime handoff registry. Each entry is derived from one complete runtime,
+duplicate runtime identities are rejected, registry readiness folds across
+all entries, and the package exposes bounded summary, entry, runtime, state,
+readiness, address, and bounds resources. Persistence is an exact four-file
+package: `manifest.json`, `registry.json`, `entries.json`, and `summary.json`.
+
+```powershell
+python examples/downloaded_data_quality_diff_demo.py `
+  C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip `
+  artifacts/downloaded-data-quality-diff-demo
+python examples/downloaded_data_quality_diff_gate_demo.py `
+  artifacts/downloaded-data-quality-diff-demo/diff.json `
+  artifacts/downloaded-data-quality-diff-demo/gate
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit `
+  artifacts/downloaded-data-quality-diff-demo/gate/remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry `
+  --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-query `
+  artifacts/downloaded-data-quality-diff-demo/gate/remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry `
+  --resource summary --resource entries --resource runtimes --resource readiness --resource addresses --limit 100 --format json
+```
+
+The registry API routes append `/runtime-registry/history/diff/runtime-registry`,
+`/audit`, `/query`, and `/query-audit` to the history-diff route. Discovery
+publishes entry, entries, manifest, summary, registry, audit, query, and
+query-audit schemas and capabilities. The independent registry audit has 16
+checks; its query audit has 12 checks and replays resource ordering, filters,
+pagination, row addresses, and registry linkage. The live ZIP demo builds two
+complete runtime handoffs, admits both, emits 26 bounded query rows, and
+persists the exact four-file registry without source paths, source records,
+payload bytes, private metadata, agent attributes, or language attributes.
