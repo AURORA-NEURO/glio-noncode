@@ -3507,7 +3507,10 @@ def run_case(
     except (GlioError, OSError, KeyError, TypeError, ValueError) as exc:
         issues.append(
             WorkflowIssue(
-                code=getattr(exc, "code", "runtime_error"),
+                # Runtime persistence failures are deliberately normalized at
+                # this boundary.  Callers can rely on a stable workflow-level
+                # code even when the underlying store implementation changes.
+                code="runtime_error",
                 severity=WorkflowSeverity.ERROR,
                 stage=WorkflowStage.CASE_RUNTIME,
                 message=str(exc),

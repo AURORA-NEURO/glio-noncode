@@ -54,9 +54,11 @@ def _integer(value: object, label: str) -> int:
     return value
 
 
-def _number(value: object, label: str) -> float:
+def _number(value: object, label: str) -> int | float:
     if type(value) not in {int, float}:
         raise ValidationError(f"{label} must be a finite number")
+    if type(value) is int:
+        return value
     try:
         result = float(value)
     except OverflowError as exc:

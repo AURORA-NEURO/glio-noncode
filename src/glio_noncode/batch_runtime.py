@@ -597,6 +597,8 @@ class BatchRuntime:
                 field="batch index path",
             )
         except ValidationError as exc:
+            if "exceeds the byte ceiling" in str(exc):
+                raise StoreError("batch index exceeds its byte ceiling") from exc
             raise StoreError("batch index path is unsafe") from exc
         except OSError as exc:
             raise StoreError("batch index could not be read") from exc
