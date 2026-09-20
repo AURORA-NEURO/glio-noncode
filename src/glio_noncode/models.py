@@ -347,13 +347,22 @@ class VariantIdentity:
     annotations: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        require_non_empty(self.variant_id, "variant_id")
-        require_non_empty(self.chromosome, "chromosome")
-        require_non_empty(self.genome_build, "genome_build")
-        if self.start < 1 or self.end < self.start:
+        for name in ("variant_id", "chromosome", "genome_build"):
+            object.__setattr__(self, name, require_non_empty(getattr(self, name), name))
+        if type(self.kind) is not VariantKind:
+            raise ValidationError("variant kind must be a VariantKind")
+        if type(self.origin) is not VariantOrigin:
+            raise ValidationError("variant origin must be a VariantOrigin")
+        start = _integer(self.start, "variant.start")
+        end = _integer(self.end, "variant.end")
+        if start < 1 or end < start:
             raise ValidationError("variant coordinates must satisfy 1 <= start <= end")
-        if not self.reference or not self.alternate:
-            raise ValidationError("reference and alternate alleles must not be empty")
+        object.__setattr__(self, "start", start)
+        object.__setattr__(self, "end", end)
+        object.__setattr__(self, "reference", require_non_empty(self.reference, "reference"))
+        object.__setattr__(self, "alternate", require_non_empty(self.alternate, "alternate"))
+        object.__setattr__(self, "clonality", require_non_empty(self.clonality, "clonality"))
+        object.__setattr__(self, "sample_id", require_non_empty(self.sample_id, "sample_id"))
         object.__setattr__(self, "annotations", _json_mapping(self.annotations, "annotations"))
 
     @property
@@ -452,9 +461,15 @@ class CandidateElement:
 
     def __post_init__(self) -> None:
         for name in ("element_id", "chromosome", "element_type", "source_id"):
-            require_non_empty(getattr(self, name), name)
-        if self.start < 1 or self.end < self.start:
+            object.__setattr__(self, name, require_non_empty(getattr(self, name), name))
+        if type(self.context) is not ReferenceContext:
+            raise ValidationError("candidate element context must be a ReferenceContext")
+        start = _integer(self.start, "candidate element start")
+        end = _integer(self.end, "candidate element end")
+        if start < 1 or end < start:
             raise ValidationError("element coordinates must satisfy 1 <= start <= end")
+        object.__setattr__(self, "start", start)
+        object.__setattr__(self, "end", end)
         if not self.target_genes and not self.state_ids:
             raise ValidationError("an element must expose a candidate gene or state")
         object.__setattr__(
@@ -464,9 +479,10 @@ class CandidateElement:
         )
         object.__setattr__(self, "state_ids", _strings(self.state_ids, "state_ids", unique=True))
         features = _json_mapping(self.features, "features")
-        for name, value in features.items():
-            _number(value, f"features.{name}")
-        object.__setattr__(self, "features", features)
+        normalized_features = {
+            name: _number(value, f"features.{name}") for name, value in features.items()
+        }
+        object.__setattr__(self, "features", _json_mapping(normalized_features, "features"))
         object.__setattr__(self, "annotations", _json_mapping(self.annotations, "annotations"))
 
     @classmethod
@@ -664,11 +680,21 @@ class EvidenceClaim:
 
     def __post_init__(self) -> None:
         for name in ("evidence_id", "edge_id", "source_id", "channel", "summary"):
-            require_non_empty(getattr(self, name), name)
-        if self.score is not None and not 0.0 <= self.score <= 1.0:
+            object.__setattr__(self, name, require_non_empty(getattr(self, name), name))
+        score = None if self.score is None else _number(self.score, "evidence score")
+        confidence = _number(self.confidence, "evidence confidence")
+        if score is not None and not 0.0 <= score <= 1.0:
             raise ValidationError("evidence score must be between 0 and 1")
-        if not 0.0 <= self.confidence <= 1.0:
+        if not 0.0 <= confidence <= 1.0:
             raise ValidationError("evidence confidence must be between 0 and 1")
+        object.__setattr__(self, "score", score)
+        object.__setattr__(self, "confidence", confidence)
+        object.__setattr__(self, "produced_by", require_non_empty(self.produced_by, "produced_by"))
+        object.__setattr__(self, "created_at", require_non_empty(self.created_at, "created_at"))
+        if self.supersedes is not None:
+            object.__setattr__(
+                self, "supersedes", require_non_empty(self.supersedes, "supersedes")
+            )
         if self.supersedes == self.evidence_id:
             raise ValidationError("an evidence claim cannot supersede itself")
         if self.evidence_id in self.depends_on:
@@ -757,11 +783,16 @@ class HypothesisEdge:
 
     def __post_init__(self) -> None:
         for name in ("edge_id", "source_id", "target_id"):
-            require_non_empty(getattr(self, name), name)
+            object.__setattr__(self, name, require_non_empty(getattr(self, name), name))
+        if type(self.edge_type) is not EdgeType:
+            raise ValidationError("edge_type must be an EdgeType")
+        if type(self.support_level) is not SupportLevel:
+            raise ValidationError("support_level must be a SupportLevel")
         for name in ("support", "uncertainty", "context_fit"):
-            value = getattr(self, name)
+            value = _number(getattr(self, name), f"edge {name}")
             if not 0.0 <= value <= 1.0:
                 raise ValidationError(f"{name} must be between 0 and 1")
+            object.__setattr__(self, name, value)
         if not self.claim_ids:
             raise ValidationError("each edge must reference at least one claim or abstention")
         object.__setattr__(
@@ -850,13 +881,20 @@ class Hypothesis:
             "state_id",
             "mechanism",
         ):
-            require_non_empty(getattr(self, name), name)
+            object.__setattr__(self, name, require_non_empty(getattr(self, name), name))
+        if type(self.context) is not ReferenceContext:
+            raise ValidationError("hypothesis context must be a ReferenceContext")
+        if type(self.status) is not ResearchStatus:
+            raise ValidationError("hypothesis status must be a ResearchStatus")
+        if type(self.edges) is not tuple or any(type(edge) is not HypothesisEdge for edge in self.edges):
+            raise ValidationError("hypothesis edges must be typed HypothesisEdge objects")
         if not self.edges:
             raise ValidationError("a hypothesis must have at least one edge")
         for name in ("support", "uncertainty"):
-            value = getattr(self, name)
+            value = _number(getattr(self, name), f"hypothesis {name}")
             if not 0.0 <= value <= 1.0:
                 raise ValidationError(f"{name} must be between 0 and 1")
+            object.__setattr__(self, name, value)
         ensure_unique((edge.edge_id for edge in self.edges), "hypothesis edge_id")
         for name in ("missing_evidence", "negative_evidence", "alternatives", "provenance"):
             object.__setattr__(
@@ -950,13 +988,17 @@ class ExperimentOption:
     limitations: tuple[str, ...]
 
     def __post_init__(self) -> None:
-        require_non_empty(self.option_id, "option_id")
+        object.__setattr__(self, "option_id", require_non_empty(self.option_id, "option_id"))
+        if type(self.assay) is not AssayType:
+            raise ValidationError("experiment assay must be an AssayType")
+        object.__setattr__(self, "cost_class", require_non_empty(self.cost_class, "cost_class"))
         if not self.tests_edges:
             raise ValidationError("an experiment option must test at least one edge")
         for name in ("expected_information_gain", "feasibility"):
-            value = getattr(self, name)
+            value = _number(getattr(self, name), f"experiment {name}")
             if not 0.0 <= value <= 1.0:
                 raise ValidationError(f"{name} must be between 0 and 1")
+            object.__setattr__(self, name, value)
         object.__setattr__(
             self,
             "tests_edges",
