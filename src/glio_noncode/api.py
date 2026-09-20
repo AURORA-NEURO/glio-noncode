@@ -866,6 +866,10 @@ from . import downloaded_data_quality_runtime_history_release_evidence as downlo
 from . import downloaded_data_quality_runtime_history_release_evidence_audit as downloaded_data_quality_runtime_history_release_evidence_audit_model
 from . import downloaded_data_quality_runtime_history_release_evidence_query as downloaded_data_quality_runtime_history_release_evidence_query_model
 from . import downloaded_data_quality_runtime_history_release_evidence_query_audit as downloaded_data_quality_runtime_history_release_evidence_query_audit_model
+from . import downloaded_data_quality_runtime_history_release_evidence_history as downloaded_data_quality_runtime_history_release_evidence_history_model
+from . import downloaded_data_quality_runtime_history_release_evidence_history_audit as downloaded_data_quality_runtime_history_release_evidence_history_audit_model
+from . import downloaded_data_quality_runtime_history_release_evidence_history_query as downloaded_data_quality_runtime_history_release_evidence_history_query_model
+from . import downloaded_data_quality_runtime_history_release_evidence_history_query_audit as downloaded_data_quality_runtime_history_release_evidence_history_query_audit_model
 from . import registry_federation_audit as registry_federation_audit_model
 from . import registry_federation_consensus as registry_federation_consensus_model
 from . import registry_federation_consensus_audit as registry_federation_consensus_audit_model
@@ -3974,6 +3978,25 @@ class ApiHandler(BaseHTTPRequestHandler):
             raise ValueError("downloaded-data quality release evidence query input must be an object")
         nested = raw.get("query")
         return downloaded_data_quality_runtime_history_release_evidence_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+    @staticmethod
+    def _downloaded_quality_runtime_history_release_evidence_history_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_quality_runtime_history_release_evidence_history_model.load_history(source)
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, Mapping):
+            raise ValueError("downloaded-data quality release evidence history input must be an object")
+        nested = raw.get("history")
+        return downloaded_data_quality_runtime_history_release_evidence_history_model.history_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+    @staticmethod
+    def _downloaded_quality_runtime_history_release_evidence_history_query_from_input(input_path: str):
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
+        if not isinstance(raw, Mapping):
+            raise ValueError("downloaded-data quality release evidence history query input must be an object")
+        nested = raw.get("query")
+        return downloaded_data_quality_runtime_history_release_evidence_history_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
     @staticmethod
     def _downloaded_quality_policy_from_input(input_path: str):
@@ -7493,6 +7516,40 @@ class ApiHandler(BaseHTTPRequestHandler):
                     evidence = self._downloaded_quality_runtime_history_release_evidence_from_input(self._query_value(query, "evidence") or self._query_value(query, "source") or "")
                     value = downloaded_data_quality_runtime_history_release_evidence_query_audit_model.audit_query(query_value, evidence)
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_evidence_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == gate_prefix + "/runtime-history/release-evidence-history":
+                    evidence = self._downloaded_quality_runtime_history_release_evidence_from_input(self._query_value(query, "input") or self._query_value(query, "evidence") or "")
+                    value = downloaded_data_quality_runtime_history_release_evidence_history_model.build_history(evidence, history_id=self._query_value(query, "history_id") or downloaded_data_quality_runtime_history_release_evidence_history_model.DEFAULT_HISTORY_ID, snapshot_id=self._query_value(query, "snapshot_id") or "initial")
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_quality_runtime_history_release_evidence_history_model.persist_history(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_evidence_history_model, json_name="history_json", csv_name="history_csv", markdown_name="render_history_markdown")
+                    return
+                if path == gate_prefix + "/runtime-history/release-evidence-history/append":
+                    history = self._downloaded_quality_runtime_history_release_evidence_history_from_input(self._query_value(query, "history") or self._query_value(query, "input") or "")
+                    evidence = self._downloaded_quality_runtime_history_release_evidence_from_input(self._query_value(query, "evidence") or self._query_value(query, "source") or "")
+                    value = downloaded_data_quality_runtime_history_release_evidence_history_model.append_history(history, evidence, snapshot_id=self._query_value(query, "snapshot_id"), expected_head=self._query_value(query, "expected_head"))
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_quality_runtime_history_release_evidence_history_model.persist_history(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_evidence_history_model, json_name="history_json", csv_name="history_csv", markdown_name="render_history_markdown")
+                    return
+                if path == gate_prefix + "/runtime-history/release-evidence-history/audit":
+                    value = downloaded_data_quality_runtime_history_release_evidence_history_audit_model.audit_history(self._downloaded_quality_runtime_history_release_evidence_history_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_evidence_history_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == gate_prefix + "/runtime-history/release-evidence-history/query":
+                    history = self._downloaded_quality_runtime_history_release_evidence_history_from_input(self._query_value(query, "input") or "")
+                    readiness_raw = self._query_value(query, "readiness_filter")
+                    readiness_filter = None if not readiness_raw else readiness_raw.lower() == "true"
+                    value = downloaded_data_quality_runtime_history_release_evidence_history_query_model.query_history(history, resources=self._query_values(query, "resource") or downloaded_data_quality_runtime_history_release_evidence_history_query_model.RESOURCES, state_filter=self._query_value(query, "state") or "", transition_filter=self._query_value(query, "transition") or "", readiness_filter=readiness_filter, text_filter=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", downloaded_data_quality_runtime_history_release_evidence_history_query_model.MAX_LIMIT))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_evidence_history_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == gate_prefix + "/runtime-history/release-evidence-history/query-audit":
+                    query_value = self._downloaded_quality_runtime_history_release_evidence_history_query_from_input(self._query_value(query, "query") or self._query_value(query, "input") or "")
+                    history = self._downloaded_quality_runtime_history_release_evidence_history_from_input(self._query_value(query, "history") or self._query_value(query, "source") or "")
+                    value = downloaded_data_quality_runtime_history_release_evidence_history_query_audit_model.audit_query(query_value, history)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_runtime_history_release_evidence_history_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 history_prefix = gate_prefix + "/history"
                 if path == gate_prefix + "/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime/registry":
@@ -11848,6 +11905,20 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/quality/diff/gate/runtime-history/release-evidence/query-audit/check-schema": downloaded_data_quality_runtime_history_release_evidence_query_audit_model.check_schema,
                     "/quality/diff/gate/runtime-history/release-evidence/query-audit/schema": downloaded_data_quality_runtime_history_release_evidence_query_audit_model.audit_schema,
                     "/quality/diff/gate/runtime-history/release-evidence/query-audit/capabilities": downloaded_data_quality_runtime_history_release_evidence_query_audit_model.capabilities,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/entry-schema": downloaded_data_quality_runtime_history_release_evidence_history_model.entry_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/manifest-schema": downloaded_data_quality_runtime_history_release_evidence_history_model.manifest_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/summary-schema": downloaded_data_quality_runtime_history_release_evidence_history_model.summary_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/schema": downloaded_data_quality_runtime_history_release_evidence_history_model.history_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/capabilities": downloaded_data_quality_runtime_history_release_evidence_history_model.capabilities,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/audit/check-schema": downloaded_data_quality_runtime_history_release_evidence_history_audit_model.check_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/audit/schema": downloaded_data_quality_runtime_history_release_evidence_history_audit_model.audit_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/audit/capabilities": downloaded_data_quality_runtime_history_release_evidence_history_audit_model.capabilities,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/query/row-schema": downloaded_data_quality_runtime_history_release_evidence_history_query_model.row_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/query/schema": downloaded_data_quality_runtime_history_release_evidence_history_query_model.query_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/query/capabilities": downloaded_data_quality_runtime_history_release_evidence_history_query_model.capabilities,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/query-audit/check-schema": downloaded_data_quality_runtime_history_release_evidence_history_query_audit_model.check_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/query-audit/schema": downloaded_data_quality_runtime_history_release_evidence_history_query_audit_model.audit_schema,
+                    "/quality/diff/gate/runtime-history/release-evidence-history/query-audit/capabilities": downloaded_data_quality_runtime_history_release_evidence_history_query_audit_model.capabilities,
                     "/quality/diff/gate/remediation/resolution/history/entry-schema": downloaded_data_quality_diff_gate_remediation_resolution_history_model.entry_schema,
                     "/quality/diff/gate/remediation/resolution/history/schema": downloaded_data_quality_diff_gate_remediation_resolution_history_model.history_schema,
                     "/quality/diff/gate/remediation/resolution/history/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_history_model.capabilities,

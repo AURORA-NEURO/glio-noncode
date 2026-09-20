@@ -1016,3 +1016,35 @@ Live downloaded-ZIP evidence for D166 used the persisted D165 gate and D164 hist
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-d166-live-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-d166-live-query-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-d166-api`
+
+## D167 downloaded-data quality runtime-history release-evidence history
+
+D167 adds an append-only history above D166 release evidence. Each snapshot records the evidence address, stable gate and source-history identities, readiness counters, predecessor address, and a deterministic transition. Appends require the current head when supplied, reject duplicate snapshot IDs and evidence addresses, and preserve the latest state and readiness projection.
+
+The persisted history is an exact four-file directory:
+
+- `manifest.json`
+- `history.json`
+- `entries.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history EVIDENCE_DIR --history-id quality-release-evidence-history --snapshot-id initial --destination HISTORY_DIR --overwrite --format json --output history.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-append HISTORY_DIR EVIDENCE_DIR --snapshot-id candidate-2 --expected-head HEAD_ADDRESS --destination HISTORY_DIR --overwrite --format json --output history.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-audit HISTORY_DIR --format json --output history-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-query HISTORY_DIR --limit 128 --format json --output history-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-query-audit history-query.json HISTORY_DIR --format json --output history-query-audit.json
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history`, with `/append`, `/audit`, `/query`, and `/query-audit` suffixes.
+
+Live downloaded-ZIP evidence for D167 used the persisted D166 release-evidence package. The CLI and HTTP API both produced a ready one-entry history; the history audit passed `16/16`, the query returned `27/27` rows without truncation, and the query audit passed `12/12`. A blocked-to-ready in-memory append separately produced `initial` followed by `improved`, with stale-head and duplicate protections covered by tests. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-d167-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-d167-live.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-d167-live-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-d167-live-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-d167-live-query-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-d167-api`

@@ -142,6 +142,10 @@ from glio_noncode import downloaded_data_quality_runtime_history_release_evidenc
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_audit as runtime_history_release_evidence_audit_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_query as runtime_history_release_evidence_query_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_query_audit as runtime_history_release_evidence_query_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history as runtime_history_release_evidence_history_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_audit as runtime_history_release_evidence_history_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_query as runtime_history_release_evidence_history_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_query_audit as runtime_history_release_evidence_history_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -1236,6 +1240,85 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 (blocked_evidence_d166.summary.gate_state, blocked_evidence_d166.summary.evidence_ready),
                 ("blocked", False),
             )
+            empty_history_d167_source = runtime_history_release_gate_model.history_model.build_history(
+                (empty_registry_d164,),
+                history_id=registry_history_d164.history_id,
+            )
+            blocked_gate_d167 = runtime_history_release_gate_model.build_gate(
+                empty_history_d167_source,
+                gate_id=runtime_history_release_gate_d165.gate_id,
+            )
+            blocked_gate_d167_query = runtime_history_release_gate_query_model.query_gate(
+                blocked_gate_d167,
+                resources=runtime_history_release_gate_query_model.RESOURCES,
+                limit=runtime_history_release_gate_query_model.MAX_LIMIT,
+            )
+            blocked_evidence_d167 = runtime_history_release_evidence_model.build_evidence(
+                blocked_gate_d167,
+                runtime_history_release_gate_audit_model.audit_gate(blocked_gate_d167, empty_history_d167_source),
+                blocked_gate_d167_query,
+                runtime_history_release_gate_query_audit_model.audit_query(blocked_gate_d167_query, blocked_gate_d167),
+                evidence_id="quality-registry-history-d167-blocked-evidence",
+            )
+            evidence_history_d167 = runtime_history_release_evidence_history_model.build_history(
+                blocked_evidence_d167,
+                history_id="quality-registry-history-d167-evidence-history",
+                snapshot_id="blocked",
+            )
+            evidence_history_d167 = runtime_history_release_evidence_history_model.append_history(
+                evidence_history_d167,
+                runtime_history_release_evidence_d166,
+                snapshot_id="ready",
+                expected_head=evidence_history_d167.entries[-1].content_address,
+            )
+            self.assertEqual(
+                (
+                    tuple(item.transition for item in evidence_history_d167.entries),
+                    evidence_history_d167.latest_state,
+                    evidence_history_d167.latest_ready,
+                    evidence_history_d167.improved_count,
+                ),
+                (("initial", "improved"), "ready", True, 1),
+            )
+            evidence_history_d167_audit = runtime_history_release_evidence_history_audit_model.audit_history(evidence_history_d167)
+            self.assertEqual(
+                (evidence_history_d167_audit.passed_count, evidence_history_d167_audit.check_count, evidence_history_d167_audit.accepted),
+                (16, 16, True),
+            )
+            evidence_history_d167_query = runtime_history_release_evidence_history_query_model.query_history(
+                evidence_history_d167,
+                resources=runtime_history_release_evidence_history_query_model.RESOURCES,
+                limit=runtime_history_release_evidence_history_query_model.MAX_LIMIT,
+            )
+            self.assertEqual(
+                (evidence_history_d167_query.returned_count, evidence_history_d167_query.total_count, evidence_history_d167_query.truncated),
+                (28, 28, False),
+            )
+            evidence_history_d167_query_audit = runtime_history_release_evidence_history_query_audit_model.audit_query(evidence_history_d167_query, evidence_history_d167)
+            self.assertEqual(
+                (evidence_history_d167_query_audit.passed_count, evidence_history_d167_query_audit.check_count, evidence_history_d167_query_audit.accepted),
+                (12, 12, True),
+            )
+            self.assertEqual(
+                runtime_history_release_evidence_history_model.history_from_mapping(evidence_history_d167.to_dict()).content_address,
+                evidence_history_d167.content_address,
+            )
+            with tempfile.TemporaryDirectory() as evidence_history_directory:
+                evidence_history_destination_d167 = Path(evidence_history_directory) / "runtime-history-release-evidence-history-d167"
+                runtime_history_release_evidence_history_model.persist_history(evidence_history_d167, evidence_history_destination_d167)
+                self.assertEqual(
+                    tuple(sorted(path.name for path in evidence_history_destination_d167.iterdir())),
+                    tuple(sorted(runtime_history_release_evidence_history_model.FILES)),
+                )
+                self.assertEqual(
+                    runtime_history_release_evidence_history_model.load_history(evidence_history_destination_d167).content_address,
+                    evidence_history_d167.content_address,
+                )
+                tampered_evidence_history_d167 = json.loads((evidence_history_destination_d167 / "summary.json").read_text(encoding="utf-8"))
+                tampered_evidence_history_d167["latest_ready"] = False
+                (evidence_history_destination_d167 / "summary.json").write_text(json.dumps(tampered_evidence_history_d167), encoding="utf-8")
+                with self.assertRaises(ValidationError):
+                    runtime_history_release_evidence_history_model.load_history(evidence_history_destination_d167)
             self.assertEqual(
                 runtime_history_release_evidence_model.evidence_from_mapping(runtime_history_release_evidence_d166.to_dict()).content_address,
                 runtime_history_release_evidence_d166.content_address,
@@ -1571,6 +1654,73 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 )
                 self.assertEqual(json.loads(cli_evidence_d166_json.read_text(encoding="utf-8"))["summary"]["evidence_ready"], True)
                 self.assertEqual(json.loads(cli_evidence_d166_query_json.read_text(encoding="utf-8"))["returned_count"], 55)
+                cli_evidence_history_d167_destination = Path(directory) / "runtime-history-release-evidence-history-d167-cli"
+                cli_evidence_history_d167_json = Path(directory) / "runtime-history-release-evidence-history-d167-cli.json"
+                self.assertEqual(
+                    main(
+                        [
+                            "downloaded-data-quality-runtime-history-release-evidence-history",
+                            str(cli_evidence_d166_destination),
+                            "--history-id",
+                            "quality-registry-history-d167-cli",
+                            "--destination",
+                            str(cli_evidence_history_d167_destination),
+                            "--overwrite",
+                            "--format",
+                            "json",
+                            "--output",
+                            str(cli_evidence_history_d167_json),
+                        ]
+                    ),
+                    0,
+                )
+                cli_evidence_history_d167_audit_json = Path(directory) / "runtime-history-release-evidence-history-d167-cli-audit.json"
+                self.assertEqual(
+                    main(
+                        [
+                            "downloaded-data-quality-runtime-history-release-evidence-history-audit",
+                            str(cli_evidence_history_d167_destination),
+                            "--format",
+                            "json",
+                            "--output",
+                            str(cli_evidence_history_d167_audit_json),
+                        ]
+                    ),
+                    0,
+                )
+                cli_evidence_history_d167_query_json = Path(directory) / "runtime-history-release-evidence-history-d167-cli-query.json"
+                self.assertEqual(
+                    main(
+                        [
+                            "downloaded-data-quality-runtime-history-release-evidence-history-query",
+                            str(cli_evidence_history_d167_destination),
+                            "--limit",
+                            "128",
+                            "--format",
+                            "json",
+                            "--output",
+                            str(cli_evidence_history_d167_query_json),
+                        ]
+                    ),
+                    0,
+                )
+                cli_evidence_history_d167_query_audit_json = Path(directory) / "runtime-history-release-evidence-history-d167-cli-query-audit.json"
+                self.assertEqual(
+                    main(
+                        [
+                            "downloaded-data-quality-runtime-history-release-evidence-history-query-audit",
+                            str(cli_evidence_history_d167_query_json),
+                            str(cli_evidence_history_d167_destination),
+                            "--format",
+                            "json",
+                            "--output",
+                            str(cli_evidence_history_d167_query_audit_json),
+                        ]
+                    ),
+                    0,
+                )
+                self.assertEqual(json.loads(cli_evidence_history_d167_audit_json.read_text(encoding="utf-8"))["accepted"], True)
+                self.assertEqual(json.loads(cli_evidence_history_d167_query_json.read_text(encoding="utf-8"))["returned_count"], 27)
                 d165_api_base = api_base + "/diff/gate/runtime-history/release-gate"
                 api_gate_d165_destination = Path(directory) / "runtime-history-release-gate-d165-api"
                 api_gate_d165 = json.loads(
@@ -1652,6 +1802,46 @@ class DownloadedDataQualityTests(unittest.TestCase):
                     ).read().decode()
                 )
                 self.assertEqual((api_evidence_d166_query_audit["passed_count"], api_evidence_d166_query_audit["accepted"]), (12, True))
+                d167_api_base = api_base + "/diff/gate/runtime-history/release-evidence-history"
+                api_evidence_history_d167_destination = Path(directory) / "runtime-history-release-evidence-history-d167-api"
+                api_evidence_history_d167 = json.loads(
+                    urlopen(
+                        d167_api_base + "?" + urlencode(
+                            {
+                                "input": str(api_evidence_d166_destination),
+                                "history_id": "quality-registry-history-d167-api",
+                                "destination": str(api_evidence_history_d167_destination),
+                                "overwrite": "true",
+                                "format": "json",
+                            }
+                        ),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertEqual((api_evidence_history_d167["entry_count"], api_evidence_history_d167["latest_state"], api_evidence_history_d167["latest_ready"]), (1, "ready", True))
+                api_evidence_history_d167_audit = json.loads(
+                    urlopen(
+                        d167_api_base + "/audit?" + urlencode({"input": str(api_evidence_history_d167_destination), "format": "json"}),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertEqual((api_evidence_history_d167_audit["passed_count"], api_evidence_history_d167_audit["accepted"]), (16, True))
+                api_evidence_history_d167_query = json.loads(
+                    urlopen(
+                        d167_api_base + "/query?" + urlencode({"input": str(api_evidence_history_d167_destination), "limit": "128", "format": "json"}),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertEqual((api_evidence_history_d167_query["returned_count"], api_evidence_history_d167_query["total_count"], api_evidence_history_d167_query["truncated"]), (27, 27, False))
+                api_evidence_history_d167_query_json = Path(directory) / "runtime-history-release-evidence-history-d167-api-query.json"
+                api_evidence_history_d167_query_json.write_text(json.dumps(api_evidence_history_d167_query), encoding="utf-8")
+                api_evidence_history_d167_query_audit = json.loads(
+                    urlopen(
+                        d167_api_base + "/query-audit?" + urlencode({"query": str(api_evidence_history_d167_query_json), "history": str(api_evidence_history_d167_destination), "format": "json"}),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertEqual((api_evidence_history_d167_query_audit["passed_count"], api_evidence_history_d167_query_audit["accepted"]), (12, True))
             finally:
                 server.shutdown()
                 server.server_close()
