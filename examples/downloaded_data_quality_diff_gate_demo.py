@@ -107,6 +107,8 @@ from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolutio
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit as handoff_registry_history_diff_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query as handoff_registry_history_diff_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit as handoff_registry_history_diff_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime as handoff_registry_history_diff_runtime_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit as handoff_registry_history_diff_runtime_audit_model
 
 
 def _permissive_policy(item_count: int) -> gate_model.DownloadedDataQualityDiffGatePolicy:
@@ -483,6 +485,13 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         handoff_registry_history_diff_query,
         handoff_registry_history_diff,
     )
+    handoff_registry_history_diff_runtime = handoff_registry_history_diff_runtime_model.build_runtime(
+        handoff_registry_history_diff,
+        runtime_id="glio-noncode-downloaded-quality-diff-demo-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime",
+        resources=handoff_registry_history_diff_query_model.RESOURCES,
+        limit=handoff_registry_history_diff_query_model.MAX_LIMIT,
+    )
+    handoff_registry_history_diff_runtime_audit = handoff_registry_history_diff_runtime_audit_model.audit_runtime(handoff_registry_history_diff_runtime)
     summary: dict[str, object] = {
         "diff_address": diff.content_address,
         "diff_id": diff.diff_id,
@@ -703,6 +712,11 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
          "handoff_registry_history_diff_query_truncated": handoff_registry_history_diff_query.truncated,
          "handoff_registry_history_diff_query_audit_accepted": handoff_registry_history_diff_query_audit.accepted,
          "handoff_registry_history_diff_query_audit_checks": handoff_registry_history_diff_query_audit.check_count,
+         "handoff_registry_history_diff_runtime_state": handoff_registry_history_diff_runtime.state,
+         "handoff_registry_history_diff_runtime_accepted": handoff_registry_history_diff_runtime.accepted,
+         "handoff_registry_history_diff_runtime_release_ready": handoff_registry_history_diff_runtime.release_ready,
+         "handoff_registry_history_diff_runtime_audit_accepted": handoff_registry_history_diff_runtime_audit.accepted,
+         "handoff_registry_history_diff_runtime_audit_checks": handoff_registry_history_diff_runtime_audit.check_count,
          "permissive_state": permissive_gate.state,
         "permissive_decision": permissive_gate.decision,
         "permissive_accepted": permissive_gate.accepted,
@@ -855,6 +869,11 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query-audit.json").write_text(handoff_registry_history_diff_query_audit_model.audit_json(handoff_registry_history_diff_query_audit), encoding="utf-8")
         handoff_registry_history_diff_root = root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff"
         handoff_registry_history_diff_model.persist_diff(handoff_registry_history_diff, handoff_registry_history_diff_root, overwrite=True)
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime.json").write_text(handoff_registry_history_diff_runtime_model.runtime_json(handoff_registry_history_diff_runtime), encoding="utf-8")
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime.md").write_text(handoff_registry_history_diff_runtime_model.render_runtime_markdown(handoff_registry_history_diff_runtime), encoding="utf-8")
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit.json").write_text(handoff_registry_history_diff_runtime_audit_model.audit_json(handoff_registry_history_diff_runtime_audit), encoding="utf-8")
+        handoff_registry_history_diff_runtime_root = root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime"
+        handoff_registry_history_diff_runtime_model.persist_runtime(handoff_registry_history_diff_runtime, handoff_registry_history_diff_runtime_root, overwrite=True)
         (root / "permissive-gate.json").write_text(gate_model.gate_json(permissive_gate), encoding="utf-8")
         summary["output_directory"] = str(root.resolve())
         summary["runtime_directory"] = str(runtime_root.resolve())
@@ -917,7 +936,8 @@ def main() -> int:
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_audit_accepted",
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_accepted",
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_accepted",
-        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_accepted",
+         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_accepted",
+         "handoff_registry_history_diff_runtime_audit_accepted",
     )) else 2
 
 

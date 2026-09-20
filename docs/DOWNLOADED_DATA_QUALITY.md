@@ -786,3 +786,27 @@ and baseline/candidate linkage. On the supplied downloaded ZIP, the live demo
 compares an empty baseline history to the ready candidate history and reports
 `improved`, one added snapshot, one unchanged snapshot, 30 query rows, and
 passing 16/16 and 13/13 audits.
+
+For a portable execution handoff above that history diff, build a runtime
+closure. It seals the diff, its independent audit, its bounded query, and its
+query audit into one value-free artifact. The runtime is `complete` only when
+both nested audits pass, and it is `release_ready` only for an accepted
+`improved` or `unchanged` direction. Persistence is an exact six-file package:
+`manifest.json`, `diff.json`, `audit.json`, `query.json`, `query-audit.json`,
+and `runtime.json`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime `
+  runtime-handoff-history-diff --runtime-id runtime-handoff-history-diff-runtime `
+  --resource summary --resource items --resource added --resource removed `
+  --resource changed --resource unchanged --resource addresses --resource bounds `
+  --limit 100 --destination runtime-handoff-history-diff-runtime --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit `
+  runtime-handoff-history-diff-runtime --format summary
+```
+
+The API routes append `/runtime` and `/runtime/audit` to the history-diff
+route. Discovery publishes the runtime manifest, runtime schema, capabilities,
+and the independent 15-check runtime audit surfaces. The live downloaded-ZIP
+demo produces a complete, release-ready runtime over the improved history
+comparison and reloads the exact six-file package.
