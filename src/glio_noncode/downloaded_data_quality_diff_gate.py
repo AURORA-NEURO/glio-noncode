@@ -110,6 +110,9 @@ def _address(value: Any, field: str, prefix: str | None = None, *, optional: boo
     value = _text(value, field, 2048)
     if "/" in value or "\\" in value or '"' in value or ":" not in value or (prefix is not None and not value.startswith(prefix + ":")):
         raise ValidationError(f"{field} has an unsupported address")
+    namespace, digest = value.split(":", 1)
+    if not namespace or (digest != "pending" and (len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest))):
+        raise ValidationError(f"{field} must be a canonical content address")
     return value
 
 
