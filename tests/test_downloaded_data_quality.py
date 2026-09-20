@@ -158,6 +158,10 @@ from glio_noncode import downloaded_data_quality_runtime_history_release_evidenc
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_audit as runtime_history_release_evidence_history_runtime_registry_history_audit_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_query as runtime_history_release_evidence_history_runtime_registry_history_query_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_query_audit as runtime_history_release_evidence_history_runtime_registry_history_query_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff as runtime_history_release_evidence_history_runtime_registry_history_diff_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_query as runtime_history_release_evidence_history_runtime_registry_history_diff_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_query_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -2035,6 +2039,54 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 self.assertEqual(d170_schema["title"], "RegistryHistory")
                 with self.assertRaises(ValidationError):
                     runtime_history_release_evidence_history_runtime_registry_history_model.append_history(d170_history, d170_ready_registry, snapshot_id="duplicate", expected_head=d170_history.entries[-1].content_address)
+                d171_baseline = runtime_history_release_evidence_history_runtime_registry_history_model.build_history(d170_blocked_registry, history_id="quality-registry-history-d171-baseline", snapshot_id="blocked")
+                d171_baseline_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d171-baseline"
+                runtime_history_release_evidence_history_runtime_registry_history_model.persist_history(d171_baseline, d171_baseline_destination)
+                d171_diff = runtime_history_release_evidence_history_runtime_registry_history_diff_model.build_diff(d171_baseline, d170_history, diff_id="quality-registry-history-d171-diff")
+                self.assertEqual((d171_diff.added_count, d171_diff.removed_count, d171_diff.changed_count, d171_diff.unchanged_count, d171_diff.direction, d171_diff.accepted), (1, 0, 0, 1, "improved", True))
+                self.assertEqual(runtime_history_release_evidence_history_runtime_registry_history_diff_model.diff_from_mapping(d171_diff.to_dict()).content_address, d171_diff.content_address)
+                d171_diff_audit = runtime_history_release_evidence_history_runtime_registry_history_diff_audit_model.audit_diff(d171_diff)
+                self.assertEqual((d171_diff_audit.passed_count, d171_diff_audit.check_count, d171_diff_audit.accepted), (16, 16, True))
+                d171_diff_query = runtime_history_release_evidence_history_runtime_registry_history_diff_query_model.query_diff(d171_diff, limit=128)
+                self.assertEqual((d171_diff_query.total_count, d171_diff_query.returned_count, d171_diff_query.truncated), (27, 27, False))
+                d171_diff_query_audit = runtime_history_release_evidence_history_runtime_registry_history_diff_query_audit_model.audit_query(d171_diff_query, d171_diff)
+                self.assertEqual((d171_diff_query_audit.passed_count, d171_diff_query_audit.check_count, d171_diff_query_audit.accepted), (12, 12, True))
+                d171_diff_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d171-diff"
+                runtime_history_release_evidence_history_runtime_registry_history_diff_model.persist_diff(d171_diff, d171_diff_destination)
+                self.assertEqual(tuple(sorted(path.name for path in d171_diff_destination.iterdir())), tuple(sorted(runtime_history_release_evidence_history_runtime_registry_history_diff_model.FILES)))
+                self.assertEqual(runtime_history_release_evidence_history_runtime_registry_history_diff_model.load_diff(d171_diff_destination).content_address, d171_diff.content_address)
+                tampered_d171_summary = json.loads((d171_diff_destination / "summary.json").read_text(encoding="utf-8"))
+                tampered_d171_summary["added_count"] = 0
+                (d171_diff_destination / "summary.json").write_text(json.dumps(tampered_d171_summary), encoding="utf-8")
+                with self.assertRaises(ValidationError):
+                    runtime_history_release_evidence_history_runtime_registry_history_diff_model.load_diff(d171_diff_destination)
+                runtime_history_release_evidence_history_runtime_registry_history_diff_model.persist_diff(d171_diff, d171_diff_destination, overwrite=True)
+                d171_diff_command = "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff"
+                d171_cli_diff_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d171-cli-diff"
+                d171_cli_diff_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d171-cli-diff.json"
+                self.assertEqual(main([d171_diff_command, str(d171_baseline_destination), str(d170_history_destination), "--diff-id", "quality-registry-history-d171-cli-diff", "--destination", str(d171_cli_diff_destination), "--overwrite", "--format", "json", "--output", str(d171_cli_diff_json)]), 0)
+                self.assertEqual((json.loads(d171_cli_diff_json.read_text(encoding="utf-8"))["direction"], json.loads(d171_cli_diff_json.read_text(encoding="utf-8"))["added_count"]), ("improved", 1))
+                d171_cli_audit_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d171-cli-diff-audit.json"
+                self.assertEqual(main([d171_diff_command + "-audit", str(d171_cli_diff_destination), "--format", "json", "--output", str(d171_cli_audit_json)]), 0)
+                d171_cli_query_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d171-cli-diff-query.json"
+                self.assertEqual(main([d171_diff_command + "-query", str(d171_cli_diff_destination), "--limit", "128", "--format", "json", "--output", str(d171_cli_query_json)]), 0)
+                d171_cli_query_audit_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d171-cli-diff-query-audit.json"
+                self.assertEqual(main([d171_diff_command + "-query-audit", str(d171_cli_query_json), str(d171_cli_diff_destination), "--format", "json", "--output", str(d171_cli_query_audit_json)]), 0)
+                self.assertEqual((json.loads(d171_cli_audit_json.read_text(encoding="utf-8"))["passed_count"], json.loads(d171_cli_query_json.read_text(encoding="utf-8"))["returned_count"], json.loads(d171_cli_query_audit_json.read_text(encoding="utf-8"))["accepted"]), (16, 27, True))
+                d171_api_base = api_base + "/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff"
+                d171_api_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d171-http-diff"
+                d171_api_diff = json.loads(urlopen(d171_api_base + "?" + urlencode({"left": str(d171_baseline_destination), "right": str(d170_history_destination), "diff_id": "quality-api-registry-history-d171-diff", "destination": str(d171_api_destination), "overwrite": "true", "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d171_api_diff["direction"], d171_api_diff["added_count"], d171_api_diff["accepted"]), ("improved", 1, True))
+                d171_api_audit = json.loads(urlopen(d171_api_base + "/audit?" + urlencode({"input": str(d171_api_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d171_api_audit["passed_count"], d171_api_audit["accepted"]), (16, True))
+                d171_api_query = json.loads(urlopen(d171_api_base + "/query?" + urlencode({"input": str(d171_api_destination), "limit": "128", "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d171_api_query["returned_count"], d171_api_query["total_count"], d171_api_query["truncated"]), (27, 27, False))
+                d171_api_query_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d171-http-diff-query.json"
+                d171_api_query_json.write_text(json.dumps(d171_api_query), encoding="utf-8")
+                d171_api_query_audit = json.loads(urlopen(d171_api_base + "/query-audit?" + urlencode({"query": str(d171_api_query_json), "diff": str(d171_api_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d171_api_query_audit["passed_count"], d171_api_query_audit["accepted"]), (12, True))
+                d171_schema = json.loads(urlopen(api_base + "/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/schema", timeout=10).read().decode())
+                self.assertEqual(d171_schema["title"], "RuntimeRegistryHistoryDiff")
             finally:
                 server.shutdown()
                 server.server_close()
