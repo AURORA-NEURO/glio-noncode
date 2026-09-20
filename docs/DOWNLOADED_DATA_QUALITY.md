@@ -1078,3 +1078,33 @@ Live downloaded-ZIP evidence for D168 used the persisted D167 history. The runti
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-runtime-d168-live-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-runtime-d168-live-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-history-release-evidence-history-runtime-d168-live-query-audit.json`
+
+## D169 downloaded-data quality runtime-history release-evidence history runtime registry
+
+D169 admits multiple D168 history-runtime decisions into one deterministic registry. Each registry entry preserves the runtime and history identities, content addresses, state, readiness, check counters, and history depth. The aggregate remains explicit: an empty registry is `empty`, a non-empty registry with only ready entries is `ready`, and any blocked entry produces `blocked`. Duplicate runtime IDs and runtime content addresses are rejected before admission.
+
+The persisted registry is an exact four-file directory:
+
+- `manifest.json`
+- `registry.json`
+- `entries.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry RUNTIME_DIR_1 RUNTIME_DIR_2 --registry-id quality-runtime-registry --destination REGISTRY_DIR --overwrite --format json --output registry.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-audit REGISTRY_DIR --format json --output registry-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-query REGISTRY_DIR --limit 128 --format json --output registry-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-query-audit registry-query.json REGISTRY_DIR --format json --output registry-query-audit.json
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry`, with `/audit`, `/query`, and `/query-audit` suffixes. Entry, manifest, summary, registry, audit, query, and capability schemas are exposed beneath the same API family.
+
+Live downloaded-ZIP evidence for D169 admitted two independent D168 runtimes. The registry produced `state=ready`, `release_ready=true`, and `2/2` ready entries; the independent registry audit passed `16/16`; the registry query returned `24/24` rows without truncation; and the independent query audit passed `12/12`. Duplicate runtime admission was rejected, and a deliberately blocked runtime produced a blocked aggregate. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d169-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d169-live.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d169-live-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d169-live-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d169-live-query-audit.json`
