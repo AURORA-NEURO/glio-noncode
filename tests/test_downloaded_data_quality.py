@@ -244,6 +244,10 @@ class DownloadedDataQualityTests(unittest.TestCase):
         audit = diff_gate_history_runtime_audit_model.audit_runtime(runtime)
         self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (19, 19, True))
         self.assertEqual(diff_gate_history_runtime_model.runtime_from_mapping(runtime.to_dict()).content_address, runtime.content_address)
+        malformed_runtime = runtime.to_dict()
+        malformed_runtime["history_address"] = "glio-noncode-download-quality-diff-gate-history:not-a-digest"
+        with self.assertRaises(ValidationError):
+            diff_gate_history_runtime_model.runtime_from_mapping(malformed_runtime)
         with tempfile.TemporaryDirectory() as directory:
             destination = Path(directory) / "history-runtime"
             diff_gate_history_runtime_model.persist_runtime(runtime, destination)

@@ -43,6 +43,9 @@ def _address(value: Any, field: str, prefix: str | None = None) -> str:
     value = _text(value, field, 2048)
     if "/" in value or "\\" in value or '"' in value or ":" not in value:
         raise ValidationError(f"{field} must be a content address")
+    namespace, digest = value.split(":", 1)
+    if not namespace or len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest):
+        raise ValidationError(f"{field} must be a canonical content address")
     if prefix is not None and not value.startswith(prefix + ":"):
         raise ValidationError(f"{field} has the wrong address namespace")
     return value
