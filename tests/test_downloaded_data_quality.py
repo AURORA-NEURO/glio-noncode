@@ -184,6 +184,55 @@ class DownloadedDataQualityTests(unittest.TestCase):
         self.assertEqual(query.returned_count, 2)
         self.assertTrue(diff_gate_query_audit_model.audit_query(query).accepted)
 
+    def test_quality_diff_gate_replays_category_threshold_reasons(self) -> None:
+        profile = self._profile()
+        left = quality_model.build_quality(
+            profile,
+            policy=quality_model.build_policy(policy_id="quality-gate-threshold-left"),
+            result_id="quality-gate-threshold-left",
+        )
+        right = quality_model.build_quality(
+            profile,
+            policy=quality_model.build_policy(
+                policy_id="quality-gate-threshold-right", max_distinct_values=1
+            ),
+            result_id="quality-gate-threshold-right",
+        )
+        diff = diff_model.build_diff(left, right, diff_id="quality-gate-threshold-diff")
+        provisional = diff_gate_model.DownloadedDataQualityDiffGatePolicy(
+            "quality-gate-threshold-policy",
+            ("improved", "changed", "unchanged", "added", "removed"),
+            diff_gate_model.MAX_FINDINGS,
+            0,
+            0,
+            0,
+            True,
+            True,
+            True,
+            diff_gate_model.POLICY_PREFIX + ":pending",
+        )
+        policy = diff_gate_model.DownloadedDataQualityDiffGatePolicy(
+            provisional.policy_id,
+            provisional.allowed_directions,
+            provisional.maximum_regressed,
+            provisional.maximum_changed,
+            provisional.maximum_added,
+            provisional.maximum_removed,
+            provisional.require_diff_audit,
+            provisional.require_query_audit,
+            provisional.require_complete_query,
+            diff_gate_model.address_policy(provisional),
+        )
+        gate = diff_gate_model.evaluate(diff, policy=policy, gate_id="quality-gate-threshold")
+        self.assertTrue(
+            any(
+                "maximum_changed_exceeded" in item.reason_codes
+                for item in gate.findings
+                if item.change == "changed"
+            )
+        )
+        self.assertTrue(diff_gate_audit_model.audit_gate(gate).accepted)
+
     def test_cli_and_api_surface_replays_profile_json(self) -> None:
         from urllib.parse import urlencode
         from urllib.request import urlopen

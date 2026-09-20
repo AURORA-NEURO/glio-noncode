@@ -263,6 +263,36 @@ def classify_item(item: diff_model.DownloadedDataQualityDiffItem, *, policy: Dow
     return "review", (item.direction, "direction_not_allowed")
 
 
+def _classify_with_thresholds(
+    item: diff_model.DownloadedDataQualityDiffItem,
+    *,
+    policy: DownloadedDataQualityDiffGatePolicy,
+    diff: diff_model.DownloadedDataQualityDiff,
+) -> tuple[str, tuple[str, ...]]:
+    """Classify a finding and attach category-wide threshold failures."""
+
+    outcome, reasons = classify_item(item, policy=policy)
+    extra: str | None = None
+    if item.direction == "regressed" and diff.regressed_count > policy.maximum_regressed:
+        outcome = "blocked"
+        extra = "maximum_regressed_exceeded"
+    elif item.change == "changed" and diff.changed_count > policy.maximum_changed:
+        if outcome != "blocked":
+            outcome = "review"
+        extra = "maximum_changed_exceeded"
+    elif item.change == "added" and diff.added_count > policy.maximum_added:
+        if outcome != "blocked":
+            outcome = "review"
+        extra = "maximum_added_exceeded"
+    elif item.change == "removed" and diff.removed_count > policy.maximum_removed:
+        if outcome != "blocked":
+            outcome = "review"
+        extra = "maximum_removed_exceeded"
+    if extra is not None:
+        reasons = reasons + (extra,)
+    return outcome, tuple(sorted(set(reasons), key=REASON_CODES.index))
+
+
 class DownloadedDataQualityDiffGate:
     """Fail-closed release decision over one quality diff."""
 
@@ -296,6 +326,13 @@ class DownloadedDataQualityDiffGate:
             raise ValidationError("quality diff gate version, boundary, or disposition is invalid")
         if self.diff_id != self.diff.diff_id or self.diff_address != self.diff.content_address:
             raise ValidationError("quality diff gate diff linkage does not replay")
+        expected_shapes = tuple(
+            _classify_with_thresholds(item, policy=self.policy, diff=self.diff)
+            for item in self.diff.items
+        )
+        actual_shapes = tuple((item.outcome, item.reason_codes) for item in self.findings)
+        if actual_shapes != expected_shapes:
+            raise ValidationError("quality diff gate finding classifications do not replay")
         if len(self.findings) != self.finding_count or tuple(item.ordinal for item in self.findings) != tuple(range(1, self.finding_count + 1)):
             raise ValidationError("quality diff gate finding order is not conserved")
         counts = tuple(sum(item.outcome == outcome for item in self.findings) for outcome in OUTCOMES)
@@ -332,9 +369,14 @@ def address_gate(value: DownloadedDataQualityDiffGate) -> str:
     return content_hash(value.to_dict() | {"content_address": None}, prefix=GATE_PREFIX)
 
 
-def _finding(item: diff_model.DownloadedDataQualityDiffItem, ordinal: int, policy: DownloadedDataQualityDiffGatePolicy) -> DownloadedDataQualityDiffGateFinding:
-    outcome, reasons = classify_item(item, policy=policy)
-    body = {"ordinal": ordinal, "identity": item.identity, "change": item.change, "direction": item.direction, "outcome": outcome, "reason_codes": tuple(sorted(set(reasons), key=REASON_CODES.index)), "left_address": item.left_address, "right_address": item.right_address, "diff_item_address": item.content_address, "content_address": FINDING_PREFIX + ":pending"}
+def _finding(
+    item: diff_model.DownloadedDataQualityDiffItem,
+    ordinal: int,
+    policy: DownloadedDataQualityDiffGatePolicy,
+    diff: diff_model.DownloadedDataQualityDiff,
+) -> DownloadedDataQualityDiffGateFinding:
+    outcome, reasons = _classify_with_thresholds(item, policy=policy, diff=diff)
+    body = {"ordinal": ordinal, "identity": item.identity, "change": item.change, "direction": item.direction, "outcome": outcome, "reason_codes": reasons, "left_address": item.left_address, "right_address": item.right_address, "diff_item_address": item.content_address, "content_address": FINDING_PREFIX + ":pending"}
     provisional = DownloadedDataQualityDiffGateFinding(**body)
     return DownloadedDataQualityDiffGateFinding(**(body | {"content_address": address_finding(provisional)}))
 
@@ -355,7 +397,10 @@ def evaluate(diff: diff_model.DownloadedDataQualityDiff, *, policy: DownloadedDa
     query_limit = min(diff_query_model.MAX_LIMIT, diff_query_model.MAX_TOTAL_COUNT)
     diff_query = diff_query_model.query_diff(diff, resources=("summary", "items"), limit=query_limit)
     diff_query_audit = diff_query_audit_model.audit_query(diff_query)
-    findings = tuple(_finding(item, ordinal, resolved_policy) for ordinal, item in enumerate(diff.items, 1))
+    findings = tuple(
+        _finding(item, ordinal, resolved_policy, diff)
+        for ordinal, item in enumerate(diff.items, 1)
+    )
     counts = tuple(sum(item.outcome == outcome for item in findings) for outcome in OUTCOMES)
     allowed = sum(item.direction in resolved_policy.allowed_directions for item in findings)
     body = {"gate_id": gate_id, "version": VERSION, "boundary": BOUNDARY, "diff_id": diff.diff_id, "diff_address": diff.content_address, "diff": diff, "policy": resolved_policy, "diff_audit_address": diff_audit.content_address, "diff_audit_accepted": diff_audit.accepted, "diff_query_address": diff_query.content_address, "diff_query_audit_address": diff_query_audit.content_address, "diff_query_audit_accepted": diff_query_audit.accepted, "diff_query_truncated": diff_query.truncated, "findings": findings, "finding_count": len(findings), "safe_count": counts[0], "review_count": counts[1], "blocked_count": counts[2], "allowed_direction_count": allowed, "disallowed_direction_count": len(findings) - allowed}

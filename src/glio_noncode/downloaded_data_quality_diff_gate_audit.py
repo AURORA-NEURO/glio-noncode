@@ -8,7 +8,6 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from . import downloaded_data_ingestion as ingestion_model
-from . import downloaded_data_quality_diff as diff_model
 from . import downloaded_data_quality_diff_gate as gate_model
 from .errors import ValidationError
 from .serialization import canonical_json, content_hash
@@ -162,9 +161,12 @@ def audit_gate(value: gate_model.DownloadedDataQualityDiffGate) -> DownloadedDat
 
     if not isinstance(value, gate_model.DownloadedDataQualityDiffGate):
         raise ValidationError("quality diff gate audit requires a typed gate")
-    expected_findings = tuple(gate_model.classify_item(item, policy=value.policy) for item in value.diff.items)
-    actual_shapes = tuple((item.outcome, tuple(item.reason_codes[:1])) for item in value.findings)
-    expected_shapes = tuple((outcome, tuple(reasons[:1])) for outcome, reasons in expected_findings)
+    expected_findings = tuple(
+        gate_model._classify_with_thresholds(item, policy=value.policy, diff=value.diff)
+        for item in value.diff.items
+    )
+    actual_shapes = tuple((item.outcome, item.reason_codes) for item in value.findings)
+    expected_shapes = expected_findings
     counts = {outcome: sum(item.outcome == outcome for item in value.findings) for outcome in gate_model.OUTCOMES}
     allowed = sum(item.direction in value.policy.allowed_directions for item in value.findings)
     hard_failure = counts["blocked"] > 0 or value.diff.regressed_count > value.policy.maximum_regressed or (value.policy.require_diff_audit and not value.diff_audit_accepted) or (value.policy.require_query_audit and not value.diff_query_audit_accepted)
@@ -181,7 +183,7 @@ def audit_gate(value: gate_model.DownloadedDataQualityDiffGate) -> DownloadedDat
         _check(6, "finding-order", tuple(item.ordinal for item in value.findings) == tuple(range(1, len(value.findings) + 1)), "gate finding ordinals are contiguous", evidence),
         _check(7, "outcome-conservation", (value.safe_count, value.review_count, value.blocked_count) == (counts["safe"], counts["review"], counts["blocked"]), "gate outcome counts replay", evidence),
         _check(8, "direction-conservation", value.allowed_direction_count == allowed and value.disallowed_direction_count == value.finding_count - allowed, "gate allowed-direction counts replay", evidence),
-        _check(9, "policy-thresholds", actual_shapes == expected_shapes, "gate finding outcomes and reason roots replay policy classification", tuple(item.content_address for item in value.findings)),
+        _check(9, "policy-thresholds", actual_shapes == expected_shapes, "gate finding outcomes and reason codes replay policy classification", tuple(item.content_address for item in value.findings)),
         _check(10, "audit-linkage", value.diff_audit_address.startswith("glio-noncode-download-quality-diff-audit:") and isinstance(value.diff_audit_accepted, bool), "gate retains diff-audit linkage", (value.diff_audit_address,)),
         _check(11, "query-linkage", value.diff_query_address.startswith("glio-noncode-download-quality-diff-query:") and value.diff_query_audit_address.startswith("glio-noncode-download-quality-diff-query-audit:"), "gate retains query-audit linkage", (value.diff_query_address, value.diff_query_audit_address)),
         _check(12, "disposition", value.state == expected_state and value.decision == expected_decision and value.accepted == (expected_state == "eligible"), "gate state, decision, and acceptance replay", evidence),
