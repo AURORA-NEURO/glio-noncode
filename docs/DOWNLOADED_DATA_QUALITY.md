@@ -414,3 +414,39 @@ The package API routes append `/package`, `/package/audit`, `/package/query`,
 and `/package/query-audit` to the policy route. Package discovery publishes
 manifest, summary, package, audit, query, and query-audit schemas and
 capabilities.
+
+When several independent policy handoffs must be admitted together, register
+the portable packages in a deterministic registry. Registry admission is
+identity-safe: package IDs and package addresses must be unique, entries are
+ordered canonically, and the registry remains `ready` only when every package
+is accepted and release-ready. `review`, `blocked`, and `empty` states remain
+explicit, so a registry cannot hide a failed package behind a successful
+neighbor. The registry is an exact four-file package containing
+`manifest.json`, `registry.json`, `entries.json`, and `summary.json`; it stores
+public package receipts and never imports source paths or source records.
+
+Registry queries provide the summary, ordered entries, release-ready entries,
+and decision projections, with package, decision, state, acceptance, release
+readiness, text, and pagination filters. A separate 15-check registry audit
+replays identity uniqueness, counts, ordering, nested package addresses, and
+the exact file boundary. A separate 10-check query audit replays filters,
+pagination, row addresses, resource semantics, and the public boundary.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry `
+  resolution-history-diff-policy-package-a resolution-history-diff-policy-package-b `
+  --registry-id review-registry --destination policy-package-registry --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-audit `
+  policy-package-registry --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-query `
+  policy-package-registry --resource summary --resource entries --resource ready --resource decisions `
+  --release-ready true --limit 100 --format json --output registry-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-query-audit `
+  registry-query.json --format summary
+```
+
+The registry API routes append `/package/registry`, `/package/registry/audit`,
+`/package/registry/query`, and `/package/registry/query-audit` to the policy
+route. Repeat the `input` query parameter for each package when building a
+registry. Registry discovery publishes manifest, entry, summary, registry,
+audit, query, and query-audit schemas and capabilities.
