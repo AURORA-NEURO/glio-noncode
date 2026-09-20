@@ -666,3 +666,30 @@ filters, pagination, row addresses, and diff linkage. Real downloaded-ZIP
 evidence compares an empty registry snapshot with an admitted runtime-registry
 snapshot and reports one added plus one unchanged snapshot with improved
 direction.
+
+For a portable execution handoff above a runtime-registry history diff, build a
+runtime package. It seals the diff, its independent audit, its bounded query,
+and its query audit into one value-free artifact. The runtime is `complete`
+only when both nested audits pass, and it is release-ready only for an accepted
+`improved` or `unchanged` direction. Persistence is an exact six-file package:
+`manifest.json`, `diff.json`, `audit.json`, `query.json`, `query-audit.json`,
+and `runtime.json`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime `
+  runtime-registry-history-diff --runtime-id review-runtime-registry-history-diff-runtime `
+  --resource summary --resource items --resource added --resource unchanged `
+  --resource addresses --resource bounds --limit 100 `
+  --destination runtime-registry-history-diff-runtime --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-audit `
+  runtime-registry-history-diff-runtime --format summary
+```
+
+The runtime API routes append `/runtime-registry/history/diff/runtime` and
+`/runtime-registry/history/diff/runtime/audit` to the history-diff route.
+Discovery publishes manifest, runtime, and audit schemas and capabilities. The
+independent runtime audit has 15 checks covering exact six-file closure,
+nested diff/audit/query/query-audit linkage, aggregate replay, readiness
+folding, address conservation, public-boundary enforcement, and mapping
+round-trip. Real downloaded-ZIP evidence produces a complete, release-ready
+runtime over the improved comparison.
