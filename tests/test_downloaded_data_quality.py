@@ -116,6 +116,10 @@ from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolutio
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model
 from glio_noncode import downloaded_data_quality_query as query_model
 from glio_noncode import downloaded_data_quality_query_audit as query_audit_model
 from glio_noncode import downloaded_data_quality_runtime as runtime_model
@@ -886,6 +890,50 @@ class DownloadedDataQualityTests(unittest.TestCase):
             diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.persist_history(runtime_handoff_registry_history_diff_runtime_registry_history, history_destination)
             self.assertEqual(tuple(sorted(path.name for path in history_destination.iterdir())), tuple(sorted(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.FILES)))
             self.assertEqual(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.load_history(history_destination).content_address, runtime_handoff_registry_history_diff_runtime_registry_history.content_address)
+            third_runtime_d160 = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.build_runtime(
+                runtime_handoff_registry_history_diff,
+                runtime_id="quality-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-third",
+                resources=diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model.RESOURCES,
+                limit=100,
+            )
+            candidate_registry_d160 = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.build_registry(
+                (runtime_handoff_registry_history_diff_runtime, second_runtime_handoff_registry_history_diff_runtime, third_runtime_d160),
+                registry_id=runtime_handoff_registry_history_diff_runtime_registry.registry_id,
+            )
+            d161_history_model = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.build_diff.__globals__["history_model"]
+            d161_registry_model = d161_history_model.build_history.__globals__["registry_model"]
+            d161_current_registry = d161_registry_model.registry_from_mapping(runtime_handoff_registry_history_diff_runtime_registry.to_dict())
+            d161_candidate_registry = d161_registry_model.registry_from_mapping(candidate_registry_d160.to_dict())
+            d161_empty_registry = d161_registry_model.build_registry((), registry_id=d161_current_registry.registry_id)
+            d161_baseline_history = d161_history_model.build_history((d161_empty_registry, d161_current_registry), history_id="quality-registry-history-diff-runtime-registry-history-d161")
+            d161_candidate_history = d161_history_model.build_history((d161_empty_registry, d161_current_registry, d161_candidate_registry), history_id=d161_baseline_history.history_id)
+            self.assertIs(type(d161_baseline_history), d161_history_model.DownloadedDataQualityDiffGateRemediationResolutionHistoryDiffPolicyPackageRegistryHistoryDiffRuntimeRegistryHistoryDiffRuntimeRegistryHistory)
+            deep_diff = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.build_diff(
+                d161_baseline_history,
+                d161_candidate_history,
+                diff_id="quality-registry-history-diff-runtime-registry-history-d161",
+            )
+            self.assertEqual((deep_diff.added_count, deep_diff.removed_count, deep_diff.changed_count, deep_diff.unchanged_count, deep_diff.direction, deep_diff.accepted), (1, 0, 0, 2, "improved", True))
+            deep_audit = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit_model.audit_diff(deep_diff)
+            self.assertEqual((deep_audit.check_count, deep_audit.passed_count, deep_audit.accepted), (diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit_model.MAX_CHECKS, diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit_model.MAX_CHECKS, True))
+            deep_query = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model.query_history_diff(
+                deep_diff,
+                resources=diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model.RESOURCES,
+                limit=100,
+            )
+            self.assertEqual((deep_query.returned_count, deep_query.truncated), (deep_query.total_count, False))
+            deep_query_audit = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model.audit_query(deep_query, deep_diff)
+            self.assertEqual((deep_query_audit.check_count, deep_query_audit.passed_count, deep_query_audit.accepted), (diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model.MAX_CHECKS, diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model.MAX_CHECKS, True))
+            self.assertEqual(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.diff_from_mapping(deep_diff.to_dict()).content_address, deep_diff.content_address)
+            deep_destination = Path(directory) / "policy-package-registry-history-diff-runtime-registry-history-diff-d161"
+            diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.persist_diff(deep_diff, deep_destination)
+            self.assertEqual(tuple(sorted(path.name for path in deep_destination.iterdir())), tuple(sorted(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.FILES)))
+            self.assertEqual(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.load_diff(deep_destination).content_address, deep_diff.content_address)
+            tampered_deep = json.loads((deep_destination / "diff.json").read_text(encoding="utf-8"))
+            tampered_deep["added_count"] = 0
+            (deep_destination / "diff.json").write_text(json.dumps(tampered_deep), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.load_diff(deep_destination)
             tampered_history = json.loads((history_destination / "summary.json").read_text(encoding="utf-8"))
             tampered_history["improved_count"] = 0
             (history_destination / "summary.json").write_text(json.dumps(tampered_history), encoding="utf-8")
