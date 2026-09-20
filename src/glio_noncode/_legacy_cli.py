@@ -271,6 +271,12 @@ from . import downloaded_data_quality_diff_gate_history_query as downloaded_data
 from . import downloaded_data_quality_diff_gate_history_query_audit as downloaded_data_quality_diff_gate_history_query_audit_model
 from . import downloaded_data_quality_diff_gate_history_runtime as downloaded_data_quality_diff_gate_history_runtime_model
 from . import downloaded_data_quality_diff_gate_history_runtime_audit as downloaded_data_quality_diff_gate_history_runtime_audit_model
+from . import downloaded_data_quality_diff_gate_remediation as downloaded_data_quality_diff_gate_remediation_model
+from . import downloaded_data_quality_diff_gate_remediation_audit as downloaded_data_quality_diff_gate_remediation_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_query as downloaded_data_quality_diff_gate_remediation_query_model
+from . import downloaded_data_quality_diff_gate_remediation_query_audit as downloaded_data_quality_diff_gate_remediation_query_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_runtime as downloaded_data_quality_diff_gate_remediation_runtime_model
+from . import downloaded_data_quality_diff_gate_remediation_runtime_audit as downloaded_data_quality_diff_gate_remediation_runtime_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -5415,6 +5421,30 @@ def _downloaded_quality_diff_gate_history_runtime_from_input(input_path: str):
         return downloaded_data_quality_diff_gate_history_runtime_model.load_runtime(source)
     raw = _read_json(input_path)
     return downloaded_data_quality_diff_gate_history_runtime_model.runtime_from_mapping(raw)
+
+
+def _downloaded_quality_diff_gate_remediation_from_input(input_path: str):
+    raw = _read_json(input_path)
+    nested = raw.get("remediation") if isinstance(raw, Mapping) else None
+    return downloaded_data_quality_diff_gate_remediation_model.plan_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_diff_gate_remediation_query_from_input(input_path: str):
+    raw = _read_json(input_path)
+    nested = raw.get("query") if isinstance(raw, Mapping) else None
+    return downloaded_data_quality_diff_gate_remediation_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_diff_gate_remediation_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        expected = tuple(sorted(downloaded_data_quality_diff_gate_remediation_runtime_model.FILES))
+        actual = tuple(sorted(path.name for path in source.iterdir()))
+        if actual != expected:
+            raise ValueError("downloaded-data quality diff gate remediation runtime directory must contain the exact runtime files")
+        return downloaded_data_quality_diff_gate_remediation_runtime_model.load_runtime(source)
+    raw = _read_json(input_path)
+    return downloaded_data_quality_diff_gate_remediation_runtime_model.runtime_from_mapping(raw)
 
 
 def _downloaded_contract_runtime_from_input(input_path: str):
@@ -21979,6 +22009,55 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_quality_diff_gate_history_runtime_audit.add_argument("input", type=str)
     downloaded_data_quality_diff_gate_history_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_quality_diff_gate_history_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation", help="build a value-free remediation plan from a downloaded-data quality diff gate")
+    downloaded_data_quality_diff_gate_remediation.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation.add_argument("--plan-id", default=downloaded_data_quality_diff_gate_remediation_model.DEFAULT_PLAN_ID)
+    downloaded_data_quality_diff_gate_remediation.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_audit = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-audit", help="audit a downloaded-data quality diff gate remediation plan")
+    downloaded_data_quality_diff_gate_remediation_audit.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_audit.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_query = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-query", help="query a downloaded-data quality diff gate remediation plan")
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--resource", action="append", choices=downloaded_data_quality_diff_gate_remediation_query_model.RESOURCES)
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--outcome", choices=downloaded_data_quality_diff_gate_model.OUTCOMES, default="")
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--action", choices=downloaded_data_quality_diff_gate_remediation_model.ACTION_KINDS, default="")
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--priority", choices=downloaded_data_quality_diff_gate_remediation_model.PRIORITIES, default="")
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--required-only", action="store_true")
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--identity", default="")
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--reason", default="")
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--text", default="")
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--limit", type=int, default=downloaded_data_quality_diff_gate_remediation_query_model.DEFAULT_LIMIT)
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_query.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_query_audit = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-query-audit", help="audit a downloaded-data quality diff gate remediation query")
+    downloaded_data_quality_diff_gate_remediation_query_audit.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_query_audit.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_runtime = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-runtime", help="build and optionally persist a downloaded-data quality diff gate remediation runtime")
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--runtime-id", default=downloaded_data_quality_diff_gate_remediation_runtime_model.DEFAULT_RUNTIME_ID)
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--plan-id", default=downloaded_data_quality_diff_gate_remediation_model.DEFAULT_PLAN_ID)
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--resource", action="append", choices=downloaded_data_quality_diff_gate_remediation_query_model.RESOURCES)
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--outcome", choices=downloaded_data_quality_diff_gate_model.OUTCOMES, default="")
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--action", choices=downloaded_data_quality_diff_gate_remediation_model.ACTION_KINDS, default="")
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--priority", choices=downloaded_data_quality_diff_gate_remediation_model.PRIORITIES, default="")
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--required-only", action="store_true")
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--identity", default="")
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--reason", default="")
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--text", default="")
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--offset", type=int, default=0)
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--limit", type=int, default=downloaded_data_quality_diff_gate_remediation_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--destination", default=None)
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--overwrite", action="store_true")
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_runtime.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_remediation_runtime_audit = subparsers.add_parser("downloaded-data-quality-diff-gate-remediation-runtime-audit", help="audit a downloaded-data quality diff gate remediation runtime closure")
+    downloaded_data_quality_diff_gate_remediation_runtime_audit.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_remediation_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_remediation_runtime_audit.add_argument("--output", default=None)
     downloaded_data_profile_contract = subparsers.add_parser("downloaded-data-profile-contract", help="infer a value-free downloaded-data schema contract")
     downloaded_data_profile_contract.add_argument("input", type=str)
     downloaded_data_profile_contract.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
@@ -26655,6 +26734,58 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "downloaded-data-quality-diff-gate-history-runtime-audit":
             value = downloaded_data_quality_diff_gate_history_runtime_audit_model.audit_runtime(_downloaded_quality_diff_gate_history_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_quality_diff_gate_history_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation":
+            value = downloaded_data_quality_diff_gate_remediation_model.build_plan(_downloaded_quality_diff_gate_from_input(args.input), plan_id=args.plan_id)
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_model, json_name="remediation_json", csv_name="remediation_csv", markdown_name="render_remediation_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-audit":
+            value = downloaded_data_quality_diff_gate_remediation_audit_model.audit_plan(_downloaded_quality_diff_gate_remediation_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-query":
+            value = downloaded_data_quality_diff_gate_remediation_query_model.query_plan(
+                _downloaded_quality_diff_gate_remediation_from_input(args.input),
+                resources=tuple(args.resource or downloaded_data_quality_diff_gate_remediation_query_model.RESOURCES[:2]),
+                outcome=args.outcome,
+                action=args.action,
+                priority=args.priority,
+                required_only=args.required_only,
+                identity=args.identity,
+                reason=args.reason,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-quality-diff-gate-remediation-query-audit":
+            value = downloaded_data_quality_diff_gate_remediation_query_audit_model.audit_query(_downloaded_quality_diff_gate_remediation_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-runtime":
+            value = downloaded_data_quality_diff_gate_remediation_runtime_model.build_runtime(
+                _downloaded_quality_diff_gate_from_input(args.input),
+                runtime_id=args.runtime_id,
+                plan_id=args.plan_id,
+                resources=tuple(args.resource or downloaded_data_quality_diff_gate_remediation_runtime_model.DEFAULT_RESOURCES),
+                outcome=args.outcome,
+                action=args.action,
+                priority=args.priority,
+                required_only=args.required_only,
+                identity=args.identity,
+                reason=args.reason,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.destination:
+                downloaded_data_quality_diff_gate_remediation_runtime_model.persist_runtime(value, args.destination, overwrite=args.overwrite)
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.release_ready else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-runtime-audit":
+            value = downloaded_data_quality_diff_gate_remediation_runtime_audit_model.audit_runtime(_downloaded_quality_diff_gate_remediation_runtime_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
         if args.command == "downloaded-data-profile-contract":
             value = _downloaded_contract_from_input(args.input)

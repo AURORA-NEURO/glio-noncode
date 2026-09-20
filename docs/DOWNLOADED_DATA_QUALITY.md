@@ -221,3 +221,57 @@ python -m glio_noncode downloaded-data-quality-diff-gate-history-runtime `
 python -m glio_noncode downloaded-data-quality-diff-gate-history-runtime-audit `
   history-runtime --format summary
 ```
+
+For blocked or reviewable gates, a value-free remediation plan turns every
+finding into an evidence-linked next action (`repair`, `investigate`,
+`policy_review`, or `data_review`) with bounded priority and requiredness.
+It never mutates the input gate or changes policy; it is safe to hand to a
+review queue or downstream workflow.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation `
+  gate.json --format markdown --output remediation.md
+```
+
+The API equivalent is `/v1/downloaded-data/quality/diff/gate/remediation`,
+with action and plan schemas available through the quality schema discovery
+surface.
+
+For operational handoff, the remediation plan also supports an exact
+six-file runtime package containing the plan, independent plan audit, bounded
+query, query audit, manifest, and runtime projection. The runtime preserves
+the gate lineage and distinguishes an intact but blocked plan from a release-
+ready one.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-runtime `
+  gate.json --destination remediation-runtime --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-runtime-audit `
+  remediation-runtime --format summary
+```
+
+The plan has independent action and query audits. The query exposes summary,
+all-action, required, blocked, review, and critical projections with bounded
+identity, reason, outcome, priority, and text filters. The exact six-file
+runtime handoff (`manifest.json`, `plan.json`, `audit.json`, `query.json`,
+`query-audit.json`, and `runtime.json`) preserves the gate lineage, action
+counters, audit receipts, and query completeness. A structurally complete
+blocked plan is accepted as a valid handoff but remains `release_ready: false`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-audit `
+  remediation.json --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-query `
+  remediation.json --resource required --required-only --priority critical `
+  --limit 25 --format markdown
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-runtime `
+  gate.json --resource summary --resource blocked --limit 100 `
+  --destination remediation-runtime --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-runtime-audit `
+  remediation-runtime --format summary
+```
+
+The runtime and audit routes are nested under
+`/v1/downloaded-data/quality/diff/gate/remediation/runtime`; manifest, runtime,
+and runtime-audit schemas and capabilities are available through the same
+quality schema discovery surface.
