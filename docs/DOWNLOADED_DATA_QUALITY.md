@@ -170,5 +170,10 @@ python -m glio_noncode downloaded-data-quality-diff-gate-query-audit `
 
 The HTTP routes are nested under
 `/v1/downloaded-data/quality/diff/gate`: root, `/audit`, `/query`, and
-`/query-audit`, with schema and capability discovery under the existing
-`/v1/downloaded-data/schema` surface.
+`/query-audit`, `/runtime`, and `/runtime/audit`, with schema and capability
+discovery under the existing `/v1/downloaded-data/schema` surface. The gate
+runtime is an exact six-file package: manifest, gate, audit, query,
+query-audit, and runtime. Its independent 19-check closure audit distinguishes
+a valid blocked release from a corrupt or incomplete handoff. A blocked gate
+therefore remains auditable and transferable while correctly reporting
+`release_ready: false`.

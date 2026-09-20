@@ -25,6 +25,8 @@ from glio_noncode import downloaded_data_quality_diff_gate as gate_model
 from glio_noncode import downloaded_data_quality_diff_gate_audit as gate_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_query as gate_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_query_audit as gate_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_runtime as gate_runtime_model
+from glio_noncode import downloaded_data_quality_diff_gate_runtime_audit as gate_runtime_audit_model
 
 
 def _permissive_policy(item_count: int) -> gate_model.DownloadedDataQualityDiffGatePolicy:
@@ -65,6 +67,14 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         limit=gate_query_model.MAX_LIMIT,
     )
     blocked_query_audit = gate_query_audit_model.audit_query(blocked_query)
+    runtime = gate_runtime_model.build_runtime(
+        diff,
+        runtime_id="glio-noncode-downloaded-quality-diff-demo-gate-runtime",
+        gate_id="glio-noncode-downloaded-quality-diff-demo-default-gate",
+        resources=("summary", "findings"),
+        limit=gate_query_model.MAX_LIMIT,
+    )
+    runtime_audit = gate_runtime_audit_model.audit_runtime(runtime)
     permissive_gate = gate_model.evaluate(
         diff,
         policy=_permissive_policy(len(diff.items)),
@@ -84,6 +94,12 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "blocked_query_rows": blocked_query.returned_count,
         "blocked_query_truncated": blocked_query.truncated,
         "blocked_query_audit_accepted": blocked_query_audit.accepted,
+        "runtime_state": runtime.state,
+        "runtime_release_ready": runtime.release_ready,
+        "runtime_query_rows": runtime.query_returned_count,
+        "runtime_query_truncated": runtime.query_truncated,
+        "runtime_audit_accepted": runtime_audit.accepted,
+        "runtime_audit_checks": runtime_audit.check_count,
         "permissive_state": permissive_gate.state,
         "permissive_decision": permissive_gate.decision,
         "permissive_accepted": permissive_gate.accepted,
@@ -98,8 +114,13 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         (root / "gate-audit.json").write_text(gate_audit_model.audit_json(default_audit), encoding="utf-8")
         (root / "blocked-query.json").write_text(gate_query_model.query_json(blocked_query), encoding="utf-8")
         (root / "blocked-query-audit.json").write_text(gate_query_audit_model.audit_json(blocked_query_audit), encoding="utf-8")
+        runtime_root = root / "gate-runtime"
+        gate_runtime_model.persist_runtime(runtime, runtime_root, overwrite=True)
+        (root / "runtime.md").write_text(gate_runtime_model.render_runtime_markdown(runtime), encoding="utf-8")
+        (root / "runtime-audit.json").write_text(gate_runtime_audit_model.audit_json(runtime_audit), encoding="utf-8")
         (root / "permissive-gate.json").write_text(gate_model.gate_json(permissive_gate), encoding="utf-8")
         summary["output_directory"] = str(root.resolve())
+        summary["runtime_directory"] = str(runtime_root.resolve())
         (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
 
@@ -111,7 +132,7 @@ def main() -> int:
     args = parser.parse_args()
     summary = build_demo(args.diff, args.destination)
     print(json.dumps(summary, indent=2, sort_keys=True))
-    return 0 if summary["default_gate_audit_accepted"] and summary["blocked_query_audit_accepted"] else 2
+    return 0 if summary["default_gate_audit_accepted"] and summary["blocked_query_audit_accepted"] and summary["runtime_audit_accepted"] else 2
 
 
 if __name__ == "__main__":

@@ -24,6 +24,8 @@ from glio_noncode import downloaded_data_quality_diff_gate as diff_gate_model
 from glio_noncode import downloaded_data_quality_diff_gate_audit as diff_gate_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_query as diff_gate_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_query_audit as diff_gate_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_runtime as diff_gate_runtime_model
+from glio_noncode import downloaded_data_quality_diff_gate_runtime_audit as diff_gate_runtime_audit_model
 from glio_noncode import downloaded_data_quality_query as query_model
 from glio_noncode import downloaded_data_quality_query_audit as query_audit_model
 from glio_noncode import downloaded_data_quality_runtime as runtime_model
@@ -184,6 +186,27 @@ class DownloadedDataQualityTests(unittest.TestCase):
         self.assertEqual(query.returned_count, 2)
         self.assertTrue(diff_gate_query_audit_model.audit_query(query).accepted)
 
+    def test_quality_diff_gate_runtime_persists_blocked_closure_and_rejects_tamper(self) -> None:
+        profile = self._profile()
+        left = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-gate-runtime-left"), result_id="quality-gate-runtime-left")
+        right = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-gate-runtime-right", max_distinct_values=1), result_id="quality-gate-runtime-right")
+        diff = diff_model.build_diff(left, right, diff_id="quality-gate-runtime-diff")
+        runtime = diff_gate_runtime_model.build_runtime(diff, runtime_id="quality-gate-runtime", resources=("summary", "findings"), limit=1000)
+        self.assertEqual((runtime.gate.decision, runtime.state, runtime.release_ready, runtime.query_truncated), ("block", "incomplete", False, False))
+        runtime_audit = diff_gate_runtime_audit_model.audit_runtime(runtime)
+        self.assertEqual((runtime_audit.check_count, runtime_audit.passed_count, runtime_audit.accepted), (19, 19, True))
+        self.assertEqual(diff_gate_runtime_model.runtime_from_mapping(runtime.to_dict()).content_address, runtime.content_address)
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "gate-runtime"
+            diff_gate_runtime_model.persist_runtime(runtime, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(diff_gate_runtime_model.FILES)))
+            self.assertEqual(diff_gate_runtime_model.load_runtime(destination).content_address, runtime.content_address)
+            altered = json.loads((destination / "gate.json").read_text(encoding="utf-8"))
+            altered["blocked_count"] += 1
+            (destination / "gate.json").write_text(json.dumps(altered), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                diff_gate_runtime_model.load_runtime(destination)
+
     def test_quality_diff_gate_replays_category_threshold_reasons(self) -> None:
         profile = self._profile()
         left = quality_model.build_quality(
@@ -271,6 +294,10 @@ class DownloadedDataQualityTests(unittest.TestCase):
             self.assertEqual(main(["downloaded-data-quality-diff-gate-audit", str(gate_path), "--format", "json", "--output", str(root / "diff-gate-audit.json")]), 0)
             self.assertEqual(main(["downloaded-data-quality-diff-gate-query", str(gate_path), "--resource", "blocked", "--outcome", "blocked", "--limit", "2", "--format", "json", "--output", str(root / "diff-gate-query.json")]), 0)
             self.assertEqual(main(["downloaded-data-quality-diff-gate-query-audit", str(root / "diff-gate-query.json"), "--format", "json", "--output", str(root / "diff-gate-query-audit.json")]), 0)
+            diff_gate_runtime_path = root / "diff-gate-runtime"
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-runtime", str(diff_path), "--destination", str(diff_gate_runtime_path), "--overwrite", "--resource", "summary", "--resource", "findings", "--limit", "1000", "--format", "summary", "--output", str(root / "diff-gate-runtime-summary.json")]), 2)
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-runtime-audit", str(diff_gate_runtime_path), "--format", "json", "--output", str(root / "diff-gate-runtime-audit.json")]), 0)
+            self.assertEqual(tuple(sorted(path.name for path in diff_gate_runtime_path.iterdir())), tuple(sorted(diff_gate_runtime_model.FILES)))
 
             server = create_server("127.0.0.1", 0)
             import threading
@@ -304,6 +331,10 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 self.assertEqual(api_gate_query["returned_count"], 2)
                 api_gate_audit = json.loads(urlopen(diff_base + "/gate/audit?" + urlencode({"input": str(gate_path)}), timeout=10).read().decode())
                 self.assertTrue(api_gate_audit["accepted"])
+                api_gate_runtime = json.loads(urlopen(diff_base + "/gate/runtime?" + urlencode({"input": str(diff_path), "resource": ["summary", "findings"], "limit": "1000", "destination": str(root / "api-gate-runtime"), "overwrite": "true"}, doseq=True), timeout=10).read().decode())
+                self.assertEqual((api_gate_runtime["decision"], api_gate_runtime["gate_state"], api_gate_runtime["state"], api_gate_runtime["query_truncated"]), ("block", "blocked", "incomplete", False))
+                api_gate_runtime_audit = json.loads(urlopen(diff_base + "/gate/runtime/audit?" + urlencode({"input": str(diff_gate_runtime_path)}), timeout=10).read().decode())
+                self.assertTrue(api_gate_runtime_audit["accepted"])
                 diff_schema = json.loads(urlopen(diff_base + "/schema", timeout=10).read().decode())
                 self.assertFalse(diff_schema["additionalProperties"])
                 schema = json.loads(urlopen(base + "/schema", timeout=10).read().decode())

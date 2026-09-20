@@ -749,6 +749,8 @@ from . import downloaded_data_quality_diff_gate as downloaded_data_quality_diff_
 from . import downloaded_data_quality_diff_gate_audit as downloaded_data_quality_diff_gate_audit_model
 from . import downloaded_data_quality_diff_gate_query as downloaded_data_quality_diff_gate_query_model
 from . import downloaded_data_quality_diff_gate_query_audit as downloaded_data_quality_diff_gate_query_audit_model
+from . import downloaded_data_quality_diff_gate_runtime as downloaded_data_quality_diff_gate_runtime_model
+from . import downloaded_data_quality_diff_gate_runtime_audit as downloaded_data_quality_diff_gate_runtime_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -3865,6 +3867,20 @@ class ApiHandler(BaseHTTPRequestHandler):
         return downloaded_data_quality_diff_gate_model.policy_from_mapping(nested if isinstance(nested, dict) else raw)
 
     @staticmethod
+    def _downloaded_quality_diff_gate_runtime_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            expected = tuple(sorted(downloaded_data_quality_diff_gate_runtime_model.FILES))
+            actual = tuple(sorted(path.name for path in source.iterdir()))
+            if actual != expected:
+                raise ValueError("downloaded-data quality diff gate runtime directory must contain the exact runtime files")
+            return downloaded_data_quality_diff_gate_runtime_model.load_runtime(source)
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality diff gate runtime input must be an object")
+        return downloaded_data_quality_diff_gate_runtime_model.runtime_from_mapping(raw)
+
+    @staticmethod
     def _downloaded_contract_runtime_from_input(input_path: str):
         source = Path(input_path)
         if source.is_dir():
@@ -5662,6 +5678,30 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if path == gate_prefix + "/query-audit":
                     value = downloaded_data_quality_diff_gate_query_audit_model.audit_query(self._downloaded_quality_diff_gate_query_from_input(self._query_value(query, "input") or ""))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == gate_prefix + "/runtime":
+                    policy = self._downloaded_quality_diff_gate_policy_from_input(self._query_value(query, "policy")) if self._query_value(query, "policy") else None
+                    value = downloaded_data_quality_diff_gate_runtime_model.build_runtime(
+                        self._downloaded_quality_diff_from_input(self._query_value(query, "input") or ""),
+                        policy=policy,
+                        runtime_id=self._query_value(query, "runtime_id") or downloaded_data_quality_diff_gate_runtime_model.DEFAULT_RUNTIME_ID,
+                        gate_id=self._query_value(query, "gate_id") or downloaded_data_quality_diff_gate_model.DEFAULT_GATE_ID,
+                        resources=self._query_values(query, "resource") or downloaded_data_quality_diff_gate_runtime_model.DEFAULT_RESOURCES,
+                        outcome=self._query_value(query, "outcome") or "",
+                        direction=self._query_value(query, "direction") or "",
+                        identity=self._query_value(query, "identity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_quality_diff_gate_runtime_model.DEFAULT_LIMIT),
+                    )
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_quality_diff_gate_runtime_model.persist_runtime(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == gate_prefix + "/runtime/audit":
+                    value = downloaded_data_quality_diff_gate_runtime_audit_model.audit_runtime(self._downloaded_quality_diff_gate_runtime_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 contract_prefix = profile_prefix + "/contract"
                 if path == contract_prefix:
@@ -9848,6 +9888,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/quality/diff/gate/query-audit/check-schema": downloaded_data_quality_diff_gate_query_audit_model.check_schema,
                     "/quality/diff/gate/query-audit/schema": downloaded_data_quality_diff_gate_query_audit_model.audit_schema,
                     "/quality/diff/gate/query-audit/capabilities": downloaded_data_quality_diff_gate_query_audit_model.capabilities,
+                    "/quality/diff/gate/runtime/manifest-schema": downloaded_data_quality_diff_gate_runtime_model.manifest_schema,
+                    "/quality/diff/gate/runtime/schema": downloaded_data_quality_diff_gate_runtime_model.runtime_schema,
+                    "/quality/diff/gate/runtime/capabilities": downloaded_data_quality_diff_gate_runtime_model.capabilities,
+                    "/quality/diff/gate/runtime/audit/check-schema": downloaded_data_quality_diff_gate_runtime_audit_model.check_schema,
+                    "/quality/diff/gate/runtime/audit/schema": downloaded_data_quality_diff_gate_runtime_audit_model.audit_schema,
+                    "/quality/diff/gate/runtime/audit/capabilities": downloaded_data_quality_diff_gate_runtime_audit_model.capabilities,
                     "/profile/contract/type-schema": downloaded_data_profile_contract_model.type_schema,
                     "/profile/contract/field-schema": downloaded_data_profile_contract_model.field_schema,
                     "/profile/contract/member-schema": downloaded_data_profile_contract_model.member_schema,
