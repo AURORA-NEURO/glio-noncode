@@ -745,6 +745,10 @@ from . import downloaded_data_quality_diff_query as downloaded_data_quality_diff
 from . import downloaded_data_quality_diff_query_audit as downloaded_data_quality_diff_query_audit_model
 from . import downloaded_data_quality_diff_runtime as downloaded_data_quality_diff_runtime_model
 from . import downloaded_data_quality_diff_runtime_audit as downloaded_data_quality_diff_runtime_audit_model
+from . import downloaded_data_quality_diff_gate as downloaded_data_quality_diff_gate_model
+from . import downloaded_data_quality_diff_gate_audit as downloaded_data_quality_diff_gate_audit_model
+from . import downloaded_data_quality_diff_gate_query as downloaded_data_quality_diff_gate_query_model
+from . import downloaded_data_quality_diff_gate_query_audit as downloaded_data_quality_diff_gate_query_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -3837,6 +3841,30 @@ class ApiHandler(BaseHTTPRequestHandler):
         return downloaded_data_quality_diff_runtime_model.runtime_from_mapping(raw)
 
     @staticmethod
+    def _downloaded_quality_diff_gate_from_input(input_path: str):
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality diff gate input must be an object")
+        nested = raw.get("gate")
+        return downloaded_data_quality_diff_gate_model.gate_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_quality_diff_gate_query_from_input(input_path: str):
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality diff gate query input must be an object")
+        nested = raw.get("query")
+        return downloaded_data_quality_diff_gate_query_model.query_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_quality_diff_gate_policy_from_input(input_path: str):
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality diff gate policy input must be an object")
+        nested = raw.get("policy")
+        return downloaded_data_quality_diff_gate_model.policy_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
     def _downloaded_contract_runtime_from_input(input_path: str):
         source = Path(input_path)
         if source.is_dir():
@@ -5603,6 +5631,37 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if path == quality_diff_prefix + "/runtime/audit":
                     value = downloaded_data_quality_diff_runtime_audit_model.audit_runtime(self._downloaded_quality_diff_runtime_from_input(self._query_value(query, "input") or ""))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                gate_prefix = quality_diff_prefix + "/gate"
+                if path == gate_prefix:
+                    policy = self._downloaded_quality_diff_gate_policy_from_input(self._query_value(query, "policy")) if self._query_value(query, "policy") else None
+                    value = downloaded_data_quality_diff_gate_model.evaluate(
+                        self._downloaded_quality_diff_from_input(self._query_value(query, "input") or ""),
+                        policy=policy,
+                        gate_id=self._query_value(query, "gate_id") or downloaded_data_quality_diff_gate_model.DEFAULT_GATE_ID,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_model, json_name="gate_json", csv_name="gate_csv", markdown_name="render_gate_markdown")
+                    return
+                if path == gate_prefix + "/audit":
+                    value = downloaded_data_quality_diff_gate_audit_model.audit_gate(self._downloaded_quality_diff_gate_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == gate_prefix + "/query":
+                    value = downloaded_data_quality_diff_gate_query_model.query_gate(
+                        self._downloaded_quality_diff_gate_from_input(self._query_value(query, "input") or ""),
+                        resources=self._query_values(query, "resource") or downloaded_data_quality_diff_gate_query_model.RESOURCES,
+                        outcome=self._query_value(query, "outcome") or "",
+                        direction=self._query_value(query, "direction") or "",
+                        identity=self._query_value(query, "identity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_quality_diff_runtime_model.DEFAULT_LIMIT),
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == gate_prefix + "/query-audit":
+                    value = downloaded_data_quality_diff_gate_query_audit_model.audit_query(self._downloaded_quality_diff_gate_query_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 contract_prefix = profile_prefix + "/contract"
                 if path == contract_prefix:
@@ -9776,6 +9835,19 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/quality/diff/runtime/audit/check-schema": downloaded_data_quality_diff_runtime_audit_model.check_schema,
                     "/quality/diff/runtime/audit/schema": downloaded_data_quality_diff_runtime_audit_model.audit_schema,
                     "/quality/diff/runtime/audit/capabilities": downloaded_data_quality_diff_runtime_audit_model.capabilities,
+                    "/quality/diff/gate/finding-schema": downloaded_data_quality_diff_gate_model.finding_schema,
+                    "/quality/diff/gate/policy-schema": downloaded_data_quality_diff_gate_model.policy_schema,
+                    "/quality/diff/gate/schema": downloaded_data_quality_diff_gate_model.gate_schema,
+                    "/quality/diff/gate/capabilities": downloaded_data_quality_diff_gate_model.capabilities,
+                    "/quality/diff/gate/audit/check-schema": downloaded_data_quality_diff_gate_audit_model.check_schema,
+                    "/quality/diff/gate/audit/schema": downloaded_data_quality_diff_gate_audit_model.audit_schema,
+                    "/quality/diff/gate/audit/capabilities": downloaded_data_quality_diff_gate_audit_model.capabilities,
+                    "/quality/diff/gate/query/row-schema": downloaded_data_quality_diff_gate_query_model.row_schema,
+                    "/quality/diff/gate/query/schema": downloaded_data_quality_diff_gate_query_model.query_schema,
+                    "/quality/diff/gate/query/capabilities": downloaded_data_quality_diff_gate_query_model.capabilities,
+                    "/quality/diff/gate/query-audit/check-schema": downloaded_data_quality_diff_gate_query_audit_model.check_schema,
+                    "/quality/diff/gate/query-audit/schema": downloaded_data_quality_diff_gate_query_audit_model.audit_schema,
+                    "/quality/diff/gate/query-audit/capabilities": downloaded_data_quality_diff_gate_query_audit_model.capabilities,
                     "/profile/contract/type-schema": downloaded_data_profile_contract_model.type_schema,
                     "/profile/contract/field-schema": downloaded_data_profile_contract_model.field_schema,
                     "/profile/contract/member-schema": downloaded_data_profile_contract_model.member_schema,

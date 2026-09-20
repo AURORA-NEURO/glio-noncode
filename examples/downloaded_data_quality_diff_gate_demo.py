@@ -1,0 +1,118 @@
+"""Evaluate a release gate over a real downloaded-data quality diff.
+
+Run the diff demo first so ``diff.json`` is derived from the downloaded ZIP:
+
+    python examples/downloaded_data_quality_diff_demo.py \
+      C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip \
+      artifacts/downloaded-data-quality-diff-demo
+    python examples/downloaded_data_quality_diff_gate_demo.py \
+      artifacts/downloaded-data-quality-diff-demo/diff.json \
+      artifacts/downloaded-data-quality-diff-demo/gate
+
+The default policy is intentionally fail-closed. The permissive comparison is
+included to make the state machine visible; it does not change the default
+decision or mutate the downloaded source.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+from glio_noncode import downloaded_data_quality_diff as diff_model
+from glio_noncode import downloaded_data_quality_diff_gate as gate_model
+from glio_noncode import downloaded_data_quality_diff_gate_audit as gate_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_query as gate_query_model
+from glio_noncode import downloaded_data_quality_diff_gate_query_audit as gate_query_audit_model
+
+
+def _permissive_policy(item_count: int) -> gate_model.DownloadedDataQualityDiffGatePolicy:
+    provisional = gate_model.DownloadedDataQualityDiffGatePolicy(
+        "glio-noncode-downloaded-quality-diff-demo-permissive-policy",
+        diff_model.DIRECTIONS,
+        item_count,
+        item_count,
+        item_count,
+        item_count,
+        True,
+        True,
+        True,
+        gate_model.POLICY_PREFIX + ":pending",
+    )
+    return gate_model.DownloadedDataQualityDiffGatePolicy(
+        provisional.policy_id,
+        provisional.allowed_directions,
+        provisional.maximum_regressed,
+        provisional.maximum_changed,
+        provisional.maximum_added,
+        provisional.maximum_removed,
+        provisional.require_diff_audit,
+        provisional.require_query_audit,
+        provisional.require_complete_query,
+        gate_model.address_policy(provisional),
+    )
+
+
+def build_demo(source: str | Path, destination: str | Path | None = None) -> dict[str, object]:
+    diff = diff_model.diff_from_mapping(json.loads(Path(source).read_text(encoding="utf-8")))
+    default_gate = gate_model.evaluate(diff, gate_id="glio-noncode-downloaded-quality-diff-demo-default-gate")
+    default_audit = gate_audit_model.audit_gate(default_gate)
+    blocked_query = gate_query_model.query_gate(
+        default_gate,
+        resources=("summary", "blocked"),
+        outcome="blocked",
+        limit=gate_query_model.MAX_LIMIT,
+    )
+    blocked_query_audit = gate_query_audit_model.audit_query(blocked_query)
+    permissive_gate = gate_model.evaluate(
+        diff,
+        policy=_permissive_policy(len(diff.items)),
+        gate_id="glio-noncode-downloaded-quality-diff-demo-permissive-gate",
+    )
+    summary: dict[str, object] = {
+        "diff_address": diff.content_address,
+        "diff_id": diff.diff_id,
+        "finding_count": default_gate.finding_count,
+        "safe_count": default_gate.safe_count,
+        "review_count": default_gate.review_count,
+        "blocked_count": default_gate.blocked_count,
+        "default_state": default_gate.state,
+        "default_decision": default_gate.decision,
+        "default_accepted": default_gate.accepted,
+        "default_gate_audit_accepted": default_audit.accepted,
+        "blocked_query_rows": blocked_query.returned_count,
+        "blocked_query_truncated": blocked_query.truncated,
+        "blocked_query_audit_accepted": blocked_query_audit.accepted,
+        "permissive_state": permissive_gate.state,
+        "permissive_decision": permissive_gate.decision,
+        "permissive_accepted": permissive_gate.accepted,
+        "gate_address": default_gate.content_address,
+        "policy_address": default_gate.policy.content_address,
+    }
+    if destination is not None:
+        root = Path(destination)
+        root.mkdir(parents=True, exist_ok=True)
+        (root / "gate.json").write_text(gate_model.gate_json(default_gate), encoding="utf-8")
+        (root / "gate.md").write_text(gate_model.render_gate_markdown(default_gate), encoding="utf-8")
+        (root / "gate-audit.json").write_text(gate_audit_model.audit_json(default_audit), encoding="utf-8")
+        (root / "blocked-query.json").write_text(gate_query_model.query_json(blocked_query), encoding="utf-8")
+        (root / "blocked-query-audit.json").write_text(gate_query_audit_model.audit_json(blocked_query_audit), encoding="utf-8")
+        (root / "permissive-gate.json").write_text(gate_model.gate_json(permissive_gate), encoding="utf-8")
+        summary["output_directory"] = str(root.resolve())
+        (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return summary
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Evaluate a release gate over a downloaded-data quality diff")
+    parser.add_argument("diff", type=Path, help="path to a value-free downloaded-data quality diff JSON")
+    parser.add_argument("destination", type=Path, nargs="?", help="optional output directory")
+    args = parser.parse_args()
+    summary = build_demo(args.diff, args.destination)
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    return 0 if summary["default_gate_audit_accepted"] and summary["blocked_query_audit_accepted"] else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

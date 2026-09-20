@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = '090ad3bba043368e636b8de93f97f2d0d88ff1f0271d74def023c5517a5c2547'
+SURFACE_DIGEST = '2aed0859248ee32613a2a5d8de185b21365195306deeadc2da379398e9e0b3fb'
 
 ALL = (
     'CaseManifest',
@@ -42406,6 +42406,10 @@ CHILD_MODULES = {
     'downloaded_data_quality_audit': 'glio_noncode.downloaded_data_quality_audit',
     'downloaded_data_quality_diff': 'glio_noncode.downloaded_data_quality_diff',
     'downloaded_data_quality_diff_audit': 'glio_noncode.downloaded_data_quality_diff_audit',
+    'downloaded_data_quality_diff_gate': 'glio_noncode.downloaded_data_quality_diff_gate',
+    'downloaded_data_quality_diff_gate_audit': 'glio_noncode.downloaded_data_quality_diff_gate_audit',
+    'downloaded_data_quality_diff_gate_query': 'glio_noncode.downloaded_data_quality_diff_gate_query',
+    'downloaded_data_quality_diff_gate_query_audit': 'glio_noncode.downloaded_data_quality_diff_gate_query_audit',
     'downloaded_data_quality_diff_query': 'glio_noncode.downloaded_data_quality_diff_query',
     'downloaded_data_quality_diff_query_audit': 'glio_noncode.downloaded_data_quality_diff_query_audit',
     'downloaded_data_quality_diff_runtime': 'glio_noncode.downloaded_data_quality_diff_runtime',
@@ -46296,6 +46300,10 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_quality_audit',
     'glio_noncode.downloaded_data_quality_diff',
     'glio_noncode.downloaded_data_quality_diff_audit',
+    'glio_noncode.downloaded_data_quality_diff_gate',
+    'glio_noncode.downloaded_data_quality_diff_gate_audit',
+    'glio_noncode.downloaded_data_quality_diff_gate_query',
+    'glio_noncode.downloaded_data_quality_diff_gate_query_audit',
     'glio_noncode.downloaded_data_quality_diff_query',
     'glio_noncode.downloaded_data_quality_diff_query_audit',
     'glio_noncode.downloaded_data_quality_diff_runtime',
