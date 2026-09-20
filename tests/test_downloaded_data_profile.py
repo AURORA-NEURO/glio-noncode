@@ -145,6 +145,10 @@ class DownloadedDataProfileTests(unittest.TestCase):
         altered["unknown"] = True
         with self.assertRaises(ValidationError):
             profile_model.profile_from_mapping(altered)
+        altered_type = profile.type_counts[0].to_dict()
+        altered_type["content_address"] = profile_model.TYPE_PREFIX + ":short"
+        with self.assertRaisesRegex(ValidationError, "canonical content address"):
+            profile_model.DownloadedDataTypeCount.from_mapping(altered_type)
         for schema in (
             profile_model.type_count_schema(), profile_model.shape_count_schema(), profile_model.field_schema(), profile_model.member_schema(), profile_model.profile_schema(),
             profile_audit_model.check_schema(), profile_audit_model.audit_schema(), profile_query_model.row_schema(), profile_query_model.query_schema(),
