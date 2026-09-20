@@ -330,3 +330,29 @@ python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-
 The history runtime is an exact six-file package with canonical reload,
 ancestry, query-completeness, and tamper checks. Its API routes are nested
 under `/v1/downloaded-data/quality/diff/gate/remediation/resolution/history`.
+
+To measure a handoff between two recorded histories, the history-diff layer
+aligns snapshots by ordinal and reports added, removed, changed, and unchanged
+resolution snapshots. It also computes the change in improved and regressed
+transitions, the state transition, release-readiness direction, and a bounded
+query over the comparison. This is a value-free comparison: it carries
+resolution metadata and content addresses, never source payloads or secrets.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff `
+  history-comparison.json --format markdown --output resolution-history-diff.md
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-audit `
+  resolution-history-diff.json --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-query `
+  resolution-history-diff.json --resource summary --resource items --change changed `
+  --limit 100 --format markdown
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-runtime `
+  resolution-history-diff.json --resource summary --resource items --limit 1000 `
+  --destination resolution-history-diff-runtime --overwrite --format summary
+```
+
+The API equivalents are nested under
+`/v1/downloaded-data/quality/diff/gate/remediation/resolution/history/diff`,
+with `/audit`, `/query`, `/query-audit`, `/runtime`, and `/runtime/audit`
+subroutes. Schema and capability discovery exposes the same comparison
+contract, including its bounded item and audit limits.

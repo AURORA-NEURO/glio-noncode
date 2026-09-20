@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = '48bd5d97bc02f4c8a258df965b47ba7460c58c63216d6b5c9483a2f695183a46'
+SURFACE_DIGEST = 'cb86405c2c563f380e5dd6ad52e62667880381262e240eebe17cdcf2ed27e29a'
 
 ALL = (
     'CaseManifest',
@@ -42424,6 +42424,12 @@ CHILD_MODULES = {
     'downloaded_data_quality_diff_gate_remediation_resolution_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_audit',
     'downloaded_data_quality_diff_gate_remediation_resolution_history': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history',
     'downloaded_data_quality_diff_gate_remediation_resolution_history_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_audit',
+    'downloaded_data_quality_diff_gate_remediation_resolution_history_diff': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff',
+    'downloaded_data_quality_diff_gate_remediation_resolution_history_diff_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff_audit',
+    'downloaded_data_quality_diff_gate_remediation_resolution_history_diff_query': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff_query',
+    'downloaded_data_quality_diff_gate_remediation_resolution_history_diff_query_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff_query_audit',
+    'downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime',
+    'downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime_audit',
     'downloaded_data_quality_diff_gate_remediation_resolution_history_query': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_query',
     'downloaded_data_quality_diff_gate_remediation_resolution_history_query_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_query_audit',
     'downloaded_data_quality_diff_gate_remediation_resolution_history_runtime': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_runtime',
@@ -46344,6 +46350,12 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_audit',
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history',
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_audit',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff_audit',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff_query',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff_query_audit',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_diff_runtime_audit',
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_query',
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_query_audit',
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_history_runtime',
