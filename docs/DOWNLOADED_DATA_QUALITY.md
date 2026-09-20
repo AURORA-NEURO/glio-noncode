@@ -810,3 +810,35 @@ route. Discovery publishes the runtime manifest, runtime schema, capabilities,
 and the independent 15-check runtime audit surfaces. The live downloaded-ZIP
 demo produces a complete, release-ready runtime over the improved history
 comparison and reloads the exact six-file package.
+
+For deterministic admission above portable history-diff runtimes, build a
+runtime closure registry. It accepts one or more complete six-file runtime
+closures, rejects duplicate runtime identity or address, folds entries into
+`empty`, `ready`, or `blocked`, and exposes bounded summary, entry, runtime,
+state, readiness, address, and bounds resources. Persistence is an exact
+four-file package: `manifest.json`, `registry.json`, `entries.json`, and
+`summary.json`.
+
+```powershell
+glio-noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry `
+  runtime-handoff-history-diff-runtime-primary runtime-handoff-history-diff-runtime-secondary `
+  --registry-id runtime-handoff-history-diff-runtime-registry `
+  --destination runtime-handoff-history-diff-runtime-registry --overwrite --format summary
+glio-noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit `
+  runtime-handoff-history-diff-runtime-registry --format summary
+glio-noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-query `
+  runtime-handoff-history-diff-runtime-registry --resource summary --resource entries `
+  --resource runtimes --resource states --resource readiness --resource addresses `
+  --resource bounds --limit 100 --format json --output runtime-handoff-history-diff-runtime-registry-query.json
+glio-noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit `
+  runtime-handoff-history-diff-runtime-registry-query.json runtime-handoff-history-diff-runtime-registry --format summary
+```
+
+The API route appends `/runtime-registry` to the history-diff runtime route;
+`/audit`, `/query`, and `/query-audit` provide independent verification and
+bounded projections. Discovery publishes registry, entry, entries, manifest,
+summary, audit, query, and query-audit schemas and capabilities. The registry
+audit has 16 checks and the query audit has 12 checks. On the supplied
+downloaded ZIP, the live demo admits two complete runtime closures, reports a
+ready registry with two entries, returns 26 query rows without truncation, and
+passes both audits.

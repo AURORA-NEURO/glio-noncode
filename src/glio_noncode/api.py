@@ -833,6 +833,10 @@ from . import downloaded_data_quality_diff_gate_remediation_resolution_history_d
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -4482,6 +4486,29 @@ class ApiHandler(BaseHTTPRequestHandler):
         return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.runtime_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
     @staticmethod
+    def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            expected = tuple(sorted(downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.FILES))
+            actual = tuple(sorted(path.name for path in source.iterdir()))
+            if actual != expected:
+                raise ValueError("downloaded-data runtime closure registry directory must contain the exact registry files")
+            return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.load_registry(source)
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data runtime closure registry input must be an object")
+        nested = raw.get("registry")
+        return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.registry_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+    @staticmethod
+    def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_from_input(input_path: str):
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data runtime closure registry query input must be an object")
+        nested = raw.get("query")
+        return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+    @staticmethod
     def _downloaded_quality_diff_gate_remediation_resolution_pairs(values: tuple[str, ...], field: str) -> dict[str, str]:
         result: dict[str, str] = {}
         for item in values:
@@ -6887,37 +6914,57 @@ class ApiHandler(BaseHTTPRequestHandler):
                     inputs = tuple(self._query_values(query, "input"))
                     if not inputs:
                         raise ValueError("runtime handoff registry requires at least one runtime input")
-                    value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.build_registry(
-                        tuple(self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_from_input(item) for item in inputs),
-                        registry_id=self._query_value(query, "registry_id") or downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.DEFAULT_REGISTRY_ID,
-                    )
+                    model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model
+                    try:
+                        runtimes = tuple(self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_from_input(item) for item in inputs)
+                    except ValidationError:
+                        model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model
+                        runtimes = tuple(self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_from_input(item) for item in inputs)
+                    value = model.build_registry(runtimes, registry_id=self._query_value(query, "registry_id") or model.DEFAULT_REGISTRY_ID)
                     destination = self._query_value(query, "destination")
                     if destination:
-                        downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.persist_registry(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
-                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model, json_name="registry_json", csv_name="registry_csv", markdown_name="render_registry_markdown")
+                        model.persist_registry(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", model, json_name="registry_json", csv_name="registry_csv", markdown_name="render_registry_markdown")
                     return
                 if path == gate_prefix + "/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/audit":
-                    value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model.audit_registry(self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(self._query_value(query, "input") or ""))
-                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model
+                    try:
+                        registry = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(self._query_value(query, "input") or "")
+                    except ValidationError:
+                        model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model
+                        registry = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(self._query_value(query, "input") or "")
+                    value = model.audit_registry(registry)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 if path == gate_prefix + "/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/query":
-                    registry = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(self._query_value(query, "input") or "")
-                    value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.query_registry(
+                    model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model
+                    try:
+                        registry = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(self._query_value(query, "input") or "")
+                    except ValidationError:
+                        model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model
+                        registry = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(self._query_value(query, "input") or "")
+                    value = model.query_registry(
                         registry,
-                        resources=self._query_values(query, "resource") or downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.RESOURCES,
+                        resources=self._query_values(query, "resource") or model.RESOURCES,
                         state=self._query_value(query, "state") or "",
                         key=self._query_value(query, "key") or "",
                         text=self._query_value(query, "text") or "",
                         offset=self._query_int(query, "offset", 0),
-                        limit=self._query_int(query, "limit", downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.MAX_LIMIT),
+                        limit=self._query_int(query, "limit", model.MAX_LIMIT),
                     )
-                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
                     return
                 if path == gate_prefix + "/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/query-audit":
-                    query_value = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_from_input(self._query_value(query, "input") or "")
-                    registry = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(self._query_value(query, "registry") or self._query_value(query, "source") or "")
-                    value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model.audit_query(query_value, registry)
-                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model
+                    try:
+                        query_value = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_from_input(self._query_value(query, "input") or "")
+                        registry = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(self._query_value(query, "registry") or self._query_value(query, "source") or "")
+                    except ValidationError:
+                        model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model
+                        query_value = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_from_input(self._query_value(query, "input") or "")
+                        registry = self._downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(self._query_value(query, "registry") or self._query_value(query, "source") or "")
+                    value = model.audit_query(query_value, registry)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 if path == gate_prefix + "/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history":
                     inputs = tuple(self._query_values(query, "input"))

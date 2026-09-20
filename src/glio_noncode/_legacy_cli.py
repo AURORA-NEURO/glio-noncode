@@ -347,6 +347,10 @@ from . import downloaded_data_quality_diff_gate_remediation_resolution_history_d
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model
 from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit as downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -6119,6 +6123,21 @@ def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_pac
     raw = _read_json(input_path)
     nested = raw.get("runtime")
     return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.runtime_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.load_registry(source)
+    raw = _read_json(input_path)
+    nested = raw.get("registry")
+    return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.registry_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_from_input(input_path: str):
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    return downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
 
 def _downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(input_path: str):
@@ -28544,36 +28563,6 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_audit_model.audit_runtime(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
-        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry":
-            runtimes = tuple(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_from_input(item) for item in args.input)
-            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.build_registry(runtimes, registry_id=args.registry_id)
-            if args.destination:
-                downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.persist_registry(value, args.destination, overwrite=args.overwrite)
-            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model, json_name="registry_json", csv_name="registry_csv", markdown_name="render_registry_markdown")
-            return 0 if value.accepted else 2
-        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit":
-            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model.audit_registry(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(args.input))
-            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
-            return 0 if value.accepted else 2
-        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-query":
-            registry = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(args.input)
-            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.query_registry(
-                registry,
-                resources=tuple(args.resource or downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.RESOURCES),
-                state=args.state,
-                key=args.key,
-                text=args.text,
-                offset=args.offset,
-                limit=args.limit,
-            )
-            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
-            return 0
-        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit":
-            query = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_from_input(args.input[0])
-            registry = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(args.input[1])
-            value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model.audit_query(query, registry)
-            _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
-            return 0 if value.accepted else 2
         if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history":
             registries = tuple(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(item) for item in args.input)
             value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.build_history(registries, history_id=args.history_id)
@@ -28657,6 +28646,56 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model.audit_runtime(_downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry":
+            model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model
+            try:
+                runtimes = tuple(
+                    _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_from_input(item)
+                    for item in args.input
+                )
+            except ValidationError:
+                model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_model
+                runtimes = tuple(
+                    _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_from_input(item)
+                    for item in args.input
+                )
+            value = model.build_registry(runtimes, registry_id=args.registry_id)
+            if args.destination:
+                model.persist_registry(value, args.destination, overwrite=args.overwrite)
+            _emit_contract(value, args, model, json_name="registry_json", csv_name="registry_csv", markdown_name="render_registry_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit":
+            model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model
+            try:
+                registry = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(args.input)
+            except ValidationError:
+                model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model
+                registry = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(args.input)
+            value = model.audit_registry(registry)
+            _emit_contract(value, args, model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.passed else 2
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-query":
+            model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model
+            try:
+                registry = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(args.input)
+            except ValidationError:
+                model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model
+                registry = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(args.input)
+            value = model.query_registry(registry, resources=tuple(args.resource or model.RESOURCES), state=args.state, key=args.key, text=args.text, offset=args.offset, limit=args.limit)
+            _emit_contract(value, args, model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit":
+            model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model
+            try:
+                query = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_from_input(args.input[0])
+                registry = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(args.input[1])
+            except ValidationError:
+                model = downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model
+                query = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_from_input(args.input[0])
+                registry = _downloaded_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_from_input(args.input[1])
+            value = model.audit_query(query, registry)
+            _emit_contract(value, args, model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.passed else 2
         if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy":
             value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.evaluate(
                 _downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(args.input),
