@@ -567,3 +567,35 @@ query-audit schemas and capabilities. The registry audit independently
 replays all runtime links, entry ordering, state/count conservation, manifest
 closure, and the public boundary; the query audit replays filters,
 pagination, row addresses, resource semantics, and registry linkage.
+
+For longitudinal tracking above runtime-registry snapshots, build append-only
+runtime-registry history. Every snapshot must use one registry identity;
+entries preserve the admitted registry address and aggregate counts, reject
+duplicate addresses, and record deterministic `initial`, `improved`,
+`regressed`, `unchanged`, or `changed` transitions. The latest snapshot folds
+the history state and acceptance without exposing source paths, records, or
+payload bytes. Persistence is an exact four-file package:
+`manifest.json`, `history.json`, `entries.json`, and `summary.json`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history `
+  policy-runtime-registry policy-runtime-registry --history-id review-runtime-registry-history `
+  --destination policy-runtime-registry-history --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-audit `
+  policy-runtime-registry-history --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-query `
+  policy-runtime-registry-history --resource summary --resource snapshots --resource transitions `
+  --resource states --resource readiness --resource addresses --resource bounds `
+  --limit 100 --format json --output runtime-registry-history-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-query-audit `
+  policy-runtime-registry-history --format summary
+```
+
+The history API routes append `/runtime-registry/history`,
+`/runtime-registry/history/audit`, `/runtime-registry/history/query`, and
+`/runtime-registry/history/query-audit` to the history-diff route. History
+discovery publishes entry, entries, manifest, summary, history, audit, query,
+and query-audit schemas and capabilities. The independent history audit has
+16 checks; the query audit has 12 checks and replays resource selection,
+filters, pagination, row addresses, and history linkage. Empty-to-ready real
+downloaded-ZIP evidence is represented as an initial-to-improved transition.

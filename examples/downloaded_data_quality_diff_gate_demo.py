@@ -85,6 +85,10 @@ from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolutio
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_audit as gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query as gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_audit as gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history as gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit as gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query as gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit as gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit_model
 
 
 def _permissive_policy(item_count: int) -> gate_model.DownloadedDataQualityDiffGatePolicy:
@@ -360,6 +364,24 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query,
         remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry,
     )
+    empty_runtime_registry = gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_model.build_registry(
+        (),
+        registry_id=remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry.registry_id,
+    )
+    remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history = gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_model.build_history(
+        (empty_runtime_registry, remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry),
+        history_id="glio-noncode-downloaded-quality-diff-demo-history-diff-policy-package-registry-history-diff-runtime-registry-history",
+    )
+    remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit = gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit_model.audit_history(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history)
+    remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query = gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_model.query_history(
+        remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history,
+        resources=gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_model.RESOURCES,
+        limit=gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_model.MAX_LIMIT,
+    )
+    remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit = gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit_model.audit_query(
+        remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query,
+        remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history,
+    )
     summary: dict[str, object] = {
         "diff_address": diff.content_address,
         "diff_id": diff.diff_id,
@@ -523,6 +545,16 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_truncated": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query.truncated,
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_audit_accepted": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_audit.accepted,
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_audit_checks": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_audit.check_count,
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_state": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history.state,
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_entries": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history.entry_count,
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_transitions": tuple(item.transition for item in remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history.entries),
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_accepted": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history.accepted,
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit_accepted": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit.accepted,
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit_checks": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit.check_count,
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_rows": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query.returned_count,
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_truncated": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query.truncated,
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit_accepted": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit.accepted,
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit_checks": remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit.check_count,
         "permissive_state": permissive_gate.state,
         "permissive_decision": permissive_gate.decision,
         "permissive_accepted": permissive_gate.accepted,
@@ -635,6 +667,13 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-query-audit.json").write_text(gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_audit_model.audit_json(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_audit), encoding="utf-8")
         remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_root = root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry"
         gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_model.persist_registry(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry, remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_root, overwrite=True)
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history.json").write_text(gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_model.history_json(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history), encoding="utf-8")
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history.md").write_text(gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_model.render_history_markdown(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history), encoding="utf-8")
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-audit.json").write_text(gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit_model.audit_json(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit), encoding="utf-8")
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-query.json").write_text(gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_model.query_json(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query), encoding="utf-8")
+        (root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-query-audit.json").write_text(gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit_model.audit_json(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit), encoding="utf-8")
+        remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_root = root / "remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history"
+        gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_model.persist_history(remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history, remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_root, overwrite=True)
         (root / "permissive-gate.json").write_text(gate_model.gate_json(permissive_gate), encoding="utf-8")
         summary["output_directory"] = str(root.resolve())
         summary["runtime_directory"] = str(runtime_root.resolve())
@@ -683,6 +722,9 @@ def main() -> int:
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_accepted",
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_audit_accepted",
         "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_query_audit_accepted",
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_accepted",
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_audit_accepted",
+        "remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_query_audit_accepted",
     )) else 2
 
 
