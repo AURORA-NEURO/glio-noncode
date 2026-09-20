@@ -1170,3 +1170,34 @@ Live downloaded-ZIP evidence compares a blocked one-snapshot baseline with the r
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-d171-live-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-d171-live-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-d171-live-query-audit.json`
+
+## D172 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime
+
+D172 evaluates a D171 history comparison against an explicit release policy. The policy controls minimum comparison depth, added/removed/changed budgets, permitted directions, acceptance, state-transition shape, and unchanged-item handling. Fifteen deterministic checks produce a ready or blocked disposition while preserving the comparison address, direction, transition, and class counters.
+
+The persisted runtime decision is an exact four-file directory:
+
+- `manifest.json`
+- `runtime.json`
+- `checks.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime DIFF_DIR --runtime-id quality-runtime-registry-history-diff-runtime --maximum-added 128 --destination RUNTIME_DIR --overwrite --format json --output runtime.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-audit RUNTIME_DIR --format json --output runtime-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-query RUNTIME_DIR --limit 128 --format json --output runtime-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-query-audit runtime-query.json RUNTIME_DIR --format json --output runtime-query-audit.json
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime`, with `/audit`, `/query`, and `/query-audit` suffixes. Policy, check, manifest, summary, runtime, audit, query, and capability schemas are exposed beneath the same API family.
+
+Live downloaded-ZIP evidence evaluates the D171 blocked-to-ready comparison. The default policy produces `state=ready`, `release_ready=true`, and `15/15` runtime checks. The runtime query returns `58/58` rows without truncation and its independent query audit passes `12/12`. A strict `maximum_added=0` policy produces the expected blocked disposition with `14/15` checks. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-d172-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-d172-live.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-d172-live-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-d172-live-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-d172-live-query-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-d172-blocked-live.json`
