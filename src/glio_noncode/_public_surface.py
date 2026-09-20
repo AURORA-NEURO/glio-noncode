@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = '51fb611ad18807d187cae94198e510d2c24a75c5f3bf457cd113a18cdb4cdebe'
+SURFACE_DIGEST = '1a0e60a6c22f5233f70c3c2a8d607783822a5f42d7bf8f7d809fec41cc8f35d4'
 
 ALL = (
     'CaseManifest',
@@ -42420,6 +42420,12 @@ CHILD_MODULES = {
     'downloaded_data_quality_diff_gate_remediation_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_audit',
     'downloaded_data_quality_diff_gate_remediation_query': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_query',
     'downloaded_data_quality_diff_gate_remediation_query_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_query_audit',
+    'downloaded_data_quality_diff_gate_remediation_resolution': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution',
+    'downloaded_data_quality_diff_gate_remediation_resolution_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_audit',
+    'downloaded_data_quality_diff_gate_remediation_resolution_query': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_query',
+    'downloaded_data_quality_diff_gate_remediation_resolution_query_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_query_audit',
+    'downloaded_data_quality_diff_gate_remediation_resolution_runtime': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_runtime',
+    'downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit',
     'downloaded_data_quality_diff_gate_remediation_runtime': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_runtime',
     'downloaded_data_quality_diff_gate_remediation_runtime_audit': 'glio_noncode.downloaded_data_quality_diff_gate_remediation_runtime_audit',
     'downloaded_data_quality_diff_gate_runtime': 'glio_noncode.downloaded_data_quality_diff_gate_runtime',
@@ -46328,6 +46334,12 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_audit',
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_query',
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_query_audit',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_audit',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_query',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_query_audit',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_runtime',
+    'glio_noncode.downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit',
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_runtime',
     'glio_noncode.downloaded_data_quality_diff_gate_remediation_runtime_audit',
     'glio_noncode.downloaded_data_quality_diff_gate_runtime',

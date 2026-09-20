@@ -275,3 +275,38 @@ The runtime and audit routes are nested under
 `/v1/downloaded-data/quality/diff/gate/remediation/runtime`; manifest, runtime,
 and runtime-audit schemas and capabilities are available through the same
 quality schema discovery surface.
+
+The next handoff records dispositions for the plan without executing repairs
+or changing the gate. Every action receives a bounded status (`pending`,
+`resolved`, `waived`, `rejected`, or `not_applicable`), rationale, and evidence
+addresses. Required actions stay open until explicitly resolved; a waiver is
+visible and does not count as a release-ready repair.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution `
+  remediation.json --format markdown --output remediation-resolution.md
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-audit `
+  remediation-resolution.json --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-query `
+  remediation-resolution.json --resource pending --resource open --limit 100 `
+  --format markdown
+```
+
+For a durable handoff, the resolution ledger has its own exact six-file
+runtime package (`manifest.json`, `resolution.json`, `audit.json`, `query.json`,
+`query-audit.json`, and `runtime.json`). Its structural runtime state can be
+complete while release readiness remains false when required actions are still
+pending, waived, or rejected.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-runtime `
+  remediation-resolution.json --resource summary --resource pending --resource open `
+  --limit 1000 --destination remediation-resolution-runtime --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-runtime-audit `
+  remediation-resolution-runtime --format summary
+```
+
+The API equivalents are nested under
+`/v1/downloaded-data/quality/diff/gate/remediation/resolution`, including
+`/audit`, `/query`, `/query-audit`, `/runtime`, and `/runtime/audit`; all
+schemas and capabilities are published through the quality discovery surface.

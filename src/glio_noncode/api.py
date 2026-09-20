@@ -763,6 +763,12 @@ from . import downloaded_data_quality_diff_gate_remediation_query as downloaded_
 from . import downloaded_data_quality_diff_gate_remediation_query_audit as downloaded_data_quality_diff_gate_remediation_query_audit_model
 from . import downloaded_data_quality_diff_gate_remediation_runtime as downloaded_data_quality_diff_gate_remediation_runtime_model
 from . import downloaded_data_quality_diff_gate_remediation_runtime_audit as downloaded_data_quality_diff_gate_remediation_runtime_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution as downloaded_data_quality_diff_gate_remediation_resolution_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_audit as downloaded_data_quality_diff_gate_remediation_resolution_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_query as downloaded_data_quality_diff_gate_remediation_resolution_query_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_query_audit as downloaded_data_quality_diff_gate_remediation_resolution_query_audit_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_runtime as downloaded_data_quality_diff_gate_remediation_resolution_runtime_model
+from . import downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit as downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -3948,6 +3954,48 @@ class ApiHandler(BaseHTTPRequestHandler):
         return downloaded_data_quality_diff_gate_remediation_runtime_model.runtime_from_mapping(raw)
 
     @staticmethod
+    def _downloaded_quality_diff_gate_remediation_resolution_from_input(input_path: str):
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality remediation resolution input must be an object")
+        nested = raw.get("resolution")
+        return downloaded_data_quality_diff_gate_remediation_resolution_model.resolution_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_quality_diff_gate_remediation_resolution_query_from_input(input_path: str):
+        raw = _strict_json_loads(_api_read_text(Path(input_path)))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality remediation resolution query input must be an object")
+        nested = raw.get("query")
+        return downloaded_data_quality_diff_gate_remediation_resolution_query_model.query_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_quality_diff_gate_remediation_resolution_runtime_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            expected = tuple(sorted(downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.FILES))
+            actual = tuple(sorted(path.name for path in source.iterdir()))
+            if actual != expected:
+                raise ValueError("downloaded-data quality remediation resolution runtime directory must contain the exact runtime files")
+            return downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.load_runtime(source)
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality remediation resolution runtime input must be an object")
+        return downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.runtime_from_mapping(raw)
+
+    @staticmethod
+    def _downloaded_quality_diff_gate_remediation_resolution_pairs(values: tuple[str, ...], field: str) -> dict[str, str]:
+        result: dict[str, str] = {}
+        for item in values:
+            if "=" not in item:
+                raise ValueError(f"{field} values must use ADDRESS=VALUE")
+            address, value = item.split("=", 1)
+            if not address or not value or address in result:
+                raise ValueError(f"{field} values must contain unique non-empty addresses")
+            result[address] = value
+        return result
+
+    @staticmethod
     def _downloaded_contract_runtime_from_input(input_path: str):
         source = Path(input_path)
         if source.is_dir():
@@ -5822,6 +5870,65 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if path == gate_prefix + "/remediation/runtime/audit":
                     value = downloaded_data_quality_diff_gate_remediation_runtime_audit_model.audit_runtime(self._downloaded_quality_diff_gate_remediation_runtime_from_input(self._query_value(query, "input") or ""))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == gate_prefix + "/remediation/resolution":
+                    statuses = self._downloaded_quality_diff_gate_remediation_resolution_pairs(self._query_values(query, "status"), "status")
+                    rationales = self._downloaded_quality_diff_gate_remediation_resolution_pairs(self._query_values(query, "rationale"), "rationale")
+                    evidence_values = self._downloaded_quality_diff_gate_remediation_resolution_pairs(self._query_values(query, "evidence"), "evidence")
+                    value = downloaded_data_quality_diff_gate_remediation_resolution_model.build_resolution(
+                        self._downloaded_quality_diff_gate_remediation_from_input(self._query_value(query, "input") or ""),
+                        resolution_id=self._query_value(query, "resolution_id") or downloaded_data_quality_diff_gate_remediation_resolution_model.DEFAULT_RESOLUTION_ID,
+                        statuses=statuses,
+                        rationales=rationales,
+                        evidence={key: (item,) for key, item in evidence_values.items()},
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_model, json_name="resolution_json", csv_name="resolution_csv", markdown_name="render_resolution_markdown")
+                    return
+                if path == gate_prefix + "/remediation/resolution/audit":
+                    value = downloaded_data_quality_diff_gate_remediation_resolution_audit_model.audit_resolution(self._downloaded_quality_diff_gate_remediation_resolution_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == gate_prefix + "/remediation/resolution/query":
+                    value = downloaded_data_quality_diff_gate_remediation_resolution_query_model.query_resolution(
+                        self._downloaded_quality_diff_gate_remediation_resolution_from_input(self._query_value(query, "input") or ""),
+                        resources=self._query_values(query, "resource") or downloaded_data_quality_diff_gate_remediation_resolution_query_model.RESOURCES[:2],
+                        status=self._query_value(query, "status") or "",
+                        action=self._query_value(query, "action") or "",
+                        priority=self._query_value(query, "priority") or "",
+                        required_only=self._query_bool(query, "required_only") if "required_only" in query else False,
+                        identity=self._query_value(query, "identity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_quality_diff_gate_remediation_resolution_query_model.DEFAULT_LIMIT),
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == gate_prefix + "/remediation/resolution/query-audit":
+                    value = downloaded_data_quality_diff_gate_remediation_resolution_query_audit_model.audit_query(self._downloaded_quality_diff_gate_remediation_resolution_query_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == gate_prefix + "/remediation/resolution/runtime":
+                    value = downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.build_runtime(
+                        self._downloaded_quality_diff_gate_remediation_resolution_from_input(self._query_value(query, "input") or ""),
+                        runtime_id=self._query_value(query, "runtime_id") or downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.DEFAULT_RUNTIME_ID,
+                        resources=self._query_values(query, "resource") or downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.DEFAULT_RESOURCES,
+                        status=self._query_value(query, "status") or "",
+                        action=self._query_value(query, "action") or "",
+                        priority=self._query_value(query, "priority") or "",
+                        required_only=self._query_bool(query, "required_only") if "required_only" in query else False,
+                        identity=self._query_value(query, "identity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.DEFAULT_LIMIT),
+                    )
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.persist_runtime(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == gate_prefix + "/remediation/resolution/runtime/audit":
+                    value = downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit_model.audit_runtime(self._downloaded_quality_diff_gate_remediation_resolution_runtime_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 history_prefix = gate_prefix + "/history"
                 if path == history_prefix:
@@ -10095,6 +10202,24 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/quality/diff/gate/remediation/runtime/audit/check-schema": downloaded_data_quality_diff_gate_remediation_runtime_audit_model.check_schema,
                     "/quality/diff/gate/remediation/runtime/audit/schema": downloaded_data_quality_diff_gate_remediation_runtime_audit_model.audit_schema,
                     "/quality/diff/gate/remediation/runtime/audit/capabilities": downloaded_data_quality_diff_gate_remediation_runtime_audit_model.capabilities,
+                    "/quality/diff/gate/remediation/resolution/entry-schema": downloaded_data_quality_diff_gate_remediation_resolution_model.entry_schema,
+                    "/quality/diff/gate/remediation/resolution/schema": downloaded_data_quality_diff_gate_remediation_resolution_model.resolution_schema,
+                    "/quality/diff/gate/remediation/resolution/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_model.capabilities,
+                    "/quality/diff/gate/remediation/resolution/audit/check-schema": downloaded_data_quality_diff_gate_remediation_resolution_audit_model.check_schema,
+                    "/quality/diff/gate/remediation/resolution/audit/schema": downloaded_data_quality_diff_gate_remediation_resolution_audit_model.audit_schema,
+                    "/quality/diff/gate/remediation/resolution/audit/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_audit_model.capabilities,
+                    "/quality/diff/gate/remediation/resolution/query/row-schema": downloaded_data_quality_diff_gate_remediation_resolution_query_model.row_schema,
+                    "/quality/diff/gate/remediation/resolution/query/schema": downloaded_data_quality_diff_gate_remediation_resolution_query_model.query_schema,
+                    "/quality/diff/gate/remediation/resolution/query/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_query_model.capabilities,
+                    "/quality/diff/gate/remediation/resolution/query-audit/check-schema": downloaded_data_quality_diff_gate_remediation_resolution_query_audit_model.check_schema,
+                    "/quality/diff/gate/remediation/resolution/query-audit/schema": downloaded_data_quality_diff_gate_remediation_resolution_query_audit_model.audit_schema,
+                    "/quality/diff/gate/remediation/resolution/query-audit/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_query_audit_model.capabilities,
+                    "/quality/diff/gate/remediation/resolution/runtime/manifest-schema": downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.manifest_schema,
+                    "/quality/diff/gate/remediation/resolution/runtime/schema": downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.runtime_schema,
+                    "/quality/diff/gate/remediation/resolution/runtime/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_runtime_model.capabilities,
+                    "/quality/diff/gate/remediation/resolution/runtime/audit/check-schema": downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit_model.check_schema,
+                    "/quality/diff/gate/remediation/resolution/runtime/audit/schema": downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit_model.audit_schema,
+                    "/quality/diff/gate/remediation/resolution/runtime/audit/capabilities": downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit_model.capabilities,
                     "/quality/diff/gate/history/entry-schema": downloaded_data_quality_diff_gate_history_model.entry_schema,
                     "/quality/diff/gate/history/schema": downloaded_data_quality_diff_gate_history_model.history_schema,
                     "/quality/diff/gate/history/capabilities": downloaded_data_quality_diff_gate_history_model.capabilities,

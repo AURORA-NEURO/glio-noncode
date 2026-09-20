@@ -38,8 +38,12 @@ from glio_noncode import downloaded_data_quality_diff_gate_remediation_query as 
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_query_audit as diff_gate_remediation_query_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_runtime as diff_gate_remediation_runtime_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_runtime_audit as diff_gate_remediation_runtime_audit_model
-from glio_noncode import downloaded_data_quality_diff_gate_remediation_runtime as diff_gate_remediation_runtime_model
-from glio_noncode import downloaded_data_quality_diff_gate_remediation_runtime_audit as diff_gate_remediation_runtime_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution as diff_gate_remediation_resolution_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_audit as diff_gate_remediation_resolution_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_query as diff_gate_remediation_resolution_query_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_query_audit as diff_gate_remediation_resolution_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_runtime as diff_gate_remediation_resolution_runtime_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_runtime_audit as diff_gate_remediation_resolution_runtime_audit_model
 from glio_noncode import downloaded_data_quality_query as query_model
 from glio_noncode import downloaded_data_quality_query_audit as query_audit_model
 from glio_noncode import downloaded_data_quality_runtime as runtime_model
@@ -272,6 +276,49 @@ class DownloadedDataQualityTests(unittest.TestCase):
             self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(diff_gate_remediation_runtime_model.FILES)))
             self.assertEqual(diff_gate_remediation_runtime_model.load_runtime(destination).content_address, runtime.content_address)
 
+    def test_quality_diff_gate_remediation_resolution_replays_pending_and_closed_dispositions(self) -> None:
+        profile = self._profile()
+        left = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-resolution-left"), result_id="quality-resolution-left")
+        right = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-resolution-right", max_distinct_values=1), result_id="quality-resolution-right")
+        diff = diff_model.build_diff(left, right, diff_id="quality-resolution-diff")
+        gate = diff_gate_model.evaluate(diff, gate_id="quality-resolution-gate")
+        plan = diff_gate_remediation_model.build_plan(gate, plan_id="quality-resolution-plan")
+        pending = diff_gate_remediation_resolution_model.build_resolution(plan, resolution_id="quality-resolution-pending")
+        self.assertEqual((pending.state, pending.decision, pending.release_ready), ("review", "hold", False))
+        self.assertGreater(pending.required_open_count, 0)
+        self.assertEqual(diff_gate_remediation_resolution_model.resolution_from_mapping(pending.to_dict()).content_address, pending.content_address)
+        pending_audit = diff_gate_remediation_resolution_audit_model.audit_resolution(pending)
+        self.assertEqual((pending_audit.check_count, pending_audit.passed_count, pending_audit.accepted), (14, 14, True))
+        pending_query = diff_gate_remediation_resolution_query_model.query_resolution(pending, resources=("summary", "pending", "open"), limit=100)
+        self.assertTrue(diff_gate_remediation_resolution_query_audit_model.audit_query(pending_query).accepted)
+        statuses = {item.content_address: "resolved" for item in plan.actions if item.required}
+        closed = diff_gate_remediation_resolution_model.build_resolution(plan, resolution_id="quality-resolution-closed", statuses=statuses)
+        self.assertEqual((closed.state, closed.decision, closed.release_ready, closed.required_open_count), ("clear", "promote", True, 0))
+
+    def test_quality_diff_gate_remediation_resolution_runtime_persists_pending_closure_and_rejects_tamper(self) -> None:
+        profile = self._profile()
+        left = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-resolution-runtime-left"), result_id="quality-resolution-runtime-left")
+        right = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-resolution-runtime-right", max_distinct_values=1), result_id="quality-resolution-runtime-right")
+        diff = diff_model.build_diff(left, right, diff_id="quality-resolution-runtime-diff")
+        gate = diff_gate_model.evaluate(diff, gate_id="quality-resolution-runtime-gate")
+        plan = diff_gate_remediation_model.build_plan(gate, plan_id="quality-resolution-runtime-plan")
+        resolution = diff_gate_remediation_resolution_model.build_resolution(plan, resolution_id="quality-resolution-runtime-resolution")
+        runtime = diff_gate_remediation_resolution_runtime_model.build_runtime(resolution, runtime_id="quality-resolution-runtime", resources=("summary", "pending", "open"), limit=100)
+        self.assertEqual((runtime.state, runtime.release_ready, runtime.query_truncated), ("complete", False, False))
+        runtime_audit = diff_gate_remediation_resolution_runtime_audit_model.audit_runtime(runtime)
+        self.assertEqual((runtime_audit.check_count, runtime_audit.passed_count, runtime_audit.accepted), (16, 16, True))
+        self.assertEqual(diff_gate_remediation_resolution_runtime_model.runtime_from_mapping(runtime.to_dict()).content_address, runtime.content_address)
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "resolution-runtime"
+            diff_gate_remediation_resolution_runtime_model.persist_runtime(runtime, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(diff_gate_remediation_resolution_runtime_model.FILES)))
+            self.assertEqual(diff_gate_remediation_resolution_runtime_model.load_runtime(destination).content_address, runtime.content_address)
+            altered = json.loads((destination / "resolution.json").read_text(encoding="utf-8"))
+            altered["pending_count"] += 1
+            (destination / "resolution.json").write_text(json.dumps(altered), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                diff_gate_remediation_resolution_runtime_model.load_runtime(destination)
+
     def test_quality_diff_gate_history_replays_ancestry_transitions_and_queries(self) -> None:
         profile = self._profile()
         left = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-history-left"), result_id="quality-history-left")
@@ -421,6 +468,15 @@ class DownloadedDataQualityTests(unittest.TestCase):
             remediation_runtime_path = root / "diff-gate-remediation-runtime"
             self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-runtime", str(gate_path), "--destination", str(remediation_runtime_path), "--overwrite", "--resource", "summary", "--resource", "required", "--resource", "blocked", "--resource", "critical", "--limit", "25", "--format", "summary", "--output", str(root / "diff-gate-remediation-runtime-summary.json")]), 2)
             self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-runtime-audit", str(remediation_runtime_path), "--format", "json", "--output", str(root / "diff-gate-remediation-runtime-audit.json")]), 0)
+            resolution_path = root / "diff-gate-remediation-resolution.json"
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution", str(root / "diff-gate-remediation.json"), "--format", "json", "--output", str(resolution_path)]), 2)
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-audit", str(resolution_path), "--format", "json", "--output", str(root / "diff-gate-remediation-resolution-audit.json")]), 0)
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-query", str(resolution_path), "--resource", "summary", "--resource", "pending", "--resource", "open", "--limit", "100", "--format", "json", "--output", str(root / "diff-gate-remediation-resolution-query.json")]), 0)
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-query-audit", str(root / "diff-gate-remediation-resolution-query.json"), "--format", "json", "--output", str(root / "diff-gate-remediation-resolution-query-audit.json")]), 0)
+            resolution_runtime_path = root / "diff-gate-remediation-resolution-runtime"
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-runtime", str(resolution_path), "--destination", str(resolution_runtime_path), "--overwrite", "--resource", "summary", "--resource", "pending", "--resource", "open", "--limit", "100", "--format", "summary", "--output", str(root / "diff-gate-remediation-resolution-runtime-summary.json")]), 2)
+            self.assertEqual(main(["downloaded-data-quality-diff-gate-remediation-resolution-runtime-audit", str(resolution_runtime_path), "--format", "json", "--output", str(root / "diff-gate-remediation-resolution-runtime-audit.json")]), 0)
+            self.assertEqual(tuple(sorted(path.name for path in resolution_runtime_path.iterdir())), tuple(sorted(diff_gate_remediation_resolution_runtime_model.FILES)))
             self.assertEqual(main(["downloaded-data-quality-diff-gate-query", str(gate_path), "--resource", "blocked", "--outcome", "blocked", "--limit", "2", "--format", "json", "--output", str(root / "diff-gate-query.json")]), 0)
             self.assertEqual(main(["downloaded-data-quality-diff-gate-query-audit", str(root / "diff-gate-query.json"), "--format", "json", "--output", str(root / "diff-gate-query-audit.json")]), 0)
             diff_gate_runtime_path = root / "diff-gate-runtime"
@@ -479,6 +535,18 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 self.assertEqual((api_remediation_runtime["state"], api_remediation_runtime["release_ready"]), ("complete", False))
                 api_remediation_runtime_audit = json.loads(urlopen(diff_base + "/gate/remediation/runtime/audit?" + urlencode({"input": str(remediation_runtime_path)}), timeout=10).read().decode())
                 self.assertTrue(api_remediation_runtime_audit["accepted"])
+                api_resolution = json.loads(urlopen(diff_base + "/gate/remediation/resolution?" + urlencode({"input": str(root / "diff-gate-remediation.json")}), timeout=10).read().decode())
+                self.assertEqual((api_resolution["state"], api_resolution["decision"], api_resolution["release_ready"]), ("review", "hold", False))
+                api_resolution_audit = json.loads(urlopen(diff_base + "/gate/remediation/resolution/audit?" + urlencode({"input": str(resolution_path)}), timeout=10).read().decode())
+                self.assertTrue(api_resolution_audit["accepted"])
+                api_resolution_query = json.loads(urlopen(diff_base + "/gate/remediation/resolution/query?" + urlencode({"input": str(resolution_path), "resource": ["summary", "pending", "open"], "limit": "100"}, doseq=True), timeout=10).read().decode())
+                self.assertGreater(api_resolution_query["returned_count"], 0)
+                api_resolution_query_audit = json.loads(urlopen(diff_base + "/gate/remediation/resolution/query-audit?" + urlencode({"input": str(root / "diff-gate-remediation-resolution-query.json")}), timeout=10).read().decode())
+                self.assertTrue(api_resolution_query_audit["accepted"])
+                api_resolution_runtime = json.loads(urlopen(diff_base + "/gate/remediation/resolution/runtime?" + urlencode({"input": str(resolution_path), "resource": ["summary", "pending", "open"], "limit": "100", "destination": str(root / "api-resolution-runtime"), "overwrite": "true"}, doseq=True), timeout=10).read().decode())
+                self.assertEqual((api_resolution_runtime["state"], api_resolution_runtime["release_ready"]), ("complete", False))
+                api_resolution_runtime_audit = json.loads(urlopen(diff_base + "/gate/remediation/resolution/runtime/audit?" + urlencode({"input": str(resolution_runtime_path)}), timeout=10).read().decode())
+                self.assertTrue(api_resolution_runtime_audit["accepted"])
                 api_remediation_runtime = json.loads(urlopen(diff_base + "/gate/remediation/runtime?" + urlencode({"input": str(gate_path), "resource": ["summary", "blocked"], "limit": "100"}, doseq=True), timeout=10).read().decode())
                 self.assertEqual((api_remediation_runtime["state"], api_remediation_runtime["release_ready"], api_remediation_runtime["query_truncated"]), ("complete", False, False))
                 api_remediation_runtime_audit = json.loads(urlopen(diff_base + "/gate/remediation/runtime/audit?" + urlencode({"input": str(remediation_runtime_path)}), timeout=10).read().decode())
