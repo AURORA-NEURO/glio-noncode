@@ -536,3 +536,34 @@ python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-
 The runtime API routes append `/package/registry/history/diff/runtime` and
 `/runtime/audit` to the diff route. Runtime discovery publishes manifest,
 runtime, audit, and capability contracts.
+
+To admit multiple runtime packages as one deterministic unit, build a runtime
+registry. It accepts only typed six-file runtime packages, sorts entries by
+runtime identity and address, rejects duplicate identities, folds `empty`,
+`ready`, and `blocked` states, and preserves the runtime's public addresses
+without copying source data. The registry itself is an exact four-file package:
+`manifest.json`, `registry.json`, `entries.json`, and `summary.json`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry `
+  policy-package-registry-history-diff-runtime-a policy-package-registry-history-diff-runtime-b `
+  --registry-id review-runtime-registry --destination policy-runtime-registry `
+  --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-audit `
+  policy-runtime-registry --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-query `
+  policy-runtime-registry --resource summary --resource entries --resource runtimes `
+  --resource states --resource readiness --resource addresses --resource bounds `
+  --limit 100 --format json --output runtime-registry-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-query-audit `
+  policy-runtime-registry --format summary
+```
+
+The runtime-registry API routes append `/runtime-registry`,
+`/runtime-registry/audit`, `/runtime-registry/query`, and
+`/runtime-registry/query-audit` to the history-diff route. Registry discovery
+publishes entry, entries, manifest, summary, registry, audit, query, and
+query-audit schemas and capabilities. The registry audit independently
+replays all runtime links, entry ordering, state/count conservation, manifest
+closure, and the public boundary; the query audit replays filters,
+pagination, row addresses, resource semantics, and registry linkage.
