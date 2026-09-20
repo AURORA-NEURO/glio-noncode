@@ -46,7 +46,12 @@ def _address(value: Any, field: str, prefix: str | None = None, *, required: boo
     value = _text(value, field, required=required)
     if allow_pending and (value.startswith("pending:") or value.endswith(":pending")):
         return value
-    if value and (":" not in value or "/" in value or "\\" in value or '"' in value or (prefix is not None and not value.startswith(prefix + ":"))):
+    if not value:
+        return value
+    namespace, separator, digest = value.rpartition(":")
+    if (not separator or not namespace or len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest)
+            or "/" in value or "\\" in value or '"' in value
+            or (prefix is not None and namespace != prefix)):
         raise ValidationError(f"{field} has the wrong address namespace")
     return value
 
