@@ -167,6 +167,8 @@ class DownloadedDataQualityDiffGateRuntime:
             raise ValidationError("quality diff gate runtime component addresses do not replay")
         if self.query.gate_address != self.gate_address or self.query_audit.query_address != self.query_address:
             raise ValidationError("quality diff gate runtime query lineage does not replay")
+        if self.manifest.artifact_addresses != (self.gate_address, self.audit_address, self.query_address, self.query_audit_address):
+            raise ValidationError("quality diff gate runtime manifest artifact addresses do not replay")
         if (self.finding_count, self.safe_count, self.review_count, self.blocked_count) != (self.gate.finding_count, self.gate.safe_count, self.gate.review_count, self.gate.blocked_count):
             raise ValidationError("quality diff gate runtime findings do not replay")
         if self.query_returned_count != self.query.returned_count or self.query_truncated != self.query.truncated:
