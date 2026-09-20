@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 import tempfile
+import threading
 import unittest
 import zipfile
 from pathlib import Path
@@ -127,6 +128,10 @@ from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolutio
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit_model
 from glio_noncode import downloaded_data_quality_query_audit as query_audit_model
 from glio_noncode import downloaded_data_quality_runtime as runtime_model
 from glio_noncode.errors import ValidationError
@@ -991,6 +996,259 @@ class DownloadedDataQualityTests(unittest.TestCase):
             (history_destination / "summary.json").write_text(json.dumps(tampered_history), encoding="utf-8")
             with self.assertRaises(ValidationError):
                 diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.load_history(history_destination)
+            empty_registry_d164 = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.build_registry((), registry_id=registry_d163.registry_id)
+            registry_history_d164 = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.build_history(
+                (empty_registry_d164, registry_d163),
+                history_id="quality-registry-history-d164",
+            )
+            self.assertEqual(
+                (
+                    registry_history_d164.entry_count,
+                    registry_history_d164.state,
+                    registry_history_d164.accepted,
+                    tuple(item.transition for item in registry_history_d164.entries),
+                ),
+                (2, "ready", True, ("initial", "improved")),
+            )
+            registry_history_d164_audit = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit_model.audit_history(registry_history_d164)
+            self.assertEqual(
+                (
+                    registry_history_d164_audit.check_count,
+                    registry_history_d164_audit.passed_count,
+                    registry_history_d164_audit.accepted,
+                ),
+                (
+                    diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit_model.MAX_CHECKS,
+                    diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit_model.MAX_CHECKS,
+                    True,
+                ),
+            )
+            registry_history_d164_query = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_model.query_history(
+                registry_history_d164,
+                resources=diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_model.RESOURCES,
+                limit=100,
+            )
+            self.assertEqual(
+                (
+                    registry_history_d164_query.total_count,
+                    registry_history_d164_query.returned_count,
+                    registry_history_d164_query.truncated,
+                ),
+                (40, 40, False),
+            )
+            registry_history_d164_query_audit = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit_model.audit_query(
+                registry_history_d164_query,
+                registry_history_d164,
+            )
+            self.assertEqual(
+                (
+                    registry_history_d164_query_audit.check_count,
+                    registry_history_d164_query_audit.passed_count,
+                    registry_history_d164_query_audit.accepted,
+                ),
+                (
+                    diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit_model.MAX_CHECKS,
+                    diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit_model.MAX_CHECKS,
+                    True,
+                ),
+            )
+            self.assertEqual(
+                diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.history_from_mapping(registry_history_d164.to_dict()).content_address,
+                registry_history_d164.content_address,
+            )
+            with tempfile.TemporaryDirectory() as history_directory:
+                history_destination_d164 = Path(history_directory) / "runtime-registry-history-d164"
+                diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.persist_history(registry_history_d164, history_destination_d164)
+                self.assertEqual(
+                    tuple(sorted(path.name for path in history_destination_d164.iterdir())),
+                    tuple(sorted(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.FILES)),
+                )
+                self.assertEqual(
+                    diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.load_history(history_destination_d164).content_address,
+                    registry_history_d164.content_address,
+                )
+                with self.assertRaises(ValidationError):
+                    diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.build_history(
+                        (registry_d163, registry_d163),
+                        history_id="quality-registry-history-d164-duplicate",
+                    )
+                tampered_history_d164 = json.loads((history_destination_d164 / "summary.json").read_text(encoding="utf-8"))
+                tampered_history_d164["improved_count"] = 0
+                (history_destination_d164 / "summary.json").write_text(
+                    json.dumps(tampered_history_d164),
+                    encoding="utf-8",
+                )
+                with self.assertRaises(ValidationError):
+                    diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.load_history(history_destination_d164)
+
+            from urllib.parse import urlencode
+            from urllib.request import urlopen
+
+            from glio_noncode.api import create_server
+            from glio_noncode.cli import main
+            from glio_noncode.deployment_profiles import build_deployment_profile
+
+            empty_registry_d164_destination = Path(directory) / "policy-package-registry-history-d164-empty"
+            registry_d163_clean_destination = Path(directory) / "policy-package-registry-history-d163-clean"
+            diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.persist_registry(registry_d163, registry_d163_clean_destination)
+            diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model.persist_registry(empty_registry_d164, empty_registry_d164_destination)
+            cli_history_destination = Path(directory) / "policy-package-registry-history-d164-cli"
+            cli_history_json = Path(directory) / "policy-package-registry-history-d164-cli.json"
+            self.assertEqual(
+                main(
+                    [
+                        "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history",
+                        str(empty_registry_d164_destination),
+                        str(registry_d163_clean_destination),
+                        "--history-id",
+                        "quality-registry-history-d164-cli",
+                        "--destination",
+                        str(cli_history_destination),
+                        "--overwrite",
+                        "--format",
+                        "json",
+                        "--output",
+                        str(cli_history_json),
+                    ]
+                ),
+                0,
+            )
+            cli_history_audit_json = Path(directory) / "policy-package-registry-history-d164-cli-audit.json"
+            self.assertEqual(
+                main(
+                    [
+                        "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit",
+                        str(cli_history_destination),
+                        "--format",
+                        "json",
+                        "--output",
+                        str(cli_history_audit_json),
+                    ]
+                ),
+                0,
+            )
+            cli_history_query_json = Path(directory) / "policy-package-registry-history-d164-cli-query.json"
+            self.assertEqual(
+                main(
+                    [
+                        "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query",
+                        str(cli_history_destination),
+                        "--resource",
+                        "summary",
+                        "--resource",
+                        "snapshots",
+                        "--resource",
+                        "transitions",
+                        "--resource",
+                        "states",
+                        "--resource",
+                        "readiness",
+                        "--resource",
+                        "addresses",
+                        "--resource",
+                        "bounds",
+                        "--limit",
+                        "100",
+                        "--format",
+                        "json",
+                        "--output",
+                        str(cli_history_query_json),
+                    ]
+                ),
+                0,
+            )
+            cli_history_query_audit_json = Path(directory) / "policy-package-registry-history-d164-cli-query-audit.json"
+            self.assertEqual(
+                main(
+                    [
+                        "downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit",
+                        str(cli_history_query_json),
+                        str(cli_history_destination),
+                        "--format",
+                        "json",
+                        "--output",
+                        str(cli_history_query_audit_json),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                json.loads(cli_history_query_json.read_text(encoding="utf-8"))["returned_count"],
+                40,
+            )
+            server = create_server(
+                "127.0.0.1",
+                0,
+                deployment_profile=build_deployment_profile(rate_limit_per_minute=256),
+            )
+            server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+            server_thread.start()
+            try:
+                api_base = f"http://127.0.0.1:{server.server_port}/v1/downloaded-data/quality"
+                api_history_destination = Path(directory) / "policy-package-registry-history-d164-api"
+                api_history = json.loads(
+                    urlopen(
+                        api_base + "/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime/registry/history?" + urlencode(
+                            {
+                                "input": [str(empty_registry_d164_destination), str(registry_d163_clean_destination)],
+                                "history_id": "quality-registry-history-d164-api",
+                                "destination": str(api_history_destination),
+                                "overwrite": "true",
+                                "format": "json",
+                            },
+                            doseq=True,
+                        ),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertEqual(
+                    (api_history["entry_count"], api_history["state"], api_history["accepted"]),
+                    (2, "ready", True),
+                )
+                api_history_audit = json.loads(
+                    urlopen(
+                        api_base + "/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime/registry/history/audit?" + urlencode({"input": str(api_history_destination), "format": "json"}),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertTrue(api_history_audit["accepted"])
+                api_history_query = json.loads(
+                    urlopen(
+                        api_base + "/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime/registry/history/query?" + urlencode(
+                            {
+                                "input": str(api_history_destination),
+                                "resource": ["summary", "snapshots", "transitions", "states", "readiness", "addresses", "bounds"],
+                                "limit": "100",
+                                "format": "json",
+                            },
+                            doseq=True,
+                        ),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertEqual(
+                    (api_history_query["returned_count"], api_history_query["truncated"]),
+                    (40, False),
+                )
+                api_history_query_json = Path(directory) / "policy-package-registry-history-d164-api-query.json"
+                api_history_query_json.write_text(json.dumps(api_history_query), encoding="utf-8")
+                api_history_query_audit = json.loads(
+                    urlopen(
+                        api_base + "/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime/registry/history/query-audit?" + urlencode(
+                            {
+                                "query": str(api_history_query_json),
+                                "history": str(api_history_destination),
+                                "format": "json",
+                            }
+                        ),
+                        timeout=10,
+                    ).read().decode()
+                )
+                self.assertTrue(api_history_query_audit["accepted"])
+            finally:
+                server.shutdown()
+                server.server_close()
+                server_thread.join(timeout=10)
     def test_quality_diff_gate_history_replays_ancestry_transitions_and_queries(self) -> None:
         profile = self._profile()
         left = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-history-left"), result_id="quality-history-left")

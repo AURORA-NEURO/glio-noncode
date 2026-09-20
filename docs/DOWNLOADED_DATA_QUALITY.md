@@ -913,3 +913,42 @@ entry, entries, manifest, summary, query, and independent audit schemas. The
 live downloaded ZIP demo admits two closures with `state=ready`,
 `accepted=true`, 26/26 query rows, 16/16 registry-audit checks, and 12/12
 query-audit checks through both CLI and HTTP API.
+## D164 runtime-closure registry history
+
+D164 adds append-only history over the D163 runtime-closure admission registry. It accepts one or more typed D163 registry packages, preserves stable registry identity and address lineage, rejects duplicate snapshots, and classifies each snapshot as `initial`, `improved`, `regressed`, `unchanged`, or `changed`. State, acceptance, ready/blocked counts, and latest-snapshot projections are recomputed from the ordered entries.
+
+The history package is an exact four-file contract:
+
+- `manifest.json`
+- `history.json`
+- `entries.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history REGISTRY_A REGISTRY_B --history-id quality-history-d164 --destination HISTORY_DIR --overwrite --format json --output history.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit HISTORY_DIR --format json --output history-audit.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query HISTORY_DIR --resource summary --resource snapshots --resource transitions --resource states --resource readiness --resource addresses --resource bounds --limit 100 --format json --output history-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit history-query.json HISTORY_DIR --format json --output history-query-audit.json
+```
+
+The HTTP surface is rooted at:
+
+```
+/v1/downloaded-data/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime/registry/history
+/v1/downloaded-data/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime/registry/history/audit
+/v1/downloaded-data/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime/registry/history/query
+/v1/downloaded-data/quality/diff/gate/remediation/resolution/history/diff/policy/package/registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime-registry/history/diff/runtime/registry/history/query-audit
+```
+
+All projections are value-free and path-free. The history and query audits independently replay canonical addresses, counts, transitions, filters, pagination, and nested projections.
+
+
+Live downloaded-ZIP evidence for D164 used the real D163 registry package at `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-d161-registry-d163` plus an empty baseline with the same registry identity. The CLI and HTTP API both produced a ready two-snapshot history with `initial_count=1`, `improved_count=1`, `entry_count=2`, `40/40` query rows, a `16/16` history audit, and a `12/12` query audit. Persisted evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-d161-registry-history-d164-v2.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-d161-registry-history-d164-v2-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-d161-registry-history-d164-v2-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-d161-registry-history-d164-v2-query-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-d161-registry-history-d164-api-v2`
