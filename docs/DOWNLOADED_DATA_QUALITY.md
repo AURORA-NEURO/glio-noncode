@@ -875,3 +875,22 @@ candidate linkage. The live downloaded ZIP demo compares an empty baseline
 history to the ready candidate history and reports `improved`, one added
 snapshot, one unchanged snapshot, 30 query rows, and passing 16/16 and 13/13
 audits through both the CLI and HTTP API.
++
+For a release-facing runtime closure above the portable registry-history diff,
+build a six-file package from the D161 diff. The closure carries the diff,
+its independent audit, the bounded query, the query audit, and a runtime
+summary with complete/incomplete state and release readiness. The persisted
+package is exactly `manifest.json`, `diff.json`, `audit.json`, `query.json`,
+`query-audit.json`, and `runtime.json`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime runtime-registry-history-d161-diff --runtime-id runtime-registry-history-d161-runtime --resource summary --resource items --resource added --resource removed --resource changed --resource unchanged --resource addresses --resource bounds --limit 100 --destination runtime-registry-history-d161-runtime --overwrite --format json --output runtime-registry-history-d161-runtime.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit runtime-registry-history-d161-runtime --format json --output runtime-registry-history-d161-runtime-audit.json
+```
+
+The API appends `/runtime` and `/runtime/audit` to the D161 diff route.
+Discovery publishes runtime manifest, runtime schema, runtime capabilities, and
+the independent runtime-audit schemas. The runtime audit has 15 checks. The
+live downloaded ZIP demo completes with `state=complete`, `accepted=true`,
+`release_ready=true`, and `direction=improved`; its D161 query remains
+bounded and fully returned.

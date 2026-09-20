@@ -121,6 +121,8 @@ from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolutio
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model
 from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model
 from glio_noncode import downloaded_data_quality_query as query_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model
+from glio_noncode import downloaded_data_quality_diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit as diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model
 from glio_noncode import downloaded_data_quality_query_audit as query_audit_model
 from glio_noncode import downloaded_data_quality_runtime as runtime_model
 from glio_noncode.errors import ValidationError
@@ -934,6 +936,25 @@ class DownloadedDataQualityTests(unittest.TestCase):
             (deep_destination / "diff.json").write_text(json.dumps(tampered_deep), encoding="utf-8")
             with self.assertRaises(ValidationError):
                 diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.load_diff(deep_destination)
+            closure_d162 = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.build_runtime(
+                deep_diff,
+                runtime_id="quality-registry-history-diff-runtime-registry-history-d162-closure",
+                resources=diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model.RESOURCES,
+                limit=100,
+            )
+            self.assertEqual((closure_d162.state, closure_d162.accepted, closure_d162.release_ready, closure_d162.direction), ("complete", True, True, "improved"))
+            closure_d162_audit = diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model.audit_runtime(closure_d162)
+            self.assertEqual((closure_d162_audit.check_count, closure_d162_audit.passed_count, closure_d162_audit.accepted), (diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model.MAX_CHECKS, diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model.MAX_CHECKS, True))
+            self.assertEqual(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.runtime_from_mapping(closure_d162.to_dict()).content_address, closure_d162.content_address)
+            closure_d162_destination = Path(directory) / "policy-package-registry-history-diff-runtime-registry-history-d162"
+            diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.persist_runtime(closure_d162, closure_d162_destination)
+            self.assertEqual(tuple(sorted(path.name for path in closure_d162_destination.iterdir())), tuple(sorted(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.FILES)))
+            self.assertEqual(diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.load_runtime(closure_d162_destination).content_address, closure_d162.content_address)
+            tampered_closure_d162 = json.loads((closure_d162_destination / "runtime.json").read_text(encoding="utf-8"))
+            tampered_closure_d162["release_ready"] = False
+            (closure_d162_destination / "runtime.json").write_text(json.dumps(tampered_closure_d162), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                diff_gate_remediation_resolution_history_diff_policy_package_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.load_runtime(closure_d162_destination)
             tampered_history = json.loads((history_destination / "summary.json").read_text(encoding="utf-8"))
             tampered_history["improved_count"] = 0
             (history_destination / "summary.json").write_text(json.dumps(tampered_history), encoding="utf-8")
