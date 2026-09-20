@@ -599,3 +599,70 @@ and query-audit schemas and capabilities. The independent history audit has
 16 checks; the query audit has 12 checks and replays resource selection,
 filters, pagination, row addresses, and history linkage. Empty-to-ready real
 downloaded-ZIP evidence is represented as an initial-to-improved transition.
+
+Compare two runtime-registry histories with the history-diff surface. The
+comparison is value-free and requires one history identity; it aligns snapshot
+ordinals, preserves both addressed histories, emits signed count deltas, and
+folds item changes into `improved`, `regressed`, `mixed`, or `unchanged`.
+Added, removed, changed, and unchanged items retain their left/right snapshot
+addresses and changed fields. Persistence is an exact four-file package:
+`manifest.json`, `diff.json`, `items.json`, and `summary.json`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff `
+  baseline-runtime-registry-history candidate-runtime-registry-history `
+  --diff-id review-runtime-registry-history-diff --destination runtime-registry-history-diff `
+  --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-audit `
+  runtime-registry-history-diff --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-query `
+  runtime-registry-history-diff --resource summary --resource items --resource added `
+  --resource removed --resource changed --resource unchanged --resource addresses `
+  --resource bounds --limit 100 --format json --output runtime-registry-history-diff-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-query-audit `
+  runtime-registry-history-diff-query.json --format summary
+```
+
+The history-diff API routes append `/runtime-registry/history/diff`,
+`/runtime-registry/history/diff/audit`, `/runtime-registry/history/diff/query`,
+and `/runtime-registry/history/diff/query-audit`. Discovery publishes item,
+items, manifest, summary, diff, audit, query, and query-audit schemas and
+capabilities. The independent diff audit has 14 checks; the query audit has
+10 checks and replays item membership, change filters, pagination, row
+addresses, and diff linkage. The real downloaded-ZIP demonstration compares an
+empty baseline to a ready candidate and records an improved transition.
+
+For direct baseline/candidate comparison above runtime-registry histories, use
+the runtime-registry history diff. Both histories must carry the same registry
+identity. Snapshots are aligned by ordinal and classified as `added`,
+`removed`, `changed`, or `unchanged`; changed snapshots retain field-level
+evidence and the diff folds the result into `improved`, `regressed`, `changed`,
+or `unchanged` direction plus an explicit state transition. The public model
+contains no source paths or payload values. Persistence is an exact four-file
+package: `manifest.json`, `diff.json`, `items.json`, and `summary.json`.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff `
+  baseline-runtime-registry-history candidate-runtime-registry-history `
+  --diff-id review-runtime-registry-history-diff `
+  --destination runtime-registry-history-diff --overwrite --format json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-audit `
+  runtime-registry-history-diff --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-query `
+  runtime-registry-history-diff --resource summary --resource items --resource added `
+  --resource removed --resource changed --resource unchanged --resource addresses `
+  --resource bounds --limit 100 --format json --output runtime-registry-history-diff-query.json
+python -m glio_noncode downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-query-audit `
+  runtime-registry-history-diff-query.json runtime-registry-history-diff --format summary
+```
+
+The diff API routes append `/runtime-registry/history/diff`,
+`/runtime-registry/history/diff/audit`, `/runtime-registry/history/diff/query`,
+and `/runtime-registry/history/diff/query-audit` to the history-diff route.
+Discovery publishes item, items, manifest, summary, diff, audit, query, and
+query-audit schemas and capabilities. The independent diff audit has 16
+checks; the query audit has 13 checks and replays resource selection, change
+filters, pagination, row addresses, and diff linkage. Real downloaded-ZIP
+evidence compares an empty registry snapshot with an admitted runtime-registry
+snapshot and reports one added plus one unchanged snapshot with improved
+direction.
