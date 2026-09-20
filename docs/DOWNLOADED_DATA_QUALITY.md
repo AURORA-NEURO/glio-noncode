@@ -177,3 +177,31 @@ query-audit, and runtime. Its independent 19-check closure audit distinguishes
 a valid blocked release from a corrupt or incomplete handoff. A blocked gate
 therefore remains auditable and transferable while correctly reporting
 `release_ready: false`.
+
+## Longitudinal gate history
+
+`downloaded_data_quality_diff_gate_history.py` records successive gate runtime
+snapshots in an append-only, ancestry-linked history. Each entry retains the
+gate/runtime/policy addresses, decision counts, readiness, previous-head
+address, and one of `initial`, `improved`, `regressed`, `unchanged`, or
+`changed` transitions. Duplicate snapshot IDs and stale expected heads are
+rejected. The independent history audit verifies sixteen replay checks.
+
+The history query exposes summary, entries, decision, and transition
+resources with deterministic filters and pagination; its independent query
+audit verifies twelve shape and address checks. The real demo records a
+default-policy `blocked` snapshot followed by a permissive-policy
+`eligible`/`promote` snapshot, yielding an `improved` transition while
+preserving both decisions.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff-gate-history `
+  artifacts/downloaded-data-quality-diff-demo/gate/gate-runtime `
+  --snapshot-id default-policy --format json --output history.json
+python -m glio_noncode downloaded-data-quality-diff-gate-history-audit `
+  history.json --format summary
+python -m glio_noncode downloaded-data-quality-diff-gate-history-query `
+  history.json --resource entries --transition improved --format markdown
+python -m glio_noncode downloaded-data-quality-diff-gate-history-query-audit `
+  history-query.json --format summary
+```

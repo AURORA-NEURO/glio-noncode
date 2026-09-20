@@ -7477,6 +7477,22 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'audit a downloaded-data quality diff release gate',
     ),
     (
+        'downloaded-data-quality-diff-gate-history',
+        'append a downloaded-data quality diff gate runtime to an addressed history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-history-audit',
+        'audit a downloaded-data quality diff gate history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-history-query',
+        'query downloaded-data quality diff gate history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-history-query-audit',
+        'audit a downloaded-data quality diff gate history query',
+    ),
+    (
         'downloaded-data-quality-diff-gate-query',
         'query downloaded-data quality diff release-gate findings',
     ),

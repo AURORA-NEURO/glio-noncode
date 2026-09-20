@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = '642411c5bbc6aa8c8ba06448a892a6c41c680affa51a4d050d3da09cdd0548c9'
+SURFACE_DIGEST = '32a23b77aee47e3cd13cb6bad9e5f8d4eaea95edd460452ece0bfaee4afeb3cf'
 
 ALL = (
     'CaseManifest',
@@ -42408,6 +42408,10 @@ CHILD_MODULES = {
     'downloaded_data_quality_diff_audit': 'glio_noncode.downloaded_data_quality_diff_audit',
     'downloaded_data_quality_diff_gate': 'glio_noncode.downloaded_data_quality_diff_gate',
     'downloaded_data_quality_diff_gate_audit': 'glio_noncode.downloaded_data_quality_diff_gate_audit',
+    'downloaded_data_quality_diff_gate_history': 'glio_noncode.downloaded_data_quality_diff_gate_history',
+    'downloaded_data_quality_diff_gate_history_audit': 'glio_noncode.downloaded_data_quality_diff_gate_history_audit',
+    'downloaded_data_quality_diff_gate_history_query': 'glio_noncode.downloaded_data_quality_diff_gate_history_query',
+    'downloaded_data_quality_diff_gate_history_query_audit': 'glio_noncode.downloaded_data_quality_diff_gate_history_query_audit',
     'downloaded_data_quality_diff_gate_query': 'glio_noncode.downloaded_data_quality_diff_gate_query',
     'downloaded_data_quality_diff_gate_query_audit': 'glio_noncode.downloaded_data_quality_diff_gate_query_audit',
     'downloaded_data_quality_diff_gate_runtime': 'glio_noncode.downloaded_data_quality_diff_gate_runtime',
@@ -46304,6 +46308,10 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_quality_diff_audit',
     'glio_noncode.downloaded_data_quality_diff_gate',
     'glio_noncode.downloaded_data_quality_diff_gate_audit',
+    'glio_noncode.downloaded_data_quality_diff_gate_history',
+    'glio_noncode.downloaded_data_quality_diff_gate_history_audit',
+    'glio_noncode.downloaded_data_quality_diff_gate_history_query',
+    'glio_noncode.downloaded_data_quality_diff_gate_history_query_audit',
     'glio_noncode.downloaded_data_quality_diff_gate_query',
     'glio_noncode.downloaded_data_quality_diff_gate_query_audit',
     'glio_noncode.downloaded_data_quality_diff_gate_runtime',

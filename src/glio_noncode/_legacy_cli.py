@@ -265,6 +265,10 @@ from . import downloaded_data_quality_diff_gate_query as downloaded_data_quality
 from . import downloaded_data_quality_diff_gate_query_audit as downloaded_data_quality_diff_gate_query_audit_model
 from . import downloaded_data_quality_diff_gate_runtime as downloaded_data_quality_diff_gate_runtime_model
 from . import downloaded_data_quality_diff_gate_runtime_audit as downloaded_data_quality_diff_gate_runtime_audit_model
+from . import downloaded_data_quality_diff_gate_history as downloaded_data_quality_diff_gate_history_model
+from . import downloaded_data_quality_diff_gate_history_audit as downloaded_data_quality_diff_gate_history_audit_model
+from . import downloaded_data_quality_diff_gate_history_query as downloaded_data_quality_diff_gate_history_query_model
+from . import downloaded_data_quality_diff_gate_history_query_audit as downloaded_data_quality_diff_gate_history_query_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -5386,6 +5390,17 @@ def _downloaded_quality_diff_gate_runtime_from_input(input_path: str):
         return downloaded_data_quality_diff_gate_runtime_model.load_runtime(source)
     raw = _read_json(input_path)
     return downloaded_data_quality_diff_gate_runtime_model.runtime_from_mapping(raw)
+
+
+def _downloaded_quality_diff_gate_history_from_input(input_path: str):
+    raw = _read_json(input_path)
+    return downloaded_data_quality_diff_gate_history_model.history_from_mapping(raw)
+
+
+def _downloaded_quality_diff_gate_history_query_from_input(input_path: str):
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    return downloaded_data_quality_diff_gate_history_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
 
 def _downloaded_contract_runtime_from_input(input_path: str):
@@ -21903,6 +21918,34 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_quality_diff_gate_runtime_audit.add_argument("input", type=str)
     downloaded_data_quality_diff_gate_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_quality_diff_gate_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_history = subparsers.add_parser("downloaded-data-quality-diff-gate-history", help="append a downloaded-data quality diff gate runtime to an addressed history")
+    downloaded_data_quality_diff_gate_history.add_argument("input", type=str, help="gate runtime JSON or exact runtime directory")
+    downloaded_data_quality_diff_gate_history.add_argument("--history", default=None, help="optional existing history JSON to append")
+    downloaded_data_quality_diff_gate_history.add_argument("--history-id", default=downloaded_data_quality_diff_gate_history_model.DEFAULT_HISTORY_ID)
+    downloaded_data_quality_diff_gate_history.add_argument("--snapshot-id", required=True)
+    downloaded_data_quality_diff_gate_history.add_argument("--expected-head", default=None)
+    downloaded_data_quality_diff_gate_history.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_history.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_history_audit = subparsers.add_parser("downloaded-data-quality-diff-gate-history-audit", help="audit a downloaded-data quality diff gate history")
+    downloaded_data_quality_diff_gate_history_audit.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_history_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_history_audit.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_history_query = subparsers.add_parser("downloaded-data-quality-diff-gate-history-query", help="query downloaded-data quality diff gate history")
+    downloaded_data_quality_diff_gate_history_query.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_history_query.add_argument("--resource", action="append", choices=downloaded_data_quality_diff_gate_history_query_model.RESOURCES)
+    downloaded_data_quality_diff_gate_history_query.add_argument("--decision", choices=("promote", "hold", "block"), default="")
+    downloaded_data_quality_diff_gate_history_query.add_argument("--state", choices=downloaded_data_quality_diff_gate_history_model.STATES, default="")
+    downloaded_data_quality_diff_gate_history_query.add_argument("--transition", choices=downloaded_data_quality_diff_gate_history_model.TRANSITIONS, default="")
+    downloaded_data_quality_diff_gate_history_query.add_argument("--snapshot-id", default="")
+    downloaded_data_quality_diff_gate_history_query.add_argument("--text", default="")
+    downloaded_data_quality_diff_gate_history_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_quality_diff_gate_history_query.add_argument("--limit", type=int, default=downloaded_data_quality_diff_gate_history_query_model.MAX_LIMIT)
+    downloaded_data_quality_diff_gate_history_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_history_query.add_argument("--output", default=None)
+    downloaded_data_quality_diff_gate_history_query_audit = subparsers.add_parser("downloaded-data-quality-diff-gate-history-query-audit", help="audit a downloaded-data quality diff gate history query")
+    downloaded_data_quality_diff_gate_history_query_audit.add_argument("input", type=str)
+    downloaded_data_quality_diff_gate_history_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_diff_gate_history_query_audit.add_argument("--output", default=None)
     downloaded_data_profile_contract = subparsers.add_parser("downloaded-data-profile-contract", help="infer a value-free downloaded-data schema contract")
     downloaded_data_profile_contract.add_argument("input", type=str)
     downloaded_data_profile_contract.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
@@ -26523,6 +26566,41 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "downloaded-data-quality-diff-gate-runtime-audit":
             value = downloaded_data_quality_diff_gate_runtime_audit_model.audit_runtime(_downloaded_quality_diff_gate_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_quality_diff_gate_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-history":
+            runtime = _downloaded_quality_diff_gate_runtime_from_input(args.input)
+            if args.history:
+                value = downloaded_data_quality_diff_gate_history_model.append_history(
+                    _downloaded_quality_diff_gate_history_from_input(args.history),
+                    runtime,
+                    snapshot_id=args.snapshot_id,
+                    expected_head=args.expected_head,
+                )
+            else:
+                value = downloaded_data_quality_diff_gate_history_model.build_history(runtime, history_id=args.history_id, snapshot_id=args.snapshot_id)
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_history_model, json_name="history_json", csv_name="history_csv", markdown_name="render_history_markdown")
+            return 0
+        if args.command == "downloaded-data-quality-diff-gate-history-audit":
+            value = downloaded_data_quality_diff_gate_history_audit_model.audit_history(_downloaded_quality_diff_gate_history_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_history_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-diff-gate-history-query":
+            value = downloaded_data_quality_diff_gate_history_query_model.query_history(
+                _downloaded_quality_diff_gate_history_from_input(args.input),
+                resources=tuple(args.resource or downloaded_data_quality_diff_gate_history_query_model.RESOURCES),
+                decision=args.decision,
+                state=args.state,
+                transition=args.transition,
+                snapshot_id=args.snapshot_id,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_history_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-quality-diff-gate-history-query-audit":
+            value = downloaded_data_quality_diff_gate_history_query_audit_model.audit_query(_downloaded_quality_diff_gate_history_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_diff_gate_history_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
         if args.command == "downloaded-data-profile-contract":
             value = _downloaded_contract_from_input(args.input)
