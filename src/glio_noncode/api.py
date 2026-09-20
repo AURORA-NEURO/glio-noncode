@@ -739,6 +739,12 @@ from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime
 from . import downloaded_data_profile_runtime_audit as downloaded_data_profile_runtime_audit_model
 from . import downloaded_data_quality as downloaded_data_quality_model
 from . import downloaded_data_quality_audit as downloaded_data_quality_audit_model
+from . import downloaded_data_quality_diff as downloaded_data_quality_diff_model
+from . import downloaded_data_quality_diff_audit as downloaded_data_quality_diff_audit_model
+from . import downloaded_data_quality_diff_query as downloaded_data_quality_diff_query_model
+from . import downloaded_data_quality_diff_query_audit as downloaded_data_quality_diff_query_audit_model
+from . import downloaded_data_quality_diff_runtime as downloaded_data_quality_diff_runtime_model
+from . import downloaded_data_quality_diff_runtime_audit as downloaded_data_quality_diff_runtime_audit_model
 from . import downloaded_data_quality_query as downloaded_data_quality_query_model
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
@@ -3795,6 +3801,42 @@ class ApiHandler(BaseHTTPRequestHandler):
         return downloaded_data_quality_runtime_model.runtime_from_mapping(raw)
 
     @staticmethod
+    def _downloaded_quality_diff_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            expected = tuple(sorted(downloaded_data_quality_diff_runtime_model.FILES))
+            actual = tuple(sorted(path.name for path in source.iterdir()))
+            if actual != expected:
+                raise ValueError("downloaded-data quality diff runtime directory must contain the exact runtime files")
+            return downloaded_data_quality_diff_runtime_model.load_runtime(source).diff
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality diff input must be an object")
+        nested = raw.get("diff")
+        return downloaded_data_quality_diff_model.diff_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_quality_diff_query_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_quality_diff_runtime_model.load_runtime(source).query
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality diff query input must be an object")
+        nested = raw.get("query")
+        return downloaded_data_quality_diff_query_model.query_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_quality_diff_runtime_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_quality_diff_runtime_model.load_runtime(source)
+        raw = _strict_json_loads(_api_read_text(source))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data quality diff runtime input must be an object")
+        return downloaded_data_quality_diff_runtime_model.runtime_from_mapping(raw)
+
+    @staticmethod
     def _downloaded_contract_runtime_from_input(input_path: str):
         source = Path(input_path)
         if source.is_dir():
@@ -5509,6 +5551,58 @@ class ApiHandler(BaseHTTPRequestHandler):
                     quality_audit = downloaded_data_quality_audit_model.audit_quality(runtime.quality)
                     query_audit = downloaded_data_quality_query_audit_model.audit_query(runtime.query)
                     self._write(HTTPStatus.OK, {"runtime_address": runtime.content_address, "quality_audit": quality_audit.to_dict(), "query_audit": query_audit.to_dict(), "accepted": quality_audit.accepted and query_audit.accepted})
+                    return
+                quality_diff_prefix = quality_prefix + "/diff"
+                if path == quality_diff_prefix:
+                    value = downloaded_data_quality_diff_model.build_diff(
+                        self._downloaded_quality_from_input(self._query_value(query, "left") or ""),
+                        self._downloaded_quality_from_input(self._query_value(query, "right") or ""),
+                        diff_id=self._query_value(query, "diff_id") or downloaded_data_quality_diff_model.DEFAULT_DIFF_ID,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
+                    return
+                if path == quality_diff_prefix + "/audit":
+                    value = downloaded_data_quality_diff_audit_model.audit_diff(self._downloaded_quality_diff_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == quality_diff_prefix + "/query":
+                    value = downloaded_data_quality_diff_query_model.query_diff(
+                        self._downloaded_quality_diff_from_input(self._query_value(query, "input") or ""),
+                        resources=self._query_values(query, "resource") or downloaded_data_quality_diff_query_model.RESOURCES,
+                        change=self._query_value(query, "change") or "",
+                        direction=self._query_value(query, "direction") or "",
+                        identity=self._query_value(query, "identity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_quality_diff_runtime_model.DEFAULT_LIMIT),
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == quality_diff_prefix + "/query-audit":
+                    value = downloaded_data_quality_diff_query_audit_model.audit_query(self._downloaded_quality_diff_query_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == quality_diff_prefix + "/runtime":
+                    value = downloaded_data_quality_diff_runtime_model.build_runtime(
+                        self._downloaded_quality_from_input(self._query_value(query, "left") or ""),
+                        self._downloaded_quality_from_input(self._query_value(query, "right") or ""),
+                        runtime_id=self._query_value(query, "runtime_id") or downloaded_data_quality_diff_runtime_model.DEFAULT_RUNTIME_ID,
+                        resources=self._query_values(query, "resource") or downloaded_data_quality_diff_query_model.RESOURCES,
+                        change=self._query_value(query, "change") or "",
+                        direction=self._query_value(query, "direction") or "",
+                        identity=self._query_value(query, "identity") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_quality_diff_runtime_model.DEFAULT_LIMIT),
+                    )
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_quality_diff_runtime_model.persist_runtime(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == quality_diff_prefix + "/runtime/audit":
+                    value = downloaded_data_quality_diff_runtime_audit_model.audit_runtime(self._downloaded_quality_diff_runtime_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_quality_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 contract_prefix = profile_prefix + "/contract"
                 if path == contract_prefix:
@@ -9664,6 +9758,24 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/quality/runtime/manifest-schema": downloaded_data_quality_runtime_model.manifest_schema,
                     "/quality/runtime/schema": downloaded_data_quality_runtime_model.runtime_schema,
                     "/quality/runtime/capabilities": downloaded_data_quality_runtime_model.capabilities,
+                    "/quality/diff/item-schema": downloaded_data_quality_diff_model.item_schema,
+                    "/quality/diff/schema": downloaded_data_quality_diff_model.diff_schema,
+                    "/quality/diff/capabilities": downloaded_data_quality_diff_model.capabilities,
+                    "/quality/diff/audit/check-schema": downloaded_data_quality_diff_audit_model.check_schema,
+                    "/quality/diff/audit/schema": downloaded_data_quality_diff_audit_model.audit_schema,
+                    "/quality/diff/audit/capabilities": downloaded_data_quality_diff_audit_model.capabilities,
+                    "/quality/diff/query/row-schema": downloaded_data_quality_diff_query_model.row_schema,
+                    "/quality/diff/query/schema": downloaded_data_quality_diff_query_model.query_schema,
+                    "/quality/diff/query/capabilities": downloaded_data_quality_diff_query_model.capabilities,
+                    "/quality/diff/query-audit/check-schema": downloaded_data_quality_diff_query_audit_model.check_schema,
+                    "/quality/diff/query-audit/schema": downloaded_data_quality_diff_query_audit_model.audit_schema,
+                    "/quality/diff/query-audit/capabilities": downloaded_data_quality_diff_query_audit_model.capabilities,
+                    "/quality/diff/runtime/manifest-schema": downloaded_data_quality_diff_runtime_model.manifest_schema,
+                    "/quality/diff/runtime/schema": downloaded_data_quality_diff_runtime_model.runtime_schema,
+                    "/quality/diff/runtime/capabilities": downloaded_data_quality_diff_runtime_model.capabilities,
+                    "/quality/diff/runtime/audit/check-schema": downloaded_data_quality_diff_runtime_audit_model.check_schema,
+                    "/quality/diff/runtime/audit/schema": downloaded_data_quality_diff_runtime_audit_model.audit_schema,
+                    "/quality/diff/runtime/audit/capabilities": downloaded_data_quality_diff_runtime_audit_model.capabilities,
                     "/profile/contract/type-schema": downloaded_data_profile_contract_model.type_schema,
                     "/profile/contract/field-schema": downloaded_data_profile_contract_model.field_schema,
                     "/profile/contract/member-schema": downloaded_data_profile_contract_model.member_schema,

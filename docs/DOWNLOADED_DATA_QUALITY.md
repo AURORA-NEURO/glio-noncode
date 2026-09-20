@@ -89,3 +89,35 @@ result, `/query` applies bounded filters, `/query-audit` verifies a query,
 the nested audit/query/runtime schema routes are available for machine clients.
 All routes accept `input`, `policy`, `resource`, filter, pagination, format,
 destination, and overwrite query parameters where applicable.
+
+## Longitudinal quality comparison
+
+Quality results can be compared without reopening the source data. The diff
+joins findings by the stable `(rule, scope, member, field)` identity, classifies
+added, removed, changed, and unchanged checks, and separately marks changed
+checks as improved, regressed, or changed. It retains both endpoint quality and
+policy addresses, conserves left/right finding totals, and never copies source
+values.
+
+```powershell
+python -m glio_noncode downloaded-data-quality-diff `
+  artifacts/downloaded-data-quality-demo/quality-runtime/quality.json `
+  artifacts/downloaded-data-quality-demo/quality-runtime/quality.json `
+  --format summary
+python -m glio_noncode downloaded-data-quality-diff-runtime `
+  artifacts/downloaded-data-quality-demo/quality-runtime/quality.json `
+  artifacts/downloaded-data-quality-demo/quality-runtime/quality.json `
+  --destination artifacts/downloaded-data-quality-demo/quality-diff-runtime `
+  --overwrite --format summary
+python -m glio_noncode downloaded-data-quality-diff-query `
+  artifacts/downloaded-data-quality-demo/quality-diff-runtime `
+  --resource items --limit 25 --format markdown
+python -m glio_noncode downloaded-data-quality-diff-runtime-audit `
+  artifacts/downloaded-data-quality-demo/quality-diff-runtime --format summary
+```
+
+The comparison API is under `/v1/downloaded-data/quality/diff` with root,
+`/audit`, `/query`, `/query-audit`, `/runtime`, and `/runtime/audit` routes.
+Nested schema and capability discovery is available for the diff, query,
+audits, runtime, and runtime audit. A diff runtime is an exact six-file
+handoff: manifest, diff, audit, query, query-audit, and runtime.

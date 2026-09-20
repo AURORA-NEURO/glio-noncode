@@ -14577,6 +14577,12 @@ from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime
 from . import downloaded_data_profile_runtime_audit as downloaded_data_profile_runtime_audit
 from . import downloaded_data_quality as downloaded_data_quality
 from . import downloaded_data_quality_audit as downloaded_data_quality_audit
+from . import downloaded_data_quality_diff as downloaded_data_quality_diff
+from . import downloaded_data_quality_diff_audit as downloaded_data_quality_diff_audit
+from . import downloaded_data_quality_diff_query as downloaded_data_quality_diff_query
+from . import downloaded_data_quality_diff_query_audit as downloaded_data_quality_diff_query_audit
+from . import downloaded_data_quality_diff_runtime as downloaded_data_quality_diff_runtime
+from . import downloaded_data_quality_diff_runtime_audit as downloaded_data_quality_diff_runtime_audit
 from . import downloaded_data_quality_query as downloaded_data_quality_query
 from . import downloaded_data_quality_query_audit as downloaded_data_quality_query_audit
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime

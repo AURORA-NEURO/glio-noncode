@@ -82,6 +82,10 @@ For an explicit structural quality decision over real downloaded data, run
 it reports accepted/review/blocked policy results, per-field findings,
 independent audits, deterministic queries, and content addresses. See
 [docs/DOWNLOADED_DATA_QUALITY.md](docs/DOWNLOADED_DATA_QUALITY.md).
+For a longitudinal baseline-versus-candidate quality review over the same real
+ZIP, run `python examples/downloaded_data_quality_diff_demo.py`; it classifies
+added, removed, changed, unchanged, improved, and regressed structural checks
+and persists an independently audited exact-file comparison runtime.
 For a real value-free schema-evolution comparison over two member selections,
 run `python examples/downloaded_data_contract_diff_demo.py` against the same
 archive; it reports structural additions, removals, changes, queries, and

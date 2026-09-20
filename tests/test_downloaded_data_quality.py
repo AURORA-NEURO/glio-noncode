@@ -14,6 +14,12 @@ from glio_noncode import downloaded_data_ingestion as ingestion_model
 from glio_noncode import downloaded_data_profile as profile_model
 from glio_noncode import downloaded_data_quality as quality_model
 from glio_noncode import downloaded_data_quality_audit as audit_model
+from glio_noncode import downloaded_data_quality_diff as diff_model
+from glio_noncode import downloaded_data_quality_diff_audit as diff_audit_model
+from glio_noncode import downloaded_data_quality_diff_query as diff_query_model
+from glio_noncode import downloaded_data_quality_diff_query_audit as diff_query_audit_model
+from glio_noncode import downloaded_data_quality_diff_runtime as diff_runtime_model
+from glio_noncode import downloaded_data_quality_diff_runtime_audit as diff_runtime_audit_model
 from glio_noncode import downloaded_data_quality_query as query_model
 from glio_noncode import downloaded_data_quality_query_audit as query_audit_model
 from glio_noncode import downloaded_data_quality_runtime as runtime_model
@@ -127,6 +133,39 @@ class DownloadedDataQualityTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 runtime_model.load_runtime(destination)
 
+    def test_quality_diff_replays_regressions_and_filters(self) -> None:
+        profile = self._profile()
+        left = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-diff-left"), result_id="quality-diff-left-result")
+        right = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-diff-right", max_distinct_values=1), result_id="quality-diff-right-result")
+        value = diff_model.build_diff(left, right, diff_id="quality-diff")
+        self.assertGreater(value.changed_count, 0)
+        self.assertGreater(value.regressed_count, 0)
+        self.assertEqual(diff_model.diff_from_mapping(value.to_dict()).content_address, value.content_address)
+        audit = diff_audit_model.audit_diff(value)
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (14, 14, True))
+        query = diff_query_model.query_diff(value, resources=("summary", "regressed"), direction="regressed", limit=2)
+        self.assertEqual(query.returned_count, min(2, value.regressed_count))
+        self.assertTrue(diff_query_audit_model.audit_query(query).accepted)
+
+    def test_quality_diff_runtime_persists_exact_files_and_rejects_noncanonical_tamper(self) -> None:
+        profile = self._profile()
+        left = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-runtime-diff-left"), result_id="quality-runtime-diff-left")
+        right = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="quality-runtime-diff-right", max_distinct_values=1), result_id="quality-runtime-diff-right")
+        runtime = diff_runtime_model.build_runtime(left, right, runtime_id="quality-diff-runtime", resources=("summary", "items"), limit=25)
+        self.assertTrue(diff_runtime_audit_model.audit_runtime(runtime).accepted)
+        self.assertEqual(diff_runtime_model.runtime_from_mapping(runtime.to_dict()).content_address, runtime.content_address)
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "runtime"
+            diff_runtime_model.persist_runtime(runtime, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(diff_runtime_model.FILES)))
+            self.assertEqual(diff_runtime_model.load_runtime(destination).content_address, runtime.content_address)
+            diff_path = destination / "diff.json"
+            altered = json.loads(diff_path.read_text(encoding="utf-8"))
+            altered["regressed_count"] += 1
+            diff_path.write_text(json.dumps(altered), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                diff_runtime_model.load_runtime(destination)
+
     def test_cli_and_api_surface_replays_profile_json(self) -> None:
         from urllib.parse import urlencode
         from urllib.request import urlopen
@@ -148,6 +187,18 @@ class DownloadedDataQualityTests(unittest.TestCase):
             self.assertEqual(main(["downloaded-data-quality-query-audit", str(runtime_path), "--format", "json", "--output", str(root / "query-audit.json")]), 0)
             self.assertEqual(main(["downloaded-data-quality-runtime-audit", str(runtime_path), "--format", "json", "--output", str(root / "runtime-audit.json")]), 0)
             self.assertEqual(tuple(sorted(path.name for path in runtime_path.iterdir())), tuple(sorted(runtime_model.FILES)))
+            right_quality = quality_model.build_quality(profile, policy=quality_model.build_policy(policy_id="surface-diff-right", max_distinct_values=1), result_id="surface-diff-right")
+            right_quality_path = root / "right-quality.json"
+            right_quality_path.write_text(quality_model.quality_json(right_quality), encoding="utf-8")
+            diff_path = root / "diff.json"
+            self.assertEqual(main(["downloaded-data-quality-diff", str(quality_path), str(right_quality_path), "--format", "json", "--output", str(diff_path)]), 0)
+            self.assertEqual(main(["downloaded-data-quality-diff-audit", str(diff_path), "--format", "json", "--output", str(root / "diff-audit.json")]), 0)
+            diff_runtime_path = root / "diff-runtime"
+            self.assertEqual(main(["downloaded-data-quality-diff-runtime", str(quality_path), str(right_quality_path), "--destination", str(diff_runtime_path), "--overwrite", "--resource", "summary", "--resource", "regressed", "--format", "summary", "--output", str(root / "diff-runtime-summary.json")]), 0)
+            self.assertEqual(main(["downloaded-data-quality-diff-query", str(diff_runtime_path), "--resource", "regressed", "--direction", "regressed", "--limit", "2", "--format", "json", "--output", str(root / "diff-query.json")]), 0)
+            self.assertEqual(main(["downloaded-data-quality-diff-query-audit", str(diff_runtime_path), "--format", "json", "--output", str(root / "diff-query-audit.json")]), 0)
+            self.assertEqual(main(["downloaded-data-quality-diff-runtime-audit", str(diff_runtime_path), "--format", "json", "--output", str(root / "diff-runtime-audit.json")]), 0)
+            self.assertEqual(tuple(sorted(path.name for path in diff_runtime_path.iterdir())), tuple(sorted(diff_runtime_model.FILES)))
 
             server = create_server("127.0.0.1", 0)
             import threading
@@ -165,6 +216,17 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 self.assertTrue(api_runtime["release_ready"])
                 api_runtime_audit = json.loads(urlopen(base + "/runtime/audit?" + urlencode({"input": str(runtime_path)}), timeout=10).read().decode())
                 self.assertTrue(api_runtime_audit["accepted"])
+                diff_base = base + "/diff"
+                api_diff = json.loads(urlopen(diff_base + "?" + urlencode({"left": str(quality_path), "right": str(right_quality_path), "format": "json"}), timeout=10).read().decode())
+                self.assertGreater(api_diff["regressed_count"], 0)
+                api_diff_query = json.loads(urlopen(diff_base + "/query?" + urlencode({"input": str(diff_path), "resource": "regressed", "direction": "regressed", "limit": "2"}), timeout=10).read().decode())
+                self.assertGreater(api_diff_query["returned_count"], 0)
+                api_diff_runtime = json.loads(urlopen(diff_base + "/runtime?" + urlencode({"left": str(quality_path), "right": str(right_quality_path), "destination": str(root / "api-diff-runtime"), "overwrite": "true"}), timeout=10).read().decode())
+                self.assertTrue(api_diff_runtime["release_ready"])
+                api_diff_runtime_audit = json.loads(urlopen(diff_base + "/runtime/audit?" + urlencode({"input": str(diff_runtime_path)}), timeout=10).read().decode())
+                self.assertTrue(api_diff_runtime_audit["accepted"])
+                diff_schema = json.loads(urlopen(diff_base + "/schema", timeout=10).read().decode())
+                self.assertFalse(diff_schema["additionalProperties"])
                 schema = json.loads(urlopen(base + "/schema", timeout=10).read().decode())
                 self.assertFalse(schema["additionalProperties"])
                 capabilities = json.loads(urlopen(base + "/capabilities", timeout=10).read().decode())

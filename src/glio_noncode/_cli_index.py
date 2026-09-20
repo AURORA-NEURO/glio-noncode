@@ -7461,6 +7461,30 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'audit a downloaded-data quality result',
     ),
     (
+        'downloaded-data-quality-diff',
+        'compare two downloaded-data quality results',
+    ),
+    (
+        'downloaded-data-quality-diff-audit',
+        'audit a downloaded-data quality diff',
+    ),
+    (
+        'downloaded-data-quality-diff-query',
+        'query downloaded-data quality transitions',
+    ),
+    (
+        'downloaded-data-quality-diff-query-audit',
+        'audit a downloaded-data quality diff query',
+    ),
+    (
+        'downloaded-data-quality-diff-runtime',
+        'build and optionally persist a downloaded-data quality diff runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-runtime-audit',
+        'audit a downloaded-data quality diff runtime closure',
+    ),
+    (
         'downloaded-data-quality-query',
         'query downloaded-data quality findings',
     ),
