@@ -1201,3 +1201,33 @@ Live downloaded-ZIP evidence evaluates the D171 blocked-to-ready comparison. The
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-d172-live-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-d172-live-query-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-d172-blocked-live.json`
+
+## D173 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry
+
+D173 admits multiple D172 runtime decisions into one deterministic registry. It rejects duplicate runtime identities and duplicate runtime content addresses, preserves each runtime's addressed decision, folds empty/ready/blocked aggregate state and release readiness, and records accepted admission independently from release readiness.
+
+The persisted registry is an exact four-file directory:
+
+- `manifest.json`
+- `registry.json`
+- `entries.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry RUNTIME_DIR... --registry-id quality-runtime-registry-history-d173 --destination REGISTRY_DIR --overwrite --format json --output registry.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-audit REGISTRY_DIR --format json --output registry-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-query REGISTRY_DIR --limit 128 --format json --output registry-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-query-audit registry-query.json REGISTRY_DIR --format json --output registry-query-audit.json
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry`, with `/audit`, `/query`, and `/query-audit` suffixes. Entry, runtime, manifest, summary, registry, audit, query, and capability schemas are exposed beneath the same API family.
+
+Live downloaded-ZIP evidence admits one ready and one blocked D172 runtime. The registry is accepted with `state=blocked`, `release_ready=false`, `entry_count=2`, `ready_count=1`, and `blocked_count=1`; the independent registry audit passes `16/16`; the bounded query returns `24/24` rows without truncation; and the independent query audit passes `12/12`. Duplicate identity, duplicate address, persistence tamper, CLI, HTTP, and schema controls are covered by the regression suite. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d173-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d173-live.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d173-live-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d173-live-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d173-live-query-audit.json`
