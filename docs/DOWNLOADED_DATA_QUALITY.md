@@ -2199,3 +2199,27 @@ its query audit passed 12/12. The rerun summary is stored at:
 ```text
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d206-example-real/summary.json
 ```
+
+## D207 registry history diff
+
+D207 compares exact four-file D206 histories while preserving both history
+addresses and classifying each ordinal as added, removed, changed, or
+unchanged. Direction and state-transition folding preserve release movement,
+and independent diff/query audits verify bounded projections.
+
+The focused demonstration compares the blocked-only baseline with the
+blocked-to-ready candidate:
+
+```text
+python examples/downloaded_data_quality_d207_history_diff_demo.py D206_BASELINE_DIR D206_CANDIDATE_DIR --destination D207_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run classified two history items as one added and one unchanged,
+folded the direction to `improved`, and preserved `blocked->ready`. The
+independent diff audit passed 16/16 checks; the added-only query returned 2/2
+rows without truncation, and its query audit passed 12/12. The rerun summary
+is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d207-example-real/summary.json
+```
