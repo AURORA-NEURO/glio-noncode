@@ -9216,6 +9216,32 @@ stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d483-example-real/summary.json
 ```
 
+## D484 history-diff runtime evaluation
+
+D484 evaluates a D483 history diff under independently configurable strict
+and release policies. It enforces minimum-item, added, removed, and changed
+budgets; allowed direction; required state transitions; unchanged handling;
+and upstream acceptance. Each decision is content-addressed, persisted as an
+exact four-file runtime, reload-verified, and exposed through policy, checks,
+comparison, readiness, address, and bounds projections. Independent runtime
+and query audits verify the full decision and every bounded result row.
+
+The real-data demonstration evaluates the D483 comparison derived from the
+downloaded product archive:
+
+```text
+python examples/downloaded_data_quality_d484_history_diff_runtime_registry_history_diff_runtime_demo.py C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d483-example-real/diff --destination D484_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The strict zero-added policy blocks on the one added history item, while the
+release policy accepts the `improved` `blocked->ready` transition. Both
+runtime audits pass 15/15. The release query returns all 59 rows without
+truncation, and its query audit passes 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d484-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
