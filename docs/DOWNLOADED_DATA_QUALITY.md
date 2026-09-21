@@ -8934,6 +8934,30 @@ summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d472-example-real/summary.json
 ```
 
+## D473 runtime registry admission
+
+D473 aggregates D472 strict and release runtime decisions into a deterministic
+multi-runtime registry. It rejects duplicate runtime identities and content
+addresses, folds any blocked runtime into a blocked aggregate, persists the
+canonical four-file registry, and exposes independent audits and bounded
+queries while retaining each upstream diff and runtime address.
+
+The real-data demonstration admits the D472 strict and release outputs:
+
+```text
+python examples/downloaded_data_quality_d473_runtime_registry_demo.py D472_STRICT_DIR D472_RELEASE_DIR --destination D473_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run admitted two runtimes—one blocked and one ready—so the aggregate
+remained `blocked` with `release_ready=false`; duplicate admission was
+rejected. The registry audit passed 16/16, the blocked query returned 22/22
+rows without truncation, and its query audit passed 12/12. The rerun summary is
+stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d473-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
