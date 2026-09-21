@@ -4337,6 +4337,32 @@ summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d293-example-real/summary.json
 ```
 
+## D294 runtime registry history
+
+D294 records D293 registry decisions in an append-only history with stable
+history and registry identity, optimistic expected-head appends, duplicate
+snapshot and registry-address guards, and deterministic transition folding.
+It persists exact four-file histories and exposes independently audited
+history and readiness projections while retaining the latest state and
+release-readiness result.
+
+The focused demonstration records the real D293 mixed registry and appends a
+ready-only registry built from the D292 release runtime:
+
+```text
+python examples/downloaded_data_quality_d294_runtime_registry_history_demo.py D293_REGISTRY_DIR D292_RELEASE_RUNTIME_DIR --destination D294_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two history entries and an `improved` transition from
+blocked to ready. The latest state was `ready` with
+`latest_release_ready` true. The history audit passed 16/16 checks; the ready
+query returned 5/5 rows without truncation; and its query audit passed 12/12.
+The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d294-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
