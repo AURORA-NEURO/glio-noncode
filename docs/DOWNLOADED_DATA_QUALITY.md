@@ -8222,6 +8222,33 @@ its query audit passed 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d444-example-real/summary.json
 ```
 
+## D445 runtime registry admission
+
+D445 aggregates exact four-file D444 strict and release runtimes into a
+deterministic content-addressed registry. Runtime identity and address
+duplicates are rejected, and any blocked admitted runtime conservatively keeps
+the registry blocked until every entry is ready. The registry and bounded
+query projections retain each upstream runtime and diff address.
+
+The real-data demonstration admits both D444 decisions:
+
+```text
+python examples/downloaded_data_quality_d445_runtime_registry_demo.py D444_STRICT_DIR D444_RELEASE_DIR --destination D445_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The focused regression covers duplicate identity, exact persistence,
+aggregate state folding, and tamper rejection.
+
+The real run admitted two D444 decisions: one ready release runtime and one
+blocked strict runtime. The aggregate therefore remained `blocked` with
+`release_ready=false`; duplicate runtime admission was rejected. The registry
+audit passed 16/16 checks, and the blocked query returned 22/22 rows without
+truncation with its query audit passing 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d445-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
