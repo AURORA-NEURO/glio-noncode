@@ -8194,6 +8194,34 @@ summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d443-example-real/summary.json
 ```
 
+## D444 history diff runtime evaluation
+
+D444 evaluates a D443 history diff under explicit strict and release policies.
+Each policy controls added, removed, and changed budgets, allowed direction,
+acceptance, state-transition, and unchanged behavior. The runtime emits
+deterministic ready or blocked decisions, fifteen typed checks, exact
+four-file persistence, independent runtime audits, and bounded query
+projections with their own audits.
+
+The real-data demonstration evaluates the D443 diff from the downloaded
+archive under both policies:
+
+```text
+python examples/downloaded_data_quality_d444_history_diff_runtime_demo.py D443_DIFF_DIR --destination D444_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The focused regression covers ancestry replay, strict-versus-release
+decisions, persistence reload, query auditing, and tamper rejection.
+
+The real run blocked strict admission on `added_budget` with 14/15 checks,
+while release admission was ready with 15/15 checks. Both runtime audits
+passed 15/15; the release query returned 58/58 rows without truncation and
+its query audit passed 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d444-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
