@@ -3326,6 +3326,31 @@ query returned 22/22 rows without truncation; and its query audit passed
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d253-example-real/summary.json
 ```
 
+## D254 runtime registry history
+
+D254 records D253 registry decisions in an append-only history with stable
+history identity, optimistic expected-head appends, duplicate snapshot and
+registry-address guards, and deterministic transition folding. It persists
+exact four-file histories, retains the latest state and readiness projection,
+and exposes independently audited bounded history queries.
+
+The focused demonstration records the real D253 mixed registry and appends a
+ready-only D253 registry built from the D252 release runtime:
+
+```text
+python examples/downloaded_data_quality_d254_runtime_registry_history_demo.py D253_REGISTRY_DIR D252_RELEASE_RUNTIME_DIR --destination D254_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two history entries and an `improved` transition from
+blocked to ready. The latest state was `ready` with `latest_release_ready`
+true. The history audit passed 16/16 checks; the ready query returned 5/5
+rows without truncation; and its query audit passed 12/12. The rerun summary
+is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d254-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
