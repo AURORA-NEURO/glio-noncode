@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = '37a5e41059b025cf352ee43bdb351dc7ff5579abe45ea84bcdcdecb330112d85'
+SURFACE_DIGEST = '2aca71bb78f47b3f8ef7b3a24b0e08dfa65b6b8be3c6fcbddfcb8d96f2491bb6'
 
 ALL = (
     'CaseManifest',
@@ -43548,6 +43548,10 @@ CHILD_MODULES = {
     'downloaded_data_quality_d488_gate_decision_ledger_diff_audit': 'glio_noncode.downloaded_data_quality_d488_gate_decision_ledger_diff_audit',
     'downloaded_data_quality_d488_gate_decision_ledger_diff_query': 'glio_noncode.downloaded_data_quality_d488_gate_decision_ledger_diff_query',
     'downloaded_data_quality_d488_gate_decision_ledger_diff_query_audit': 'glio_noncode.downloaded_data_quality_d488_gate_decision_ledger_diff_query_audit',
+    'downloaded_data_quality_d489_gate_decision_ledger_diff_runtime': 'glio_noncode.downloaded_data_quality_d489_gate_decision_ledger_diff_runtime',
+    'downloaded_data_quality_d489_gate_decision_ledger_diff_runtime_audit': 'glio_noncode.downloaded_data_quality_d489_gate_decision_ledger_diff_runtime_audit',
+    'downloaded_data_quality_d489_gate_decision_ledger_diff_runtime_query': 'glio_noncode.downloaded_data_quality_d489_gate_decision_ledger_diff_runtime_query',
+    'downloaded_data_quality_d489_gate_decision_ledger_diff_runtime_query_audit': 'glio_noncode.downloaded_data_quality_d489_gate_decision_ledger_diff_runtime_query_audit',
     'downloaded_data_quality_diff': 'glio_noncode.downloaded_data_quality_diff',
     'downloaded_data_quality_diff_audit': 'glio_noncode.downloaded_data_quality_diff_audit',
     'downloaded_data_quality_diff_gate': 'glio_noncode.downloaded_data_quality_diff_gate',
@@ -48796,6 +48800,10 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_quality_d488_gate_decision_ledger_diff_audit',
     'glio_noncode.downloaded_data_quality_d488_gate_decision_ledger_diff_query',
     'glio_noncode.downloaded_data_quality_d488_gate_decision_ledger_diff_query_audit',
+    'glio_noncode.downloaded_data_quality_d489_gate_decision_ledger_diff_runtime',
+    'glio_noncode.downloaded_data_quality_d489_gate_decision_ledger_diff_runtime_audit',
+    'glio_noncode.downloaded_data_quality_d489_gate_decision_ledger_diff_runtime_query',
+    'glio_noncode.downloaded_data_quality_d489_gate_decision_ledger_diff_runtime_query_audit',
     'glio_noncode.downloaded_data_quality_diff',
     'glio_noncode.downloaded_data_quality_diff_audit',
     'glio_noncode.downloaded_data_quality_diff_gate',

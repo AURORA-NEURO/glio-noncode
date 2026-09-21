@@ -9358,6 +9358,35 @@ truncation, and its query audit passed 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d488-example-real/summary.json
 ```
 
+## D489 ledger-diff runtime evaluation
+
+D489 evaluates a D488 gate-decision ledger diff under independently configured
+strict and release policies. Policies enforce minimum decision counts, bounded
+added/removed/changed budgets, allowed direction, required state transition,
+unchanged-decision handling, and upstream diff acceptance. Each result retains
+the diff and policy lineage, emits deterministic check-level reasons, derives
+ready or blocked state, persists as an exact four-file runtime artifact, and
+supports independent fifteen-check runtime audits and twelve-check query
+audits. Bounded policy, check, comparison, readiness, address, and bounds
+projections support state, result, severity, text, and pagination filters.
+
+The real-data demonstration evaluates strict and release policies over the
+D488 diff derived from the supplied downloaded product archive:
+
+```text
+python examples/downloaded_data_quality_d489_gate_decision_ledger_diff_runtime_demo.py C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d488-example-real/diff --destination D489_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The strict zero-addition policy blocks on the appended decision. The release
+policy accepts the `improved` `blocked->ready` diff with 15/15 runtime checks
+passing. Its independent runtime audit passes 15/15; the release query
+returns 64/64 rows without truncation, and its query audit passes 12/12. The
+rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d489-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
