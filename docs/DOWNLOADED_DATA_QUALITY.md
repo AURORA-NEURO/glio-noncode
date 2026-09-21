@@ -6425,6 +6425,31 @@ admission was rejected. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d377-example-real/summary.json
 ```
 
+## D378 runtime registry history
+
+D378 records D377 registry snapshots in an append-only, content-addressed
+history. It enforces stable history and registry identity, optimistic expected
+heads, duplicate snapshot and registry-address rejection, deterministic
+initial/improved/regressed/unchanged/changed transitions, and latest-state and
+readiness projections. History, entry, and bounded query artifacts are
+persisted exactly and independently audited.
+
+The focused demonstration replays the real blocked D377 registry and appends a
+ready-only successor derived from the D376 release runtime:
+
+```text
+python examples/downloaded_data_quality_d378_runtime_registry_history_demo.py D377_REGISTRY_DIR D376_RELEASE_DIR --destination D378_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run persisted two snapshots, folded the latest state to `ready`, and
+recorded an `improved` transition. Its history audit passed 16/16 checks; the
+ready query returned 5/5 rows without truncation and its query audit passed
+12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d378-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
