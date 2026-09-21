@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = '1342c9979473480c238ac73423624654ab38218d2ca94c90cf4f4fb73c1badcd'
+SURFACE_DIGEST = 'afcced36e3845d667dcc4439843af18c3b6f99147aefb9be1d3e206a44685164'
 
 ALL = (
     'CaseManifest',
@@ -43024,6 +43024,10 @@ CHILD_MODULES = {
     'downloaded_data_quality_d357_runtime_registry_audit': 'glio_noncode.downloaded_data_quality_d357_runtime_registry_audit',
     'downloaded_data_quality_d357_runtime_registry_query': 'glio_noncode.downloaded_data_quality_d357_runtime_registry_query',
     'downloaded_data_quality_d357_runtime_registry_query_audit': 'glio_noncode.downloaded_data_quality_d357_runtime_registry_query_audit',
+    'downloaded_data_quality_d358_runtime_registry_history': 'glio_noncode.downloaded_data_quality_d358_runtime_registry_history',
+    'downloaded_data_quality_d358_runtime_registry_history_audit': 'glio_noncode.downloaded_data_quality_d358_runtime_registry_history_audit',
+    'downloaded_data_quality_d358_runtime_registry_history_query': 'glio_noncode.downloaded_data_quality_d358_runtime_registry_history_query',
+    'downloaded_data_quality_d358_runtime_registry_history_query_audit': 'glio_noncode.downloaded_data_quality_d358_runtime_registry_history_query_audit',
     'downloaded_data_quality_diff': 'glio_noncode.downloaded_data_quality_diff',
     'downloaded_data_quality_diff_audit': 'glio_noncode.downloaded_data_quality_diff_audit',
     'downloaded_data_quality_diff_gate': 'glio_noncode.downloaded_data_quality_diff_gate',
@@ -47748,6 +47752,10 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_quality_d357_runtime_registry_audit',
     'glio_noncode.downloaded_data_quality_d357_runtime_registry_query',
     'glio_noncode.downloaded_data_quality_d357_runtime_registry_query_audit',
+    'glio_noncode.downloaded_data_quality_d358_runtime_registry_history',
+    'glio_noncode.downloaded_data_quality_d358_runtime_registry_history_audit',
+    'glio_noncode.downloaded_data_quality_d358_runtime_registry_history_query',
+    'glio_noncode.downloaded_data_quality_d358_runtime_registry_history_query_audit',
     'glio_noncode.downloaded_data_quality_diff',
     'glio_noncode.downloaded_data_quality_diff_audit',
     'glio_noncode.downloaded_data_quality_diff_gate',
