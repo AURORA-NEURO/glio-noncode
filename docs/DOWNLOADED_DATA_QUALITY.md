@@ -9085,6 +9085,32 @@ rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d478-example-real/summary.json
 ```
 
+## D479 release-batch history diff
+
+D479 compares baseline and candidate D478 release-batch histories by snapshot
+identity. It preserves added, removed, changed, and unchanged snapshots,
+field-level deltas, both history-entry addresses, direction, and state
+transition. The result is an exact four-file diff with independent diff and
+query audits plus bounded summary, item, change, direction, address, and
+bounds projections.
+
+The real-data demonstration compares the blocked history head with its ready
+promotion head:
+
+```text
+python examples/downloaded_data_quality_d479_release_batch_history_diff_demo.py D475_DIFF_DIR --destination D479_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The comparison produced one added promotion snapshot and one unchanged
+baseline snapshot, with direction `improved` and state transition
+`blocked->ready`. The diff audit passed 16/16. The added query returned 2/2
+rows without truncation and its query audit passed 12/12. The rerun summary is
+stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d479-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
