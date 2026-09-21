@@ -7752,6 +7752,33 @@ passing 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d427-example-real/summary.json
 ```
 
+## D428 history diff runtime evaluation
+
+D428 evaluates a D427 history diff under explicit strict and release policies.
+Policies bound added, removed, and changed items, allowed directions, accepted
+diff status, state transitions, and unchanged handling. Each decision exposes
+fifteen deterministic checks, exact four-file persistence, independent audits,
+and bounded runtime queries.
+
+The real-data demonstration evaluates the D427 diff under both policies:
+
+```text
+python examples/downloaded_data_quality_d428_history_diff_runtime_demo.py D427_DIFF_DIR --destination D428_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The focused regression covers strict-versus-release disposition, exact reload,
+query auditing, and tamper rejection.
+
+The real run kept strict admission `blocked` because its `added_budget` check
+failed, while the release policy accepted the same diff as `ready` with all
+15/15 runtime checks passing. The release query returned 58/58 rows without
+truncation, its audit passed 12/12 checks, and both runtime audits passed 15/15.
+The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d428-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
