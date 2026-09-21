@@ -3200,6 +3200,30 @@ audit passed 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d248-example-real/summary.json
 ```
 
+## D249 runtime registry admission
+
+D249 aggregates exact four-file D248 runtime decisions into a deterministic,
+content-addressed registry. It retains upstream runtime and diff addresses for
+each entry, folds readiness conservatively so one blocked decision keeps the
+registry blocked, rejects duplicate runtime identity, and provides independent
+registry and bounded-query audits.
+
+The focused demonstration admits the real D248 strict and release outputs:
+
+```text
+python examples/downloaded_data_quality_d249_runtime_registry_demo.py D248_STRICT_DIR D248_RELEASE_DIR --destination D249_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two entries, one ready and one blocked, so the registry
+state was `blocked` and `release_ready` was `false`. Duplicate runtime
+admission was rejected. The registry audit passed 16/16 checks; the blocked
+query returned 22/22 rows without truncation; and its query audit passed
+12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d249-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
