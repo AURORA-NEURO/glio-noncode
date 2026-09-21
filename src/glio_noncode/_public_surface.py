@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = '0c0cca6a703634c9a8e6c8dea42598d99783ebc535f2fff56818a0e249b21466'
+SURFACE_DIGEST = '62f31ee4f8a4096234d7b24ace93b94c3f2829815803de6bc4efccde0b96bc43'
 
 ALL = (
     'CaseManifest',
@@ -42580,6 +42580,10 @@ CHILD_MODULES = {
     'downloaded_data_quality_d246_runtime_registry_history_audit': 'glio_noncode.downloaded_data_quality_d246_runtime_registry_history_audit',
     'downloaded_data_quality_d246_runtime_registry_history_query': 'glio_noncode.downloaded_data_quality_d246_runtime_registry_history_query',
     'downloaded_data_quality_d246_runtime_registry_history_query_audit': 'glio_noncode.downloaded_data_quality_d246_runtime_registry_history_query_audit',
+    'downloaded_data_quality_d247_history_diff': 'glio_noncode.downloaded_data_quality_d247_history_diff',
+    'downloaded_data_quality_d247_history_diff_audit': 'glio_noncode.downloaded_data_quality_d247_history_diff_audit',
+    'downloaded_data_quality_d247_history_diff_query': 'glio_noncode.downloaded_data_quality_d247_history_diff_query',
+    'downloaded_data_quality_d247_history_diff_query_audit': 'glio_noncode.downloaded_data_quality_d247_history_diff_query_audit',
     'downloaded_data_quality_diff': 'glio_noncode.downloaded_data_quality_diff',
     'downloaded_data_quality_diff_audit': 'glio_noncode.downloaded_data_quality_diff_audit',
     'downloaded_data_quality_diff_gate': 'glio_noncode.downloaded_data_quality_diff_gate',
@@ -46860,6 +46864,10 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_quality_d246_runtime_registry_history_audit',
     'glio_noncode.downloaded_data_quality_d246_runtime_registry_history_query',
     'glio_noncode.downloaded_data_quality_d246_runtime_registry_history_query_audit',
+    'glio_noncode.downloaded_data_quality_d247_history_diff',
+    'glio_noncode.downloaded_data_quality_d247_history_diff_audit',
+    'glio_noncode.downloaded_data_quality_d247_history_diff_query',
+    'glio_noncode.downloaded_data_quality_d247_history_diff_query_audit',
     'glio_noncode.downloaded_data_quality_diff',
     'glio_noncode.downloaded_data_quality_diff_audit',
     'glio_noncode.downloaded_data_quality_diff_gate',
