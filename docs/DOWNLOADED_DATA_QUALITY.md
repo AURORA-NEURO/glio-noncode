@@ -2078,3 +2078,53 @@ stored outside the repository at:
 ```text
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d201-example-real/summary.json
 ```
+
+## D202 runtime registry history
+
+D202 records D201 registry snapshots in an append-only, content-addressed
+history. The optimistic expected-head guard prevents stale writers, while
+stable registry and history identity, duplicate snapshot/address rejection,
+transition folding, and latest readiness make release movement auditable.
+
+The focused demonstration appends a ready-only registry after the mixed
+blocked registry:
+
+```text
+python examples/downloaded_data_quality_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_demo.py D201_REGISTRY_DIR D200_RELEASE_RUNTIME_DIR --destination D202_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two entries, latest state `ready`, latest release
+readiness `true`, and an `improved` transition. The independent history audit
+passed 16/16 checks; the readiness-filtered query returned 5/5 rows without
+truncation, and its query audit passed 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d202-example-real/summary.json
+```
+
+## D203 registry history diff
+
+D203 compares exact four-file D202 histories while preserving both history
+addresses and classifying each ordinal as added, removed, changed, or
+unchanged. Direction and state-transition folding preserve the release
+movement, while independent diff and query audits verify the bounded output.
+The module uses a compact portable stem because the fully descriptive chain
+would exceed Windows path limits; its typed dependency remains the complete
+D202 history contract.
+
+The focused demonstration compares a blocked-only baseline with the
+blocked-to-ready candidate:
+
+```text
+python examples/downloaded_data_quality_d203_history_diff_demo.py D202_BASELINE_DIR D202_CANDIDATE_DIR --destination D203_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run classified two history items as one added and one unchanged,
+folded the direction to `improved`, and preserved `blocked->ready`. The
+independent diff audit passed 16/16 checks; the added-only query returned 2/2
+rows without truncation, and its query audit passed 12/12. The rerun summary
+is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d203-example-real/summary.json
+```
