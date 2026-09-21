@@ -9136,6 +9136,34 @@ stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d480-example-real/summary.json
 ```
 
+## D481 history-diff runtime registry
+
+D481 aggregates D480 strict and release runtimes into a policy-controlled
+registry. The registry retains every runtime, diff, policy, and optional audit
+address; applies minimum-runtime, minimum-ready, maximum-blocked, same-diff,
+same-direction, audit-evidence, and all-ready controls; emits sixteen
+deterministic checks; persists an exact six-file artifact; and exposes
+independent registry and query audits.
+
+The real-data demonstration consumes the ZIP-derived D479 diff, creates a
+strict blocked runtime and a release-ready runtime, and evaluates both a
+controlled mixed-policy registry and an all-ready preview:
+
+```text
+python examples/downloaded_data_quality_d481_history_diff_runtime_registry_demo.py D479_DIFF_DIR --destination D481_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The controlled registry accepted one ready and one blocked runtime because its
+minimum-ready and maximum-blocked thresholds were satisfied. Its registry
+audit passed 16/16. The full query returned 53/53 rows without truncation and
+its query audit passed 12/12. The all-ready preview remained blocked on its
+minimum-ready, blocked-budget, and release-readiness checks. The rerun summary
+is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d481-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
