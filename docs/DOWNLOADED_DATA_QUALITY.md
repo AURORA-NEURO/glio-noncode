@@ -5063,6 +5063,30 @@ The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d322-example-real/summary.json
 ```
 
+## D323 registry-history comparison
+
+D323 compares two D322 histories while preserving both stable history
+addresses. It classifies each ordinal as added, removed, changed, or
+unchanged, records field-level deltas and entry addresses, folds direction and
+state transitions, persists an exact four-file diff, and exposes independently
+audited filtered queries with canonical reload and tamper rejection.
+
+The focused demonstration builds a blocked D322 baseline from the real strict
+runtime, compares it with the ready D322 history, and queries changed rows:
+
+```text
+python examples/downloaded_data_quality_d323_history_diff_demo.py D322_BASELINE_HISTORY D322_CANDIDATE_HISTORY --destination D323_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip --change changed
+```
+
+The real run produced two comparison items: one changed and one unchanged.
+The direction was `improved`, the state transition was `blocked->ready`, the
+diff audit passed 16/16 checks, and the changed query returned 2/2 rows without
+truncation with its query audit passing 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d323-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
