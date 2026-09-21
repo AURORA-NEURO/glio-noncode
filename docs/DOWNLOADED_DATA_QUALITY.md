@@ -5808,6 +5808,30 @@ query audit passed 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d352-example-real/summary.json
 ```
 
+## D353 runtime registry admission
+
+D353 aggregates independently persisted D352 strict and release runtimes into
+a deterministic admission registry. It preserves each runtime and diff
+address, rejects duplicate runtime identity or address, folds readiness
+conservatively so any blocked member blocks the registry, and persists exact
+four-file registry artifacts with independent audits and bounded queries.
+
+The focused demonstration admits the real D352 outputs:
+
+```text
+python examples/downloaded_data_quality_d353_runtime_registry_demo.py D352_STRICT_DIR D352_RELEASE_DIR --destination D353_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run admitted two entries: one ready and one blocked. The registry was
+therefore `blocked` and `release_ready` was `false`; duplicate runtime
+admission was rejected. The registry audit passed 16/16 checks, the blocked
+query returned 22/22 rows without truncation, and its query audit passed
+12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d353-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
