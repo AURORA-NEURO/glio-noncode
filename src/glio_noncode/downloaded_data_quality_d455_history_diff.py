@@ -511,4 +511,3 @@ def capabilities() -> dict[str, Any]:
 
 
 __all__ = ["VERSION", "BOUNDARY", "DIFF_PREFIX", "ITEM_PREFIX", "ITEMS_PREFIX", "MANIFEST_PREFIX", "SUMMARY_PREFIX", "DEFAULT_DIFF_ID", "FILES", "ARTIFACT_FILES", "CHANGES", "DIRECTIONS", "MAX_ITEMS", "MAX_DIFF_BYTES", "ITEM_FIELDS", "ITEMS_FIELDS", "MANIFEST_FIELDS", "SUMMARY_FIELDS", "DIFF_FIELDS", "DiffItem", "DiffItems", "DiffManifest", "DiffSummary", "HistoryDiff", "address_item", "address_items", "address_manifest", "address_summary", "address_diff", "build_diff", "verify_diff", "diff_from_mapping", "diff_json", "items_json", "manifest_json", "summary_json", "diff_csv", "render_diff_markdown", "persist_diff", "load_diff", "run_diff", "item_schema", "items_schema", "manifest_schema", "summary_schema", "diff_schema", "capabilities"]
-

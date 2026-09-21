@@ -72,4 +72,3 @@ class D455HistoryDiffTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
