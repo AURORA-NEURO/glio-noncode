@@ -9164,6 +9164,32 @@ is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d481-example-real/summary.json
 ```
 
+## D482 runtime registry history
+
+D482 records D481 runtime-registry decisions in an append-only, content-
+addressed history. Each entry retains the registry identity and address,
+readiness, registry-entry counts, audit evidence count, acceptance count,
+transition, and predecessor address. The history enforces optimistic expected-
+head appends, duplicate snapshot and registry rejection, contiguous ancestry,
+exact four-file persistence, independent history and query audits, and bounded
+state, transition, readiness, address, and bounds projections.
+
+The real-data demonstration records a blocked all-ready registry followed by a
+ready controlled registry:
+
+```text
+python examples/downloaded_data_quality_d482_history_diff_runtime_registry_history_demo.py D479_DIFF_DIR --destination D482_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The resulting history contains two entries and a `blocked->ready` promoted
+transition. The history audit passed 16/16. The full query returned 29/29 rows
+without truncation and its query audit passed 12/12. The promoted-only query
+returned 1/1 row. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d482-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
