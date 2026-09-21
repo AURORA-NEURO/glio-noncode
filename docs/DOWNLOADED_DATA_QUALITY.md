@@ -9242,6 +9242,36 @@ truncation, and its query audit passes 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d484-example-real/summary.json
 ```
 
+## D485 history-diff runtime policy scenarios
+
+D485 compares multiple D484 runtime-policy outcomes as one typed scenario. It
+retains each runtime and policy address, direction, state transition, budget
+margin, readiness result, and failure count; derives bounded risk flags for
+blocked outcomes, zero or negative budget margins, mixed readiness, and policy
+spread; and enforces configurable minimum-ready, maximum-blocked, identity,
+lineage, acceptance, and mixed-outcome controls. Scenarios use exact six-file
+persistence with independent eighteen-check audits and bounded summary,
+policy, entry, check, readiness, margin, risk, address, and bounds queries.
+
+The real-data demonstration compares the strict and release D484 runtimes
+derived from the downloaded product archive:
+
+```text
+python examples/downloaded_data_quality_d485_history_diff_runtime_policy_scenario_demo.py C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d483-example-real/diff --destination D485_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The scenario contains one blocked strict runtime and one ready release
+runtime, retains the `improved` `blocked->ready` lineage, and is accepted as a
+controlled mixed scenario. Its minimum added margin is `-1`, exposing the
+strict policy overrun; risk flags identify the blocked runtime, zero margins,
+mixed outcome, and policy spread. The scenario audit passes 18/18. The query
+returns all 70 rows without truncation, and its query audit passes 12/12. The
+rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d485-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
