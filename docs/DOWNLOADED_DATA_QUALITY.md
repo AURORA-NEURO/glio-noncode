@@ -1667,3 +1667,38 @@ Live replay starts from real downloaded-data-derived D186 baseline and candidate
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d187-diff-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d187-diff-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d187-diff-query-audit.json`
+
+## D188 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry history diff runtime
+
+D188 evaluates a D187 registry-history diff against a content-addressed release policy. Policies bound the minimum comparison size, added/removed/changed budgets, allowed directions, acceptance requirement, state-transition requirement, and unchanged behavior. The runtime emits a ready or blocked release disposition with fifteen independently replayable checks while preserving the value-free D187 comparison.
+
+The persisted runtime is an exact four-file directory:
+
+- `manifest.json`
+- `runtime.json`
+- `checks.json`
+- `summary.json`
+
+The CLI surface is:
+
+~~~powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime BASELINE_DIFF_DIR --runtime-id quality-registry-history-diff-runtime-d188 --maximum-added 1 --maximum-changed 1 --destination RUNTIME_DIR --overwrite --format json --output runtime.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit RUNTIME_DIR --format json --output runtime-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query RUNTIME_DIR --limit 128 --format json --output runtime-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit runtime-query.json RUNTIME_DIR --format json --output runtime-query-audit.json
+~~~
+
+The repository example performs the same complete replay and writes a compact summary alongside the exact runtime package:
+
+~~~powershell
+python examples/downloaded_data_quality_history_diff_runtime_demo.py D187_DIFF_DIR D188_OUTPUT_DIR --runtime-id quality-registry-history-diff-runtime-d188 --maximum-added 1 --maximum-changed 1
+~~~
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime`, with `/audit`, `/query`, and `/query-audit` suffixes. Policy, check, manifest, summary, runtime, audit, query, query-audit, schema, and capability projections are exposed beneath the same API family.
+
+The focused replay verifies policy acceptance and blocking, exact-file persistence, canonical reload, summary tamper rejection, independent `15/15` runtime auditing, bounded query completeness, and independent `12/12` query auditing. The fresh replay of `GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip` first produced `25` catalog members, `17` selected members, `4,030` records, `136` fields, and an accepted `563`-check quality result. That accepted quality address seeded the downstream policy identity; the current D187 comparison reported `direction=improved` with one added snapshot, and D188 produced `state=ready`, `release_ready=true`, `15/15` checks, `58/58` query rows without truncation, and a `12/12` query audit. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/summary.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/quality-runtime`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d188-runtime`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d188-summary.json`

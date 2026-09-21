@@ -3479,5 +3479,37 @@ class DownloadedDataQualityTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 diff_model.load_diff(destination)
 
+    def test_runtime_registry_history_diff_runtime_replays_policy_query_and_tamper(self) -> None:
+        runtime_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model
+        diff_model = runtime_model.diff_model
+        history_model = diff_model.history_model
+        registry_model = history_model.registry_model
+        registry = registry_model.build_registry((), registry_id="d188-source-registry")
+        baseline = history_model.build_history(registry, history_id="d188-history", snapshot_id="baseline")
+        candidate = history_model.build_history(registry, history_id="d188-history", snapshot_id="candidate")
+        diff = diff_model.build_diff(baseline, candidate, diff_id="d188-diff")
+        policy = runtime_model.build_policy("d188-policy", diff.diff_id, maximum_added=1, maximum_changed=1)
+        self.assertEqual(runtime_model.RuntimePolicy.from_mapping(json.loads(runtime_model.policy_json(policy))).to_dict(), policy.to_dict())
+        runtime = runtime_model.build_runtime(diff, runtime_id="d188-runtime", policy=policy)
+        audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model.audit_runtime(runtime, diff)
+        query = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.query_runtime(runtime, resources=runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.RESOURCES, limit=runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.MAX_LIMIT)
+        query_audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit_model.audit_query(query, runtime)
+        self.assertEqual((runtime.state, runtime.release_ready, runtime.direction, runtime.changed_count, runtime.accepted), ("ready", True, "changed", 1, True))
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (15, 15, True))
+        self.assertEqual((query.total_count, query.returned_count, query.truncated), (58, 58, False))
+        self.assertEqual((query_audit.check_count, query_audit.passed_count, query_audit.accepted), (12, 12, True))
+        blocked_policy = runtime_model.build_policy("d188-blocked-policy", diff.diff_id, maximum_changed=0)
+        blocked = runtime_model.build_runtime(diff, runtime_id="d188-blocked-runtime", policy=blocked_policy)
+        self.assertEqual((blocked.state, blocked.release_ready, blocked.failed_count), ("blocked", False, 1))
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "runtime"
+            runtime_model.persist_runtime(runtime, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(runtime_model.FILES)))
+            self.assertEqual(runtime_model.load_runtime(destination).content_address, runtime.content_address)
+            summary = destination / "summary.json"
+            summary.write_text(summary.read_text(encoding="utf-8").replace('"state":"ready"', '"state":"blocked"', 1), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                runtime_model.load_runtime(destination)
+
 if __name__ == "__main__":
     unittest.main()

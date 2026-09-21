@@ -151,6 +151,12 @@ def address_policy(value: RuntimePolicy) -> str:
     return _address_for(value, POLICY_PREFIX)
 
 
+def policy_json(value: RuntimePolicy) -> str:
+    if not isinstance(value, RuntimePolicy):
+        raise ValidationError("history diff runtime policy JSON requires a typed policy")
+    return canonical_json(value.to_dict())
+
+
 class RuntimeCheck:
     FIELDS = CHECK_FIELDS
 
@@ -522,4 +528,4 @@ def capabilities() -> dict[str, Any]:
     return {"public": True, "value_free": True, "version": VERSION, "boundary": BOUNDARY, "files": FILES, "check_ids": CHECK_IDS, "states": STATES, "severities": SEVERITIES, "max_checks": MAX_CHECKS, "features": ("diff-linked release policy", "direction and transition controls", "added removed and changed budgets", "exact four-file persistence", "canonical reload and tamper rejection", "JSON CSV and Markdown projections"), "public_boundary": {"source_paths": False, "source_records": False, "payload_bytes": False, "private_metadata": False}}
 
 
-__all__ = ["VERSION", "BOUNDARY", "RUNTIME_PREFIX", "POLICY_PREFIX", "CHECK_PREFIX", "CHECKS_PREFIX", "MANIFEST_PREFIX", "SUMMARY_PREFIX", "DEFAULT_RUNTIME_ID", "FILES", "ARTIFACT_FILES", "STATES", "SEVERITIES", "MAX_CHECKS", "MAX_RUNTIME_BYTES", "POLICY_FIELDS", "CHECK_FIELDS", "CHECKS_FIELDS", "MANIFEST_FIELDS", "SUMMARY_FIELDS", "RUNTIME_FIELDS", "CHECK_IDS", "RuntimePolicy", "RuntimeCheck", "RuntimeManifest", "RuntimeSummary", "DiffRuntime", "address_policy", "address_check", "address_checks", "address_manifest", "address_summary", "address_runtime", "build_policy", "build_runtime", "verify_runtime", "runtime_from_mapping", "runtime_json", "checks_json", "summary_json", "manifest_json", "runtime_csv", "render_runtime_markdown", "persist_runtime", "load_runtime", "run_runtime", "policy_schema", "check_schema", "manifest_schema", "summary_schema", "runtime_schema", "capabilities"]
+__all__ = ["VERSION", "BOUNDARY", "RUNTIME_PREFIX", "POLICY_PREFIX", "CHECK_PREFIX", "CHECKS_PREFIX", "MANIFEST_PREFIX", "SUMMARY_PREFIX", "DEFAULT_RUNTIME_ID", "FILES", "ARTIFACT_FILES", "STATES", "SEVERITIES", "MAX_CHECKS", "MAX_RUNTIME_BYTES", "POLICY_FIELDS", "CHECK_FIELDS", "CHECKS_FIELDS", "MANIFEST_FIELDS", "SUMMARY_FIELDS", "RUNTIME_FIELDS", "CHECK_IDS", "RuntimePolicy", "RuntimeCheck", "RuntimeManifest", "RuntimeSummary", "DiffRuntime", "address_policy", "policy_json", "address_check", "address_checks", "address_manifest", "address_summary", "address_runtime", "build_policy", "build_runtime", "verify_runtime", "runtime_from_mapping", "runtime_json", "checks_json", "summary_json", "manifest_json", "runtime_csv", "render_runtime_markdown", "persist_runtime", "load_runtime", "run_runtime", "policy_schema", "check_schema", "manifest_schema", "summary_schema", "runtime_schema", "capabilities"]
