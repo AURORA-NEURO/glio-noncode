@@ -2778,6 +2778,31 @@ stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d231-example-real/summary.json
 ```
 
+## D232 history diff runtime release decision
+
+D232 evaluates the exact four-file D231 history diff under strict and release
+policies. Bounded policy checks cover comparison presence and acceptance,
+added/removed/changed budgets, direction and state-transition controls,
+unchanged handling, conservation, identity, address integrity, policy
+integrity, release disposition, and public-boundary compliance.
+
+The focused demonstration persists both decisions and their independent
+runtime/query audits:
+
+```text
+python examples/downloaded_data_quality_d232_history_diff_runtime_demo.py D231_DIFF_DIR --destination D232_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run carried one added item across `improved` `blocked->ready`. The
+strict result was `blocked` at 14/15 checks with only `added_budget` failing;
+its integrity audit passed 15/15. The release result was `ready` at 15/15;
+its runtime audit passed 15/15 and its query audit passed 12/12 over 58/58
+rows. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d232-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
