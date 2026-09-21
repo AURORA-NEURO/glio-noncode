@@ -206,6 +206,10 @@ from glio_noncode import downloaded_data_quality_runtime_history_release_evidenc
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -2692,6 +2696,61 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 self.assertEqual((d182_api_query_audit["passed_count"], d182_api_query_audit["accepted"]), (12, True))
                 d182_schema = json.loads(urlopen(api_base + "/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/schema", timeout=10).read().decode())
                 self.assertEqual(d182_schema["title"], "RegistryHistory")
+                d183_baseline = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.build_history(d181_mixed, history_id="quality-runtime-registry-history-d183", snapshot_id="blocked")
+                d183_candidate = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.append_history(d183_baseline, d181_ready, snapshot_id="ready", expected_head=d183_baseline.entries[-1].content_address)
+                d183_diff = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.build_diff(d183_baseline, d183_candidate, diff_id="quality-runtime-registry-history-d183-diff")
+                self.assertEqual((d183_diff.added_count, d183_diff.removed_count, d183_diff.changed_count, d183_diff.unchanged_count, d183_diff.direction, d183_diff.state_transition, d183_diff.accepted), (1, 0, 0, 1, "improved", "blocked->ready", True))
+                self.assertEqual(runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.diff_from_mapping(d183_diff.to_dict()).content_address, d183_diff.content_address)
+                d183_audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit_model.audit_diff(d183_diff)
+                self.assertEqual((d183_audit.passed_count, d183_audit.check_count, d183_audit.accepted), (16, 16, True))
+                d183_query = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model.query_diff(d183_diff, resources=runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model.RESOURCES, limit=128)
+                self.assertGreater(d183_query.returned_count, 0)
+                self.assertFalse(d183_query.truncated)
+                d183_query_audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model.audit_query(d183_query, d183_diff)
+                self.assertEqual((d183_query_audit.passed_count, d183_query_audit.check_count, d183_query_audit.accepted), (12, 12, True))
+                other_d183 = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.build_history(d181_mixed, history_id="quality-runtime-registry-history-d183-other", snapshot_id="blocked")
+                with self.assertRaises(ValidationError):
+                    runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.build_diff(d183_baseline, other_d183, diff_id="quality-runtime-registry-history-d183-mismatch")
+                d183_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d183-diff"
+                runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.persist_diff(d183_diff, d183_destination)
+                self.assertEqual(tuple(sorted(path.name for path in d183_destination.iterdir())), tuple(sorted(runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.FILES)))
+                self.assertEqual(runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.load_diff(d183_destination).content_address, d183_diff.content_address)
+                tampered_d183_summary = json.loads((d183_destination / "summary.json").read_text(encoding="utf-8"))
+                tampered_d183_summary["direction"] = "regressed"
+                (d183_destination / "summary.json").write_text(json.dumps(tampered_d183_summary), encoding="utf-8")
+                with self.assertRaises(ValidationError):
+                    runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.load_diff(d183_destination)
+                runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model.persist_diff(d183_diff, d183_destination, overwrite=True)
+                d183_diff_command = d182_command + "-diff"
+                d183_cli_baseline = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d183-cli-baseline"
+                d183_cli_candidate = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d183-cli-candidate"
+                runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.persist_history(d183_baseline, d183_cli_baseline)
+                runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model.persist_history(d183_candidate, d183_cli_candidate)
+                d183_cli_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d183-cli-diff"
+                d183_cli_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d183-cli-diff.json"
+                self.assertEqual(main([d183_diff_command, str(d183_cli_baseline), str(d183_cli_candidate), "--diff-id", "quality-runtime-registry-history-d183-cli-diff", "--destination", str(d183_cli_destination), "--overwrite", "--format", "json", "--output", str(d183_cli_json)]), 0)
+                d183_cli_audit_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d183-cli-diff-audit.json"
+                self.assertEqual(main([d183_diff_command + "-audit", str(d183_cli_destination), "--format", "json", "--output", str(d183_cli_audit_json)]), 0)
+                d183_cli_query_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d183-cli-diff-query.json"
+                self.assertEqual(main([d183_diff_command + "-query", str(d183_cli_destination), "--limit", "128", "--format", "json", "--output", str(d183_cli_query_json)]), 0)
+                d183_cli_query_audit_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d183-cli-diff-query-audit.json"
+                self.assertEqual(main([d183_diff_command + "-query-audit", str(d183_cli_query_json), str(d183_cli_destination), "--format", "json", "--output", str(d183_cli_query_audit_json)]), 0)
+                self.assertEqual((json.loads(d183_cli_audit_json.read_text(encoding="utf-8"))["passed_count"], json.loads(d183_cli_query_json.read_text(encoding="utf-8"))["returned_count"], json.loads(d183_cli_query_audit_json.read_text(encoding="utf-8"))["accepted"]), (16, d183_query.returned_count, True))
+                d183_api_base = d182_api_base + "/diff"
+                d183_api_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d183-http-diff"
+                d183_api_diff = json.loads(urlopen(d183_api_base + "?" + urlencode({"left": str(d183_cli_baseline), "right": str(d183_cli_candidate), "diff_id": "quality-api-runtime-registry-history-d183-diff", "destination": str(d183_api_destination), "overwrite": "true", "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d183_api_diff["direction"], d183_api_diff["added_count"], d183_api_diff["unchanged_count"], d183_api_diff["state_transition"], d183_api_diff["accepted"]), ("improved", 1, 1, "blocked->ready", True))
+                d183_api_audit = json.loads(urlopen(d183_api_base + "/audit?" + urlencode({"input": str(d183_api_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d183_api_audit["passed_count"], d183_api_audit["accepted"]), (16, True))
+                d183_api_query = json.loads(urlopen(d183_api_base + "/query?" + urlencode({"input": str(d183_api_destination), "limit": "128", "format": "json"}), timeout=10).read().decode())
+                self.assertGreater(d183_api_query["returned_count"], 0)
+                self.assertFalse(d183_api_query["truncated"])
+                d183_api_query_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d183-http-diff-query.json"
+                d183_api_query_json.write_text(json.dumps(d183_api_query), encoding="utf-8")
+                d183_api_query_audit = json.loads(urlopen(d183_api_base + "/query-audit?" + urlencode({"query": str(d183_api_query_json), "diff": str(d183_api_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d183_api_query_audit["passed_count"], d183_api_query_audit["accepted"]), (12, True))
+                d183_schema = json.loads(urlopen(d183_api_base + "/schema", timeout=10).read().decode())
+                self.assertEqual(d183_schema["title"], "HistoryDiff")
             finally:
                 server.shutdown()
                 server.server_close()

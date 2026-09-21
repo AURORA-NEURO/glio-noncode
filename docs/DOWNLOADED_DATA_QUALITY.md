@@ -1515,3 +1515,26 @@ python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-
 The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history`, with `/append`, `/audit`, `/query`, and `/query-audit` suffixes. Entry, entries, manifest, summary, history, audit, query, query-audit, and capability schemas are exposed beneath the same API family.
 
 The downloaded-data regression replays the ZIP-derived profile through D181 mixed and ready registries, then verifies a blocked-to-ready history transition, duplicate and stale-head rejection, exact persistence, tamper rejection, CLI append/audit/query flows, HTTP append/audit/query flows, and the `RegistryHistory` schema. The authoritative run passed: `Ran 1 test in 413.342s`, `OK`.
+## D183 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry history diff runtime registry history diff
+
+D183 compares two D182 runtime-registry histories that share the same registry identity. It emits ordered added, removed, changed, and unchanged snapshot items, preserves both history and entry addresses, records field-level deltas, folds direction and latest-state transitions, and rejects cross-history identity mismatches.
+
+The persisted diff is an exact four-file directory:
+
+- `manifest.json`
+- `diff.json`
+- `items.json`
+- `summary.json`
+
+The CLI surface is:
+
+~~~powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff BASELINE_HISTORY_DIR CANDIDATE_HISTORY_DIR --diff-id DIFF_ID --destination DIFF_DIR --overwrite --format json --output diff.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-audit DIFF_DIR --format json --output diff-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query DIFF_DIR --limit 128 --format json --output diff-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query-audit diff-query.json DIFF_DIR --format json --output diff-query-audit.json
+~~~
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff`, with `/audit`, `/query`, and `/query-audit` suffixes. Item, items, manifest, summary, diff, audit, query, query-audit, and capability schemas are exposed beneath the same API family.
+
+The focused replay verifies canonical round-trip, summary tamper rejection, same-registry identity enforcement, deterministic field-level change classification, bounded queries, independent 16/16 diff auditing, independent 12/12 query auditing, and the exact four-file artifact contract. The direct smoke uses the downloaded-data history model; the broader historical suite currently reports a pre-existing D174 registry-identity failure before reaching D183.
