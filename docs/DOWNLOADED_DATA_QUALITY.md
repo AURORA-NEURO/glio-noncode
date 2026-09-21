@@ -2128,3 +2128,26 @@ is stored at:
 ```text
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d203-example-real/summary.json
 ```
+
+## D204 history diff runtime release decision
+
+D204 evaluates the exact four-file D203 history diff under strict and release
+policies. A zero-addition strict budget blocks the added snapshot, while a
+one-addition policy permits only an `improved` transition with a required
+state change. The compact module stem keeps the runtime surface portable on
+Windows while retaining the full D203 diff dependency.
+
+The focused demonstration evaluates and persists both decisions:
+
+```text
+python examples/downloaded_data_quality_d204_history_diff_runtime_demo.py D203_DIFF_DIR --destination D204_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run carried one added item across `improved` `blocked->ready`. The
+strict result was `blocked` at 14/15 checks with only `added_budget` failing.
+The release result was `ready` at 15/15; its runtime audit passed 15/15 and
+its query audit passed 12/12 over 58/58 rows. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d204-example-real/summary.json
+```
