@@ -8593,6 +8593,30 @@ rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d458-example-real/summary.json
 ```
 
+## D459 history comparison
+
+D459 compares two D458 registry histories while preserving both history
+addresses. It classifies added, removed, changed, and unchanged ordinals,
+replays field-level deltas, folds direction and state movement, persists an
+exact four-file diff, and exposes independent bounded audit and query
+projections.
+
+The real-data demonstration compares a blocked-only D458 baseline with the
+blocked-to-ready D458 history:
+
+```text
+python examples/downloaded_data_quality_d459_history_diff_demo.py D458_BASELINE_HISTORY_DIR D458_HISTORY_DIR --destination D459_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two diff items: one unchanged blocked baseline and one
+added ready snapshot. It folded to `improved` with `state_transition=blocked->ready`,
+passed the diff audit 16/16, and returned 2/2 added-query rows without
+truncation with its query audit passing 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d459-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
