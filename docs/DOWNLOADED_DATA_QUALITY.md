@@ -9446,6 +9446,37 @@ returns the promoted `ready` snapshot. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d491-example-real/summary.json
 ```
 
+## D492 baseline/candidate ledger-diff runtime registry history comparison
+
+D492 compares two D491 histories that share a stable history identity. It
+aligns snapshots by snapshot ID and records added, removed, changed, and
+unchanged results with complete ordered field deltas and both source entry
+addresses. The comparison retains both history addresses, derives improved,
+regressed, changed, or unchanged direction from readiness movement, and
+preserves the latest-state transition. Exact four-file persistence is
+canonical and rejects tampered or extra files. Independent sixteen-check
+comparison audits can replay against both supplied source histories; bounded
+queries provide summary, item, field-change, direction, address, and bound
+views, with independent twelve-check filter and pagination audits.
+
+The real-data demo reconstructs strict/release evaluations and blocked/ready
+registries from the D488 diff generated from the supplied downloaded archive,
+then compares the blocked baseline with its promoted candidate:
+
+```text
+python examples/downloaded_data_quality_d492_ledger_diff_runtime_registry_history_diff_demo.py C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d488-example-real/diff --destination D492_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The comparison reports one added promotion snapshot and one unchanged baseline
+snapshot, with `improved` direction and `blocked->ready` state transition. Its
+audit passes 16/16; the complete query returns 22/22 rows without truncation
+and the query audit passes 12/12. The added-snapshot filter returns `ready`.
+The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d492-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
