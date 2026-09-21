@@ -9387,6 +9387,36 @@ rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d489-example-real/summary.json
 ```
 
+## D490 ledger-diff runtime registries
+
+D490 aggregates multiple D489 runtime evaluations into one typed,
+content-addressed registry. Registry policies enforce minimum runtime and
+minimum-ready thresholds, maximum blocked budgets, same-diff and
+same-direction lineage, optional runtime-audit evidence, and optional
+all-ready admission. Each entry retains runtime, diff, policy, audit,
+direction, state, readiness, acceptance, check, and item-count lineage.
+Registries use exact six-file persistence with canonical reload and tamper
+rejection, independent sixteen-check registry audits and twelve-check query
+audits, and bounded summary, policy, entry, check, readiness, address, and
+bound projections with state, result, severity, text, and pagination filters.
+
+The real-data demonstration aggregates strict and release D489 evaluations
+over the D488 diff derived from the supplied downloaded product archive:
+
+```text
+python examples/downloaded_data_quality_d490_ledger_diff_runtime_registry_demo.py C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d488-example-real/diff --destination D490_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The controlled registry contains one blocked and one ready runtime, retains
+both runtime audits, and is accepted as ready. Its registry audit passes
+16/16. The all-ready preview blocks on the strict runtime. The complete
+controlled query returns 53/53 rows without truncation, and its query audit
+passes 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d490-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
