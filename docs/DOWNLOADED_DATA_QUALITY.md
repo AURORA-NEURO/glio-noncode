@@ -1231,3 +1231,34 @@ Live downloaded-ZIP evidence admits one ready and one blocked D172 runtime. The 
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d173-live-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d173-live-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-d173-live-query-audit.json`
+
+## D174 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry history
+
+D174 adds append-only history above D173 multi-runtime registries. Each snapshot preserves the stable registry identity, addressed registry state and counters, predecessor address, snapshot identity, and deterministic transition. Appends require the current head when supplied and reject duplicate snapshot IDs, duplicate registry addresses, identity changes, and stale heads. The latest state, readiness, and acceptance remain explicit projections.
+
+The persisted history is an exact four-file directory:
+
+- `manifest.json`
+- `history.json`
+- `entries.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history REGISTRY_DIR --history-id quality-runtime-registry-history-d174 --snapshot-id blocked --destination HISTORY_DIR --overwrite --format json --output history.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-append HISTORY_DIR REGISTRY_DIR --snapshot-id ready --expected-head HEAD_ADDRESS --destination HISTORY_DIR --overwrite --format json --output history.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-audit HISTORY_DIR --format json --output history-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-query HISTORY_DIR --limit 128 --format json --output history-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-query-audit history-query.json HISTORY_DIR --format json --output history-query-audit.json
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history`, with `/append`, `/audit`, `/query`, and `/query-audit` suffixes. Entry, entries, manifest, summary, history, audit, query, and capability schemas are exposed beneath the same API family.
+
+Live downloaded-ZIP evidence appends a blocked D173 registry followed by a ready D173 registry with the same registry identity. The history reports `initial → improved`, `latest_state=ready`, and `latest_release_ready=true`; the independent history audit passes `16/16`; the bounded query returns `30/30` rows without truncation; and the independent query audit passes `12/12`. Duplicate address, stale-head, persistence tamper, CLI, HTTP, and schema controls are covered by the regression suite. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-d174-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-d174-live.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-d174-live-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-d174-live-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-d174-live-query-audit.json`
