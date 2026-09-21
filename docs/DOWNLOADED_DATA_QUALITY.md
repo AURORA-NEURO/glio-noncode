@@ -6598,6 +6598,32 @@ rows returned without truncation. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d384-example-real/summary.json
 ```
 
+## D385 runtime registry admission
+
+D385 aggregates exact four-file D384 strict and release runtimes into a
+deterministic, content-addressed registry. Runtime identity and address
+duplicates are rejected; every admitted runtime retains its upstream diff and
+history addresses; and any blocked runtime conservatively keeps the aggregate
+blocked until all entries are ready. Registry, entry, and bounded query
+artifacts are independently audited, canonically reloadable, and tamper
+rejected.
+
+The focused demonstration admits both D384 outputs:
+
+```text
+python examples/downloaded_data_quality_d385_runtime_registry_demo.py D384_STRICT_DIR D384_RELEASE_DIR --destination D385_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two entries, one ready and one blocked, so the registry
+state was `blocked` and `release_ready` was `false`. Duplicate-runtime
+admission was rejected. The registry audit passed 16/16 checks; the blocked
+query returned 22/22 rows without truncation; and its query audit passed
+12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d385-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
