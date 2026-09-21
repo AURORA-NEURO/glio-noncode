@@ -9417,6 +9417,35 @@ passes 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d490-example-real/summary.json
 ```
 
+## D491 append-only ledger-diff runtime registry history
+
+D491 records immutable snapshots of D490 runtime registries in a content-
+addressed append-only history. Appends can require the expected current head,
+reject repeated snapshot or registry identities, and classify deterministic
+initial, promoted, regressed, unchanged, or changed transitions. The history
+retains predecessor addresses and latest readiness/acceptance, persists as an
+exact four-file artifact set, and is independently checked by a sixteen-check
+history audit. Bounded queries expose summaries, entries, transitions,
+readiness, addresses, and bounds; an independent twelve-check query audit
+replays filters, ordering, counts, addresses, and canonical serialization.
+
+The real-data demonstration builds strict and release D489 evaluations over
+the D488 diff derived from the supplied downloaded product archive, creates a
+blocked preview and a ready controlled registry, then appends both snapshots:
+
+```text
+python examples/downloaded_data_quality_d491_ledger_diff_runtime_registry_history_demo.py C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d488-example-real/diff --destination D491_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run records two snapshots and one blocked-to-ready promotion. The
+history audit passes 16/16; its complete query returns 29/29 rows without
+truncation and the query audit passes 12/12. A transition-filtered query
+returns the promoted `ready` snapshot. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d491-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
