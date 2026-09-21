@@ -9327,6 +9327,37 @@ query audit passes 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d487-example-real/summary.json
 ```
 
+## D488 gate-decision ledger diffs
+
+D488 compares a baseline D487 decision ledger with a candidate ledger that
+shares the same ledger identity. It matches decision IDs, classifies added,
+removed, changed, and unchanged decisions, records exact field-level deltas,
+retains both entry addresses and snapshots, and derives improved, regressed,
+changed, or unchanged direction plus the full state transition. Diff policies
+can require append-only evolution, a changed head, shared scenarios, accepted
+inputs, bounded additions/removals/changes, and an allowed direction. The
+result persists as an exact six-file artifact with independent sixteen-check
+diff and twelve-check query audits, bounded summary, policy, item, change,
+head, direction, address, and bound projections, canonical reload, and
+tamper rejection.
+
+The real-data demonstration compares the blocked baseline decision ledger with
+its ready candidate promotion, using the D483 artifact derived from the
+downloaded product archive:
+
+```text
+python examples/downloaded_data_quality_d488_gate_decision_ledger_diff_demo.py C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d483-example-real/diff --destination D488_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The comparison retained one unchanged baseline decision and one appended ready
+decision, with direction `improved` and state transition `blocked->ready`.
+The diff audit passed 16/16. The complete query returned 55/55 rows without
+truncation, and its query audit passed 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d488-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
