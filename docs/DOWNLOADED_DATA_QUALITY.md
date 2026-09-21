@@ -2754,6 +2754,30 @@ its query audit passed 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d230-example-real/summary.json
 ```
 
+## D231 registry history diff
+
+D231 compares exact four-file D230 histories while retaining both history
+addresses. It classifies ordinal entries as added, removed, changed, or
+unchanged, records field-level deltas, folds release direction and state
+transitions, and exposes independently audited bounded projections.
+
+The focused demonstration compares the blocked-only D230 baseline with the
+blocked-to-ready D230 candidate:
+
+```text
+python examples/downloaded_data_quality_d231_history_diff_demo.py D230_BASELINE_DIR D230_CANDIDATE_DIR --destination D231_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real downloaded-ZIP-derived run produced two items, one added and one
+unchanged, with direction `improved` and state transition `blocked->ready`.
+The diff audit passed 16/16 checks; the added-filter query returned 2/2 rows
+without truncation; and its query audit passed 12/12. The rerun summary is
+stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d231-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
