@@ -7254,6 +7254,33 @@ truncation with its query audit passing 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d409-example-real/summary.json
 ```
 
+## D410 runtime registry history
+
+D410 records D409 registry decisions in an append-only history. It enforces
+stable history and registry identity, optimistic expected-head appends,
+duplicate snapshot and registry-address rejection, deterministic transition
+folding, latest readiness projection, exact four-file persistence, independent
+history audits, and bounded history queries.
+
+The real-data demonstration starts with the mixed D409 registry and appends a
+ready-only D409 registry:
+
+```text
+python examples/downloaded_data_quality_d410_runtime_registry_history_demo.py D409_REGISTRY_DIR D409_RELEASE_DIR --destination D410_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The focused regression covers duplicate snapshots, stale-head rejection,
+canonical persistence reload, and tamper detection.
+
+The real run persisted two history entries, folded the latest state to `ready`
+with an `improved` transition, passed the history audit 16/16, and returned
+5/5 ready-query rows without truncation with its query audit passing 12/12. The
+rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d410-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
