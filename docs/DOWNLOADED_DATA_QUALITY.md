@@ -7197,6 +7197,36 @@ truncation with its query audit passing 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d407-example-real/summary.json
 ```
 
+## D408 history diff runtime evaluation
+
+D408 evaluates a D407 history diff under explicit strict and release policies.
+It applies independent added, removed, and changed budgets; direction,
+acceptance, state-transition, and unchanged controls; deterministic ready or
+blocked disposition; exact four-file runtime persistence; independent replay
+audits; and bounded summary, policy, check, comparison, readiness, address, and
+bounds queries.
+
+The real-data demonstration evaluates the D407 diff derived from the downloaded
+source archive:
+
+```text
+python examples/downloaded_data_quality_d408_history_diff_runtime_demo.py D407_DIFF_DIR --destination D408_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The focused regression covers strict-versus-release disposition, exact reload,
+query auditing, and tamper rejection.
+
+The real run found two diff items (one added and one unchanged), with direction
+`improved` and transition `blocked->ready`. The strict policy blocked on its
+zero-added budget (14/15 runtime checks passed), while the release policy was
+`ready` with all 15/15 checks passed. Both runtime audits passed 15/15, and the
+release query returned 58/58 rows without truncation with its query audit
+passing 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d408-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
