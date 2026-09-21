@@ -210,6 +210,10 @@ from glio_noncode import downloaded_data_quality_runtime_history_release_evidenc
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime as runtime_history_diff_policy_runtime_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit as runtime_history_diff_policy_runtime_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query as runtime_history_diff_policy_runtime_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit as runtime_history_diff_policy_runtime_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -3316,5 +3320,34 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 thread.join(timeout=10)
 
 
+    def test_runtime_history_diff_policy_replays_runtime_query_and_tamper(self) -> None:
+        runtime_model = runtime_history_diff_policy_runtime_model
+        diff_model = runtime_model.diff_model
+        history_model = diff_model.history_model
+        registry_model = history_model.registry_model
+        left_registry = registry_model.build_registry((), registry_id="d184-registry")
+        right_registry = registry_model.build_registry((), registry_id="d184-registry")
+        left_history = history_model.build_history(left_registry, history_id="d184-history", snapshot_id="baseline")
+        right_history = history_model.build_history(right_registry, history_id="d184-history", snapshot_id="candidate")
+        diff = diff_model.build_diff(left_history, right_history, diff_id="d184-diff")
+        policy = runtime_model.build_policy("d184-policy", diff.diff_id, maximum_changed=1)
+        runtime = runtime_model.build_runtime(diff, runtime_id="d184-runtime", policy=policy)
+        audit = runtime_history_diff_policy_runtime_audit_model.audit_runtime(runtime, diff)
+        query = runtime_history_diff_policy_runtime_query_model.query_runtime(runtime, resources=runtime_history_diff_policy_runtime_query_model.RESOURCES, limit=runtime_history_diff_policy_runtime_query_model.MAX_LIMIT)
+        query_audit = runtime_history_diff_policy_runtime_query_audit_model.audit_query(query, runtime)
+        self.assertTrue(runtime.release_ready)
+        self.assertEqual((runtime.state, runtime.direction, runtime.changed_count), ("ready", "changed", 1))
+        self.assertTrue(audit.accepted)
+        self.assertEqual(audit.check_count, 15)
+        self.assertTrue(query_audit.accepted)
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "runtime"
+            runtime_model.persist_runtime(runtime, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(runtime_model.FILES)))
+            self.assertEqual(runtime_model.load_runtime(destination).content_address, runtime.content_address)
+            summary = destination / "summary.json"
+            summary.write_text(summary.read_text(encoding="utf-8").replace('"state":"ready"', '"state":"blocked"', 1), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                runtime_model.load_runtime(destination)
 if __name__ == "__main__":
     unittest.main()

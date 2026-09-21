@@ -1538,3 +1538,33 @@ python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-
 The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff`, with `/audit`, `/query`, and `/query-audit` suffixes. Item, items, manifest, summary, diff, audit, query, query-audit, and capability schemas are exposed beneath the same API family.
 
 The focused replay verifies canonical round-trip, summary tamper rejection, same-registry identity enforcement, deterministic field-level change classification, bounded queries, independent 16/16 diff auditing, independent 12/12 query auditing, and the exact four-file artifact contract. The direct smoke uses the downloaded-data history model; the broader historical suite currently reports a pre-existing D174 registry-identity failure before reaching D183.
+
+## D184 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry history diff runtime registry history diff runtime registry history diff runtime
+
+D184 evaluates a D183 baseline/candidate history diff against an explicit, value-only release policy. The policy controls minimum comparison depth, added/removed/changed budgets, allowed direction, source acceptance, required state changes, and whether unchanged snapshots are allowed. Fifteen deterministic checks fold into a `ready` or `blocked` runtime with failed-check evidence and a `release_ready` projection.
+
+The persisted runtime is an exact four-file directory:
+
+- `manifest.json`
+- `runtime.json`
+- `checks.json`
+- `summary.json`
+
+The CLI surface is:
+
+~~~powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime DIFF_DIR --runtime-id quality-history-diff-policy-d184 --maximum-added 1 --destination RUNTIME_DIR --overwrite --format json --output runtime.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit RUNTIME_DIR --format json --output runtime-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query RUNTIME_DIR --limit 128 --format json --output runtime-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit runtime-query.json RUNTIME_DIR --format json --output runtime-query-audit.json
+~~~
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime`, with `/audit`, `/query`, and `/query-audit` suffixes. Policy, check, manifest, summary, runtime, audit, query, and capability schemas are exposed beneath the same API family.
+
+The focused replay builds a D183 diff from two downloaded-data history snapshots, evaluates the permissive policy, verifies `state=ready`, `release_ready=true`, and `15/15` runtime checks, replays all bounded query resources, and rejects a tampered persisted summary. A strict negative-control policy with `maximum_changed=0` can be used to force a blocked decision while preserving the same auditable artifact contract.
+
+Live evidence from the supplied ZIP first reports `25` catalog members, `17` selected data members, `4,030` records, `136` profiled fields, and an accepted `563`-check quality result. The D184 replay derived its stable history identity from that source result, then produced a ready runtime with `15/15` checks, `58/58` query rows, and a `12/12` query audit. The `maximum_changed=0` negative control produced `state=blocked`, `release_ready=false`, and `14/15` checks. Artifacts are available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d184-diff`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d184`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d184-blocked`
