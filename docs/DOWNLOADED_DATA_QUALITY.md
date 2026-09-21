@@ -4312,6 +4312,31 @@ audit passed 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d292-example-real/summary.json
 ```
 
+## D293 runtime registry admission
+
+D293 aggregates multiple D292 runtimes into a deterministic content-addressed
+registry. It rejects duplicate runtime identities and content addresses,
+folds `ready` and `blocked` entries conservatively, and retains each runtime
+address in bounded registry projections. Exact four-file persistence,
+sixteen-check registry audits, twelve-check query audits, canonical reload,
+and tamper rejection are included.
+
+The focused demonstration admits the real strict and release D292 runtimes:
+
+```text
+python examples/downloaded_data_quality_d293_runtime_registry_demo.py D292_STRICT_DIR D292_RELEASE_DIR --destination D293_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real registry contained two entries: one ready and one blocked. The
+aggregate was conservatively `blocked`, duplicate-runtime admission was
+rejected, the registry audit passed 16/16 checks, the blocked query returned
+22/22 rows without truncation, and its query audit passed 12/12. The rerun
+summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d293-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
