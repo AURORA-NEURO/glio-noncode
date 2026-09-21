@@ -4388,6 +4388,30 @@ query audit passed 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d295-example-real/summary.json
 ```
 
+## D296 history diff runtime evaluation
+
+D296 evaluates a D295 history diff under independent strict and release
+policies. It enforces bounded added, removed, and changed budgets, direction,
+acceptance, state-transition, and unchanged-item controls, then emits a
+deterministic `ready` or `blocked` runtime with fifteen checks. Runtime,
+audit, query, and query-audit artifacts retain their upstream diff address,
+support canonical reload, and reject tampering.
+
+The focused demonstration runs both policies against the real D295 diff:
+
+```text
+python examples/downloaded_data_quality_d296_history_diff_runtime_demo.py D295_DIFF_DIR --destination D296_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run intentionally blocked strict admission on the one-added-item
+budget while release admission was ready. Both runtime audits passed 15/15;
+the release projection returned 58/58 rows without truncation; and its query
+audit passed 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d296-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
