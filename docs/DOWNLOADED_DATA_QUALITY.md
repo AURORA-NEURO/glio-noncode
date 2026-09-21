@@ -9060,6 +9060,31 @@ is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d477-example-real/summary.json
 ```
 
+## D478 release-batch history
+
+D478 records D477 release-batch decisions in an append-only history. It keeps
+stable history identity, optimistic expected-head appends, unique snapshot and
+batch addresses, deterministic `initial`, `promoted`, `regressed`, `unchanged`,
+and `changed` transitions, and an exact four-file persisted artifact. The
+history and its bounded transition/readiness query each have independent
+audits, canonical reload checks, and value-only public projections.
+
+The real-data demonstration records the blocked all-ready preview followed by
+the ready controlled batch:
+
+```text
+python examples/downloaded_data_quality_d478_release_batch_history_demo.py D475_DIFF_DIR --destination D478_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The resulting history contains two entries, with a `blocked->ready` `promoted`
+transition at the head. The history audit passed 16/16. The promotion query
+returned 2/2 rows without truncation and its query audit passed 12/12. The
+rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d478-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
