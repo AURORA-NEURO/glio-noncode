@@ -9190,6 +9190,32 @@ returned 1/1 row. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d482-example-real/summary.json
 ```
 
+## D483 runtime registry history diff
+
+D483 compares baseline and candidate D482 runtime-registry histories by
+snapshot identity. It classifies added, removed, changed, and unchanged
+snapshots; preserves exact field-level deltas and both source entry addresses;
+folds readiness movement into `improved`, `regressed`, `changed`, or
+`unchanged` direction; retains the full latest-state transition; persists an
+exact four-file diff; and provides independent diff and query audits.
+
+The real-data demonstration compares the blocked registry-history head with
+its ready promotion head:
+
+```text
+python examples/downloaded_data_quality_d483_history_diff_runtime_registry_history_diff_demo.py D479_DIFF_DIR --destination D483_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The comparison produced one added promotion snapshot and one unchanged
+baseline snapshot, with direction `improved` and state transition
+`blocked->ready`. The diff audit passed 16/16. The added query returned 2/2
+rows without truncation and its query audit passed 12/12. The rerun summary is
+stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d483-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
