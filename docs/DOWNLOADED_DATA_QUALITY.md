@@ -2006,3 +2006,27 @@ stored outside the repository at:
 ```text
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d198-example-real/summary.json
 ```
+
+## D199 runtime registry history diff
+
+D199 compares exact four-file D198 histories while preserving both history
+addresses and classifying each ordinal as added, removed, changed, or
+unchanged.  Direction and state-transition folding preserve the release
+movement, and independent diff/query audits verify the bounded projections.
+
+The focused demonstration compares a blocked-only baseline with the
+blocked-to-ready candidate:
+
+```text
+python examples/downloaded_data_quality_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_demo.py D198_BASELINE_DIR D198_CANDIDATE_DIR --destination D199_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run classified two history items as one added and one unchanged,
+folded the direction to `improved`, and preserved `blocked->ready`.  The
+independent diff audit passed 16/16 checks; the added-only query returned 2/2
+rows without truncation, and its query audit passed 12/12.  The rerun summary
+is stored outside the repository at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d199-example-real/summary.json
+```
