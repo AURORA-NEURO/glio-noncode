@@ -1819,3 +1819,41 @@ without truncation, and a `12/12` query audit. Evidence is available at:
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d191-real-demo/diff`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d191-left-check`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d191-right-check`
+
+## D192 history-diff runtime release evaluation
+
+D192 evaluates an exact four-file D191 history diff against a bounded release
+policy.  It keeps the comparison's direction, state transition, counts, and
+canonical addresses linked into fifteen independent checks.  A failed budget
+or disposition check produces a deterministic `blocked` runtime; a policy that
+accepts the comparison produces `ready` evidence without exposing source paths,
+records, payload bytes, or private metadata through the value model.
+
+The CLI surface is:
+
+```text
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime D191_DIFF_DIR --destination D192_RELEASE_DIR --overwrite --format json --output runtime.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit D192_RELEASE_DIR --format json --output runtime-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query D192_RELEASE_DIR --limit 128 --format json --output runtime-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit runtime-query.json D192_RELEASE_DIR --format json --output runtime-query-audit.json
+```
+
+The focused demonstration evaluates both sides of the policy boundary and
+persists `strict/`, `release/`, `strict-audit.json`, `release-audit.json`,
+`release-query.json`, `release-query-audit.json`, and `summary.json`:
+
+```text
+python examples/downloaded_data_quality_history_diff_runtime_registry_history_diff_runtime_demo.py D191_DIFF_DIR --destination D192_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run used the downloaded archive named above as the provenance source.
+Its D191 comparison contained one accepted improved change across a
+`blocked->ready` transition.  D192's default zero-change policy produced
+`blocked` at 14/15 checks with only `changed_budget` failing.  The release
+policy permitting one change produced `ready` at 15/15; its independent
+runtime audit passed 15/15 and its query audit passed 12/12 with 58/58 rows
+returned.  The rerun summary is stored outside the repository at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d192-real-demo/summary.json
+```
