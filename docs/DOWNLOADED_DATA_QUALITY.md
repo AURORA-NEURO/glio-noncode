@@ -1357,3 +1357,37 @@ Live downloaded-ZIP-derived evidence admits the D176 ready runtime and strict-bu
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-live-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-live-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-live-query-audit.json`
+
+## D178 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry history diff runtime registry history
+
+D178 adds append-only history above D177 runtime registries. A history records the registry identity and a sequence of content-addressed snapshots. Appends require the current snapshot entry address as the optimistic expected head, reject duplicate snapshot IDs and registry addresses, and fold transitions as `initial`, `improved`, `regressed`, `unchanged`, or `changed` while exposing the latest state and readiness.
+
+The persisted history is an exact four-file directory:
+
+- `manifest.json`
+- `history.json`
+- `entries.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history REGISTRY_DIR --history-id quality-runtime-registry-history-d178 --snapshot-id blocked --destination HISTORY_DIR --overwrite --format json --output history.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-append HISTORY_DIR READY_REGISTRY_DIR --snapshot-id ready --expected-head SNAPSHOT_ENTRY_ADDRESS --destination NEXT_HISTORY_DIR --overwrite --format json --output next-history.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit HISTORY_DIR --format json --output history-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query HISTORY_DIR --limit 128 --format json --output history-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit history-query.json HISTORY_DIR --format json --output history-query-audit.json
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history`, with `/append`, `/audit`, `/query`, and `/query-audit` suffixes. Entry, entries, manifest, summary, history, audit, query, and capability schemas are exposed beneath the same API family.
+
+Live downloaded-ZIP-derived evidence starts with the blocked D177 registry and appends the ready D177 registry. The initial snapshot is blocked; the appended history is `latest_state=ready`, `latest_release_ready=true`, with `2` entries and transitions `initial,improved`. The independent history audit passes `16/16`; the history query returns `30/30` rows without truncation; and its independent query audit passes `12/12`. A stale history-document address was rejected by the expected-head guard; the successful append used the authoritative initial snapshot entry address. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-ready-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live-initial`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live-query-audit.json`
