@@ -8812,6 +8812,30 @@ The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d467-example-real/summary.json
 ```
 
+## D468 history-diff runtime evaluation
+
+D468 evaluates D467 history diffs under explicit strict and release policies.
+Policies bound added, removed, and changed items, allowed direction, upstream
+acceptance, state transitions, and unchanged behavior. Each decision retains
+the diff and policy addresses, emits bounded checks, persists an exact
+four-file runtime, and exposes independent runtime and query audits.
+
+The real-data demonstration evaluates the D467 comparison under both policies:
+
+```text
+python examples/downloaded_data_quality_d468_history_diff_runtime_demo.py D467_DIFF_DIR --destination D468_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The strict policy correctly blocked the real diff on its added and changed
+budgets, while the release policy accepted it as `ready` with all 15 runtime
+checks passing. Both runtime audits passed 15/15. The release query returned
+58/58 rows without truncation and its query audit passed 12/12. The rerun
+summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d468-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
