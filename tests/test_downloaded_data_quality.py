@@ -3511,5 +3511,37 @@ class DownloadedDataQualityTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 runtime_model.load_runtime(destination)
 
+    def test_runtime_registry_history_diff_runtime_registry_replays_admission_query_and_tamper(self) -> None:
+        runtime_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model
+        registry_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model
+        diff_model = runtime_model.diff_model
+        history_model = diff_model.history_model
+        source_registry_model = history_model.registry_model
+        source_registry = source_registry_model.build_registry((), registry_id="d189-source-registry")
+        baseline = history_model.build_history(source_registry, history_id="d189-history", snapshot_id="baseline")
+        candidate = history_model.build_history(source_registry, history_id="d189-history", snapshot_id="candidate")
+        diff = diff_model.build_diff(baseline, candidate, diff_id="d189-diff")
+        ready = runtime_model.build_runtime(diff, runtime_id="d189-ready", policy=runtime_model.build_policy("d189-ready-policy", diff.diff_id, maximum_changed=1))
+        blocked = runtime_model.build_runtime(diff, runtime_id="d189-blocked", policy=runtime_model.build_policy("d189-blocked-policy", diff.diff_id, maximum_changed=0))
+        registry = registry_model.build_registry((ready, blocked), registry_id="d189-registry")
+        audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model.audit_registry(registry)
+        query = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.query_registry(registry, resources=runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.RESOURCES, limit=runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.MAX_LIMIT)
+        query_audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model.audit_query(query, registry)
+        self.assertEqual((registry.state, registry.release_ready, registry.accepted, registry.entry_count, registry.ready_count, registry.blocked_count), ("blocked", False, True, 2, 1, 1))
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (16, 16, True))
+        self.assertEqual((query.total_count, query.returned_count, query.truncated), (24, 24, False))
+        self.assertEqual((query_audit.check_count, query_audit.passed_count, query_audit.accepted), (12, 12, True))
+        with self.assertRaises(ValidationError):
+            registry_model.build_registry((ready, ready), registry_id="d189-duplicate")
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "registry"
+            registry_model.persist_registry(registry, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(registry_model.FILES)))
+            self.assertEqual(registry_model.load_registry(destination).content_address, registry.content_address)
+            summary = destination / "summary.json"
+            summary.write_text(summary.read_text(encoding="utf-8").replace('"state":"blocked"', '"state":"ready"', 1), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                registry_model.load_registry(destination)
+
 if __name__ == "__main__":
     unittest.main()

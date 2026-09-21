@@ -1702,3 +1702,37 @@ The focused replay verifies policy acceptance and blocking, exact-file persisten
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/quality-runtime`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d188-runtime`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d188-summary.json`
+
+## D189 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry
+
+D189 admits one or more typed D188 policy runtimes into a deterministic value-free registry. Admission rejects duplicate runtime identities and duplicate runtime content addresses, retains each runtime's diff identity and release disposition, and folds the aggregate to `empty`, `ready`, or `blocked` while preserving entry, ready, blocked, and release-readiness counters.
+
+The persisted registry is an exact four-file directory:
+
+- `manifest.json`
+- `registry.json`
+- `entries.json`
+- `summary.json`
+
+The CLI surface is:
+
+~~~powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry RUNTIME_DIR... --registry-id quality-registry-history-diff-runtime-registry-d189 --destination REGISTRY_DIR --overwrite --format json --output registry.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit REGISTRY_DIR --format json --output registry-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query REGISTRY_DIR --limit 128 --format json --output registry-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit registry-query.json REGISTRY_DIR --format json --output registry-query-audit.json
+~~~
+
+The repository example performs the same admission and writes a compact summary alongside the exact registry package:
+
+~~~powershell
+python examples/downloaded_data_quality_history_diff_runtime_registry_demo.py D188_READY_RUNTIME_DIR D188_BLOCKED_RUNTIME_DIR --registry-id quality-registry-history-diff-runtime-registry-d189 --destination D189_OUTPUT_DIR
+~~~
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry`, with `/audit`, `/query`, and `/query-audit` suffixes. Entry, entries, manifest, summary, registry, audit, query, query-audit, schema, and capability projections are exposed beneath the same API family.
+
+The focused replay verifies ready/blocked aggregate folding, duplicate identity rejection, exact-file persistence, canonical reload, summary tamper rejection, independent `16/16` registry auditing, bounded query completeness, and independent `12/12` query auditing. The fresh downloaded-ZIP-derived replay admitted one ready and one blocked D188 runtime, producing `state=blocked`, `release_ready=false`, `entry_count=2`, `ready_count=1`, `blocked_count=1`, `16/16` registry checks, `24/24` query rows without truncation, and a `12/12` query audit. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d189-registry/summary.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d189-registry/registry`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d189-blocked-runtime`
