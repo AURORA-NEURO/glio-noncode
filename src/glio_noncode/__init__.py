@@ -9,7 +9,16 @@ from __future__ import annotations
 
 from importlib import import_module as _import_module
 from sys import modules as _modules
+import sys as _sys
 from types import ModuleType as _ModuleType
+
+
+# The package keeps historical compatibility layers importable as one
+# deterministic chain. Generated layers can exceed the default Windows
+# recursion budget during cold imports, so raise it once to a bounded level
+# that remains far below the platform stack guard.
+if _sys.getrecursionlimit() < 4096:
+    _sys.setrecursionlimit(4096)
 
 from . import _public_surface as _surface
 
