@@ -2245,3 +2245,27 @@ its query audit passed 12/12 over 58/58 rows. The rerun summary is stored at:
 ```text
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d208-example-real/summary.json
 ```
+
+## D209 history-diff runtime registry admission
+
+D209 aggregates exact four-file D208 strict and release runtimes into a
+deterministic content-addressed registry. Duplicate runtime identity or
+address is rejected, and one blocked runtime conservatively keeps the
+aggregate blocked. Independent registry and query audits verify the bounded
+projections.
+
+The focused demonstration admits the D208 outputs:
+
+```text
+python examples/downloaded_data_quality_d209_runtime_registry_demo.py D208_STRICT_DIR D208_RELEASE_DIR --destination D209_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two entries, one ready and one blocked, so the registry
+was blocked and not release-ready. Its audit passed 16/16 checks, the
+blocked-only query returned 22/22 rows without truncation, and its query audit
+passed 12/12. Duplicate runtime admission was rejected. The rerun summary is
+stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d209-example-real/summary.json
+```
