@@ -6252,6 +6252,30 @@ ready query returned 5/5 rows without truncation and its query audit passed
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d370-example-real/summary.json
 ```
 
+## D371 registry history comparison
+
+D371 compares two D370 registry histories while preserving both stable history
+addresses. It classifies each ordinal as added, removed, changed, or
+unchanged, records field-level deltas and entry addresses, folds direction and
+state transitions, persists an exact four-file diff, and exposes independently
+audited filtered queries with canonical reload and tamper rejection.
+
+The focused demonstration derives a blocked-only baseline from the real D369
+registry and compares it with the real blocked-to-ready D370 history:
+
+```text
+python examples/downloaded_data_quality_d371_history_diff_demo.py D370_BASELINE_HISTORY D370_CANDIDATE_HISTORY --destination D371_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip --change added
+```
+
+The real run produced two comparison items: one added and one unchanged. The
+direction was `improved`, the state transition was `blocked->ready`, the diff
+audit passed 16/16 checks, and the added query returned 2/2 rows without
+truncation with its query audit passing 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d371-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
