@@ -6499,6 +6499,31 @@ query audit passed 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d380-example-real/summary.json
 ```
 
+## D381 runtime registry admission
+
+D381 aggregates exact four-file D380 strict and release runtimes into a
+deterministic content-addressed registry. Runtime identity and address
+duplicates are rejected, and any blocked admitted runtime conservatively keeps
+the registry blocked until every entry is ready. The registry, entry, and
+bounded query projections retain their upstream runtime and diff addresses.
+
+The focused demonstration admits both D380 outputs from the real downloaded
+source archive:
+
+```text
+python examples/downloaded_data_quality_d381_runtime_registry_demo.py D380_STRICT_DIR D380_RELEASE_DIR --destination D381_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run admitted two runtimes, retained one blocked strict decision and
+one ready release decision, and therefore folded the registry to `blocked`.
+Its registry audit passed 16/16 checks, the blocked query returned 22/22 rows
+without truncation, its query audit passed 12/12, and duplicate-runtime
+admission was rejected. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d381-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
