@@ -9032,6 +9032,34 @@ summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d476-example-real/summary.json
 ```
 
+## D477 release-batch promotion
+
+D477 promotes multiple D476 runtimes into a bounded release decision. A batch
+policy controls minimum runtime and ready counts, maximum blocked count,
+same-diff lineage, audit evidence, all-runtime readiness, and mixed policy
+handling. Every item retains runtime, diff, policy, and optional audit
+addresses. The batch emits eighteen deterministic checks, an exact six-file
+artifact, independent batch and query audits, and bounded summary, policy,
+item, check, readiness, address, and bounds projections.
+
+The real-data demonstration consumes the ZIP-derived D475 diff, evaluates
+strict and release D476 runtimes, and promotes them under a controlled policy:
+
+```text
+python examples/downloaded_data_quality_d477_release_batch_demo.py D475_DIFF_DIR --destination D477_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The controlled policy accepted one ready and one blocked runtime because its
+minimum-ready and maximum-blocked thresholds were satisfied. Its batch audit
+passed 16/16 and the full query returned 53/53 rows without truncation with a
+12/12 query audit. The stricter all-ready preview remained blocked on its
+minimum-ready, blocked-budget, and release-readiness checks. The rerun summary
+is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d477-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
