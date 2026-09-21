@@ -9272,6 +9272,34 @@ rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d485-example-real/summary.json
 ```
 
+## D486 history-diff runtime scenario release gates
+
+D486 turns a D485 policy scenario into an explicit promotion decision. Gate
+policies enforce minimum ready runtimes, maximum blocked runtimes, signed
+budget-margin floors, disallowed-risk allowlists, scenario acceptance and
+readiness, and independent scenario-audit, complete-query, and query-audit
+evidence requirements. The gate retains all scenario and evidence addresses,
+emits deterministic check-level reasons, persists an exact five-file bundle,
+and exposes summary, policy, check, evidence, readiness, margin, risk,
+address, and bounds projections.
+
+The real-data demonstration evaluates both the default blocking policy and a
+controlled policy over the D485 scenario derived from the downloaded archive:
+
+```text
+python examples/downloaded_data_quality_d486_history_diff_runtime_policy_scenario_release_gate_demo.py C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d483-example-real/diff --destination D486_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The default gate blocks on the one blocked runtime, the strict negative added
+margin, and disallowed risks. The controlled gate accepts the mixed scenario
+with all 18 gate checks passing, an independent gate audit of 18/18, and a
+complete 66-row gate query whose audit passes 12/12. The rerun summary is
+stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d486-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
