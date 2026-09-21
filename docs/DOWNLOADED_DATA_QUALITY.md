@@ -3049,6 +3049,30 @@ is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d242-example-real/summary.json
 ```
 
+## D243 runtime registry history diff
+
+D243 compares exact four-file D242 histories while retaining both history
+addresses. It classifies ordinal snapshots as added, removed, changed, or
+unchanged, records field-level deltas, folds direction and state transitions,
+and exposes independently audited bounded projections with canonical reload
+and tamper rejection.
+
+The focused demonstration compares a blocked-only D242 baseline with the
+two-entry D242 candidate derived from the downloaded source archive:
+
+```text
+python examples/downloaded_data_quality_d243_history_diff_demo.py D242_BASELINE_DIR D242_CANDIDATE_DIR --destination D243_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two items, one added and one unchanged, with direction
+`improved` and state transition `blocked->ready`. The diff audit passed 16/16
+checks; the added-filter query returned 2/2 rows without truncation; and its
+query audit passed 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d243-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
