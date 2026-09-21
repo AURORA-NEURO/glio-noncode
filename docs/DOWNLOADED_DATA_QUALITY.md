@@ -1600,3 +1600,36 @@ Live replay of `GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip` uses the pers
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d185-registry-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d185-registry-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d185-registry-query-audit.json`
+
+## D186 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry history diff runtime registry history diff runtime registry history diff runtime registry history
+
+D186 records an append-only history of D185 admission registries. A history has one stable `registry_id`, retains each addressed registry snapshot, assigns a deterministic sequence, classifies transitions such as `initial`, `ready_to_ready`, `blocked_to_ready`, and `ready_to_blocked`, and folds the latest snapshot into the current `empty`, `ready`, or `blocked` state. Appends require an optional expected head address, so stale writers fail before they can fork the history. Duplicate snapshot identifiers and duplicate addresses are rejected, and snapshots from a different registry identity cannot be admitted.
+
+The persisted history is an exact four-file directory:
+
+- `manifest.json`
+- `history.json`
+- `entries.json`
+- `summary.json`
+
+The CLI surface is:
+
+~~~powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history REGISTRY_DIR --history-id quality-registry-history-d186 --snapshot-id initial --destination HISTORY_DIR --overwrite --format json --output history.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-append HISTORY_DIR REGISTRY_DIR --snapshot-id next --expected-head HISTORY_HEAD --format json --output history-next.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit HISTORY_DIR --format json --output history-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query HISTORY_DIR --limit 128 --format json --output history-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit history-query.json HISTORY_DIR --format json --output history-query-audit.json
+~~~
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history`, with `/append`, `/audit`, `/query`, and `/query-audit` suffixes. Entry, entries, manifest, summary, history, audit, query, query-audit, and capability schemas are exposed beneath the same API family. Query resources are bounded and independently auditable across summary, entries, transitions, state, readiness, addresses, and bounds projections.
+
+The focused replay verifies the initial and appended snapshot sequence, stable registry identity, expected-head concurrency guard, duplicate snapshot/address rejection, foreign-registry rejection, deterministic transition classification, canonical reload, summary tamper rejection, independent 16/16 history auditing, bounded queries, and independent 12/12 query auditing.
+
+Live replay of `GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip` starts from the persisted D185 registry derived from the real downloaded source quality data. It produces a one-entry D186 history with the real registry address, `state=ready`, `release_ready=true`, a `16/16` history audit, `29/29` bounded query rows, and a `12/12` query audit. The focused D186 test passes; the 30-test historical file reports 29 passing tests and one pre-existing D174 registry-identity failure outside this layer. Evidence is written under:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d186`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d186.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d186-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d186-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d186-query-audit.json`

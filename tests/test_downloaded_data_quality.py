@@ -218,6 +218,10 @@ from glio_noncode import downloaded_data_quality_runtime_history_release_evidenc
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit as runtime_diff_policy_registry_audit_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query as runtime_diff_policy_registry_query_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit as runtime_diff_policy_registry_query_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history as runtime_diff_policy_registry_history_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit as runtime_diff_policy_registry_history_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query as runtime_diff_policy_registry_history_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit as runtime_diff_policy_registry_history_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -3389,5 +3393,46 @@ class DownloadedDataQualityTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 registry_model.load_registry(destination)
 
+    def test_runtime_diff_policy_registry_history_replays_append_query_and_guards(self) -> None:
+        registry_model = runtime_diff_policy_registry_model
+        runtime_model = registry_model.runtime_model
+        diff_model = runtime_model.diff_model
+        source_history_model = diff_model.history_model
+        source_registry_model = source_history_model.registry_model
+        left_registry = source_registry_model.build_registry((), registry_id="d186-source-registry")
+        right_registry = source_registry_model.build_registry((), registry_id="d186-source-registry")
+        left_history = source_history_model.build_history(left_registry, history_id="d186-source-history", snapshot_id="baseline")
+        right_history = source_history_model.build_history(right_registry, history_id="d186-source-history", snapshot_id="candidate")
+        diff = diff_model.build_diff(left_history, right_history, diff_id="d186-diff")
+        policy = runtime_model.build_policy("d186-policy", diff.diff_id, maximum_changed=1)
+        runtime = runtime_model.build_runtime(diff, runtime_id="d186-runtime", policy=policy)
+        empty_registry = registry_model.build_registry((), registry_id="d186-registry")
+        ready_registry = registry_model.build_registry((runtime,), registry_id="d186-registry")
+        history_model = runtime_diff_policy_registry_history_model
+        history = history_model.build_history(empty_registry, history_id="d186-history", snapshot_id="empty")
+        appended = history_model.append_history(history, ready_registry, snapshot_id="ready", expected_head=history.entries[-1].content_address)
+        audit = runtime_diff_policy_registry_history_audit_model.audit_history(appended)
+        query = runtime_diff_policy_registry_history_query_model.query_history(appended, resources=runtime_diff_policy_registry_history_query_model.RESOURCES, limit=runtime_diff_policy_registry_history_query_model.MAX_LIMIT)
+        query_audit = runtime_diff_policy_registry_history_query_audit_model.audit_query(query, appended)
+        self.assertEqual((history.entry_count, appended.entry_count, appended.latest_state, appended.latest_release_ready), (1, 2, "ready", True))
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (16, 16, True))
+        self.assertGreater(query.returned_count, 0)
+        self.assertEqual((query_audit.check_count, query_audit.passed_count, query_audit.accepted), (12, 12, True))
+        with self.assertRaises(ValidationError):
+            history_model.append_history(appended, ready_registry, snapshot_id="duplicate", expected_head=appended.entries[-1].content_address)
+        with self.assertRaises(ValidationError):
+            history_model.append_history(appended, empty_registry, snapshot_id="stale", expected_head=history.entries[-1].content_address)
+        foreign_registry = registry_model.build_registry((), registry_id="d186-foreign")
+        with self.assertRaises(ValidationError):
+            history_model.append_history(history, foreign_registry, snapshot_id="foreign", expected_head=history.entries[-1].content_address)
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "history"
+            history_model.persist_history(appended, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(history_model.FILES)))
+            self.assertEqual(history_model.load_history(destination).content_address, appended.content_address)
+            summary = destination / "summary.json"
+            summary.write_text(summary.read_text(encoding="utf-8").replace('"latest_state":"ready"', '"latest_state":"empty"', 1), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                history_model.load_history(destination)
 if __name__ == "__main__":
     unittest.main()
