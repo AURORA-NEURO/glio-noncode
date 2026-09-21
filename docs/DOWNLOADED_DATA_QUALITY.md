@@ -1568,3 +1568,35 @@ Live evidence from the supplied ZIP first reports `25` catalog members, `17` sel
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d184-diff`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d184`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d184-blocked`
+
+## D185 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry history diff runtime registry history diff runtime registry history diff runtime registry
+
+D185 admits one or more typed D184 policy runtimes into a deterministic addressed registry. Admission rejects duplicate runtime identities and duplicate runtime content addresses, preserves each runtime decision as an entry, and folds the aggregate to `empty`, `ready`, or `blocked` while retaining entry, ready, and blocked counts plus the aggregate `release_ready` projection. The registry is value-only: it carries runtime decisions, addresses, states, and audit evidence without exposing source paths or source records.
+
+The persisted registry is an exact four-file directory:
+
+- `manifest.json`
+- `registry.json`
+- `entries.json`
+- `summary.json`
+
+The CLI surface is:
+
+~~~powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry RUNTIME_DIR... --registry-id quality-runtime-registry-d185 --destination REGISTRY_DIR --overwrite --format json --output registry.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit REGISTRY_DIR --format json --output registry-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query REGISTRY_DIR --limit 128 --format json --output registry-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit registry-query.json REGISTRY_DIR --format json --output registry-query-audit.json
+~~~
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry`, with `/audit`, `/query`, and `/query-audit` suffixes. Entry, entries, manifest, summary, registry, audit, query, query-audit, and capability schemas are exposed beneath the same API family. Query resources are bounded and independently auditable across summary, entries, diffs, state, readiness, addresses, and bounds projections.
+
+The focused replay builds two D184 policy runtimes over the same downloaded-data history diff, admits both, verifies canonical round-trip and summary tamper rejection, rejects a duplicate runtime identity, and independently replays the registry and query contracts. The ready registry folds to `state=ready`, `release_ready=true`, and `2` ready entries; the registry audit passes `16/16`; the bounded query returns `22/22` rows; and the query audit passes `12/12`.
+
+Live replay of `GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip` uses the persisted D184 runtime derived from the real source quality data. It produces a ready one-entry D185 registry with `entry_count=1`, `ready_count=1`, and `release_ready=true`; the registry audit passes `16/16`; the bounded query returns `22/22` rows without truncation; and the query audit passes `12/12`. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d185-registry`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d185-registry.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d185-registry-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d185-registry-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d185-registry-query-audit.json`

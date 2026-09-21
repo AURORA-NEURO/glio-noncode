@@ -214,6 +214,10 @@ from glio_noncode import downloaded_data_quality_runtime_history_release_evidenc
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit as runtime_history_diff_policy_runtime_audit_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query as runtime_history_diff_policy_runtime_query_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit as runtime_history_diff_policy_runtime_query_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry as runtime_diff_policy_registry_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit as runtime_diff_policy_registry_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query as runtime_diff_policy_registry_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit as runtime_diff_policy_registry_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -3349,5 +3353,41 @@ class DownloadedDataQualityTests(unittest.TestCase):
             summary.write_text(summary.read_text(encoding="utf-8").replace('"state":"ready"', '"state":"blocked"', 1), encoding="utf-8")
             with self.assertRaises(ValidationError):
                 runtime_model.load_runtime(destination)
+
+    def test_runtime_diff_policy_registry_replays_query_and_rejects_duplicates(self) -> None:
+        registry_model = runtime_diff_policy_registry_model
+        runtime_model = registry_model.runtime_model
+        diff_model = runtime_model.diff_model
+        history_model = diff_model.history_model
+        history_registry_model = history_model.registry_model
+        left_registry = history_registry_model.build_registry((), registry_id="d185-history-registry")
+        right_registry = history_registry_model.build_registry((), registry_id="d185-history-registry")
+        left_history = history_model.build_history(left_registry, history_id="d185-history", snapshot_id="baseline")
+        right_history = history_model.build_history(right_registry, history_id="d185-history", snapshot_id="candidate")
+        diff = diff_model.build_diff(left_history, right_history, diff_id="d185-diff")
+        policy = runtime_model.build_policy("d185-policy", diff.diff_id, maximum_changed=1)
+        runtime_one = runtime_model.build_runtime(diff, runtime_id="d185-runtime-one", policy=policy)
+        runtime_two = runtime_model.build_runtime(diff, runtime_id="d185-runtime-two", policy=policy)
+        registry = registry_model.build_registry((runtime_one, runtime_two), registry_id="d185-registry")
+        audit = runtime_diff_policy_registry_audit_model.audit_registry(registry)
+        query = runtime_diff_policy_registry_query_model.query_registry(registry, resources=runtime_diff_policy_registry_query_model.RESOURCES, limit=runtime_diff_policy_registry_query_model.MAX_LIMIT)
+        query_audit = runtime_diff_policy_registry_query_audit_model.audit_query(query, registry)
+        self.assertEqual((registry.state, registry.entry_count, registry.ready_count, registry.release_ready), ("ready", 2, 2, True))
+        self.assertTrue(audit.accepted)
+        self.assertEqual(audit.check_count, 16)
+        self.assertGreater(query.returned_count, 0)
+        self.assertTrue(query_audit.accepted)
+        with self.assertRaises(ValidationError):
+            registry_model.build_registry((runtime_one, runtime_one), registry_id="d185-duplicate")
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "registry"
+            registry_model.persist_registry(registry, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(registry_model.FILES)))
+            self.assertEqual(registry_model.load_registry(destination).content_address, registry.content_address)
+            summary = destination / "summary.json"
+            summary.write_text(summary.read_text(encoding="utf-8").replace('"state":"ready"', '"state":"blocked"', 1), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                registry_model.load_registry(destination)
+
 if __name__ == "__main__":
     unittest.main()
