@@ -3655,5 +3655,50 @@ class DownloadedDataQualityTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 diff_model.load_diff(destination)
 
+    def test_runtime_registry_history_diff_runtime_registry_replays_aggregate_query_and_duplicates(self) -> None:
+        registry_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model
+        runtime_model = registry_model.runtime_model
+        diff_model = runtime_model.diff_model
+        source_history_model = diff_model.history_model
+        source_registry_model = source_history_model.registry_model
+        source_registry = source_registry_model.build_registry((), registry_id="d193-source-registry")
+        left = source_history_model.build_history(source_registry, history_id="d193-source-history", snapshot_id="baseline")
+        right = source_history_model.build_history(source_registry, history_id="d193-source-history", snapshot_id="candidate")
+        diff = diff_model.build_diff(left, right, diff_id="d193-diff")
+        ready = runtime_model.build_runtime(
+            diff,
+            runtime_id="d193-ready-runtime",
+            policy=runtime_model.build_policy("d193-ready-policy", diff.diff_id, minimum_items=1, maximum_changed=1),
+        )
+        blocked = runtime_model.build_runtime(
+            diff,
+            runtime_id="d193-blocked-runtime",
+            policy=runtime_model.build_policy("d193-blocked-policy", diff.diff_id, minimum_items=2),
+        )
+        registry = registry_model.build_registry((blocked, ready), registry_id="d193-registry")
+        audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_audit_model.audit_registry(registry)
+        query = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.query_registry(
+            registry,
+            resources=runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.RESOURCES,
+            state_filter="blocked",
+            limit=runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_model.MAX_LIMIT,
+        )
+        query_audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_query_audit_model.audit_query(query, registry)
+        self.assertEqual((registry.state, registry.entry_count, registry.ready_count, registry.blocked_count, registry.release_ready), ("blocked", 2, 1, 1, False))
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (16, 16, True))
+        self.assertGreater(query.returned_count, 0)
+        self.assertEqual((query_audit.check_count, query_audit.passed_count, query_audit.accepted), (12, 12, True))
+        with self.assertRaises(ValidationError):
+            registry_model.build_registry((ready, ready), registry_id="d193-duplicate")
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "registry"
+            registry_model.persist_registry(registry, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(registry_model.FILES)))
+            self.assertEqual(registry_model.load_registry(destination).content_address, registry.content_address)
+            summary = destination / "summary.json"
+            summary.write_text(summary.read_text(encoding="utf-8").replace('"state":"blocked"', '"state":"ready"', 1), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                registry_model.load_registry(destination)
+
 if __name__ == "__main__":
     unittest.main()
