@@ -2900,6 +2900,30 @@ truncation; and its query audit passed 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d236-example-real/summary.json
 ```
 
+## D237 runtime registry admission
+
+D237 admits typed D236 strict and release runtimes into a deterministic
+content-addressed registry. Runtime identity and address duplicates are
+rejected, aggregate state remains blocked while any admitted decision is
+blocked, and registry, audit, and bounded query projections retain their
+upstream runtime addresses.
+
+The focused demonstration admits both real D236 runtime directories:
+
+```text
+python examples/downloaded_data_quality_d237_runtime_registry_demo.py D236_STRICT_DIR D236_RELEASE_DIR --destination D237_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run admitted two entries: one ready and one blocked. The aggregate
+state was `blocked` with `release_ready=false`, and duplicate runtime
+admission was rejected. The registry audit passed 16/16 checks; the blocked
+query returned 22/22 rows without truncation; and its query audit passed
+12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d237-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
