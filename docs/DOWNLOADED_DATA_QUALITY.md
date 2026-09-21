@@ -1884,3 +1884,29 @@ The rerun summary is stored outside the repository at:
 ```text
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d192-example-real/d193-mixed/summary.json
 ```
+
+## D194 runtime registry history
+
+D194 records D193 registry snapshots in an append-only, content-addressed
+history.  Each append requires the current head address, preserves stable
+registry and history identity, rejects duplicate snapshots or registry
+addresses, and folds the latest state and release readiness into the history
+summary.  Transition labels make the movement from a blocked aggregate to a
+ready aggregate directly queryable.
+
+The focused demonstration appends a ready-only D193 registry after the mixed
+blocked registry produced by D193:
+
+```text
+python examples/downloaded_data_quality_history_diff_runtime_registry_history_diff_runtime_registry_history_demo.py D193_REGISTRY_DIR D192_RELEASE_RUNTIME_DIR --destination D194_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two history entries, latest state `ready`, latest
+release readiness `true`, and an `improved` transition.  The independent
+history audit passed 16/16 checks; the readiness-filtered query returned 5/5
+rows without truncation, and its query audit passed 12/12.  The rerun summary
+is stored outside the repository at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d194-example-real/summary.json
+```
