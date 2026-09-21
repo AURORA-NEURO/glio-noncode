@@ -415,6 +415,10 @@ from . import downloaded_data_quality_runtime_history_release_evidence_history_r
 from . import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_audit as downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_audit_model
 from . import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query as downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_model
 from . import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit as downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model
+from . import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime as downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model
+from . import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit as downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model
+from . import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query as downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model
+from . import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit as downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit_model
 from . import downloaded_data_quality_runtime as downloaded_data_quality_runtime_model
 from . import downloaded_data_profile_contract as downloaded_data_profile_contract_model
 from . import downloaded_data_profile_contract_audit as downloaded_data_profile_contract_audit_model
@@ -6467,6 +6471,21 @@ def _downloaded_quality_runtime_history_release_evidence_history_runtime_registr
     raw = _read_json(input_path)
     nested = raw.get("query") if isinstance(raw, Mapping) else raw
     return downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.load_runtime(source)
+    raw = _read_json(input_path)
+    nested = raw.get("runtime") if isinstance(raw, Mapping) else raw
+    return downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.runtime_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_from_input(input_path: str):
+    raw = _read_json(input_path)
+    nested = raw.get("query") if isinstance(raw, Mapping) else raw
+    return downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
 
 def _downloaded_contract_compatibility_remediation_resolution_history_diff_from_input(input_path: str):
@@ -23000,6 +23019,40 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit.add_argument("input", nargs=2, type=str)
     downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit.add_argument("--output", default=None)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime = subparsers.add_parser("downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime", help="evaluate a runtime registry history diff")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("input", type=str)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--runtime-id", default=downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.DEFAULT_RUNTIME_ID)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--minimum-items", type=int, default=1)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--maximum-added", type=int, default=downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.diff_model.MAX_ITEMS)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--maximum-removed", type=int, default=0)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--maximum-changed", type=int, default=0)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--allow-direction", action="append", choices=downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.diff_model.DIRECTIONS)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--no-require-accepted", action="store_true")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--require-state-change", action="store_true")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--disallow-unchanged", action="store_true")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--destination", default=None)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--overwrite", action="store_true")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime.add_argument("--output", default=None)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit = subparsers.add_parser("downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit", help="audit a runtime registry history diff runtime")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit.add_argument("input", type=str)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query = subparsers.add_parser("downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query", help="query a runtime registry history diff runtime")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query.add_argument("input", type=str)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query.add_argument("--resource", action="append", choices=downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.RESOURCES)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query.add_argument("--state", default="", choices=("",) + downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.STATES)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query.add_argument("--passed-filter", default="", choices=("", "true", "false"))
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query.add_argument("--severity", default="", choices=("",) + downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.SEVERITIES)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query.add_argument("--text", default="")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query.add_argument("--limit", type=int, default=downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.MAX_LIMIT)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query.add_argument("--output", default=None)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit = subparsers.add_parser("downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit", help="audit a runtime registry history diff runtime query")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit.add_argument("input", nargs=2, type=str)
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit.add_argument("--output", default=None)
     downloaded_data_quality = subparsers.add_parser("downloaded-data-quality", help="evaluate structural quality of a downloaded-data profile")
     downloaded_data_quality.add_argument("input", type=str)
     downloaded_data_quality.add_argument("--policy", default=None)
@@ -28660,6 +28713,41 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model.audit_query(query, diff)
             _emit_contract(value, args, downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime":
+            diff = _downloaded_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_from_input(args.input)
+            policy = downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.build_policy(
+                args.runtime_id,
+                diff.diff_id,
+                minimum_items=args.minimum_items,
+                maximum_added=args.maximum_added,
+                maximum_removed=args.maximum_removed,
+                maximum_changed=args.maximum_changed,
+                allowed_directions=tuple(args.allow_direction or ("improved", "changed", "unchanged")),
+                require_accepted=not args.no_require_accepted,
+                require_state_change=args.require_state_change,
+                allow_unchanged=not args.disallow_unchanged,
+            )
+            value = downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.build_runtime(diff, runtime_id=args.runtime_id, policy=policy)
+            if args.destination:
+                downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.persist_runtime(value, args.destination, overwrite=args.overwrite)
+            _emit_contract(value, args, downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.release_ready else 2
+        if args.command == "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit":
+            value = downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model.audit_runtime(_downloaded_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query":
+            runtime = _downloaded_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_from_input(args.input)
+            passed_filter = None if not args.passed_filter else args.passed_filter == "true"
+            value = downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.query_runtime(runtime, resources=tuple(args.resource or downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.RESOURCES), state_filter=args.state, passed_filter=passed_filter, severity_filter=args.severity, text_filter=args.text, offset=args.offset, limit=args.limit)
+            _emit_contract(value, args, downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit":
+            query = _downloaded_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_from_input(args.input[0])
+            runtime = _downloaded_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_from_input(args.input[1])
+            value = downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit_model.audit_query(query, runtime)
+            _emit_contract(value, args, downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "downloaded-data-quality":
             profile = _downloaded_profile_from_input(args.input)
             policy = _downloaded_quality_policy_from_input(args.policy) if args.policy else None
@@ -33968,6 +34056,21 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-query-audit-check-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model.check_schema,
             "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-query-audit-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model.audit_schema,
             "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-query-audit-capabilities": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model.capabilities,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-policy-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.policy_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-check-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.check_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-manifest-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.manifest_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-summary-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.summary_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.runtime_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-capabilities": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model.capabilities,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit-check-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model.check_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model.audit_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit-capabilities": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_audit_model.capabilities,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-row-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.row_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.query_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-capabilities": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_model.capabilities,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit-check-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit_model.check_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit-schema": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit_model.audit_schema,
+            "downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit-capabilities": downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_query_audit_model.capabilities,
             "downloaded-data-profile-contract-field-schema": downloaded_data_profile_contract_model.field_schema,
             "downloaded-data-profile-contract-member-schema": downloaded_data_profile_contract_model.member_schema,
             "downloaded-data-profile-contract-schema": downloaded_data_profile_contract_model.contract_schema,
