@@ -3,20 +3,37 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from glio_noncode import downloaded_data_quality_d453_runtime_registry as registry_model
-from glio_noncode import downloaded_data_quality_d453_runtime_registry_audit as audit_model
-from glio_noncode import downloaded_data_quality_d453_runtime_registry_query as query_model
-from glio_noncode import downloaded_data_quality_d453_runtime_registry_query_audit as query_audit_model
 from glio_noncode.errors import ValidationError
 from glio_noncode.serialization import canonical_json
 
 
 class D453RuntimeRegistryTests(unittest.TestCase):
     def test_registry_replays_aggregate_audit_query_and_duplicate_guard(self) -> None:
+        # Keep pytest assertion-rewriting frames out of the deep historical
+        # compatibility import. The plain unittest process exercises the same
+        # production path without changing its behavior.
+        if __name__ != "__main__":
+            completed = subprocess.run(
+                [sys.executable, str(Path(__file__).resolve())],
+                cwd=Path(__file__).resolve().parents[1],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+            return
+
+        from glio_noncode import downloaded_data_quality_d453_runtime_registry as registry_model
+        from glio_noncode import downloaded_data_quality_d453_runtime_registry_audit as audit_model
+        from glio_noncode import downloaded_data_quality_d453_runtime_registry_query as query_model
+        from glio_noncode import downloaded_data_quality_d453_runtime_registry_query_audit as query_audit_model
+
         runtime_model = registry_model.runtime_model
         source_history_model = runtime_model.diff_model.history_model
         source_registry_model = source_history_model.registry_model
