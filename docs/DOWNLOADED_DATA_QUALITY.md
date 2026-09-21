@@ -1935,3 +1935,27 @@ The rerun summary is stored outside the repository at:
 ```text
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d195-example-real/summary.json
 ```
+
+## D196 history diff runtime release evaluation
+
+D196 evaluates an exact four-file D195 history diff against explicit release
+budgets.  A strict zero-added policy blocks the real comparison, while a
+one-added improved-transition policy produces ready evidence.  The runtime
+links the diff identity, counts, direction, state transition, policy, check
+addresses, summary, and manifest into a value-only four-file artifact.
+
+The focused demonstration evaluates both policy outcomes:
+
+```text
+python examples/downloaded_data_quality_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_demo.py D195_DIFF_DIR --destination D196_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run contained one added item across an `improved` `blocked->ready`
+transition.  The strict result was `blocked` at 14/15 checks with only
+`added_budget` failing.  The release result was `ready` at 15/15; its runtime
+audit passed 15/15 and its query audit passed 12/12 over 58/58 rows.  The
+rerun summary is stored outside the repository at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d196-example-real/summary.json
+```
