@@ -174,6 +174,10 @@ from glio_noncode import downloaded_data_quality_runtime_history_release_evidenc
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_audit_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_query as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_query_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_query_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_query_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit as runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -2250,6 +2254,57 @@ class DownloadedDataQualityTests(unittest.TestCase):
                 self.assertEqual((d174_api_query_audit["passed_count"], d174_api_query_audit["accepted"]), (12, True))
                 d174_schema = json.loads(urlopen(api_base + "/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/schema", timeout=10).read().decode())
                 self.assertEqual(d174_schema["title"], "RegistryHistory")
+                d175_baseline = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_model.build_history(d174_blocked_registry, history_id="quality-registry-history-d175", snapshot_id="blocked")
+                d175_candidate = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_model.append_history(d175_baseline, d173_registry, snapshot_id="ready", expected_head=d175_baseline.entries[-1].content_address)
+                d175_diff = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_model.build_diff(d175_baseline, d175_candidate, diff_id="quality-registry-history-d175-diff")
+                self.assertEqual((d175_diff.added_count, d175_diff.removed_count, d175_diff.changed_count, d175_diff.unchanged_count, d175_diff.direction, d175_diff.state_transition, d175_diff.accepted), (1, 0, 0, 1, "improved", "blocked->ready", True))
+                self.assertEqual(runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_model.diff_from_mapping(d175_diff.to_dict()).content_address, d175_diff.content_address)
+                d175_audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_audit_model.audit_diff(d175_diff)
+                self.assertEqual((d175_audit.passed_count, d175_audit.check_count, d175_audit.accepted), (16, 16, True))
+                d175_query = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_model.query_diff(d175_diff, limit=128)
+                self.assertEqual((d175_query.total_count, d175_query.returned_count, d175_query.truncated), (27, 27, False))
+                d175_query_audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model.audit_query(d175_query, d175_diff)
+                self.assertEqual((d175_query_audit.passed_count, d175_query_audit.check_count, d175_query_audit.accepted), (12, 12, True))
+                d175_diff_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d175-diff"
+                runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_model.persist_diff(d175_diff, d175_diff_destination)
+                self.assertEqual(tuple(sorted(path.name for path in d175_diff_destination.iterdir())), tuple(sorted(runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_model.FILES)))
+                self.assertEqual(runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_model.load_diff(d175_diff_destination).content_address, d175_diff.content_address)
+                tampered_d175_summary = json.loads((d175_diff_destination / "summary.json").read_text(encoding="utf-8"))
+                tampered_d175_summary["added_count"] = 0
+                (d175_diff_destination / "summary.json").write_text(json.dumps(tampered_d175_summary), encoding="utf-8")
+                with self.assertRaises(ValidationError):
+                    runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_model.load_diff(d175_diff_destination)
+                runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_model.persist_diff(d175_diff, d175_diff_destination, overwrite=True)
+                other_registry_d175 = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_model.build_registry((d172_blocked,), registry_id="quality-registry-history-d175-other")
+                other_history_d175 = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_model.build_history(other_registry_d175, history_id="quality-registry-history-d175", snapshot_id="other")
+                with self.assertRaises(ValidationError):
+                    runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_model.build_diff(d175_baseline, other_history_d175, diff_id="quality-registry-history-d175-mismatch")
+                d175_diff_command = d174_history_command + "-diff"
+                d175_cli_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d175-cli-diff"
+                d175_cli_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d175-cli-diff.json"
+                self.assertEqual(main([d175_diff_command, str(d174_cli_initial), str(d174_cli_history), "--diff-id", "quality-registry-history-d175-cli-diff", "--destination", str(d175_cli_destination), "--overwrite", "--format", "json", "--output", str(d175_cli_json)]), 0)
+                self.assertEqual((json.loads(d175_cli_json.read_text(encoding="utf-8"))["direction"], json.loads(d175_cli_json.read_text(encoding="utf-8"))["added_count"]), ("improved", 1))
+                d175_cli_audit_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d175-cli-diff-audit.json"
+                self.assertEqual(main([d175_diff_command + "-audit", str(d175_cli_destination), "--format", "json", "--output", str(d175_cli_audit_json)]), 0)
+                d175_cli_query_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d175-cli-diff-query.json"
+                self.assertEqual(main([d175_diff_command + "-query", str(d175_cli_destination), "--limit", "128", "--format", "json", "--output", str(d175_cli_query_json)]), 0)
+                d175_cli_query_audit_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d175-cli-diff-query-audit.json"
+                self.assertEqual(main([d175_diff_command + "-query-audit", str(d175_cli_query_json), str(d175_cli_destination), "--format", "json", "--output", str(d175_cli_query_audit_json)]), 0)
+                self.assertEqual((json.loads(d175_cli_audit_json.read_text(encoding="utf-8"))["passed_count"], json.loads(d175_cli_query_json.read_text(encoding="utf-8"))["returned_count"], json.loads(d175_cli_query_audit_json.read_text(encoding="utf-8"))["accepted"]), (16, 27, True))
+                d175_api_base = d174_api_base + "/diff"
+                d175_api_destination = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d175-http-diff"
+                d175_api_diff = json.loads(urlopen(d175_api_base + "?" + urlencode({"left": str(d174_api_initial), "right": str(d174_api_appended), "diff_id": "quality-api-registry-history-d175-diff", "destination": str(d175_api_destination), "overwrite": "true", "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d175_api_diff["direction"], d175_api_diff["added_count"], d175_api_diff["state_transition"], d175_api_diff["accepted"]), ("improved", 1, "blocked->ready", True))
+                d175_api_audit = json.loads(urlopen(d175_api_base + "/audit?" + urlencode({"input": str(d175_api_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d175_api_audit["passed_count"], d175_api_audit["accepted"]), (16, True))
+                d175_api_query = json.loads(urlopen(d175_api_base + "/query?" + urlencode({"input": str(d175_api_destination), "limit": "128", "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d175_api_query["returned_count"], d175_api_query["total_count"], d175_api_query["truncated"]), (27, 27, False))
+                d175_api_query_json = Path(directory) / "runtime-history-release-evidence-history-runtime-registry-history-d175-http-diff-query.json"
+                d175_api_query_json.write_text(json.dumps(d175_api_query), encoding="utf-8")
+                d175_api_query_audit = json.loads(urlopen(d175_api_base + "/query-audit?" + urlencode({"query": str(d175_api_query_json), "diff": str(d175_api_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((d175_api_query_audit["passed_count"], d175_api_query_audit["accepted"]), (12, True))
+                d175_schema = json.loads(urlopen(api_base + "/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/schema", timeout=10).read().decode())
+                self.assertEqual(d175_schema["title"], "RuntimeRegistryHistoryDiff")
             finally:
                 server.shutdown()
                 server.server_close()
