@@ -8958,6 +8958,31 @@ stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d473-example-real/summary.json
 ```
 
+## D474 runtime registry history
+
+D474 records D473 runtime-registry snapshots in an append-only,
+content-addressed history. It preserves stable registry and history identity,
+requires an optimistic expected head for appends, rejects duplicate snapshots
+and registry addresses, folds deterministic transitions, and exposes latest
+readiness plus bounded history queries. Its compact D473 adapter verifies the
+exact four-file registry without reopening earlier import layers.
+
+The real-data demonstration records the blocked D473 registry and the ready
+D473 registry rebuilt from the D472 release runtime:
+
+```text
+python examples/downloaded_data_quality_d474_runtime_registry_history_demo.py D473_REGISTRY_DIR D472_RELEASE_DIR --destination D474_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two history entries with an `improved` transition and a
+latest `ready` state. The history audit passed 16/16, the ready query returned
+5/5 rows without truncation, and its query audit passed 12/12. The rerun
+summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d474-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
