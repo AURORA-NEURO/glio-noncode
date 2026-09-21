@@ -6078,6 +6078,31 @@ truncation with its query audit passing 12/12. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d363-example-real/summary.json
 ```
 
+## D364 diff runtime evaluation
+
+D364 evaluates D363 diffs under explicit strict and release policies. Policies
+bound added, removed, and changed rows, direction and state-transition rules,
+acceptance requirements, and unchanged-row handling. Each decision persists an
+exact four-file runtime, fifteen-check independent audit, canonical reload and
+tamper protection, plus bounded readiness queries and twelve-check query
+audits.
+
+The focused demonstration evaluates the real D363 diff from the downloaded
+source archive:
+
+```text
+python examples/downloaded_data_quality_d364_history_diff_runtime_demo.py D363_DIFF_DIR --destination D364_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced a blocked strict decision because its added budget was
+exceeded, while the release policy was ready. Both runtime audits passed
+15/15 checks; the release query returned 58/58 rows without truncation and its
+query audit passed 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d364-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
