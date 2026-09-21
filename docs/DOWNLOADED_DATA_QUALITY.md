@@ -2175,3 +2175,27 @@ stored at:
 ```text
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d205-example-real/summary.json
 ```
+
+## D206 runtime registry history
+
+D206 records D205 registry snapshots in an append-only, content-addressed
+history. Optimistic expected-head checks prevent stale writers, duplicate
+registry addresses are rejected, and transition folding exposes the latest
+state and readiness. The compact module stem keeps this layer portable on
+Windows with independent history and query audits.
+
+The focused demonstration appends a ready-only registry after the mixed
+blocked registry:
+
+```text
+python examples/downloaded_data_quality_d206_runtime_registry_history_demo.py D205_REGISTRY_DIR D204_RELEASE_RUNTIME_DIR --destination D206_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two entries, latest state `ready`, latest release
+readiness `true`, and an `improved` transition. The history audit passed 16/16
+checks; the readiness-filtered query returned 5/5 rows without truncation, and
+its query audit passed 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d206-example-real/summary.json
+```
