@@ -8983,6 +8983,31 @@ summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d474-example-real/summary.json
 ```
 
+## D475 registry-history comparison
+
+D475 compares two D474 runtime-registry histories without reopening source
+records. It matches ordinal snapshots, preserves both history and entry
+addresses, classifies added, removed, changed, and unchanged entries, folds
+quality direction and state transitions, and emits an independently auditable
+exact four-file diff with bounded queries.
+
+The real-data demonstration rebuilds the baseline history from the persisted
+D473 blocked registry and compares it with the persisted D474 history:
+
+```text
+python examples/downloaded_data_quality_d475_history_diff_demo.py D473_REGISTRY_DIR D474_HISTORY_DIR --destination D475_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real comparison produced two diff items: one changed baseline ordinal and
+one added ready ordinal. It classified the direction as `improved` with a
+`blocked->ready` state transition. The diff audit passed 16/16, and the added
+query returned 2/2 rows without truncation with its query audit passing 12/12.
+The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d475-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
