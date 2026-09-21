@@ -1633,3 +1633,37 @@ Live replay of `GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip` starts from t
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d186-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d186-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d186-query-audit.json`
+
+## D187 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry history diff runtime registry history diff runtime registry history diff runtime registry history diff
+
+D187 compares two D186 registry histories while preserving their separate history addresses. It aligns ordered snapshots by ordinal, classifies added, removed, changed, and unchanged entries, records field-level deltas for changed snapshots, and folds direction (`improved`, `regressed`, `changed`, or `unchanged`) together with the state transition. The comparison requires the same registry identity on both sides and remains value-only: no source paths, source records, or payload bytes enter the persisted result.
+
+The persisted diff is an exact four-file directory:
+
+- `manifest.json`
+- `diff.json`
+- `items.json`
+- `summary.json`
+
+The CLI surface is:
+
+~~~powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff BASELINE_DIR CANDIDATE_DIR --diff-id quality-registry-history-diff-d187 --destination DIFF_DIR --overwrite --format json --output diff.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-audit DIFF_DIR --format json --output diff-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query DIFF_DIR --limit 128 --format json --output diff-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query-audit diff-query.json DIFF_DIR --format json --output diff-query-audit.json
+~~~
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff`, with `/audit`, `/query`, and `/query-audit` suffixes. The root accepts either repeated `input` values or explicit `left`/`right` history paths. Item, items, manifest, summary, diff, audit, query, query-audit, and capability schemas are exposed beneath the same API family. Query resources are bounded and independently auditable across summary, items, added, removed, changed, unchanged, addresses, and bounds projections.
+
+The focused replay verifies same-registry identity, ordinal classification, direction and transition folding, field-level change preservation, canonical reload, summary tamper rejection, independent `16/16` diff auditing, bounded queries, and independent `12/12` query auditing.
+
+Live replay starts from real downloaded-data-derived D186 baseline and candidate histories. The candidate contains an initial empty registry snapshot followed by the ready registry admitted from `GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip`; the comparison reports `direction=changed`, `added_count=1`, `changed_count=1`, `removed_count=0`, and `unchanged_count=0`. The CLI and HTTP replays both return `16/16` diff-audit checks, `27/27` query rows without truncation, and `12/12` query-audit checks. Evidence is written under:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d187-baseline`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d187-candidate`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d187-diff`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d187-diff.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d187-diff-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d187-diff-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-real-zip-demo-e74815f7edbc470bb5ba241444c84e3d/runtime-history-d187-diff-query-audit.json`

@@ -222,6 +222,10 @@ from glio_noncode import downloaded_data_quality_runtime_history_release_evidenc
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit as runtime_diff_policy_registry_history_audit_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query as runtime_diff_policy_registry_history_query_model
 from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit as runtime_diff_policy_registry_history_query_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff as runtime_diff_policy_registry_history_diff_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit as runtime_diff_policy_registry_history_diff_audit_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query as runtime_diff_policy_registry_history_diff_query_model
+from glio_noncode import downloaded_data_quality_runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit as runtime_diff_policy_registry_history_diff_query_audit_model
 from glio_noncode.errors import ValidationError
 
 
@@ -3434,5 +3438,46 @@ class DownloadedDataQualityTests(unittest.TestCase):
             summary.write_text(summary.read_text(encoding="utf-8").replace('"latest_state":"ready"', '"latest_state":"empty"', 1), encoding="utf-8")
             with self.assertRaises(ValidationError):
                 history_model.load_history(destination)
+    def test_runtime_diff_policy_registry_history_diff_replays_delta_query_and_guards(self) -> None:
+        history_model = runtime_diff_policy_registry_history_model
+        registry_model = history_model.registry_model
+        runtime_model = registry_model.runtime_model
+        diff_source_model = runtime_model.diff_model
+        source_history_model = diff_source_model.history_model
+        source_registry_model = source_history_model.registry_model
+        left_source_registry = source_registry_model.build_registry((), registry_id="d187-source-registry")
+        right_source_registry = source_registry_model.build_registry((), registry_id="d187-source-registry")
+        left_source_history = source_history_model.build_history(left_source_registry, history_id="d187-source-history", snapshot_id="baseline")
+        right_source_history = source_history_model.build_history(right_source_registry, history_id="d187-source-history", snapshot_id="candidate")
+        source_diff = diff_source_model.build_diff(left_source_history, right_source_history, diff_id="d187-source-diff")
+        policy = runtime_model.build_policy("d187-policy", source_diff.diff_id, maximum_changed=1)
+        runtime = runtime_model.build_runtime(source_diff, runtime_id="d187-runtime", policy=policy)
+        empty = registry_model.build_registry((), registry_id="d187-registry")
+        ready = registry_model.build_registry((runtime,), registry_id="d187-registry")
+        left = history_model.build_history(empty, history_id="d187-left", snapshot_id="empty")
+        right = history_model.build_history(empty, history_id="d187-right", snapshot_id="empty")
+        right = history_model.append_history(right, ready, snapshot_id="ready", expected_head=right.entries[-1].content_address)
+        diff_model = runtime_diff_policy_registry_history_diff_model
+        value = diff_model.build_diff(left, right, diff_id="d187-diff")
+        audit = runtime_diff_policy_registry_history_diff_audit_model.audit_diff(value)
+        query = runtime_diff_policy_registry_history_diff_query_model.query_diff(value, resources=runtime_diff_policy_registry_history_diff_query_model.RESOURCES, limit=runtime_diff_policy_registry_history_diff_query_model.MAX_LIMIT)
+        query_audit = runtime_diff_policy_registry_history_diff_query_audit_model.audit_query(query, value)
+        self.assertEqual((value.added_count, value.removed_count, value.changed_count, value.unchanged_count, value.direction, value.accepted), (1, 0, 0, 1, "improved", True))
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (16, 16, True))
+        self.assertGreater(query.returned_count, 0)
+        self.assertEqual((query_audit.check_count, query_audit.passed_count, query_audit.accepted), (12, 12, True))
+        foreign = registry_model.build_registry((), registry_id="d187-foreign")
+        with self.assertRaises(ValidationError):
+            diff_model.build_diff(left, history_model.build_history(foreign, history_id="d187-foreign-history", snapshot_id="empty"))
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "diff"
+            diff_model.persist_diff(value, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(diff_model.FILES)))
+            self.assertEqual(diff_model.load_diff(destination).content_address, value.content_address)
+            summary = destination / "summary.json"
+            summary.write_text(summary.read_text(encoding="utf-8").replace('"direction":"improved"', '"direction":"regressed"', 1), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                diff_model.load_diff(destination)
+
 if __name__ == "__main__":
     unittest.main()
