@@ -2054,3 +2054,27 @@ rerun summary is stored outside the repository at:
 ```text
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d200-example-real/summary.json
 ```
+
+## D201 runtime registry admission
+
+D201 aggregates exact four-file D200 runtime decisions into a deterministic,
+content-addressed registry. Duplicate runtime identity or address is rejected,
+and aggregate readiness remains blocked while any admitted runtime is blocked.
+The registry exposes independent sixteen-check admission audits and bounded
+state-filtered queries with twelve-check query audits.
+
+The focused demonstration admits the strict and release D200 outputs:
+
+```text
+python examples/downloaded_data_quality_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_demo.py D200_STRICT_DIR D200_RELEASE_DIR --destination D201_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two entries, one ready and one blocked, so the registry
+was blocked and not release-ready. Its registry audit passed 16/16 checks, the
+blocked-only query returned 22/22 rows without truncation, and its query audit
+passed 12/12. Duplicate runtime admission was rejected. The rerun summary is
+stored outside the repository at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d201-example-real/summary.json
+```
