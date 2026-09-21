@@ -3603,6 +3603,32 @@ truncation with a 12/12 query audit. The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d264-example-real/summary.json
 ```
 
+## D265 runtime registry
+
+D265 aggregates exact four-file D264 strict and release runtimes into a
+deterministic content-addressed registry. It retains each upstream runtime
+and diff address, rejects duplicate runtime identities and addresses, and
+folds readiness conservatively so any blocked runtime keeps the registry
+blocked. Independent registry and bounded-query audits protect the aggregate
+and its persisted projections.
+
+The focused demonstration admits both D264 outputs derived from the
+downloaded source archive:
+
+```text
+python examples/downloaded_data_quality_d265_runtime_registry_demo.py D264_STRICT_DIR D264_RELEASE_DIR --destination D265_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two entries, one blocked and one ready, so the registry
+state was `blocked` and `release_ready` was false. Duplicate runtime admission
+was rejected. The registry audit passed 16/16 checks; the blocked query
+returned 22/22 rows without truncation; and its query audit passed 12/12. The
+rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d265-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
