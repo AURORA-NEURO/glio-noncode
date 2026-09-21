@@ -8387,6 +8387,34 @@ rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d450-example-real/summary.json
 ```
 
+## D451 runtime registry history diff
+
+D451 compares two D450 append-only histories under the same registry identity.
+It classifies ordinal entries as added, removed, changed, or unchanged while
+retaining both history and entry addresses. It folds direction and state
+transition, persists an exact four-file diff, independently audits the diff,
+and exposes bounded filtered projections with a separate query audit.
+
+The real-data demonstration compares a blocked-only D450 baseline with the
+blocked-to-ready D450 history derived from the downloaded archive:
+
+```text
+python examples/downloaded_data_quality_d451_history_diff_demo.py D450_BASELINE_HISTORY_DIR D450_HISTORY_DIR --destination D451_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The focused regression covers ancestry replay, added/unchanged classification,
+identity guards, exact persistence, query auditing, and tamper rejection.
+
+The real run produced two items: one added ready snapshot and one unchanged
+baseline snapshot. Direction was `improved`, state transition was
+`blocked->ready`, the diff audit passed 16/16, and the added query returned
+2/2 rows without truncation with its query audit passing 12/12. The rerun
+summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d451-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
