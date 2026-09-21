@@ -7503,6 +7503,35 @@ rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d418-example-real/summary.json
 ```
 
+## D419 registry history comparison
+
+D419 compares two D418 registry histories while preserving both stable history
+addresses. It classifies each ordinal as added, removed, changed, or
+unchanged, retains field-level deltas and entry provenance, folds readiness
+movement into improved/regressed/changed/unchanged directions, and persists an
+exact four-file diff with independent audits and bounded queries.
+
+The real-data demonstration compares a baseline D418 history containing the
+mixed registry snapshot with the two-entry D418 blocked-to-ready history:
+
+```text
+python examples/downloaded_data_quality_d419_history_diff_demo.py D418_BASELINE_HISTORY_DIR D418_CANDIDATE_HISTORY_DIR --destination D419_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The focused regression covers same-history identity, added/unchanged
+classification, field-level provenance, exact reload, query auditing, and
+tamper rejection.
+
+The real run produced two comparison items: one unchanged blocked snapshot and
+one added ready snapshot. The diff was accepted with direction `improved` and
+state transition `blocked->ready`; its audit passed 16/16 checks, and the
+added-item query returned 2/2 rows without truncation with its query audit
+passing 12/12. The rerun summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d419-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
