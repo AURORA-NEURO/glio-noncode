@@ -264,4 +264,3 @@ def capabilities() -> dict[str, Any]:
 
 
 __all__ = ["VERSION", "BOUNDARY", "QUERY_PREFIX", "ROW_PREFIX", "DEFAULT_QUERY_ID", "RESOURCES", "STATES", "SEVERITIES", "MAX_ROWS", "MAX_LIMIT", "ROW_FIELDS", "QUERY_FIELDS", "RuntimeQueryRow", "RuntimeQuery", "address_row", "address_query", "query_runtime", "query_from_mapping", "verify_query", "query_json", "query_csv", "render_query_markdown", "row_schema", "query_schema", "capabilities"]
-

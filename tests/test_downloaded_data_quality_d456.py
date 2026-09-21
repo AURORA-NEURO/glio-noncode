@@ -73,4 +73,3 @@ class D456DiffRuntimeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
