@@ -1959,3 +1959,26 @@ rerun summary is stored outside the repository at:
 ```text
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d196-example-real/summary.json
 ```
+
+## D197 history-diff runtime registry admission
+
+D197 aggregates exact four-file D196 decisions into a content-addressed
+registry.  The registry rejects duplicate runtime identity or address and
+folds readiness conservatively: one blocked runtime keeps the aggregate
+blocked even when another runtime is ready.
+
+The focused demonstration admits the strict and release D196 outputs:
+
+```text
+python examples/downloaded_data_quality_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_demo.py D196_STRICT_DIR D196_RELEASE_DIR --destination D197_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The real run produced two entries, one ready and one blocked, so the registry
+was `blocked` and not release-ready.  Its independent audit passed 16/16
+checks, the blocked-only query returned 22/22 rows without truncation, and the
+query audit passed 12/12.  Duplicate runtime admission was rejected.  The
+rerun summary is stored outside the repository at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d197-example-real/summary.json
+```
