@@ -9111,6 +9111,31 @@ stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d479-example-real/summary.json
 ```
 
+## D480 history-diff runtime evaluation
+
+D480 evaluates D479 release-batch history diffs under explicit strict and
+release policies. Policies control minimum items, added/removed/changed
+budgets, allowed direction, required state movement, unchanged behavior, and
+upstream acceptance. Each runtime retains the diff and policy addresses,
+emits fifteen deterministic checks, persists an exact four-file artifact, and
+exposes independent runtime and query audits.
+
+The real-data demonstration evaluates the ZIP-derived D479 diff:
+
+```text
+python examples/downloaded_data_quality_d480_release_batch_history_diff_runtime_demo.py D479_DIFF_DIR --destination D480_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+The strict policy blocked the diff on its added budget, while the release
+policy accepted the improved `blocked->ready` diff as `ready` with 15/15
+checks. Both runtime audits passed 15/15. The release query returned 59/59
+rows without truncation and its query audit passed 12/12. The rerun summary is
+stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d480-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
