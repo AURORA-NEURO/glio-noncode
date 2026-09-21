@@ -3581,5 +3581,79 @@ class DownloadedDataQualityTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 history_model.load_history(destination)
 
+    def test_runtime_registry_history_diff_runtime_registry_history_diff_replays_delta_query_and_tamper(self) -> None:
+        runtime_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model
+        registry_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model
+        history_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model
+        diff_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_model
+        audit_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_audit_model
+        query_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_model
+        query_audit_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_diff_query_audit_model
+        source_history_model = runtime_model.diff_model.history_model
+        source_registry_model = source_history_model.registry_model
+        source_registry = source_registry_model.build_registry((), registry_id="d191-source-registry")
+        source_left = source_history_model.build_history(source_registry, history_id="d191-source-history", snapshot_id="baseline")
+        source_right = source_history_model.build_history(source_registry, history_id="d191-source-history", snapshot_id="candidate")
+        source_diff = runtime_model.diff_model.build_diff(source_left, source_right, diff_id="d191-source-diff")
+        ready_runtime = runtime_model.build_runtime(source_diff, runtime_id="d191-ready-runtime", policy=runtime_model.build_policy("d191-ready-policy", source_diff.diff_id, maximum_changed=1))
+        blocked_runtime = runtime_model.build_runtime(source_diff, runtime_id="d191-blocked-runtime", policy=runtime_model.build_policy("d191-blocked-policy", source_diff.diff_id, maximum_changed=0))
+        blocked_registry = registry_model.build_registry((blocked_runtime,), registry_id="d191-registry")
+        ready_registry = registry_model.build_registry((ready_runtime,), registry_id="d191-registry")
+        left = history_model.build_history(blocked_registry, history_id="d191-history", snapshot_id="blocked")
+        right = history_model.build_history(blocked_registry, history_id="d191-history", snapshot_id="blocked")
+        right = history_model.append_history(right, ready_registry, snapshot_id="ready", expected_head=right.entries[-1].content_address)
+        value = diff_model.build_diff(left, right, diff_id="d191-diff")
+        changed_value = diff_model.build_diff(left, history_model.build_history(ready_registry, history_id="d191-history", snapshot_id="ready"), diff_id="d191-changed-diff")
+        audit = audit_model.audit_diff(value)
+        query = query_model.query_diff(value, resources=query_model.RESOURCES, limit=query_model.MAX_LIMIT)
+        changed_query = query_model.query_diff(changed_value, resources=("items", "changed"), change_filter="changed", text_filter="state", limit=10)
+        query_audit = query_audit_model.audit_query(query, value)
+        self.assertEqual((value.item_count, value.added_count, value.removed_count, value.changed_count, value.unchanged_count, value.direction, value.state_transition, value.accepted), (2, 1, 0, 0, 1, "improved", "blocked->ready", True))
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (16, 16, True))
+        self.assertEqual((query.total_count, query.returned_count, query.truncated), (27, 27, False))
+        self.assertEqual((changed_query.total_count, changed_query.returned_count, changed_query.truncated), (1, 1, False))
+        self.assertEqual((query_audit.check_count, query_audit.passed_count, query_audit.accepted), (12, 12, True))
+        with self.assertRaises(ValidationError):
+            diff_model.build_diff(left, history_model.build_history(registry_model.build_registry((ready_runtime,), registry_id="d191-foreign"), history_id="d191-history", snapshot_id="foreign"), diff_id="d191-foreign-diff")
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "diff"
+            left_history_destination = Path(temporary) / "left-history"
+            right_history_destination = Path(temporary) / "right-history"
+            history_model.persist_history(left, left_history_destination)
+            history_model.persist_history(right, right_history_destination)
+            diff_model.persist_diff(value, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(diff_model.FILES)))
+            self.assertEqual(diff_model.load_diff(destination).content_address, value.content_address)
+            from urllib.parse import urlencode
+            from urllib.request import urlopen
+
+            from glio_noncode.api import create_server
+            from glio_noncode.deployment_profiles import build_deployment_profile
+
+            api_destination = Path(temporary) / "api-diff"
+            api_server = create_server("127.0.0.1", 0, deployment_profile=build_deployment_profile(rate_limit_per_minute=256))
+            api_thread = threading.Thread(target=api_server.serve_forever, daemon=True)
+            api_thread.start()
+            try:
+                api_base = f"http://127.0.0.1:{api_server.server_port}/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff"
+                api_value = json.loads(urlopen(api_base + "?" + urlencode({"left": str(left_history_destination), "right": str(right_history_destination), "destination": str(api_destination), "overwrite": "true", "format": "json", "diff_id": "d191-api-diff"}), timeout=10).read().decode())
+                self.assertEqual((api_value["direction"], api_value["state_transition"], api_value["item_count"]), ("improved", "blocked->ready", 2))
+                api_audit = json.loads(urlopen(api_base + "/audit?" + urlencode({"input": str(api_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((api_audit["passed_count"], api_audit["check_count"], api_audit["accepted"]), (16, 16, True))
+                api_query = json.loads(urlopen(api_base + "/query?" + urlencode({"input": str(api_destination), "resource": list(query_model.RESOURCES), "limit": "128", "format": "json"}, doseq=True), timeout=10).read().decode())
+                self.assertEqual((api_query["returned_count"], api_query["truncated"]), (27, False))
+                api_query_path = Path(temporary) / "api-query.json"
+                api_query_path.write_text(json.dumps(api_query), encoding="utf-8")
+                api_query_audit = json.loads(urlopen(api_base + "/query-audit?" + urlencode({"input": str(api_query_path), "diff": str(api_destination), "format": "json"}), timeout=10).read().decode())
+                self.assertEqual((api_query_audit["passed_count"], api_query_audit["check_count"], api_query_audit["accepted"]), (12, 12, True))
+            finally:
+                api_server.shutdown()
+                api_server.server_close()
+                api_thread.join(timeout=10)
+            summary = destination / "summary.json"
+            summary.write_text(summary.read_text(encoding="utf-8").replace('"direction":"improved"', '"direction":"regressed"', 1), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                diff_model.load_diff(destination)
+
 if __name__ == "__main__":
     unittest.main()

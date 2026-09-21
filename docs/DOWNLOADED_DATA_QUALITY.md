@@ -1772,3 +1772,50 @@ The focused replay verifies blocked-to-ready transition folding, stable identity
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d190-history/history`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d190-blocked-registry`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d190-ready-registry`
+
+## D191 downloaded-data quality runtime-registry history diff
+
+D191 compares two exact four-file D190 history directories. It preserves the
+left and right history addresses, classifies each ordinal as `added`, `removed`,
+`changed`, or `unchanged`, records ordered field-level snapshot deltas, and
+folds the result into `improved`, `regressed`, `changed`, or `unchanged` with a
+state transition such as `blocked->ready`.
+
+The persisted diff is an exact four-file directory:
+
+- `manifest.json`
+- `diff.json`
+- `items.json`
+- `summary.json`
+
+The CLI surface is:
+
+~~~powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff D190_LEFT_HISTORY_DIR D190_RIGHT_HISTORY_DIR --diff-id quality-registry-history-d190-diff --destination D191_DIFF_DIR --overwrite --format json --output diff.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-audit D191_DIFF_DIR --format json --output diff-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query D191_DIFF_DIR --change changed --text state --limit 128 --format json --output diff-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query-audit diff-query.json D191_DIFF_DIR --format json --output diff-query-audit.json
+~~~
+
+The repository example exposes the same comparison with bounded change, key,
+text, offset, and limit filters:
+
+~~~powershell
+python examples/downloaded_data_quality_history_diff_runtime_registry_history_diff_demo.py D190_LEFT_HISTORY_DIR D190_RIGHT_HISTORY_DIR --diff-id quality-registry-history-d190-diff --destination D191_OUTPUT_DIR
+~~~
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff`, with `/audit`, `/query`, and `/query-audit` suffixes. Item, items, manifest, summary, diff, audit, query, query-audit, schema, and capability projections remain value-only and path-free.
+
+The focused replay verifies added/unchanged and changed classifications,
+registry identity rejection, field filtering, exact-file persistence, canonical
+reload, summary tamper rejection, independent `16/16` diff auditing, bounded
+query completeness, and independent `12/12` query auditing. The fresh
+downloaded-ZIP-derived replay compares blocked and ready D190 histories and
+produces `direction=improved`, `state_transition=blocked->ready`,
+`item_count=1`, `changed_count=1`, `16/16` diff checks, `26/26` query rows
+without truncation, and a `12/12` query audit. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d191-real-demo/summary.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d191-real-demo/diff`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d191-left-check`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d191-right-check`
