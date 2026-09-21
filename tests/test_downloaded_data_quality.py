@@ -3543,5 +3543,43 @@ class DownloadedDataQualityTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 registry_model.load_registry(destination)
 
+    def test_runtime_registry_history_diff_runtime_registry_history_replays_append_query_and_guards(self) -> None:
+        runtime_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_model
+        registry_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_model
+        history_model = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_model
+        diff_model = runtime_model.diff_model
+        source_history_model = diff_model.history_model
+        source_registry_model = source_history_model.registry_model
+        source_registry = source_registry_model.build_registry((), registry_id="d190-source-registry")
+        baseline = source_history_model.build_history(source_registry, history_id="d190-source-history", snapshot_id="baseline")
+        candidate = source_history_model.build_history(source_registry, history_id="d190-source-history", snapshot_id="candidate")
+        diff = diff_model.build_diff(baseline, candidate, diff_id="d190-diff")
+        ready_runtime = runtime_model.build_runtime(diff, runtime_id="d190-ready-runtime", policy=runtime_model.build_policy("d190-ready-policy", diff.diff_id, maximum_changed=1))
+        blocked_runtime = runtime_model.build_runtime(diff, runtime_id="d190-blocked-runtime", policy=runtime_model.build_policy("d190-blocked-policy", diff.diff_id, maximum_changed=0))
+        blocked_registry = registry_model.build_registry((blocked_runtime,), registry_id="d190-registry")
+        ready_registry = registry_model.build_registry((ready_runtime,), registry_id="d190-registry")
+        history = history_model.build_history(blocked_registry, history_id="d190-history", snapshot_id="blocked")
+        history = history_model.append_history(history, ready_registry, snapshot_id="ready", expected_head=history.entries[-1].content_address)
+        audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_audit_model.audit_history(history)
+        query = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_model.query_history(history, resources=runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_model.RESOURCES, limit=runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_model.MAX_LIMIT)
+        query_audit = runtime_history_release_evidence_history_runtime_registry_history_diff_runtime_registry_history_diff_runtime_registry_history_query_audit_model.audit_query(query, history)
+        self.assertEqual((history.entry_count, history.latest_state, history.latest_release_ready, tuple(item.transition for item in history.entries)), (2, "ready", True, ("initial", "improved")))
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (16, 16, True))
+        self.assertEqual((query.total_count, query.returned_count, query.truncated), (30, 30, False))
+        self.assertEqual((query_audit.check_count, query_audit.passed_count, query_audit.accepted), (12, 12, True))
+        with self.assertRaises(ValidationError):
+            history_model.append_history(history, ready_registry, snapshot_id="duplicate", expected_head=history.entries[-1].content_address)
+        with self.assertRaises(ValidationError):
+            history_model.append_history(history, blocked_registry, snapshot_id="stale", expected_head=history.entries[0].content_address)
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "history"
+            history_model.persist_history(history, destination)
+            self.assertEqual(tuple(sorted(path.name for path in destination.iterdir())), tuple(sorted(history_model.FILES)))
+            self.assertEqual(history_model.load_history(destination).content_address, history.content_address)
+            summary = destination / "summary.json"
+            summary.write_text(summary.read_text(encoding="utf-8").replace('"latest_state":"ready"', '"latest_state":"blocked"', 1), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                history_model.load_history(destination)
+
 if __name__ == "__main__":
     unittest.main()

@@ -1736,3 +1736,39 @@ The focused replay verifies ready/blocked aggregate folding, duplicate identity 
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d189-registry/summary.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d189-registry/registry`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d189-blocked-runtime`
+
+## D190 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry history
+
+D190 records successive D189 runtime registries as an append-only, addressed history. Each snapshot preserves one stable registry identity, a monotonic ordinal, ancestry through the previous snapshot address, and a deterministic transition: `initial`, `improved`, `regressed`, `unchanged`, or `changed`. Appends support an optional expected-head guard so stale writers cannot fork the history; duplicate snapshot identifiers, duplicate registry addresses, and foreign registry identities are rejected.
+
+The persisted history is an exact four-file directory:
+
+- `manifest.json`
+- `history.json`
+- `entries.json`
+- `summary.json`
+
+The CLI surface is:
+
+~~~powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history REGISTRY_DIR --history-id quality-registry-history-diff-runtime-registry-history-d190 --snapshot-id baseline --destination HISTORY_DIR --overwrite --format json --output history.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-append HISTORY_DIR REGISTRY_DIR --snapshot-id candidate --expected-head HEAD_ADDRESS --format json --output history-next.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit HISTORY_DIR --format json --output history-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query HISTORY_DIR --limit 128 --format json --output history-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit history-query.json HISTORY_DIR --format json --output history-query-audit.json
+~~~
+
+The repository example performs the same append and writes a compact summary alongside the exact history package:
+
+~~~powershell
+python examples/downloaded_data_quality_history_diff_runtime_registry_history_demo.py D189_BASELINE_REGISTRY_DIR D189_CANDIDATE_REGISTRY_DIR --history-id quality-registry-history-diff-runtime-registry-history-d190 --destination D190_OUTPUT_DIR
+~~~
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history`, with `/append`, `/audit`, `/query`, and `/query-audit` suffixes. Entry, entries, manifest, summary, history, audit, query, query-audit, schema, and capability projections are exposed beneath the same API family.
+
+The focused replay verifies blocked-to-ready transition folding, stable identity, expected-head and duplicate guards, exact-file persistence, canonical reload, summary tamper rejection, independent `16/16` history auditing, bounded query completeness, and independent `12/12` query auditing. The fresh downloaded-ZIP-derived replay records a blocked baseline followed by a ready candidate, producing `entry_count=2`, `initial_count=1`, `improved_count=1`, `latest_state=ready`, `latest_release_ready=true`, `16/16` history checks, `30/30` query rows without truncation, and a `12/12` query audit. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d190-history/summary.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d190-history/history`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d190-blocked-registry`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d190-ready-registry`
