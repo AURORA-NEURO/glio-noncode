@@ -8165,6 +8165,35 @@ rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d442-example-real/summary.json
 ```
 
+## D443 registry history comparison
+
+D443 compares two D442 registry histories while preserving their shared
+history identity and both content-addressed history snapshots. It classifies
+added, removed, changed, and unchanged ordinals, emits field-level deltas with
+both entry addresses, folds direction and readiness transitions, persists an
+exact four-file diff, and provides independent diff and bounded-query audits.
+
+The real-data demonstration derives a blocked-only baseline from the first
+entry of the D442 downloaded-data history and compares it with the complete
+blocked-to-ready candidate:
+
+```text
+python examples/downloaded_data_quality_d443_history_diff_demo.py D442_BASELINE_HISTORY_DIR D442_CANDIDATE_HISTORY_DIR --destination D443_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip --change added
+```
+
+The focused regression covers ancestry replay, shared-history identity,
+ordinal classification, exact persistence reload, and tamper rejection.
+
+The real run produced two diff items: one added ready snapshot and one
+unchanged baseline snapshot. Direction was `improved`, state transition was
+`blocked->ready`, the diff audit passed 16/16, and the added query returned
+2/2 rows without truncation with its query audit passing 12/12. The rerun
+summary is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d443-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
