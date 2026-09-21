@@ -1391,3 +1391,35 @@ Live downloaded-ZIP-derived evidence starts with the blocked D177 registry and a
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live-audit.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live-query.json`
 - `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live-query-audit.json`
+
+## D179 downloaded-data quality runtime-history release-evidence history runtime registry history diff runtime registry history diff runtime registry history diff
+
+D179 compares two D178 registry histories while preserving explicit left/right history identity and address provenance. It classifies snapshots by ordinal as added, removed, changed, or unchanged, records ordered field-level deltas, and folds direction and state transition into `improved`, `regressed`, `changed`, or `unchanged` outcomes.
+
+The persisted diff is an exact four-file directory:
+
+- `manifest.json`
+- `diff.json`
+- `items.json`
+- `summary.json`
+
+The CLI surface is:
+
+```powershell
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff LEFT_HISTORY_DIR RIGHT_HISTORY_DIR --diff-id quality-runtime-registry-history-d179 --destination DIFF_DIR --overwrite --format json --output diff.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-audit DIFF_DIR --format json --output diff-audit.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query DIFF_DIR --limit 128 --format json --output diff-query.json
+python -m glio_noncode downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query-audit diff-query.json DIFF_DIR --format json --output diff-query-audit.json
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/quality/diff/gate/runtime-history/release-evidence-history/runtime/registry/history/diff/runtime/registry/history/diff/runtime/registry/history/diff`, with `/audit`, `/query`, and `/query-audit` suffixes. Item, items, manifest, summary, diff, audit, query, and capability schemas are exposed beneath the same API family.
+
+Live downloaded-ZIP-derived evidence compares the blocked one-snapshot D178 history against the appended blocked-to-ready D178 history. The result is `direction=improved`, `state_transition=blocked->ready`, with `1` added snapshot, `0` removed, `0` changed, and `1` unchanged. The independent diff audit passes `16/16`; the diff query returns `27/27` rows without truncation; and its independent query audit passes `12/12`. Evidence is available at:
+
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live-initial`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-live`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-live.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-live-audit.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-live-query.json`
+- `C:/Users/murar/AppData/Local/Temp/glio-noncode-quality-admission-registry-live-20260920-v5/runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-live-query-audit.json`
