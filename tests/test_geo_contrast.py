@@ -154,6 +154,21 @@ class GeoContrastTests(unittest.TestCase):
         self.assertEqual(report["summary"]["fdr_significant_case_higher_count"], 5)
         self.assertEqual(report["summary"]["fdr_significant_case_lower_count"], 0)
         self.assertEqual(report["comparison"]["fdr_method"], "bh")
+        resolution = report["comparison"]["finite_sample_resolution"]
+        self.assertEqual(resolution["exact_test_feature_count"], 6)
+        self.assertEqual(
+            resolution["exact_test_feature_count"],
+            report["summary"]["test_method_counts"]["exact_label_permutation"],
+        )
+        self.assertEqual(
+            resolution["label_assignment_count_range"], {"minimum": 252, "maximum": 252}
+        )
+        self.assertEqual(
+            resolution["no_tie_minimum_two_sided_p_range"],
+            {"minimum": 2 / 252, "maximum": 2 / 252},
+        )
+        self.assertAlmostEqual(resolution["smallest_observed_exact_p_value"], 2 / 252)
+        self.assertEqual(resolution["feature_count_at_smallest_observed_exact_p_value"], 5)
         self.assertEqual(
             report["comparison"]["multiple_testing_adjustment"],
             "Benjamini-Hochberg over all testable matrix features",
@@ -164,6 +179,39 @@ class GeoContrastTests(unittest.TestCase):
             "covariates and batch effects are not modeled",
             " ".join(report["limitations"]),
         )
+        self.assertIn(
+            "Exact two-sided permutation p-values are discrete",
+            " ".join(report["limitations"]),
+        )
+
+    def test_finite_sample_resolution_tracks_per_feature_missingness(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "partial_matrix.txt.gz"
+            matrix_text = gzip.decompress(_matrix_payload()).decode("utf-8")
+            partial_row = "probe-partial\t1\t2\t3\tNA\t4\t10\t11\t12\tNA\t13"
+            matrix_text = matrix_text.replace(
+                "!series_matrix_table_end", f"{partial_row}\n!series_matrix_table_end"
+            )
+            matrix_path.write_bytes(gzip.compress(matrix_text.encode("utf-8"), mtime=0))
+            report = build_expression_contrast_report(
+                "GSE123456",
+                case_filters=(("diagnosis", "glioblastoma"),),
+                reference_filters=(("diagnosis", "normal"),),
+                scale="normalized_intensity",
+                matrix_file=matrix_path,
+                top=20,
+            )
+
+        resolution = report["comparison"]["finite_sample_resolution"]
+        self.assertEqual(resolution["exact_test_feature_count"], 7)
+        self.assertEqual(
+            resolution["label_assignment_count_range"], {"minimum": 70, "maximum": 252}
+        )
+        self.assertEqual(
+            resolution["no_tie_minimum_two_sided_p_range"],
+            {"minimum": 2 / 252, "maximum": 2 / 70},
+        )
+        self.assertEqual(report["summary"]["tested_feature_count"], 7)
 
     def test_covariate_adjusted_screen_separates_group_effect_from_age_and_batch(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -214,6 +262,12 @@ class GeoContrastTests(unittest.TestCase):
             ],
         )
         self.assertEqual(report["comparison"]["model"]["covariates"][1]["reference_level"], "A")
+        resolution = report["comparison"]["finite_sample_resolution"]
+        self.assertEqual(resolution["exact_test_feature_count"], 0)
+        self.assertIsNone(resolution["label_assignment_count_range"])
+        self.assertIsNone(resolution["no_tie_minimum_two_sided_p_range"])
+        self.assertIsNone(resolution["smallest_observed_exact_p_value"])
+        self.assertEqual(resolution["feature_count_at_smallest_observed_exact_p_value"], 0)
         self.assertEqual(report["summary"]["covariate_complete_sample_count"], 10)
         self.assertIn(
             "covariates[age:continuous,batch:categorical]",

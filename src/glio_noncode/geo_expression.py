@@ -1332,6 +1332,66 @@ def build_expression_contrast_report(
             "features may affect it."
         )
     )
+    exact_test_feature_count = 0
+    assignment_count_minimum: int | None = None
+    assignment_count_maximum: int | None = None
+    no_tie_p_floor_minimum: float | None = None
+    no_tie_p_floor_maximum: float | None = None
+    smallest_exact_p_value: float | None = None
+    feature_count_at_smallest_exact_p_value = 0
+    for row in preliminary_rows:
+        if row["test_method"] != "exact_label_permutation":
+            continue
+        exact_test_feature_count += 1
+        assignment_count = math.comb(row["case_n"] + row["reference_n"], row["case_n"])
+        no_tie_p_floor = 2 / assignment_count
+        assignment_count_minimum = (
+            assignment_count
+            if assignment_count_minimum is None
+            else min(assignment_count_minimum, assignment_count)
+        )
+        assignment_count_maximum = (
+            assignment_count
+            if assignment_count_maximum is None
+            else max(assignment_count_maximum, assignment_count)
+        )
+        no_tie_p_floor_minimum = (
+            no_tie_p_floor
+            if no_tie_p_floor_minimum is None
+            else min(no_tie_p_floor_minimum, no_tie_p_floor)
+        )
+        no_tie_p_floor_maximum = (
+            no_tie_p_floor
+            if no_tie_p_floor_maximum is None
+            else max(no_tie_p_floor_maximum, no_tie_p_floor)
+        )
+        exact_p_value = float(row["p_value"])
+        if smallest_exact_p_value is None or exact_p_value < smallest_exact_p_value:
+            smallest_exact_p_value = exact_p_value
+            feature_count_at_smallest_exact_p_value = 1
+        elif exact_p_value == smallest_exact_p_value:
+            feature_count_at_smallest_exact_p_value += 1
+    finite_sample_resolution = {
+        "exact_test_feature_count": exact_test_feature_count,
+        "label_assignment_count_range": (
+            {
+                "minimum": assignment_count_minimum,
+                "maximum": assignment_count_maximum,
+            }
+            if assignment_count_minimum is not None
+            else None
+        ),
+        "no_tie_minimum_two_sided_p_range": (
+            {
+                "minimum": no_tie_p_floor_minimum,
+                "maximum": no_tie_p_floor_maximum,
+            }
+            if no_tie_p_floor_minimum is not None
+            else None
+        ),
+        "smallest_observed_exact_p_value": smallest_exact_p_value,
+        "feature_count_at_smallest_observed_exact_p_value": feature_count_at_smallest_exact_p_value,
+    }
     limitations = (
         [
             "Exploratory public-cohort group comparison; it is not matched-case RNA evidence.",
@@ -1389,6 +1449,14 @@ def build_expression_contrast_report(
             "Results do not support diagnosis or treatment decisions.",
         ]
     )
+    if exact_test_feature_count:
+        limitations.append(
+            "Exact two-sided permutation p-values are discrete. For each exact-tested feature, "
+            "2 / choose(n_case + n_reference, n_case) is the no-tie lower bound on an attainable "
+            "two-sided p-value; feature-specific missingness changes that bound, and tied "
+            "observations can make the actual p-value support coarser. See "
+            "comparison.finite_sample_resolution."
+        )
     body: dict[str, Any] = {
         "schema": "glio-noncode.geo-expression-contrast.v1",
         "status": "completed",
@@ -1433,6 +1501,7 @@ def build_expression_contrast_report(
             "matched_to_case_sample": False,
             "population_generalization": False,
             "tracked_feature_ids": list(normalized_tracked_features),
+            "finite_sample_resolution": finite_sample_resolution,
         },
         "summary": {
             "matrix_feature_count": matrix.feature_count,

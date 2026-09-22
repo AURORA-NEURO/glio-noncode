@@ -162,6 +162,19 @@ Missing features remain visible as untestable rows and do not enter the
 multiple-testing family. The report includes its matrix digest, sample IDs,
 filter context, analysis limits, and content address.
 
+When exact label permutations are used, `comparison.finite_sample_resolution`
+reports the number of exact-tested features, the range of label-assignment
+counts, the corresponding no-tie lower-bound range for attainable two-sided
+p-values, the smallest observed exact p-value, and how many features share it.
+The assignment count is computed per feature from its non-missing case and
+reference observations, so missing values can change the resolution across
+features. The lower bound is `2 / choose(n_case + n_reference, n_case)`; ties
+can make the observed p-value support coarser. This diagnostic makes finite
+sample granularity visible but does not establish that a cohort is adequately
+powered or that exchangeability assumptions hold. For example, five observed
+samples in each group provide 252 possible label assignments and a no-tie
+two-sided p-value lower bound of 2/252 (about 0.00794).
+
 ## Contrast design preflight
 
 Before scanning every feature, use `geo-design` to verify explicit sample
