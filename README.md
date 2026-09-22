@@ -67,6 +67,16 @@ one target sample with an explicitly filtered reference group. See
 docs/GEO_EXPRESSION_WORKFLOW.md for the real GSE103227 example, local-file mode,
 provenance fields, resource limits, and interpretation boundaries.
 
+Before interpreting a cohort contrast, `geo-qc` summarizes each sample's
+observed/missing feature counts, mean, sample standard deviation, and range,
+plus feature-level missingness across the matrix. It is descriptive only: it
+does not transform values or automatically exclude or classify samples.
+
+    glio-noncode geo-qc GSE103227 --scale normalized_intensity
+
+Use `--matrix-file` to run the same bounded, provenance-recorded report on a
+previously downloaded Series Matrix.
+
     glio-noncode geo-outlier GSE103227 --feature-id ASHGA5P000001 --target-sample GSM2758529 --reference-filter diagnosis=normal --scale normalized_intensity
 
 For a two-group exploratory screen across one GEO platform, `geo-contrast`

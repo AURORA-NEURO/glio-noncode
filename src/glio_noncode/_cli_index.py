@@ -19608,6 +19608,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'compare one GEO expression feature with explicit references',
     ),
     (
+        'geo-qc',
+        'summarize sample coverage and matrix quality before analysis',
+    ),
+    (
         'report-capabilities',
         'inspect supported report audiences, formats, and limits',
     ),

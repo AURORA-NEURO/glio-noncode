@@ -17045,6 +17045,7 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
 from .frontier_release_closure_support import gate_rows as gate_rows
 from . import geo_expression as geo_expression
 from . import geo_platform_annotations as geo_platform_annotations
+from . import geo_quality as geo_quality
 from .run_catalog import get_run_dossier as get_run_dossier
 from .run_catalog import get_run_events as get_run_events
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history import hash_bytes as hash_bytes

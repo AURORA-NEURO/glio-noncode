@@ -55,6 +55,35 @@ individual lines to 4 MB, samples to 2,000, and matrix cells to 5,000,000. It
 validates gzip checksums, matrix dimensions, sample IDs, numeric values, and
 the selected feature before returning a report.
 
+## Sample and matrix quality summary
+
+Run `geo-qc` before a contrast to review coverage and per-sample expression
+distributions:
+
+    glio-noncode geo-qc GSE103227 --scale normalized_intensity
+
+For an existing download, add `--matrix-file GSE103227_series_matrix.txt.gz`.
+The scale is a declaration from the Series Matrix processing notes; the report
+does not transform, normalize, or otherwise rescale values. One platform is
+required so sample-level statistics do not mix unlike feature measurements.
+
+The versioned report contains full matrix provenance, a content address, the
+observed and missing measurement counts, overall missing fraction, the number
+of complete and partially observed features, and a histogram of features by
+number of samples with missing values. Each sample row includes observed and
+missing feature counts, missing fraction, arithmetic mean, sample standard
+deviation, minimum, and maximum. Mean and standard deviation use all observed
+features in that sample; standard deviation is null when fewer than two values
+are observed or when the result cannot be represented as a finite number.
+Statistics for a sample with no observed values are null.
+
+This is descriptive QC, not an automated quality decision. Samples are never
+removed or ranked, and no threshold is applied. These summaries do not infer
+why values are missing, correct batch effects, or guarantee that a sample is
+suitable for downstream analysis. Distribution statistics are scale-dependent
+and may be sensitive to extreme features; inspect the source matrix and study
+design before deciding how to proceed.
+
 ## Two-group, all-feature screen
 
 `geo-contrast` compares two disjoint sample groups selected by explicit
