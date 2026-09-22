@@ -628,7 +628,9 @@ The resulting `geo-consistency-*` record is immutable and can be listed at
 `features.csv`. Its public rows retain per-study direction and effect
 estimates, but never emit GSM, subject, or pair identifiers. It does not pool
 effects or p-values, resolve aliases, or treat an omitted bounded row as a
-negative result.
+negative result. The workbench comparison page exposes exact-feature, tested
+direction, and FDR-consistency filters; the filtered state is reused for the
+CSV export.
 
 ## Persist paired-count consistency comparisons
 
@@ -653,6 +655,8 @@ at `/v1/geo-count-consistency`, paged at
 aggregate direction state without pooling effects or p-values. Missing bounded
 rows remain `not_reported_in_bounded_results`, and sample, subject, pair, and
 analysis identifiers are withheld from the public comparison projection.
+The workbench exposes exact-feature, tested-direction, signed-rank FDR, and
+sign-test FDR filters, and applies those filters to the CSV export.
 
 ## Covariate-adjusted mode
 

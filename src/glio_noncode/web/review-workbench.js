@@ -10,7 +10,9 @@
     geoExpressionConsistencyRecords: [], geoExpressionConsistencyTotal: 0, selectedGeoExpressionConsistency: null, geoExpressionConsistencyListRequest: 0,
     geoFilters: { feature_contains: "", effect_direction: "", min_abs_median_effect: "", fdr_significant: false, sign_test_fdr_significant: false },
     geoCompareIds: [], geoConsistency: null, geoConsistencyRecords: [], geoConsistencyTotal: 0,
-    selectedGeoConsistency: null, geoConsistencyListRequest: 0,
+    selectedGeoConsistency: null, geoConsistencyListRequest: 0, geoConsistencyFilterTimer: null,
+    geoConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "", sign_test_direction_consistency: "" },
+    geoExpressionConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "" }, geoExpressionConsistencyFilterTimer: null,
     sequenceAnalyses: [], sequenceTotal: 0, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
     sequenceBatches: [], sequenceBatchTotal: 0, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
     sequenceReviewSummary: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewFilterTimer: null,
@@ -561,7 +563,8 @@
       link.setAttribute("aria-disabled", "false");
       link.removeAttribute("target");
       link.removeAttribute("rel");
-      csvLink.href = `/v1/geo-expression-consistency/${encodeURIComponent(comparisonId)}/features.csv`;
+      const filterQuery = geoExpressionConsistencyFilterQuery().toString();
+      csvLink.href = `/v1/geo-expression-consistency/${encodeURIComponent(comparisonId)}/features.csv${filterQuery ? `?${filterQuery}` : ""}`;
       csvLink.textContent = "Download comparison CSV";
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
@@ -576,7 +579,8 @@
       link.setAttribute("aria-disabled", "false");
       link.removeAttribute("target");
       link.removeAttribute("rel");
-      csvLink.href = `/v1/geo-count-consistency/${encodeURIComponent(comparisonId)}/features.csv`;
+      const filterQuery = geoConsistencyFilterQuery().toString();
+      csvLink.href = `/v1/geo-count-consistency/${encodeURIComponent(comparisonId)}/features.csv${filterQuery ? `?${filterQuery}` : ""}`;
       csvLink.textContent = "Download comparison CSV";
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
@@ -733,6 +737,63 @@
     params.set("limit", "25");
     params.set("offset", String(offset));
     return params.toString();
+  }
+
+  function geoConsistencyFilterQuery() {
+    const params = new URLSearchParams();
+    const filters = model.geoConsistencyFilters;
+    if (filters.feature_contains) params.set("feature_contains", filters.feature_contains);
+    if (filters.direction_consistency) params.set("direction_consistency", filters.direction_consistency);
+    if (filters.fdr_direction_consistency) params.set("fdr_direction_consistency", filters.fdr_direction_consistency);
+    if (filters.sign_test_direction_consistency) params.set("sign_test_direction_consistency", filters.sign_test_direction_consistency);
+    return params;
+  }
+
+  function geoExpressionConsistencyFilterQuery() {
+    const params = new URLSearchParams();
+    const filters = model.geoExpressionConsistencyFilters;
+    if (filters.feature_contains) params.set("feature_contains", filters.feature_contains);
+    if (filters.direction_consistency) params.set("direction_consistency", filters.direction_consistency);
+    if (filters.fdr_direction_consistency) params.set("fdr_direction_consistency", filters.fdr_direction_consistency);
+    return params;
+  }
+
+  function resetGeoConsistencyFilters() {
+    model.geoConsistencyFilters = { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "", sign_test_direction_consistency: "" };
+    const feature = $("geo-consistency-feature-filter");
+    const direction = $("geo-consistency-direction-filter");
+    const fdr = $("geo-consistency-fdr-filter");
+    const sign = $("geo-consistency-sign-fdr-filter");
+    if (feature) feature.value = "";
+    if (direction) direction.value = "";
+    if (fdr) fdr.value = "";
+    if (sign) sign.value = "";
+  }
+
+  function resetGeoExpressionConsistencyFilters() {
+    model.geoExpressionConsistencyFilters = { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "" };
+    const feature = $("geo-expression-consistency-feature-filter");
+    const direction = $("geo-expression-consistency-direction-filter");
+    const fdr = $("geo-expression-consistency-fdr-filter");
+    if (feature) feature.value = "";
+    if (direction) direction.value = "";
+    if (fdr) fdr.value = "";
+  }
+
+  function reloadGeoConsistencyPage() {
+    if (model.geoConsistencyFilterTimer !== null) clearTimeout(model.geoConsistencyFilterTimer);
+    model.geoConsistencyFilterTimer = setTimeout(() => {
+      model.geoConsistencyFilterTimer = null;
+      if (model.selectedGeoConsistency) openGeoConsistency(model.selectedGeoConsistency);
+    }, 180);
+  }
+
+  function reloadGeoExpressionConsistencyPage() {
+    if (model.geoExpressionConsistencyFilterTimer !== null) clearTimeout(model.geoExpressionConsistencyFilterTimer);
+    model.geoExpressionConsistencyFilterTimer = setTimeout(() => {
+      model.geoExpressionConsistencyFilterTimer = null;
+      if (model.selectedGeoExpressionConsistency) openGeoExpressionConsistency(model.selectedGeoExpressionConsistency);
+    }, 180);
   }
 
   async function openGeoAnalysis(analysisId, { append = false } = {}) {
@@ -1123,6 +1184,7 @@
   }
 
   async function openGeoConsistency(comparisonId) {
+    if (model.selectedGeoConsistency !== comparisonId) resetGeoConsistencyFilters();
     model.activeView = "geo-consistency";
     model.selectedGeoConsistency = comparisonId;
     const request = model.geoConsistencyRequest = (model.geoConsistencyRequest || 0) + 1;
@@ -1131,7 +1193,10 @@
     notice("");
     showEmpty("Verifying paired-count comparison", "Loading the immutable cross-study record and its aggregate direction projection.");
     try {
-      const page = await getJson(`/v1/geo-count-consistency/${encodeURIComponent(comparisonId)}?limit=100&offset=0`);
+      const params = geoConsistencyFilterQuery();
+      params.set("limit", "100");
+      params.set("offset", "0");
+      const page = await getJson(`/v1/geo-count-consistency/${encodeURIComponent(comparisonId)}?${params.toString()}`);
       if (request !== model.geoConsistencyRequest || model.activeView !== "geo-consistency" || model.selectedGeoConsistency !== comparisonId) return;
       if (page.schema !== "glio-noncode.geo-count-consistency-page.v1" || page.comparison_id !== comparisonId || !Array.isArray(page.features) || !page.summary) throw new Error("The local API returned an invalid paired-count consistency projection.");
       model.geoConsistency = page;
@@ -1152,6 +1217,7 @@
   }
 
   async function openGeoExpressionConsistency(comparisonId) {
+    if (model.selectedGeoExpressionConsistency !== comparisonId) resetGeoExpressionConsistencyFilters();
     model.activeView = "geo-expression-consistency";
     model.selectedGeoExpressionConsistency = comparisonId;
     const request = model.geoExpressionConsistencyRequest = (model.geoExpressionConsistencyRequest || 0) + 1;
@@ -1160,7 +1226,10 @@
     notice("");
     showEmpty("Verifying expression comparison", "Loading the immutable cross-study record and its aggregate direction projection.");
     try {
-      const page = await getJson(`/v1/geo-expression-consistency/${encodeURIComponent(comparisonId)}?limit=100&offset=0`);
+      const params = geoExpressionConsistencyFilterQuery();
+      params.set("limit", "100");
+      params.set("offset", "0");
+      const page = await getJson(`/v1/geo-expression-consistency/${encodeURIComponent(comparisonId)}?${params.toString()}`);
       if (request !== model.geoExpressionConsistencyRequest || model.activeView !== "geo-expression-consistency" || model.selectedGeoExpressionConsistency !== comparisonId) return;
       if (page.schema !== "glio-noncode.geo-expression-consistency-page.v1" || page.comparison_id !== comparisonId || !Array.isArray(page.features) || !page.summary) throw new Error("The local API returned an invalid expression consistency projection.");
       model.geoExpressionConsistency = page;
@@ -1222,7 +1291,10 @@
     $("geo-expression-consistency-features-count").textContent = formatCount(summary.feature_count);
     $("geo-expression-consistency-concordant").textContent = formatCount(summary.concordant_feature_count);
     $("geo-expression-consistency-discordant").textContent = formatCount(summary.discordant_feature_count);
-    $("geo-expression-consistency-result-count").textContent = `${formatCount(page.features.length)} feature rows`;
+    const expressionFiltered = page.total_features !== page.unfiltered_feature_count;
+    $("geo-expression-consistency-result-count").textContent = expressionFiltered
+      ? `${formatCount(page.features.length)} shown · ${formatCount(page.total_features)} filtered`
+      : `${formatCount(page.features.length)} feature rows`;
     body.replaceChildren();
     if (!page.features.length) body.append(emptyRow(5, "No requested feature IDs were reported."));
     for (const feature of page.features) {
@@ -1322,7 +1394,10 @@
         body.append(row);
       }
     }
-    $("geo-consistency-result-count").textContent = `${formatCount(report.features.length)} feature rows`;
+    const countFiltered = report.total_features !== report.unfiltered_feature_count;
+    $("geo-consistency-result-count").textContent = countFiltered
+      ? `${formatCount(report.features.length)} shown · ${formatCount(report.total_features)} filtered`
+      : `${formatCount(report.features.length)} feature rows`;
     const limitations = $("geo-consistency-limitations");
     limitations.replaceChildren();
     for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
@@ -1656,6 +1731,18 @@
   $("geo-expression-fdr-filter").addEventListener("change", reloadFilteredGeoExpressionResults);
   $("geo-expression-consistency-features").addEventListener("input", updateGeoExpressionCompareControls);
   $("geo-expression-compare-button").addEventListener("click", compareGeoExpressionAnalyses);
+  $("geo-expression-consistency-feature-filter").addEventListener("input", (event) => {
+    model.geoExpressionConsistencyFilters.feature_contains = event.currentTarget.value.trim();
+    reloadGeoExpressionConsistencyPage();
+  });
+  $("geo-expression-consistency-direction-filter").addEventListener("change", (event) => {
+    model.geoExpressionConsistencyFilters.direction_consistency = event.currentTarget.value;
+    reloadGeoExpressionConsistencyPage();
+  });
+  $("geo-expression-consistency-fdr-filter").addEventListener("change", (event) => {
+    model.geoExpressionConsistencyFilters.fdr_direction_consistency = event.currentTarget.value;
+    reloadGeoExpressionConsistencyPage();
+  });
   $("sequence-review-open").addEventListener("click", openSequenceReview);
   $("sequence-review-motif-filter").addEventListener("input", reloadSequenceReviewMotifs);
   $("sequence-review-change-filter").addEventListener("change", reloadSequenceReviewMotifs);
@@ -1663,6 +1750,22 @@
   $("sequence-batch-change-filter").addEventListener("change", reloadSequenceBatchChanges);
   $("geo-consistency-features").addEventListener("input", updateGeoCompareControls);
   $("geo-compare-button").addEventListener("click", compareGeoAnalyses);
+  $("geo-consistency-feature-filter").addEventListener("input", (event) => {
+    model.geoConsistencyFilters.feature_contains = event.currentTarget.value.trim();
+    reloadGeoConsistencyPage();
+  });
+  $("geo-consistency-direction-filter").addEventListener("change", (event) => {
+    model.geoConsistencyFilters.direction_consistency = event.currentTarget.value;
+    reloadGeoConsistencyPage();
+  });
+  $("geo-consistency-fdr-filter").addEventListener("change", (event) => {
+    model.geoConsistencyFilters.fdr_direction_consistency = event.currentTarget.value;
+    reloadGeoConsistencyPage();
+  });
+  $("geo-consistency-sign-fdr-filter").addEventListener("change", (event) => {
+    model.geoConsistencyFilters.sign_test_direction_consistency = event.currentTarget.value;
+    reloadGeoConsistencyPage();
+  });
   $("markdown-export").addEventListener("click", (event) => {
     if (event.currentTarget.getAttribute("aria-disabled") === "true") event.preventDefault();
   });
