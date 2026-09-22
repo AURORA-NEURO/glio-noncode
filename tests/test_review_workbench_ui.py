@@ -79,6 +79,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("/v1/geo-review/summary", javascript)
         self.assertIn("/v1/geo-preflights", javascript)
         self.assertIn("function openGeoPreflight", javascript)
+        self.assertIn("function preflightMetricRows", javascript)
+        self.assertIn("pair_key_", javascript)
         self.assertIn("function geoPreflightQuery", javascript)
         self.assertIn("loadGeoPreflights(true)", javascript)
         self.assertIn("catalogRow.sample_count", javascript)

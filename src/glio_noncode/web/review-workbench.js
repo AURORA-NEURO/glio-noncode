@@ -1367,6 +1367,24 @@
     return String(value || "—").replaceAll("_", " ");
   }
 
+  function preflightMetricRows(summary) {
+    const rows = [];
+    const append = (key, value) => {
+      if (/(agent|language|sample[_-]?id|pair[_-]?id|url|uri)/i.test(key)) return;
+      if (value === null || ["string", "number", "boolean"].includes(typeof value)) rows.push([key, value]);
+    };
+    for (const [key, value] of Object.entries(summary || {})) {
+      if (value === null || ["string", "number", "boolean"].includes(typeof value)) append(key, value);
+      else if (value && typeof value === "object" && !Array.isArray(value)) {
+        for (const [nestedKey, nestedValue] of Object.entries(value)) {
+          if (nestedKey === "field" || nestedKey === "values") continue;
+          append(`${key}_${nestedKey}`, nestedValue);
+        }
+      }
+    }
+    return rows;
+  }
+
   function renderGeoPreflight() {
     const report = model.geoPreflightReport;
     if (!report) return;
@@ -1406,10 +1424,7 @@
       block.append(element("span", "control-label", label), element("span", "geo-provenance-value", value ?? "—"));
       provenance.append(block);
     }
-    const metricRows = Object.entries(summary).filter(([key, value]) =>
-      !/(agent|language|sample[_-]?id|pair[_-]?id)/i.test(key)
-      && (value === null || ["string", "number", "boolean"].includes(typeof value))
-    );
+    const metricRows = preflightMetricRows(summary);
     const designState = report.design?.state;
     if (typeof designState === "string") metricRows.push(["design_state", designState]);
     $("geo-preflight-metric-count").textContent = `${formatCount(metricRows.length)} metrics`;
