@@ -84,6 +84,42 @@ suitable for downstream analysis. Distribution statistics are scale-dependent
 and may be sensitive to extreme features; inspect the source matrix and study
 design before deciding how to proceed.
 
+## Sample-characteristic inventory
+
+Before writing `--case-filter`, `--reference-filter`, or `--covariate` options,
+inspect the annotations actually supplied by GEO:
+
+    glio-noncode geo-metadata GSE103227
+
+For a previously downloaded matrix, pass
+`--matrix-file GSE103227_series_matrix.txt.gz`. The report inventories sample
+accessions, titles, source names, and platform IDs, then lists each
+characteristic field with its sample coverage, missing-sample count,
+multi-valued-sample count, distinct-value count, and category counts. This makes
+the available values visible without interpreting sample titles as design
+labels. Field names and values are grouped with case-insensitive Unicode
+casefolding; the first observed spelling is preserved for display. Repeated
+field/value annotations that match case-insensitively within one sample count
+once in category membership and are also reported as duplicate entries. Blank
+characteristic cells are counted as missing; a literal value such as `NA` is
+kept as submitter-provided text rather than reinterpreted as missing.
+
+At most 100 category values per characteristic field are listed. If a field
+exceeds that limit, the report explicitly records how many categories and
+sample memberships are omitted. Parsing enforces the Series Matrix byte,
+sample, line, metadata-row, and matrix-cell bounds. Unlike the expression QC
+command, this path validates numeric matrix cells but does not retain expression
+feature vectors, so metadata inspection has memory cost proportional to sample
+annotations rather than the full feature-by-sample matrix.
+
+The report is an inventory, not a cohort-design recommendation: it does not
+assign clinical meanings, decide which values are cases or controls, infer
+matched or repeated measurements, or automatically construct model covariates.
+After reviewing the reported values, select group filters explicitly and use
+`geo-contrast`; the contrast report then records the resulting sample IDs and
+model diagnostics. GEO annotations are submitter supplied and may be missing,
+inconsistent, or ambiguous.
+
 ## Two-group, all-feature screen
 
 `geo-contrast` compares two disjoint sample groups selected by explicit

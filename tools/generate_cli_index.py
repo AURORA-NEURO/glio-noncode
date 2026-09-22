@@ -15,6 +15,7 @@ SHELL_COMMANDS = (
     ("expression", "analyze expression and allele-specific RNA evidence"),
     ("geo-outlier", "compare one GEO expression feature with explicit references"),
     ("geo-qc", "summarize sample coverage and matrix quality before analysis"),
+    ("geo-metadata", "inventory GEO sample characteristics before contrast design"),
     ("geo-contrast", "screen two GEO sample groups across all platform features"),
     ("verify-release-evidence", "verify a portable release-evidence ZIP"),
     ("assessment-capabilities", "inspect verified-run assessment contracts and limits"),

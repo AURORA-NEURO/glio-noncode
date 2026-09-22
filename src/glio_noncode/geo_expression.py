@@ -133,6 +133,22 @@ class GeoFeatureMatrix:
 
 
 @dataclass(frozen=True, slots=True)
+class GeoMatrixMetadata:
+    accession: str
+    title: str
+    series_types: tuple[str, ...]
+    platform_ids: tuple[str, ...]
+    samples: tuple[GeoSample, ...]
+    processing_descriptions: tuple[str, ...]
+    feature_count: int
+    source_sha256: str
+    source_url: str
+    source_file_name: str | None
+    compressed_bytes: int
+    decompressed_bytes: int
+
+
+@dataclass(frozen=True, slots=True)
 class _PreparedGeoContrast:
     model: PreparedLinearModel
     sample_indices: tuple[int, ...]
@@ -216,16 +232,25 @@ def _decoded_lines(payload: bytes) -> Iterable[tuple[str, int]]:
         raise ValidationError("GEO Series Matrix gzip payload is incomplete or invalid") from error
 
 
-def _metadata_value(row: list[str], label: str) -> list[str]:
+def _metadata_value(
+    row: list[str], label: str, *, allow_blank_values: bool = False
+) -> list[str]:
     if not row or not row[0].startswith("!"):
         raise ValidationError(f"GEO {label} row is malformed")
-    return [
-        _required_text(value, f"GEO {label} value", maximum=MAX_METADATA_VALUE_LENGTH)
-        for value in row[1:]
-    ]
+    values: list[str] = []
+    for value in row[1:]:
+        if allow_blank_values and not value.strip():
+            values.append("")
+            continue
+        values.append(
+            _required_text(value, f"GEO {label} value", maximum=MAX_METADATA_VALUE_LENGTH)
+        )
+    return values
 
 
-def _parse_characteristic(value: str) -> tuple[str, str]:
+def _parse_characteristic(value: str) -> tuple[str, str] | None:
+    if not value.strip():
+        return None
     if ":" not in value:
         return "unstructured", _required_text(value, "GEO sample characteristic")
     key, content = value.split(":", 1)
@@ -271,10 +296,13 @@ def _parse_series_matrix_features(
     accession: str,
     feature_ids: frozenset[str] | None,
     source_file_name: str | None = None,
+    retain_features: bool = True,
 ) -> GeoFeatureMatrix:
     """Parse a bounded matrix, retaining selected features or every feature."""
 
     requested_accession = validate_accession(accession)
+    if not isinstance(retain_features, bool):
+        raise ValidationError("GEO feature-retention option must be boolean")
     if not isinstance(payload, bytes):
         raise ValidationError("GEO Series Matrix payload must be bytes")
     if len(payload) > MAX_COMPRESSED_BYTES:
@@ -294,7 +322,7 @@ def _parse_series_matrix_features(
 
     series: dict[str, list[str]] = {}
     sample_rows: dict[str, list[str]] = {}
-    sample_characteristics: list[list[tuple[str, str]]] = []
+    sample_characteristics: list[list[tuple[str, str] | None]] = []
     sample_processing: list[list[str]] = []
     samples: tuple[GeoSample, ...] = ()
     retained_features: list[GeoMatrixFeature] = []
@@ -362,8 +390,8 @@ def _parse_series_matrix_features(
                 row_feature = _required_text(row[0], "GEO matrix feature ID", maximum=256)
                 if feature_ids is None and not _FEATURE_RE.fullmatch(row_feature):
                     raise ValidationError("GEO matrix feature ID contains unsupported characters")
-                values = tuple(_matrix_number(value) for value in row[1:])
-                if feature_ids is None or row_feature in feature_ids:
+                if retain_features and (feature_ids is None or row_feature in feature_ids):
+                    values = tuple(_matrix_number(value) for value in row[1:])
                     if row_feature in retained_feature_ids:
                         raise ValidationError("GEO matrix repeats a retained feature ID")
                     if feature_ids is None and len(retained_features) >= MAX_CONTRAST_FEATURES:
@@ -372,6 +400,9 @@ def _parse_series_matrix_features(
                         )
                     retained_feature_ids.add(row_feature)
                     retained_features.append(GeoMatrixFeature(row_feature, values))
+                else:
+                    for value in row[1:]:
+                        _matrix_number(value)
             if not matrix_end_seen:
                 raise ValidationError("GEO Series Matrix expression table is incomplete")
             # Drain the stream so gzip checksums and decompressed-byte ceilings are verified.
@@ -405,7 +436,11 @@ def _parse_series_matrix_features(
                 metadata_row_count += 1
                 if metadata_row_count > MAX_METADATA_ROWS:
                     raise ValidationError("GEO metadata row count exceeds its bound")
-                values = _metadata_value(row, key)
+                values = _metadata_value(
+                    row,
+                    key,
+                    allow_blank_values=key == "Sample_characteristics_ch1",
+                )
                 if key == "Sample_characteristics_ch1":
                     sample_characteristics.append(
                         [_parse_characteristic(value) for value in values]
@@ -421,7 +456,7 @@ def _parse_series_matrix_features(
         raise ValidationError("GEO Series Matrix accession differs from the requested series")
     if feature_ids is not None and retained_feature_ids != feature_ids:
         raise ValidationError("GEO Series Matrix does not contain every selected feature ID")
-    if not retained_features:
+    if retain_features and not retained_features:
         raise ValidationError("GEO Series Matrix contains no retained expression features")
     titles = series.get("Series_title", [])
     series_types = tuple(dict.fromkeys(series.get("Series_type", [])))
@@ -501,10 +536,41 @@ def parse_series_matrix_features(
     )
 
 
+def parse_series_matrix_metadata(
+    payload: bytes,
+    *,
+    accession: str,
+    source_file_name: str | None = None,
+) -> GeoMatrixMetadata:
+    """Validate a bounded Series Matrix while retaining metadata, not feature vectors."""
+
+    matrix = _parse_series_matrix_features(
+        payload,
+        accession=accession,
+        feature_ids=None,
+        source_file_name=source_file_name,
+        retain_features=False,
+    )
+    return GeoMatrixMetadata(
+        accession=matrix.accession,
+        title=matrix.title,
+        series_types=matrix.series_types,
+        platform_ids=matrix.platform_ids,
+        samples=matrix.samples,
+        processing_descriptions=matrix.processing_descriptions,
+        feature_count=matrix.feature_count,
+        source_sha256=matrix.source_sha256,
+        source_url=matrix.source_url,
+        source_file_name=matrix.source_file_name,
+        compressed_bytes=matrix.compressed_bytes,
+        decompressed_bytes=matrix.decompressed_bytes,
+    )
+
+
 def _build_samples(
     accessions: Sequence[str],
     sample_rows: dict[str, list[str]],
-    characteristic_rows: Sequence[Sequence[tuple[str, str]]],
+    characteristic_rows: Sequence[Sequence[tuple[str, str] | None]],
     processing_rows: Sequence[Sequence[str]],
 ) -> tuple[GeoSample, ...]:
     count = len(accessions)
@@ -522,7 +588,8 @@ def _build_samples(
     characteristics: list[list[tuple[str, str]]] = [[] for _ in range(count)]
     for row in characteristic_rows:
         for index, pair in enumerate(row):
-            characteristics[index].append(pair)
+            if pair is not None:
+                characteristics[index].append(pair)
     return tuple(
         GeoSample(
             accession=sample_id,

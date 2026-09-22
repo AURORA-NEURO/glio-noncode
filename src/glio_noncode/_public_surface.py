@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = '8334ce138c39aec1dddc4411bdb9524806ee79cbf30af45f5fc160a1f967d583'
+SURFACE_DIGEST = 'bedd2a76d5ac72e514038d06f8a42c40e508ead36a1867cdb5d78a3292f8a9d6'
 
 ALL = (
     'CaseManifest',
@@ -44183,6 +44183,7 @@ CHILD_MODULES = {
     'frontier_replay': 'glio_noncode.frontier_replay',
     'frontier_scenario_matrix': 'glio_noncode.frontier_scenario_matrix',
     'geo_expression': 'glio_noncode.geo_expression',
+    'geo_metadata': 'glio_noncode.geo_metadata',
     'geo_platform_annotations': 'glio_noncode.geo_platform_annotations',
     'geo_quality': 'glio_noncode.geo_quality',
     'history_observatory_archive_transfer_recovery_execution': 'glio_noncode.history_observatory_archive_transfer_recovery_execution',
@@ -49456,6 +49457,7 @@ LAZY_MODULES = (
     'glio_noncode.frontier_replay',
     'glio_noncode.frontier_scenario_matrix',
     'glio_noncode.geo_expression',
+    'glio_noncode.geo_metadata',
     'glio_noncode.geo_platform_annotations',
     'glio_noncode.geo_quality',
     'glio_noncode.history_observatory_archive_transfer_recovery_execution',

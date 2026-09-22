@@ -77,6 +77,13 @@ does not transform values or automatically exclude or classify samples.
 Use `--matrix-file` to run the same bounded, provenance-recorded report on a
 previously downloaded Series Matrix.
 
+To inspect the submitter-provided sample characteristics and available grouping
+values before designing a contrast, run `geo-metadata`. It counts annotation
+coverage and categories without assigning tumor/control roles or retaining the
+expression feature vectors:
+
+    glio-noncode geo-metadata GSE103227
+
     glio-noncode geo-outlier GSE103227 --feature-id ASHGA5P000001 --target-sample GSM2758529 --reference-filter diagnosis=normal --scale normalized_intensity
 
 For a two-group exploratory screen across one GEO platform, `geo-contrast`
