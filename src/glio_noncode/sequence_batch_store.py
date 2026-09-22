@@ -438,6 +438,20 @@ class SequenceBatchStore:
                 or motif_contains in item["name"].casefold()
             )
         ]
+        filtered_change_summary = {
+            "change_count": len(filtered),
+            "created_count": sum(item["change"] == "created" for item in filtered),
+            "disrupted_count": sum(item["change"] == "disrupted" for item in filtered),
+            "analysis_count_total": sum(int(item["analysis_count"]) for item in filtered),
+            "mean_analysis_fraction": (
+                sum(float(item["analysis_fraction"]) for item in filtered) / len(filtered)
+                if filtered
+                else 0.0
+            ),
+            "max_analysis_fraction": max(
+                (float(item["analysis_fraction"]) for item in filtered), default=0.0
+            ),
+        }
         return {
             "schema": "glio-noncode.sequence-haplotype-batch-changes.v1",
             "batch_id": batch_id,
@@ -447,6 +461,7 @@ class SequenceBatchStore:
             "unfiltered_change_count": len(changes),
             "has_more": offset + limit < len(filtered),
             "filters": {"change": change, "motif_contains": motif_contains},
+            "filtered_change_summary": filtered_change_summary,
             "changes": filtered[offset : offset + limit],
         }
 

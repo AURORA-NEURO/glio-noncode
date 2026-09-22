@@ -1366,6 +1366,8 @@
       row.append(cell(consistencyText(item.change)), cell(item.name || item.motif_id), cell(item.matched_sequence), cell(formatCount(item.analysis_count)), cell(percent(item.analysis_fraction)), cell(item.source_id));
       body.append(row);
     }
+    const changeSummary = changes.filtered_change_summary || {};
+    $("sequence-batch-change-filter-summary").textContent = `${formatCount(changeSummary.change_count ?? 0)} filtered change rows · ${formatCount(changeSummary.analysis_count_total ?? 0)} aggregate analyses · ${formatCount(changeSummary.created_count ?? 0)} created / ${formatCount(changeSummary.disrupted_count ?? 0)} disrupted · mean prevalence ${percent(changeSummary.mean_analysis_fraction ?? 0)} · max ${percent(changeSummary.max_analysis_fraction ?? 0)}`;
     const limitations = $("sequence-batch-limitations");
     limitations.replaceChildren();
     for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));

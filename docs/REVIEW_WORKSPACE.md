@@ -291,6 +291,10 @@ The CLI can persist the same report with `--save-to-workspace --data-root
 `GET /v1/sequence-batches/{batch_id}?change=created|disrupted` and
 `GET /v1/sequence-batches/{batch_id}/changes.csv`; both reopen and validate the
 immutable batch object before returning rows.
+Each paged batch-change response also includes a `filtered_change_summary`
+calculated before pagination. It reports created/disrupted row counts, aggregate
+analysis counts, and mean/max analysis fractions for the complete filtered set;
+omitted rows are never treated as negative evidence.
 Two compatible batch reports can be compared with
 `glio-noncode sequence-batch-compare left.json right.json`; the result keeps
 exact motif identity and reports prevalence deltas while treating a missing
