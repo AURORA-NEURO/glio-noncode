@@ -20,6 +20,7 @@ from glio_noncode.geo_preflight_store import GeoPreflightStore
 from glio_noncode.geo_review_summary import (
     build_geo_preflight_ledger,
     build_geo_review_ledger,
+    build_geo_review_ledger_document,
     build_geo_review_summary,
     geo_preflight_ledger_csv,
     geo_review_ledger_csv,
@@ -90,6 +91,15 @@ class GeoReviewSummaryTests(unittest.TestCase):
             )
             self.assertIn("GSE141945", stdout_csv.getvalue())
 
+            stdout_ledger, stderr_ledger = io.StringIO(), io.StringIO()
+            with redirect_stdout(stdout_ledger), redirect_stderr(stderr_ledger):
+                ledger_result = summary_main(["--data-root", str(workspace), "--ledger-json"])
+            self.assertEqual(ledger_result, 0)
+            self.assertEqual(stderr_ledger.getvalue(), "")
+            cli_ledger = json.loads(stdout_ledger.getvalue())
+            self.assertEqual(cli_ledger["schema"], "glio-noncode.geo-review-ledger.v1")
+            self.assertEqual(cli_ledger["row_count"], len(cli_ledger["rows"]))
+
             server = create_server("127.0.0.1", 0, str(workspace))
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -117,6 +127,23 @@ class GeoReviewSummaryTests(unittest.TestCase):
                     'attachment; filename="GLIO-NONCODE-geo-review-ledger.csv"',
                     csv_response.getheader("Content-Disposition", ""),
                 )
+
+                json_connection = HTTPConnection(host, port, timeout=30)
+                json_connection.request(
+                    "GET", "/v1/geo-review/ledger.json?verify_reports=true"
+                )
+                json_response = json_connection.getresponse()
+                ledger_document = json.loads(json_response.read())
+                json_connection.close()
+                self.assertEqual(json_response.status, 200)
+                self.assertEqual(
+                    json_response.getheader("Content-Type"),
+                    "application/json; charset=utf-8",
+                )
+                self.assertIn(
+                    'attachment; filename="GLIO-NONCODE-geo-review-ledger.json"',
+                    json_response.getheader("Content-Disposition", ""),
+                )
             finally:
                 server.shutdown()
                 server.server_close()
@@ -125,6 +152,7 @@ class GeoReviewSummaryTests(unittest.TestCase):
         self.assertEqual(api_summary["content_address"], cli_summary["content_address"])
         self.assertEqual(api_summary["catalogs"], cli_summary["catalogs"])
         self.assertEqual(api_summary["integrity"], cli_summary["integrity"])
+        self.assertEqual(ledger_document, cli_ledger)
         self.assertIn(
             "catalog,record_id,accessions,feature_count,tested_feature_count,"
             "reported_feature_count,ranked_feature_count,"
@@ -134,6 +162,22 @@ class GeoReviewSummaryTests(unittest.TestCase):
         )
         self.assertIn("paired_count_analyses", ledger_csv)
         self.assertIn("GSE141945", ledger_csv)
+
+    def test_ledger_document_is_addressed_and_privacy_bounded(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            workspace = root / "workspace"
+            GeoAnalysisStore(workspace).save(_report(root / "source", "GSE141945"))
+            document = build_geo_review_ledger_document(workspace)
+
+        self.assertEqual(document["schema"], "glio-noncode.geo-review-ledger.v1")
+        self.assertEqual(document["row_count"], len(document["rows"]))
+        self.assertTrue(document["content_address"].startswith("geo-review-ledger:"))
+        public = json.dumps(document)
+        self.assertNotIn("PRIVATE_SUBJECT_", public)
+        self.assertNotIn("sample_ids", public)
+        self.assertNotIn("agent", public.lower())
+        self.assertNotIn("language", public.lower())
 
     def test_summary_exposes_normalization_coverage_totals(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

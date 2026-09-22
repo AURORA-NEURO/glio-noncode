@@ -759,10 +759,15 @@
     const link = $("markdown-export");
     const csvLink = $("geo-csv-export");
     const runCsvLink = $("geo-run-csv-export");
+    const ledgerJsonLink = $("geo-ledger-json-export");
     runCsvLink.href = "#";
     runCsvLink.hidden = true;
     runCsvLink.classList.add("disabled");
     runCsvLink.setAttribute("aria-disabled", "true");
+    ledgerJsonLink.href = "#";
+    ledgerJsonLink.hidden = true;
+    ledgerJsonLink.classList.add("disabled");
+    ledgerJsonLink.setAttribute("aria-disabled", "true");
     if (model.activeView === "geo" && model.selectedGeo && model.geoPage?.analysis_id === model.selectedGeo) {
       link.href = `/v1/geo-analyses/${encodeURIComponent(model.selectedGeo)}/report.json`;
       link.textContent = "Download GEO JSON";
@@ -775,6 +780,11 @@
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
       csvLink.setAttribute("aria-disabled", "false");
+      ledgerJsonLink.href = "/v1/geo-review/ledger.json?verify_reports=true";
+      ledgerJsonLink.textContent = "Download ledger JSON";
+      ledgerJsonLink.hidden = false;
+      ledgerJsonLink.classList.remove("disabled");
+      ledgerJsonLink.setAttribute("aria-disabled", "false");
       return;
     }
     if (model.activeView === "geo-review" && model.geoReviewSummary?.content_address) {

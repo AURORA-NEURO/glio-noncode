@@ -26247,10 +26247,15 @@ class ApiHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
-        if path in {"/v1/geo-review/summary", "/v1/geo-review/summary.csv"}:
+        if path in {
+            "/v1/geo-review/summary",
+            "/v1/geo-review/summary.csv",
+            "/v1/geo-review/ledger.json",
+        }:
             try:
                 from .geo_review_summary import (
                     build_geo_review_summary,
+                    build_geo_review_ledger_document,
                     geo_review_ledger_csv,
                 )
 
@@ -26273,6 +26278,20 @@ class ApiHandler(BaseHTTPRequestHandler):
                         headers={
                             "Content-Disposition": (
                                 'attachment; filename="GLIO-NONCODE-geo-review-ledger.csv"'
+                            )
+                        },
+                    )
+                    return
+                if path == "/v1/geo-review/ledger.json":
+                    self._write(
+                        HTTPStatus.OK,
+                        build_geo_review_ledger_document(
+                            self._runtime().store.root,
+                            verify_reports=should_verify,
+                        ),
+                        headers={
+                            "Content-Disposition": (
+                                'attachment; filename="GLIO-NONCODE-geo-review-ledger.json"'
                             )
                         },
                     )

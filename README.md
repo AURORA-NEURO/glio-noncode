@@ -187,6 +187,9 @@ direction review and CSV export.
 The archive-health ledger CSV also exposes per-record ranked rows, explicitly tracked
 rows, and tracked source-ID slot counts so bounded coverage can be audited without
 opening raw matrices.
+The same verified ledger is available as a content-addressed JSON document through
+`geo-review-summary --ledger-json` or `GET /v1/geo-review/ledger.json` for downstream
+review tooling without CSV parsing.
 
 For the single-feature `geo-count-outlier` and paired `geo-count-contrast`
 workflows, manually reviewed identifiers can be added with

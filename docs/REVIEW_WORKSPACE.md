@@ -132,6 +132,9 @@ totals to the archive-health projection.
 The aggregate ledger CSV carries those ranked, explicitly tracked, and tracked-ID
 counts per catalog record as well, while keeping sample and raw-matrix identifiers
 out of the export.
+Consumers that need a structured interchange form can use the content-addressed
+`glio-noncode.geo-review-ledger.v1` document from the CLI `--ledger-json` option or
+the `/v1/geo-review/ledger.json` endpoint.
 
 For reproducible cross-normalization coverage, pass repeated
 `--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The

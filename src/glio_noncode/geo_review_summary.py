@@ -18,6 +18,7 @@ from .geo_preflight_store import GeoPreflightStore
 from .serialization import content_hash
 
 GEO_REVIEW_SUMMARY_SCHEMA = "glio-noncode.geo-review-summary.v1"
+GEO_REVIEW_LEDGER_SCHEMA = "glio-noncode.geo-review-ledger.v1"
 MAX_GEO_REVIEW_RECORDS = 10_000
 CATALOG_PAGE_SIZE = 20
 GEO_REVIEW_LEDGER_COLUMNS = (
@@ -357,6 +358,45 @@ def geo_review_ledger_csv(
     )
 
 
+def build_geo_review_ledger_document(
+    root: str | Path,
+    *,
+    verify_reports: bool = True,
+) -> dict[str, Any]:
+    """Build a content-addressed JSON form of the aggregate review ledger."""
+
+    if type(verify_reports) is not bool:
+        raise ValidationError("GEO review ledger report verification flag must be boolean")
+    body = {
+        "schema": GEO_REVIEW_LEDGER_SCHEMA,
+        "verification_requested": verify_reports,
+        "row_count": 0,
+        "rows": build_geo_review_ledger(root, verify_reports=verify_reports),
+        "limitations": [
+            (
+                "This ledger is an aggregate archive projection; it does not include "
+                "raw matrices, sample identifiers, subject identifiers, or pair identifiers."
+            ),
+            (
+                "Feature counts are bounded catalog projections and are not deduplicated "
+                "across studies or comparison records."
+            ),
+        ],
+    }
+    body["row_count"] = len(body["rows"])
+    return body | {"content_address": content_hash(body, prefix="geo-review-ledger")}
+
+
+def geo_review_ledger_json(
+    root: str | Path,
+    *,
+    verify_reports: bool = True,
+) -> dict[str, Any]:
+    """Return the verified JSON review ledger document."""
+
+    return build_geo_review_ledger_document(root, verify_reports=verify_reports)
+
+
 def render_geo_review_ledger_csv(ledger: list[Mapping[str, Any]]) -> str:
     """Render already-verified ledger rows without reopening stored reports."""
 
@@ -574,13 +614,16 @@ def build_geo_review_summary(
 
 __all__ = [
     "GEO_PREFLIGHT_LEDGER_COLUMNS",
+    "GEO_REVIEW_LEDGER_SCHEMA",
     "GEO_REVIEW_LEDGER_COLUMNS",
     "GEO_REVIEW_SUMMARY_SCHEMA",
     "build_geo_preflight_ledger",
     "build_geo_review_ledger",
+    "build_geo_review_ledger_document",
     "build_geo_review_summary",
     "geo_preflight_ledger_csv",
     "geo_review_ledger_csv",
+    "geo_review_ledger_json",
     "render_geo_preflight_ledger_csv",
     "render_geo_review_ledger_csv",
 ]
