@@ -19596,6 +19596,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'prepare and run a case from source manifests',
     ),
     (
+        'cohort-recurrence',
+        'compare a locus with callable-subject-matched controls',
+    ),
+    (
         'expression',
         'analyze expression and allele-specific RNA evidence',
     ),

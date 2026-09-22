@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GLIO-NONCODE cohort recurrence observations",
+  "description": "Input document for the cohort-recurrence command. Missing matching covariates are accepted as data but make recurrence non-estimable.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "locus_id", "observations"],
+  "properties": {
+    "schema": {
+      "const": "glio.cohort-observations.v1"
+    },
+    "locus_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 250000,
+      "items": {
+        "$ref": "#/$defs/observation"
+      }
+    }
+  },
+  "$defs": {
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_id",
+        "subject_id",
+        "locus_id",
+        "mutated",
+        "callable",
+        "mutability_score",
+        "chromatin_score",
+        "ancestry_group",
+        "disease_class",
+        "context"
+      ],
+      "properties": {
+        "observation_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "subject_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "locus_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "mutated": {"type": "boolean"},
+        "callable": {"type": "boolean"},
+        "mutability_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "chromatin_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "ancestry_group": {"type": "string", "minLength": 1, "maxLength": 256},
+        "disease_class": {"type": "string", "minLength": 1, "maxLength": 256},
+        "context": {"$ref": "#/$defs/context"},
+        "variant_class": {"type": ["string", "null"], "minLength": 1, "maxLength": 256},
+        "sequence_context": {"type": ["string", "null"], "minLength": 1, "maxLength": 256},
+        "molecular_context": {"type": ["string", "null"], "minLength": 1, "maxLength": 256},
+        "recurrence_phase": {"type": ["string", "null"], "minLength": 1, "maxLength": 256},
+        "locus_length": {"type": ["integer", "null"], "minimum": 1},
+        "batch_id": {"type": ["string", "null"], "minLength": 1, "maxLength": 256},
+        "ascertainment_group": {"type": ["string", "null"], "minLength": 1, "maxLength": 256}
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["genome_build", "disease_class", "age_group", "cell_state"],
+      "properties": {
+        "genome_build": {"type": "string", "minLength": 1},
+        "disease_class": {"type": "string", "minLength": 1},
+        "age_group": {"type": "string", "minLength": 1},
+        "cell_state": {"type": "string", "minLength": 1},
+        "territory": {"type": "string", "minLength": 1},
+        "treatment_phase": {"type": "string", "minLength": 1},
+        "assay_support": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "source_version": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

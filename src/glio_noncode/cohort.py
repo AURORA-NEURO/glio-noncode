@@ -11,6 +11,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from itertools import islice
+from typing import Any
 
 from .models import ReferenceContext
 
@@ -62,6 +63,78 @@ class CohortObservation:
     batch_id: str | None = None
     ascertainment_group: str | None = None
 
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> CohortObservation:
+        """Validate and parse one versioned-input observation record."""
+
+        required = {
+            "observation_id",
+            "subject_id",
+            "locus_id",
+            "mutated",
+            "callable",
+            "mutability_score",
+            "chromatin_score",
+            "ancestry_group",
+            "disease_class",
+            "context",
+        }
+        optional = set(_REQUIRED_MATCHING_FIELDS)
+        unknown = set(raw) - required - optional
+        missing = required - set(raw)
+        if unknown:
+            raise ValueError(f"cohort observation contains unsupported fields: {sorted(unknown)}")
+        if missing:
+            raise ValueError(f"cohort observation is missing fields: {sorted(missing)}")
+
+        context_raw = raw["context"]
+        if not isinstance(context_raw, Mapping):
+            raise ValueError("cohort observation context must be an object")
+        text_fields = (
+            "observation_id",
+            "subject_id",
+            "locus_id",
+            "ancestry_group",
+            "disease_class",
+        )
+        values: dict[str, Any] = {name: _observation_text(raw[name], name) for name in text_fields}
+        values["mutated"] = _observation_bool(raw["mutated"], "mutated")
+        values["callable"] = _observation_bool(raw["callable"], "callable")
+        values["mutability_score"] = _observation_score(raw["mutability_score"], "mutability_score")
+        values["chromatin_score"] = _observation_score(raw["chromatin_score"], "chromatin_score")
+        values["context"] = ReferenceContext.from_dict(context_raw)
+        for name in _REQUIRED_MATCHING_FIELDS:
+            value = raw.get(name)
+            if value is not None and name != "locus_length":
+                value = _observation_text(value, name)
+            if name == "locus_length" and value is not None and type(value) is not int:
+                raise ValueError("locus_length must be an integer or null")
+            values[name] = value
+        return cls(**values)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize one cohort observation using the CLI input field names."""
+
+        return {
+            "observation_id": self.observation_id,
+            "subject_id": self.subject_id,
+            "locus_id": self.locus_id,
+            "mutated": self.mutated,
+            "callable": self.callable,
+            "mutability_score": self.mutability_score,
+            "chromatin_score": self.chromatin_score,
+            "ancestry_group": self.ancestry_group,
+            "disease_class": self.disease_class,
+            "context": self.context.to_dict(),
+            "variant_class": self.variant_class,
+            "sequence_context": self.sequence_context,
+            "molecular_context": self.molecular_context,
+            "recurrence_phase": self.recurrence_phase,
+            "locus_length": self.locus_length,
+            "batch_id": self.batch_id,
+            "ascertainment_group": self.ascertainment_group,
+        }
+
     def __post_init__(self) -> None:
         for name in ("observation_id", "subject_id", "locus_id", "ancestry_group", "disease_class"):
             value = getattr(self, name)
@@ -77,11 +150,13 @@ class CohortObservation:
             raise ValueError("disease_class must match context.disease_class")
         for name in ("mutability_score", "chromatin_score"):
             value = getattr(self, name)
-            if (
-                isinstance(value, bool)
-                or not isinstance(value, (int, float))
-                or not math.isfinite(value)
-            ):
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise ValueError(f"{name} must be a finite number between 0 and 1")
+            try:
+                finite_value = math.isfinite(float(value))
+            except OverflowError:
+                finite_value = False
+            if not finite_value:
                 raise ValueError(f"{name} must be a finite number between 0 and 1")
             if not 0.0 <= value <= 1.0:
                 raise ValueError(f"{name} must be between 0 and 1")
@@ -440,6 +515,27 @@ class RecurrenceModel:
 
 def _matches_global_dimensions(row: CohortObservation, target: CohortObservation) -> bool:
     return all(getattr(row, name) == getattr(target, name) for name in _GLOBAL_MATCH_FIELDS)
+
+
+def _observation_text(value: object, name: str) -> str:
+    if type(value) is not str:
+        raise ValueError(f"{name} must be a string")
+    return value
+
+
+def _observation_bool(value: object, name: str) -> bool:
+    if type(value) is not bool:
+        raise ValueError(f"{name} must be a boolean")
+    return value
+
+
+def _observation_score(value: object, name: str) -> float:
+    if type(value) not in {int, float}:
+        raise ValueError(f"{name} must be a number")
+    try:
+        return float(value)
+    except OverflowError as error:
+        raise ValueError(f"{name} must be a finite number") from error
 
 
 def _validate_unique_observations(values: tuple[CohortObservation, ...]) -> None:

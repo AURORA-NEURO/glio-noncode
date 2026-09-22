@@ -109,6 +109,14 @@ class CohortRecurrenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "non-callable"):
             replace(self.rows[0], callable=False, mutated=True)
 
+    def test_observation_json_round_trips_and_rejects_unknown_fields(self) -> None:
+        observation = self.rows[0]
+        self.assertEqual(CohortObservation.from_dict(observation.to_dict()), observation)
+        invalid = observation.to_dict()
+        invalid["subject_label"] = "private label"
+        with self.assertRaisesRegex(ValueError, "unsupported fields"):
+            CohortObservation.from_dict(invalid)
+
     def test_only_controls_covering_all_callable_target_subjects_are_eligible(self) -> None:
         rows = tuple(
             row

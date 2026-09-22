@@ -100,12 +100,6 @@ def _input_text(value: object, field: str) -> str:
     return value.strip()
 
 
-def _optional_input_text(value: object, field: str) -> str | None:
-    if value is None:
-        return None
-    return _input_text(value, field)
-
-
 def _input_bool(value: object, field: str) -> bool:
     if type(value) is not bool:
         raise ValidationError(f"{field} must be a boolean")
@@ -2394,40 +2388,10 @@ class ControlPlaneApplication:
     def _cohort_observation(raw: object) -> CohortObservation:
         if not isinstance(raw, Mapping):
             raise ValidationError("each cohort observation must be a mapping")
-        context_raw = raw.get("context")
-        if not isinstance(context_raw, Mapping):
-            raise ValidationError("each cohort observation requires a context mapping")
-        return CohortObservation(
-            observation_id=_input_text(raw["observation_id"], "cohort observation_id"),
-            subject_id=_input_text(raw["subject_id"], "cohort subject_id"),
-            locus_id=_input_text(raw["locus_id"], "cohort locus_id"),
-            mutated=_input_bool(raw["mutated"], "cohort mutated"),
-            callable=_input_bool(raw["callable"], "cohort callable"),
-            mutability_score=_input_number(raw["mutability_score"], "cohort mutability_score"),
-            chromatin_score=_input_number(raw["chromatin_score"], "cohort chromatin_score"),
-            ancestry_group=_input_text(raw["ancestry_group"], "cohort ancestry_group"),
-            disease_class=_input_text(raw["disease_class"], "cohort disease_class"),
-            context=ReferenceContext.from_dict(context_raw),
-            variant_class=_optional_input_text(raw.get("variant_class"), "cohort variant_class"),
-            sequence_context=_optional_input_text(
-                raw.get("sequence_context"), "cohort sequence_context"
-            ),
-            molecular_context=_optional_input_text(
-                raw.get("molecular_context"), "cohort molecular_context"
-            ),
-            recurrence_phase=_optional_input_text(
-                raw.get("recurrence_phase"), "cohort recurrence_phase"
-            ),
-            locus_length=(
-                _input_integer(raw["locus_length"], "cohort locus_length")
-                if raw.get("locus_length") is not None
-                else None
-            ),
-            batch_id=_optional_input_text(raw.get("batch_id"), "cohort batch_id"),
-            ascertainment_group=_optional_input_text(
-                raw.get("ascertainment_group"), "cohort ascertainment_group"
-            ),
-        )
+        try:
+            return CohortObservation.from_dict(raw)
+        except (TypeError, ValueError) as error:
+            raise ValidationError(f"invalid cohort observation: {error}") from error
 
     def _causal(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
         raw = request.input_payload

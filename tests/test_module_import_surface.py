@@ -18,6 +18,7 @@ MODULE_IDS = (
     "glio_noncode.__main__",
     "glio_noncode._callback_isolation",
     "glio_noncode._cli_case",
+    "glio_noncode._cli_cohort_recurrence",
     "glio_noncode._cli_evidence",
     "glio_noncode._cli_expression",
     "glio_noncode._cli_geo",

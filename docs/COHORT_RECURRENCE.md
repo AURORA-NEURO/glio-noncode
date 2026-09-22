@@ -73,3 +73,20 @@ Inspect `summary["status"]` before using any rate or contrast. The bounded
 application interface applies the same validation and estimability rules.
 Non-estimable results are surfaced as an abstention rather than supported
 recurrence evidence.
+
+## Command-line usage
+
+The input contract is packaged as `schemas/cohort_observations.schema.json`.
+It is a JSON object with `schema: "glio.cohort-observations.v1"`, one target
+`locus_id`, and an `observations` array. For a prepared input file:
+
+```powershell
+glio-noncode cohort-recurrence cohort-observations.json --output recurrence.json
+glio-noncode cohort-recurrence cohort-observations.json --control-limit 40
+```
+
+The default is 20 selected controls; between 1 and 500 may be requested. A valid
+but non-estimable analysis is still a successful command execution and returns
+`status: "not_estimable"`; inspect the JSON status and limitations before using
+the output. Invalid or unreadable input returns exit code 2 and a path-free
+error report. Input is bounded to 128 MiB and 250,000 observation rows.

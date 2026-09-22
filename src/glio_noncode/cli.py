@@ -15,6 +15,7 @@ Inspectable research hypothesis runtime.
 Focused commands:
   case                 prepare and run a case from source manifests
   expression           analyze expression and allele-specific RNA evidence
+  cohort-recurrence    compare a locus with callable-subject-matched controls
   geo-outlier          compare one GEO expression feature with explicit references
   geo-qc               summarize sample coverage and matrix quality before analysis
   geo-metadata         inventory GEO sample characteristics before contrast design
@@ -123,6 +124,8 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_case").main(command_argv)
     if command == "expression":
         return importlib.import_module(f"{__package__}._cli_expression").main(command_argv)
+    if command == "cohort-recurrence":
+        return importlib.import_module(f"{__package__}._cli_cohort_recurrence").main(command_argv)
     if command == "geo-outlier":
         return importlib.import_module(f"{__package__}._cli_geo").main(command_argv)
     if command == "geo-qc":

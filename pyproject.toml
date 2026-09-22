@@ -34,7 +34,11 @@ where = ["src"]
 glio_noncode = ["*.pyi", "schemas/*.json", "py.typed"]
 
 [tool.setuptools.data-files]
-schemas = ["schemas/capability_catalog.csv", "schemas/case_manifest.schema.json"]
+schemas = [
+  "schemas/capability_catalog.csv",
+  "schemas/case_manifest.schema.json",
+  "schemas/cohort_observations.schema.json",
+]
 
 [tool.pyright]
 include = ["src", "tests"]

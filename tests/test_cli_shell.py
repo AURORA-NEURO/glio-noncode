@@ -20,9 +20,7 @@ CLI_PATH = REPOSITORY_ROOT / "src" / "glio_noncode" / "cli.py"
 
 def _top_level_commands(parser: argparse.ArgumentParser) -> tuple[str, ...]:
     subparsers = next(
-        action
-        for action in parser._actions
-        if isinstance(action, argparse._SubParsersAction)
+        action for action in parser._actions if isinstance(action, argparse._SubParsersAction)
     )
     return tuple(sorted(str(name) for name in subparsers.choices))
 
@@ -80,6 +78,10 @@ print(json.dumps(results))
         with patch.object(cli.importlib, "import_module", side_effect=fake_import):
             self.assertEqual(cli.main(["case", "prepare", "--input", "case.json"]), 17)
             self.assertEqual(cli.main(["expression", "allelic", "--input", "rna.json"]), 17)
+            self.assertEqual(
+                cli.main(["cohort-recurrence", "cohort.json", "--output", "-"]),
+                17,
+            )
             self.assertEqual(cli.main(["report-capabilities", "--output", "-"]), 17)
             self.assertEqual(cli.main(["assessment-capabilities", "--output", "-"]), 17)
             self.assertEqual(
@@ -93,6 +95,7 @@ print(json.dumps(results))
             [
                 ("_cli_case", ["prepare", "--input", "case.json"]),
                 ("_cli_expression", ["allelic", "--input", "rna.json"]),
+                ("_cli_cohort_recurrence", ["cohort.json", "--output", "-"]),
                 ("_cli_report", ["report-capabilities", "--output", "-"]),
                 ("_cli_report", ["assessment-capabilities", "--output", "-"]),
                 ("_cli_report", ["run-report", "run-1", "--audience", "public"]),

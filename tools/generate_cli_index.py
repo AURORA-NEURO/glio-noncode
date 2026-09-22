@@ -12,6 +12,7 @@ SOURCE_ROOT = REPOSITORY_ROOT / "src"
 OUTPUT_PATH = SOURCE_ROOT / "glio_noncode" / "_cli_index.py"
 SHELL_COMMANDS = (
     ("case", "prepare and run a case from source manifests"),
+    ("cohort-recurrence", "compare a locus with callable-subject-matched controls"),
     ("expression", "analyze expression and allele-specific RNA evidence"),
     ("geo-outlier", "compare one GEO expression feature with explicit references"),
     ("geo-qc", "summarize sample coverage and matrix quality before analysis"),
