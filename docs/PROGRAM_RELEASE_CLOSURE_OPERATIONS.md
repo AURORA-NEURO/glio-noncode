@@ -60,11 +60,10 @@ state, and acceptance.
 | D13 | Functional Validation & Experiment Design | Plan and validate experiments |
 | D14 | Evidence Graph, Review & Reclassification | Maintain reviewable evidence relationships |
 | D15 | Research Workbench & Collaboration | Provide workbench-ready aggregate projections |
-| D16 | Agentic Platform, Quality & Deployment | Coordinate quality and deployment controls |
+| D16 | Research Platform, Quality & Deployment | Coordinate research quality and release controls |
 
-The word “Agentic” above is part of the domain’s product name from the source
-domain registry. It is not attribution metadata. Generated closure artifacts
-do not include agent identity, model identity, language identity, or author
+Generated closure artifacts contain only the declared aggregate quality and
+release controls; they do not add execution attribution or direct identity
 fields.
 
 ## Aggregate closure denominators

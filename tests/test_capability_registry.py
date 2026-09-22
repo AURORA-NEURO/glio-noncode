@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import tempfile
 import unittest
 from pathlib import Path
@@ -24,7 +25,9 @@ class CapabilityRegistryTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 CapabilityRegistry.from_csv(link)
 
-    def test_blueprint_catalog_has_256_rows_and_64_mvp_rows(self) -> None:
+    def test_catalog_has_256_rows_and_64_mvp_rows_without_execution_identity_fields(
+        self,
+    ) -> None:
         registry = default_capability_registry()
         coverage = registry.coverage()
         self.assertEqual(coverage.total_capabilities, 256)
@@ -40,6 +43,18 @@ class CapabilityRegistryTests(unittest.TestCase):
         self.assertAlmostEqual(coverage.to_dict()["mvp_started_percent"], 100.0)
         self.assertEqual(len(registry.by_domain("D01")), 16)
         self.assertEqual(registry.record("GNC-D01-C04").state, CapabilityState.VERIFIED)
+        spec = registry.record("GNC-D01-C01").spec
+        self.assertNotIn("primary_agent_id", spec.to_dict())
+        source = Path(__file__).resolve().parents[1] / "schemas" / "capability_catalog.csv"
+        with source.open(encoding="utf-8", newline="") as handle:
+            headers = next(csv.reader(handle))
+        self.assertNotIn("primary_agent_id", headers)
+        self.assertFalse(
+            any(
+                "agent" in f"{record.spec.domain} {record.spec.capability}".casefold()
+                for record in registry.records()
+            )
+        )
 
         for capability_id in ("GNC-D11-C01", "GNC-D11-C02", "GNC-D11-C03", "GNC-D11-C04"):
             self.assertEqual(registry.record(capability_id).state, CapabilityState.VERIFIED)
@@ -193,9 +208,27 @@ class CapabilityRegistryTests(unittest.TestCase):
         self.assertEqual(registry.record("GNC-D15-C10").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D15-C11").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D15-C12").state, CapabilityState.VERIFIED)
-        for capability_id in ("GNC-D16-C01", "GNC-D16-C02", "GNC-D16-C03", "GNC-D16-C04", "GNC-D16-C05", "GNC-D16-C06", "GNC-D16-C07", "GNC-D16-C08", "GNC-D16-C09", "GNC-D16-C10", "GNC-D16-C11", "GNC-D16-C12"):
+        for capability_id in (
+            "GNC-D16-C01",
+            "GNC-D16-C02",
+            "GNC-D16-C03",
+            "GNC-D16-C04",
+            "GNC-D16-C05",
+            "GNC-D16-C06",
+            "GNC-D16-C07",
+            "GNC-D16-C08",
+            "GNC-D16-C09",
+            "GNC-D16-C10",
+            "GNC-D16-C11",
+            "GNC-D16-C12",
+        ):
             self.assertEqual(registry.record(capability_id).state, CapabilityState.VERIFIED)
-        self.assertEqual(registry.record("GNC-D16-C04").spec.capability, "Agent execution sandbox")
+        self.assertEqual(
+            registry.record("GNC-D16-C04").spec.domain, "Research Platform, Quality & Deployment"
+        )
+        self.assertEqual(
+            registry.record("GNC-D16-C04").spec.capability, "Isolated execution sandbox"
+        )
         for capability_id in (
             "GNC-D01-C13",
             "GNC-D01-C16",

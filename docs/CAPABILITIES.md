@@ -1,7 +1,7 @@
 # Capability coverage
 
-GLIO-NONCODE is measured against the approved product blueprint, not against
-the number of Python files or workflow roles. The checked-in catalog at
+GLIO-NONCODE is measured against its product capability catalog, not against
+the number of Python files or internal implementation roles. The checked-in catalog at
 `schemas/capability_catalog.csv` contains:
 
 | Measure | Denominator | Meaning |
@@ -10,15 +10,11 @@ the number of Python files or workflow roles. The checked-in catalog at
 | MVP capabilities | 64 | The first four capabilities in each domain |
 | Delivery surfaces | 4 per capability | Core, API, CLI, and review/operations surfaces |
 | Feature instances | 1,024 | 256 capabilities × 4 delivery surfaces |
-| Control-plane roles | 48 | Bounded workflow responsibilities |
-| Typed tool contracts | 96 | Two contracts per bounded role |
 
-The 48-role and 96-contract figures describe orchestration coverage. They are
-not a substitute for product implementation coverage. A capability is counted
-as implemented only when the ledger names its modules; it is counted as
-verified only when tests and the stated evidence boundary support that claim.
-The registry reports planned, partial, implemented, and verified counts
-separately so a single percentage cannot hide unfinished work.
+A capability is counted as implemented only when the ledger names its modules;
+it is counted as verified only when tests and the stated evidence boundary
+support that claim. The registry reports planned, partial, implemented, and
+verified counts separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage across the sixteen
 domains. The repository ledger now has 256 of 256 capabilities started (100%);
@@ -141,9 +137,9 @@ registry resolution, and isolated execution.
 
 | Capability | Positive path | Controls |
 | --- | --- | --- |
-| C01 Mission planner | dependency-complete plan is ready | empty request, unknown role, claim ceiling |
+| C01 Workflow planner | dependency-complete plan is ready | empty request, unknown workflow, claim ceiling |
 | C02 Workflow compiler | dependency-safe graph is ready | cycle, missing dependency, network/nondeterminism |
-| C03 Typed tool registry | registered contracts are compatible | missing tool, input mismatch, cardinality |
+| C03 Typed capability registry | registered contracts are compatible | missing entry, input mismatch, cardinality |
 | C04 Execution sandbox | registered local handler is admitted | unregistered handler, network denial, sensitive input |
 
 The runtime retains 80 row checks, 24 ordered stages, 16 scenario cells, 16

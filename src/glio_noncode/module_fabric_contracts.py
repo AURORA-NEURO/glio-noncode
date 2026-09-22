@@ -54,7 +54,7 @@ MODULE_FABRIC_DOMAIN_NAMES = {
     "D13": "Functional Validation & Experiment Design",
     "D14": "Evidence Graph, Review & Reclassification",
     "D15": "Research Workbench & Collaboration",
-    "D16": "Agentic Platform, Quality & Deployment",
+    "D16": "Research Platform, Quality & Deployment",
 }
 
 

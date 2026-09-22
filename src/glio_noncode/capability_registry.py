@@ -1,10 +1,9 @@
-"""Blueprint-backed capability catalog and implementation coverage ledger.
+"""Capability catalog and implementation coverage ledger.
 
 The catalog is product data, not executable starter code.  It is loaded from
-``schemas/capability_catalog.csv`` and validated against the blueprint's
-256-capability / 16-domain contract.  Coverage is intentionally separate from
-the 48-agent registry: an agent can own a role while many finer-grained
-capabilities remain planned or only partially implemented.
+``schemas/capability_catalog.csv`` and validated against its
+256-capability / 16-domain contract. Coverage is tracked per capability and
+never inferred from internal workflow ownership.
 """
 
 from __future__ import annotations
@@ -35,7 +34,7 @@ class CapabilityState(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class CapabilitySpec:
-    """One immutable capability row from the approved product blueprint."""
+    """One immutable capability row from the product catalog."""
 
     capability_id: str
     domain_id: str
@@ -44,7 +43,6 @@ class CapabilitySpec:
     capability_order: int
     capability: str
     kind: str
-    primary_agent_id: str
     release_wave: str
     mvp_64: bool
     blueprint_status: str
@@ -57,7 +55,6 @@ class CapabilitySpec:
             "layer",
             "capability",
             "kind",
-            "primary_agent_id",
             "release_wave",
         ):
             if not str(getattr(self, name)).strip():
@@ -196,7 +193,6 @@ class CapabilityRegistry:
                     capability_order=int(row["capability_order"]),
                     capability=str(row["capability"]),
                     kind=str(row["kind"]),
-                    primary_agent_id=str(row["primary_agent_id"]),
                     release_wave=str(row["release_wave"]),
                     mvp_64=_bool(str(row["mvp_64"])),
                     blueprint_status=str(row["status"]),

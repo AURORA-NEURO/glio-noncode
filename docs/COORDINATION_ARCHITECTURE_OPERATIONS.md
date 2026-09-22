@@ -1,11 +1,10 @@
 # D16 coordination architecture operations
 
 This document describes the functional coordination architecture for the
-Agentic Platform, Quality & Deployment domain without adding attribution,
-assistant, model-generation, or language metadata to repository artifacts. The
-architecture is a public aggregate control surface. It compiles declared work,
-admits typed local tools, applies policy and resource gates, routes controls to
-review, and emits addressed release evidence.
+Research Platform, Quality & Deployment domain. The architecture is a public
+aggregate control surface. It compiles declared work, admits typed local
+capabilities, applies policy and resource gates, routes controls to review,
+and emits addressed release evidence.
 
 It does not diagnose, classify an individual, infer treatment, assert model
 performance, or transform a held control into a positive result.
