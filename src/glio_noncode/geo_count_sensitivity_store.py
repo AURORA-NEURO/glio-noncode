@@ -726,6 +726,65 @@ class GeoCountSensitivityStore:
             raise StoreError("GEO count sensitivity CSV exceeds the export byte limit")
         return rendered
 
+    def runs_csv(self, comparison_id: str) -> str:
+        """Export verified run-level provenance without private sample metadata."""
+
+        saved = self.get_report(comparison_id)
+        fields = (
+            "role",
+            "accession",
+            "normalization",
+            "normalization_method",
+            "expression_scale",
+            "count_matrix_source_sha256",
+            "metadata_source_sha256",
+            "pair_key_column",
+            "matched_pair_count",
+            "case_sample_count_selected",
+            "reference_sample_count_selected",
+            "fdr_method",
+            "fdr_threshold",
+            "tested_feature_count",
+            "reported_feature_count",
+            "ranked_feature_count",
+            "additional_tracked_feature_count",
+            "tracked_feature_ids",
+            "fdr_significant_feature_count",
+            "sign_test_fdr_significant_feature_count",
+        )
+        output = io.StringIO(newline="")
+        writer = csv.writer(output, lineterminator="\n")
+        writer.writerow(fields)
+        for run in saved["report"]["runs"]:
+            writer.writerow(
+                (
+                    run["role"],
+                    run["accession"],
+                    run["normalization"],
+                    run["normalization_method"],
+                    run["expression_scale"],
+                    run["count_matrix_source_sha256"],
+                    run["metadata_source_sha256"],
+                    run["pair_key_column"],
+                    run["matched_pair_count"],
+                    run["case_sample_count_selected"],
+                    run["reference_sample_count_selected"],
+                    run["fdr_method"],
+                    run["fdr_threshold"],
+                    run["tested_feature_count"],
+                    run["reported_feature_count"],
+                    run.get("ranked_feature_count", run["reported_feature_count"]),
+                    run.get("additional_tracked_feature_count", 0),
+                    canonical_json(run.get("tracked_feature_ids", [])),
+                    run["fdr_significant_feature_count"],
+                    run["sign_test_fdr_significant_feature_count"],
+                )
+            )
+        rendered = output.getvalue()
+        if len(rendered.encode("utf-8")) > MAX_COUNT_SENSITIVITY_EXPORT_BYTES:
+            raise StoreError("GEO count sensitivity run CSV exceeds the export byte limit")
+        return rendered
+
 
 __all__ = [
     "GEO_COUNT_SENSITIVITY_CATALOG_SCHEMA",

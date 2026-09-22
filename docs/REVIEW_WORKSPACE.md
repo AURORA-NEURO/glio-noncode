@@ -118,6 +118,9 @@ bounded row as negative evidence.
 Each run exposes ranked-row count, additional tracked-row count, and tracked
 source IDs so normalization stability remains auditable outside the bounded
 ranking.
+The detail view also exports a verified `runs.csv` alongside the filtered
+feature CSV; it contains normalization, source-digest, count, and coverage
+provenance without sample or pair identifiers.
 
 For reproducible cross-normalization coverage, pass repeated
 `--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The

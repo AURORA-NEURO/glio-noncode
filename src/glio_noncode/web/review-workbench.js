@@ -742,6 +742,11 @@
   function exportHref() {
     const link = $("markdown-export");
     const csvLink = $("geo-csv-export");
+    const runCsvLink = $("geo-run-csv-export");
+    runCsvLink.href = "#";
+    runCsvLink.hidden = true;
+    runCsvLink.classList.add("disabled");
+    runCsvLink.setAttribute("aria-disabled", "true");
     if (model.activeView === "geo" && model.selectedGeo && model.geoPage?.analysis_id === model.selectedGeo) {
       link.href = `/v1/geo-analyses/${encodeURIComponent(model.selectedGeo)}/report.json`;
       link.textContent = "Download GEO JSON";
@@ -829,6 +834,11 @@
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
       csvLink.setAttribute("aria-disabled", "false");
+      runCsvLink.href = `/v1/geo-count-sensitivity/${encodeURIComponent(comparisonId)}/runs.csv`;
+      runCsvLink.textContent = "Download run coverage CSV";
+      runCsvLink.hidden = false;
+      runCsvLink.classList.remove("disabled");
+      runCsvLink.setAttribute("aria-disabled", "false");
       return;
     }
     if (model.activeView === "geo-expression" && model.selectedGeoExpression && model.geoExpressionPage?.analysis_id === model.selectedGeoExpression) {

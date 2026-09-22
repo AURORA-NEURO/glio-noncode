@@ -129,6 +129,10 @@ class GeoCountSensitivityTests(unittest.TestCase):
             self.assertEqual(page["total_features"], 1)
             self.assertEqual(page["features"][0]["feature_id"], "2-Sep")
             self.assertIn("left_result_state", store.features_csv(record["comparison_id"]))
+            runs_csv = store.runs_csv(record["comparison_id"])
+            self.assertIn("ranked_feature_count", runs_csv.splitlines()[0])
+            self.assertIn("tracked_feature_ids", runs_csv.splitlines()[0])
+            self.assertNotIn("PRIVATE_SUBJECT_", runs_csv)
             with self.assertRaises(ValidationError):
                 store.page_features(record["comparison_id"], direction_sensitivity="unknown")
 
@@ -188,6 +192,16 @@ class GeoCountSensitivityTests(unittest.TestCase):
                 csv_payload = response.read().decode("utf-8")
                 self.assertEqual(response.status, 200)
                 self.assertIn("direction_sensitivity", csv_payload.splitlines()[0])
+
+                connection.request(
+                    "GET",
+                    f"/v1/geo-count-sensitivity/{comparison_id}/runs.csv",
+                )
+                response = connection.getresponse()
+                runs_csv_payload = response.read().decode("utf-8")
+                self.assertEqual(response.status, 200)
+                self.assertIn("ranked_feature_count", runs_csv_payload.splitlines()[0])
+                self.assertIn("tracked_feature_ids", runs_csv_payload.splitlines()[0])
 
                 connection.request(
                     "GET",
