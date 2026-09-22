@@ -42,6 +42,19 @@ def _matrix_payload() -> bytes:
     return gzip.compress(("\n".join(rows) + "\n").encode("utf-8"), mtime=0)
 
 
+def _platform_annotation_payload(*, platform_id: str = "GPL123") -> bytes:
+    rows = [
+        "^PLATFORM = local-array-design",
+        f"!Platform_geo_accession = {platform_id}",
+        "!Platform_table_begin",
+        "ID\tGene Symbol\tSPOT_ID",
+        "probe-up-1\tLINC-A|LINC-B\tfeature-1",
+        "probe-up-2\tLINC-C\tfeature-2",
+        "!Platform_table_end",
+    ]
+    return ("\n".join(rows) + "\n").encode("utf-8")
+
+
 def _covariate_matrix_payload(
     *,
     missing_age_index: int | None = None,
@@ -321,8 +334,10 @@ class GeoContrastTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             matrix_path = root / "downloaded.txt.gz"
+            annotation_path = root / "platform.soft"
             report_path = root / "contrast.json"
             matrix_path.write_bytes(_matrix_payload())
+            annotation_path.write_bytes(_platform_annotation_payload())
             exit_code = cli_main(
                 [
                     "geo-contrast",
@@ -335,6 +350,12 @@ class GeoContrastTests(unittest.TestCase):
                     "normalized_intensity",
                     "--matrix-file",
                     str(matrix_path),
+                    "--platform-annotation-file",
+                    str(annotation_path),
+                    "--annotation-column",
+                    "Gene Symbol",
+                    "--annotation-column",
+                    "SPOT_ID",
                     "--output",
                     str(report_path),
                 ]
@@ -345,7 +366,44 @@ class GeoContrastTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         self.assertEqual(report["status"], "completed")
         self.assertEqual(report["source"]["source_file_name"], "downloaded.txt.gz")
+        self.assertEqual(
+            report["source"]["platform_annotation"]["platform_accession"],
+            "GPL123",
+        )
+        self.assertEqual(
+            report["source"]["platform_annotation"]["annotation_columns"],
+            ["Gene Symbol", "SPOT_ID"],
+        )
+        self.assertEqual(report["summary"]["platform_annotation_matched_feature_count"], 2)
+        self.assertEqual(report["summary"]["platform_annotation_unmatched_feature_count"], 5)
+        annotated = next(row for row in report["results"] if row["feature_id"] == "probe-up-1")
+        self.assertEqual(annotated["platform_annotation_status"], "matched")
+        self.assertEqual(
+            annotated["platform_annotation"],
+            {"Gene Symbol": "LINC-A|LINC-B", "SPOT_ID": "feature-1"},
+        )
+        unmatched = next(row for row in report["results"] if row["feature_id"] == "probe-missing")
+        self.assertEqual(unmatched["platform_annotation_status"], "not_found")
+        self.assertIsNone(unmatched["platform_annotation"])
         self.assertNotIn(str(root), serialized)
+
+    def test_annotation_file_platform_must_match_series_matrix(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            matrix_path = root / "matrix.txt.gz"
+            annotation_path = root / "wrong-platform.soft"
+            matrix_path.write_bytes(_matrix_payload())
+            annotation_path.write_bytes(_platform_annotation_payload(platform_id="GPL456"))
+            with self.assertRaisesRegex(ValidationError, "differs from the matrix"):
+                build_expression_contrast_report(
+                    "GSE123456",
+                    case_filters=(("diagnosis", "glioblastoma"),),
+                    reference_filters=(("diagnosis", "normal"),),
+                    scale="normalized_intensity",
+                    matrix_file=matrix_path,
+                    platform_annotation_file=annotation_path,
+                    annotation_columns=("Gene Symbol",),
+                )
 
     def test_overlapping_filters_and_raw_counts_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

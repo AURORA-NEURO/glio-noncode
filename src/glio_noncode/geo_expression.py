@@ -38,6 +38,7 @@ from .expression_evidence import (
     RNAEvidenceState,
     RobustExpressionOutlierAnalyzer,
 )
+from .geo_platform_annotations import read_geo_platform_annotations
 from .serialization import content_hash
 
 GEO_FTP_ORIGIN = "https://ftp.ncbi.nlm.nih.gov"
@@ -875,6 +876,9 @@ def build_expression_contrast_report(
     fdr_threshold: float = 0.05,
     top: int = 1_000,
     covariates: Sequence[tuple[str, str]] = (),
+    platform_annotation_file: str | Path | None = None,
+    annotation_id_column: str = "ID",
+    annotation_columns: Sequence[str] = (),
 ) -> dict[str, Any]:
     """Screen all retained features with rank tests or an additive adjusted model."""
 
@@ -882,6 +886,13 @@ def build_expression_contrast_report(
     normalized_case = _normalize_filters(case_filters, "case")
     normalized_reference = _normalize_filters(reference_filters, "reference")
     normalized_covariates = _normalize_covariates(covariates)
+    normalized_annotation_columns = tuple(annotation_columns)
+    if platform_annotation_file is None and (
+        normalized_annotation_columns or annotation_id_column != "ID"
+    ):
+        raise ValidationError(
+            "GEO platform annotation columns require a platform annotation file"
+        )
     group_fields = {field.casefold() for field, _ in (*normalized_case, *normalized_reference)}
     if any(field.casefold() in group_fields for field, _ in normalized_covariates):
         raise ValidationError("GEO covariates cannot reuse sample fields that define group labels")
@@ -917,6 +928,16 @@ def build_expression_contrast_report(
     )
     if len(matrix.platform_ids) != 1:
         raise ValidationError("two-group screening requires exactly one GEO platform")
+    platform_annotations = (
+        read_geo_platform_annotations(
+            platform_annotation_file,
+            expected_platform_id=matrix.platform_ids[0],
+            annotation_columns=normalized_annotation_columns,
+            id_column=annotation_id_column,
+        )
+        if platform_annotation_file is not None
+        else None
+    )
 
     case_samples = tuple(sample for sample in matrix.samples if sample.matches(normalized_case))
     reference_samples = tuple(
@@ -1095,6 +1116,18 @@ def build_expression_contrast_report(
     for row_index, q_value in zip(tested_rows, adjusted_values, strict=True):
         preliminary_rows[row_index]["q_value"] = q_value
         preliminary_rows[row_index]["fdr_significant"] = q_value <= fdr_threshold
+    annotation_match_count = 0
+    if platform_annotations is not None:
+        annotation_rows = dict(platform_annotations.records)
+        for row in preliminary_rows:
+            values = annotation_rows.get(row["feature_id"])
+            row["platform_annotation_status"] = "matched" if values is not None else "not_found"
+            row["platform_annotation"] = (
+                dict(zip(platform_annotations.annotation_columns, values, strict=True))
+                if values is not None
+                else None
+            )
+            annotation_match_count += values is not None
     preliminary_rows.sort(
         key=lambda row: (
             row["q_value"] is None,
@@ -1247,6 +1280,30 @@ def build_expression_contrast_report(
         "results": preliminary_rows[:top],
         "limitations": limitations,
     }
+    if platform_annotations is not None:
+        body["source"]["platform_annotation"] = {
+            "platform_accession": platform_annotations.platform_id,
+            "platform_url": (
+                f"{GEO_RECORD_ORIGIN}/geo/query/acc.cgi?acc={platform_annotations.platform_id}"
+            ),
+            "retrieval": "local_file",
+            "source_file_name": platform_annotations.source_file_name,
+            "source_sha256": f"sha256:{platform_annotations.source_sha256}",
+            "source_bytes": platform_annotations.source_bytes,
+            "decompressed_bytes": platform_annotations.decompressed_bytes,
+            "record_count": len(platform_annotations.records),
+            "id_column": platform_annotations.id_column,
+            "annotation_columns": list(platform_annotations.annotation_columns),
+            "feature_ids_matched_exactly": True,
+        }
+        body["summary"]["platform_annotation_matched_feature_count"] = annotation_match_count
+        body["summary"]["platform_annotation_unmatched_feature_count"] = (
+            matrix.feature_count - annotation_match_count
+        )
+        body["limitations"].append(
+            "Platform annotation cells are retained verbatim; multi-valued cells are not split, "
+            "deduplicated, or interpreted as gene identity."
+        )
     if adjusted_contrast is not None:
         body["comparison"]["model"] = {
             "type": "additive_ordinary_least_squares",

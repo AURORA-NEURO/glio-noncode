@@ -80,6 +80,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="use a previously downloaded .txt or .txt.gz Series Matrix instead of HTTPS",
     )
     parser.add_argument(
+        "--platform-annotation-file",
+        help="join a local GEO GPL SOFT platform file to result feature IDs",
+    )
+    parser.add_argument(
+        "--annotation-id-column",
+        default="ID",
+        help="feature-ID header in the platform table, default ID",
+    )
+    parser.add_argument(
+        "--annotation-column",
+        action="append",
+        default=[],
+        metavar="HEADER",
+        help=(
+            "platform-table annotation header to retain (case-insensitive); "
+            "repeat to select multiple"
+        ),
+    )
+    parser.add_argument(
         "--fdr",
         type=float,
         default=0.05,
@@ -117,6 +136,9 @@ def main(argv: list[str] | None = None) -> int:
             fdr_threshold=args.fdr,
             top=args.top,
             covariates=args.covariate,
+            platform_annotation_file=args.platform_annotation_file,
+            annotation_id_column=args.annotation_id_column,
+            annotation_columns=args.annotation_column,
         )
     except SourceNotFoundError:
         report = _error_report(

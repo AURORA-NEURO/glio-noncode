@@ -124,6 +124,45 @@ the user supplies, so omitted batch effects and residual confounding remain
 possible. The adjusted analysis is still exploratory and is not clinical
 evidence.
 
+### Join an explicit GEO platform annotation file
+
+Series Matrix feature IDs can be joined to the corresponding local GPL SOFT
+platform table without changing the statistical analysis. Supply the platform
+file and select the exact data-table columns to retain:
+
+    glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --matrix-file GSE103227_series_matrix.txt.gz --platform-annotation-file GPL16956_family.soft.gz --annotation-column TRANSCRIPT_TYPE --annotation-column BUILD --annotation-column SPOT_ID --top 1000
+
+The SOFT file must contain a `!Platform_geo_accession` matching the single
+platform used by the Series Matrix; the `^PLATFORM` entity label itself may be
+a different local identifier. If the SOFT file concatenates other entity
+records, only the matching GPL table is joined while the hash still covers the
+complete source. The ID column defaults to `ID`; override it with
+`--annotation-id-column` only when the platform table uses another header.
+Column labels are matched case-insensitively and the original header spelling is
+retained in result objects. Feature identifiers are joined by exact,
+case-sensitive text equality. Duplicate platform feature IDs, missing selected
+columns, malformed rows, or a platform mismatch fail the command rather than
+silently choosing a mapping.
+
+Only the selected annotation fields are included in result rows. Values are
+kept verbatim: delimiters inside a cell are not split, aliases are not resolved,
+and a field is not automatically treated as a gene or transcript identity.
+Rows without a match remain in the result with `platform_annotation_status` set
+to `not_found`. The report records the platform accession, annotation filename,
+full-source SHA-256, selected columns, source byte counts, and matched and
+unmatched feature counts for the complete matrix. Local directory paths are not
+written into the report. This makes annotation joins auditable while preserving
+the annotation submitter's meaning and ambiguity.
+
+The reader streams plain or gzip-compressed SOFT files and bounds compressed
+and decompressed bytes, line length, row count, selected-field count, value
+length, and retained annotation bytes. A quick or otherwise partial platform
+table is permitted; its limited join coverage is visible in the report and
+must not be mistaken for complete platform annotation. NCBI describes GPL
+records as platform definitions with tab-delimited feature tables; platform
+columns and identifiers vary by submitter, so inspect the table before
+selecting fields.
+
 ## Reproducible run on GSE103227
 
 Running the command above on the downloaded 2,609,899-byte Series Matrix with

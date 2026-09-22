@@ -85,6 +85,15 @@ error and adjusted R-squared as per-feature model-fit diagnostics.
 
     glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --covariate age=continuous --covariate batch=categorical --top 1000
 
+A two-group report can also join explicitly selected columns from a matching
+local GEO GPL SOFT platform table. The join records the annotation file hash
+and coverage, retains values verbatim, and does not infer gene identity:
+
+    glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --matrix-file GSE103227_series_matrix.txt.gz --platform-annotation-file GPL16956_family.soft.gz --annotation-column TRANSCRIPT_TYPE --annotation-column BUILD --top 1000
+
+See `docs/GEO_EXPRESSION_WORKFLOW.md` for input bounds, exact-match behavior,
+missing annotation handling, and provenance fields.
+
 Package-root exports resolve lazily, and help, version, discovery, `case`,
 `expression`, and report commands stay on focused startup paths. The curated
 root surface includes the typed quality evaluator/report contracts, adapter

@@ -16,7 +16,7 @@ Focused commands:
   case                 prepare and run a case from source manifests
   expression           analyze expression and allele-specific RNA evidence
   geo-outlier          compare one GEO expression feature with explicit references
-  geo-contrast         screen two GEO sample groups across all platform features
+  geo-contrast         screen GEO groups, optionally joining platform annotations
   verify-release-evidence  verify a portable release-evidence ZIP
   report-capabilities  inspect supported report audiences, formats, and limits
   assessment-capabilities  inspect verified-run assessment contracts and limits
