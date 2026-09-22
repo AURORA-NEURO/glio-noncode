@@ -15,7 +15,7 @@ from .atlas import AtlasQuery, PublicAtlasRetriever
 from .atlas_context import ATLAS_ROLE_CHANNELS, ContextEvidenceBuilder, ContextObservation
 from .benchmarks import BenchmarkExample, BenchmarkRunner
 from .causal import CausalLattice
-from .cohort import CohortObservation, RecurrenceModel
+from .cohort import MAX_COHORT_OBSERVATIONS, CohortObservation, RecurrenceModel
 from .control_plane import (
     Abstention,
     ArbitrationResult,
@@ -98,6 +98,12 @@ def _input_text(value: object, field: str) -> str:
     if type(value) is not str or not value.strip():
         raise ValidationError(f"{field} must be a non-empty string")
     return value.strip()
+
+
+def _optional_input_text(value: object, field: str) -> str | None:
+    if value is None:
+        return None
+    return _input_text(value, field)
 
 
 def _input_bool(value: object, field: str) -> bool:
@@ -2342,6 +2348,13 @@ class ControlPlaneApplication:
                 "Cohort recurrence requires observations and a locus_id.",
                 ("observations", "locus_id"),
             )
+        if len(observations_raw) > MAX_COHORT_OBSERVATIONS:
+            return Abstention(
+                "cohort_size_limit_exceeded",
+                "cohort_recurrence",
+                f"Cohort recurrence accepts at most {MAX_COHORT_OBSERVATIONS} observations.",
+                ("observations",),
+            )
         try:
             observations = tuple(self._cohort_observation(item) for item in observations_raw)
             result = self.recurrence.evaluate(observations, locus_id)
@@ -2357,17 +2370,24 @@ class ControlPlaneApplication:
             evidence_id=f"cohort:{payload_hash}",
             agent_id=request.agent_id,
             tool_id=request.tool_id,
-            state=EvidenceState.SUPPORTED if result.callable_count else EvidenceState.ABSTAINED,
+            state=(
+                EvidenceState.SUPPORTED
+                if result.status == "estimated"
+                else EvidenceState.ABSTAINED
+            ),
             tier=EvidenceTier.COHORT,
             claim_summary=(
                 f"Cohort recurrence for {result.locus_id} observed "
-                f"{result.observed_count} mutations in {result.callable_count} callable rows."
+                f"{result.observed_count}/{result.callable_count} callable subjects; "
+                f"matched controls={result.matched_control.eligible_count}, "
+                f"selected={len(result.matched_control.control_locus_ids)}, "
+                f"status={result.status}."
             ),
             payload_hash=payload_hash,
             source_ids=(str(raw.get("source_id", "declared-cohort")),),
             provenance_digest=request.provenance.digest,
-            confidence=round(max(0.0, 1.0 - result.uncertainty), 6),
-            limitations=result.limitations + result.matched_control.warnings,
+            confidence=None,
+            limitations=result.limitations,
         )
 
     @staticmethod
@@ -2388,6 +2408,25 @@ class ControlPlaneApplication:
             ancestry_group=_input_text(raw["ancestry_group"], "cohort ancestry_group"),
             disease_class=_input_text(raw["disease_class"], "cohort disease_class"),
             context=ReferenceContext.from_dict(context_raw),
+            variant_class=_optional_input_text(raw.get("variant_class"), "cohort variant_class"),
+            sequence_context=_optional_input_text(
+                raw.get("sequence_context"), "cohort sequence_context"
+            ),
+            molecular_context=_optional_input_text(
+                raw.get("molecular_context"), "cohort molecular_context"
+            ),
+            recurrence_phase=_optional_input_text(
+                raw.get("recurrence_phase"), "cohort recurrence_phase"
+            ),
+            locus_length=(
+                _input_integer(raw["locus_length"], "cohort locus_length")
+                if raw.get("locus_length") is not None
+                else None
+            ),
+            batch_id=_optional_input_text(raw.get("batch_id"), "cohort batch_id"),
+            ascertainment_group=_optional_input_text(
+                raw.get("ascertainment_group"), "cohort ascertainment_group"
+            ),
         )
 
     def _causal(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:

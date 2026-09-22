@@ -1220,6 +1220,9 @@ glio-noncode cohort-benchmark-capabilities --output cohort-benchmark-capabilitie
 
 See [cohort benchmark operations](docs/COHORT_BENCHMARKS.md).
 
+The scientific recurrence primitive uses callable-subject denominators and
+same-stratum, subject-matched control loci; see [cohort recurrence analysis](docs/COHORT_RECURRENCE.md).
+
 The provenance-first review workspace keeps hypotheses, evidence edges,
 alternatives, source lineage, review work items, and per-dimension deltas
 separate from any aggregate score:

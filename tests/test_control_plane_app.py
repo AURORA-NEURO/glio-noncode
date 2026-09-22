@@ -538,7 +538,10 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         )
         expected = RecurrenceModel().evaluate(rows, "locus-a")
         self.assertEqual(recurrence.state, InvocationState.COMPLETED)
+        self.assertEqual(recurrence.response.state, EvidenceState.ABSTAINED)
+        self.assertIsNone(recurrence.response.confidence)
         self.assertIn(str(expected.callable_count), recurrence.response.claim_summary)
+        self.assertIn("status=not_estimable", recurrence.response.claim_summary)
 
         edges = (
             HypothesisEdge(
@@ -580,6 +583,38 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         )
         self.assertEqual(causal.state, InvocationState.COMPLETED)
         self.assertIn(expected_path.weakest_edge_id, causal.response.claim_summary)
+
+    def test_cohort_binding_parses_explicit_matching_dimensions(self) -> None:
+        context = ReferenceContext("GRCh38", "diffuse_glioma", "adult", "stem_like")
+        observation = ControlPlaneApplication._cohort_observation(
+            {
+                "observation_id": "observation-1",
+                "subject_id": "subject-1",
+                "locus_id": "locus-1",
+                "mutated": False,
+                "callable": True,
+                "mutability_score": 0.2,
+                "chromatin_score": 0.7,
+                "ancestry_group": "ancestry-1",
+                "disease_class": "diffuse_glioma",
+                "context": context.to_dict(),
+                "variant_class": "SNV",
+                "sequence_context": "ACA>T",
+                "molecular_context": "IDH-mutant",
+                "recurrence_phase": "primary",
+                "locus_length": 1,
+                "batch_id": "batch-1",
+                "ascertainment_group": "ascertainment-1",
+            }
+        )
+
+        self.assertEqual(observation.variant_class, "SNV")
+        self.assertEqual(observation.sequence_context, "ACA>T")
+        self.assertEqual(observation.molecular_context, "IDH-mutant")
+        self.assertEqual(observation.recurrence_phase, "primary")
+        self.assertEqual(observation.locus_length, 1)
+        self.assertEqual(observation.batch_id, "batch-1")
+        self.assertEqual(observation.ascertainment_group, "ascertainment-1")
 
     def test_validation_evidence_and_report_bindings_execute_typed_work(self) -> None:
         with TemporaryDirectory() as directory:
