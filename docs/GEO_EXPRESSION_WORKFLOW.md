@@ -77,6 +77,12 @@ features in that sample; standard deviation is null when fewer than two values
 are observed or when the result cannot be represented as a finite number.
 Statistics for a sample with no observed values are null.
 
+The quality calculation consumes each validated feature row once and does not
+materialize the full feature-by-sample matrix. It retains per-sample running
+statistics, the missingness histogram, and a bounded set of feature IDs for
+duplicate detection; the compressed source and unique-feature count are also
+bounded. Only the current decoded row is processed at a time.
+
 This is descriptive QC, not an automated quality decision. Samples are never
 removed or ranked, and no threshold is applied. These summaries do not infer
 why values are missing, correct batch effects, or guarantee that a sample is

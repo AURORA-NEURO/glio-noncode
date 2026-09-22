@@ -14,7 +14,7 @@ import io
 import math
 import re
 import zlib
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from itertools import combinations
 from pathlib import Path
@@ -297,12 +297,17 @@ def _parse_series_matrix_features(
     feature_ids: frozenset[str] | None,
     source_file_name: str | None = None,
     retain_features: bool = True,
+    feature_consumer: Callable[[GeoMatrixFeature], None] | None = None,
 ) -> GeoFeatureMatrix:
     """Parse a bounded matrix, retaining selected features or every feature."""
 
     requested_accession = validate_accession(accession)
     if not isinstance(retain_features, bool):
         raise ValidationError("GEO feature-retention option must be boolean")
+    if feature_consumer is not None and not callable(feature_consumer):
+        raise ValidationError("GEO feature consumer must be callable")
+    if retain_features and feature_consumer is not None:
+        raise ValidationError("GEO feature retention and streaming are mutually exclusive")
     if not isinstance(payload, bytes):
         raise ValidationError("GEO Series Matrix payload must be bytes")
     if len(payload) > MAX_COMPRESSED_BYTES:
@@ -390,7 +395,8 @@ def _parse_series_matrix_features(
                 row_feature = _required_text(row[0], "GEO matrix feature ID", maximum=256)
                 if feature_ids is None and not _FEATURE_RE.fullmatch(row_feature):
                     raise ValidationError("GEO matrix feature ID contains unsupported characters")
-                if retain_features and (feature_ids is None or row_feature in feature_ids):
+                selected_feature = feature_ids is None or row_feature in feature_ids
+                if retain_features and selected_feature:
                     values = tuple(_matrix_number(value) for value in row[1:])
                     if row_feature in retained_feature_ids:
                         raise ValidationError("GEO matrix repeats a retained feature ID")
@@ -400,6 +406,18 @@ def _parse_series_matrix_features(
                         )
                     retained_feature_ids.add(row_feature)
                     retained_features.append(GeoMatrixFeature(row_feature, values))
+                elif feature_consumer is not None and selected_feature:
+                    if row_feature in retained_feature_ids:
+                        raise ValidationError("GEO streaming feature IDs are not unique")
+                    if len(retained_feature_ids) >= MAX_CONTRAST_FEATURES:
+                        raise ValidationError("GEO feature scan exceeds its unique-feature bound")
+                    retained_feature_ids.add(row_feature)
+                    feature_consumer(
+                        GeoMatrixFeature(
+                            row_feature,
+                            tuple(_matrix_number(value) for value in row[1:]),
+                        )
+                    )
                 else:
                     for value in row[1:]:
                         _matrix_number(value)
@@ -551,6 +569,32 @@ def parse_series_matrix_metadata(
         source_file_name=source_file_name,
         retain_features=False,
     )
+    return _matrix_metadata(matrix)
+
+
+def scan_series_matrix_features(
+    payload: bytes,
+    *,
+    accession: str,
+    feature_consumer: Callable[[GeoMatrixFeature], None],
+    source_file_name: str | None = None,
+) -> GeoMatrixMetadata:
+    """Validate a matrix and deliver each feature row without retaining the table."""
+
+    if not callable(feature_consumer):
+        raise ValidationError("GEO feature consumer must be callable")
+    matrix = _parse_series_matrix_features(
+        payload,
+        accession=accession,
+        feature_ids=None,
+        source_file_name=source_file_name,
+        retain_features=False,
+        feature_consumer=feature_consumer,
+    )
+    return _matrix_metadata(matrix)
+
+
+def _matrix_metadata(matrix: GeoFeatureMatrix) -> GeoMatrixMetadata:
     return GeoMatrixMetadata(
         accession=matrix.accession,
         title=matrix.title,

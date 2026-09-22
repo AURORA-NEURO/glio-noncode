@@ -11,7 +11,11 @@ from unittest.mock import patch
 
 from glio_noncode.cli import main as cli_main
 from glio_noncode.errors import ValidationError
-from glio_noncode.geo_expression import parse_series_matrix_metadata, series_matrix_url
+from glio_noncode.geo_expression import (
+    parse_series_matrix_metadata,
+    scan_series_matrix_features,
+    series_matrix_url,
+)
 from glio_noncode.geo_metadata import build_geo_sample_metadata_report
 from glio_noncode.serialization import content_hash
 
@@ -75,6 +79,33 @@ class GeoSampleMetadataTests(unittest.TestCase):
         self.assertEqual(matrix.samples[0].characteristics[0], ("diagnosis", "Normal"))
         self.assertFalse(hasattr(matrix, "features"))
         self.assertEqual(matrix.source_file_name, "matrix.txt.gz")
+
+    def test_streaming_scanner_delivers_rows_and_returns_metadata_only(self) -> None:
+        observed_features = []
+        matrix = scan_series_matrix_features(
+            _matrix_payload(),
+            accession="GSE123456",
+            feature_consumer=observed_features.append,
+        )
+
+        self.assertEqual(matrix.feature_count, 1)
+        self.assertFalse(hasattr(matrix, "features"))
+        self.assertEqual([feature.feature_id for feature in observed_features], ["probe-1"])
+        self.assertEqual(observed_features[0].values, (1.0, 2.0, 3.0))
+
+    def test_streaming_scanner_rejects_duplicate_feature_identifiers(self) -> None:
+        text = gzip.decompress(_matrix_payload()).decode("utf-8").replace(
+            "!series_matrix_table_end\n",
+            "probe-1\t4\t5\t6\n!series_matrix_table_end\n",
+        )
+        payload = gzip.compress(text.encode("utf-8"), mtime=0)
+
+        with self.assertRaisesRegex(ValidationError, "feature IDs are not unique"):
+            scan_series_matrix_features(
+                payload,
+                accession="GSE123456",
+                feature_consumer=lambda feature: None,
+            )
 
     def test_report_summarizes_casefolded_categories_missingness_and_duplicates(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

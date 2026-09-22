@@ -10,8 +10,9 @@ from .errors import ValidationError
 from .expression_evidence import ExpressionScale
 from .geo_expression import (
     DEFAULT_TIMEOUT_SECONDS,
+    GeoMatrixFeature,
     _read_matrix,
-    parse_series_matrix_features,
+    scan_series_matrix_features,
     validate_accession,
 )
 from .serialization import content_hash
@@ -45,10 +46,61 @@ def build_expression_quality_report(
         matrix_file=matrix_file,
         timeout_seconds=normalized_timeout,
     )
-    matrix = parse_series_matrix_features(
+    statistics: dict[str, Any] | None = None
+
+    def consume_feature(feature: GeoMatrixFeature) -> None:
+        nonlocal statistics
+        if statistics is None:
+            sample_count = len(feature.values)
+            statistics = {
+                "feature_count": 0,
+                "observed_counts": [0] * sample_count,
+                "missing_counts": [0] * sample_count,
+                "magnitude_scales": [0.0] * sample_count,
+                "scaled_means": [0.0] * sample_count,
+                "scaled_sum_squares": [0.0] * sample_count,
+                "minima": [None] * sample_count,
+                "maxima": [None] * sample_count,
+                "features_by_missing_sample_count": [0] * (sample_count + 1),
+            }
+        state = statistics
+        feature_missing_count = 0
+        for sample_index, value in enumerate(feature.values):
+            if value is None:
+                state["missing_counts"][sample_index] += 1
+                feature_missing_count += 1
+                continue
+
+            scale_value = state["magnitude_scales"][sample_index]
+            value_magnitude = abs(value)
+            if value_magnitude > scale_value:
+                rescale = scale_value / value_magnitude if scale_value else 0.0
+                state["scaled_means"][sample_index] *= rescale
+                state["scaled_sum_squares"][sample_index] *= rescale * rescale
+                scale_value = value_magnitude
+                state["magnitude_scales"][sample_index] = scale_value
+
+            scaled_value = value / scale_value if scale_value else 0.0
+            observed = state["observed_counts"][sample_index] + 1
+            delta = scaled_value - state["scaled_means"][sample_index]
+            updated_mean = state["scaled_means"][sample_index] + delta / observed
+            state["scaled_sum_squares"][sample_index] += delta * (scaled_value - updated_mean)
+            state["scaled_means"][sample_index] = updated_mean
+            state["observed_counts"][sample_index] = observed
+
+            minimum = state["minima"][sample_index]
+            maximum = state["maxima"][sample_index]
+            state["minima"][sample_index] = value if minimum is None else min(minimum, value)
+            state["maxima"][sample_index] = value if maximum is None else max(maximum, value)
+
+        state["feature_count"] += 1
+        state["features_by_missing_sample_count"][feature_missing_count] += 1
+
+    matrix = scan_series_matrix_features(
         payload,
         accession=normalized_accession,
         source_file_name=source_file_name,
+        feature_consumer=consume_feature,
     )
     if len(matrix.platform_ids) != 1:
         raise ValidationError("GEO quality summaries require exactly one platform")
@@ -56,46 +108,17 @@ def build_expression_quality_report(
     feature_count = matrix.feature_count
     if feature_count < 1:
         raise ValidationError("GEO quality summary requires at least one matrix feature")
+    if statistics is None or statistics["feature_count"] != feature_count:
+        raise ValidationError("GEO quality scan did not consume the complete feature table")
 
-    observed_counts = [0] * sample_count
-    missing_counts = [0] * sample_count
-    magnitude_scales = [0.0] * sample_count
-    minima: list[float | None] = [None] * sample_count
-    maxima: list[float | None] = [None] * sample_count
-    features_by_missing_sample_count = [0] * (sample_count + 1)
-
-    for feature in matrix.features:
-        feature_missing_count = 0
-        for sample_index, value in enumerate(feature.values):
-            if value is None:
-                missing_counts[sample_index] += 1
-                feature_missing_count += 1
-                continue
-            observed_counts[sample_index] += 1
-            magnitude_scales[sample_index] = max(
-                magnitude_scales[sample_index], abs(value)
-            )
-            minimum = minima[sample_index]
-            maximum = maxima[sample_index]
-            minima[sample_index] = value if minimum is None else min(minimum, value)
-            maxima[sample_index] = value if maximum is None else max(maximum, value)
-        features_by_missing_sample_count[feature_missing_count] += 1
-
-    scaled_means = [0.0] * sample_count
-    scaled_sum_squares = [0.0] * sample_count
-    moments_counts = [0] * sample_count
-    for feature in matrix.features:
-        for sample_index, value in enumerate(feature.values):
-            if value is None:
-                continue
-            scale_value = magnitude_scales[sample_index]
-            scaled_value = value / scale_value if scale_value else 0.0
-            count = moments_counts[sample_index] + 1
-            delta = scaled_value - scaled_means[sample_index]
-            scaled_mean = scaled_means[sample_index] + delta / count
-            scaled_means[sample_index] = scaled_mean
-            scaled_sum_squares[sample_index] += delta * (scaled_value - scaled_mean)
-            moments_counts[sample_index] = count
+    observed_counts = statistics["observed_counts"]
+    missing_counts = statistics["missing_counts"]
+    magnitude_scales = statistics["magnitude_scales"]
+    scaled_means = statistics["scaled_means"]
+    scaled_sum_squares = statistics["scaled_sum_squares"]
+    minima = statistics["minima"]
+    maxima = statistics["maxima"]
+    features_by_missing_sample_count = statistics["features_by_missing_sample_count"]
 
     sample_summaries: list[dict[str, Any]] = []
     for index, sample in enumerate(matrix.samples):
@@ -149,6 +172,8 @@ def build_expression_quality_report(
         "analysis": {
             "scale": expression_scale.value,
             "transformed_values": False,
+            "feature_vectors_retained": False,
+            "streaming_summary_passes": 1,
             "automatic_sample_exclusion": False,
             "automatic_quality_classification": False,
         },

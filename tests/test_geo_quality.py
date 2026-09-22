@@ -56,6 +56,8 @@ class GeoExpressionQualityTests(unittest.TestCase):
         self.assertEqual(report["status"], "completed")
         self.assertEqual(report["analysis"]["scale"], "normalized_intensity")
         self.assertFalse(report["analysis"]["transformed_values"])
+        self.assertFalse(report["analysis"]["feature_vectors_retained"])
+        self.assertEqual(report["analysis"]["streaming_summary_passes"], 1)
         self.assertFalse(report["analysis"]["automatic_sample_exclusion"])
         self.assertFalse(report["analysis"]["automatic_quality_classification"])
         summary = report["summary"]
