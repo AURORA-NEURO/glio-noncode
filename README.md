@@ -212,6 +212,11 @@ records are listed at `/v1/geo-count-consistency`, reopened at
 path. Public comparison rows preserve aggregate directions only and never emit
 sample, subject, or pair identifiers.
 
+Run `geo-review-summary --data-root .glio` to verify the saved GEO catalogs and
+reopen each report object through its content address. The same aggregate-only
+health projection is available at `/v1/geo-review/summary` and appears in the
+workbench's GEO workspace-health rail.
+
 Package-root exports resolve lazily, and help, version, discovery, `case`,
 `expression`, and report commands stay on focused startup paths. The curated
 root surface includes the typed quality evaluator/report contracts, adapter

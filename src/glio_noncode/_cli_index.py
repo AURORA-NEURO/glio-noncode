@@ -19648,6 +19648,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'summarize sample coverage and matrix quality before analysis',
     ),
     (
+        'geo-review-summary',
+        'verify the saved GEO workspace and summarize archive health',
+    ),
+    (
         'reference-block-query',
         "query one sample's gVCF blocks by interval or canonical variant span",
     ),

@@ -18,6 +18,7 @@ SHELL_COMMANDS = (
     ("geo-count-outlier", "compare one gene row across a GEO supplementary count matrix"),
     ("geo-count-contrast", "compare paired groups across a GEO supplementary count matrix"),
     ("geo-count-consistency", "compare exact feature directions across saved paired GEO contrasts"),
+    ("geo-review-summary", "verify the saved GEO workspace and summarize archive health"),
     ("geo-count-design", "preflight paired GEO count-matrix joins without feature tests"),
     ("geo-count-metadata", "inspect GEO supplementary count-matrix sample metadata"),
     (

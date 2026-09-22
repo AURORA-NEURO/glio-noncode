@@ -4,7 +4,7 @@
   const $ = (id) => document.getElementById(id);
   const model = {
     runs: [], total: 0, selected: null, baseline: "", report: null, hypothesis: null,
-    geoAnalyses: [], geoTotal: 0, selectedGeo: null, geoPage: null, geoResults: [],
+    geoAnalyses: [], geoTotal: 0, selectedGeo: null, geoPage: null, geoResults: [], geoReviewSummary: null, geoReviewRequest: 0,
     geoExpressionAnalyses: [], geoExpressionTotal: 0, selectedGeoExpression: null, geoExpressionPage: null, geoExpressionResults: [],
     geoExpressionCompareIds: [], geoExpressionConsistency: null, geoExpressionConsistencyRequest: 0,
     geoExpressionConsistencyRecords: [], geoExpressionConsistencyTotal: 0, selectedGeoExpressionConsistency: null, geoExpressionConsistencyListRequest: 0,
@@ -412,6 +412,36 @@
       model.geoLoaded = true;
       $("geo-analysis-list").replaceChildren(element("p", "empty-inline", "GEO analyses could not be loaded."));
       $("geo-list-summary").textContent = "The local API could not verify the GEO analysis catalog.";
+      notice(error.message, true);
+    }
+  }
+
+  function renderGeoReviewSummary() {
+    const summary = model.geoReviewSummary;
+    if (!summary) return;
+    const catalogs = summary.catalogs || {};
+    const count = catalogs.paired_count_analyses || {};
+    const expression = catalogs.expression_analyses || {};
+    const countComparisons = catalogs.paired_count_comparisons || {};
+    const expressionComparisons = catalogs.expression_comparisons || {};
+    const comparisonCount = Number(countComparisons.record_count || 0) + Number(expressionComparisons.record_count || 0);
+    const analysisCount = Number(count.record_count || 0) + Number(expression.record_count || 0);
+    $("geo-review-summary").textContent = `${formatCount(analysisCount)} analyses · ${formatCount(comparisonCount)} saved comparisons · ${summary.integrity?.report_objects || "review"}`;
+    $("geo-review-status").textContent = summary.status === "ready" ? "Verified" : "Review required";
+  }
+
+  async function loadGeoReviewSummary() {
+    const request = model.geoReviewRequest = (model.geoReviewRequest || 0) + 1;
+    try {
+      const summary = await getJson("/v1/geo-review/summary");
+      if (request !== model.geoReviewRequest) return;
+      if (summary.schema !== "glio-noncode.geo-review-summary.v1" || !summary.catalogs || !summary.integrity) throw new Error("The local API returned an invalid GEO workspace summary.");
+      model.geoReviewSummary = summary;
+      renderGeoReviewSummary();
+    } catch (error) {
+      if (request !== model.geoReviewRequest) return;
+      $("geo-review-summary").textContent = "The GEO archive summary could not be verified.";
+      $("geo-review-status").textContent = "Unavailable";
       notice(error.message, true);
     }
   }
@@ -1676,7 +1706,7 @@
     renderHypotheses(); renderQueue(); renderDeltas(); exportHref();
   }
 
-  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]));
+  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]));
   $("run-search").addEventListener("input", renderRuns);
   $("path-search").addEventListener("input", renderHypotheses);
   $("evidence-search").addEventListener("input", renderEvidence);
@@ -1774,7 +1804,7 @@
   });
   async function initializeWorkspace() {
     const initialSelectionRequest = model.selectionRequest || 0;
-    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
+    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
     if (model.selectionRequest !== initialSelectionRequest || model.activeView !== "empty") return;
     if (model.runs.length) {
       await openRun(model.runs[0].run_id);

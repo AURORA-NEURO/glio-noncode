@@ -26095,6 +26095,37 @@ class ApiHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
+        if path == "/v1/geo-review/summary":
+            try:
+                from .geo_review_summary import build_geo_review_summary
+
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                unknown = set(query) - {"verify_reports"}
+                if unknown:
+                    raise ValueError(
+                        f"GEO review summary has unknown query parameters: {sorted(unknown)}"
+                    )
+                verify_reports = self._query_optional_bool(query, "verify_reports")
+                self._write(
+                    HTTPStatus.OK,
+                    build_geo_review_summary(
+                        self._runtime().store.root,
+                        verify_reports=True if verify_reports is None else verify_reports,
+                    ),
+                )
+            except (ValidationError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except StoreError:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {
+                        "error": "geo_review_summary_unavailable",
+                        "message": "GEO workspace summary could not be verified",
+                    },
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
         if path == "/v1/geo-expression-analyses" or path.startswith("/v1/geo-expression-analyses/"):
             try:
                 from .geo_expression_analysis_store import GeoExpressionAnalysisStore

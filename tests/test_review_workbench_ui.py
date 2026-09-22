@@ -42,6 +42,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("geoFilterTimer", javascript)
         self.assertIn("geo-result-filters", html)
         self.assertIn('id="geo-compare-selection"', html)
+        self.assertIn('id="geo-review-summary"', html)
+        self.assertIn('id="geo-review-status"', html)
         self.assertIn('id="geo-consistency-features"', html)
         self.assertIn('id="geo-consistency-view"', html)
         self.assertIn('id="geo-consistency-feature-filter"', html)
@@ -59,6 +61,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="geo-consistency-list"', html)
         self.assertIn("/v1/geo-count-consistency", javascript)
         self.assertIn("/v1/geo-expression-analyses", javascript)
+        self.assertIn("/v1/geo-review/summary", javascript)
+        self.assertIn("geo-review-summary.v1", javascript)
         self.assertIn("geo-expression-analysis-page.v1", javascript)
         self.assertIn("/v1/geo-expression-consistency", javascript)
         self.assertIn("geo-expression-consistency-page.v1", javascript)
@@ -212,7 +216,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("request !== model.geoConsistencyListRequest", script)
         self.assertIn("request !== model.sequenceListRequest", script)
         self.assertIn(
-            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])",
+            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])",
             script,
         )
 

@@ -658,6 +658,20 @@ analysis identifiers are withheld from the public comparison projection.
 The workbench exposes exact-feature, tested-direction, signed-rank FDR, and
 sign-test FDR filters, and applies those filters to the CSV export.
 
+## Verify the GEO workspace
+
+The saved GEO catalogs can be checked together without exposing report payloads:
+
+    glio-noncode geo-review-summary --data-root .glio
+
+The command reopens each cataloged report through its content address by
+default. Use `--skip-report-verification` for a faster catalog-only check. The
+same aggregate-only projection is available at
+`GET /v1/geo-review/summary`; its `catalogs` section covers paired-count
+analyses, expression analyses, and both comparison archives, while `integrity`
+states whether report objects were verified. Counts are archive summaries and
+are not deduplicated across studies or comparisons.
+
 ## Covariate-adjusted mode
 
 The rank-based comparison above is the default and remains unchanged when no
