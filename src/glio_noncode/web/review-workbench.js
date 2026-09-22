@@ -437,17 +437,21 @@
     const analysisCount = catalogs.filter((item) => item.name.endsWith("analyses")).reduce((total, item) => total + Number(item.record_count || 0), 0);
     const comparisonCount = catalogs.filter((item) => item.name.endsWith("comparisons")).reduce((total, item) => total + Number(item.record_count || 0), 0);
     const accessionCount = catalogs.reduce((total, item) => total + Number(item.accession_count || 0), 0);
+    const testedCount = catalogs.reduce((total, item) => total + Number(item.tested_feature_count_total || 0), 0);
+    const fdrCount = catalogs.reduce((total, item) => total + Number(item.fdr_significant_feature_count_total || 0), 0);
     $("geo-review-subtitle").textContent = `${formatCount(analysisCount)} analyses · ${formatCount(comparisonCount)} saved comparisons · ${summary.integrity?.report_objects || "review"}`;
     $("geo-review-address").textContent = summary.content_address || "Address unavailable";
     $("geo-review-analysis-count").textContent = formatCount(analysisCount);
     $("geo-review-comparison-count").textContent = formatCount(comparisonCount);
     $("geo-review-accession-count").textContent = formatCount(accessionCount);
+    $("geo-review-tested-count").textContent = formatCount(testedCount);
+    $("geo-review-fdr-count").textContent = formatCount(fdrCount);
     $("geo-review-integrity").textContent = summary.integrity?.verification_failure_count === 0 ? "Accepted" : "Review";
     const body = $("geo-review-catalog-table");
     body.replaceChildren();
     for (const catalog of catalogs) {
       const row = document.createElement("tr");
-      row.append(cell(catalog.name), cell(formatCount(catalog.record_count)), cell(formatCount(catalog.verified_record_count)), cell(formatCount(catalog.feature_count_total)), cell(formatCount(catalog.accession_count)), cell(catalog.catalog_state));
+      row.append(cell(catalog.name), cell(formatCount(catalog.record_count)), cell(formatCount(catalog.verified_record_count)), cell(formatCount(catalog.feature_count_total)), cell(formatCount(catalog.tested_feature_count_total)), cell(formatCount(catalog.fdr_significant_feature_count_total)), cell(formatCount(catalog.accession_count)), cell(catalog.catalog_state));
       body.append(row);
     }
     const limitations = $("geo-review-limitations");
