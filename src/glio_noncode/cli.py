@@ -16,6 +16,7 @@ Focused commands:
   case                 prepare and run a case from source manifests
   expression           analyze expression and allele-specific RNA evidence
   geo-outlier          compare one GEO expression feature with explicit references
+  geo-contrast         screen two GEO sample groups across all platform features
   verify-release-evidence  verify a portable release-evidence ZIP
   report-capabilities  inspect supported report audiences, formats, and limits
   assessment-capabilities  inspect verified-run assessment contracts and limits
@@ -120,6 +121,8 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_expression").main(command_argv)
     if command == "geo-outlier":
         return importlib.import_module(f"{__package__}._cli_geo").main(command_argv)
+    if command == "geo-contrast":
+        return importlib.import_module(f"{__package__}._cli_geo_contrast").main(command_argv)
     if command == "verify-release-evidence":
         return importlib.import_module(f"{__package__}._cli_evidence").main(command_argv)
     if command in {

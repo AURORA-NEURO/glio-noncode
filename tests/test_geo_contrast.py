@@ -1,0 +1,209 @@
+from __future__ import annotations
+
+import gzip
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from glio_noncode.cli import main as cli_main
+from glio_noncode.errors import ValidationError
+from glio_noncode.geo_expression import (
+    _benjamini_hochberg,
+    _mann_whitney_test,
+    build_expression_contrast_report,
+    parse_series_matrix_features,
+)
+
+SAMPLE_IDS = tuple(f"GSM0000{index}" for index in range(1, 11))
+
+
+def _matrix_payload() -> bytes:
+    samples = "\t".join(f'"{sample}"' for sample in SAMPLE_IDS)
+    diagnoses = "\t".join(
+        ['"diagnosis: normal"'] * 5 + ['"diagnosis: glioblastoma"'] * 5
+    )
+    rows = [
+        '!Series_geo_accession\t"GSE123456"',
+        '!Series_title\t"Fixture public expression series"',
+        '!Series_type\t"Expression profiling by array"',
+        '!Series_platform_id\t"GPL123"',
+        f"!Sample_geo_accession\t{samples}",
+        f"!Sample_characteristics_ch1\t{diagnoses}",
+        "!series_matrix_table_begin",
+        f"ID_REF\t{samples}",
+    ]
+    references = [1, 2, 3, 4, 5]
+    cases = [10, 11, 12, 13, 14]
+    for index in range(1, 6):
+        values = references + cases
+        rows.append(f"probe-up-{index}\t" + "\t".join(map(str, values)))
+    rows.append("probe-null\t" + "\t".join(map(str, references + references)))
+    rows.append("probe-missing\tNA\tNA\tNA\tNA\t1\t2\t3\t4\t5\t6")
+    rows.append("!series_matrix_table_end")
+    return gzip.compress(("\n".join(rows) + "\n").encode("utf-8"), mtime=0)
+
+
+class GeoContrastTests(unittest.TestCase):
+    def test_full_matrix_parser_retains_features_and_source_provenance(self) -> None:
+        matrix = parse_series_matrix_features(_matrix_payload(), accession="GSE123456")
+
+        self.assertEqual(matrix.feature_count, 7)
+        self.assertEqual(len(matrix.features), 7)
+        self.assertEqual(matrix.features[0].feature_id, "probe-up-1")
+        self.assertEqual(matrix.features[0].values, (1, 2, 3, 4, 5, 10, 11, 12, 13, 14))
+        self.assertEqual(matrix.platform_ids, ("GPL123",))
+        self.assertEqual(len(matrix.source_sha256), 64)
+
+    def test_platform_feature_identifiers_may_contain_underscores(self) -> None:
+        payload = gzip.compress(
+            gzip.decompress(_matrix_payload()).replace(b"probe-up-1", b"probe_up_1", 1),
+            mtime=0,
+        )
+
+        matrix = parse_series_matrix_features(payload, accession="GSE123456")
+
+        self.assertEqual(matrix.features[0].feature_id, "probe_up_1")
+
+    def test_contrast_runs_exact_tests_and_adjusts_the_complete_test_family(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "series_matrix.txt.gz"
+            matrix_path.write_bytes(_matrix_payload())
+            report = build_expression_contrast_report(
+                "GSE123456",
+                case_filters=(("diagnosis", "glioblastoma"),),
+                reference_filters=(("diagnosis", "normal"),),
+                scale="normalized_intensity",
+                matrix_file=matrix_path,
+                top=2,
+            )
+
+        self.assertEqual(report["status"], "completed")
+        self.assertEqual(report["source"]["retrieval"], "local_file")
+        self.assertEqual(report["comparison"]["case_sample_ids"], list(SAMPLE_IDS[5:]))
+        self.assertEqual(report["comparison"]["reference_sample_ids"], list(SAMPLE_IDS[:5]))
+        self.assertEqual(report["summary"]["matrix_feature_count"], 7)
+        self.assertEqual(report["summary"]["tested_feature_count"], 6)
+        self.assertEqual(report["summary"]["fdr_family_size"], 6)
+        self.assertEqual(report["summary"]["reported_feature_count"], 2)
+        self.assertEqual(report["summary"]["fdr_significant_feature_count"], 5)
+        self.assertEqual(report["results"][0]["feature_id"], "probe-up-1")
+        self.assertAlmostEqual(report["results"][0]["p_value"], 2 / 252)
+        self.assertAlmostEqual(report["results"][0]["q_value"], 2 / 210)
+        self.assertEqual(report["results"][0]["test_method"], "exact_label_permutation")
+        self.assertEqual(report["results"][0]["rank_biserial_correlation"], 1.0)
+        self.assertEqual(report["results"][0]["effect_direction"], "case_higher")
+        self.assertEqual(report["summary"]["fdr_significant_case_higher_count"], 5)
+        self.assertEqual(report["summary"]["fdr_significant_case_lower_count"], 0)
+        self.assertEqual(report["analysis_limits"]["max_retained_features"], 100_000)
+        self.assertEqual(report["content_address"].split(":", 1)[0], "geo-expression-contrast")
+        self.assertIn(
+            "covariates and batch effects are not modeled",
+            " ".join(report["limitations"]),
+        )
+
+    def test_unstable_missing_feature_is_reported_but_not_in_fdr_family(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "matrix.txt.gz"
+            matrix_path.write_bytes(_matrix_payload())
+            report = build_expression_contrast_report(
+                "GSE123456",
+                case_filters=(("diagnosis", "glioblastoma"),),
+                reference_filters=(("diagnosis", "normal"),),
+                scale="normalized_intensity",
+                matrix_file=matrix_path,
+                top=7,
+            )
+
+        missing = next(row for row in report["results"] if row["feature_id"] == "probe-missing")
+        self.assertEqual(missing["case_n"], 5)
+        self.assertEqual(missing["reference_n"], 1)
+        self.assertIsNone(missing["p_value"])
+        self.assertIsNone(missing["q_value"])
+        self.assertEqual(missing["reason"], "fewer_than_two_nonmissing_observations_in_a_group")
+        self.assertEqual(report["summary"]["untestable_feature_count"], 1)
+
+    def test_cli_writes_a_machine_readable_report_for_downloaded_local_data(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            matrix_path = root / "downloaded.txt.gz"
+            report_path = root / "contrast.json"
+            matrix_path.write_bytes(_matrix_payload())
+            exit_code = cli_main(
+                [
+                    "geo-contrast",
+                    "GSE123456",
+                    "--case-filter",
+                    "diagnosis=glioblastoma",
+                    "--reference-filter",
+                    "diagnosis=normal",
+                    "--scale",
+                    "normalized_intensity",
+                    "--matrix-file",
+                    str(matrix_path),
+                    "--output",
+                    str(report_path),
+                ]
+            )
+            serialized = report_path.read_text(encoding="utf-8")
+            report = json.loads(serialized)
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(report["status"], "completed")
+        self.assertEqual(report["source"]["source_file_name"], "downloaded.txt.gz")
+        self.assertNotIn(str(root), serialized)
+
+    def test_overlapping_filters_and_raw_counts_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "matrix.txt.gz"
+            matrix_path.write_bytes(_matrix_payload())
+            base = {
+                "accession": "GSE123456",
+                "case_filters": (("diagnosis", "normal"),),
+                "reference_filters": (("diagnosis", "normal"),),
+                "scale": "normalized_intensity",
+                "matrix_file": matrix_path,
+            }
+            with self.assertRaisesRegex(ValidationError, "overlapping"):
+                build_expression_contrast_report(**base)
+            with self.assertRaisesRegex(ValidationError, "raw counts"):
+                build_expression_contrast_report(**(base | {"scale": "raw_count"}))
+
+    def test_exact_and_approximate_rank_tests_are_labeled(self) -> None:
+        effect, p_value, method = _mann_whitney_test(
+            (10, 11, 12, 13, 14), (1, 2, 3, 4, 5), assignment_limit=300
+        )
+        self.assertEqual(effect, 1.0)
+        self.assertAlmostEqual(p_value, 2 / 252)
+        self.assertEqual(method, "exact_label_permutation")
+
+        _, approximate_p, approximate_method = _mann_whitney_test(
+            (10, 11, 12, 13, 14), (1, 2, 3, 4, 5), assignment_limit=1
+        )
+        self.assertGreaterEqual(approximate_p, 0.0)
+        self.assertLessEqual(approximate_p, 1.0)
+        self.assertEqual(approximate_method, "tie_corrected_normal_approximation")
+
+    def test_exact_permutation_uses_the_smaller_group_and_handles_ties(self) -> None:
+        effect, p_value, method = _mann_whitney_test(
+            tuple(range(3, 11)), (1, 2), assignment_limit=50
+        )
+        self.assertEqual(effect, 1.0)
+        self.assertAlmostEqual(p_value, 2 / 45)
+        self.assertEqual(method, "exact_label_permutation")
+
+        tied_effect, tied_p, tied_method = _mann_whitney_test(
+            (4, 4, 4), (4, 4, 4), assignment_limit=30
+        )
+        self.assertEqual(tied_effect, 0.0)
+        self.assertEqual(tied_p, 1.0)
+        self.assertEqual(tied_method, "exact_label_permutation")
+
+    def test_benjamini_hochberg_is_monotone_in_sorted_p_value_order(self) -> None:
+        values = _benjamini_hochberg((0.04, 0.01, 0.03, 0.002))
+
+        self.assertEqual(values, [0.04, 0.02, 0.04, 0.008])
+
+
+if __name__ == "__main__":
+    unittest.main()

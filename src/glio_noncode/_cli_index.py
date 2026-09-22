@@ -19600,6 +19600,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'analyze expression and allele-specific RNA evidence',
     ),
     (
+        'geo-contrast',
+        'screen two GEO sample groups across all platform features',
+    ),
+    (
         'geo-outlier',
         'compare one GEO expression feature with explicit references',
     ),

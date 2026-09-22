@@ -1,8 +1,8 @@
 """Bounded GEO Series Matrix retrieval and exploratory expression contrasts.
 
-Public-cohort comparisons stay separate from matched-sample RNA evidence. This
-module reports one descriptive outlier against an explicit reference group; it
-does not create patient-matched claims or population-level tests.
+Public-cohort comparisons stay separate from matched-sample RNA evidence. The
+module supports single-feature outlier descriptions and explicitly filtered
+two-group exploratory screens; neither creates patient-matched claims.
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ import re
 import zlib
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from itertools import combinations
 from pathlib import Path
 from typing import Any
 
@@ -41,12 +42,15 @@ MAX_MATRIX_LINE_BYTES = 4_000_000
 MAX_SAMPLE_COUNT = 2_000
 MAX_FEATURE_COUNT = 1_000_000
 MAX_MATRIX_CELLS = 5_000_000
+MAX_CONTRAST_FEATURES = 100_000
+MAX_EXACT_RANK_ASSIGNMENTS = 20_000
+MAX_TOTAL_EXACT_RANK_SUMS = 100_000_000
 MAX_METADATA_ROWS = 2_048
 MAX_METADATA_VALUE_LENGTH = 8_192
 DEFAULT_TIMEOUT_SECONDS = 30.0
 _GSE_RE = re.compile(r"GSE[0-9]{1,10}\Z")
 _GSM_RE = re.compile(r"GSM[0-9]{1,12}\Z")
-_FEATURE_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:@|/+=-]{0,255}\Z")
+_FEATURE_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:@|/+=_-]{0,255}\Z")
 _MISSING_MATRIX_VALUES = frozenset({"", "na", "null"})
 
 
@@ -88,6 +92,29 @@ class GeoSeriesMatrix:
     feature_count: int
     feature_id: str
     feature_values: tuple[float | None, ...]
+    source_sha256: str
+    source_url: str
+    source_file_name: str | None
+    compressed_bytes: int
+    decompressed_bytes: int
+
+
+@dataclass(frozen=True, slots=True)
+class GeoMatrixFeature:
+    feature_id: str
+    values: tuple[float | None, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class GeoFeatureMatrix:
+    accession: str
+    title: str
+    series_types: tuple[str, ...]
+    platform_ids: tuple[str, ...]
+    samples: tuple[GeoSample, ...]
+    processing_descriptions: tuple[str, ...]
+    feature_count: int
+    features: tuple[GeoMatrixFeature, ...]
     source_sha256: str
     source_url: str
     source_file_name: str | None
@@ -199,23 +226,44 @@ def _matrix_number(value: str) -> float | None:
     return number
 
 
-def parse_series_matrix(
+def _finite_mean(values: Sequence[float]) -> float:
+    return math.fsum(value / len(values) for value in values)
+
+
+def _finite_median(values: Sequence[float]) -> float:
+    ordered = sorted(values)
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[middle]
+    return ordered[middle - 1] / 2.0 + ordered[middle] / 2.0
+
+
+def _finite_difference(left: float, right: float) -> float | None:
+    difference = left - right
+    return difference if math.isfinite(difference) else None
+
+
+def _parse_series_matrix_features(
     payload: bytes,
     *,
     accession: str,
-    feature_id: str,
+    feature_ids: frozenset[str] | None,
     source_file_name: str | None = None,
-) -> GeoSeriesMatrix:
-    """Parse one bounded GEO matrix and retain values for exactly one feature."""
+) -> GeoFeatureMatrix:
+    """Parse a bounded matrix, retaining selected features or every feature."""
 
     requested_accession = validate_accession(accession)
     if not isinstance(payload, bytes):
         raise ValidationError("GEO Series Matrix payload must be bytes")
     if len(payload) > MAX_COMPRESSED_BYTES:
         raise ValidationError("GEO Series Matrix exceeds its compressed byte bound")
-    selected_feature = _required_text(feature_id, "GEO feature ID", maximum=256)
-    if not _FEATURE_RE.fullmatch(selected_feature):
-        raise ValidationError("GEO feature ID contains unsupported characters")
+    if feature_ids is not None:
+        feature_ids = frozenset(
+            _required_text(feature_id, "GEO feature ID", maximum=256)
+            for feature_id in feature_ids
+        )
+        if not feature_ids or any(not _FEATURE_RE.fullmatch(item) for item in feature_ids):
+            raise ValidationError("GEO feature IDs are empty or contain unsupported characters")
     if source_file_name is not None:
         source_file_name = _required_text(source_file_name, "GEO source file name", maximum=255)
         if Path(source_file_name).name != source_file_name or "\\" in source_file_name:
@@ -228,7 +276,8 @@ def parse_series_matrix(
     sample_characteristics: list[list[tuple[str, str]]] = []
     sample_processing: list[list[str]] = []
     samples: tuple[GeoSample, ...] = ()
-    matrix_values: tuple[float | None, ...] | None = None
+    retained_features: list[GeoMatrixFeature] = []
+    retained_feature_ids: set[str] = set()
     feature_count = 0
     metadata_row_count = 0
     matrix_header_seen = False
@@ -290,11 +339,18 @@ def parse_series_matrix(
                 ):
                     raise ValidationError("GEO expression matrix exceeds its feature/cell bound")
                 row_feature = _required_text(row[0], "GEO matrix feature ID", maximum=256)
+                if feature_ids is None and not _FEATURE_RE.fullmatch(row_feature):
+                    raise ValidationError("GEO matrix feature ID contains unsupported characters")
                 values = tuple(_matrix_number(value) for value in row[1:])
-                if row_feature == selected_feature:
-                    if matrix_values is not None:
-                        raise ValidationError("GEO matrix repeats the selected feature ID")
-                    matrix_values = values
+                if feature_ids is None or row_feature in feature_ids:
+                    if row_feature in retained_feature_ids:
+                        raise ValidationError("GEO matrix repeats a retained feature ID")
+                    if feature_ids is None and len(retained_features) >= MAX_CONTRAST_FEATURES:
+                        raise ValidationError(
+                            "GEO feature screen exceeds its retained-feature bound"
+                        )
+                    retained_feature_ids.add(row_feature)
+                    retained_features.append(GeoMatrixFeature(row_feature, values))
             if not matrix_end_seen:
                 raise ValidationError("GEO Series Matrix expression table is incomplete")
             # Drain the stream so gzip checksums and decompressed-byte ceilings are verified.
@@ -342,8 +398,10 @@ def parse_series_matrix(
         raise ValidationError("GEO Series Matrix expression table is incomplete")
     if series.get("Series_geo_accession", []) != [requested_accession]:
         raise ValidationError("GEO Series Matrix accession differs from the requested series")
-    if matrix_values is None:
-        raise ValidationError("GEO Series Matrix does not contain the selected feature ID")
+    if feature_ids is not None and retained_feature_ids != feature_ids:
+        raise ValidationError("GEO Series Matrix does not contain every selected feature ID")
+    if not retained_features:
+        raise ValidationError("GEO Series Matrix contains no retained expression features")
     titles = series.get("Series_title", [])
     series_types = tuple(dict.fromkeys(series.get("Series_type", [])))
     platform_ids = tuple(dict.fromkeys(series.get("Series_platform_id", [])))
@@ -352,7 +410,7 @@ def parse_series_matrix(
             dict.fromkeys(sample.platform_id for sample in samples if sample.platform_id)
         )
     processing = tuple(dict.fromkeys(value for row in sample_processing for value in row))
-    return GeoSeriesMatrix(
+    return GeoFeatureMatrix(
         accession=requested_accession,
         title=titles[0] if titles else "",
         series_types=series_types,
@@ -360,13 +418,65 @@ def parse_series_matrix(
         samples=samples,
         processing_descriptions=processing[:16],
         feature_count=feature_count,
-        feature_id=selected_feature,
-        feature_values=matrix_values,
+        features=tuple(retained_features),
         source_sha256=hashlib.sha256(payload).hexdigest(),
         source_url=series_matrix_url(requested_accession),
         source_file_name=source_file_name,
         compressed_bytes=len(payload),
         decompressed_bytes=decompressed_bytes,
+    )
+
+
+def parse_series_matrix(
+    payload: bytes,
+    *,
+    accession: str,
+    feature_id: str,
+    source_file_name: str | None = None,
+) -> GeoSeriesMatrix:
+    """Parse one bounded GEO matrix and retain values for exactly one feature."""
+
+    selected_feature = _required_text(feature_id, "GEO feature ID", maximum=256)
+    if not _FEATURE_RE.fullmatch(selected_feature):
+        raise ValidationError("GEO feature ID contains unsupported characters")
+    matrix = _parse_series_matrix_features(
+        payload,
+        accession=accession,
+        feature_ids=frozenset({selected_feature}),
+        source_file_name=source_file_name,
+    )
+    feature = matrix.features[0]
+    return GeoSeriesMatrix(
+        accession=matrix.accession,
+        title=matrix.title,
+        series_types=matrix.series_types,
+        platform_ids=matrix.platform_ids,
+        samples=matrix.samples,
+        processing_descriptions=matrix.processing_descriptions,
+        feature_count=matrix.feature_count,
+        feature_id=feature.feature_id,
+        feature_values=feature.values,
+        source_sha256=matrix.source_sha256,
+        source_url=matrix.source_url,
+        source_file_name=matrix.source_file_name,
+        compressed_bytes=matrix.compressed_bytes,
+        decompressed_bytes=matrix.decompressed_bytes,
+    )
+
+
+def parse_series_matrix_features(
+    payload: bytes,
+    *,
+    accession: str,
+    source_file_name: str | None = None,
+) -> GeoFeatureMatrix:
+    """Parse a bounded GEO matrix while retaining its complete feature table."""
+
+    return _parse_series_matrix_features(
+        payload,
+        accession=accession,
+        feature_ids=None,
+        source_file_name=source_file_name,
     )
 
 
@@ -435,6 +545,364 @@ def _read_matrix(
     return response.body, response.url, None
 
 
+def _normalize_filters(value: object, label: str) -> list[tuple[str, str]]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise ValidationError(f"{label} filters must be a sequence of field/value pairs")
+    if not value or len(value) > 32:
+        raise ValidationError(f"one to 32 explicit {label} filters are required")
+    normalized: list[tuple[str, str]] = []
+    for item in value:
+        if not isinstance(item, Sequence) or isinstance(item, (str, bytes)) or len(item) != 2:
+            raise ValidationError(f"each {label} filter must contain one field and one value")
+        field = _required_text(item[0], f"{label} characteristic field", maximum=256)
+        expected = _required_text(item[1], f"{label} characteristic value", maximum=1024)
+        if any(field.casefold() == prior[0].casefold() for prior in normalized):
+            raise ValidationError(f"{label} characteristic fields must be unique")
+        normalized.append((field, expected))
+    return normalized
+
+
+def _mann_whitney_test(
+    case_values: Sequence[float],
+    reference_values: Sequence[float],
+    *,
+    assignment_limit: int,
+) -> tuple[float, float, str]:
+    """Return rank-biserial effect, two-sided p-value, and test method."""
+
+    pooled = [(value, index) for index, value in enumerate((*case_values, *reference_values))]
+    pooled.sort(key=lambda item: (item[0], item[1]))
+    doubled_ranks = [0] * len(pooled)
+    tie_sizes: list[int] = []
+    start = 0
+    while start < len(pooled):
+        end = start + 1
+        while end < len(pooled) and pooled[end][0] == pooled[start][0]:
+            end += 1
+        tie_sizes.append(end - start)
+        # Twice the average 1-based rank is integral, including tied mid-ranks.
+        doubled_rank = start + end + 1
+        for sorted_index in range(start, end):
+            original_index = pooled[sorted_index][1]
+            doubled_ranks[original_index] = doubled_rank
+        start = end
+
+    case_count = len(case_values)
+    reference_count = len(reference_values)
+    total_count = case_count + reference_count
+    doubled_rank_sum = sum(doubled_ranks[:case_count])
+    doubled_u = doubled_rank_sum - case_count * (case_count + 1)
+    center_u = case_count * reference_count
+    rank_biserial = (doubled_u - center_u) / (case_count * reference_count)
+    assignments = math.comb(total_count, case_count)
+
+    if assignments <= assignment_limit:
+        if case_count <= reference_count:
+            permutation_size = case_count
+            observed_sum = doubled_rank_sum
+        else:
+            permutation_size = reference_count
+            observed_sum = sum(doubled_ranks[case_count:])
+        expected_sum = permutation_size * (total_count + 1)
+        distance = abs(observed_sum - expected_sum)
+        extreme = 0
+        for indices in combinations(range(total_count), permutation_size):
+            permuted_sum = sum(doubled_ranks[index] for index in indices)
+            if abs(permuted_sum - expected_sum) >= distance:
+                extreme += 1
+        return rank_biserial, extreme / assignments, "exact_label_permutation"
+
+    tie_adjustment = sum(size**3 - size for size in tie_sizes)
+    variance = (
+        case_count
+        * reference_count
+        / 12.0
+        * (total_count + 1 - tie_adjustment / (total_count * (total_count - 1)))
+    )
+    if variance <= 0:
+        p_value = 1.0
+    else:
+        deviation = abs(doubled_u / 2.0 - center_u / 2.0)
+        z_score = max(0.0, (deviation - 0.5) / math.sqrt(variance))
+        p_value = min(1.0, math.erfc(z_score / math.sqrt(2.0)))
+    return rank_biserial, p_value, "tie_corrected_normal_approximation"
+
+
+def _benjamini_hochberg(p_values: Sequence[float]) -> list[float]:
+    """Compute deterministic monotone Benjamini-Hochberg adjusted p-values."""
+
+    ordered = sorted(enumerate(p_values), key=lambda item: (item[1], item[0]))
+    adjusted = [1.0] * len(ordered)
+    running_minimum = 1.0
+    count = len(ordered)
+    for index in range(count - 1, -1, -1):
+        original_index, p_value = ordered[index]
+        rank = index + 1
+        running_minimum = min(running_minimum, p_value * count / rank)
+        adjusted[original_index] = min(1.0, running_minimum)
+    return adjusted
+
+
+def build_expression_contrast_report(
+    accession: str,
+    *,
+    case_filters: Sequence[tuple[str, str]],
+    reference_filters: Sequence[tuple[str, str]],
+    scale: ExpressionScale | str,
+    matrix_file: str | Path | None = None,
+    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+    fdr_threshold: float = 0.05,
+    top: int = 1_000,
+) -> dict[str, Any]:
+    """Screen all retained platform features between two explicit sample groups."""
+
+    normalized_accession = validate_accession(accession)
+    normalized_case = _normalize_filters(case_filters, "case")
+    normalized_reference = _normalize_filters(reference_filters, "reference")
+    if isinstance(fdr_threshold, bool) or not isinstance(fdr_threshold, (int, float)):
+        raise ValidationError("FDR threshold must be numeric")
+    fdr_threshold = float(fdr_threshold)
+    if not math.isfinite(fdr_threshold) or not 0.0 < fdr_threshold <= 1.0:
+        raise ValidationError("FDR threshold must be greater than zero and at most one")
+    if isinstance(top, bool) or not isinstance(top, int) or not 1 <= top <= MAX_CONTRAST_FEATURES:
+        raise ValidationError("top result limit must be an integer within the feature bound")
+    if (
+        isinstance(timeout_seconds, bool)
+        or not isinstance(timeout_seconds, (float, int))
+        or not 0.1 <= float(timeout_seconds) <= 120.0
+    ):
+        raise ValidationError("GEO request timeout must be between 0.1 and 120 seconds")
+    try:
+        expression_scale = ExpressionScale(scale)
+    except (ValueError, TypeError) as error:
+        raise ValidationError("expression scale is not supported") from error
+    if not expression_scale.cohort_comparable:
+        raise ValidationError("raw counts are not supported for this cohort comparison")
+
+    payload, response_url, source_file_name = _read_matrix(
+        normalized_accession,
+        matrix_file=matrix_file,
+        timeout_seconds=float(timeout_seconds),
+    )
+    matrix = parse_series_matrix_features(
+        payload,
+        accession=normalized_accession,
+        source_file_name=source_file_name,
+    )
+    if len(matrix.platform_ids) != 1:
+        raise ValidationError("two-group screening requires exactly one GEO platform")
+
+    case_samples = tuple(sample for sample in matrix.samples if sample.matches(normalized_case))
+    reference_samples = tuple(
+        sample for sample in matrix.samples if sample.matches(normalized_reference)
+    )
+    case_ids = {sample.accession for sample in case_samples}
+    reference_ids = {sample.accession for sample in reference_samples}
+    if case_ids & reference_ids:
+        raise ValidationError("case and reference sample filters select overlapping samples")
+    if len(case_samples) < 2 or len(reference_samples) < 2:
+        raise ValidationError("each group must select at least two GEO samples")
+    case_indices = tuple(
+        index for index, sample in enumerate(matrix.samples) if sample.accession in case_ids
+    )
+    reference_indices = tuple(
+        index
+        for index, sample in enumerate(matrix.samples)
+        if sample.accession in reference_ids
+    )
+
+    preliminary_rows: list[dict[str, Any]] = []
+    p_values: list[float] = []
+    tested_rows: list[int] = []
+    method_counts = {"exact_label_permutation": 0, "tie_corrected_normal_approximation": 0}
+    for feature in matrix.features:
+        case_values = tuple(
+            feature.values[index]
+            for index in case_indices
+            if feature.values[index] is not None
+        )
+        reference_values = tuple(
+            feature.values[index]
+            for index in reference_indices
+            if feature.values[index] is not None
+        )
+        case_median = _finite_median(case_values) if case_values else None
+        reference_median = _finite_median(reference_values) if reference_values else None
+        case_mean = _finite_mean(case_values) if case_values else None
+        reference_mean = _finite_mean(reference_values) if reference_values else None
+        row: dict[str, Any] = {
+            "feature_id": feature.feature_id,
+            "case_n": len(case_values),
+            "reference_n": len(reference_values),
+            "case_median": case_median,
+            "reference_median": reference_median,
+            "median_difference": (
+                _finite_difference(case_median, reference_median)
+                if case_median is not None and reference_median is not None
+                else None
+            ),
+            "mean_difference": (
+                _finite_difference(case_mean, reference_mean)
+                if case_mean is not None and reference_mean is not None
+                else None
+            ),
+            "rank_biserial_correlation": None,
+            "effect_direction": None,
+            "p_value": None,
+            "q_value": None,
+            "test_method": None,
+            "fdr_significant": False,
+            "reason": None,
+        }
+        if len(case_values) < 2 or len(reference_values) < 2:
+            row["reason"] = "fewer_than_two_nonmissing_observations_in_a_group"
+        else:
+            assignment_limit = max(
+                1,
+                min(
+                    MAX_EXACT_RANK_ASSIGNMENTS,
+                    MAX_TOTAL_EXACT_RANK_SUMS
+                    // max(1, len(matrix.features) * min(len(case_values), len(reference_values))),
+                ),
+            )
+            effect, p_value, method = _mann_whitney_test(
+                case_values,
+                reference_values,
+                assignment_limit=assignment_limit,
+            )
+            row["rank_biserial_correlation"] = effect
+            row["effect_direction"] = (
+                "case_higher" if effect > 0 else "case_lower" if effect < 0 else "no_rank_shift"
+            )
+            row["p_value"] = p_value
+            row["test_method"] = method
+            row["reason"] = None
+            method_counts[method] += 1
+            tested_rows.append(len(preliminary_rows))
+            p_values.append(p_value)
+        preliminary_rows.append(row)
+
+    adjusted_values = _benjamini_hochberg(p_values)
+    for row_index, q_value in zip(tested_rows, adjusted_values, strict=True):
+        preliminary_rows[row_index]["q_value"] = q_value
+        preliminary_rows[row_index]["fdr_significant"] = q_value <= fdr_threshold
+    preliminary_rows.sort(
+        key=lambda row: (
+            row["q_value"] is None,
+            row["q_value"] if row["q_value"] is not None else 1.0,
+            row["p_value"] if row["p_value"] is not None else 1.0,
+            row["feature_id"],
+        )
+    )
+
+    source_version = f"sha256:{matrix.source_sha256}"
+
+    def filter_context(filters: Sequence[tuple[str, str]]) -> str:
+        return ",".join(
+            f"{field.casefold()}={value.casefold()}"
+            for field, value in sorted(filters, key=lambda item: item[0].casefold())
+        )
+    body: dict[str, Any] = {
+        "schema": "glio-noncode.geo-expression-contrast.v1",
+        "status": "completed",
+        "source": {
+            "database": "NCBI GEO",
+            "accession": matrix.accession,
+            "series_url": f"{GEO_RECORD_ORIGIN}/geo/query/acc.cgi?acc={matrix.accession}",
+            "matrix_url": matrix.source_url,
+            "retrieval": "local_file" if source_file_name is not None else "https",
+            "response_url": response_url,
+            "source_file_name": source_file_name,
+            "source_sha256": source_version,
+            "compressed_bytes": matrix.compressed_bytes,
+            "decompressed_bytes": matrix.decompressed_bytes,
+            "series_title": matrix.title,
+            "series_types": list(matrix.series_types),
+            "platform_ids": list(matrix.platform_ids),
+            "processing_descriptions": list(matrix.processing_descriptions),
+            "sample_count": len(matrix.samples),
+            "feature_count": matrix.feature_count,
+        },
+        "comparison": {
+            "case_filters": [{"field": field, "equals": value} for field, value in normalized_case],
+            "reference_filters": [
+                {"field": field, "equals": value} for field, value in normalized_reference
+            ],
+            "case_sample_ids": [sample.accession for sample in case_samples],
+            "reference_sample_ids": [sample.accession for sample in reference_samples],
+            "unassigned_sample_count": (
+                len(matrix.samples) - len(case_samples) - len(reference_samples)
+            ),
+            "scale": expression_scale.value,
+            "test": "two-sided Mann-Whitney U with exact label permutations when bounded",
+            "multiple_testing_adjustment": "Benjamini-Hochberg over all testable matrix features",
+            "fdr_threshold": fdr_threshold,
+            "matched_to_case_sample": False,
+            "population_generalization": False,
+        },
+        "summary": {
+            "matrix_feature_count": matrix.feature_count,
+            "tested_feature_count": len(tested_rows),
+            "untestable_feature_count": matrix.feature_count - len(tested_rows),
+            "fdr_significant_feature_count": sum(
+                bool(row["fdr_significant"]) for row in preliminary_rows
+            ),
+            "fdr_significant_case_higher_count": sum(
+                row["fdr_significant"] and row["effect_direction"] == "case_higher"
+                for row in preliminary_rows
+            ),
+            "fdr_significant_case_lower_count": sum(
+                row["fdr_significant"] and row["effect_direction"] == "case_lower"
+                for row in preliminary_rows
+            ),
+            "test_method_counts": method_counts,
+            "reported_feature_count": min(top, len(preliminary_rows)),
+            "result_limit": top,
+            "fdr_family_size": len(tested_rows),
+        },
+        "analysis_limits": {
+            "max_retained_features": MAX_CONTRAST_FEATURES,
+            "max_exact_assignments_per_feature": MAX_EXACT_RANK_ASSIGNMENTS,
+            "max_exact_rank_sums_per_screen": MAX_TOTAL_EXACT_RANK_SUMS,
+            "max_matrix_cells": MAX_MATRIX_CELLS,
+        },
+        "results": preliminary_rows[:top],
+        "limitations": [
+            "Exploratory public-cohort group comparison; it is not matched-case RNA evidence.",
+            (
+                "Group labels use submitted sample characteristics; covariates and batch effects "
+                "are not modeled."
+            ),
+            (
+                "The test assumes exchangeable independent samples; paired or repeated measures "
+                "are not modeled."
+            ),
+            (
+                "FDR adjustment covers testable rows in this matrix, not analyses selected after "
+                "inspecting results."
+            ),
+            (
+                "Nominal FDR control depends on assumptions about test dependence; correlated "
+                "platform features may affect it."
+            ),
+            (
+                "Per-feature missingness is reported but not modeled; informative missingness "
+                "may bias a comparison."
+            ),
+            (
+                "Feature identifiers remain platform identifiers; transcript or gene identity "
+                "was not inferred."
+            ),
+            "Results do not support diagnosis or treatment decisions.",
+        ],
+    }
+    body["comparison"]["context_key"] = (
+        f"geo-contrast:{normalized_accession}:{matrix.platform_ids[0]}:"
+        f"case[{filter_context(normalized_case)}]:reference[{filter_context(normalized_reference)}]"
+    )
+    return body | {"content_address": content_hash(body, prefix="geo-expression-contrast")}
+
+
 def build_expression_outlier_report(
     accession: str,
     *,
@@ -451,19 +919,7 @@ def build_expression_outlier_report(
     target_id = _required_text(target_sample_id, "target GEO sample accession", maximum=20).upper()
     if not _GSM_RE.fullmatch(target_id):
         raise ValidationError("target GEO sample accession must use the GSM numeric format")
-    if isinstance(reference_filters, (str, bytes)) or not isinstance(reference_filters, Sequence):
-        raise ValidationError("reference filters must be a sequence of field/value pairs")
-    if not reference_filters or len(reference_filters) > 32:
-        raise ValidationError("one to 32 explicit reference filters are required")
-    normalized_filters: list[tuple[str, str]] = []
-    for item in reference_filters:
-        if not isinstance(item, Sequence) or isinstance(item, (str, bytes)) or len(item) != 2:
-            raise ValidationError("each reference filter must contain one field and one value")
-        field = _required_text(item[0], "reference characteristic field", maximum=256)
-        expected = _required_text(item[1], "reference characteristic value", maximum=1024)
-        if any(field.casefold() == prior[0].casefold() for prior in normalized_filters):
-            raise ValidationError("reference characteristic fields must be unique")
-        normalized_filters.append((field, expected))
+    normalized_filters = _normalize_filters(reference_filters, "reference")
     try:
         expression_scale = ExpressionScale(scale)
     except (ValueError, TypeError) as error:

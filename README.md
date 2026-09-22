@@ -69,6 +69,13 @@ provenance fields, resource limits, and interpretation boundaries.
 
     glio-noncode geo-outlier GSE103227 --feature-id ASHGA5P000001 --target-sample GSM2758529 --reference-filter diagnosis=normal --scale normalized_intensity
 
+For a two-group exploratory screen across one GEO platform, `geo-contrast`
+tests all eligible matrix features and applies Benjamini-Hochberg correction.
+Group membership comes only from explicit sample-characteristic filters; this
+does not adjust for covariates or establish clinical evidence.
+
+    glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --fdr 0.05 --top 1000
+
 Package-root exports resolve lazily, and help, version, discovery, `case`,
 `expression`, and report commands stay on focused startup paths. The curated
 root surface includes the typed quality evaluator/report contracts, adapter
