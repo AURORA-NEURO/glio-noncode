@@ -20,6 +20,7 @@ from .serialization import content_hash
 GEO_REVIEW_SUMMARY_SCHEMA = "glio-noncode.geo-review-summary.v1"
 GEO_REVIEW_LEDGER_SCHEMA = "glio-noncode.geo-review-ledger.v1"
 GEO_PREFLIGHT_LEDGER_SCHEMA = "glio-noncode.geo-preflight-ledger.v1"
+GEO_REVIEW_CAPABILITIES_SCHEMA = "glio-noncode.geo-review-capabilities.v1"
 MAX_GEO_REVIEW_RECORDS = 10_000
 CATALOG_PAGE_SIZE = 20
 GEO_REVIEW_LEDGER_COLUMNS = (
@@ -49,6 +50,167 @@ GEO_PREFLIGHT_LEDGER_COLUMNS = (
     "design_state",
     "verification",
 )
+
+
+def _json_schema_object(title: str, required: Sequence[str], properties: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": title,
+        "type": "object",
+        "additionalProperties": False,
+        "required": list(required),
+        "properties": dict(properties),
+    }
+
+
+def review_summary_schema() -> dict[str, Any]:
+    """Return the closed JSON Schema for the aggregate health summary."""
+
+    catalog = {
+        "type": "object",
+        "required": ["name", "record_count", "verified_record_count", "catalog_state"],
+        "properties": {
+            "name": {"type": "string"},
+            "record_count": {"type": "integer", "minimum": 0},
+            "verified_record_count": {"type": "integer", "minimum": 0},
+            "feature_count_total": {"type": "integer", "minimum": 0},
+            "tested_feature_count_total": {"type": "integer", "minimum": 0},
+            "reported_feature_count_total": {"type": "integer", "minimum": 0},
+            "ranked_feature_count_total": {"type": "integer", "minimum": 0},
+            "additional_tracked_feature_count_total": {"type": "integer", "minimum": 0},
+            "tracked_feature_id_count_total": {"type": "integer", "minimum": 0},
+            "fdr_significant_feature_count_total": {"type": "integer", "minimum": 0},
+            "sample_count_total": {"type": "integer", "minimum": 0},
+            "accession_count": {"type": "integer", "minimum": 0},
+            "accessions": {"type": "array", "items": {"type": "string"}},
+            "catalog_state": {"enum": ["verified", "review"]},
+            "kind_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+            "design_state_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        },
+        "additionalProperties": True,
+    }
+    return _json_schema_object(
+        "GLIO-NONCODE GEO review summary",
+        ("schema", "status", "verification_requested", "catalogs", "integrity", "limitations", "content_address"),
+        {
+            "schema": {"const": GEO_REVIEW_SUMMARY_SCHEMA},
+            "status": {"enum": ["ready", "review"]},
+            "verification_requested": {"type": "boolean"},
+            "catalogs": {"type": "object", "additionalProperties": catalog},
+            "integrity": {
+                "type": "object",
+                "required": ["catalog_records", "report_objects", "verification_failure_count"],
+                "properties": {
+                    "catalog_records": {"const": "validated"},
+                    "report_objects": {"enum": ["verified", "review", "not_requested"]},
+                    "verification_failure_count": {"type": "integer", "minimum": 0},
+                },
+                "additionalProperties": False,
+            },
+            "limitations": {"type": "array", "items": {"type": "string"}},
+            "content_address": {"type": "string"},
+        },
+    )
+
+
+def review_ledger_schema() -> dict[str, Any]:
+    """Return the closed JSON Schema for the aggregate review ledger."""
+
+    row_properties = {
+        "catalog": {"type": "string"},
+        "record_id": {"type": "string"},
+        "accessions": {"type": "string"},
+        "feature_count": {"type": "integer", "minimum": 0},
+        "tested_feature_count": {"type": "integer", "minimum": 0},
+        "reported_feature_count": {"type": "integer", "minimum": 0},
+        "ranked_feature_count": {"type": "integer", "minimum": 0},
+        "additional_tracked_feature_count": {"type": "integer", "minimum": 0},
+        "tracked_feature_id_count": {"type": "integer", "minimum": 0},
+        "fdr_significant_feature_count": {"type": "integer", "minimum": 0},
+        "verification": {"enum": ["verified", "not_requested", "invalid", "failed"]},
+        "state": {"enum": ["verified", "cataloged", "review"]},
+    }
+    row = _json_schema_object("GLIO-NONCODE GEO review ledger row", GEO_REVIEW_LEDGER_COLUMNS, row_properties)
+    return _json_schema_object(
+        "GLIO-NONCODE GEO review ledger",
+        ("schema", "verification_requested", "row_count", "rows", "limitations", "content_address"),
+        {
+            "schema": {"const": GEO_REVIEW_LEDGER_SCHEMA},
+            "verification_requested": {"type": "boolean"},
+            "row_count": {"type": "integer", "minimum": 0},
+            "rows": {"type": "array", "items": row},
+            "limitations": {"type": "array", "items": {"type": "string"}},
+            "content_address": {"type": "string"},
+        },
+    )
+
+
+def preflight_ledger_schema() -> dict[str, Any]:
+    """Return the closed JSON Schema for the preparation ledger."""
+
+    row = _json_schema_object(
+        "GLIO-NONCODE GEO preflight ledger row",
+        GEO_PREFLIGHT_LEDGER_COLUMNS,
+        {
+            "preflight_id": {"type": "string"},
+            "kind": {"type": "string"},
+            "report_schema": {"type": "string"},
+            "accession": {"type": "string"},
+            "retrieval": {"type": "string"},
+            "source_sha256": {"type": "string"},
+            "report_address": {"type": "string"},
+            "sample_count": {"type": ["integer", "null"], "minimum": 0},
+            "feature_count": {"type": ["integer", "null"], "minimum": 0},
+            "design_state": {"type": "string"},
+            "verification": {"enum": ["verified", "not_requested", "invalid", "failed"]},
+        },
+    )
+    return _json_schema_object(
+        "GLIO-NONCODE GEO preflight ledger",
+        ("schema", "verification_requested", "row_count", "rows", "limitations", "content_address"),
+        {
+            "schema": {"const": GEO_PREFLIGHT_LEDGER_SCHEMA},
+            "verification_requested": {"type": "boolean"},
+            "row_count": {"type": "integer", "minimum": 0},
+            "rows": {"type": "array", "items": row},
+            "limitations": {"type": "array", "items": {"type": "string"}},
+            "content_address": {"type": "string"},
+        },
+    )
+
+
+def capabilities() -> dict[str, Any]:
+    """Describe the public GEO review discovery, export, and verification surface."""
+
+    return {
+        "schema": GEO_REVIEW_CAPABILITIES_SCHEMA,
+        "public": True,
+        "read_only": True,
+        "verification": "catalog records and optionally reopened content-addressed report objects",
+        "documents": {
+            "summary": GEO_REVIEW_SUMMARY_SCHEMA,
+            "ledger": GEO_REVIEW_LEDGER_SCHEMA,
+            "preflight_ledger": GEO_PREFLIGHT_LEDGER_SCHEMA,
+        },
+        "formats": ["json", "csv"],
+        "operations": [
+            "summary",
+            "review_ledger",
+            "preflight_ledger",
+            "schema_discovery",
+        ],
+        "limits": {
+            "max_records_per_catalog": MAX_GEO_REVIEW_RECORDS,
+            "catalog_page_size": CATALOG_PAGE_SIZE,
+        },
+        "endpoints": {
+            "summary": "/v1/geo-review/summary",
+            "ledger_json": "/v1/geo-review/ledger.json",
+            "ledger_csv": "/v1/geo-review/summary.csv",
+            "preflight_ledger_json": "/v1/geo-preflights.json",
+            "preflight_ledger_csv": "/v1/geo-preflights.csv",
+        },
+    }
 
 
 def _catalog_rows(store: Any) -> list[dict[str, Any]]:
@@ -656,6 +818,7 @@ def build_geo_review_summary(
 
 
 __all__ = [
+    "GEO_REVIEW_CAPABILITIES_SCHEMA",
     "GEO_PREFLIGHT_LEDGER_COLUMNS",
     "GEO_PREFLIGHT_LEDGER_SCHEMA",
     "GEO_REVIEW_LEDGER_SCHEMA",
@@ -672,4 +835,8 @@ __all__ = [
     "geo_review_ledger_json",
     "render_geo_preflight_ledger_csv",
     "render_geo_review_ledger_csv",
+    "capabilities",
+    "preflight_ledger_schema",
+    "review_ledger_schema",
+    "review_summary_schema",
 ]

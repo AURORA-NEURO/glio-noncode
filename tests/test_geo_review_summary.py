@@ -18,6 +18,7 @@ from glio_noncode.geo_count_sensitivity import build_geo_count_sensitivity_repor
 from glio_noncode.geo_count_sensitivity_store import GeoCountSensitivityStore
 from glio_noncode.geo_preflight_store import GeoPreflightStore
 from glio_noncode.geo_review_summary import (
+    capabilities,
     build_geo_preflight_ledger,
     build_geo_preflight_ledger_document,
     build_geo_review_ledger,
@@ -25,8 +26,11 @@ from glio_noncode.geo_review_summary import (
     build_geo_review_summary,
     geo_preflight_ledger_csv,
     geo_review_ledger_csv,
+    preflight_ledger_schema,
     render_geo_preflight_ledger_csv,
     render_geo_review_ledger_csv,
+    review_ledger_schema,
+    review_summary_schema,
 )
 
 from .test_geo_count_consistency import _report
@@ -35,6 +39,28 @@ from .test_geo_preflight_store import _quality_report
 
 
 class GeoReviewSummaryTests(unittest.TestCase):
+    def test_discovery_contracts_are_closed_and_public(self) -> None:
+        schemas = (
+            review_summary_schema(),
+            review_ledger_schema(),
+            preflight_ledger_schema(),
+        )
+        for schema in schemas:
+            self.assertEqual(
+                schema["$schema"], "https://json-schema.org/draft/2020-12/schema"
+            )
+            self.assertFalse(schema["additionalProperties"])
+            public = json.dumps(schema).casefold()
+            self.assertNotIn('"agent"', public)
+            self.assertNotIn('"language"', public)
+        contract = capabilities()
+        self.assertEqual(
+            contract["schema"], "glio-noncode.geo-review-capabilities.v1"
+        )
+        self.assertEqual(contract["formats"], ["json", "csv"])
+        self.assertIn("schema_discovery", contract["operations"])
+        self.assertEqual(contract["limits"]["catalog_page_size"], 20)
+
     def test_summary_verifies_saved_real_shape_without_identifiers(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -100,6 +126,30 @@ class GeoReviewSummaryTests(unittest.TestCase):
             cli_ledger = json.loads(stdout_ledger.getvalue())
             self.assertEqual(cli_ledger["schema"], "glio-noncode.geo-review-ledger.v1")
             self.assertEqual(cli_ledger["row_count"], len(cli_ledger["rows"]))
+
+            schema_stdout, schema_stderr = io.StringIO(), io.StringIO()
+            with redirect_stdout(schema_stdout), redirect_stderr(schema_stderr):
+                schema_result = summary_main(
+                    ["--data-root", str(workspace), "--schema", "summary"]
+                )
+            self.assertEqual(schema_result, 0)
+            self.assertEqual(schema_stderr.getvalue(), "")
+            self.assertEqual(
+                json.loads(schema_stdout.getvalue())["properties"]["schema"]["const"],
+                "glio-noncode.geo-review-summary.v1",
+            )
+
+            capability_stdout, capability_stderr = io.StringIO(), io.StringIO()
+            with redirect_stdout(capability_stdout), redirect_stderr(capability_stderr):
+                capability_result = summary_main(
+                    ["--data-root", str(workspace), "--capabilities"]
+                )
+            self.assertEqual(capability_result, 0)
+            self.assertEqual(capability_stderr.getvalue(), "")
+            self.assertEqual(
+                json.loads(capability_stdout.getvalue())["schema"],
+                "glio-noncode.geo-review-capabilities.v1",
+            )
 
             server = create_server("127.0.0.1", 0, str(workspace))
             thread = Thread(target=server.serve_forever, daemon=True)
@@ -179,6 +229,43 @@ class GeoReviewSummaryTests(unittest.TestCase):
         self.assertNotIn("sample_ids", public)
         self.assertNotIn("agent", public.lower())
         self.assertNotIn("language", public.lower())
+
+    def test_discovery_http_endpoints_return_declared_contracts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            server = create_server("127.0.0.1", 0, str(Path(directory) / "workspace"))
+            thread = Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                expected = {
+                    "/v1/geo-review/schema": "glio-noncode.geo-review-summary.v1",
+                    "/v1/geo-review/ledger/schema": "glio-noncode.geo-review-ledger.v1",
+                    "/v1/geo-preflights/ledger/schema": "glio-noncode.geo-preflight-ledger.v1",
+                    "/v1/geo-review/capabilities": "glio-noncode.geo-review-capabilities.v1",
+                }
+                for path, schema_id in expected.items():
+                    with self.subTest(path=path):
+                        connection = HTTPConnection(
+                            "127.0.0.1", server.server_port, timeout=30
+                        )
+                        connection.request("GET", path)
+                        response = connection.getresponse()
+                        payload = json.loads(response.read())
+                        connection.close()
+                        self.assertEqual(response.status, 200)
+                        self.assertEqual(
+                            response.getheader("Content-Type"),
+                            "application/json; charset=utf-8",
+                        )
+                        declared_id = (
+                            payload["properties"]["schema"]["const"]
+                            if "$schema" in payload
+                            else payload["schema"]
+                        )
+                        self.assertEqual(declared_id, schema_id)
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
 
     def test_summary_exposes_normalization_coverage_totals(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

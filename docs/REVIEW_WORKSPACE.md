@@ -74,6 +74,9 @@ The structured equivalent is the content-addressed
 `glio-noncode.geo-preflight-ledger.v1` document from
 `glio-noncode geo-review-summary --preflights-json` or
 `GET /v1/geo-preflights.json?verify_reports=true`.
+Integrators can discover the closed JSON contracts and bounded operations with
+`glio-noncode geo-review-summary --schema summary|ledger|preflights`,
+`--capabilities`, or the corresponding GEO review discovery endpoints.
 The browser workbench renders these saved rows in a preparation rail, supports
 accession/kind filters and bounded loading, and opens a verified aggregate
 detail view; it keeps sample identifiers and pair-level detail outside the

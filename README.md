@@ -112,6 +112,10 @@ The preparation archive also supports a content-addressed JSON ledger through
 `glio-noncode geo-review-summary --preflights-json` or
 `GET /v1/geo-preflights.json`; it carries the same aggregate-only boundary as the
 CSV ledger while preserving structured QC, metadata, and design receipts.
+Schema and capability discovery are available through the CLI `--schema` and
+`--capabilities` options and the matching `/v1/geo-review/schema`,
+`/v1/geo-review/ledger/schema`, `/v1/geo-preflights/ledger/schema`, and
+`/v1/geo-review/capabilities` endpoints.
 
     glio-noncode geo-outlier GSE103227 --feature-id ASHGA5P000001 --target-sample GSM2758529 --reference-filter diagnosis=normal --scale normalized_intensity
 

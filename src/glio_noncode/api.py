@@ -26248,6 +26248,37 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path in {
+            "/v1/geo-review/schema",
+            "/v1/geo-review/ledger/schema",
+            "/v1/geo-preflights/ledger/schema",
+            "/v1/geo-review/capabilities",
+        }:
+            try:
+                from .geo_review_summary import (
+                    capabilities,
+                    preflight_ledger_schema,
+                    review_ledger_schema,
+                    review_summary_schema,
+                )
+
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if query:
+                    raise ValueError(
+                        "GEO review discovery endpoints do not accept query parameters"
+                    )
+                payloads = {
+                    "/v1/geo-review/schema": review_summary_schema,
+                    "/v1/geo-review/ledger/schema": review_ledger_schema,
+                    "/v1/geo-preflights/ledger/schema": preflight_ledger_schema,
+                    "/v1/geo-review/capabilities": capabilities,
+                }
+                self._write(HTTPStatus.OK, payloads[path]())
+            except (ValidationError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
             "/v1/geo-review/summary",
             "/v1/geo-review/summary.csv",
             "/v1/geo-review/ledger.json",

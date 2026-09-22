@@ -13,8 +13,12 @@ from .geo_review_summary import (
     build_geo_review_ledger,
     build_geo_review_ledger_document,
     build_geo_review_summary,
+    capabilities,
+    preflight_ledger_schema,
     render_geo_preflight_ledger_csv,
     render_geo_review_ledger_csv,
+    review_ledger_schema,
+    review_summary_schema,
 )
 
 
@@ -52,6 +56,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="emit the content-addressed JSON form of the saved preflight ledger",
     )
+    output_group.add_argument(
+        "--schema",
+        choices=("summary", "ledger", "preflights"),
+        help="emit a JSON Schema for a GEO review document",
+    )
+    output_group.add_argument(
+        "--capabilities",
+        action="store_true",
+        help="emit the public GEO review capability and endpoint contract",
+    )
     parser.add_argument(
         "--output", default="-", help="JSON/CSV summary path, or - for stdout"
     )
@@ -67,6 +81,17 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         verify_reports = not args.skip_report_verification
+        if args.capabilities:
+            write_json(capabilities(), args.output)
+            return 0
+        if args.schema:
+            schema_builders = {
+                "summary": review_summary_schema,
+                "ledger": review_ledger_schema,
+                "preflights": preflight_ledger_schema,
+            }
+            write_json(schema_builders[args.schema](), args.output)
+            return 0
         if args.preflights_json:
             document = build_geo_preflight_ledger_document(
                 args.data_root,
