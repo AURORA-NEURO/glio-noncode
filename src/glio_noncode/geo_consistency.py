@@ -30,6 +30,12 @@ _DIRECTIONS = frozenset(
 )
 
 
+class ContrastCompatibilityError(ValidationError):
+    """Raised when individually valid GEO contrasts cannot be compared directly."""
+
+    code = "incompatible_contrast_reports"
+
+
 def build_geo_contrast_consistency_report(
     contrast_reports: Sequence[Mapping[str, Any]],
     *,
@@ -65,7 +71,7 @@ def build_geo_contrast_consistency_report(
         raise ValidationError("GEO consistency reports must be distinct content-addressed reports")
     platform_ids = {study["source"]["platform_id"] for study in studies}
     if len(platform_ids) != 1:
-        raise ValidationError(
+        raise ContrastCompatibilityError(
             "GEO consistency requires the same platform accession; exact feature IDs do not "
             "resolve cross-platform identity"
         )
@@ -80,9 +86,22 @@ def build_geo_contrast_consistency_report(
         for study in studies
     }
     if len(compatibility) != 1:
-        raise ValidationError(
+        raise ContrastCompatibilityError(
             "GEO consistency reports must use the same scale, FDR method and threshold, "
             "and adjusted-model covariate specification"
+        )
+
+    contrast_compatibility = {
+        (
+            _filter_signature(study["comparison"]["case_filters"]),
+            _filter_signature(study["comparison"]["reference_filters"]),
+        )
+        for study in studies
+    }
+    if len(contrast_compatibility) != 1:
+        raise ContrastCompatibilityError(
+            "GEO consistency reports must use identical case and reference filter definitions "
+            "in the same roles"
         )
 
     sample_occurrences: dict[str, dict[str, Any]] = {}
@@ -200,6 +219,8 @@ def build_geo_contrast_consistency_report(
             "scale": first_comparison["scale"],
             "fdr_method": first_comparison["fdr_method"],
             "fdr_threshold": first_comparison["fdr_threshold"],
+            "case_filters": first_comparison["case_filters"],
+            "reference_filters": first_comparison["reference_filters"],
             "group_orientation": "case relative to reference in each source report",
             "model_signature": studies[0]["model_signature"],
         },
@@ -248,6 +269,8 @@ def build_geo_contrast_consistency_report(
             "or false-discovery estimates.",
             "Feature identity is exact and case-sensitive. Matching IDs do not prove that "
             "different platforms measured the same transcript or gene.",
+            "Studies must declare identical case and reference filter definitions; matching "
+            "labels do not independently establish biological equivalence across studies.",
             "A feature absent from the ranked and explicitly tracked result tables is not "
             "reported here and is not "
             "interpreted as negative or non-significant evidence.",
@@ -497,6 +520,16 @@ def _filter_list(value: object, group: str) -> list[dict[str, str]]:
             raise ValidationError(f"GEO contrast {group} filter fields must be non-empty text")
         normalized.append({"field": field, "equals": expected})
     return normalized
+
+
+def _filter_signature(filters: Sequence[Mapping[str, str]]) -> tuple[tuple[str, str], ...]:
+    """Canonicalize an AND-filter set using the case-insensitive GEO matcher semantics."""
+
+    pairs = (
+        (item["field"].strip().casefold(), item["equals"].strip().casefold())
+        for item in filters
+    )
+    return tuple(sorted(pairs))
 
 
 def _model_signature(value: object) -> dict[str, Any]:

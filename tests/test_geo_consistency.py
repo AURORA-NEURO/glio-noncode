@@ -241,6 +241,54 @@ class GeoContrastConsistencyTests(unittest.TestCase):
                 feature_ids=("probe-a-concordant",),
             )
 
+    def test_different_case_or_reference_filters_are_rejected(self) -> None:
+        for field, replacement in (
+            ("case_filters", [{"field": "phenotype", "equals": "TMZ-resistant"}]),
+            ("reference_filters", [{"field": "phenotype", "equals": "TMZ-sensitive"}]),
+        ):
+            with self.subTest(field=field):
+                changed = dict(self.report_b)
+                changed["comparison"] = dict(
+                    self.report_b["comparison"], **{field: replacement}
+                )
+                changed["content_address"] = content_hash(
+                    {key: value for key, value in changed.items() if key != "content_address"},
+                    prefix="geo-expression-contrast",
+                )
+
+                with self.assertRaisesRegex(ValidationError, "identical case and reference"):
+                    build_geo_contrast_consistency_report(
+                        (self.report_a, changed),
+                        feature_ids=("probe-a-concordant",),
+                    )
+
+    def test_filter_signatures_follow_case_insensitive_matcher_semantics(self) -> None:
+        case_insensitive = dict(self.report_b)
+        case_insensitive["comparison"] = dict(
+            self.report_b["comparison"],
+            case_filters=[{"field": "Diagnosis", "equals": "GLIOBLASTOMA"}],
+            reference_filters=[{"field": "diagnosis", "equals": "NORMAL"}],
+        )
+        case_insensitive["content_address"] = content_hash(
+            {
+                key: value
+                for key, value in case_insensitive.items()
+                if key != "content_address"
+            },
+            prefix="geo-expression-contrast",
+        )
+
+        report = build_geo_contrast_consistency_report(
+            (self.report_a, case_insensitive),
+            feature_ids=("probe-a-concordant",),
+        )
+
+        self.assertEqual(report["summary"]["study_count"], 2)
+        self.assertEqual(
+            report["comparison"]["case_filters"],
+            self.report_a["comparison"]["case_filters"],
+        )
+
     def test_different_platforms_are_not_matched_by_string_id(self) -> None:
         other_platform = dict(self.report_b)
         other_platform["source"] = dict(self.report_b["source"], platform_ids=["GPL999"])
@@ -302,6 +350,41 @@ class GeoContrastConsistencyTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         self.assertNotIn(str(self.root), result_text)
         self.assertEqual(result["summary"]["discordant_feature_count"], 1)
+
+    def test_cli_explains_incompatible_contrasts_without_exposing_paths(self) -> None:
+        first_path = self.root / "first.json"
+        second_path = self.root / "second.json"
+        output_path = self.root / "incompatible.json"
+        first_path.write_text(json.dumps(self.report_a), encoding="utf-8")
+        incompatible = dict(self.report_b)
+        incompatible["comparison"] = dict(
+            self.report_b["comparison"],
+            case_filters=[{"field": "phenotype", "equals": "TMZ-resistant"}],
+        )
+        incompatible["content_address"] = content_hash(
+            {key: value for key, value in incompatible.items() if key != "content_address"},
+            prefix="geo-expression-contrast",
+        )
+        second_path.write_text(json.dumps(incompatible), encoding="utf-8")
+
+        exit_code = cli_main(
+            [
+                "geo-consistency",
+                str(first_path),
+                str(second_path),
+                "--feature-id",
+                "probe-a-concordant",
+                "--output",
+                str(output_path),
+            ]
+        )
+
+        result_text = output_path.read_text(encoding="utf-8")
+        result = json.loads(result_text)
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(result["error"]["code"], "incompatible_contrast_reports")
+        self.assertIn("case and reference filter definitions", result["error"]["message"])
+        self.assertNotIn(str(self.root), result_text)
 
 
 if __name__ == "__main__":

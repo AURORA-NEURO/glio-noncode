@@ -8,7 +8,11 @@ from typing import Any
 
 from ._cli_support import read_mapping, write_json
 from .errors import ValidationError
-from .geo_consistency import MAX_CONTRAST_REPORTS, build_geo_contrast_consistency_report
+from .geo_consistency import (
+    MAX_CONTRAST_REPORTS,
+    ContrastCompatibilityError,
+    build_geo_contrast_consistency_report,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -59,6 +63,8 @@ def main(argv: list[str] | None = None) -> int:
             reports,
             feature_ids=args.feature_id,
         )
+    except ContrastCompatibilityError as error:
+        report = _error_report(error.code, str(error))
     except (OSError, ValueError, ValidationError):
         report = _error_report(
             "invalid_or_unreadable_contrast_report",
