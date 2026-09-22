@@ -1347,23 +1347,34 @@
     const summary = report.summary || {};
     const catalogRow = model.geoPreflights.find((item) => item.preflight_id === model.selectedGeoPreflight) || {};
     const kind = catalogRow.kind || consistencyText(report.schema?.replace("glio-noncode.geo-", "").replace(".v1", ""));
+    const sampleCount = source.sample_count ?? catalogRow.sample_count ?? summary.sample_count;
+    const featureCount = source.feature_count ?? catalogRow.feature_count ?? summary.feature_row_count;
+    const retrieval = source.retrieval || source.count_matrix?.retrieval || source.sample_metadata?.retrieval;
+    const provenanceRows = [
+      ["Accession", source.accession],
+      ["Retrieval", retrieval],
+      ["Sample count", sampleCount],
+      ["Feature count", featureCount],
+    ];
+    if (source.source_sha256) {
+      provenanceRows.push(["Source digest", source.source_sha256]);
+    } else {
+      provenanceRows.push(
+        ["Count matrix digest", source.count_matrix?.source_sha256],
+        ["Metadata digest", source.sample_metadata?.source_sha256],
+      );
+    }
     $("geo-preflight-title").textContent = `${source.accession || "GEO"} · ${consistencyText(kind)}`;
-    $("geo-preflight-subtitle").textContent = `${source.retrieval || "retrieval unavailable"} · ${formatCount(source.sample_count)} samples · ${formatCount(source.feature_count)} features`;
+    $("geo-preflight-subtitle").textContent = `${retrieval || "retrieval unavailable"} · ${formatCount(sampleCount)} samples · ${formatCount(featureCount)} features`;
     $("geo-preflight-state").textContent = report.status || "Unavailable";
     $("geo-preflight-address").textContent = report.content_address || "Address unavailable";
-    $("geo-preflight-samples").textContent = formatCount(source.sample_count);
-    $("geo-preflight-features").textContent = formatCount(source.feature_count);
+    $("geo-preflight-samples").textContent = formatCount(sampleCount);
+    $("geo-preflight-features").textContent = formatCount(featureCount);
     $("geo-preflight-kind").textContent = consistencyText(kind);
-    $("geo-preflight-retrieval").textContent = source.retrieval || "—";
+    $("geo-preflight-retrieval").textContent = retrieval || "—";
     const provenance = $("geo-preflight-provenance");
     provenance.replaceChildren();
-    for (const [label, value] of [
-      ["Accession", source.accession],
-      ["Retrieval", source.retrieval],
-      ["Source digest", source.source_sha256],
-      ["Sample count", source.sample_count],
-      ["Feature count", source.feature_count],
-    ]) {
+    for (const [label, value] of provenanceRows) {
       const block = element("div", "geo-provenance-item");
       block.append(element("span", "control-label", label), element("span", "geo-provenance-value", value ?? "—"));
       provenance.append(block);

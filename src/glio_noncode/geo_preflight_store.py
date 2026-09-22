@@ -164,6 +164,31 @@ def _report_counts(
     return sample_count, feature_count
 
 
+def _source_digest(report_schema: str, source: Mapping[str, Any]) -> str:
+    direct = source.get("source_sha256")
+    if type(direct) is str and _SOURCE_DIGEST_RE.fullmatch(direct):
+        return direct
+    if report_schema == "glio-noncode.geo-count-contrast-design.v1":
+        nested = {
+            "count_matrix": source.get("count_matrix"),
+            "sample_metadata": source.get("sample_metadata"),
+        }
+        digests = {
+            key: value.get("source_sha256")
+            for key, value in nested.items()
+            if isinstance(value, Mapping)
+        }
+        if (
+            set(digests) == set(nested)
+            and all(
+                type(value) is str and _SOURCE_DIGEST_RE.fullmatch(value)
+                for value in digests.values()
+            )
+        ):
+            return content_hash(digests)
+    raise ValidationError("GEO preflight source digest is invalid")
+
+
 def _spec(report_schema: object) -> tuple[str, str, tuple[str, ...]]:
     if type(report_schema) is not str or report_schema not in _REPORT_SPECS:
         raise ValidationError("unsupported GEO preflight report schema")
@@ -191,9 +216,7 @@ def validate_geo_preflight_report(report: object) -> dict[str, Any]:
     accession = source.get("accession")
     if type(accession) is not str or _ACCESSION_RE.fullmatch(accession) is None:
         raise ValidationError("GEO preflight source accession is invalid")
-    digest = source.get("source_sha256")
-    if type(digest) is not str or _SOURCE_DIGEST_RE.fullmatch(digest) is None:
-        raise ValidationError("GEO preflight source digest is invalid")
+    _source_digest(report_schema, source)
     if not isinstance(report.get("summary"), Mapping):
         raise ValidationError("GEO preflight report summary is invalid")
     return report
@@ -213,7 +236,7 @@ def summarize_geo_preflight_report(report: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "accession": source["accession"],
         "retrieval": source.get("retrieval"),
-        "source_sha256": source["source_sha256"],
+        "source_sha256": _source_digest(report_schema, source),
         "sample_count": sample_count,
         "feature_count": feature_count,
         "design_state": design_state if type(design_state) is str else None,

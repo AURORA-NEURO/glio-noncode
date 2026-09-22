@@ -73,7 +73,8 @@ def _count_design_report() -> dict[str, object]:
         "source": {
             "accession": "GSE141945",
             "retrieval": "https",
-            "source_sha256": "sha256:" + "c" * 64,
+            "count_matrix": {"source_sha256": "sha256:" + "c" * 64},
+            "sample_metadata": {"source_sha256": "sha256:" + "d" * 64},
         },
         "matrix": {"sample_count": 81, "feature_row_count": 56832},
         "summary": {
@@ -129,6 +130,7 @@ class GeoPreflightStoreTests(unittest.TestCase):
         self.assertIsNone(by_id[metadata["preflight_id"]]["feature_count"])
         self.assertEqual(by_id[design["preflight_id"]]["sample_count"], 81)
         self.assertEqual(by_id[design["preflight_id"]]["feature_count"], 56832)
+        self.assertRegex(by_id[design["preflight_id"]]["source_sha256"], r"^sha256:[0-9a-f]{64}$")
 
     def test_unsupported_schema_and_filters_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
