@@ -29,11 +29,25 @@ from .bcf import BcfReader, BcfRecord
 from .errors import ValidationError
 from .identity import normalize_chromosome
 from .models import VariantIdentity, VariantKind
+from .sequence_inference import PhasedVariantIdentity
 from .serialization import content_hash, hash_bytes, jsonable
+from .variant_genotype import (
+    FormatFieldDefinition,
+    InfoFieldDefinition,
+    called_alternate_indices,
+    format_key_issue,
+    has_duplicate_sample_ids,
+    parse_info_fields,
+    register_format_definition,
+    register_info_definition,
+    sample_format_values,
+    sample_value_issue,
+    validate_format_values,
+    validate_info_values,
+)
 from .variant_normalization import NormalizationState, VRSNormalizer
 
-
-STREAMING_INTAKE_VERSION = "streaming-intake-v1"
+STREAMING_INTAKE_VERSION = "streaming-intake-v2"
 STREAMING_DEFAULT_MAX_RECORDS = 1_000_000
 STREAMING_DEFAULT_MAX_RETAINED_ROWS = 100_000
 STREAMING_DEFAULT_MAX_ISSUES = 10_000
@@ -121,8 +135,20 @@ class StreamingVariantRow:
     deferred: bool
     duplicate: bool = False
     content_address: str = ""
+    alternate_index: int | None = None
+    alternate_count: int | None = None
 
     def __post_init__(self) -> None:
+        if (self.alternate_index is None) != (self.alternate_count is None):
+            raise ValidationError("alternate_index and alternate_count must be supplied together")
+        if self.alternate_index is not None and self.alternate_count is not None:
+            if (
+                type(self.alternate_index) is not int
+                or type(self.alternate_count) is not int
+                or self.alternate_count < 1
+                or not 1 <= self.alternate_index <= self.alternate_count
+            ):
+                raise ValidationError("source ALT index must be within the original ALT list")
         if not self.content_address:
             body = {
                 "record_index": self.record_index,
@@ -141,6 +167,8 @@ class StreamingVariantRow:
                 "variant": self.variant,
                 "deferred": self.deferred,
                 "duplicate": self.duplicate,
+                "alternate_index": self.alternate_index,
+                "alternate_count": self.alternate_count,
             }
             object.__setattr__(self, "content_address", content_hash(body, prefix="stream-row"))
 
@@ -155,6 +183,32 @@ class StreamingVariantRow:
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self) | {"accepted": self.accepted}
+
+    def to_phased_variant_identities(self) -> tuple[PhasedVariantIdentity, ...]:
+        """Map this source ALT to sample/phase-set haplotypes without parsing its record ID.
+
+        Only accepted normalized rows with a selected sample, complete phased
+        ``GT``, and non-missing ``PS`` can be handed to sequence inference.
+        An ALT not carried by the genotype returns an empty tuple.
+        """
+
+        if not self.accepted or self.variant is None:
+            raise ValidationError("phased assignments require an accepted normalized variant row")
+        if self.alternate_index is None or self.alternate_count is None:
+            raise ValidationError("phased assignments require the original source ALT index")
+        if self.sample_name is None or not self.sample_name.strip():
+            raise ValidationError("phased assignments require an explicitly selected sample")
+        genotype = self.sample_values.get("GT")
+        phase_set = self.sample_values.get("PS")
+        if type(phase_set) not in {str, int}:
+            raise ValidationError("phased assignments require a non-missing VCF PS value")
+        return PhasedVariantIdentity.from_vcf_call(
+            replace(self.variant, sample_id=self.sample_name),
+            genotype=genotype,
+            phase_set=str(phase_set),
+            alternate_count=self.alternate_count,
+            alternate_index=self.alternate_index,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -453,7 +507,11 @@ def _linear_normalization(
         genome_build=genome_build,
     )
     selected = next(
-        (candidate.variant for candidate in report.candidates if candidate.variant.variant_id == report.selected_candidate_id),
+        (
+            candidate.variant
+            for candidate in report.candidates
+            if candidate.variant.variant_id == report.selected_candidate_id
+        ),
         None,
     )
     return _normalization_report(
@@ -483,6 +541,8 @@ def _normalize_row(
     sample_values: Mapping[str, Any],
     filter_value: str,
     quality: str,
+    alternate_index: int,
+    alternate_count: int,
     genome_build: str,
 ) -> StreamingVariantRow:
     input_id = record_id or f"stream:{record_index}"
@@ -537,38 +597,16 @@ def _normalize_row(
         normalization=normalization,
         variant=normalization.variant,
         deferred=normalization.deferred,
+        alternate_index=alternate_index,
+        alternate_count=alternate_count,
     )
 
 
-def _parse_info(value: str) -> dict[str, Any]:
-    if value in {"", "."}:
-        return {}
-    parsed: dict[str, Any] = {}
-    for item in value.split(";"):
-        if not item:
-            continue
-        if "=" not in item:
-            parsed[item] = True
-            continue
-        key, raw = item.split("=", 1)
-        if raw == ".":
-            parsed[key] = None
-        else:
-            try:
-                parsed[key] = int(raw)
-            except ValueError:
-                try:
-                    parsed[key] = float(raw)
-                except ValueError:
-                    parsed[key] = raw
-    return parsed
-
-
 def _parse_sample(format_text: str, sample_text: str) -> dict[str, Any]:
-    if format_text in {"", "."} or sample_text in {"", "."}:
+    if format_text in {"", "."}:
         return {}
     keys = format_text.split(":")
-    values = sample_text.split(":")
+    values = ["."] * len(keys) if sample_text == "." else sample_text.split(":")
     result: dict[str, Any] = {}
     for index, key in enumerate(keys):
         raw = values[index] if index < len(values) else "."
@@ -589,13 +627,6 @@ def _parse_sample(format_text: str, sample_text: str) -> dict[str, Any]:
 
 def _is_no_call(genotype: object) -> bool:
     return isinstance(genotype, str) and any(part == "." for part in re.split(r"[/|]", genotype))
-
-
-def _is_reference_genotype(genotype: object) -> bool:
-    if not isinstance(genotype, str) or not genotype:
-        return False
-    alleles = [part for part in re.split(r"[/|]", genotype) if part]
-    return bool(alleles) and all(part == "0" for part in alleles)
 
 
 class _StreamAccumulator:
@@ -733,9 +764,13 @@ class _StreamAccumulator:
             self.accepted_count += 1
         for warning in row.normalization.warnings:
             self.issue(
-                "normalization_warning",
+                "unsupported_symbolic_allele" if row.alternate == "*" else "normalization_warning",
                 StreamingIssueSeverity.WARNING,
-                warning,
+                (
+                    "spanning-deletion ALT is deferred for overlap-aware interpretation"
+                    if row.alternate == "*"
+                    else warning
+                ),
                 line_number=line_number,
                 record_index=row.record_index,
                 raw_hash=row.raw_hash,
@@ -850,7 +885,13 @@ class StreamingVariantImporter:
         """Consume a VCF iterator without materializing the source text."""
 
         if isinstance(lines, str):
-            raise ValidationError("import_vcf requires an iterable of lines, not one whole text string")
+            raise ValidationError(
+                "import_vcf requires an iterable of lines, not one whole text string"
+            )
+        if sample_id is not None and (
+            not isinstance(sample_id, str) or not sample_id.strip()
+        ):
+            raise ValidationError("sample_id must be a non-empty string")
         fmt = StreamingInputFormat(str(input_format))
         build = (genome_build or self.default_build).strip()
         if not source_id.strip() or not build:
@@ -871,7 +912,12 @@ class StreamingVariantImporter:
         )
         header_columns: list[str] | None = None
         selected_sample_index: int | None = None
+        sample_selection_failed = False
         saw_header = False
+        info_definitions: dict[str, InfoFieldDefinition] = {}
+        invalid_info_definitions: set[str] = set()
+        format_definitions: dict[str, FormatFieldDefinition] = {}
+        invalid_format_definitions: set[str] = set()
         for line_number, source_line in enumerate(lines, start=1):
             if not isinstance(source_line, str):
                 raise ValidationError("VCF line iterables must yield strings")
@@ -881,21 +927,96 @@ class StreamingVariantImporter:
                 continue
             if line.startswith("##"):
                 accumulator.add_header(source_line, line_number=line_number)
+                if line.startswith("##INFO="):
+                    info_definition_issue = register_info_definition(
+                        line,
+                        info_definitions,
+                        invalid_info_definitions,
+                    )
+                    if info_definition_issue is not None:
+                        accumulator.issue(
+                            info_definition_issue,
+                            StreamingIssueSeverity.ERROR,
+                            "VCF INFO schema declaration is invalid or duplicated",
+                            line_number=line_number,
+                            raw_hash=hash_bytes(source_line.encode("utf-8")),
+                            remediation=(
+                                "Declare each INFO ID once with valid Number, Type, "
+                                "and a quoted Description."
+                            ),
+                        )
+                elif line.startswith("##FORMAT="):
+                    format_definition_issue = register_format_definition(
+                        line,
+                        format_definitions,
+                        invalid_format_definitions,
+                    )
+                    if format_definition_issue is not None:
+                        accumulator.issue(
+                            format_definition_issue,
+                            StreamingIssueSeverity.ERROR,
+                            "VCF FORMAT schema declaration is invalid or duplicated",
+                            line_number=line_number,
+                            record_index=0,
+                            raw_hash=hash_bytes(source_line.encode("utf-8")),
+                            remediation=(
+                                "Declare each FORMAT ID once with a valid Number, Type, "
+                                "and a quoted Description.",
+                            ),
+                        )
                 continue
             if line.startswith("#"):
                 accumulator.add_header(source_line, line_number=line_number)
                 if line.lower().startswith("#chrom"):
                     header_columns = line.lstrip("#").split("\t")
                     sample_columns = header_columns[9:]
-                    if sample_id and sample_id in sample_columns:
-                        selected_sample_index = sample_columns.index(sample_id)
-                    elif sample_columns:
+                    if has_duplicate_sample_ids(sample_columns):
+                        sample_selection_failed = True
+                        accumulator.issue(
+                            "duplicate_sample_id",
+                            StreamingIssueSeverity.ERROR,
+                            "VCF header contains duplicate sample IDs",
+                            line_number=line_number,
+                            raw_hash=hash_bytes(source_line.encode("utf-8")),
+                            remediation="Correct the VCF header so every sample ID is unique.",
+                        )
+                    elif sample_id is not None:
+                        if sample_id in sample_columns:
+                            selected_sample_index = sample_columns.index(sample_id)
+                        else:
+                            sample_selection_failed = True
+                            accumulator.issue(
+                                "sample_not_found",
+                                StreamingIssueSeverity.ERROR,
+                                "requested sample_id is not present in the VCF header",
+                                line_number=line_number,
+                                raw_hash=hash_bytes(source_line.encode("utf-8")),
+                                remediation=(
+                                    "Use a sample_id that exactly matches a VCF header sample name."
+                                ),
+                            )
+                    elif len(sample_columns) == 1:
                         selected_sample_index = 0
+                    elif len(sample_columns) > 1:
+                        sample_selection_failed = True
+                        accumulator.issue(
+                            "sample_selection_required",
+                            StreamingIssueSeverity.ERROR,
+                            "sample_id is required when the VCF header contains multiple samples",
+                            line_number=line_number,
+                            raw_hash=hash_bytes(source_line.encode("utf-8")),
+                            remediation=(
+                                "Specify an exact sample_id; "
+                                "multi-sample VCF is not auto-selected."
+                            ),
+                        )
                     saw_header = len(header_columns) >= 8
                 continue
             raw_hash = hash_bytes(source_line.encode("utf-8"))
             record_index = accumulator.record_count + 1
             if not accumulator.note_record():
+                continue
+            if sample_selection_failed:
                 continue
             if len(source_line.encode("utf-8")) > STREAMING_DEFAULT_MAX_RECORD_BYTES:
                 accumulator.issue(
@@ -905,7 +1026,9 @@ class StreamingVariantImporter:
                     line_number=line_number,
                     record_index=record_index,
                     raw_hash=raw_hash,
-                    remediation="Split the source or route large annotations through a specialized adapter.",
+                    remediation=(
+                        "Split the source or route large annotations through a specialized adapter."
+                    ),
                 )
                 accumulator.truncated = True
                 continue
@@ -931,7 +1054,85 @@ class StreamingVariantImporter:
                     remediation="Provide a standards-compliant VCF header before data records.",
                 )
                 continue
-            chromosome, position_text, record_id, reference, alternate_text, quality, filter_value, info_text = fields[:8]
+            if (
+                selected_sample_index is not None
+                and len(fields) <= 9 + selected_sample_index
+            ):
+                accumulator.issue(
+                    "sample_data_missing",
+                    StreamingIssueSeverity.ERROR,
+                    "selected sample field is missing from the VCF record",
+                    line_number=line_number,
+                    record_index=record_index,
+                    raw_hash=raw_hash,
+                    remediation="Restore the sample column or remove the malformed record.",
+                )
+                continue
+            format_keys = (
+                ()
+                if len(fields) < 9 or fields[8] == "."
+                else tuple(fields[8].split(":"))
+            )
+            format_issue = format_key_issue(format_keys)
+            if format_issue is not None:
+                accumulator.issue(
+                    format_issue,
+                    StreamingIssueSeverity.ERROR,
+                    "VCF record FORMAT keys are invalid or ambiguous",
+                    line_number=line_number,
+                    record_index=record_index,
+                    raw_hash=raw_hash,
+                    remediation=(
+                        "Use unique FORMAT keys with valid identifiers "
+                        "and put GT first when present."
+                    ),
+                )
+                continue
+            alternate_text = fields[4]
+            no_alternate = alternate_text == "."
+            alternates = [] if no_alternate else alternate_text.split(",")
+            if not no_alternate and (
+                not alternates
+                or any(not alternate for alternate in alternates)
+                or "." in alternates
+            ):
+                accumulator.issue(
+                    "invalid_alternate",
+                    StreamingIssueSeverity.ERROR,
+                    "VCF ALT list contains an empty or misplaced missing-value allele",
+                    line_number=line_number,
+                    record_index=record_index,
+                    raw_hash=raw_hash,
+                )
+                continue
+            if selected_sample_index is not None:
+                sample_issue = sample_value_issue(
+                    format_keys,
+                    fields[9 + selected_sample_index],
+                )
+                if sample_issue is not None:
+                    accumulator.issue(
+                        sample_issue,
+                        StreamingIssueSeverity.ERROR,
+                        "selected VCF sample cell is empty or has excess subfields",
+                        line_number=line_number,
+                        record_index=record_index,
+                        raw_hash=raw_hash,
+                        remediation=(
+                            "Use '.' for missing sample values and do not add fields beyond FORMAT."
+                        ),
+                    )
+                    continue
+            (
+                chromosome,
+                position_text,
+                record_id,
+                reference,
+                alternate_text,
+                quality,
+                filter_value,
+                info_text,
+            ) = fields[:8]
             try:
                 position = int(position_text)
                 if position < 1:
@@ -946,14 +1147,97 @@ class StreamingVariantImporter:
                     raw_hash=raw_hash,
                 )
                 continue
-            info = _parse_info(info_text)
+            info, info_issue = parse_info_fields(info_text)
+            if info_issue is not None:
+                accumulator.issue(
+                    info_issue,
+                    StreamingIssueSeverity.ERROR,
+                    "VCF INFO field is malformed or contains an ambiguous key",
+                    line_number=line_number,
+                    record_index=record_index,
+                    raw_hash=raw_hash,
+                    remediation=(
+                        "Use unique valid INFO keys and encode missing values as '.'; "
+                        "do not leave empty fields or values."
+                    ),
+                )
+                continue
+            info_schema_issue = validate_info_values(
+                info,
+                info_definitions,
+                invalid_info_definitions,
+                len(alternates),
+            )
+            if info_schema_issue is not None:
+                accumulator.issue(
+                    info_schema_issue,
+                    StreamingIssueSeverity.ERROR,
+                    "VCF INFO value disagrees with its declared schema",
+                    line_number=line_number,
+                    record_index=record_index,
+                    raw_hash=raw_hash,
+                    remediation=(
+                        "Check the INFO Type and Number declaration and make the record "
+                        "values conform without changing their source meaning."
+                    ),
+                )
+                continue
             sample_name, sample_values = self._selected_sample(
                 fields,
                 header_columns,
                 selected_sample_index,
                 sample_id,
             )
+            if selected_sample_index is not None:
+                format_values = sample_format_values(
+                    format_keys, fields[9 + selected_sample_index]
+                )
+                format_schema_issue = validate_format_values(
+                    format_values,
+                    format_definitions,
+                    invalid_format_definitions,
+                    len(alternates),
+                )
+                if format_schema_issue is not None:
+                    accumulator.issue(
+                        format_schema_issue,
+                        StreamingIssueSeverity.ERROR,
+                        "VCF FORMAT value disagrees with its declared schema",
+                        line_number=line_number,
+                        record_index=record_index,
+                        raw_hash=raw_hash,
+                        remediation=(
+                            "Check the selected sample's FORMAT Type and Number declarations "
+                            "against its values and genotype ploidy.",
+                        ),
+                    )
+                    continue
             genotype = sample_values.get("GT")
+            try:
+                selected_alternates = called_alternate_indices(genotype, len(alternates))
+            except ValidationError as exc:
+                accumulator.issue(
+                    "invalid_genotype",
+                    StreamingIssueSeverity.ERROR,
+                    f"invalid selected-sample GT: {exc}",
+                    line_number=line_number,
+                    record_index=record_index,
+                    raw_hash=raw_hash,
+                    remediation=(
+                        "Correct the GT allele indices or retain only valid source records."
+                    ),
+                )
+                continue
+            if no_alternate:
+                accumulator.issue(
+                    "no_alternate_allele",
+                    StreamingIssueSeverity.WARNING,
+                    "VCF record has ALT='.' and is not emitted as a variant",
+                    line_number=line_number,
+                    record_index=record_index,
+                    raw_hash=raw_hash,
+                )
+                continue
             if _is_no_call(genotype) and not include_no_call:
                 accumulator.issue(
                     "no_call_genotype",
@@ -962,10 +1246,12 @@ class StreamingVariantImporter:
                     line_number=line_number,
                     record_index=record_index,
                     raw_hash=raw_hash,
-                    remediation="Set include_no_call=True only when an uncalled observation is intended.",
+                    remediation=(
+                        "Set include_no_call=True only when an uncalled observation is intended."
+                    ),
                 )
                 continue
-            if _is_reference_genotype(genotype) and not include_reference:
+            if selected_alternates == frozenset() and not include_reference:
                 accumulator.issue(
                     "reference_genotype",
                     StreamingIssueSeverity.WARNING,
@@ -975,19 +1261,23 @@ class StreamingVariantImporter:
                     raw_hash=raw_hash,
                 )
                 continue
-            alternates = alternate_text.split(",")
-            if not alternates or any(not alternate for alternate in alternates):
-                accumulator.issue(
-                    "invalid_alternate",
-                    StreamingIssueSeverity.ERROR,
-                    "VCF ALT must contain at least one non-empty allele",
-                    line_number=line_number,
-                    record_index=record_index,
-                    raw_hash=raw_hash,
-                )
-                continue
             for alternate_index, alternate in enumerate(alternates, start=1):
-                normalized_id = record_id if record_id not in {"", "."} else f"{source_id}:{line_number}"
+                if selected_alternates and alternate_index not in selected_alternates:
+                    accumulator.issue(
+                        "alternate_not_in_selected_genotype",
+                        StreamingIssueSeverity.WARNING,
+                        f"ALT index {alternate_index} was not called in the selected genotype",
+                        line_number=line_number,
+                        record_index=record_index,
+                        raw_hash=raw_hash,
+                        remediation=(
+                            "Review the selected sample GT before using this alternate allele."
+                        ),
+                    )
+                    continue
+                normalized_id = (
+                    record_id if record_id not in {"", "."} else f"{source_id}:{line_number}"
+                )
                 if len(alternates) > 1:
                     normalized_id = f"{normalized_id}:alt{alternate_index}"
                 row = _normalize_row(
@@ -1003,6 +1293,8 @@ class StreamingVariantImporter:
                     sample_values=sample_values,
                     filter_value=filter_value,
                     quality=quality,
+                    alternate_index=alternate_index,
+                    alternate_count=len(alternates),
                     genome_build=build,
                 )
                 accumulator.add_row(row, line_number=line_number)
@@ -1046,6 +1338,10 @@ class StreamingVariantImporter:
 
         if isinstance(chunks, (bytes, bytearray, memoryview)):
             raise ValidationError("import_bcf requires an iterable of byte chunks")
+        if sample_id is not None and (
+            not isinstance(sample_id, str) or not sample_id.strip()
+        ):
+            raise ValidationError("sample_id must be a non-empty string")
         build = (genome_build or self.default_build).strip()
         if not source_id.strip() or not build:
             raise ValidationError("source_id and genome_build must not be empty")
@@ -1065,13 +1361,81 @@ class StreamingVariantImporter:
         )
         decoder = _BcfStreamDecoder()
         record_index = 0
+        sample_selection_checked = False
+        sample_selection_failed = False
+        format_schema_checked = False
+        format_definitions: dict[str, FormatFieldDefinition] = {}
+        invalid_format_definitions: set[str] = set()
+
+        def validate_sample_selection() -> None:
+            nonlocal sample_selection_checked, sample_selection_failed, format_schema_checked
+            if decoder.header is None:
+                return
+            if not format_schema_checked:
+                format_schema_checked = True
+                for line in decoder.header_text.splitlines():
+                    if not line.startswith("##FORMAT="):
+                        continue
+                    format_definition_issue = register_format_definition(
+                        line,
+                        format_definitions,
+                        invalid_format_definitions,
+                    )
+                    if format_definition_issue is not None:
+                        accumulator.issue(
+                            format_definition_issue,
+                            StreamingIssueSeverity.ERROR,
+                            "BCF FORMAT schema declaration is invalid or duplicated",
+                            raw_hash=hash_bytes(line.encode("utf-8")),
+                            remediation=(
+                                "Declare each FORMAT ID once with a valid Number, Type, "
+                                "and a quoted Description."
+                            ),
+                        )
+            if sample_selection_checked:
+                return
+            sample_selection_checked = True
+            available_samples = decoder.header["samples"]
+            if has_duplicate_sample_ids(available_samples):
+                sample_selection_failed = True
+                accumulator.issue(
+                    "duplicate_sample_id",
+                    StreamingIssueSeverity.ERROR,
+                    "BCF header contains duplicate sample IDs",
+                    raw_hash=hash_bytes(decoder.header_text.encode("utf-8")),
+                    remediation="Correct the BCF header so every sample ID is unique.",
+                )
+            elif sample_id is not None and sample_id not in available_samples:
+                sample_selection_failed = True
+                accumulator.issue(
+                    "sample_not_found",
+                    StreamingIssueSeverity.ERROR,
+                    "requested sample_id is not present in the BCF header",
+                    raw_hash=hash_bytes(decoder.header_text.encode("utf-8")),
+                    remediation="Use a sample_id that exactly matches a BCF header sample name.",
+                )
+            elif sample_id is None and len(available_samples) > 1:
+                sample_selection_failed = True
+                accumulator.issue(
+                    "sample_selection_required",
+                    StreamingIssueSeverity.ERROR,
+                    "sample_id is required when the BCF header contains multiple samples",
+                    raw_hash=hash_bytes(decoder.header_text.encode("utf-8")),
+                    remediation=(
+                        "Specify the sample_id to analyze; multi-sample BCF is not auto-selected."
+                    ),
+                )
+
         for payload in _iter_bcf_payloads(chunks, accumulator):
             if decoder.compression_mode == "unknown":
                 decoder.compression_mode = payload.mode
             for record in decoder.feed(payload.data):
+                validate_sample_selection()
                 record_index = record.record_index + 1
                 accumulator.record_count = record_index - 1
                 if not accumulator.note_record():
+                    continue
+                if sample_selection_failed:
                     continue
                 self._add_bcf_record(
                     accumulator,
@@ -1080,7 +1444,10 @@ class StreamingVariantImporter:
                     sample_id,
                     include_no_call,
                     include_reference,
+                    format_definitions,
+                    invalid_format_definitions,
                 )
+            validate_sample_selection()
         decoder.finish()
         accumulator.header_lines.append(decoder.header_text)
         accumulator.header_digest.update(decoder.header_text.encode("utf-8"))
@@ -1095,13 +1462,85 @@ class StreamingVariantImporter:
         sample_id: str | None,
         include_no_call: bool,
         include_reference: bool,
+        format_definitions: Mapping[str, FormatFieldDefinition],
+        invalid_format_definitions: set[str],
     ) -> None:
+        format_issue = format_key_issue(record.format_keys)
+        if format_issue is not None:
+            accumulator.issue(
+                format_issue,
+                StreamingIssueSeverity.ERROR,
+                "BCF record FORMAT keys are invalid or ambiguous",
+                record_index=record.record_index + 1,
+                raw_hash=record.raw_hash,
+                remediation=(
+                    "Use unique FORMAT keys with valid identifiers "
+                    "and put GT first when present."
+                ),
+            )
+            return
+        no_alternate = not record.alternates or record.alternates == (".",)
+        if not no_alternate and (
+            any(not alternate for alternate in record.alternates)
+            or "." in record.alternates
+        ):
+            accumulator.issue(
+                "invalid_alternate",
+                StreamingIssueSeverity.ERROR,
+                "BCF ALT list contains an empty or misplaced missing-value allele",
+                record_index=record.record_index + 1,
+                raw_hash=record.raw_hash,
+            )
+            return
         selected_name: str | None = None
         sample_values: Mapping[str, Any] = {}
         if record.samples:
             selected_name = sample_id if sample_id in record.samples else next(iter(record.samples))
             sample_values = record.samples[selected_name]
+        format_schema_issue = validate_format_values(
+            sample_values,
+            format_definitions,
+            invalid_format_definitions,
+            len(record.alternates),
+            typed_values=True,
+        )
+        if format_schema_issue is not None:
+            accumulator.issue(
+                format_schema_issue,
+                StreamingIssueSeverity.ERROR,
+                "selected BCF sample FORMAT values do not match their declarations",
+                record_index=record.record_index + 1,
+                raw_hash=record.raw_hash,
+                remediation=(
+                    "Correct the selected sample's typed FORMAT values to match "
+                    "the declared Type and Number."
+                ),
+            )
+            return
         genotype = sample_values.get("GT")
+        try:
+            selected_alternates = called_alternate_indices(genotype, len(record.alternates))
+        except ValidationError as exc:
+            accumulator.issue(
+                "invalid_genotype",
+                StreamingIssueSeverity.ERROR,
+                f"invalid selected-sample GT: {exc}",
+                record_index=record.record_index + 1,
+                raw_hash=record.raw_hash,
+                remediation=(
+                    "Correct the GT allele indices or retain only valid source records."
+                ),
+            )
+            return
+        if no_alternate:
+            accumulator.issue(
+                "no_alternate_allele",
+                StreamingIssueSeverity.WARNING,
+                "BCF record has no alternate allele and is not emitted as a variant",
+                record_index=record.record_index + 1,
+                raw_hash=record.raw_hash,
+            )
+            return
         if _is_no_call(genotype) and not include_no_call:
             accumulator.issue(
                 "no_call_genotype",
@@ -1111,7 +1550,7 @@ class StreamingVariantImporter:
                 raw_hash=record.raw_hash,
             )
             return
-        if _is_reference_genotype(genotype) and not include_reference:
+        if selected_alternates == frozenset() and not include_reference:
             accumulator.issue(
                 "reference_genotype",
                 StreamingIssueSeverity.WARNING,
@@ -1121,6 +1560,18 @@ class StreamingVariantImporter:
             )
             return
         for alternate_index, alternate in enumerate(record.alternates, start=1):
+            if selected_alternates and alternate_index not in selected_alternates:
+                accumulator.issue(
+                    "alternate_not_in_selected_genotype",
+                    StreamingIssueSeverity.WARNING,
+                    f"ALT index {alternate_index} was not called in the selected genotype",
+                    record_index=record.record_index + 1,
+                    raw_hash=record.raw_hash,
+                    remediation=(
+                        "Review the selected sample GT before using this alternate allele."
+                    ),
+                )
+                continue
             record_id = record.record_id
             if len(record.alternates) > 1:
                 record_id = f"{record_id}:alt{alternate_index}"
@@ -1137,6 +1588,8 @@ class StreamingVariantImporter:
                 sample_values=sample_values,
                 filter_value=";".join(record.filters),
                 quality="." if record.quality is None else str(record.quality),
+                alternate_index=alternate_index,
+                alternate_count=len(record.alternates),
                 genome_build=build,
             )
             accumulator.add_row(row, line_number=record.record_index + 1)
@@ -1312,6 +1765,11 @@ def streaming_intake_schema() -> dict[str, Any]:
             "normalization": "explicit state, provenance, warnings, and optional mate",
             "raw_hash": "content address of the source row or BCF record payload",
             "duplicate": "true when a canonical duplicate was retained for audit only",
+            "alternate_index": "1-based source ALT index before multiallelic decomposition",
+            "alternate_count": "number of source ALT alleles before multiallelic decomposition",
+            "phased_haplotype_assignment": (
+                "derived only from a fully phased GT, explicit PS, and selected sample"
+            ),
         },
         "streaming_guarantees": [
             "VCF text is consumed one line at a time",
@@ -1354,6 +1812,9 @@ def streaming_intake_capabilities() -> dict[str, Any]:
         "compression": ["raw-bcf", "bgzf"],
         "multiallelic_policy": "one retained row per ALT with parent record hash",
         "genotype_policy": "no-call and reference-only rows are skipped by default",
+        "phased_haplotype_policy": (
+            "requires explicit selected sample, fully phased GT, and non-missing PS"
+        ),
         "symbolic_policy": "retained as explicit deferred rows",
         "breakend_policy": "mate coordinate parsed with structural normalization boundary",
         "determinism": "content-addressed report without wall-clock fields",

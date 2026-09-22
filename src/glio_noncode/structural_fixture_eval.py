@@ -486,43 +486,50 @@ def _raw_record(row: Any, index: int, source_id: str) -> RawVariantRecord:
 def _structural_event(row: Any, context_key: str, source_id: str) -> StructuralEvent:
     if not isinstance(row, Mapping):
         raise ValidationError("complex event must be an object")
+    kind_value = row.get("kind", StructuralEventKind.BREAKEND_PAIR.value)
+    if isinstance(kind_value, StructuralEventKind):
+        kind = kind_value
+    elif type(kind_value) is str:
+        try:
+            kind = StructuralEventKind(kind_value)
+        except ValueError as exc:
+            raise ValidationError("complex event kind is unsupported") from exc
+    else:
+        raise ValidationError("complex event kind must be a string")
     breakends = tuple(
         Breakend(
-            breakend_id=str(item.get("breakend_id", "")),
-            chromosome=str(item.get("chromosome", "")),
-            position=int(item.get("position", 0)),
-            orientation=str(item.get("orientation", "unknown")),
-            mate_id=str(item.get("mate_id", "")),
-            allele=str(item.get("allele", "N")),
-            copy_number=(float(item["copy_number"]) if item.get("copy_number") is not None else None),
+            breakend_id=item.get("breakend_id", ""),
+            chromosome=item.get("chromosome", ""),
+            position=item.get("position", 0),
+            orientation=item.get("orientation", "unknown"),
+            mate_id=item.get("mate_id", ""),
+            allele=item.get("allele", "N"),
+            copy_number=item.get("copy_number"),
         )
         for item in _object_array(row.get("breakends", ()), "breakends")
     )
     haplotype_segments = tuple(
         HaplotypeSegment(
-            segment_id=str(item.get("segment_id", "")),
-            chromosome=str(item.get("chromosome", "")),
-            start=int(item.get("start", 0)),
-            end=int(item.get("end", 0)),
-            phase_set=str(item.get("phase_set", "")),
-            allele=str(item.get("allele", "")),
-            source_variant_ids=tuple(
-                str(value)
-                for value in _array(item.get("source_variant_ids", ()), "source_variant_ids")
-            ),
+            segment_id=item.get("segment_id", ""),
+            chromosome=item.get("chromosome", ""),
+            start=item.get("start", 0),
+            end=item.get("end", 0),
+            phase_set=item.get("phase_set", ""),
+            allele=item.get("allele", ""),
+            source_variant_ids=_array(item.get("source_variant_ids", ()), "source_variant_ids"),
         )
         for item in _object_array(row.get("haplotype_segments", ()), "haplotype_segments")
     )
     return StructuralEvent(
-        event_id=str(row.get("event_id", "")),
-        kind=StructuralEventKind(str(row.get("kind", StructuralEventKind.BREAKEND_PAIR.value))),
+        event_id=row.get("event_id", ""),
+        kind=kind,
         breakends=breakends,
         haplotype_segments=haplotype_segments,
         context=_context(context_key),
         source_id=source_id,
-        reconstruction_support=float(row.get("reconstruction_support", 1.0)),
-        uncertainty=float(row.get("uncertainty", 0.0)),
-        annotations=dict(row.get("annotations", {})),
+        reconstruction_support=row.get("reconstruction_support", 1.0),
+        uncertainty=row.get("uncertainty", 0.0),
+        annotations=row.get("annotations", {}),
     )
 
 

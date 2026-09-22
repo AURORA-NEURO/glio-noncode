@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import csv
 import gzip
+import hashlib
 import io
 import json
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -58,6 +60,71 @@ def _write_files(root: Path, *, tumor_count: int = 6) -> tuple[Path, Path]:
 
 
 class GeoCountExpressionTests(unittest.TestCase):
+    def test_count_outlier_applies_explicit_annotation_without_changing_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            counts_path, metadata_path = _write_files(root)
+            annotation_path = root / "annotations.csv"
+            annotation_bytes = b"source_feature_id,curated_feature_id\nEGFR,CURATED_EGFR\n"
+            annotation_path.write_bytes(annotation_bytes)
+            options = {
+                "feature_id": "EGFR",
+                "sample_key_column": "",
+                "sample_filters": (("Timepoint", "Tumor"),),
+                "counts_file": counts_path,
+                "metadata_file": metadata_path,
+            }
+            original = build_geo_count_outlier_report("GSE141945", **options)
+            curated = build_geo_count_outlier_report(
+                "GSE141945", **options, feature_annotation_file=annotation_path
+            )
+
+        self.assertEqual(curated["result"], original["result"])
+        self.assertNotEqual(
+            curated["comparison"]["source_version"],
+            original["comparison"]["source_version"],
+        )
+        self.assertEqual(curated["matrix"]["feature_id"], "EGFR")
+        self.assertEqual(
+            curated["matrix"]["feature_annotation"],
+            {"status": "mapped", "curated_feature_id": "CURATED_EGFR"},
+        )
+        self.assertEqual(
+            curated["source"]["feature_annotation_map"]["source_sha256"],
+            f"sha256:{hashlib.sha256(annotation_bytes).hexdigest()}",
+        )
+
+    def test_count_outlier_annotation_map_rejects_missing_or_duplicated_matrix_labels(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            counts_path, metadata_path = _write_files(root)
+            annotation_path = root / "annotations.csv"
+            invalid_maps = (
+                (
+                    "missing source row",
+                    "source_feature_id,curated_feature_id\nMISSING,ID\n",
+                    "missing=1; duplicated=0",
+                ),
+                (
+                    "duplicated matrix source row",
+                    "source_feature_id,curated_feature_id\nPTEN,ID\n",
+                    "missing=0; duplicated=1",
+                ),
+            )
+            for label, contents, expected_error in invalid_maps:
+                with self.subTest(label=label):
+                    annotation_path.write_text(contents, encoding="utf-8")
+                    with self.assertRaisesRegex(ValidationError, expected_error):
+                        build_geo_count_outlier_report(
+                            "GSE141945",
+                            feature_id="EGFR",
+                            sample_key_column="",
+                            sample_filters=(("Timepoint", "Tumor"),),
+                            counts_file=counts_path,
+                            metadata_file=metadata_path,
+                            feature_annotation_file=annotation_path,
+                        )
+
     def test_local_matrix_runs_sample_free_leave_one_out_analysis(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -177,6 +244,66 @@ class GeoCountExpressionTests(unittest.TestCase):
             )
         self.assertEqual(parsed_report_data["matrix"]["duplicate_feature_label_count"], 1)
 
+    def test_tmm_normalization_corrects_a_dominant_count_row_and_is_reported(self) -> None:
+        rows = [["", "REFERENCE", "COMPOSITION_SHIFTED"]]
+        rows.extend(
+            [f"STABLE_{index:02d}", "100", "100"] for index in range(20)
+        )
+        rows.append(["DOMINANT", "100", "100000"])
+        matrix = parse_geo_supplementary_count_matrix(
+            _gzip_csv(rows),
+            accession="GSE141945",
+            feature_id="STABLE_00",
+            normalization_method="tmm_log2_cpm",
+        )
+
+        raw_left = matrix.feature_counts[0] / matrix.library_sizes[0]
+        raw_right = matrix.feature_counts[1] / matrix.library_sizes[1]
+        normalized_left = raw_left / matrix.normalization_factors[0]
+        normalized_right = raw_right / matrix.normalization_factors[1]
+        self.assertGreater(abs(math.log2(raw_left / raw_right)), 5.0)
+        self.assertAlmostEqual(normalized_left, normalized_right, places=10)
+        self.assertAlmostEqual(
+            math.prod(matrix.normalization_factors) ** (1 / len(matrix.normalization_factors)),
+            1.0,
+            places=12,
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            counts_path, metadata_path = _write_files(Path(directory))
+            raw_report = build_geo_count_outlier_report(
+                "GSE141945",
+                feature_id="EGFR",
+                sample_key_column="",
+                sample_filters=(("Timepoint", "Tumor"),),
+                counts_file=counts_path,
+                metadata_file=metadata_path,
+            )
+            report = build_geo_count_outlier_report(
+                "GSE141945",
+                feature_id="EGFR",
+                sample_key_column="",
+                sample_filters=(("Timepoint", "Tumor"),),
+                counts_file=counts_path,
+                metadata_file=metadata_path,
+                normalization_method="tmm_log2_cpm",
+            )
+        self.assertEqual(
+            raw_report["comparison"]["source_version"],
+            report["comparison"]["source_version"],
+        )
+        self.assertNotEqual(
+            raw_report["comparison"]["context_key"],
+            report["comparison"]["context_key"],
+        )
+        self.assertEqual(report["comparison"]["normalization_details"]["method"], "tmm_log2_cpm")
+        self.assertEqual(
+            report["comparison"]["normalization_details"]["normalization_factor_summary"][
+                "sample_count"
+            ],
+            len(SAMPLE_IDS),
+        )
+
     def test_remote_retrieval_is_confined_to_canonical_geo_series_paths(self) -> None:
         counts_name = "counts.csv.gz"
         metadata_name = "samples.csv.gz"
@@ -206,6 +333,11 @@ class GeoCountExpressionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             counts_path, metadata_path = _write_files(root)
+            annotation_path = root / "annotations.csv"
+            annotation_path.write_text(
+                "source_feature_id,curated_feature_id\nEGFR,CURATED_EGFR\n",
+                encoding="utf-8",
+            )
             output_path = root / "result.json"
             status = count_main(
                 [
@@ -220,13 +352,25 @@ class GeoCountExpressionTests(unittest.TestCase):
                     str(counts_path),
                     "--metadata-file",
                     str(metadata_path),
+                    "--feature-annotation-file",
+                    str(annotation_path),
+                    "--normalization-method",
+                    "tmm_log2_cpm",
                     "--output",
                     str(output_path),
                 ]
             )
             serialized = output_path.read_text(encoding="utf-8")
             self.assertEqual(status, 0)
-            self.assertEqual(json.loads(serialized)["status"], "completed")
+            report = json.loads(serialized)
+            self.assertEqual(report["status"], "completed")
+            self.assertEqual(
+                report["comparison"]["normalization_details"]["method"], "tmm_log2_cpm"
+            )
+            self.assertEqual(
+                report["matrix"]["feature_annotation"],
+                {"status": "mapped", "curated_feature_id": "CURATED_EGFR"},
+            )
             self.assertNotIn(str(root), serialized)
 
         output: list[str] = []

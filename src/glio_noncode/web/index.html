@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="Local, provenance-first review of GLIO-NONCODE research runs.">
+    <title>GLIO-NONCODE | Research workbench</title>
+    <link rel="stylesheet" href="/assets/review-workbench.css">
+    <script src="/assets/review-workbench.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="GLIO-NONCODE workbench home"><span class="brand-mark" aria-hidden="true">G</span>GLIO<span class="divider">/</span>NONCODE</a>
+      <span class="topbar-label">Research workbench <span class="local-tag">● Local API</span></span>
+      <button id="refresh-button" class="button quiet" type="button">Refresh archives</button>
+    </header>
+    <main id="main-content" class="page-shell" tabindex="-1">
+      <section class="intro">
+        <div><p class="eyebrow">Evidence review · research use only</p><h1>Follow the evidence,<br><em>edge by edge.</em></h1>
+          <p class="intro-copy">Inspect replay-verified case runs as decomposed candidate paths, evidence states, provenance, and review gaps. This workspace does not make clinical decisions.</p></div>
+        <div class="integrity-stamp"><span class="stamp-icon" aria-hidden="true">✓</span><span><strong>Replay-gated view</strong><small>Details appear only for accepted review projections.</small></span></div>
+      </section>
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+      <p id="selection-announcement" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+      <section class="toolbar" aria-label="Run filters">
+        <label><span class="control-label">Find a run</span><input id="run-search" type="search" autocomplete="off" placeholder="Run ID, case ID, or status"></label>
+        <label><span class="control-label">Compare against</span><select id="baseline-select"><option value="">No baseline</option></select></label>
+        <a id="markdown-export" class="button outline disabled" href="#" aria-disabled="true">Export review</a>
+      </section>
+      <div class="layout">
+        <aside class="run-rail panel" aria-labelledby="runs-heading">
+          <div class="section-head"><div><p class="eyebrow">Local archive</p><h2 id="runs-heading">Case runs</h2></div><span id="run-count" class="count">—</span></div>
+          <p id="run-list-summary" class="muted small">Loading saved runs…</p>
+          <nav id="run-list" class="run-list" aria-label="Saved case runs"></nav>
+          <button id="load-more" class="button quiet load-more" type="button" hidden>Load more runs</button>
+          <p class="rail-note">Run summaries are bounded. Select a run to open its verified review projection.</p>
+          <div class="rail-divider"></div>
+          <div class="section-head"><div><p class="eyebrow">Public-data study runs</p><h2 id="geo-heading">GEO analyses</h2></div><span id="geo-count" class="count">—</span></div>
+          <p id="geo-list-summary" class="muted small">Loading saved GEO analyses…</p>
+          <nav id="geo-analysis-list" class="run-list geo-analysis-list" aria-label="Saved GEO analyses"></nav>
+          <button id="geo-load-more-analyses" class="button quiet load-more" type="button" hidden>Load more analyses</button>
+          <p class="rail-note">Aggregate cohort results are separate from case dossiers and do not imply causal or patient-level findings.</p>
+        </aside>
+        <section class="workspace" aria-label="Selected run review">
+          <div id="empty-state" class="empty-state panel"><span class="empty-mark" aria-hidden="true">G</span><p class="eyebrow">Ready when you are</p><h2 id="empty-title">Select a case run</h2><p id="empty-copy">Choose a saved run to inspect candidate paths, edge-level evidence, alternatives, and provenance.</p></div>
+          <div id="run-view" hidden>
+            <section class="run-header panel"><div><p class="eyebrow" id="run-case-label">Selected case</p><h2 id="run-title">—</h2><p id="run-subtitle" class="muted small">—</p></div><div class="run-status"><span id="review-state" class="state-pill">—</span><span id="review-address" class="address">—</span></div></section>
+            <section class="metrics" aria-label="Run summary">
+              <article class="metric panel"><span>Candidate paths</span><strong id="metric-hypotheses">—</strong><small>Distinct hypotheses</small></article>
+              <article class="metric panel"><span>Evidence claims</span><strong id="metric-evidence">—</strong><small>Payload-free view</small></article>
+              <article class="metric panel"><span>Review items</span><strong id="metric-queue">—</strong><small>Workflow triage only</small></article>
+              <article class="metric panel"><span>Run integrity</span><strong id="metric-integrity">—</strong><small id="metric-integrity-detail">Replay verification</small></article>
+            </section>
+            <section class="panel block">
+              <div class="section-head"><div><p class="eyebrow">Candidate chain</p><h2>Hypotheses</h2></div><label class="compact"><span class="visually-hidden">Filter hypotheses</span><input id="path-search" type="search" placeholder="Filter paths" autocomplete="off"></label></div>
+              <p class="section-note">Support and uncertainty are separate. Display order is not a biological ranking.</p><div id="hypothesis-list" class="hypothesis-list"></div>
+            </section>
+            <section class="two-col">
+              <section class="panel block"><div class="section-head"><div><p class="eyebrow">Selected route</p><h2>Path details</h2></div></div><div id="path-detail" class="path-detail"><p class="muted">Select a hypothesis above.</p></div></section>
+              <section class="panel block"><div class="section-head"><div><p class="eyebrow">Human review</p><h2>Review queue</h2></div><span class="quiet-tag">Triage, not ranking</span></div><div id="review-queue" class="stack"></div></section>
+            </section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Decomposed support</p><h2>Evidence edges</h2></div><span id="edge-filter-label" class="quiet-tag">All hypotheses</span></div><div class="table-scroll"><table><thead><tr><th>Relationship</th><th>Support</th><th>Uncertainty</th><th>Context fit</th><th>Evidence states</th><th>Sources</th></tr></thead><tbody id="edge-table"></tbody></table></div></section>
+            <section class="two-col">
+              <section class="panel block"><div class="section-head"><div><p class="eyebrow">Claim-level records</p><h2>Evidence</h2></div><label class="compact"><span class="visually-hidden">Filter evidence</span><input id="evidence-search" type="search" placeholder="Filter evidence" autocomplete="off"></label></div><div id="evidence-list" class="stack"></div></section>
+              <section class="panel block"><div class="section-head"><div><p class="eyebrow">Lineage</p><h2>Sources & alternatives</h2></div></div><div id="provenance-list" class="stack"></div><div class="subhead"><h3>Alternative explanations</h3></div><div id="alternatives-list" class="stack"></div></section>
+            </section>
+            <section id="delta-section" class="panel block" hidden><div class="section-head"><div><p class="eyebrow">Cross-run review</p><h2>Per-item changes</h2></div><span class="quiet-tag">No combined score</span></div><div class="table-scroll"><table><thead><tr><th>Item</th><th>Dimension</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody id="delta-table"></tbody></table></div></section>
+          </div>
+          <div id="geo-analysis-view" hidden>
+            <section class="run-header panel"><div><p class="eyebrow">GEO paired count contrast · aggregate research report</p><h2 id="geo-title">—</h2><p id="geo-subtitle" class="muted small">—</p></div><div class="run-status"><span class="state-pill">Verified report</span><span id="geo-report-address" class="address">—</span></div></section>
+            <section class="metrics" aria-label="GEO analysis summary">
+              <article class="metric panel"><span>Matched pairs</span><strong id="geo-metric-pairs">—</strong><small id="geo-metric-samples">Selected samples</small></article>
+              <article class="metric panel"><span>Features tested</span><strong id="geo-metric-tested">—</strong><small>Unique source labels</small></article>
+              <article class="metric panel"><span>Signed-rank FDR</span><strong id="geo-metric-fdr">—</strong><small id="geo-metric-fdr-method">Primary paired screen</small></article>
+              <article class="metric panel"><span>Sign-test FDR</span><strong id="geo-metric-sign">—</strong><small>Direction-only sensitivity</small></article>
+            </section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Study design & lineage</p><h2>Analysis provenance</h2></div><span id="geo-normalization" class="quiet-tag">—</span></div><div id="geo-provenance" class="geo-provenance"></div><p class="section-note">This cohort-level screen is exploratory. It is not patient-specific variant evidence, a causal result, a diagnosis, or treatment guidance.</p></section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Reported feature rows</p><h2>Feature results</h2></div><span id="geo-result-count" class="quiet-tag">—</span></div><div class="table-scroll"><table><thead><tr><th>Source feature</th><th>Effect direction</th><th>Median Δ log₂ CPM</th><th>Signed-rank q</th><th>Sign-test q</th><th>Pairs higher / lower / tie</th></tr></thead><tbody id="geo-results-table"></tbody></table></div><p class="section-note">Source feature labels are preserved exactly as supplied. Labels marked “Review source label” may have been transformed by spreadsheet software and require annotation review.</p><button id="geo-load-more" class="button quiet load-more" type="button" hidden>Load more features</button></section>
+            <section class="two-col"><section class="panel block"><div class="section-head"><div><p class="eyebrow">Interpretation limits</p><h2>What this screen does not establish</h2></div></div><div id="geo-limitations" class="stack"></div></section><section class="panel block"><div class="section-head"><div><p class="eyebrow">Input quality</p><h2>Matrix checks</h2></div></div><div id="geo-quality" class="stack"></div></section></section>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer class="footer"><span>GLIO-NONCODE · local research software</span><span>Research use only · not diagnostic or treatment guidance</span></footer>
+  </body>
+</html>

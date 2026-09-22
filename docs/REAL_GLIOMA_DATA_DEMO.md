@@ -33,13 +33,19 @@ glio-noncode geo-count-outlier GSE141945 `
   --metadata-delimiter comma
 ```
 
+Both Python demo wrappers also accept `--feature-annotation-file` for a
+user-reviewed `source_feature_id,curated_feature_id` CSV. The source label stays
+unchanged and the map is provenance metadata only; see
+`docs/GEO_EXPRESSION_WORKFLOW.md` for its validation rules.
+
 ## What the demo exercises
 
 The example streams the count matrix, checks its shape and integer counts,
 computes per-sample library totals, and extracts the `EGFR` row. It treats the
-input as raw counts and explicitly transforms them with the deliberately simple
-`log2(CPM + 1)` calculation before constructing normalized expression
-observations. It then runs a symmetric leave-one-out comparison: each tumor
+input as raw counts and defaults to the simple `log2(CPM + 1)` calculation
+before constructing normalized expression observations. To estimate TMM
+composition factors first, add `--normalization-method tmm_log2_cpm` to either
+demo wrapper. It then runs a symmetric leave-one-out comparison: each tumor
 sample is compared with the other tumor-labeled samples using the current
 median/MAD robust-outlier implementation. Raw counts are never passed to the
 cohort comparator. Sample keys and individual expression values are not
@@ -59,7 +65,17 @@ unique before analyzing it.
 
 ## Matched tumor-versus-organoid screen
 
-The same downloaded files can drive a paired, feature-wide comparison by
+Before selecting a contrast, inspect the downloaded supplementary metadata and
+confirm the grouping and pair columns without printing sample or patient keys:
+
+```powershell
+glio-noncode geo-count-metadata GSE141945 `
+  --sample-key-column "" `
+  --pair-key-column Patient `
+  --metadata-file-name GSE141945_RNAseq.metadata.csv.gz
+```
+
+The same downloaded files can then drive a paired, feature-wide comparison by
 matching each tumor to its subject's one-week organoid:
 
 ```powershell
@@ -71,8 +87,17 @@ glio-noncode geo-count-contrast GSE141945 `
   --counts-file-name GSE141945_RNAseq.counts.csv.gz `
   --metadata-file-name GSE141945_RNAseq.metadata.csv.gz `
   --fdr-method bh `
-  --top 25
+  --top 25 `
+  --save-to-workspace `
+  --data-root .glio
 ```
+
+When run with `--save-to-workspace`, the completed aggregate report is retained
+as a separately addressed GEO analysis record, without storing individual
+sample or pair keys. Start `glio-noncode serve --host 127.0.0.1 --port 8765
+--data-root .glio` and open `http://127.0.0.1:8765/` to inspect its provenance,
+paired design, summary counts, top reported rows, and limitations alongside
+case-run reviews. GEO study analyses remain distinct from case dossiers.
 
 For the locally downloaded files used in the reproducible run, the matrix had
 81 sample columns and 56,832 feature rows. The metadata produced 17 complete
@@ -88,6 +113,9 @@ into its aggregate report. The direction-only sign-test sensitivity reported
 5,938 features with BH-adjusted q <= 0.05, compared with 10,726 from the
 signed-rank primary test. The top displayed labels each had 17 of 17 nonzero
 pairs in the same direction; this is cohort-level consistency, not validation.
+Date/month-shaped labels remain verbatim, but each emitted result now carries a
+row-level `feature_label_review` flag; any flagged label needs annotation review
+before it is interpreted as a gene identifier.
 The input SHA-256 digests were
 `50ed47d4a6d859f94dbe93e2bca16299d3f1d865c0bd5b4160ceb2c8f19b6f2b` for the
 count matrix and `146583acadda31455842e9a9581156a4a847e27a0a7823717601b46053785cf0` for
@@ -98,11 +126,47 @@ To run the same path through the example wrapper, use
 `--counts-file` and `--metadata-file` to reuse local downloads rather than
 fetching the canonical GEO supplement paths again.
 
+### TMM comparison on downloaded public data
+
+On September 22, 2026, both GEO supplementary files were fetched over HTTPS
+from the public NCBI record (3,653,658-byte count matrix and 489-byte metadata
+table), then reused locally for four comparisons: single-feature outlier and
+paired contrast, each with the default `log2_cpm` and optional
+`tmm_log2_cpm` normalization.
+
+The single-feature EGFR screen produced 4 descriptive outlier calls and 13
+non-outlier comparisons under either normalization. TMM factors across all 81
+matrix columns ranged from 0.7536 to 1.3978, with median 0.9999.
+
+For the paired Tumor-versus-1wk screen, the same 17 complete patient pairs and
+56,828 uniquely labeled tested rows were used in both runs. The default CPM
+screen reported 10,726 BH-significant rows and 5,938 direction-only sign-test
+rows at q <= 0.05. The TMM-adjusted screen reported 8,187 and 5,222,
+respectively. These differences show the effect of changing the library-size
+normalization on this dataset; they are not evidence that one result set is
+biologically correct. This implementation performs paired rank/sign tests on
+log-CPM values, not negative-binomial count-model differential expression.
+
+The leading TMM-adjusted label was `2-Sep`, also marked by the output as a
+date/month-shaped source label requiring annotation review. The program
+preserves it verbatim and does not claim that it is a gene identifier. This is
+an important example of the importer surfacing a data-quality hazard instead
+of silently changing a row label.
+
+The GEO series describes RNA-seq of glioblastoma tumor and organoid samples.
+The results above remain an exploratory re-analysis of a small public study;
+they do not establish independent-patient replication, validated biology,
+causality, diagnosis, or treatment guidance. See
+`docs/GEO_EXPRESSION_WORKFLOW.md` for normalization assumptions and command
+options.
+
 These examples demonstrate downloaded-data handling, a single-gene descriptive
 screen, and a paired feature-wide cohort screen. They do not construct a
 non-coding variant or regulatory-element hypothesis, link expression to a
 regulatory element, or run the complete case workflow. CPM is a simple
 library-size normalization, not a replacement for a count-model or
 precision-weighted RNA-seq workflow with appropriate design and nuisance-effect
-handling. This example is strictly for research software demonstration and has
-no clinical use.
+handling. Optional TMM adjusts composition under a majority-stable-features
+assumption, but does not remove the need for count-model inference or suitable
+batch and covariate handling. This example is strictly for research software
+demonstration and has no clinical use.

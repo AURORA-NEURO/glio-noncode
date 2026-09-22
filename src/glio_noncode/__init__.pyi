@@ -4099,7 +4099,10 @@ from .structural_haplotype import HaplotypeAlleleCall as HaplotypeAlleleCall
 from .structural_haplotype import HaplotypeAssemblyReport as HaplotypeAssemblyReport
 from .frontier_data_alpha import HaplotypeEvaluation as HaplotypeEvaluation
 from .frontier_data_alpha import HaplotypeEvaluationReport as HaplotypeEvaluationReport
+from .sequence_inference import HaplotypeMotifChange as HaplotypeMotifChange
+from .sequence_inference import HaplotypeMotifDelta as HaplotypeMotifDelta
 from .structural_haplotype import HaplotypePath as HaplotypePath
+from .sequence_inference import HaplotypeSequenceAnalysisResult as HaplotypeSequenceAnalysisResult
 from .atlas_beta import HistoneHarmonizationBatch as HistoneHarmonizationBatch
 from .atlas_beta import HistoneHarmonizedInterval as HistoneHarmonizedInterval
 from .atlas_beta import HistoneMarkTrackHarmonizer as HistoneMarkTrackHarmonizer
@@ -6088,6 +6091,7 @@ from .specimen_lineage import PhaseAssignment as PhaseAssignment
 from .cohort_alpha import PhaseLabel as PhaseLabel
 from .expression_evidence import PhaseStatus as PhaseStatus
 from .structural_haplotype import PhasedHaplotypeAssembler as PhasedHaplotypeAssembler
+from .sequence_inference import PhasedVariantIdentity as PhasedVariantIdentity
 from .structural_haplotype import PhasedVariantObservation as PhasedVariantObservation
 from .frontier_end_to_end import PipelineStage as PipelineStage
 from .planning_frontier_adapters import PlanningAdapter as PlanningAdapter
@@ -7727,6 +7731,7 @@ from .cohort_benchmarks import SelectiveRiskReport as SelectiveRiskReport
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_gate import Sequence as Sequence
 from .sequence_alpha import SequenceAlphaIssue as SequenceAlphaIssue
 from .sequence_alpha import SequenceAlphaState as SequenceAlphaState
+from .sequence_inference import SequenceAnalysisState as SequenceAnalysisState
 from .sequence_architecture_exports import SequenceArchitectureAccessPolicy as SequenceArchitectureAccessPolicy
 from .sequence_architecture_exports import SequenceArchitectureArtifact as SequenceArchitectureArtifact
 from .sequence_architecture_exports import SequenceArchitectureCase as SequenceArchitectureCase
@@ -17043,6 +17048,7 @@ from .workspace_gamma_frontier_replay import gamma_frontier_replay_is_determinis
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate import gate_csv as gate_csv
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate import gate_json as gate_json
 from .frontier_release_closure_support import gate_rows as gate_rows
+from . import geo_analysis_store as geo_analysis_store
 from . import geo_consistency as geo_consistency
 from . import geo_design as geo_design
 from . import geo_expression as geo_expression
@@ -20313,6 +20319,7 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review import review_queue_schema as review_queue_schema
 from .coordination_architecture_review import review_queue_summary as review_queue_summary
 from .cell_state_architecture_exports import review_summary as review_summary
+from . import review_workbench_ui as review_workbench_ui
 from . import review_workspace as review_workspace
 from .review_workspace_exports import review_workspace_alternatives_csv as review_workspace_alternatives_csv
 from .review_workspace import review_workspace_capabilities as review_workspace_capabilities
@@ -21748,6 +21755,7 @@ from . import validation_release_frontier_versioning as validation_release_front
 from . import validation_release_frontier_views as validation_release_frontier_views
 from .validation_release_frontier_runbook import runbook_is_executable as validation_release_runbook_is_executable
 from . import variant_beta as variant_beta
+from . import variant_genotype as variant_genotype
 from . import variant_normalization as variant_normalization
 from .case_workflow import variant_source_schema as variant_source_schema
 from . import variant_stream as variant_stream

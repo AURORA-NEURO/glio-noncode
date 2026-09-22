@@ -70,10 +70,14 @@ def context(build: str = "GRCh38") -> ReferenceContext:
     )
 
 
-def variant(payload: str | bytes = VCF, build: str = "GRCh38") -> VariantSource:
+def variant(
+    payload: str | bytes = VCF,
+    build: str = "GRCh38",
+    input_format: str = "vcf",
+) -> VariantSource:
     return VariantSource(
         source_id="fixture-variants",
-        input_format="vcf",
+        input_format=input_format,
         genome_build=build,
         payload=payload,
         metadata={"assay": "research_fixture"},
@@ -142,6 +146,55 @@ class CaseWorkflowTests(unittest.TestCase):
             self.assertTrue(replayed.event_chain_valid)
             self.assertTrue(replayed.stored_dossier_matches_address)
             self.assertEqual(run_record["input_address"], value.manifest_address)
+
+    def test_gvcf_reference_blocks_survive_case_preparation_and_reopen(self) -> None:
+        payload = "\n".join(
+            (
+                "##fileformat=VCFv4.5",
+                '##INFO=<ID=END,Number=1,Type=Integer,Description="Inclusive interval end">',
+                '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
+                '##FORMAT=<ID=LEN,Number=1,Type=Integer,Description="Reference block length">',
+                "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1",
+                "7\t100\tvar-1\tA\tT\t99\tPASS\t.\tGT\t0/1",
+                "7\t200\t.\tC\t<*>\t.\tPASS\tEND=220\tGT:LEN\t0/0:12",
+            )
+        )
+        value = prepared(variant_source=variant(payload=payload, input_format="gvcf"))
+
+        self.assertTrue(value.accepted, value.to_dict())
+        assert value.manifest is not None
+        provenance = value.manifest.metadata["case_workflow_provenance"]["variant_source"]
+        self.assertEqual(provenance["reference_block_count"], 1)
+        blocks = provenance["reference_blocks"]
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual((blocks[0]["start"], blocks[0]["end"]), (199, 211))
+        self.assertEqual(blocks[0]["sample_values"]["LEN"], "12")
+        self.assertTrue(
+            provenance["reference_block_address"].startswith("intake-reference-block-set:")
+        )
+
+        restored = PreparedCase.from_mapping(value.to_dict())
+        self.assertEqual(restored.to_dict(), value.to_dict())
+
+        tampered = json.loads(json.dumps(value.to_dict()))
+        tampered[
+            "manifest"
+        ]["metadata"]["case_workflow_provenance"]["variant_source"]["reference_blocks"][0][
+            "sample_values"
+        ]["LEN"] = "13"
+        tampered["manifest_address"] = content_hash(tampered["manifest"])
+        run_digest = content_hash(
+            {
+                "input": tampered["manifest_address"],
+                "requested_by": tampered["manifest"]["requested_by"],
+            }
+        ).split(":", 1)[1]
+        tampered["run_id"] = f"run-{run_digest[:24]}"
+        with self.assertRaisesRegex(
+            ValidationError,
+            "content_address does not match its canonical payload",
+        ):
+            PreparedCase.from_mapping(tampered)
 
     def test_prepare_identity_excludes_observational_receipt_timestamp(self) -> None:
         first = prepared()
@@ -830,14 +883,14 @@ class CaseWorkflowTests(unittest.TestCase):
     def test_variant_candidate_target_work_is_bounded_and_published(self) -> None:
         import glio_noncode.case_workflow as workflow
 
-        # The one-variant/one-element fixture costs one pair scan, one gene,
-        # and one unresolved state expansion: three conservative work items.
-        with patch.object(workflow, "MAX_CASE_RUNTIME_WORK_ITEMS", 3):
+        # One gene/state route costs a variant-element edge, an element-gene
+        # edge, and three route-level items (state, causal path, hypothesis).
+        with patch.object(workflow, "MAX_CASE_RUNTIME_WORK_ITEMS", 5):
             boundary = prepared()
             self.assertTrue(boundary.accepted, boundary.to_dict())
             persisted = boundary.to_dict()
 
-        with patch.object(workflow, "MAX_CASE_RUNTIME_WORK_ITEMS", 2):
+        with patch.object(workflow, "MAX_CASE_RUNTIME_WORK_ITEMS", 4):
             exceeded = prepared()
             self.assertTrue(exceeded.blocked)
             self.assertIn(

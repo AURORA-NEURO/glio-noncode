@@ -180,7 +180,7 @@ class HypothesisWorkLimitTests(unittest.TestCase):
                     )
                     self.assertEqual(
                         len(builder.build(manifest, f"run-{field_name}-{size}").hypotheses),
-                        1,
+                        size,
                     )
 
             over = manifest_with_elements(
@@ -193,7 +193,7 @@ class HypothesisWorkLimitTests(unittest.TestCase):
                     builder.build(over, f"run-{field_name}-over")
 
     def test_work_limit_accepts_below_and_at_boundary_then_rejects_before_scanning(self) -> None:
-        builder = HypothesisBuilder(limits=HypothesisWorkLimits(max_work_items=6))
+        builder = HypothesisBuilder(limits=HypothesisWorkLimits(max_work_items=10))
 
         below = builder.build(manifest_with_elements(1), "run-work-below")
         at = builder.build(manifest_with_elements(2), "run-work-at")
@@ -205,8 +205,55 @@ class HypothesisWorkLimitTests(unittest.TestCase):
             "_eligible_elements",
             side_effect=AssertionError("eligibility scan must not start"),
         ):
-            with self.assertRaisesRegex(ValidationError, "maximum of 6 work items"):
+            with self.assertRaisesRegex(ValidationError, "maximum of 10 work items"):
                 builder.build(manifest_with_elements(3), "run-work-over")
+
+    def test_each_gene_state_route_is_a_separate_factorized_hypothesis(self) -> None:
+        manifest = manifest_with_elements(1, target_count=2, state_count=2)
+        built = HypothesisBuilder().build(manifest, "run-route-fanout")
+        expected_routes = {
+            (gene_id, state_id)
+            for gene_id in manifest.candidate_elements[0].target_genes
+            for state_id in manifest.candidate_elements[0].state_ids
+        }
+
+        self.assertEqual(
+            {(hypothesis.gene_id, hypothesis.state_id) for hypothesis in built.hypotheses},
+            expected_routes,
+        )
+        self.assertEqual(len({item.hypothesis_id for item in built.hypotheses}), 4)
+        for hypothesis in built.hypotheses:
+            with self.subTest(route=(hypothesis.gene_id, hypothesis.state_id)):
+                self.assertEqual(len(hypothesis.edges), 4)
+                by_type = {edge.edge_type: edge for edge in hypothesis.edges}
+                self.assertEqual(set(by_type), set(EdgeType))
+                self.assertEqual(
+                    by_type[EdgeType.VARIANT_TO_ELEMENT].target_id,
+                    hypothesis.element_id,
+                )
+                self.assertEqual(by_type[EdgeType.ELEMENT_TO_GENE].target_id, hypothesis.gene_id)
+                self.assertEqual(by_type[EdgeType.GENE_TO_STATE].source_id, hypothesis.gene_id)
+                self.assertEqual(by_type[EdgeType.GENE_TO_STATE].target_id, hypothesis.state_id)
+                self.assertEqual(by_type[EdgeType.CAUSAL_PATH].target_id, hypothesis.state_id)
+
+    def test_missing_gene_and_state_targets_remain_unresolved_without_prior_support(self) -> None:
+        for target_count, state_count, unresolved_id in (
+            (0, 1, "unresolved_gene"),
+            (1, 0, "unresolved_state"),
+        ):
+            with self.subTest(unresolved_id=unresolved_id):
+                manifest = manifest_with_elements(
+                    1,
+                    target_count=target_count,
+                    state_count=state_count,
+                )
+                hypothesis = HypothesisBuilder().build(
+                    manifest, f"run-{unresolved_id}"
+                ).hypotheses[0]
+
+                self.assertIn(unresolved_id, (hypothesis.gene_id, hypothesis.state_id))
+                self.assertEqual(hypothesis.support, 0.0)
+                self.assertTrue(hypothesis.missing_evidence)
 
     def test_abstention_path_counts_one_work_item_per_variant(self) -> None:
         builder = HypothesisBuilder(limits=HypothesisWorkLimits(max_work_items=2))
@@ -241,7 +288,7 @@ class HypothesisWorkLimitTests(unittest.TestCase):
             second = HypothesisBuilder().build(manifest, "run-shared-element")
 
         self.assertEqual(first, second)
-        self.assertEqual(len(first.hypotheses), 2)
+        self.assertEqual(len(first.hypotheses), 4)
         claim_ids = tuple(claim.evidence_id for claim in first.claims)
         self.assertEqual(len(claim_ids), len(set(claim_ids)))
 
@@ -274,7 +321,7 @@ class HypothesisWorkLimitTests(unittest.TestCase):
             replay = ReplayVerifier().verify(run_record, event_record, dossier_record)
 
         self.assertEqual(restored, dossier)
-        self.assertEqual(len(restored.hypotheses), 2)
+        self.assertEqual(len(restored.hypotheses), 4)
         self.assertTrue(replay.event_chain_valid)
         self.assertTrue(replay.stored_dossier_matches_address)
         self.assertEqual(replay.warnings, ())
@@ -355,7 +402,7 @@ class HypothesisWorkLimitTests(unittest.TestCase):
     def test_rna_iterable_stops_after_one_sentinel_and_manifest_failure_consumes_none(self) -> None:
         builder = HypothesisBuilder(
             limits=HypothesisWorkLimits(
-                max_work_items=6,
+                max_work_items=10,
                 max_rna_consequences=3,
             )
         )
@@ -387,7 +434,7 @@ class HypothesisWorkLimitTests(unittest.TestCase):
             def __iter__(self):
                 raise AssertionError("RNA input must not be consumed after manifest rejection")
 
-        with self.assertRaisesRegex(ValidationError, "maximum of 6 work items"):
+        with self.assertRaisesRegex(ValidationError, "maximum of 10 work items"):
             builder.validate_inputs(
                 manifest_with_elements(3),
                 rna_consequences=MustNotIterate(),
@@ -425,6 +472,7 @@ class HypothesisWorkLimitTests(unittest.TestCase):
         causal_edge = next(
             edge
             for hypothesis in owned.hypotheses
+            if hypothesis.gene_id == row.feature_id
             for edge in hypothesis.edges
             if edge.edge_type is EdgeType.CAUSAL_PATH
         )
@@ -463,9 +511,9 @@ class HypothesisWorkLimitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             runtime = CaseRuntime(
                 directory,
-                hypothesis_limits=HypothesisWorkLimits(max_work_items=6),
+                hypothesis_limits=HypothesisWorkLimits(max_work_items=10),
             )
-            with self.assertRaisesRegex(ValidationError, "maximum of 6 work items"):
+            with self.assertRaisesRegex(ValidationError, "maximum of 10 work items"):
                 runtime.evaluate(manifest_with_elements(3))
 
             self.assertEqual(list(Path(directory).rglob("*.json")), [])

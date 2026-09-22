@@ -1,4 +1,4 @@
-"""Compare exact feature directions across bounded GEO contrast reports."""
+"""Summarize exact feature directions across bounded GEO contrast reports."""
 
 from __future__ import annotations
 
@@ -19,8 +19,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="glio-noncode geo-consistency",
         description=(
-            "Compare selected exact feature directions across completed GEO contrast reports. "
-            "Does not pool effect sizes or p-values."
+            "Compare tested directions and FDR-significant direction agreement across completed "
+            "GEO contrast reports. Does not pool effect sizes or p-values."
         ),
     )
     parser.add_argument(

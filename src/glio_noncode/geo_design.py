@@ -290,46 +290,149 @@ def _covariate_balance(
             for group, values in values_by_group.items():
                 for value in values:
                     level_counts[value.casefold()][group] += 1
+            case_count = len(values_by_group["case"])
+            reference_count = len(values_by_group["reference"])
+            summarized_levels = []
+            for level in levels:
+                counts = level_counts[level.casefold()]
+                case_fraction = counts["case"] / case_count
+                reference_fraction = counts["reference"] / reference_count
+                summarized_levels.append(
+                    {
+                        "value": level,
+                        "case_count": counts["case"],
+                        "reference_count": counts["reference"],
+                        "case_fraction": case_fraction,
+                        "reference_fraction": reference_fraction,
+                        "absolute_fraction_difference": abs(
+                            case_fraction - reference_fraction
+                        ),
+                    }
+                )
+            case_only_levels = [
+                item["value"]
+                for item in summarized_levels
+                if item["case_count"] > 0 and item["reference_count"] == 0
+            ]
+            reference_only_levels = [
+                item["value"]
+                for item in summarized_levels
+                if item["reference_count"] > 0 and item["case_count"] == 0
+            ]
             summaries.append(
                 {
                     "field": field,
                     "type": kind,
-                    "levels": [
-                        {
-                            "value": level,
-                            "case_count": level_counts[level.casefold()]["case"],
-                            "reference_count": level_counts[level.casefold()]["reference"],
-                        }
-                        for level in levels
-                    ],
+                    "case_sample_count": case_count,
+                    "reference_sample_count": reference_count,
+                    "shared_level_count": len(levels)
+                    - len(case_only_levels)
+                    - len(reference_only_levels),
+                    "case_only_levels": case_only_levels,
+                    "reference_only_levels": reference_only_levels,
+                    "maximum_absolute_level_fraction_difference": max(
+                        item["absolute_fraction_difference"] for item in summarized_levels
+                    ),
+                    "levels": summarized_levels,
                 }
             )
             continue
 
+        case_values = [float(value) for value in values_by_group["case"]]
+        reference_values = [float(value) for value in values_by_group["reference"]]
+        case_minimum = min(case_values)
+        reference_minimum = min(reference_values)
+        overlap_minimum = max(case_minimum, reference_minimum)
+        overlap_maximum = min(max(case_values), max(reference_values))
+        has_range_overlap = overlap_minimum <= overlap_maximum
+        standardized_mean_difference, standardized_mean_difference_status = (
+            _standardized_mean_difference(case_values, reference_values)
+        )
         summaries.append(
             {
                 "field": field,
                 "type": kind,
-                "case": _continuous_summary(values_by_group["case"]),
-                "reference": _continuous_summary(values_by_group["reference"]),
+                "case": _continuous_summary(case_values),
+                "reference": _continuous_summary(reference_values),
+                "standardized_mean_difference": standardized_mean_difference,
+                "standardized_mean_difference_status": standardized_mean_difference_status,
+                "range_overlap": {
+                    "overlaps": has_range_overlap,
+                    "minimum": overlap_minimum if has_range_overlap else None,
+                    "maximum": overlap_maximum if has_range_overlap else None,
+                },
             }
         )
     return summaries
 
 
-def _continuous_summary(raw_values: Sequence[str]) -> dict[str, Any]:
-    values = [float(value) for value in raw_values]
+def _continuous_summary(values: Sequence[float]) -> dict[str, Any]:
     magnitude = max((abs(value) for value in values), default=0.0)
     scaled_mean = (
         math.fsum(value / magnitude for value in values) / len(values) if magnitude else 0.0
     )
     mean = scaled_mean * magnitude if magnitude else 0.0
+    sample_standard_deviation = _sample_standard_deviation(values, magnitude=magnitude)
     return {
         "sample_count": len(values),
         "mean": mean if math.isfinite(mean) else None,
+        "sample_standard_deviation": sample_standard_deviation,
         "minimum": min(values) if values else None,
         "maximum": max(values) if values else None,
     }
+
+
+def _sample_standard_deviation(
+    values: Sequence[float], *, magnitude: float | None = None
+) -> float | None:
+    if len(values) < 2:
+        return None
+    value_magnitude = (
+        max(abs(value) for value in values) if magnitude is None and values else magnitude
+    )
+    if not value_magnitude:
+        return 0.0
+    scaled_values = [value / value_magnitude for value in values]
+    scaled_mean = math.fsum(scaled_values) / len(scaled_values)
+    scaled_sum_squares = math.fsum((value - scaled_mean) ** 2 for value in scaled_values)
+    standard_deviation = (
+        math.sqrt(scaled_sum_squares / (len(scaled_values) - 1)) * value_magnitude
+    )
+    return standard_deviation if math.isfinite(standard_deviation) else None
+
+
+def _standardized_mean_difference(
+    case_values: Sequence[float], reference_values: Sequence[float]
+) -> tuple[float | None, str]:
+    case_count = len(case_values)
+    reference_count = len(reference_values)
+    if case_count < 2 or reference_count < 2:
+        return None, "insufficient_group_variance_degrees_of_freedom"
+
+    magnitude = max(
+        max(abs(value) for value in case_values),
+        max(abs(value) for value in reference_values),
+    )
+    if magnitude == 0.0:
+        return None, "zero_pooled_standard_deviation"
+
+    scaled_case = [value / magnitude for value in case_values]
+    scaled_reference = [value / magnitude for value in reference_values]
+    case_mean = math.fsum(scaled_case) / case_count
+    reference_mean = math.fsum(scaled_reference) / reference_count
+    within_group_sum_squares = math.fsum(
+        (value - case_mean) ** 2 for value in scaled_case
+    ) + math.fsum((value - reference_mean) ** 2 for value in scaled_reference)
+    pooled_standard_deviation = math.sqrt(
+        within_group_sum_squares / (case_count + reference_count - 2)
+    )
+    if pooled_standard_deviation == 0.0:
+        return None, "zero_pooled_standard_deviation"
+
+    result = (case_mean - reference_mean) / pooled_standard_deviation
+    if not math.isfinite(result):
+        return None, "non_finite_standardized_mean_difference"
+    return result, "available"
 
 
 __all__ = ["build_geo_contrast_design_report"]

@@ -31,7 +31,14 @@ glio-noncode = "glio_noncode.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-glio_noncode = ["*.pyi", "schemas/*.json", "py.typed"]
+glio_noncode = [
+  "*.pyi",
+  "schemas/*.json",
+  "web/*.html",
+  "web/*.css",
+  "web/*.js",
+  "py.typed",
+]
 
 [tool.setuptools.data-files]
 schemas = [

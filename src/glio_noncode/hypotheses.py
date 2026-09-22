@@ -53,6 +53,16 @@ def _bounded_positive_integer(value: object, field_name: str, ceiling: int) -> i
     return value
 
 
+def _hypothesis_work_items_per_element(element: CandidateElement) -> int:
+    """Bound shared edges, every gene/state route, and its materialized hypothesis."""
+
+    gene_count = max(1, len(element.target_genes))
+    state_count = max(1, len(element.state_ids))
+    # One variant-element edge, one element-gene edge per gene, then a
+    # gene-state edge, causal summary edge, and Hypothesis object per route.
+    return 1 + gene_count + 3 * gene_count * state_count
+
+
 @dataclass(frozen=True, slots=True)
 class HypothesisWorkLimits:
     """Hard-ceiling, downward-configurable limits for hypothesis construction."""
@@ -149,7 +159,7 @@ class HypothesisBuilder:
                         "configured maximum of "
                         f"{self.limits.max_targets_per_element} items"
                     )
-            per_variant = 1 + max(1, len(element.target_genes)) + max(1, len(element.state_ids))
+            per_variant = _hypothesis_work_items_per_element(element)
             contribution = variant_count * per_variant
             if contribution > self.limits.max_work_items - work_items:
                 raise ValidationError(
@@ -239,7 +249,7 @@ class HypothesisBuilder:
                 state_claims_by_edge,
                 unconsumed_external_edges,
             )
-            hypotheses.append(built)
+            hypotheses.extend(built)
         if not hypotheses and manifest.variants:
             hypotheses.extend(self._abstentions(manifest, run_id, graph))
         if unconsumed_external_edges:
@@ -332,22 +342,18 @@ class HypothesisBuilder:
                         EdgeType.ELEMENT_TO_GENE,
                     )
                 )
-            state_source_id = gene_ids[0] if element.target_genes else element.element_id
-            for state_id in state_ids:
-                edge_ids.add(
-                    self._edge_id(
-                        state_source_id,
-                        state_id,
-                        EdgeType.GENE_TO_STATE,
+            for gene_id in gene_ids:
+                for state_id in state_ids:
+                    edge_ids.add(
+                        self._edge_id(gene_id, state_id, EdgeType.GENE_TO_STATE)
                     )
-                )
-            edge_ids.add(
-                self._edge_id(
-                    variant.variant_id,
-                    f"{element.element_id}:{gene_ids[0]}:{state_ids[0]}",
-                    EdgeType.CAUSAL_PATH,
-                )
-            )
+                    edge_ids.add(
+                        self._edge_id(
+                            variant.variant_id,
+                            f"{element.element_id}:{gene_id}:{state_id}",
+                            EdgeType.CAUSAL_PATH,
+                        )
+                    )
         return frozenset(edge_ids)
 
     @staticmethod
@@ -382,32 +388,37 @@ class HypothesisBuilder:
         grouped: dict[str, list[EvidenceClaim]] = {}
         for _, element in eligible_pairs:
             element_context = context_for_element(manifest.context, element)
-            source_id = element.target_genes[0] if element.target_genes else element.element_id
-            for state_id in element.state_ids or ("unresolved_state",):
-                edge_id = self._edge_id(source_id, state_id, EdgeType.GENE_TO_STATE)
-                reading = reading_from_feature(
-                    "state_prior",
-                    element.features.get("state_prior"),
-                    source_id=f"{element.source_id}:state",
-                    confidence=float(element.annotations.get("state_confidence", 0.58)),
-                )
-                grouped.setdefault(edge_id, []).append(
-                    make_claim(
-                        edge_id=edge_id,
-                        reading=reading,
-                        context=manifest.context,
-                        context_match=element_context,
-                        summary=(
-                            f"State context for {state_id} is supplied by {element.source_id}."
-                        ),
-                        payload={
-                            "state_id": state_id,
-                            "state_definition": element.annotations.get(
-                                "state_definition", "unspecified"
-                            ),
-                        },
+            gene_ids = element.target_genes or ("unresolved_gene",)
+            state_ids = element.state_ids or ("unresolved_state",)
+            for gene_id in gene_ids:
+                for state_id in state_ids:
+                    edge_id = self._edge_id(gene_id, state_id, EdgeType.GENE_TO_STATE)
+                    has_declared_route = bool(element.target_genes and element.state_ids)
+                    reading = reading_from_feature(
+                        "state_prior",
+                        element.features.get("state_prior") if has_declared_route else None,
+                        source_id=f"{element.source_id}:state",
+                        confidence=float(element.annotations.get("state_confidence", 0.58)),
                     )
-                )
+                    grouped.setdefault(edge_id, []).append(
+                        make_claim(
+                            edge_id=edge_id,
+                            reading=reading,
+                            context=manifest.context,
+                            context_match=element_context,
+                            summary=(
+                                f"State context for candidate route {gene_id} to {state_id} "
+                                f"is supplied by {element.source_id}."
+                            ),
+                            payload={
+                                "gene_id": gene_id,
+                                "state_id": state_id,
+                                "state_definition": element.annotations.get(
+                                    "state_definition", "unspecified"
+                                ),
+                            },
+                        )
+                    )
         return {edge_id: tuple(claims) for edge_id, claims in grouped.items()}
 
     def _build_one(
@@ -420,7 +431,7 @@ class HypothesisBuilder:
         rna_claims_by_edge: dict[str, tuple[EvidenceClaim, ...]],
         state_claims_by_edge: dict[str, tuple[EvidenceClaim, ...]],
         unconsumed_external_edges: set[str],
-    ) -> Hypothesis:
+    ) -> tuple[Hypothesis, ...]:
         variant_element_id = self._edge_id(
             variant.variant_id, element.element_id, EdgeType.VARIANT_TO_ELEMENT
         )
@@ -461,12 +472,16 @@ class HypothesisBuilder:
                 support_level=SupportLevel.UNKNOWN,
             )
         )
-        element_gene_edges: list[HypothesisEdge] = []
-        for gene_id in element.target_genes or ("unresolved_gene",):
+        gene_ids = element.target_genes or ("unresolved_gene",)
+        state_ids = element.state_ids or ("unresolved_state",)
+        element_gene_edges: dict[str, HypothesisEdge] = {}
+        for gene_id in gene_ids:
             edge_id = self._edge_id(element.element_id, gene_id, EdgeType.ELEMENT_TO_GENE)
             link_reading = reading_from_feature(
                 "element_gene_link",
-                element.features.get("contact_strength", element.features.get("coaccessibility")),
+                element.features.get("contact_strength", element.features.get("coaccessibility"))
+                if element.target_genes
+                else None,
                 source_id=f"{element.source_id}:link",
                 confidence=float(element.annotations.get("link_confidence", 0.62)),
             )
@@ -504,151 +519,155 @@ class HypothesisBuilder:
                     support_level=SupportLevel.UNKNOWN,
                 )
             )
-            element_gene_edges.append(
-                self._edge(
-                    edge_id=edge_id,
-                    edge_type=EdgeType.ELEMENT_TO_GENE,
-                    source_id=element.element_id,
-                    target_id=gene_id,
-                    aggregate=aggregate,
+            element_gene_edges[gene_id] = self._edge(
+                edge_id=edge_id,
+                edge_type=EdgeType.ELEMENT_TO_GENE,
+                source_id=element.element_id,
+                target_id=gene_id,
+                aggregate=aggregate,
+            )
+
+        hypotheses: list[Hypothesis] = []
+        variant_edge = self._edge(
+            edge_id=variant_element_id,
+            edge_type=EdgeType.VARIANT_TO_ELEMENT,
+            source_id=variant.variant_id,
+            target_id=element.element_id,
+            aggregate=variant_edge_aggregate,
+        )
+        for gene_id in gene_ids:
+            gene_edge = element_gene_edges[gene_id]
+            for state_id in state_ids:
+                state_edge_id = self._edge_id(gene_id, state_id, EdgeType.GENE_TO_STATE)
+                staged_claims = state_claims_by_edge[state_edge_id]
+                for state_claim in staged_claims:
+                    self._record_claim(graph, state_claim)
+                staged_claim_ids = tuple(
+                    dict.fromkeys(claim.evidence_id for claim in staged_claims)
                 )
-            )
-        state_edges: list[HypothesisEdge] = []
-        for state_id in element.state_ids or ("unresolved_state",):
-            edge_id = self._edge_id(
-                element.target_genes[0] if element.target_genes else element.element_id,
-                state_id,
-                EdgeType.GENE_TO_STATE,
-            )
-            staged_claims = state_claims_by_edge[edge_id]
-            for state_claim in staged_claims:
-                self._record_claim(graph, state_claim)
-            staged_claim_ids = tuple(dict.fromkeys(claim.evidence_id for claim in staged_claims))
-            self._consume_external_edge(edge_id, unconsumed_external_edges)
-            aggregate = graph.aggregate(
-                HypothesisEdge(
-                    edge_id=edge_id,
-                    edge_type=EdgeType.GENE_TO_STATE,
-                    source_id=element.target_genes[0]
-                    if element.target_genes
-                    else element.element_id,
-                    target_id=state_id,
-                    support=0.0,
-                    uncertainty=1.0,
-                    context_fit=element_context.score,
-                    claim_ids=staged_claim_ids,
-                    support_level=SupportLevel.UNKNOWN,
-                )
-            )
-            state_edges.append(
-                self._edge(
-                    edge_id=edge_id,
-                    edge_type=EdgeType.GENE_TO_STATE,
-                    source_id=element.target_genes[0]
-                    if element.target_genes
-                    else element.element_id,
-                    target_id=state_id,
-                    aggregate=aggregate,
-                )
-            )
-        gene_edge = element_gene_edges[0]
-        state_edge = state_edges[0]
-        causal_edge_id = self._edge_id(
-            variant.variant_id,
-            f"{element.element_id}:{gene_edge.target_id}:{state_edge.target_id}",
-            EdgeType.CAUSAL_PATH,
-        )
-        path_claim = self._path_claim(
-            causal_edge_id,
-            manifest,
-            element,
-            element_context,
-            variant_element_id,
-            gene_edge,
-            state_edge,
-            variant_edge_aggregate,
-            graph,
-            run_id,
-        )
-        path_claim = self._record_claim(graph, path_claim)
-        self._consume_external_edge(causal_edge_id, unconsumed_external_edges)
-        path_aggregate = graph.aggregate(
-            HypothesisEdge(
-                edge_id=causal_edge_id,
-                edge_type=EdgeType.CAUSAL_PATH,
-                source_id=variant.variant_id,
-                target_id=state_edge.target_id,
-                support=0.0,
-                uncertainty=1.0,
-                context_fit=element_context.score,
-                claim_ids=(path_claim.evidence_id,),
-                support_level=SupportLevel.UNKNOWN,
-            )
-        )
-        edges = (
-            self._edge(
-                edge_id=variant_element_id,
-                edge_type=EdgeType.VARIANT_TO_ELEMENT,
-                source_id=variant.variant_id,
-                target_id=element.element_id,
-                aggregate=variant_edge_aggregate,
-            ),
-            *element_gene_edges,
-            *state_edges,
-            self._edge(
-                edge_id=causal_edge_id,
-                edge_type=EdgeType.CAUSAL_PATH,
-                source_id=variant.variant_id,
-                target_id=state_edge.target_id,
-                aggregate=path_aggregate,
-            ),
-        )
-        edge_claims = tuple(claim for edge in edges for claim in graph.for_edge(edge.edge_id))
-        missing = tuple(
-            sorted(
-                {
-                    claim.evidence_id
-                    for claim in edge_claims
-                    if claim.state
-                    in (
-                        EvidenceState.UNSUPPORTED,
-                        EvidenceState.ABSTAINED,
-                        EvidenceState.OUT_OF_DOMAIN,
+                self._consume_external_edge(state_edge_id, unconsumed_external_edges)
+                state_aggregate = graph.aggregate(
+                    HypothesisEdge(
+                        edge_id=state_edge_id,
+                        edge_type=EdgeType.GENE_TO_STATE,
+                        source_id=gene_id,
+                        target_id=state_id,
+                        support=0.0,
+                        uncertainty=1.0,
+                        context_fit=element_context.score,
+                        claim_ids=staged_claim_ids,
+                        support_level=SupportLevel.UNKNOWN,
                     )
-                }
-            )
-        )
-        negative = tuple(
-            sorted(
-                {
-                    claim.evidence_id
-                    for claim in edge_claims
-                    if claim.state in (EvidenceState.MEASURED_NEGATIVE, EvidenceState.CONTRADICTORY)
-                }
-            )
-        )
-        hypothesis_id = self._hypothesis_id(
-            variant.variant_id, element.element_id, gene_edge.target_id, state_edge.target_id
-        )
-        return Hypothesis(
-            hypothesis_id=hypothesis_id,
-            variant_id=variant.variant_id,
-            element_id=element.element_id,
-            gene_id=gene_edge.target_id,
-            state_id=state_edge.target_id,
-            mechanism=str(
-                element.annotations.get("mechanism", "context-conditioned regulatory modulation")
-            ),
-            context=manifest.context,
-            edges=edges,
-            support=path_aggregate.score,
-            uncertainty=clamp(max(path_aggregate.uncertainty, 1.0 - element_context.score)),
-            status=ResearchStatus.REVIEW_REQUIRED,
-            missing_evidence=missing,
-            negative_evidence=negative,
-            alternatives=tuple(element.annotations.get("alternative_explanations", ())),
-            provenance=(manifest.content_address, run_id, element.source_id),
-        )
+                )
+                state_edge = self._edge(
+                    edge_id=state_edge_id,
+                    edge_type=EdgeType.GENE_TO_STATE,
+                    source_id=gene_id,
+                    target_id=state_id,
+                    aggregate=state_aggregate,
+                )
+
+                causal_edge_id = self._edge_id(
+                    variant.variant_id,
+                    f"{element.element_id}:{gene_id}:{state_id}",
+                    EdgeType.CAUSAL_PATH,
+                )
+                path_claim = self._path_claim(
+                    causal_edge_id,
+                    manifest,
+                    element,
+                    element_context,
+                    variant_element_id,
+                    gene_edge,
+                    state_edge,
+                    variant_edge_aggregate,
+                    graph,
+                    run_id,
+                )
+                path_claim = self._record_claim(graph, path_claim)
+                self._consume_external_edge(causal_edge_id, unconsumed_external_edges)
+                path_aggregate = graph.aggregate(
+                    HypothesisEdge(
+                        edge_id=causal_edge_id,
+                        edge_type=EdgeType.CAUSAL_PATH,
+                        source_id=variant.variant_id,
+                        target_id=state_id,
+                        support=0.0,
+                        uncertainty=1.0,
+                        context_fit=element_context.score,
+                        claim_ids=(path_claim.evidence_id,),
+                        support_level=SupportLevel.UNKNOWN,
+                    )
+                )
+                route_edges = (
+                    variant_edge,
+                    gene_edge,
+                    state_edge,
+                    self._edge(
+                        edge_id=causal_edge_id,
+                        edge_type=EdgeType.CAUSAL_PATH,
+                        source_id=variant.variant_id,
+                        target_id=state_id,
+                        aggregate=path_aggregate,
+                    ),
+                )
+                edge_claims = tuple(
+                    claim for edge in route_edges for claim in graph.for_edge(edge.edge_id)
+                )
+                missing = tuple(
+                    sorted(
+                        {
+                            claim.evidence_id
+                            for claim in edge_claims
+                            if claim.state
+                            in (
+                                EvidenceState.UNSUPPORTED,
+                                EvidenceState.ABSTAINED,
+                                EvidenceState.OUT_OF_DOMAIN,
+                            )
+                        }
+                    )
+                )
+                negative = tuple(
+                    sorted(
+                        {
+                            claim.evidence_id
+                            for claim in edge_claims
+                            if claim.state
+                            in (EvidenceState.MEASURED_NEGATIVE, EvidenceState.CONTRADICTORY)
+                        }
+                    )
+                )
+                hypotheses.append(
+                    Hypothesis(
+                        hypothesis_id=self._hypothesis_id(
+                            variant.variant_id, element.element_id, gene_id, state_id
+                        ),
+                        variant_id=variant.variant_id,
+                        element_id=element.element_id,
+                        gene_id=gene_id,
+                        state_id=state_id,
+                        mechanism=str(
+                            element.annotations.get(
+                                "mechanism", "context-conditioned regulatory modulation"
+                            )
+                        ),
+                        context=manifest.context,
+                        edges=route_edges,
+                        support=path_aggregate.score,
+                        uncertainty=clamp(
+                            max(path_aggregate.uncertainty, 1.0 - element_context.score)
+                        ),
+                        status=ResearchStatus.REVIEW_REQUIRED,
+                        missing_evidence=missing,
+                        negative_evidence=negative,
+                        alternatives=tuple(
+                            element.annotations.get("alternative_explanations", ())
+                        ),
+                        provenance=(manifest.content_address, run_id, element.source_id),
+                    )
+                )
+        return tuple(hypotheses)
 
     def _path_claim(
         self,

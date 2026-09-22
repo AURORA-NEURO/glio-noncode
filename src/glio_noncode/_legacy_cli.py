@@ -4677,7 +4677,7 @@ from .specimen_beta_frontier_runtime import (
     specimen_beta_frontier_pipeline_request_from_file,
 )
 from .specimen_beta_frontier_scenario_matrix import evaluate_specimen_beta_frontier_scenarios
-from .specimen_context import PurityPloidyImporter
+from .specimen_context import MAX_PURITY_PLOIDY_INPUT_BYTES, PurityPloidyImporter
 from .specimen_frontier_bundle import (
     SpecimenFrontierBundleFormat,
     SpecimenFrontierEvidenceBundleBuilder,
@@ -40206,7 +40206,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "purity-ploidy":
             input_path = Path(args.input)
             result = PurityPloidyImporter().parse_text(
-                _legacy_read_text(input_path),
+                _safe_read_text(
+                    input_path,
+                    field="purity/ploidy input",
+                    max_bytes=MAX_PURITY_PLOIDY_INPUT_BYTES,
+                ),
                 source_id=args.source_id or input_path.stem,
                 input_format=args.format,
             )

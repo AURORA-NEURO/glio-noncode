@@ -7,7 +7,10 @@ from glio_noncode.causal import CausalLattice, compare_paths
 from glio_noncode.cohort import CohortObservation, RecurrenceModel
 from glio_noncode.errors import ValidationError
 from glio_noncode.models import EdgeType, HypothesisEdge, SupportLevel
-from glio_noncode.variation import AlternateEventGraph
+from glio_noncode.variation import (
+    MAX_ALTERNATE_EVENT_GRAPH_HOPS,
+    AlternateEventGraph,
+)
 from glio_noncode.workflow import ResourceEnvelope, StepKind, WorkflowCompiler, WorkflowStep
 
 from .helpers import fixture_manifest
@@ -23,6 +26,73 @@ class ScientificExtensionTests(unittest.TestCase):
         paths = graph.paths("variant", "gene")
         self.assertEqual(len(paths), 2)
         self.assertGreater(paths[0].support, paths[1].support)
+        self.assertEqual(graph.node_count(), 4)
+        self.assertEqual(graph.edge_count(), 4)
+
+    def test_alternate_event_graph_fails_closed_when_path_budget_is_exceeded(self) -> None:
+        graph = AlternateEventGraph()
+        for layer in range(8):
+            for branch in range(2):
+                graph.add_edge(
+                    f"layer-{layer}-{branch}",
+                    f"layer-{layer + 1}-0",
+                    0.9,
+                    f"edge-{layer}-{branch}-0",
+                )
+                graph.add_edge(
+                    f"layer-{layer}-{branch}",
+                    f"layer-{layer + 1}-1",
+                    0.9,
+                    f"edge-{layer}-{branch}-1",
+                )
+        graph.add_edge("source", "layer-0-0", 0.9, "source-0")
+        graph.add_edge("source", "layer-0-1", 0.9, "source-1")
+        graph.add_edge("layer-8-0", "target", 0.9, "target-0")
+        graph.add_edge("layer-8-1", "target", 0.9, "target-1")
+
+        with self.assertRaisesRegex(ValidationError, "exceeds the 100-path limit"):
+            graph.paths("source", "target", max_hops=10, max_paths=100)
+        with self.assertRaisesRegex(ValidationError, "exceeds the 10-expansion limit"):
+            graph.paths("source", "target", max_hops=10, max_expansions=10)
+
+    def test_alternate_event_graph_validates_limits_edges_and_finite_support(self) -> None:
+        graph = AlternateEventGraph()
+        graph.add_edge("a", "b", 1, "edge-1")
+        self.assertEqual(graph.paths("a", "b", max_hops=1), graph.paths("a", "b"))
+        self.assertEqual(graph.paths("a", "a"), ())
+
+        for kwargs in (
+            {"max_hops": 0},
+            {"max_hops": MAX_ALTERNATE_EVENT_GRAPH_HOPS + 1},
+            {"max_hops": True},
+            {"max_paths": 0},
+            {"max_expansions": -1},
+        ):
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValidationError):
+                graph.paths("a", "b", **kwargs)
+        for support in (float("nan"), float("inf"), True, "0.5"):
+            with self.subTest(support=support), self.assertRaises(ValidationError):
+                graph.add_edge("a", "b", support, f"bad-{support}")  # type: ignore[arg-type]
+        with self.assertRaisesRegex(ValidationError, "must be unique"):
+            graph.add_edge("b", "c", 0.5, "edge-1")
+        for invalid_identifier in ("x" * 257, "line\nbreak", "line\u0085break"):
+            with self.subTest(invalid_identifier=invalid_identifier), self.assertRaisesRegex(
+                ValidationError, "control-free text"
+            ):
+                graph.add_edge(invalid_identifier, "c", 0.5, "invalid-id")
+        with self.assertRaisesRegex(ValidationError, "control-free text"):
+            graph.paths("x" * 257, "b")
+
+    def test_alternate_event_graph_aggregates_support_in_the_log_domain(self) -> None:
+        graph = AlternateEventGraph()
+        for index in range(64):
+            support = 1e-82 if index < 4 else 1.0
+            graph.add_edge(f"node-{index}", f"node-{index + 1}", support, f"edge-{index}")
+
+        (path,) = graph.paths("node-0", "node-64", max_hops=64)
+
+        self.assertEqual(path.support, 0.000007)
+        self.assertEqual(path.uncertainty, 1.0)
 
     def test_workflow_compiler_orders_dependencies(self) -> None:
         compiled = WorkflowCompiler().compile_initial_slice()

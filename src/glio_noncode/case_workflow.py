@@ -36,6 +36,7 @@ from .hypotheses import (
     MAX_HYPOTHESIS_RNA_CONSEQUENCES,
     MAX_HYPOTHESIS_TARGETS_PER_ELEMENT,
     MAX_HYPOTHESIS_WORK_ITEMS,
+    _hypothesis_work_items_per_element,
 )
 from .intake import (
     MAX_VARIANT_INTAKE_AUXILIARY_LINES,
@@ -43,6 +44,9 @@ from .intake import (
     IntakeBatch,
     IntakeFormat,
     IntakeSeverity,
+    ReferenceBlockCallState,
+    ReferenceBlockRecord,
+    ReferenceBlockSpanSource,
     VariantIntake,
 )
 from .models import (
@@ -471,6 +475,106 @@ def _integer(value: object, label: str) -> int:
     return value
 
 
+def _content_address(value: object, label: str, *, prefix: str) -> str:
+    expected = re.compile(rf"{re.escape(prefix)}:[0-9a-f]{{64}}")
+    if not isinstance(value, str) or expected.fullmatch(value) is None:
+        raise ValidationError(f"{label} must be a canonical {prefix} content address")
+    return value
+
+
+def _reference_block_record(value: object, label: str) -> ReferenceBlockRecord:
+    fields = {
+        "source_id",
+        "record_id",
+        "source_line",
+        "raw_hash",
+        "genome_build",
+        "chromosome",
+        "start",
+        "end",
+        "reference",
+        "alternate",
+        "sample_id",
+        "genotype",
+        "call_state",
+        "span_source",
+        "info",
+        "sample_values",
+        "filter_value",
+        "quality",
+        "length",
+        "content_address",
+    }
+    raw = _strict_mapping(value, allowed=fields, required=fields, label=label)
+    for name in (
+        "source_id",
+        "record_id",
+        "genome_build",
+        "chromosome",
+        "reference",
+        "alternate",
+        "filter_value",
+        "quality",
+    ):
+        raw[name] = _required_text(raw[name], f"{label} {name}")
+    for name in ("source_line", "start", "end", "length"):
+        raw[name] = _integer(raw[name], f"{label} {name}")
+    raw_hash = _sha256_address(raw["raw_hash"], f"{label} raw_hash")
+    sample_id = raw["sample_id"]
+    if sample_id is not None:
+        sample_id = _required_text(sample_id, f"{label} sample_id")
+    genotype = raw["genotype"]
+    if genotype is not None:
+        genotype = _required_text(genotype, f"{label} genotype")
+    try:
+        call_state = ReferenceBlockCallState(raw["call_state"])
+        span_source = ReferenceBlockSpanSource(raw["span_source"])
+    except (TypeError, ValueError) as exc:
+        raise ValidationError(f"{label} has an unsupported state or span source") from exc
+    record = ReferenceBlockRecord(
+        source_id=raw["source_id"],
+        record_id=raw["record_id"],
+        source_line=raw["source_line"],
+        raw_hash=raw_hash,
+        genome_build=raw["genome_build"],
+        chromosome=raw["chromosome"],
+        start=raw["start"],
+        end=raw["end"],
+        reference=raw["reference"],
+        alternate=raw["alternate"],
+        sample_id=sample_id,
+        genotype=genotype,
+        call_state=call_state,
+        span_source=span_source,
+        info=_json_mapping(raw["info"], f"{label} info"),
+        sample_values=_json_mapping(raw["sample_values"], f"{label} sample_values"),
+        filter_value=raw["filter_value"],
+        quality=raw["quality"],
+    )
+    if raw["length"] != record.length:
+        raise ValidationError(f"{label} length does not match its interval")
+    supplied_address = _content_address(
+        raw["content_address"],
+        f"{label} content_address",
+        prefix="intake-reference-block",
+    )
+    if supplied_address != record.content_address:
+        raise ValidationError(f"{label} content_address does not match its canonical payload")
+    return record
+
+
+def _reference_block_records(value: object, label: str) -> tuple[ReferenceBlockRecord, ...]:
+    raw_records = _sequence(value, label)
+    if len(raw_records) > MAX_VARIANT_INTAKE_RECORDS:
+        raise ValidationError(
+            f"{label} exceeds the maximum of {MAX_VARIANT_INTAKE_RECORDS} records"
+        )
+    return tuple(
+        _reference_block_record(item, f"{label} record {index}")
+        for index, item in enumerate(raw_records)
+    )
+
+
 def _finite_number(value: object, label: str) -> float:
     if type(value) is int:
         return value
@@ -616,10 +720,7 @@ def _case_runtime_work_items(
 ) -> int:
     """Conservatively bound pair scans and downstream target expansion."""
 
-    per_variant = sum(
-        1 + max(1, len(element.target_genes)) + max(1, len(element.state_ids))
-        for element in elements
-    )
+    per_variant = sum(_hypothesis_work_items_per_element(element) for element in elements)
     # Even a live-reference case without declared candidates produces one
     # abstention pass per variant.
     return len(variants) * max(1, per_variant)
@@ -1617,6 +1718,9 @@ class PreparedCase:
                 "batch_address",
                 "intake_receipt",
                 "source_metadata",
+                "reference_block_count",
+                "reference_block_address",
+                "reference_blocks",
             },
             required={
                 "source_id",
@@ -1645,6 +1749,63 @@ class PreparedCase:
             raise ValidationError("accepted preparation variant provenance build does not match")
         _required_text(variant_source["input_format"], "accepted preparation variant format")
         _json_mapping(variant_source["source_metadata"], "accepted preparation variant metadata")
+        has_reference_block_count = "reference_block_count" in variant_source
+        has_reference_block_address = "reference_block_address" in variant_source
+        has_reference_blocks = "reference_blocks" in variant_source
+        if len(
+            {
+                has_reference_block_count,
+                has_reference_block_address,
+                has_reference_blocks,
+            }
+        ) != 1:
+            raise ValidationError(
+                "accepted preparation reference-block provenance must include records, "
+                "count, and address together"
+            )
+        reference_block_count = (
+            _integer(
+                variant_source["reference_block_count"],
+                "accepted preparation reference_block_count",
+            )
+            if has_reference_block_count
+            else 0
+        )
+        if reference_block_count < 0:
+            raise ValidationError("accepted preparation reference_block_count must be non-negative")
+        reference_block_address = (
+            _content_address(
+                variant_source["reference_block_address"],
+                "accepted preparation reference_block_address",
+                prefix="intake-reference-block-set",
+            )
+            if has_reference_block_address
+            else None
+        )
+        reference_blocks = (
+            _reference_block_records(
+                variant_source["reference_blocks"],
+                "accepted preparation reference_blocks",
+            )
+            if has_reference_blocks
+            else ()
+        )
+        if has_reference_blocks:
+            expected_reference_block_address = content_hash(
+                [item.content_address for item in reference_blocks],
+                prefix="intake-reference-block-set",
+            )
+            if (
+                len(reference_blocks) != reference_block_count
+                or expected_reference_block_address != reference_block_address
+            ):
+                raise ValidationError(
+                    "accepted preparation reference-block records do not match their count/address"
+                )
+            if any(not _same_build(item.genome_build, variant_build) for item in reference_blocks):
+                raise ValidationError(
+                    "accepted preparation reference-block build does not match variant source"
+                )
         intake_value = variant_source["intake_receipt"]
         if not isinstance(intake_value, Mapping):
             raise ValidationError(
@@ -1663,6 +1824,7 @@ class PreparedCase:
                 "warning_count",
                 "error_count",
                 "content_address",
+                "reference_block_count",
             },
             required={
                 "source_id",
@@ -1704,11 +1866,25 @@ class PreparedCase:
                 raise ValidationError(
                     f"accepted preparation intake receipt {count_name} must be non-negative"
                 )
+        if "reference_block_count" in intake:
+            intake["reference_block_count"] = _integer(
+                intake["reference_block_count"],
+                "accepted preparation intake receipt reference_block_count",
+            )
+            if intake["reference_block_count"] < 0:
+                raise ValidationError(
+                    "accepted preparation intake receipt reference_block_count "
+                    "must be non-negative"
+                )
+        intake_reference_block_count = int(intake.get("reference_block_count", 0))
         if (
             intake.get("source_id") != variant_source_id
             or intake.get("input_hash") != variant_input
+            or intake_reference_block_count != reference_block_count
         ):
             raise ValidationError("accepted preparation intake receipt provenance does not match")
+        if has_reference_block_count and reference_block_address is None:
+            raise ValidationError("accepted preparation reference-block address is missing")
         intake_address = str(intake["content_address"])
         intake_body = {key: item for key, item in intake.items() if key != "content_address"}
         if intake_address != content_hash(intake_body):
@@ -1913,6 +2089,16 @@ class PreparedCase:
             raise ValidationError("accepted preparation receipt references an unknown issue")
 
         variant_receipt = receipts[0]
+        expected_variant_receipt_metadata = {
+            "input_format",
+            "genome_build",
+            "header_address",
+            "intake_receipt_address",
+        }
+        if has_reference_block_count:
+            expected_variant_receipt_metadata.update(
+                {"reference_block_count", "reference_block_address"}
+            )
         if (
             variant_receipt.source_id != variant_source_id
             or variant_receipt.input_address != variant_input
@@ -1926,13 +2112,16 @@ class PreparedCase:
             or variant_receipt.rejected_count != intake["rejected_count"]
             or variant_receipt.warning_count != intake["warning_count"]
             or variant_receipt.error_count != intake["error_count"]
-            or set(variant_receipt.metadata)
-            != {
-                "input_format",
-                "genome_build",
-                "header_address",
-                "intake_receipt_address",
-            }
+            or set(variant_receipt.metadata) != expected_variant_receipt_metadata
+            or (
+                has_reference_block_count
+                and (
+                    variant_receipt.metadata.get("reference_block_count")
+                    != reference_block_count
+                    or variant_receipt.metadata.get("reference_block_address")
+                    != reference_block_address
+                )
+            )
         ):
             raise ValidationError("accepted preparation variant receipt does not match provenance")
         expected_variant_issues = tuple(
@@ -2733,6 +2922,7 @@ def _variant_batch_address(batch: IntakeBatch, source: VariantSource) -> str:
             "receipt": receipt,
             "variants": [item.to_dict() for item in batch.variants],
             "deferred_records": [item.to_dict() for item in batch.deferred_records],
+            "reference_blocks": [item.to_dict() for item in batch.reference_blocks],
             "issues": [item.to_dict() for item in batch.issues],
         }
     )
@@ -2780,6 +2970,8 @@ def _variant_receipt(
             "genome_build": source.genome_build,
             "header_address": batch.receipt.header_hash,
             "intake_receipt_address": batch.receipt.content_address,
+            "reference_block_count": batch.receipt.reference_block_count,
+            "reference_block_address": batch.reference_block_address,
         },
     )
 
@@ -3233,6 +3425,11 @@ def prepare_case(
                 "batch_address": variant_output,
                 "intake_receipt": intake_receipt,
                 "source_metadata": jsonable(dict(source.metadata)),
+                "reference_block_count": len(variant_batch.reference_blocks),
+                "reference_block_address": variant_batch.reference_block_address,
+                "reference_blocks": [
+                    item.to_dict() for item in variant_batch.reference_blocks
+                ],
             },
             "regulatory_tracks": track_provenance,
             "canonical_order": {
@@ -3747,8 +3944,7 @@ def _case_manifest_schema() -> dict[str, Any]:
             "variant_id values must be unique",
             "candidate element_id values must be unique",
             (
-                "len(variants) * max(1, sum(1 + max(1, len(target_genes)) + "
-                "max(1, len(state_ids)))) must not exceed "
+                "len(variants) * max(1, sum(1 + G + 3 * G * S)) must not exceed "
                 f"{MAX_CASE_RUNTIME_WORK_ITEMS}"
             ),
         ],
@@ -4382,8 +4578,8 @@ def capabilities() -> dict[str, Any]:
             "max_targets_per_element_collection": MAX_CASE_TARGETS_PER_ELEMENT,
             "max_work_items": MAX_CASE_RUNTIME_WORK_ITEMS,
             "work_item_formula": (
-                "variant_count * max(1, sum(1 + max(1, target_gene_count) + "
-                "max(1, state_id_count)))"
+                "variant_count * max(1, sum(1 + G + 3 * G * S)); "
+                "G=max(1,target_gene_count), S=max(1,state_id_count)"
             ),
             "max_run_history_items": MAX_RUN_HISTORY_ENTRIES,
             "max_adapter_ids": ADAPTER_HARD_MAX_SELECTED,

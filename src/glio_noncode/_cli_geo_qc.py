@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="glio-noncode geo-qc",
         description=(
             "Summarize sample coverage and expression distributions in one GEO Series Matrix. "
-            "No samples are automatically excluded."
+            "Flag exact repeated profiles without excluding samples."
         ),
     )
     parser.add_argument("accession", help="NCBI GEO Series accession, such as GSE103227")

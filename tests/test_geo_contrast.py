@@ -6,6 +6,7 @@ import math
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from glio_noncode.cli import main as cli_main
 from glio_noncode.errors import ValidationError
@@ -15,6 +16,7 @@ from glio_noncode.geo_expression import (
     _mann_whitney_test,
     build_expression_contrast_report,
     parse_series_matrix_features,
+    scan_series_matrix_features,
 )
 
 SAMPLE_IDS = tuple(f"GSM0000{index}" for index in range(1, 11))
@@ -113,6 +115,35 @@ class GeoContrastTests(unittest.TestCase):
         self.assertEqual(matrix.platform_ids, ("GPL123",))
         self.assertEqual(len(matrix.source_sha256), 64)
 
+    def test_contrast_streams_feature_rows_without_retaining_the_full_matrix(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "streamed_matrix.txt.gz"
+            matrix_path.write_bytes(_matrix_payload())
+            with (
+                patch(
+                    "glio_noncode.geo_expression.parse_series_matrix_features",
+                    side_effect=AssertionError("contrast must not retain the complete matrix"),
+                ),
+                patch(
+                    "glio_noncode.geo_expression.scan_series_matrix_features",
+                    wraps=scan_series_matrix_features,
+                ) as streaming_scan,
+            ):
+                report = build_expression_contrast_report(
+                    "GSE123456",
+                    case_filters=(("diagnosis", "glioblastoma"),),
+                    reference_filters=(("diagnosis", "normal"),),
+                    scale="normalized_intensity",
+                    matrix_file=matrix_path,
+                    top=20,
+                )
+
+        self.assertEqual(streaming_scan.call_count, 1)
+        self.assertEqual(report["summary"]["tested_feature_count"], 6)
+        self.assertEqual(report["analysis_limits"]["matrix_scan_passes"], 2)
+        self.assertFalse(report["analysis_limits"]["retains_feature_vectors"])
+        self.assertEqual(report["results"][0]["feature_id"], "probe-up-1")
+
     def test_platform_feature_identifiers_may_contain_underscores(self) -> None:
         payload = gzip.compress(
             gzip.decompress(_matrix_payload()).replace(b"probe-up-1", b"probe_up_1", 1),
@@ -151,6 +182,21 @@ class GeoContrastTests(unittest.TestCase):
         self.assertEqual(report["results"][0]["test_method"], "exact_label_permutation")
         self.assertEqual(report["results"][0]["rank_biserial_correlation"], 1.0)
         self.assertEqual(report["results"][0]["effect_direction"], "case_higher")
+        sensitivity = report["results"][0]["leave_one_sample_out_median_sensitivity"]
+        self.assertEqual(sensitivity["status"], "complete")
+        self.assertEqual(sensitivity["full_data_median_direction"], "case_higher")
+        self.assertEqual(sensitivity["omitted_case_sample_count"], 5)
+        self.assertEqual(sensitivity["omitted_reference_sample_count"], 5)
+        self.assertEqual(sensitivity["eligible_omission_count"], 10)
+        self.assertEqual(
+            sensitivity["direction_counts"],
+            {"case_higher": 10, "case_lower": 0, "no_median_difference": 0},
+        )
+        self.assertTrue(sensitivity["direction_stable"])
+        self.assertEqual(sensitivity["median_difference_range"], [8.5, 9.5])
+        self.assertEqual(
+            report["summary"]["median_sensitivity_direction_unstable_feature_count"], 1
+        )
         self.assertEqual(report["summary"]["fdr_significant_case_higher_count"], 5)
         self.assertEqual(report["summary"]["fdr_significant_case_lower_count"], 0)
         self.assertEqual(report["comparison"]["fdr_method"], "bh")
@@ -182,6 +228,73 @@ class GeoContrastTests(unittest.TestCase):
         self.assertIn(
             "Exact two-sided permutation p-values are discrete",
             " ".join(report["limitations"]),
+        )
+
+    def test_unpaired_median_sensitivity_reports_instability_and_eligibility(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "sensitivity_matrix.txt.gz"
+            matrix_text = gzip.decompress(_matrix_payload()).decode("utf-8")
+            sensitivity_rows = [
+                "probe-influential\t1\t1\t1\t1\t1\t0\t10\t100\t0\t0",
+                "probe-partial\t1\t2\tNA\tNA\tNA\t10\t11\t12\tNA\tNA",
+                "probe-two-by-two\t1\t2\tNA\tNA\tNA\t10\t11\tNA\tNA\tNA",
+            ]
+            matrix_text = matrix_text.replace(
+                "!series_matrix_table_end",
+                "\n".join(sensitivity_rows) + "\n!series_matrix_table_end",
+            )
+            matrix_path.write_bytes(gzip.compress(matrix_text.encode("utf-8"), mtime=0))
+            report = build_expression_contrast_report(
+                "GSE123456",
+                case_filters=(("diagnosis", "glioblastoma"),),
+                reference_filters=(("diagnosis", "normal"),),
+                scale="normalized_intensity",
+                matrix_file=matrix_path,
+                top=20,
+            )
+
+        rows = {row["feature_id"]: row for row in report["results"]}
+        null_sensitivity = rows["probe-null"]["leave_one_sample_out_median_sensitivity"]
+        self.assertEqual(null_sensitivity["full_data_median_direction"], "no_median_difference")
+        self.assertFalse(null_sensitivity["direction_stable"])
+        self.assertEqual(
+            null_sensitivity["direction_counts"],
+            {"case_higher": 4, "case_lower": 4, "no_median_difference": 2},
+        )
+        influential = rows["probe-influential"]["leave_one_sample_out_median_sensitivity"]
+        self.assertEqual(influential["status"], "complete")
+        self.assertEqual(influential["full_data_median_direction"], "case_lower")
+        self.assertEqual(
+            influential["direction_counts"],
+            {"case_higher": 3, "case_lower": 7, "no_median_difference": 0},
+        )
+        self.assertFalse(influential["direction_stable"])
+        self.assertEqual(influential["median_difference_range"], [-1.0, 4.0])
+
+        partial = rows["probe-partial"]["leave_one_sample_out_median_sensitivity"]
+        self.assertEqual(partial["status"], "partial")
+        self.assertEqual(partial["reason"], "a_group_has_only_two_observed_values")
+        self.assertEqual(partial["omitted_case_sample_count"], 3)
+        self.assertEqual(partial["omitted_reference_sample_count"], 0)
+        self.assertEqual(partial["eligible_omission_coverage"], 3 / 5)
+        self.assertTrue(partial["direction_stable"])
+
+        two_by_two = rows["probe-two-by-two"]["leave_one_sample_out_median_sensitivity"]
+        self.assertEqual(two_by_two["status"], "unavailable")
+        self.assertEqual(two_by_two["reason"], "no_eligible_single_sample_deletions")
+        self.assertIsNone(two_by_two["direction_stable"])
+
+        missing = rows["probe-missing"]["leave_one_sample_out_median_sensitivity"]
+        self.assertEqual(missing["status"], "unavailable")
+        self.assertEqual(
+            missing["reason"], "fewer_than_two_nonmissing_observations_in_a_group"
+        )
+        self.assertEqual(
+            report["summary"]["median_sensitivity_status_counts"],
+            {"complete": 7, "partial": 1, "unavailable": 2, "not_calculated": 0},
+        )
+        self.assertEqual(
+            report["summary"]["median_sensitivity_direction_unstable_feature_count"], 2
         )
 
     def test_finite_sample_resolution_tracks_per_feature_missingness(self) -> None:
@@ -241,6 +354,9 @@ class GeoContrastTests(unittest.TestCase):
         self.assertEqual(signal["degrees_of_freedom"], 6)
         self.assertTrue(0.0 <= signal["p_value"] <= 1.0)
         self.assertEqual(signal["test_method"], "covariate_adjusted_ols_t_test")
+        self.assertEqual(
+            signal["leave_one_sample_out_median_sensitivity"]["status"], "not_calculated"
+        )
         self.assertIsNone(signal["rank_biserial_correlation"])
         self.assertEqual(
             results["probe-adjusted-missing"]["reason"],
@@ -251,6 +367,9 @@ class GeoContrastTests(unittest.TestCase):
         self.assertIsNone(results["probe-flat"]["adjusted_r_squared"])
         self.assertEqual(report["summary"]["tested_feature_count"], 1)
         self.assertEqual(report["summary"]["fdr_family_size"], 1)
+        self.assertEqual(
+            report["summary"]["median_sensitivity_status_counts"]["not_calculated"], 3
+        )
         self.assertAlmostEqual(signal["q_value"], signal["p_value"])
         self.assertEqual(
             report["comparison"]["model"]["parameter_names"],

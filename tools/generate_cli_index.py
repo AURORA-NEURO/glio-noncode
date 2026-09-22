@@ -17,6 +17,12 @@ SHELL_COMMANDS = (
     ("geo-outlier", "compare one GEO expression feature with explicit references"),
     ("geo-count-outlier", "compare one gene row across a GEO supplementary count matrix"),
     ("geo-count-contrast", "compare paired groups across a GEO supplementary count matrix"),
+    ("geo-count-design", "preflight paired GEO count-matrix joins without feature tests"),
+    ("geo-count-metadata", "inspect GEO supplementary count-matrix sample metadata"),
+    (
+        "reference-block-query",
+        "query one sample's gVCF blocks by interval or canonical variant span",
+    ),
     ("geo-qc", "summarize sample coverage and matrix quality before analysis"),
     ("geo-metadata", "inventory GEO sample characteristics before contrast design"),
     ("geo-design", "check GEO cohort selection and contrast estimability"),

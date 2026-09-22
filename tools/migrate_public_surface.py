@@ -733,6 +733,26 @@ CURATED_EXPORTS: dict[str, Descriptor] = {
     "VerifiedRunSnapshot": ("glio_noncode.runtime", "VerifiedRunSnapshot"),
     "ObjectStore": ("glio_noncode.storage", "ObjectStore"),
     "RunStore": ("glio_noncode.storage", "RunStore"),
+    "HaplotypeMotifChange": (
+        "glio_noncode.sequence_inference",
+        "HaplotypeMotifChange",
+    ),
+    "HaplotypeMotifDelta": (
+        "glio_noncode.sequence_inference",
+        "HaplotypeMotifDelta",
+    ),
+    "HaplotypeSequenceAnalysisResult": (
+        "glio_noncode.sequence_inference",
+        "HaplotypeSequenceAnalysisResult",
+    ),
+    "PhasedVariantIdentity": (
+        "glio_noncode.sequence_inference",
+        "PhasedVariantIdentity",
+    ),
+    "SequenceAnalysisState": (
+        "glio_noncode.sequence_inference",
+        "SequenceAnalysisState",
+    ),
 }
 
 

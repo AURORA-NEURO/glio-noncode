@@ -92,7 +92,9 @@ expression feature vectors:
 After choosing explicit groups, `geo-design` checks sample membership, declared
 covariate completeness, and model estimability before running the feature-wide
 screen. It validates the source matrix but does not calculate expression
-effects, test statistics, or p-values:
+effects, test statistics, or p-values. Adjusted preflights report descriptive
+continuous-covariate standardized differences and range overlap, plus categorical
+level fractions and prevalence gaps; they apply no balance threshold:
 
     glio-noncode geo-design GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal
 
@@ -102,7 +104,12 @@ For a two-group exploratory screen across one GEO platform, `geo-contrast`
 tests all eligible matrix features and applies Benjamini-Hochberg correction.
 Group membership comes only from explicit sample-characteristic filters. The
 default rank-based comparison does not adjust for covariates or establish
-clinical evidence.
+clinical evidence. Unadjusted feature rows also summarize leave-one-sample-out
+median direction stability; this descriptive check does not refit tests or
+change p-values. Covariate-adjusted OLS rows mark the median-based check as not
+calculated. The contrast reader streams feature rows in a second bounded pass
+instead of retaining the full feature-by-sample value table; report analysis
+limits disclose this memory behavior.
 
     glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --fdr 0.05 --top 1000
 
@@ -129,9 +136,41 @@ pairs, applies BH or BY correction across all uniquely labeled tested rows, and
 omits sample/pair identifiers from its aggregate report. It is explicitly
 exploratory and not a count-model differential-expression workflow. It also
 reports pair-direction counts and a separately adjusted direction-only
-sign-test sensitivity:
+sign-test sensitivity. Each feature also reports a leave-one-pair-out median
+effect range and direction-stability diagnostic, which can flag effects whose
+median direction changes when one matched pair is omitted; this does not refit
+the hypothesis test or alter FDR adjustment. Its report also summarizes matched
+sample library depths, low-count feature detection, top-feature count shares,
+and within-pair library imbalance without emitting sample identifiers or
+automatically excluding samples. It reports a pointwise exact sign/order-statistic
+interval for each median paired effect; small cohorts may not support a finite
+interval at the requested confidence level. Set that level with
+`--confidence-level` (default 0.95); intervals are not multiplicity-adjusted and
+do not change the signed-rank test or FDR results:
 
     glio-noncode geo-count-contrast GSE141945 --case-filter Timepoint=Tumor --reference-filter Timepoint=1wk --sample-key-column "" --pair-key-column Patient --counts-file-name GSE141945_RNAseq.counts.csv.gz --metadata-file-name GSE141945_RNAseq.metadata.csv.gz --top 1000
+
+Both count workflows default to raw-library `log2(CPM + 1)`. Opt into
+composition adjustment with `--normalization-method tmm_log2_cpm`; this
+estimates TMM factors across the matrix and reports aggregate factor summaries.
+TMM assumes most uniquely identified features are stable and does not turn
+these exploratory tests into a count-model differential-expression analysis.
+See [the real downloaded-data demo](docs/REAL_GLIOMA_DATA_DEMO.md) for an
+executed CPM-versus-TMM comparison on GSE141945.
+
+For the single-feature `geo-count-outlier` and paired `geo-count-contrast`
+workflows, manually reviewed identifiers can be added with
+`--feature-annotation-file` and a UTF-8 CSV containing
+`source_feature_id,curated_feature_id`. Original matrix IDs and all statistical
+calculations remain unchanged; the mapping is recorded by hash and is never
+checked against an annotation authority automatically.
+
+Before choosing supplementary-metadata fields, `geo-count-metadata` inventories
+column coverage, bounded category frequencies, and optional pair-key completeness
+without emitting sample or subject identifiers. Its source hash and exact filter
+matching semantics make it easier to inspect locally downloaded metadata before
+running the paired contrast. See `docs/GEO_EXPRESSION_WORKFLOW.md` for limits and
+privacy details.
 
 To compare up to 500 exact platform feature IDs across completed Series reports,
 add `--track-feature-id` to each contrast when a feature may
@@ -140,7 +179,12 @@ It requires one shared GPL platform and identical scale, FDR settings, and
 covariate specification. Case and reference filters must also match in the same
 roles (case-insensitively; AND-filter order is ignored); incompatible definitions
 are rejected with a specific, path-free error. It reports direction agreement
-only; it does not pool statistics, map aliases, or establish independent cohorts:
+across all tested reports and separately among FDR-significant reports; a
+non-significant result is not treated as opposite-direction evidence. Each study
+row retains its own feature-level sample counts and effect estimates (including
+mean/median differences and rank-biserial effect, or adjusted coefficient and
+interval). These are not pooled; aliases are not mapped and cohort independence
+is not established:
 
     glio-noncode geo-contrast GSE_A --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --track-feature-id EXACT_PLATFORM_ID --output GSE_A.json
     glio-noncode geo-contrast GSE_B --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --track-feature-id EXACT_PLATFORM_ID --output GSE_B.json
@@ -520,6 +564,25 @@ The intake boundary accepts VCF, gVCF, TSV, JSON, and binary BCF, expands multia
 preserves source hashes and sample/INFO fields, skips no-call and reference-only
 genotypes by default, and defers symbolic or breakend alleles to structural
 reconstruction. The bounded role/tool registry is available with `registry`.
+
+For a build- and sample-specific gVCF reference-confidence query, request an
+explicit zero-based half-open interval:
+
+```powershell
+glio-noncode reference-block-query sample.g.vcf.gz --sample-id SAMPLE_01 --genome-build GRCh38 --chromosome 7 --start 55000000 --end 55000100 --output coverage.json
+```
+
+To query a canonical variant's reference span instead, use `--variant` with
+one-based notation (quote `>` in PowerShell):
+
+```powershell
+glio-noncode reference-block-query sample.g.vcf.gz --sample-id SAMPLE_01 --genome-build GRCh38 --variant '7:55000001:A>T' --output variant-coverage.json
+```
+
+The report keeps reference, no-call, unknown, uncovered, and conflicting spans
+distinct. It is a query over recorded blocks, not a quality-filtered callability
+assessment or proof that alternate alleles are absent. See
+[docs/INTAKE.md](docs/INTAKE.md) for bounds and semantics.
 
 For larger variant sources, the streaming boundary reads VCF one line at a time
 and raw or BGZF BCF one byte block at a time while retaining a bounded result

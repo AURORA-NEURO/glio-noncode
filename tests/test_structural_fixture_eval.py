@@ -108,6 +108,26 @@ class StructuralFixtureEvaluationTests(unittest.TestCase):
         )
         self.assertFalse(failed.passed)
 
+    def test_complex_event_input_does_not_coerce_booleans_into_numeric_values(self) -> None:
+        for field in ("position", "reconstruction_support"):
+            with self.subTest(field=field):
+                raw = copy.deepcopy(self.raw)
+                record = next(
+                    item for item in raw["positives"] if item["operation"] == "complex_resolution"
+                )
+                event = record["payload"]["events"][0]
+                if field == "position":
+                    event["breakends"][0][field] = True
+                else:
+                    event[field] = True
+
+                report = evaluate_structural_fixture(StructuralFixtureCatalog.from_mapping(raw))
+                receipt = next(
+                    item for item in report.receipts if item.record_id == "positive-complex"
+                )
+                self.assertEqual(receipt.observed_state, StructuralFixtureState.REVIEW)
+                self.assertEqual(receipt.issue_codes, ("validation_error",))
+
     def test_repeated_evaluation_is_deterministic(self) -> None:
         first = evaluate_structural_fixture(str(FIXTURE_PATH))
         second = evaluate_structural_fixture(str(FIXTURE_PATH))

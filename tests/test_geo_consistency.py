@@ -13,10 +13,10 @@ from glio_noncode.geo_expression import build_expression_contrast_report
 from glio_noncode.serialization import content_hash
 
 FEATURE_VALUES = {
-    "probe-a-concordant": (1, 2, 3, 10, 11, 12),
-    "probe-b-discordant": (1, 2, 3, 10, 11, 12),
-    "probe-c-neutral": (5, 5, 5, 5, 5, 5),
-    "probe-d-untestable": (1, 2, 3, 10, "NA", "NA"),
+    "probe-a-concordant": (1, 2, 3, 4, 5, 6, 10, 11, 12, 13, 14, 15),
+    "probe-b-discordant": (1, 2, 3, 4, 5, 6, 10, 11, 12, 13, 14, 15),
+    "probe-c-neutral": (5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5),
+    "probe-d-untestable": (1, 2, 3, 4, 5, 6, 10, "NA", "NA", "NA", "NA", "NA"),
 }
 
 
@@ -27,9 +27,23 @@ def _matrix_payload(
     reverse_group_roles: bool = False,
     sample_base: int = 1,
 ) -> bytes:
-    sample_ids = tuple(f"GSM{sample_base + index:06d}" for index in range(6))
+    sample_ids = tuple(f"GSM{sample_base + index:06d}" for index in range(12))
     quoted_samples = "\t".join(f'"{sample}"' for sample in sample_ids)
-    diagnoses = ("normal", "normal", "normal", "glioblastoma", "glioblastoma", "glioblastoma")
+    diagnoses = (
+        "normal",
+        "normal",
+        "normal",
+        "normal",
+        "normal",
+        "normal",
+        "glioblastoma",
+        "glioblastoma",
+        "glioblastoma",
+        "glioblastoma",
+        "glioblastoma",
+        "glioblastoma",
+    )
+    ages = ("38", "45", "52", "41", "49", "55", "36", "44", "51", "40", "48", "54")
     if reverse_group_roles:
         diagnoses = tuple(reversed(diagnoses))
     rows = [
@@ -40,12 +54,14 @@ def _matrix_payload(
         f"!Sample_geo_accession\t{quoted_samples}",
         "!Sample_characteristics_ch1\t"
         + "\t".join(f'"diagnosis: {value}"' for value in diagnoses),
+        "!Sample_characteristics_ch1\t"
+        + "\t".join(f'"age: {value}"' for value in ages),
         "!series_matrix_table_begin",
         f"ID_REF\t{quoted_samples}",
     ]
     for feature_id, values in FEATURE_VALUES.items():
         if feature_id == "probe-b-discordant" and reverse_discordant:
-            values = (*values[3:], *values[:3])
+            values = (*values[6:], *values[:6])
         rows.append(f"{feature_id}\t" + "\t".join(map(str, values)))
     rows.append("!series_matrix_table_end")
     return gzip.compress(("\n".join(rows) + "\n").encode("utf-8"), mtime=0)
@@ -61,6 +77,7 @@ def _contrast_report(
     top: int = 10,
     fdr_method: str = "bh",
     track_feature_ids: tuple[str, ...] = (),
+    covariates: tuple[tuple[str, str], ...] = (),
 ) -> dict[str, object]:
     matrix_path = root / f"{accession}-matrix.txt.gz"
     matrix_path.write_bytes(
@@ -81,6 +98,7 @@ def _contrast_report(
         fdr_threshold=0.05,
         top=top,
         track_feature_ids=track_feature_ids,
+        covariates=covariates,
     )
 
 
@@ -122,6 +140,36 @@ class GeoContrastConsistencyTests(unittest.TestCase):
             "discordant_among_reported",
         )
         self.assertEqual(
+            by_feature["probe-a-concordant"]["summary"][
+                "fdr_significant_direction_consistency"
+            ],
+            "concordant_among_fdr_significant",
+        )
+        self.assertEqual(
+            by_feature["probe-b-discordant"]["summary"][
+                "fdr_significant_direction_consistency"
+            ],
+            "discordant_among_fdr_significant",
+        )
+        self.assertEqual(
+            by_feature["probe-c-neutral"]["summary"][
+                "fdr_significant_direction_consistency"
+            ],
+            "insufficient_fdr_significant_reports",
+        )
+        self.assertGreaterEqual(
+            by_feature["probe-a-concordant"]["summary"][
+                "fdr_significant_direction_observation_count"
+            ],
+            2,
+        )
+        for feature_id in ("probe-a-concordant", "probe-b-discordant"):
+            for observation in by_feature[feature_id]["studies"]:
+                self.assertTrue(observation["fdr_significant"])
+                self.assertLessEqual(
+                    observation["q_value"], report["comparison"]["fdr_threshold"]
+                )
+        self.assertEqual(
             by_feature["probe-c-neutral"]["summary"]["distinct_directions"], ["neutral"]
         )
         self.assertEqual(by_feature["probe-d-untestable"]["summary"]["untestable_count"], 2)
@@ -135,7 +183,53 @@ class GeoContrastConsistencyTests(unittest.TestCase):
         )
         self.assertFalse(report["analysis"]["p_values_combined"])
         self.assertNotIn("combined_p_value", json.dumps(report))
+        concordant_studies = by_feature["probe-a-concordant"]["studies"]
+        concordant_effect = concordant_studies[0]["effect_estimates"]
+        self.assertEqual(concordant_effect["mode"], "unadjusted")
+        self.assertEqual(concordant_effect["mean_difference"], 9.0)
+        self.assertEqual(concordant_effect["median_difference"], 9.0)
+        self.assertEqual(concordant_effect["rank_biserial_correlation"], 1.0)
+        self.assertEqual(concordant_studies[0]["feature_case_sample_count"], 6)
+        self.assertEqual(concordant_studies[0]["feature_reference_sample_count"], 6)
+        discordant_effect = by_feature["probe-b-discordant"]["studies"][1]["effect_estimates"]
+        self.assertEqual(discordant_effect["mean_difference"], -9.0)
+        self.assertEqual(discordant_effect["rank_biserial_correlation"], -1.0)
+        self.assertNotIn("pooled_effect", json.dumps(report))
         self.assertEqual(report["summary"]["shared_sample_id_count_across_series"], 0)
+
+    def test_adjusted_effect_estimates_and_confidence_intervals_stay_per_study(self) -> None:
+        covariates = (("age", "continuous"),)
+        first = _contrast_report(
+            self.root,
+            "GSE123472",
+            sample_base=401,
+            covariates=covariates,
+        )
+        second = _contrast_report(
+            self.root,
+            "GSE123473",
+            sample_base=501,
+            reverse_discordant=True,
+            covariates=covariates,
+        )
+
+        report = build_geo_contrast_consistency_report(
+            (first, second),
+            feature_ids=("probe-a-concordant",),
+        )
+        observations = report["features"][0]["studies"]
+        for observation in observations:
+            estimates = observation["effect_estimates"]
+            self.assertEqual(estimates["mode"], "covariate_adjusted_ols")
+            self.assertEqual(estimates["confidence_level"], 0.95)
+            self.assertEqual(observation["feature_case_sample_count"], 6)
+            self.assertEqual(observation["feature_reference_sample_count"], 6)
+            self.assertIsNotNone(estimates["adjusted_mean_difference"])
+            confidence_interval = estimates["confidence_interval"]
+            self.assertEqual(len(confidence_interval), 2)
+            self.assertLessEqual(confidence_interval[0], estimates["adjusted_mean_difference"])
+            self.assertLessEqual(estimates["adjusted_mean_difference"], confidence_interval[1])
+        self.assertFalse(report["analysis"]["effect_sizes_pooled"])
 
     def test_tracked_features_remain_comparable_beyond_ranked_result_limit(self) -> None:
         first = _contrast_report(
@@ -201,8 +295,8 @@ class GeoContrastConsistencyTests(unittest.TestCase):
             feature_ids=("probe-a-concordant",),
         )
 
-        self.assertEqual(report["summary"]["shared_sample_id_count_across_series"], 6)
-        self.assertEqual(report["summary"]["sample_ids_assigned_to_different_groups"], 6)
+        self.assertEqual(report["summary"]["shared_sample_id_count_across_series"], 12)
+        self.assertEqual(report["summary"]["sample_ids_assigned_to_different_groups"], 12)
         self.assertTrue(report["analysis"]["shared_sample_ids_detected"])
         self.assertTrue(report["analysis"]["cross_series_group_conflict_detected"])
 

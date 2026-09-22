@@ -903,8 +903,11 @@ identity mismatch, persistence mismatch, or failed replay integrity.
   and capabilities discovery.
 - Every candidate element may contain at most 128 target genes and 128 state IDs. Preparation and
   hydration also cap conservative runtime work at 10,000 units, computed as
-  `variant_count * max(1, sum(1 + max(1, target_gene_count) + max(1, state_id_count)))` across
-  candidates. An over-budget preparation returns the typed `case_runtime_work_limit_exceeded` gate;
+  `variant_count * max(1, sum(1 + G + 3 * G * S))` across candidates, where
+  `G=max(1,target_gene_count)` and `S=max(1,state_id_count)`. This includes one shared
+  variant-to-element item, one element-to-gene item per gene, and a gene-to-state edge, causal-path
+  edge, and materialized hypothesis for every candidate gene/state combination. An over-budget
+  preparation returns the typed `case_runtime_work_limit_exceeded` gate;
   a forged or stale persisted manifest fails validation before execution.
 - Case, source, receipt, and hydrated run metadata are recursively canonicalized and frozen. Keys
   must be strings, numbers finite, recursive/non-JSON values are rejected, and user metadata cannot

@@ -654,7 +654,8 @@ class AdapterHardeningTests(unittest.TestCase):
 
     def test_static_adapter_validates_construction_and_direct_arguments(self) -> None:
         case = fixture_manifest()
-        malformed = replace(case.candidate_elements[0], start=True)
+        malformed = copy.copy(case.candidate_elements[0])
+        object.__setattr__(malformed, "start", True)
         with self.assertRaises(ValidationError):
             StaticElementAdapter(_metadata(), (malformed,))
 

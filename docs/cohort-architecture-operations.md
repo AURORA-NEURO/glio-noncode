@@ -22,3 +22,14 @@ Controls are not discarded because they do not support a positive result. They a
 ## Claim ceiling
 
 Recurrence is a descriptive count. Burden is a callable-space comparison. Convergence is a bounded feature or set contrast. Longitudinal records show declared phase and frequency relationships. Fairness, transport, and federated summaries expose their own thresholds and gaps. Cohort discovery is a publication bundle over aggregate feature identities. None of these operations alone establishes a mechanism, prognosis, treatment choice, benefit, resistance, or transportability.
+
+## Coverage accounting
+
+The C09-C12 cohort manifest declares expected record identifiers separately
+for each operation, and separately declares the publishable evidence identifiers
+expected for each pipeline claim. Structural input coverage therefore uses the
+manifest's record denominator, while pipeline claim coverage uses its own
+claim denominator; neither is inferred from the observed rows in a run. Reports
+label a missing-input run `partial`, flag unmanifested evidence as `unexpected`,
+and grant complete coverage only when both identity sets reconcile exactly and
+the data audit passes.

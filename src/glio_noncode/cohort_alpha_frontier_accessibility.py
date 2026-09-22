@@ -32,10 +32,47 @@ class CohortAlphaFrontierAccessibilityReport:
         return jsonable(self)
 
 
-def build_cohort_alpha_frontier_accessibility(report: CohortAlphaFrontierReport) -> CohortAlphaFrontierAccessibilityReport:
-    labels = tuple(CohortAlphaFrontierAccessibilityLabel(section.section_id, section.title, section.body, section.order, content_hash({"id": section.section_id, "label": section.title, "description": section.body, "order": section.order}, prefix="alpha-accessibility")) for section in report.sections if section.visible)
+def build_cohort_alpha_frontier_accessibility(
+    report: CohortAlphaFrontierReport,
+) -> CohortAlphaFrontierAccessibilityReport:
+    labels = tuple(
+        CohortAlphaFrontierAccessibilityLabel(
+            section.section_id,
+            section.title,
+            section.body,
+            section.order,
+            content_hash(
+                {
+                    "id": section.section_id,
+                    "label": section.title,
+                    "description": section.body,
+                    "order": section.order,
+                },
+                prefix="alpha-accessibility",
+            ),
+        )
+        for section in report.sections
+        if section.visible
+    )
     plain = "\n".join(f"{item.reading_order}. {item.label}: {item.description}" for item in labels)
-    return CohortAlphaFrontierAccessibilityReport(labels, plain, len(labels) == 6 and tuple(item.reading_order for item in labels) == tuple(range(1, 7)), content_hash({"labels": labels, "plain": plain}, prefix="alpha-accessibility-report"))
+    expected_visible_count = sum(section.visible for section in report.sections)
+    complete_order = tuple(item.reading_order for item in labels) == tuple(
+        range(1, len(labels) + 1)
+    )
+    accepted = len(labels) == expected_visible_count and complete_order
+    body = {
+        "labels": labels,
+        "plain": plain,
+        "expected_visible_count": expected_visible_count,
+        "accepted": accepted,
+    }
+    return CohortAlphaFrontierAccessibilityReport(
+        labels, plain, accepted, content_hash(body, prefix="alpha-accessibility-report")
+    )
 
 
-__all__ = ["CohortAlphaFrontierAccessibilityLabel", "CohortAlphaFrontierAccessibilityReport", "build_cohort_alpha_frontier_accessibility"]
+__all__ = [
+    "CohortAlphaFrontierAccessibilityLabel",
+    "CohortAlphaFrontierAccessibilityReport",
+    "build_cohort_alpha_frontier_accessibility",
+]

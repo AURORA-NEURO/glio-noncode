@@ -6759,6 +6759,25 @@ class ApiHandler(BaseHTTPRequestHandler):
         path = parsed.path
         if not self._authorize_request():
             return
+        if path in {
+            "/",
+            "/workspace",
+            "/workspace/",
+            "/assets/review-workbench.css",
+            "/assets/review-workbench.js",
+        }:
+            from .review_workbench_ui import WORKBENCH_SECURITY_HEADERS, workbench_asset
+
+            asset = workbench_asset(path)
+            if asset is not None:
+                body, content_type = asset
+                self._write_bytes(
+                    HTTPStatus.OK,
+                    body,
+                    content_type=content_type,
+                    headers=WORKBENCH_SECURITY_HEADERS,
+                )
+                return
         if path == "/v1/case-workflow/schema":
             self._write(HTTPStatus.OK, case_workflow_schema())
             return
@@ -25494,6 +25513,70 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/geo-analyses" or path.startswith("/v1/geo-analyses/"):
+            try:
+                from .geo_analysis_store import GeoAnalysisStore
+
+                store = GeoAnalysisStore(self._runtime().store.root)
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path == "/v1/geo-analyses":
+                    unknown = set(query) - {"offset", "limit"}
+                    if unknown:
+                        raise ValueError(
+                            f"GEO analysis catalog has unknown query parameters: {sorted(unknown)}"
+                        )
+                    self._write(
+                        HTTPStatus.OK,
+                        store.list_reports(
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 20),
+                        ),
+                    )
+                    return
+                segments = [unquote(item) for item in path.split("/") if item]
+                if len(segments) == 4 and segments[:2] == ["v1", "geo-analyses"]:
+                    if segments[3] != "report.json":
+                        self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                        return
+                    if query:
+                        raise ValueError("GEO report export does not accept query parameters")
+                    saved = store.get_report(segments[2])
+                    accession = saved["summary"]["accession"]
+                    filename = f"GLIO-NONCODE-{accession}-{saved['analysis_id']}.json"
+                    self._write(
+                        HTTPStatus.OK,
+                        saved["report"],
+                        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+                    )
+                    return
+                if len(segments) != 3 or segments[:2] != ["v1", "geo-analyses"]:
+                    self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                    return
+                unknown = set(query) - {"offset", "limit"}
+                if unknown:
+                    raise ValueError(
+                        f"GEO analysis page has unknown query parameters: {sorted(unknown)}"
+                    )
+                self._write(
+                    HTTPStatus.OK,
+                    store.page_results(
+                        segments[2],
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 25),
+                    ),
+                )
+            except KeyError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "GEO analysis not found"})
+            except (ValidationError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except StoreError:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "geo_analysis_unavailable", "message": "GEO analysis could not be verified"},
+                )
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return

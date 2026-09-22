@@ -11,6 +11,36 @@ withholds details. The projection never publishes raw evidence payloads,
 producer metadata, direct subject/sample/contact fields, or a single aggregate
 decision score.
 
+## Local browser workbench
+
+Start the loopback API and open `http://127.0.0.1:8765/` in a browser:
+
+```powershell
+glio-noncode serve --host 127.0.0.1 --port 8765 --data-root .glio
+```
+
+The workbench is a read-only client of the existing run-catalog and review
+workspace endpoints. It shows replay-checked runs, candidate paths, separate
+support and uncertainty values, edge-level evidence states, alternatives,
+source lineage, review-queue reasons, optional baseline deltas, and a Markdown
+export. It does not calculate scores, promote a claim, or change a persisted
+run. Assets are served from the installed package, use same-origin requests,
+and do not fetch fonts, scripts, or styles from third parties. Keep the default
+loopback bind for local use; non-loopback deployments must retain the existing
+deployment-profile authentication, TLS, and audit requirements.
+
+Completed paired GEO count contrasts can be saved separately as aggregate
+study reports with `geo-count-contrast --save-to-workspace --data-root .glio`.
+They appear in the workbench's GEO analyses rail and retain input digests,
+comparison design, quality checks, result rows, and stated limitations. These
+reports are not converted into case dossiers or causal hypotheses. The API
+catalog is `GET /v1/geo-analyses?limit=20&offset=0`; one result page is
+`GET /v1/geo-analyses/{analysis_id}?limit=25&offset=0`.
+The verified complete report can be downloaded as JSON from
+`GET /v1/geo-analyses/{analysis_id}/report.json`; the response is an attachment
+named with its GEO accession and content-addressed analysis ID. The workbench
+enables this export only after the selected report page has passed verification.
+
 ## Review collections
 
 - `hypotheses` retains mechanism, context, status, support, uncertainty, edge

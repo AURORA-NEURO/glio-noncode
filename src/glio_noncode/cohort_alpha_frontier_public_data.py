@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import Any
 
 from .cohort_alpha import CohortAlphaState
 from .serialization import content_hash, jsonable, require_non_empty
@@ -12,6 +13,14 @@ C09_C12_CONTEXT = "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment"
 C09_C12_FOREIGN_CONTEXT = "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment"
 C09_C12_FIXTURE_VERSION = "2026.08.d12-c09-c12.v1"
 C09_C12_BOUNDARY = "descriptive_public_longitudinal_aggregate_evidence"
+C09_C12_OPERATIONS = ("C09", "C10", "C11", "C12")
+C09_C12_EXPECTED_RECORD_IDS_BY_OPERATION = (
+    ("C09", ("c09-positive", "c09-partial", "c09-foreign", "c09-abstained")),
+    ("C10", ("c10-positive", "c10-partial", "c10-foreign", "c10-abstained")),
+    ("C11", ("c11-positive", "c11-partial", "c11-foreign", "c11-abstained")),
+    ("C12", ("c12-positive", "c12-ambiguous", "c12-foreign", "c12-abstained")),
+)
+_MAX_C09_C12_FIXTURE_RECORDS = 256
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,10 +71,16 @@ class CohortAlphaFrontierFixture:
         require_non_empty(self.fixture_id, "fixture_id")
         require_non_empty(self.fixture_version, "fixture_version")
         require_non_empty(self.context_key, "context_key")
-        if len(self.records) != 16:
-            raise ValueError("C09-C12 fixture requires sixteen operation paths")
-        if {item.operation for item in self.records} != {"C09", "C10", "C11", "C12"}:
-            raise ValueError("C09-C12 fixture must cover all four operations")
+        if type(self.records) is not tuple:
+            raise ValueError("C09-C12 fixture records must be a tuple")
+        if len(self.records) > _MAX_C09_C12_FIXTURE_RECORDS:
+            raise ValueError("C09-C12 fixture exceeds its record safety limit")
+        record_ids = tuple(item.record_id for item in self.records)
+        if len(set(record_ids)) != len(record_ids):
+            raise ValueError("C09-C12 fixture record IDs must be unique")
+        unsupported = {item.operation for item in self.records} - set(C09_C12_OPERATIONS)
+        if unsupported:
+            raise ValueError(f"C09-C12 fixture has unsupported operations: {sorted(unsupported)}")
 
     @property
     def operations(self) -> tuple[str, ...]:
@@ -170,13 +185,39 @@ def default_cohort_alpha_frontier_fixture() -> CohortAlphaFrontierFixture:
 
 
 def audit_cohort_alpha_frontier_data(fixture: CohortAlphaFrontierFixture) -> CohortAlphaFrontierDataAudit:
-    operation_counts = {operation: sum(item.operation == operation for item in fixture.records) for operation in fixture.operations}
+    expected_by_operation = dict(C09_C12_EXPECTED_RECORD_IDS_BY_OPERATION)
+    observed_by_operation = {
+        operation: tuple(item.record_id for item in fixture.records if item.operation == operation)
+        for operation in C09_C12_OPERATIONS
+    }
+    operation_counts = {operation: len(ids) for operation, ids in observed_by_operation.items()}
     control_counts = {control: sum(item.control_class == control for item in fixture.records) for control in sorted({item.control_class for item in fixture.records})}
-    foreign = sum(item.control_class == "foreign_context" for item in fixture.records)
-    findings = ("all rows are pseudonymous aggregate inputs", "each operation has positive, incomplete, foreign, and empty paths", "phase and cohort boundaries remain explicit")
-    accepted = len(fixture.sources) == 6 and len(fixture.records) == 16 and foreign == 4 and all(count == 4 for count in operation_counts.values())
+    foreign_ids = {item.record_id for item in fixture.records if item.control_class == "foreign_context"}
+    expected_foreign_ids = {"c09-foreign", "c10-foreign", "c11-foreign", "c12-foreign"}
+    findings = ["rows are treated as pseudonymous aggregate inputs", "phase and cohort boundaries remain explicit"]
+    missing_ids = {
+        operation: tuple(sorted(set(expected_by_operation[operation]) - set(observed_by_operation[operation])))
+        for operation in C09_C12_OPERATIONS
+    }
+    extra_ids = {
+        operation: tuple(sorted(set(observed_by_operation[operation]) - set(expected_by_operation[operation])))
+        for operation in C09_C12_OPERATIONS
+    }
+    if any(missing_ids.values()):
+        findings.append("one or more manifest-declared record IDs are missing")
+    if any(extra_ids.values()):
+        findings.append("one or more record IDs are outside the declared cohort")
+    if foreign_ids != expected_foreign_ids:
+        findings.append("foreign-context control identities differ from the declared controls")
+    accepted = (
+        len(fixture.sources) == 6
+        and not any(missing_ids.values())
+        and not any(extra_ids.values())
+        and foreign_ids == expected_foreign_ids
+    )
+    foreign = len(foreign_ids)
     body = {"fixture_id": fixture.fixture_id, "source_count": len(fixture.sources), "record_count": len(fixture.records), "operation_counts": operation_counts, "control_counts": control_counts, "foreign": foreign, "accepted": accepted}
-    return CohortAlphaFrontierDataAudit(fixture.fixture_id, len(fixture.sources), len(fixture.records), operation_counts, control_counts, foreign, accepted, findings, content_hash(body, prefix="alpha-audit"))
+    return CohortAlphaFrontierDataAudit(fixture.fixture_id, len(fixture.sources), len(fixture.records), operation_counts, control_counts, foreign, accepted, tuple(findings), content_hash(body, prefix="alpha-audit"))
 
 
 def cohort_alpha_frontier_fixture_json(fixture: CohortAlphaFrontierFixture | None = None) -> str:
@@ -184,4 +225,4 @@ def cohort_alpha_frontier_fixture_json(fixture: CohortAlphaFrontierFixture | Non
     return json.dumps((fixture or default_cohort_alpha_frontier_fixture()).to_dict(), sort_keys=True, indent=2)
 
 
-__all__ = ["C09_C12_BOUNDARY", "C09_C12_CONTEXT", "C09_C12_FIXTURE_VERSION", "C09_C12_FOREIGN_CONTEXT", "CohortAlphaFrontierDataAudit", "CohortAlphaFrontierFixture", "CohortAlphaFrontierRecord", "CohortAlphaFrontierSource", "audit_cohort_alpha_frontier_data", "cohort_alpha_frontier_fixture_json", "default_cohort_alpha_frontier_fixture"]
+__all__ = ["C09_C12_BOUNDARY", "C09_C12_CONTEXT", "C09_C12_EXPECTED_RECORD_IDS_BY_OPERATION", "C09_C12_FIXTURE_VERSION", "C09_C12_FOREIGN_CONTEXT", "C09_C12_OPERATIONS", "CohortAlphaFrontierDataAudit", "CohortAlphaFrontierFixture", "CohortAlphaFrontierRecord", "CohortAlphaFrontierSource", "audit_cohort_alpha_frontier_data", "cohort_alpha_frontier_fixture_json", "default_cohort_alpha_frontier_fixture"]

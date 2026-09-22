@@ -15,13 +15,27 @@ from glio_noncode.serialization import content_hash
 SAMPLE_IDS = tuple(f"GSM{index:06d}" for index in range(1, 9))
 
 
-def _matrix_payload(*, missing_age: int | None = None, confounded_batch: bool = False) -> bytes:
+def _matrix_payload(
+    *,
+    missing_age: int | None = None,
+    confounded_batch: bool = False,
+    separated_age_ranges: bool = False,
+    case_only_batch_level: bool = False,
+) -> bytes:
     quoted_samples = "\t".join(f'"{sample}"' for sample in SAMPLE_IDS)
     diagnoses = ("glioblastoma",) * 4 + ("normal",) * 4
-    ages = ["40", "50", "60", "70", "30", "40", "50", "60"]
+    ages = (
+        ["70", "80", "90", "100", "30", "40", "50", "60"]
+        if separated_age_ranges
+        else ["40", "50", "60", "70", "30", "40", "50", "60"]
+    )
     if missing_age is not None:
         ages[missing_age] = "NA"
-    batches = ("A", "B", "A", "B", "B", "A", "B", "A")
+    batches = (
+        ("A", "B", "C", "C", "A", "B", "B", "B")
+        if case_only_batch_level
+        else ("A", "B", "A", "B", "B", "A", "B", "A")
+    )
     if confounded_batch:
         batches = ("A",) * 4 + ("B",) * 4
     characteristic_rows = (
@@ -97,10 +111,61 @@ class GeoContrastDesignTests(unittest.TestCase):
         self.assertEqual(
             design["covariate_balance"][1]["levels"],
             [
-                {"value": "A", "case_count": 2, "reference_count": 2},
-                {"value": "B", "case_count": 2, "reference_count": 2},
+                {
+                    "value": "A",
+                    "case_count": 2,
+                    "reference_count": 2,
+                    "case_fraction": 0.5,
+                    "reference_fraction": 0.5,
+                    "absolute_fraction_difference": 0.0,
+                },
+                {
+                    "value": "B",
+                    "case_count": 2,
+                    "reference_count": 2,
+                    "case_fraction": 0.5,
+                    "reference_fraction": 0.5,
+                    "absolute_fraction_difference": 0.0,
+                },
             ],
         )
+        age = design["covariate_balance"][0]
+        self.assertAlmostEqual(
+            age["standardized_mean_difference"], 10 / (500 / 3) ** 0.5
+        )
+        self.assertEqual(age["standardized_mean_difference_status"], "available")
+        self.assertTrue(age["range_overlap"]["overlaps"])
+        self.assertEqual(age["range_overlap"]["minimum"], 40.0)
+        self.assertEqual(age["range_overlap"]["maximum"], 60.0)
+        batch = design["covariate_balance"][1]
+        self.assertEqual(batch["shared_level_count"], 2)
+        self.assertEqual(batch["maximum_absolute_level_fraction_difference"], 0.0)
+
+    def test_disjoint_continuous_covariate_ranges_are_reported(self) -> None:
+        report = self._report(
+            payload=_matrix_payload(separated_age_ranges=True),
+            covariates=(("age", "continuous"),),
+        )
+
+        age = report["design"]["covariate_balance"][0]
+        self.assertEqual(report["design"]["state"], "estimable")
+        self.assertFalse(age["range_overlap"]["overlaps"])
+        self.assertIsNone(age["range_overlap"]["minimum"])
+        self.assertIsNone(age["range_overlap"]["maximum"])
+        self.assertGreater(age["standardized_mean_difference"], 0.0)
+
+    def test_case_only_categorical_level_is_reported_when_design_is_estimable(self) -> None:
+        report = self._report(
+            payload=_matrix_payload(case_only_batch_level=True),
+            covariates=(("batch", "categorical"),),
+        )
+
+        balance = report["design"]["covariate_balance"][0]
+        self.assertEqual(report["design"]["state"], "estimable")
+        self.assertEqual(balance["case_only_levels"], ["C"])
+        self.assertEqual(balance["reference_only_levels"], [])
+        self.assertEqual(balance["shared_level_count"], 2)
+        self.assertEqual(balance["maximum_absolute_level_fraction_difference"], 0.5)
 
     def test_missing_covariate_is_excluded_and_accounted_for(self) -> None:
         report = self._report(
@@ -184,13 +249,19 @@ class GeoContrastDesignTests(unittest.TestCase):
                         "diagnosis=glioblastoma",
                         "--reference-filter",
                         "diagnosis=normal",
+                        "--covariate",
+                        "age=continuous",
                         "--matrix-file",
                         str(matrix_path),
                     ]
                 )
 
         self.assertEqual(exit_code, 0)
-        self.assertEqual(json.loads(output.getvalue())["design"]["state"], "estimable")
+        report = json.loads(output.getvalue())
+        self.assertEqual(report["design"]["state"], "estimable")
+        self.assertGreater(
+            report["design"]["covariate_balance"][0]["standardized_mean_difference"], 0.0
+        )
 
 
 if __name__ == "__main__":

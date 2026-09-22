@@ -9,7 +9,11 @@ from typing import Any
 from ._cli_support import write_json
 from .errors import SourceError, SourceNotFoundError, ValidationError
 from .expression_evidence import ExpressionScale
-from .geo_expression import build_expression_outlier_report, build_geo_count_outlier_report
+from .geo_expression import (
+    GEO_COUNT_NORMALIZATION_METHODS,
+    build_expression_outlier_report,
+    build_geo_count_outlier_report,
+)
 
 
 def _reference_filter(value: str) -> tuple[str, str]:
@@ -146,6 +150,13 @@ def build_count_parser() -> argparse.ArgumentParser:
         "--metadata-file", help="local sample metadata .csv/.tsv or compressed equivalent"
     )
     parser.add_argument(
+        "--feature-annotation-file",
+        help=(
+            "optional UTF-8 CSV with source_feature_id,curated_feature_id columns; "
+            "source IDs remain unchanged"
+        ),
+    )
+    parser.add_argument(
         "--counts-delimiter",
         choices=("comma", "tab"),
         default="comma",
@@ -156,6 +167,12 @@ def build_count_parser() -> argparse.ArgumentParser:
         choices=("comma", "tab"),
         default="comma",
         help="explicit delimiter used by the sample metadata",
+    )
+    parser.add_argument(
+        "--normalization-method",
+        choices=GEO_COUNT_NORMALIZATION_METHODS,
+        default="log2_cpm",
+        help="count normalization: basic library CPM or optional TMM-adjusted CPM",
     )
     parser.add_argument("--timeout", type=float, default=30.0, help="HTTPS timeout in seconds")
     parser.add_argument("--output", default="-", help="JSON report path, or - for stdout")
@@ -178,6 +195,8 @@ def count_main(argv: list[str] | None = None) -> int:
             counts_delimiter=delimiter[args.counts_delimiter],
             metadata_delimiter=delimiter[args.metadata_delimiter],
             timeout_seconds=args.timeout,
+            feature_annotation_file=args.feature_annotation_file,
+            normalization_method=args.normalization_method,
         )
     except SourceNotFoundError:
         report = {

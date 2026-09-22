@@ -19616,6 +19616,14 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'compare paired groups across a GEO supplementary count matrix',
     ),
     (
+        'geo-count-design',
+        'preflight paired GEO count-matrix joins without feature tests',
+    ),
+    (
+        'geo-count-metadata',
+        'inspect GEO supplementary count-matrix sample metadata',
+    ),
+    (
         'geo-count-outlier',
         'compare one gene row across a GEO supplementary count matrix',
     ),
@@ -19634,6 +19642,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
     (
         'geo-qc',
         'summarize sample coverage and matrix quality before analysis',
+    ),
+    (
+        'reference-block-query',
+        "query one sample's gVCF blocks by interval or canonical variant span",
     ),
     (
         'report-capabilities',

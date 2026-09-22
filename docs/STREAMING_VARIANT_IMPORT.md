@@ -14,12 +14,30 @@ The streaming boundary:
 - frames raw BCF from byte chunks without copying the complete body;
 - accumulates a SHA-256 input address over every source byte;
 - accumulates a separate header address;
-- splits multiallelic records into one row per ALT while retaining the parent
-  row hash;
+- emits only the ALT indices present in a complete selected-sample GT for
+  multiallelic calls, while retaining the parent row hash;
+- requires an explicit `sample_id` for multi-sample VCF/BCF and reports a
+  selection error rather than silently using the first sample;
+- rejects duplicate sample IDs in VCF/BCF headers instead of selecting an
+  ambiguous genotype column;
+- rejects repeated FORMAT keys in individual VCF/BCF records before a
+  dictionary conversion can overwrite an earlier genotype field;
+- validates FORMAT identifier syntax and requires `GT` to be the first FORMAT
+  key when it is present;
+- validates selected-sample FORMAT values against declared header Type and
+  Number for both VCF text and typed BCF fields, preserving the lexical-versus-
+  typed distinction during validation;
+- checks fixed, ALT-relative, REF-plus-ALT, ploidy/genotype, and local-allele
+  cardinalities (`A`, `R`, `G`, `P`, `LA`, `LR`, and `LG`) where the record
+  supplies enough context, while leaving `M` cardinality to a modified-base-
+  aware consumer;
+- interprets a single `.` sample value as missing values for all FORMAT keys,
+  and rejects empty sample cells or excess colon-delimited values;
 - skips no-call and reference-only genotypes by default, with explicit opt-in
   switches for both policies;
 - retains symbolic alleles as deferred rows instead of treating them as linear
   alleles;
+- treats `ALT=.` as a no-variant site and defers spanning-deletion `*` alleles;
 - parses VCF breakend mate contig, coordinate, bracket, local side, and
   orientation into a structural boundary receipt; and
 - bounds retained rows and retained issue detail independently from source
@@ -32,6 +50,17 @@ counts structural or symbolic rows that are intentionally retained for a
 future specialized service. A report is not accepted when an error, invalid
 row, record ceiling, or retained-row ceiling occurs. Warnings can be present in
 an accepted report and are exposed through `requires_review`.
+
+Each decomposed row also retains `alternate_index` (one-based) and
+`alternate_count` from its original VCF/BCF record. These fields are part of
+the row content address; the importer does not recover allele identity from a
+display ID such as `record:alt2`. For an accepted row with a selected sample,
+`GT`, and non-missing `PS`, `row.to_phased_variant_identities()` creates the
+sequence-inference handoff using those source indices. The handoff rejects
+unphased or partially called genotypes, missing phase sets, deferred variants,
+and rows without explicit sample identity. It does not establish the biological
+correctness of the caller's phase block. The row contract change is represented
+by `streaming-intake-v2`.
 
 ## CLI
 

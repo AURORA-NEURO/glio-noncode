@@ -336,6 +336,12 @@ The first vertical slice covers the source boundary for case material:
 - VCF, gVCF, TSV, JSON, and binary BCF intake preserve source hashes,
   headers, typed fields, genotype decisions, deferred symbolic records, and
   malformed-record issues;
+- gVCF reference-confidence blocks remain separate from variants and can be
+  indexed for bounded, build- and sample-specific region queries that retain
+  reference, no-call, unknown, uncovered, and conflicting intervals;
+  canonical one-based closed variant spans can be queried directly with an
+  explicit sample, converting to the index's zero-based half-open coordinates
+  without changing genome builds;
 - BED and narrowPeak coordinates are converted from zero-based half-open to
   one-based closed intervals, while GFF3 remains one-based closed;
 - regulatory-track rows are converted to context-qualified candidate
@@ -353,6 +359,7 @@ The command-line equivalents are:
 
 ```powershell
 glio-noncode intake variants.vcf --output intake.json
+glio-noncode reference-block-query sample.g.vcf.gz --sample-id SAMPLE_01 --chromosome 7 --start 55000000 --end 55000100 --output coverage.json
 glio-noncode parse-track regulatory.bed --output track.json
 glio-noncode normalize 7:140453136:A>T --genome-build GRCh38
 ```
@@ -533,15 +540,21 @@ graph.
 
 The four adapters are:
 
-- `SpecimenOntologyMapper` maps aggregate sample rows to a declared ontology
-  and keeps missing identifiers, conflicting subject keys, and invalid rows as
-  structured issues.
+- `SpecimenOntologyMapper` maps aggregate sample rows to a declared ontology,
+  bounds the observation set, and keeps missing declarations and conflicts in
+  subject, specimen, relationship, type, or timepoint as partial/ambiguous
+  results. It never derives a specimen identifier from the sample identifier.
+  Invalid rows remain structured issues.
 - `MatchedNormalResolver` resolves a unique normal for a pseudonymous subject
-  only when the relationship is explicit; missing and multiple normals are
+  only when the relationship is explicit. It deduplicates repeated source rows
+  for one sample, never pairs a sample with itself, and propagates partial or
+  conflicting specimen declarations; missing and multiple normals remain
   review states rather than guessed links.
 - `PurityPloidyImporter` ingests tabular or JSON measurements, preserves
   caller/version and row receipts, normalizes percentage values, and
-  quarantines malformed measurements.
+  quarantines malformed measurements without echoing malformed cell contents.
+  It rejects ambiguous TSV headers and non-finite or boolean measurements, and
+  bounds source text to 16 MiB and 100,000 rows.
 - `ContaminationSwapDetector` compares declared and observed fingerprint
   summaries, retains mismatch and contamination signals, and abstains when
   required metrics are incomplete.

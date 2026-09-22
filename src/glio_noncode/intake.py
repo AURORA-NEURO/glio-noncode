@@ -1,4 +1,4 @@
-"""Canonical variant intake for VCF, TSV, and JSON source material.
+"""Canonical variant and reference-block intake for VCF/gVCF, BCF, TSV, and JSON.
 
 Intake is deliberately conservative.  It preserves the source line, source
 hash, INFO/sample fields, and a typed receipt.  Multiallelic records become
@@ -12,6 +12,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+from bisect import bisect_left
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -23,7 +24,21 @@ from .bcf import BcfReader
 from .errors import ValidationError
 from .identity import normalize_chromosome, normalize_variant
 from .models import CaseManifest, ReferenceContext, VariantIdentity
-from .serialization import content_hash, jsonable, utc_now
+from .serialization import content_hash, freeze_json, jsonable, utc_now
+from .variant_genotype import (
+    FormatFieldDefinition,
+    InfoFieldDefinition,
+    called_alternate_indices,
+    format_key_issue,
+    has_duplicate_sample_ids,
+    parse_info_fields,
+    register_format_definition,
+    register_info_definition,
+    sample_format_values,
+    sample_value_issue,
+    validate_format_values,
+    validate_info_values,
+)
 
 # Keep the legacy in-memory parsers and index suitable for focused case-sized
 # collections. Larger cohorts should use the independently bounded streaming
@@ -31,6 +46,8 @@ from .serialization import content_hash, jsonable, utc_now
 MAX_VARIANT_INTAKE_RECORDS = 100_000
 MAX_VARIANT_INTAKE_AUXILIARY_LINES = 10_000
 MAX_VARIANT_INDEX_RECORDS = MAX_VARIANT_INTAKE_RECORDS
+MAX_REFERENCE_BLOCK_INDEX_RECORDS = MAX_VARIANT_INTAKE_RECORDS
+MAX_REFERENCE_COVERAGE_PROVENANCE_REFERENCES = 250_000
 
 
 class _StrictJsonError(ValueError):
@@ -87,6 +104,43 @@ class IntakeSeverity(StrEnum):
     ERROR = "error"
 
 
+class ReferenceBlockCallState(StrEnum):
+    """Selected-sample call state carried by a reference-only block record."""
+
+    REFERENCE = "reference"
+    NO_CALL = "no_call"
+    UNKNOWN = "unknown"
+
+
+class ReferenceBlockSpanSource(StrEnum):
+    """Field used to determine a sample's reference-block interval length."""
+
+    FORMAT_LEN = "format_len"
+    INFO_END = "info_end"
+
+
+class ReferenceCoverageState(StrEnum):
+    """Observed per-sample state over one partition of a reference query."""
+
+    REFERENCE = "reference"
+    NO_CALL = "no_call"
+    UNKNOWN = "unknown"
+    UNCOVERED = "uncovered"
+    CONFLICT = "conflict"
+
+
+class ReferenceCoverageStatus(StrEnum):
+    """Summary of a complete query partition, without collapsing its segments."""
+
+    COMPLETE_REFERENCE = "complete_reference"
+    COMPLETE_NO_CALL = "complete_no_call"
+    COMPLETE_UNKNOWN = "complete_unknown"
+    MIXED = "mixed"
+    PARTIAL = "partial"
+    CONFLICTING = "conflicting"
+    UNCOVERED = "uncovered"
+
+
 @dataclass(frozen=True, slots=True)
 class IntakeIssue:
     """A line-addressable intake problem that survives into the receipt."""
@@ -100,6 +154,301 @@ class IntakeIssue:
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ReferenceBlockRecord:
+    """One explicit reference-confidence interval retained outside variant rows.
+
+    Coordinates are zero-based and half-open. ``end`` is derived from the
+    sample-specific FORMAT/LEN when present, falling back to one-based inclusive
+    INFO/END. The original symbolic allele and selected-sample fields remain
+    available for audit; this record is never normalized as a variant.
+    """
+
+    source_id: str
+    record_id: str
+    source_line: int
+    raw_hash: str
+    genome_build: str
+    chromosome: str
+    start: int
+    end: int
+    reference: str
+    alternate: str
+    sample_id: str | None
+    genotype: str | None
+    call_state: ReferenceBlockCallState
+    span_source: ReferenceBlockSpanSource
+    info: Mapping[str, Any] = field(default_factory=dict)
+    sample_values: Mapping[str, Any] = field(default_factory=dict)
+    filter_value: str = "."
+    quality: str = "."
+
+    def __post_init__(self) -> None:
+        for name in (
+            "source_id",
+            "record_id",
+            "genome_build",
+            "chromosome",
+            "reference",
+            "alternate",
+        ):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValidationError(f"reference block {name} must be non-empty text")
+        if type(self.source_line) is not int or self.source_line < 1:
+            raise ValidationError("reference block source_line must be a positive integer")
+        if type(self.start) is not int or type(self.end) is not int:
+            raise ValidationError("reference block interval coordinates must be integers")
+        if not isinstance(self.call_state, ReferenceBlockCallState):
+            raise ValidationError("reference block call_state must be a typed call state")
+        if not isinstance(self.span_source, ReferenceBlockSpanSource):
+            raise ValidationError("reference block span_source must be a typed span source")
+        if not isinstance(self.filter_value, str) or not isinstance(self.quality, str):
+            raise ValidationError("reference block filter and quality must be text")
+        if not isinstance(self.raw_hash, str) or not self.raw_hash.startswith("sha256:"):
+            raise ValidationError("reference block raw_hash must be a sha256 content address")
+        if not self.raw_hash[7:] or any(
+            character not in "0123456789abcdef" for character in self.raw_hash[7:]
+        ) or len(self.raw_hash) != 71:
+            raise ValidationError("reference block raw_hash must be a sha256 content address")
+        if not isinstance(self.info, Mapping) or not isinstance(self.sample_values, Mapping):
+            raise ValidationError("reference block INFO and sample values must be objects")
+        info = freeze_json(self.info, field="reference block info")
+        sample_values = freeze_json(self.sample_values, field="reference block sample_values")
+        if not isinstance(info, Mapping) or not isinstance(sample_values, Mapping):
+            raise ValidationError("reference block INFO and sample values must be objects")
+        object.__setattr__(self, "info", info)
+        object.__setattr__(self, "sample_values", sample_values)
+        if self.sample_id is not None and (
+            not isinstance(self.sample_id, str) or not self.sample_id.strip()
+        ):
+            raise ValidationError("reference block sample_id must be non-empty when present")
+        if self.genotype is not None and not isinstance(self.genotype, str):
+            raise ValidationError("reference block genotype must be text when present")
+        if self.alternate.upper() not in {"<*>", "<NON_REF>"}:
+            raise ValidationError("reference block ALT must be <*> or <NON_REF>")
+        if self.start < 0 or self.end <= self.start:
+            raise ValidationError("reference block must have a non-empty zero-based interval")
+        if not self.filter_value.strip() or not self.quality.strip():
+            raise ValidationError("reference block filter and quality must not be empty")
+
+    @property
+    def length(self) -> int:
+        return self.end - self.start
+
+    @property
+    def content_address(self) -> str:
+        return content_hash(
+            {
+                "source_id": self.source_id,
+                "record_id": self.record_id,
+                "source_line": self.source_line,
+                "raw_hash": self.raw_hash,
+                "genome_build": self.genome_build,
+                "chromosome": self.chromosome,
+                "start": self.start,
+                "end": self.end,
+                "reference": self.reference,
+                "alternate": self.alternate,
+                "sample_id": self.sample_id,
+                "genotype": self.genotype,
+                "call_state": self.call_state,
+                "span_source": self.span_source,
+                "info": self.info,
+                "sample_values": self.sample_values,
+                "filter_value": self.filter_value,
+                "quality": self.quality,
+            },
+            prefix="intake-reference-block",
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self) | {"length": self.length, "content_address": self.content_address}
+
+
+def _reference_coverage_status(
+    segments: tuple[ReferenceCoverageSegment, ...],
+) -> ReferenceCoverageStatus:
+    states = {segment.state for segment in segments}
+    if ReferenceCoverageState.CONFLICT in states:
+        return ReferenceCoverageStatus.CONFLICTING
+    if states == {ReferenceCoverageState.UNCOVERED}:
+        return ReferenceCoverageStatus.UNCOVERED
+    if ReferenceCoverageState.UNCOVERED in states:
+        return ReferenceCoverageStatus.PARTIAL
+    if states == {ReferenceCoverageState.REFERENCE}:
+        return ReferenceCoverageStatus.COMPLETE_REFERENCE
+    if states == {ReferenceCoverageState.NO_CALL}:
+        return ReferenceCoverageStatus.COMPLETE_NO_CALL
+    if states == {ReferenceCoverageState.UNKNOWN}:
+        return ReferenceCoverageStatus.COMPLETE_UNKNOWN
+    return ReferenceCoverageStatus.MIXED
+
+
+@dataclass(frozen=True, slots=True)
+class ReferenceCoverageSegment:
+    """One homogeneous segment in a sample- and build-specific coverage query."""
+
+    start: int
+    end: int
+    state: ReferenceCoverageState
+    block_addresses: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if type(self.start) is not int or type(self.end) is not int:
+            raise ValidationError("reference coverage segment coordinates must be integers")
+        if self.start < 0 or self.end <= self.start:
+            raise ValidationError("reference coverage segment must be a non-empty interval")
+        if not isinstance(self.state, ReferenceCoverageState):
+            raise ValidationError("reference coverage segment state must be typed")
+        if isinstance(self.block_addresses, (str, bytes, bytearray, Mapping)):
+            raise ValidationError(
+                "reference coverage block addresses must be an iterable of hashes"
+            )
+        try:
+            addresses = tuple(self.block_addresses)
+        except TypeError as exc:
+            raise ValidationError("reference coverage block addresses must be iterable") from exc
+        if any(not isinstance(address, str) or not address for address in addresses):
+            raise ValidationError("reference coverage block addresses must be non-empty text")
+        if addresses != tuple(sorted(set(addresses))):
+            raise ValidationError("reference coverage block addresses must be sorted and unique")
+        if self.state == ReferenceCoverageState.UNCOVERED and addresses:
+            raise ValidationError("uncovered reference segments cannot cite reference blocks")
+        if self.state != ReferenceCoverageState.UNCOVERED and not addresses:
+            raise ValidationError("observed reference segments must cite their source blocks")
+        if self.state == ReferenceCoverageState.CONFLICT and len(addresses) < 2:
+            raise ValidationError("conflicting reference segments must cite at least two blocks")
+        object.__setattr__(self, "block_addresses", addresses)
+
+    @property
+    def length(self) -> int:
+        return self.end - self.start
+
+    @property
+    def content_address(self) -> str:
+        return content_hash(
+            {
+                "start": self.start,
+                "end": self.end,
+                "state": self.state,
+                "block_addresses": self.block_addresses,
+            },
+            prefix="intake-reference-coverage-segment",
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self) | {"length": self.length, "content_address": self.content_address}
+
+
+@dataclass(frozen=True, slots=True)
+class ReferenceCoverageResult:
+    """Auditable partition of a queried interval for exactly one sample/build."""
+
+    genome_build: str
+    chromosome: str
+    start: int
+    end: int
+    sample_id: str | None
+    segments: tuple[ReferenceCoverageSegment, ...]
+    block_addresses: tuple[str, ...]
+    status: ReferenceCoverageStatus = field(init=False)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.genome_build, str) or not self.genome_build.strip():
+            raise ValidationError("reference coverage genome_build must be non-empty text")
+        if not isinstance(self.chromosome, str) or not self.chromosome.strip():
+            raise ValidationError("reference coverage chromosome must be non-empty text")
+        if type(self.start) is not int or type(self.end) is not int:
+            raise ValidationError("reference coverage query coordinates must be integers")
+        if self.start < 0 or self.end <= self.start:
+            raise ValidationError("reference coverage query must be a non-empty half-open interval")
+        if self.sample_id is not None and (
+            not isinstance(self.sample_id, str) or not self.sample_id.strip()
+        ):
+            raise ValidationError("reference coverage sample_id must be non-empty when present")
+        if isinstance(self.segments, (str, bytes, bytearray, Mapping)):
+            raise ValidationError("reference coverage segments must be an iterable of segments")
+        try:
+            segments = tuple(self.segments)
+        except TypeError as exc:
+            raise ValidationError("reference coverage segments must be iterable") from exc
+        if not segments or any(not isinstance(item, ReferenceCoverageSegment) for item in segments):
+            raise ValidationError("reference coverage result requires typed segments")
+        cursor = self.start
+        for segment in segments:
+            if segment.start != cursor:
+                raise ValidationError("reference coverage segments must partition the query")
+            cursor = segment.end
+        if cursor != self.end:
+            raise ValidationError("reference coverage segments must span the complete query")
+        if isinstance(self.block_addresses, (str, bytes, bytearray, Mapping)):
+            raise ValidationError(
+                "reference coverage block addresses must be an iterable of hashes"
+            )
+        try:
+            addresses = tuple(self.block_addresses)
+        except TypeError as exc:
+            raise ValidationError("reference coverage block addresses must be iterable") from exc
+        if any(not isinstance(address, str) or not address for address in addresses):
+            raise ValidationError("reference coverage block addresses must be non-empty text")
+        addresses = tuple(sorted(set(addresses)))
+        cited_addresses = tuple(
+            sorted({address for segment in segments for address in segment.block_addresses})
+        )
+        if addresses != cited_addresses:
+            raise ValidationError(
+                "reference coverage result block addresses must match its segments"
+            )
+        object.__setattr__(self, "genome_build", self.genome_build.strip())
+        object.__setattr__(self, "chromosome", normalize_chromosome(self.chromosome))
+        object.__setattr__(self, "sample_id", self.sample_id.strip() if self.sample_id else None)
+        object.__setattr__(self, "segments", segments)
+        object.__setattr__(self, "block_addresses", addresses)
+        object.__setattr__(self, "status", _reference_coverage_status(segments))
+
+    @property
+    def base_counts(self) -> dict[str, int]:
+        """Return queried bases partitioned by observed state."""
+
+        counts = {state.value: 0 for state in ReferenceCoverageState}
+        for segment in self.segments:
+            counts[segment.state.value] += segment.length
+        return counts
+
+    @property
+    def content_address(self) -> str:
+        return content_hash(
+            {
+                "genome_build": self.genome_build,
+                "chromosome": self.chromosome,
+                "start": self.start,
+                "end": self.end,
+                "sample_id": self.sample_id,
+                "segments": [segment.content_address for segment in self.segments],
+                "block_addresses": self.block_addresses,
+                "status": self.status,
+            },
+            prefix="intake-reference-coverage",
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema": "glio-noncode.reference-coverage.v1",
+            "genome_build": self.genome_build,
+            "chromosome": self.chromosome,
+            "start": self.start,
+            "end": self.end,
+            "coordinate_system": "zero_based_half_open",
+            "sample_id": self.sample_id,
+            "status": self.status.value,
+            "base_counts": self.base_counts,
+            "segments": [segment.to_dict() for segment in self.segments],
+            "block_addresses": list(self.block_addresses),
+            "content_address": self.content_address,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -133,6 +482,7 @@ class IntakeReceipt:
     created_at: str
     record_count: int
     accepted_count: int
+    reference_block_count: int
     rejected_count: int
     warning_count: int
     error_count: int
@@ -151,13 +501,14 @@ class IntakeReceipt:
 
 @dataclass(frozen=True, slots=True)
 class IntakeBatch:
-    """Canonical variants plus every issue needed for review and replay."""
+    """Canonical variants, reference blocks, and issues needed for review and replay."""
 
     source_id: str
     input_format: IntakeFormat
     variants: tuple[VariantIdentity, ...]
     records: tuple[RawVariantRecord, ...]
     deferred_records: tuple[RawVariantRecord, ...]
+    reference_blocks: tuple[ReferenceBlockRecord, ...]
     issues: tuple[IntakeIssue, ...]
     receipt: IntakeReceipt
 
@@ -172,6 +523,7 @@ class IntakeBatch:
                 "source_id": self.source_id,
                 "input_format": self.input_format,
                 "variants": self.variants,
+                "reference_blocks": self.reference_blocks,
                 "issues": self.issues,
                 "receipt": self.receipt.provenance_dict(),
             }
@@ -179,6 +531,13 @@ class IntakeBatch:
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self) | {"content_address": self.content_address}
+
+    @property
+    def reference_block_address(self) -> str:
+        return content_hash(
+            [item.content_address for item in self.reference_blocks],
+            prefix="intake-reference-block-set",
+        )
 
     def to_manifest(
         self,
@@ -196,6 +555,8 @@ class IntakeBatch:
         # source material resolve to the same manifest and run addresses.
         merged_metadata["intake_receipt"] = self.receipt.provenance_dict()
         merged_metadata["intake_content_address"] = self.content_address
+        merged_metadata["reference_block_count"] = len(self.reference_blocks)
+        merged_metadata["reference_block_address"] = self.reference_block_address
         return CaseManifest(
             case_id=case_id,
             subject_id=subject_id,
@@ -223,6 +584,7 @@ class _BatchBuilder:
         self.variants: list[VariantIdentity] = []
         self.records: list[RawVariantRecord] = []
         self.deferred_records: list[RawVariantRecord] = []
+        self.reference_blocks: list[ReferenceBlockRecord] = []
         self.issues: list[IntakeIssue] = []
         self._seen_keys: set[str] = set()
         self.record_count = 0
@@ -303,6 +665,9 @@ class _BatchBuilder:
     def defer(self, record: RawVariantRecord) -> None:
         self.deferred_records.append(record)
 
+    def add_reference_block(self, record: ReferenceBlockRecord) -> None:
+        self.reference_blocks.append(record)
+
     def finish(
         self,
         text: str,
@@ -321,6 +686,7 @@ class _BatchBuilder:
             "header_hash": header_hash,
             "record_count": self.record_count,
             "accepted_count": len(self.variants),
+            "reference_block_count": len(self.reference_blocks),
             "rejected_count": error_count,
             "warning_count": warning_count,
             "error_count": error_count,
@@ -333,6 +699,7 @@ class _BatchBuilder:
             created_at=utc_now().isoformat(),
             record_count=receipt_body["record_count"],
             accepted_count=len(self.variants),
+            reference_block_count=len(self.reference_blocks),
             rejected_count=error_count,
             warning_count=warning_count,
             error_count=error_count,
@@ -344,9 +711,79 @@ class _BatchBuilder:
             variants=tuple(self.variants),
             records=tuple(self.records),
             deferred_records=tuple(self.deferred_records),
+            reference_blocks=tuple(self.reference_blocks),
             issues=tuple(self.issues),
             receipt=receipt,
         )
+
+
+_REFERENCE_BLOCK_ALLELES = frozenset({"<*>", "<NON_REF>"})
+
+
+def _parse_positive_vcf_integer(value: object, label: str) -> int:
+    if isinstance(value, (list, tuple)):
+        if len(value) != 1:
+            raise ValidationError(f"reference-block {label} must contain exactly one value")
+        value = value[0]
+    if isinstance(value, bool):
+        raise ValidationError(f"reference-block {label} must be a positive integer")
+    if isinstance(value, int):
+        parsed = value
+    elif isinstance(value, str) and value.isascii() and value.isdecimal():
+        parsed = int(value)
+    else:
+        raise ValidationError(f"reference-block {label} must be a positive integer")
+    if parsed < 1:
+        raise ValidationError(f"reference-block {label} must be a positive integer")
+    return parsed
+
+
+def _reference_block_length(
+    *,
+    alternate: str,
+    position: int,
+    info: Mapping[str, Any],
+    sample_values: Mapping[str, Any],
+) -> tuple[int, ReferenceBlockSpanSource] | None:
+    """Return a REF-only block span, honoring per-sample LEN before INFO END."""
+
+    if alternate.upper() not in _REFERENCE_BLOCK_ALLELES:
+        return None
+    sample_length = sample_values.get("LEN")
+    if sample_length is None:
+        sample_length_missing = True
+    elif isinstance(sample_length, str):
+        sample_length_missing = sample_length in ("", ".")
+    elif isinstance(sample_length, (list, tuple)):
+        sample_length_missing = len(sample_length) == 1 and sample_length[0] is None
+    else:
+        sample_length_missing = False
+    if not sample_length_missing:
+        return (
+            _parse_positive_vcf_integer(sample_length, "FORMAT/LEN"),
+            ReferenceBlockSpanSource.FORMAT_LEN,
+        )
+    if "END" not in info:
+        return None
+    inclusive_end = _parse_positive_vcf_integer(info["END"], "INFO/END")
+    if inclusive_end < position:
+        raise ValidationError("reference-block INFO/END must not precede POS")
+    return inclusive_end - position + 1, ReferenceBlockSpanSource.INFO_END
+
+
+def _reference_block_call_state(
+    genotype: object,
+) -> ReferenceBlockCallState | None:
+    if genotype is None:
+        return ReferenceBlockCallState.UNKNOWN
+    if not isinstance(genotype, str) or not genotype:
+        return ReferenceBlockCallState.UNKNOWN
+    alleles = genotype.replace("|", "/").split("/")
+    if any(allele == "." for allele in alleles):
+        return ReferenceBlockCallState.NO_CALL
+    if all(allele == "0" for allele in alleles):
+        return ReferenceBlockCallState.REFERENCE
+    return None
 
 
 class VariantIntake:
@@ -465,6 +902,17 @@ class VariantIntake:
             self.max_records,
             self.max_auxiliary_lines,
         )
+        format_definitions: dict[str, FormatFieldDefinition] = {}
+        invalid_format_definitions: set[str] = set()
+        sample_selection_issue = (
+            "duplicate_sample_id"
+            if has_duplicate_sample_ids(document.samples)
+            else "sample_not_found"
+            if sample_id is not None and sample_id not in document.samples
+            else "sample_selection_required"
+            if sample_id is None and len(document.samples) > 1
+            else None
+        )
         header_lines: list[str] = []
         for line_number, source_line in enumerate(
             io.StringIO(document.header_text, newline=None),
@@ -477,21 +925,191 @@ class VariantIntake:
             ):
                 break
             header_lines.append(line)
+            if line.startswith("##FORMAT="):
+                format_definition_issue = register_format_definition(
+                    line,
+                    format_definitions,
+                    invalid_format_definitions,
+                )
+                if format_definition_issue is not None:
+                    builder.issue(
+                        format_definition_issue,
+                        IntakeSeverity.ERROR,
+                        "BCF FORMAT schema declaration is invalid or duplicated",
+                        line_number=line_number,
+                        raw_hash=content_hash(line),
+                        remediation=(
+                            "Declare each FORMAT ID once with a valid Number, Type, "
+                            "and a quoted Description."
+                        ),
+                    )
         if builder.auxiliary_limit_exceeded:
             return builder.finish("", header_lines, input_hash=document.input_hash)
+        if sample_selection_issue is not None:
+            builder.issue(
+                sample_selection_issue,
+                IntakeSeverity.ERROR,
+                (
+                    "requested sample_id is not present in the BCF header"
+                    if sample_selection_issue == "sample_not_found"
+                    else "sample_id is required when the BCF header contains multiple samples"
+                    if sample_selection_issue == "sample_selection_required"
+                    else "BCF header contains duplicate sample IDs"
+                ),
+                raw_hash=content_hash(document.header_text),
+                remediation=(
+                    "Use a sample_id that exactly matches a BCF header sample name."
+                    if sample_selection_issue == "sample_not_found"
+                    else "Specify the sample_id to analyze; multi-sample BCF is not auto-selected."
+                    if sample_selection_issue == "sample_selection_required"
+                    else "Correct the BCF header so every sample ID is unique."
+                ),
+            )
         for record in document.records:
             if not builder.note_record(
                 line_number=record.record_index + 1,
                 raw_hash=record.raw_hash,
             ):
                 break
+            if sample_selection_issue is not None:
+                continue
+            format_issue = format_key_issue(record.format_keys)
+            if format_issue is not None:
+                builder.issue(
+                    format_issue,
+                    IntakeSeverity.ERROR,
+                    "BCF record FORMAT keys are invalid or ambiguous",
+                    line_number=record.record_index + 1,
+                    raw_hash=record.raw_hash,
+                    remediation=(
+                        "Use unique FORMAT keys with valid identifiers "
+                        "and put GT first when present."
+                    ),
+                )
+                continue
+            no_alternate = not record.alternates or record.alternates == (".",)
+            if not no_alternate and (
+                any(not alternate for alternate in record.alternates)
+                or "." in record.alternates
+            ):
+                builder.issue(
+                    "invalid_alternate",
+                    IntakeSeverity.ERROR,
+                    "BCF ALT list contains an empty or misplaced missing-value allele",
+                    line_number=record.record_index + 1,
+                    raw_hash=record.raw_hash,
+                )
+                continue
             sample: Mapping[str, Any] = {}
+            selected_name: str | None = None
             if record.samples:
                 selected_name = (
                     sample_id if sample_id in record.samples else next(iter(record.samples))
                 )
                 sample = dict(record.samples[selected_name]) | {"sample_id": selected_name}
+            format_schema_issue = validate_format_values(
+                sample,
+                format_definitions,
+                invalid_format_definitions,
+                len(record.alternates),
+                typed_values=True,
+            )
+            if format_schema_issue is not None:
+                builder.issue(
+                    format_schema_issue,
+                    IntakeSeverity.ERROR,
+                    "selected BCF sample FORMAT values do not match their declarations",
+                    line_number=record.record_index + 1,
+                    raw_hash=record.raw_hash,
+                    remediation=(
+                        "Correct the selected sample's typed FORMAT values to match "
+                        "the declared Type and Number."
+                    ),
+                )
+                continue
             genotype = sample.get("GT")
+            try:
+                selected_alternates = called_alternate_indices(
+                    genotype,
+                    len(record.alternates),
+                )
+            except ValidationError as exc:
+                builder.issue(
+                    "invalid_genotype",
+                    IntakeSeverity.ERROR,
+                    f"invalid selected-sample GT: {exc}",
+                    line_number=record.record_index + 1,
+                    raw_hash=record.raw_hash,
+                    remediation=(
+                        "Correct the GT allele indices or retain only valid source records."
+                    ),
+                )
+                continue
+            try:
+                block_span = (
+                    _reference_block_length(
+                        alternate=record.alternates[0],
+                        position=record.position,
+                        info=record.info,
+                        sample_values=sample,
+                    )
+                    if len(record.alternates) == 1
+                    else None
+                )
+            except ValidationError as exc:
+                builder.issue(
+                    "invalid_reference_block_span",
+                    IntakeSeverity.ERROR,
+                    str(exc),
+                    line_number=record.record_index + 1,
+                    raw_hash=record.raw_hash,
+                    remediation=(
+                        "Use one positive per-sample FORMAT/LEN or a positive one-based "
+                        "inclusive INFO/END for a <*> or <NON_REF> block."
+                    ),
+                )
+                continue
+            if block_span is not None:
+                call_state = _reference_block_call_state(genotype)
+                if call_state is not None:
+                    block_length, span_source = block_span
+                    block_start = record.position - 1
+                    builder.add_reference_block(
+                        ReferenceBlockRecord(
+                            source_id=source_id,
+                            record_id=(
+                                record.record_id
+                                if record.record_id not in {"", "."}
+                                else f"{source_id}:{record.record_index + 1}"
+                            ),
+                            source_line=record.record_index + 1,
+                            raw_hash=record.raw_hash,
+                            genome_build=build,
+                            chromosome=record.chromosome,
+                            start=block_start,
+                            end=block_start + block_length,
+                            reference=record.reference,
+                            alternate=record.alternates[0],
+                            sample_id=selected_name,
+                            genotype=genotype if isinstance(genotype, str) else None,
+                            call_state=call_state,
+                            span_source=span_source,
+                            info=dict(record.info),
+                            sample_values=dict(sample),
+                            filter_value=";".join(record.filters),
+                            quality="." if record.quality is None else str(record.quality),
+                        )
+                    )
+                    continue
+            if no_alternate:
+                builder.issue(
+                    "no_alternate_allele",
+                    IntakeSeverity.WARNING,
+                    "BCF record has no alternate allele and is not emitted as a variant",
+                    line_number=record.record_index + 1,
+                    raw_hash=record.raw_hash,
+                )
+                continue
             if genotype is not None and self._is_no_call(genotype) and not include_no_call:
                 builder.issue(
                     "no_call_genotype",
@@ -501,7 +1119,18 @@ class VariantIntake:
                     raw_hash=record.raw_hash,
                 )
                 continue
-            if genotype is not None and not self._is_non_reference_genotype(genotype):
+            has_symbolic_alternate = any(
+                alternate == "*"
+                or alternate.startswith("<")
+                or any(marker in alternate for marker in "[]")
+                for alternate in record.alternates
+            )
+            if (
+                genotype is not None
+                and not self._is_no_call(genotype)
+                and not selected_alternates
+                and not has_symbolic_alternate
+            ):
                 builder.issue(
                     "reference_genotype",
                     IntakeSeverity.WARNING,
@@ -511,6 +1140,18 @@ class VariantIntake:
                 )
                 continue
             for alternate_index, alternate in enumerate(record.alternates, start=1):
+                if selected_alternates and alternate_index not in selected_alternates:
+                    builder.issue(
+                        "alternate_not_in_selected_genotype",
+                        IntakeSeverity.WARNING,
+                        f"ALT index {alternate_index} was not called in the selected genotype",
+                        line_number=record.record_index + 1,
+                        raw_hash=record.raw_hash,
+                        remediation=(
+                            "Review the selected sample GT before using this alternate allele."
+                        ),
+                    )
+                    continue
                 record_id = record.record_id
                 if len(record.alternates) > 1:
                     record_id = f"{record_id}:alt{alternate_index}"
@@ -577,6 +1218,11 @@ class VariantIntake:
         header_lines: list[str] = []
         header_columns: list[str] | None = None
         selected_sample_index: int | None = None
+        sample_selection_failed = False
+        info_definitions: dict[str, InfoFieldDefinition] = {}
+        invalid_info_definitions: set[str] = set()
+        format_definitions: dict[str, FormatFieldDefinition] = {}
+        invalid_format_definitions: set[str] = set()
         for line_number, source_line in enumerate(io.StringIO(text, newline=None), start=1):
             line = source_line.rstrip("\r\n")
             if not line.strip():
@@ -593,6 +1239,42 @@ class VariantIntake:
                 ):
                     break
                 header_lines.append(line)
+                if line.startswith("##INFO="):
+                    info_definition_issue = register_info_definition(
+                        line,
+                        info_definitions,
+                        invalid_info_definitions,
+                    )
+                    if info_definition_issue is not None:
+                        builder.issue(
+                            info_definition_issue,
+                            IntakeSeverity.ERROR,
+                            "VCF INFO schema declaration is invalid or duplicated",
+                            line_number=line_number,
+                            raw_hash=content_hash(line),
+                            remediation=(
+                                "Declare each INFO ID once with valid Number, Type, "
+                                "and a quoted Description."
+                            ),
+                        )
+                elif line.startswith("##FORMAT="):
+                    format_definition_issue = register_format_definition(
+                        line,
+                        format_definitions,
+                        invalid_format_definitions,
+                    )
+                    if format_definition_issue is not None:
+                        builder.issue(
+                            format_definition_issue,
+                            IntakeSeverity.ERROR,
+                            "VCF FORMAT schema declaration is invalid or duplicated",
+                            line_number=line_number,
+                            raw_hash=content_hash(line),
+                            remediation=(
+                                "Declare each FORMAT ID once with a valid Number, Type, "
+                                "and a quoted Description.",
+                            ),
+                        )
                 continue
             if line.startswith("#"):
                 if not builder.note_auxiliary_line(
@@ -604,14 +1286,52 @@ class VariantIntake:
                 if line.lower().startswith("#chrom"):
                     header_columns = line.lstrip("#").split("\t")
                     sample_columns = header_columns[9:]
-                    if sample_id and sample_id in sample_columns:
-                        selected_sample_index = sample_columns.index(sample_id)
-                    elif sample_columns:
+                    if has_duplicate_sample_ids(sample_columns):
+                        sample_selection_failed = True
+                        builder.issue(
+                            "duplicate_sample_id",
+                            IntakeSeverity.ERROR,
+                            "VCF header contains duplicate sample IDs",
+                            line_number=line_number,
+                            raw_hash=content_hash(line),
+                            remediation="Correct the VCF header so every sample ID is unique.",
+                        )
+                    elif sample_id is not None:
+                        if sample_id in sample_columns:
+                            selected_sample_index = sample_columns.index(sample_id)
+                        else:
+                            sample_selection_failed = True
+                            builder.issue(
+                                "sample_not_found",
+                                IntakeSeverity.ERROR,
+                                "requested sample_id is not present in the VCF header",
+                                line_number=line_number,
+                                raw_hash=content_hash(line),
+                                remediation=(
+                                    "Use a sample_id that exactly matches a VCF header sample name."
+                                ),
+                            )
+                    elif len(sample_columns) == 1:
                         selected_sample_index = 0
+                    elif len(sample_columns) > 1:
+                        sample_selection_failed = True
+                        builder.issue(
+                            "sample_selection_required",
+                            IntakeSeverity.ERROR,
+                            "sample_id is required when the VCF header contains multiple samples",
+                            line_number=line_number,
+                            raw_hash=content_hash(line),
+                            remediation=(
+                                "Specify an exact sample_id; "
+                                "multi-sample VCF is not auto-selected."
+                            ),
+                        )
                 continue
             raw_hash = content_hash(line)
             if not builder.note_record(line_number=line_number, raw_hash=raw_hash):
                 break
+            if sample_selection_failed:
+                continue
             fields = line.split("\t")
             if len(fields) < 8:
                 builder.issue(
@@ -632,6 +1352,55 @@ class VariantIntake:
                     remediation="Provide a standards-compliant VCF header before data records.",
                 )
                 continue
+            if (
+                selected_sample_index is not None
+                and len(fields) <= 9 + selected_sample_index
+            ):
+                builder.issue(
+                    "sample_data_missing",
+                    IntakeSeverity.ERROR,
+                    "selected sample field is missing from the VCF record",
+                    line_number=line_number,
+                    raw_hash=raw_hash,
+                    remediation="Restore the sample column or remove the malformed record.",
+                )
+                continue
+            format_keys = (
+                ()
+                if len(fields) < 9 or fields[8] == "."
+                else tuple(fields[8].split(":"))
+            )
+            format_issue = format_key_issue(format_keys)
+            if format_issue is not None:
+                builder.issue(
+                    format_issue,
+                    IntakeSeverity.ERROR,
+                    "VCF record FORMAT keys are invalid or ambiguous",
+                    line_number=line_number,
+                    raw_hash=raw_hash,
+                    remediation=(
+                        "Use unique FORMAT keys with valid identifiers "
+                        "and put GT first when present."
+                    ),
+                )
+                continue
+            if selected_sample_index is not None:
+                sample_issue = sample_value_issue(
+                    format_keys,
+                    fields[9 + selected_sample_index],
+                )
+                if sample_issue is not None:
+                    builder.issue(
+                        sample_issue,
+                        IntakeSeverity.ERROR,
+                        "selected VCF sample cell is empty or has excess subfields",
+                        line_number=line_number,
+                        raw_hash=raw_hash,
+                        remediation=(
+                            "Use '.' for missing sample values and do not add fields beyond FORMAT."
+                        ),
+                    )
+                    continue
             (
                 chromosome,
                 position_text,
@@ -655,13 +1424,163 @@ class VariantIntake:
                     raw_hash=raw_hash,
                 )
                 continue
-            info = self._parse_info(info_text)
+            info, info_issue = parse_info_fields(info_text)
+            if info_issue is not None:
+                builder.issue(
+                    info_issue,
+                    IntakeSeverity.ERROR,
+                    "VCF INFO field is malformed or contains an ambiguous key",
+                    line_number=line_number,
+                    raw_hash=raw_hash,
+                    remediation=(
+                        "Use unique valid INFO keys and encode missing values as '.'; "
+                        "do not leave empty fields or values."
+                    ),
+                )
+                continue
             sample, selected_name = self._select_vcf_sample(
                 fields, header_columns, selected_sample_index, sample_id
             )
             if selected_name:
                 sample = dict(sample) | {"sample_id": selected_name}
-            if sample and self._is_no_call(sample.get("GT")) and not include_no_call:
+            no_alternate = alternate_text == "."
+            alternates = [] if no_alternate else alternate_text.split(",")
+            if not no_alternate and (
+                not alternates
+                or any(not alternate for alternate in alternates)
+                or "." in alternates
+            ):
+                builder.issue(
+                    "invalid_alternate",
+                    IntakeSeverity.ERROR,
+                    "VCF ALT list contains an empty or misplaced missing-value allele",
+                    line_number=line_number,
+                    raw_hash=raw_hash,
+                )
+                continue
+            info_schema_issue = validate_info_values(
+                info,
+                info_definitions,
+                invalid_info_definitions,
+                len(alternates),
+            )
+            if info_schema_issue is not None:
+                builder.issue(
+                    info_schema_issue,
+                    IntakeSeverity.ERROR,
+                    "VCF INFO value disagrees with its declared schema",
+                    line_number=line_number,
+                    raw_hash=raw_hash,
+                    remediation=(
+                        "Check the INFO Type and Number declaration and make the record "
+                        "values conform without changing their source meaning."
+                    ),
+                )
+                continue
+            if selected_sample_index is not None:
+                format_values = sample_format_values(
+                    format_keys, fields[9 + selected_sample_index]
+                )
+                format_schema_issue = validate_format_values(
+                    format_values,
+                    format_definitions,
+                    invalid_format_definitions,
+                    len(alternates),
+                )
+                if format_schema_issue is not None:
+                    builder.issue(
+                        format_schema_issue,
+                        IntakeSeverity.ERROR,
+                        "VCF FORMAT value disagrees with its declared schema",
+                        line_number=line_number,
+                        raw_hash=raw_hash,
+                        remediation=(
+                            "Check the selected sample's FORMAT Type and Number declarations "
+                            "against its values and genotype ploidy."
+                        ),
+                    )
+                    continue
+            genotype = sample.get("GT")
+            try:
+                selected_alternates = called_alternate_indices(genotype, len(alternates))
+            except ValidationError as exc:
+                builder.issue(
+                    "invalid_genotype",
+                    IntakeSeverity.ERROR,
+                    f"invalid selected-sample GT: {exc}",
+                    line_number=line_number,
+                    raw_hash=raw_hash,
+                    remediation=(
+                        "Correct the GT allele indices or retain only valid source records."
+                    ),
+                )
+                continue
+            try:
+                block_span = (
+                    _reference_block_length(
+                        alternate=alternates[0],
+                        position=position,
+                        info=info,
+                        sample_values=sample,
+                    )
+                    if len(alternates) == 1
+                    else None
+                )
+            except ValidationError as exc:
+                builder.issue(
+                    "invalid_reference_block_span",
+                    IntakeSeverity.ERROR,
+                    str(exc),
+                    line_number=line_number,
+                    raw_hash=raw_hash,
+                    remediation=(
+                        "Use one positive per-sample FORMAT/LEN or a positive one-based "
+                        "inclusive INFO/END for a <*> or <NON_REF> block."
+                    ),
+                )
+                continue
+            if block_span is not None:
+                call_state = _reference_block_call_state(genotype)
+                if call_state is not None:
+                    block_length, span_source = block_span
+                    block_start = position - 1
+                    builder.add_reference_block(
+                        ReferenceBlockRecord(
+                            source_id=source_id,
+                            record_id=(
+                                record_id
+                                if record_id not in {"", "."}
+                                else f"{source_id}:{line_number}"
+                            ),
+                            source_line=line_number,
+                            raw_hash=raw_hash,
+                            genome_build=build,
+                            chromosome=chromosome,
+                            start=block_start,
+                            end=block_start + block_length,
+                            reference=reference,
+                            alternate=alternates[0],
+                            sample_id=selected_name,
+                            genotype=genotype if isinstance(genotype, str) else None,
+                            call_state=call_state,
+                            span_source=span_source,
+                            info=dict(info),
+                            sample_values=dict(sample),
+                            filter_value=filter_value,
+                            quality=quality,
+                        )
+                    )
+                    continue
+            if no_alternate:
+                builder.issue(
+                    "no_alternate_allele",
+                    IntakeSeverity.WARNING,
+                    "VCF record has ALT='.' and is not emitted as a variant",
+                    line_number=line_number,
+                    raw_hash=raw_hash,
+                )
+                continue
+            if sample and self._is_no_call(genotype) and not include_no_call:
                 builder.issue(
                     "no_call_genotype",
                     IntakeSeverity.WARNING,
@@ -674,14 +1593,17 @@ class VariantIntake:
                     ),
                 )
                 continue
-            is_gvcf_reference_block = input_format == IntakeFormat.GVCF and (
-                "<NON_REF>" in alternate_text or "END" in info
+            has_symbolic_alternate = any(
+                alternate == "*"
+                or alternate.startswith("<")
+                or any(marker in alternate for marker in "[]")
+                for alternate in alternates
             )
             if (
-                sample
-                and not is_gvcf_reference_block
-                and not self._is_non_reference_genotype(sample.get("GT"))
-                and "GT" in sample
+                genotype is not None
+                and not self._is_no_call(genotype)
+                and not selected_alternates
+                and not has_symbolic_alternate
             ):
                 builder.issue(
                     "reference_genotype",
@@ -691,17 +1613,19 @@ class VariantIntake:
                     raw_hash=raw_hash,
                 )
                 continue
-            alternates = alternate_text.split(",")
-            if not alternates or any(not alternate for alternate in alternates):
-                builder.issue(
-                    "invalid_alternate",
-                    IntakeSeverity.ERROR,
-                    "VCF ALT must contain at least one non-empty allele",
-                    line_number=line_number,
-                    raw_hash=raw_hash,
-                )
-                continue
             for alternate_index, alternate in enumerate(alternates, start=1):
+                if selected_alternates and alternate_index not in selected_alternates:
+                    builder.issue(
+                        "alternate_not_in_selected_genotype",
+                        IntakeSeverity.WARNING,
+                        f"ALT index {alternate_index} was not called in the selected genotype",
+                        line_number=line_number,
+                        raw_hash=raw_hash,
+                        remediation=(
+                            "Review the selected sample GT before using this alternate allele."
+                        ),
+                    )
+                    continue
                 record_name = (
                     record_id if record_id not in {"", "."} else f"{source_id}:{line_number}"
                 )
@@ -951,17 +1875,21 @@ class VariantIntake:
         source_id: str,
     ) -> None:
         alternate = record.alternate.strip()
-        if alternate.startswith("<") or any(marker in alternate for marker in "[]"):
+        if (
+            alternate == "*"
+            or alternate.startswith("<")
+            or any(marker in alternate for marker in "[]")
+        ):
             builder.defer(record)
             builder.issue(
                 "unsupported_symbolic_allele",
                 IntakeSeverity.WARNING,
-                f"symbolic or breakend allele deferred: {alternate}",
+                f"symbolic, breakend, or spanning-deletion allele deferred: {alternate}",
                 line_number=record.source_line,
                 raw_hash=record.raw_hash,
                 remediation=(
-                    "Route the record to structural reconstruction; it is not "
-                    "treated as an SNV or indel."
+                    "Route the allele to structural or overlap-aware handling; do not "
+                    "treat it as a standalone SNV or indel."
                 ),
             )
             return
@@ -1001,22 +1929,6 @@ class VariantIntake:
         builder.accept(record, variant)
 
     @staticmethod
-    def _parse_info(value: str) -> dict[str, Any]:
-        if value in {"", "."}:
-            return {}
-        result: dict[str, Any] = {}
-        for item in value.split(";"):
-            if not item:
-                continue
-            if "=" not in item:
-                result[item] = True
-                continue
-            key, raw_value = item.split("=", 1)
-            values = raw_value.split(",") if "," in raw_value else raw_value
-            result[key] = values
-        return result
-
-    @staticmethod
     def _select_vcf_sample(
         fields: list[str],
         header_columns: list[str],
@@ -1025,24 +1937,21 @@ class VariantIntake:
     ) -> tuple[dict[str, Any], str | None]:
         if len(fields) < 10 or len(header_columns) < 10:
             return {}, requested_sample_id
-        format_keys = fields[8].split(":")
         sample_index = selected_sample_index or 0
         field_index = 9 + sample_index
         if field_index >= len(fields):
             return {}, requested_sample_id
-        values = fields[field_index].split(":")
+        format_text = fields[8]
+        if format_text in {"", "."}:
+            return {}, header_columns[field_index]
+        format_keys = format_text.split(":")
+        sample_text = fields[field_index]
+        values = ["."] * len(format_keys) if sample_text == "." else sample_text.split(":")
         return dict(zip(format_keys, values, strict=False)), header_columns[field_index]
 
     @staticmethod
     def _is_no_call(genotype: object) -> bool:
         return isinstance(genotype, str) and (genotype in {".", "./.", ".|."} or "." in genotype)
-
-    @classmethod
-    def _is_non_reference_genotype(cls, genotype: object) -> bool:
-        if not isinstance(genotype, str) or cls._is_no_call(genotype):
-            return False
-        alleles = genotype.replace("|", "/").split("/")
-        return any(allele not in {"0", "."} for allele in alleles)
 
     @staticmethod
     def _column_aliases(fieldnames: list[str]) -> dict[str, str]:
@@ -1062,6 +1971,270 @@ class VariantIntake:
                     aliases[canonical] = normalized[name]
                     break
         return aliases
+
+
+class ReferenceBlockIndex:
+    """Bounded per-sample interval index for explicit gVCF confidence blocks.
+
+    Query coordinates use zero-based half-open intervals. Genome build and sample
+    are mandatory query dimensions; blocks are never pooled across either one.
+    The sorted starts and prefix maximum ends bound candidate lookup without
+    expanding intervals into per-base storage.
+    """
+
+    def __init__(
+        self,
+        blocks: Iterable[ReferenceBlockRecord],
+        *,
+        max_records: int = MAX_REFERENCE_BLOCK_INDEX_RECORDS,
+    ) -> None:
+        if (
+            isinstance(max_records, bool)
+            or not isinstance(max_records, int)
+            or not 1 <= max_records <= MAX_REFERENCE_BLOCK_INDEX_RECORDS
+        ):
+            raise ValidationError(
+                "max_records must be an integer between 1 and "
+                f"MAX_REFERENCE_BLOCK_INDEX_RECORDS ({MAX_REFERENCE_BLOCK_INDEX_RECORDS})"
+            )
+        if isinstance(blocks, (str, bytes, bytearray, Mapping)):
+            raise ValidationError("blocks must be an iterable of ReferenceBlockRecord objects")
+        try:
+            values = tuple(islice(iter(blocks), max_records + 1))
+        except TypeError as exc:
+            raise ValidationError("blocks must be iterable") from exc
+        if len(values) > max_records:
+            raise ValidationError(
+                "reference_block_index_record_limit_exceeded: "
+                f"reference-block index ceiling of {max_records} was exceeded"
+            )
+        if any(not isinstance(block, ReferenceBlockRecord) for block in values):
+            raise ValidationError("blocks must contain only ReferenceBlockRecord objects")
+
+        def sort_key(block: ReferenceBlockRecord) -> tuple[str, str, str, int, int, str]:
+            return (
+                block.genome_build.strip(),
+                normalize_chromosome(block.chromosome),
+                block.sample_id or "",
+                block.start,
+                block.end,
+                block.content_address,
+            )
+
+        self._blocks = tuple(sorted(values, key=sort_key))
+        grouped: dict[tuple[str, str, str | None], list[ReferenceBlockRecord]] = {}
+        for block in self._blocks:
+            key = (
+                block.genome_build.strip(),
+                normalize_chromosome(block.chromosome),
+                block.sample_id,
+            )
+            grouped.setdefault(key, []).append(block)
+        self._by_build_chromosome_sample = {
+            key: tuple(group) for key, group in grouped.items()
+        }
+        self._starts: dict[tuple[str, str, str | None], tuple[int, ...]] = {}
+        self._prefix_max_ends: dict[tuple[str, str, str | None], tuple[int, ...]] = {}
+        for key, group in self._by_build_chromosome_sample.items():
+            self._starts[key] = tuple(block.start for block in group)
+            prefix_max_ends: list[int] = []
+            max_end = 0
+            for block in group:
+                max_end = max(max_end, block.end)
+                prefix_max_ends.append(max_end)
+            self._prefix_max_ends[key] = tuple(prefix_max_ends)
+
+    @staticmethod
+    def _query_key(
+        genome_build: str,
+        chromosome: str,
+        sample_id: str | None,
+    ) -> tuple[str, str, str | None]:
+        if not isinstance(genome_build, str) or not genome_build.strip():
+            raise ValidationError("genome_build must be non-empty text")
+        if not isinstance(chromosome, str) or not chromosome.strip():
+            raise ValidationError("chromosome must be non-empty text")
+        if sample_id is not None and (not isinstance(sample_id, str) or not sample_id.strip()):
+            raise ValidationError("sample_id must be non-empty text when present")
+        return (
+            genome_build.strip(),
+            normalize_chromosome(chromosome),
+            sample_id.strip() if sample_id else None,
+        )
+
+    @staticmethod
+    def _validate_interval(start: int, end: int) -> None:
+        if type(start) is not int or type(end) is not int:
+            raise ValidationError("reference-block query coordinates must be integers")
+        if start < 0 or end <= start:
+            raise ValidationError(
+                "reference-block query must satisfy 0 <= start < end using half-open coordinates"
+            )
+
+    def _overlapping_blocks(
+        self,
+        key: tuple[str, str, str | None],
+        start: int,
+        end: int,
+    ) -> tuple[ReferenceBlockRecord, ...]:
+        group = self._by_build_chromosome_sample.get(key, ())
+        if not group:
+            return ()
+        starts = self._starts[key]
+        prefix_max_ends = self._prefix_max_ends[key]
+        candidate_limit = bisect_left(starts, end)
+        candidates: list[ReferenceBlockRecord] = []
+        for index in range(candidate_limit - 1, -1, -1):
+            if prefix_max_ends[index] <= start:
+                break
+            block = group[index]
+            if block.end > start:
+                candidates.append(block)
+        candidates.sort(key=lambda item: (item.start, item.end, item.content_address))
+        return tuple(candidates)
+
+    def overlap(
+        self,
+        genome_build: str,
+        chromosome: str,
+        start: int,
+        end: int,
+        *,
+        sample_id: str | None,
+    ) -> tuple[ReferenceBlockRecord, ...]:
+        """Return overlapping blocks for one explicit build and sample only."""
+
+        self._validate_interval(start, end)
+        key = self._query_key(genome_build, chromosome, sample_id)
+        return self._overlapping_blocks(key, start, end)
+
+    def coverage_for_variant(
+        self,
+        variant: VariantIdentity,
+        *,
+        sample_id: str | None,
+    ) -> ReferenceCoverageResult:
+        """Query the canonical reference span of a one-based closed variant.
+
+        ``VariantIdentity`` coordinates are one-based and closed, while this
+        index stores zero-based half-open intervals. The exact genome build and
+        chromosome on the variant are used; no build conversion is attempted.
+        The reference-block sample remains explicit so a variant's optional
+        sample provenance is never used to select a different coverage record
+        implicitly.
+        """
+
+        if not isinstance(variant, VariantIdentity):
+            raise ValidationError("variant must be a VariantIdentity")
+        return self.coverage(
+            variant.genome_build,
+            variant.chromosome,
+            variant.start - 1,
+            variant.end,
+            sample_id=sample_id,
+        )
+
+    def coverage(
+        self,
+        genome_build: str,
+        chromosome: str,
+        start: int,
+        end: int,
+        *,
+        sample_id: str | None,
+    ) -> ReferenceCoverageResult:
+        """Partition a query into reference, no-call, unknown, uncovered, or conflict."""
+
+        self._validate_interval(start, end)
+        key = self._query_key(genome_build, chromosome, sample_id)
+        blocks = self._overlapping_blocks(key, start, end)
+        starts_at: dict[int, list[int]] = {}
+        ends_at: dict[int, list[int]] = {}
+        for index, block in enumerate(blocks):
+            clipped_start = max(start, block.start)
+            clipped_end = min(end, block.end)
+            starts_at.setdefault(clipped_start, []).append(index)
+            ends_at.setdefault(clipped_end, []).append(index)
+
+        boundaries = sorted({start, end, *starts_at, *ends_at})
+        active: set[int] = set()
+        segments: list[ReferenceCoverageSegment] = []
+        provenance_reference_count = 0
+        for boundary_index, boundary in enumerate(boundaries[:-1]):
+            for index in ends_at.get(boundary, ()):
+                active.discard(index)
+            active.update(starts_at.get(boundary, ()))
+            next_boundary = boundaries[boundary_index + 1]
+            provenance_reference_count += len(active)
+            if provenance_reference_count > MAX_REFERENCE_COVERAGE_PROVENANCE_REFERENCES:
+                raise ValidationError(
+                    "reference_coverage_provenance_limit_exceeded: "
+                    "coverage query exceeds the bounded active-block provenance budget of "
+                    f"{MAX_REFERENCE_COVERAGE_PROVENANCE_REFERENCES}"
+                )
+            active_blocks = tuple(blocks[index] for index in sorted(active))
+            active_states = {block.call_state for block in active_blocks}
+            if len(active_states) > 1:
+                state = ReferenceCoverageState.CONFLICT
+            elif not active_blocks:
+                state = ReferenceCoverageState.UNCOVERED
+            else:
+                state = ReferenceCoverageState(next(iter(active_states)).value)
+            addresses = tuple(sorted({block.content_address for block in active_blocks}))
+            segment = ReferenceCoverageSegment(
+                boundary,
+                next_boundary,
+                state,
+                addresses,
+            )
+            if (
+                segments
+                and segments[-1].end == segment.start
+                and segments[-1].state == segment.state
+                and segments[-1].block_addresses == segment.block_addresses
+            ):
+                previous = segments.pop()
+                segment = ReferenceCoverageSegment(
+                    previous.start,
+                    segment.end,
+                    segment.state,
+                    segment.block_addresses,
+                )
+            segments.append(segment)
+
+        segment_values = tuple(segments)
+        block_addresses = tuple(
+            sorted({address for segment in segment_values for address in segment.block_addresses})
+        )
+        return ReferenceCoverageResult(
+            genome_build=key[0],
+            chromosome=key[1],
+            start=start,
+            end=end,
+            sample_id=key[2],
+            segments=segment_values,
+            block_addresses=block_addresses,
+        )
+
+    def all(self) -> tuple[ReferenceBlockRecord, ...]:
+        """Return all indexed records in deterministic query order."""
+
+        return self._blocks
+
+    @property
+    def content_address(self) -> str:
+        return content_hash(
+            [block.content_address for block in self._blocks],
+            prefix="intake-reference-block-index",
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "count": len(self._blocks),
+            "coordinate_system": "zero_based_half_open",
+            "blocks": [block.to_dict() for block in self._blocks],
+            "content_address": self.content_address,
+        }
 
 
 class VariantIndex:

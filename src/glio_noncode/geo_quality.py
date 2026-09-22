@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import math
+import struct
 from pathlib import Path
 from typing import Any
 
@@ -62,14 +64,22 @@ def build_expression_quality_report(
                 "minima": [None] * sample_count,
                 "maxima": [None] * sample_count,
                 "features_by_missing_sample_count": [0] * (sample_count + 1),
+                "profile_digests": [
+                    hashlib.sha256(b"glio-geo-profile-v1\0") for _ in range(sample_count)
+                ],
             }
         state = statistics
         feature_missing_count = 0
         for sample_index, value in enumerate(feature.values):
+            profile_digest = state["profile_digests"][sample_index]
             if value is None:
+                profile_digest.update(b"\x00")
                 state["missing_counts"][sample_index] += 1
                 feature_missing_count += 1
                 continue
+
+            profile_digest.update(b"\x01")
+            profile_digest.update(struct.pack("!d", 0.0 if value == 0.0 else value))
 
             scale_value = state["magnitude_scales"][sample_index]
             value_magnitude = abs(value)
@@ -119,6 +129,21 @@ def build_expression_quality_report(
     minima = statistics["minima"]
     maxima = statistics["maxima"]
     features_by_missing_sample_count = statistics["features_by_missing_sample_count"]
+    profile_groups: dict[str, list[int]] = {}
+    for index, observed in enumerate(observed_counts):
+        if observed:
+            digest = statistics["profile_digests"][index].hexdigest()
+            profile_groups.setdefault(digest, []).append(index)
+    profile_group_sizes: list[int | None] = [None] * sample_count
+    duplicate_group_size_counts: dict[int, int] = {}
+    for members in profile_groups.values():
+        group_size = len(members)
+        for index in members:
+            profile_group_sizes[index] = group_size
+        if group_size > 1:
+            duplicate_group_size_counts[group_size] = (
+                duplicate_group_size_counts.get(group_size, 0) + 1
+            )
 
     sample_summaries: list[dict[str, Any]] = []
     for index, sample in enumerate(matrix.samples):
@@ -143,11 +168,17 @@ def build_expression_quality_report(
                 "sample_standard_deviation": standard_deviation,
                 "minimum": minima[index],
                 "maximum": maxima[index],
+                "exact_profile_group_size": profile_group_sizes[index],
             }
         )
 
     total_cells = feature_count * sample_count
     total_missing = sum(missing_counts)
+    duplicate_profile_group_count = sum(duplicate_group_size_counts.values())
+    samples_in_duplicate_profile_groups = sum(
+        group_size * group_count
+        for group_size, group_count in duplicate_group_size_counts.items()
+    )
     body: dict[str, Any] = {
         "schema": "glio-noncode.geo-expression-quality.v1",
         "status": "completed",
@@ -176,6 +207,8 @@ def build_expression_quality_report(
             "streaming_summary_passes": 1,
             "automatic_sample_exclusion": False,
             "automatic_quality_classification": False,
+            "exact_profile_match_basis": "parsed measurements and missingness in matrix row order",
+            "profile_fingerprints_emitted": False,
         },
         "summary": {
             "sample_count": sample_count,
@@ -188,6 +221,15 @@ def build_expression_quality_report(
             "feature_with_missing_measurement_count": (
                 feature_count - features_by_missing_sample_count[0]
             ),
+            "sample_count_without_observed_values": sum(
+                observed == 0 for observed in observed_counts
+            ),
+            "exact_duplicate_profile_group_count": duplicate_profile_group_count,
+            "samples_in_exact_duplicate_profile_groups": samples_in_duplicate_profile_groups,
+            "exact_duplicate_profile_groups_by_size": [
+                {"group_size": group_size, "group_count": group_count}
+                for group_size, group_count in sorted(duplicate_group_size_counts.items())
+            ],
             "features_by_missing_sample_count": [
                 {"missing_sample_count": missing_sample_count, "feature_count": count}
                 for missing_sample_count, count in enumerate(
@@ -205,6 +247,10 @@ def build_expression_quality_report(
             "outlier-sensitive.",
             "Missingness patterns are summarized but their cause and informativeness are not "
             "inferred.",
+            "Exact profile groups compare all parsed values and missingness positions; near-"
+            "duplicate profiles are not detected, and samples with no observed values are not "
+            "matched.",
+            "Profile fingerprints are used internally for exact matching and are not emitted.",
             "A single-platform matrix is required; cross-platform harmonization is not performed.",
         ],
     }

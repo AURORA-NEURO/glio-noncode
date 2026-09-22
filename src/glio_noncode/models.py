@@ -856,7 +856,7 @@ class HypothesisEdge:
 
 @dataclass(frozen=True, slots=True)
 class Hypothesis:
-    """A research hypothesis with factorized links and a transparent summary."""
+    """One candidate variant-element-gene-state path with explicit uncertainty."""
 
     hypothesis_id: str
     variant_id: str
@@ -888,7 +888,9 @@ class Hypothesis:
             raise ValidationError("hypothesis context must be a ReferenceContext")
         if type(self.status) is not ResearchStatus:
             raise ValidationError("hypothesis status must be a ResearchStatus")
-        if type(self.edges) is not tuple or any(type(edge) is not HypothesisEdge for edge in self.edges):
+        if type(self.edges) is not tuple or any(
+            type(edge) is not HypothesisEdge for edge in self.edges
+        ):
             raise ValidationError("hypothesis edges must be typed HypothesisEdge objects")
         if not self.edges:
             raise ValidationError("a hypothesis must have at least one edge")

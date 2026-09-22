@@ -96,6 +96,7 @@ class BcfRecord:
     info: Mapping[str, Any]
     samples: Mapping[str, Mapping[str, Any]]
     raw_hash: str
+    format_keys: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -448,6 +449,7 @@ class BcfReader:
                 f"has {len(sample_names)}"
             )
         samples: dict[str, dict[str, Any]] = {name: {} for name in sample_names}
+        format_keys: list[str] = []
         for _ in range(n_formats):
             key_index = self._typed_scalar_int(individual, "FORMAT key")
             if key_index < 0 or key_index >= len(header["formats"]):
@@ -455,6 +457,7 @@ class BcfReader:
                     f"BCF record {index} references unknown FORMAT key {key_index}"
                 )
             key = header["formats"][key_index]
+            format_keys.append(key)
             value = self._typed(individual, f"FORMAT {key}")
             values = value.value if isinstance(value.value, list) else [value.value]
             if n_samples:
@@ -484,6 +487,7 @@ class BcfReader:
             info=info,
             samples=samples,
             raw_hash=_legacy_record_hash(shared_data, individual_data),
+            format_keys=tuple(format_keys),
         )
 
     def _typed_string(self, cursor: _Cursor, field: str) -> str:

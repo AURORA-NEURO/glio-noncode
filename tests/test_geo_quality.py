@@ -81,6 +81,39 @@ class GeoExpressionQualityTests(unittest.TestCase):
         self.assertAlmostEqual(second["mean"], 5.0)
         self.assertAlmostEqual(second["sample_standard_deviation"], math.sqrt(20 / 3))
         self.assertEqual((third["mean"], third["sample_standard_deviation"]), (10.0, 0.0))
+        self.assertEqual(
+            [sample["exact_profile_group_size"] for sample in report["samples"]],
+            [1, 1, 1],
+        )
+
+    def test_exact_profile_matching_includes_missingness_and_normalizes_signed_zero(self) -> None:
+        text = gzip.decompress(_matrix_payload()).decode("utf-8")
+        text = text.replace("probe-1\t1\t2\tNA\n", "probe-1\t0\t-0\tNA\n")
+        text = text.replace("probe-2\t3\t4\tNA\n", "probe-2\t2\t2\tNA\n")
+        text = text.replace("probe-3\t5\t6\t10\n", "probe-3\tNA\tNA\tNA\n")
+        text = text.replace("probe-4\tNA\t8\t10\n", "probe-4\t7\t7\tNA\n")
+
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "repeated-profiles.txt.gz"
+            matrix_path.write_bytes(gzip.compress(text.encode("utf-8"), mtime=0))
+            report = build_expression_quality_report(
+                "GSE123456",
+                scale="normalized_intensity",
+                matrix_file=matrix_path,
+            )
+
+        self.assertEqual(
+            [sample["exact_profile_group_size"] for sample in report["samples"]],
+            [2, 2, None],
+        )
+        self.assertEqual(report["summary"]["sample_count_without_observed_values"], 1)
+        self.assertEqual(report["summary"]["exact_duplicate_profile_group_count"], 1)
+        self.assertEqual(report["summary"]["samples_in_exact_duplicate_profile_groups"], 2)
+        self.assertEqual(
+            report["summary"]["exact_duplicate_profile_groups_by_size"],
+            [{"group_size": 2, "group_count": 1}],
+        )
+        self.assertFalse(report["analysis"]["profile_fingerprints_emitted"])
 
     def test_local_provenance_is_content_addressed_without_directory_leakage(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -156,6 +189,8 @@ class GeoExpressionQualityTests(unittest.TestCase):
         self.assertIsNone(unobserved["sample_standard_deviation"])
         self.assertIsNone(unobserved["minimum"])
         self.assertIsNone(unobserved["maximum"])
+        self.assertIsNone(unobserved["exact_profile_group_size"])
+        self.assertEqual(report["summary"]["sample_count_without_observed_values"], 1)
 
     def test_rejects_multiple_platforms_invalid_scales_and_timeouts(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

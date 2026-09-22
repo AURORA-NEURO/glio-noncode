@@ -10,14 +10,17 @@ from __future__ import annotations
 import csv
 import gzip
 import hashlib
+import heapq
 import io
 import math
 import re
 import zlib
+from array import array
 from collections import Counter
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
+from fractions import Fraction
 from functools import lru_cache
 from itertools import combinations
 from pathlib import Path
@@ -53,11 +56,15 @@ MAX_SAMPLE_COUNT = 2_000
 MAX_FEATURE_COUNT = 1_000_000
 MAX_MATRIX_CELLS = 5_000_000
 MAX_CONTRAST_FEATURES = 100_000
+MAX_FEATURE_ANNOTATION_BYTES = 2_000_000
+MAX_FEATURE_ANNOTATION_ROWS = 100_000
+GEO_COUNT_NORMALIZATION_METHODS = ("log2_cpm", "tmm_log2_cpm")
 MAX_TRACKED_GEO_FEATURES = 500
 MAX_EXACT_RANK_ASSIGNMENTS = 20_000
 MAX_TOTAL_EXACT_RANK_SUMS = 100_000_000
 MAX_GEO_COVARIATES = 16
 MAX_GEO_MODEL_PARAMETERS = 24
+MIN_GEO_COUNT_CONTRAST_PAIRS = 3
 DEFAULT_GEO_CONFIDENCE_LEVEL = 0.95
 MAX_METADATA_ROWS = 2_048
 MAX_METADATA_VALUE_LENGTH = 8_192
@@ -67,6 +74,14 @@ _GSM_RE = re.compile(r"GSM[0-9]{1,12}\Z")
 _FEATURE_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:@|/+=_-]{0,255}\Z")
 _SUPPLEMENTARY_FILE_NAME_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,254}\Z")
 _MISSING_MATRIX_VALUES = frozenset({"", "na", "null"})
+_MONTH_ABBREVIATION = (
+    r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)"
+)
+_DATE_LIKE_FEATURE_LABEL_RE = re.compile(
+    rf"(?:[0-9]{{1,2}}-{_MONTH_ABBREVIATION}|{_MONTH_ABBREVIATION}-[0-9]{{1,2}})",
+    re.IGNORECASE,
+)
+_MAX_REPORTED_DATE_LIKE_FEATURE_LABELS = 25
 
 
 @dataclass(frozen=True, slots=True)
@@ -179,6 +194,9 @@ class _GeoCountMatrix:
     source_sha256: str
     compressed_bytes: int
     decompressed_bytes: int
+    annotation_source_ids_found: tuple[str, ...]
+    duplicate_annotation_source_ids: tuple[str, ...]
+    normalization_factors: tuple[float, ...]
 
 
 @dataclass(slots=True)
@@ -188,7 +206,104 @@ class _GeoCountTableSummary:
     feature_count: int = 0
     duplicate_feature_label_count: int = 0
     duplicate_feature_ids: set[str] = dataclass_field(default_factory=set)
+    date_like_feature_label_count: int = 0
+    date_like_feature_labels: list[str] = dataclass_field(default_factory=list)
     decompressed_bytes: int = 0
+
+
+def _date_like_feature_label_review(summary: _GeoCountTableSummary) -> dict[str, Any]:
+    """Report bounded labels that resemble spreadsheet-coerced date tokens."""
+
+    return {
+        "possible_date_like_source_label_count": summary.date_like_feature_label_count,
+        "reported_possible_date_like_source_labels": list(summary.date_like_feature_labels),
+        "omitted_possible_date_like_source_label_count": max(
+            0, summary.date_like_feature_label_count - len(summary.date_like_feature_labels)
+        ),
+        "automatic_normalization_performed": False,
+        "manual_annotation_review_recommended": summary.date_like_feature_label_count > 0,
+    }
+
+
+def _feature_label_is_date_like(value: str) -> bool:
+    return _DATE_LIKE_FEATURE_LABEL_RE.fullmatch(value) is not None
+
+
+def _feature_label_review(value: str) -> dict[str, Any]:
+    """Attach the date-like source-label warning directly to one result row."""
+
+    is_date_like = _feature_label_is_date_like(value)
+    return {
+        "possible_date_like_source_label": is_date_like,
+        "manual_annotation_review_recommended": is_date_like,
+        "source_label_preserved": True,
+        "automatic_normalization_performed": False,
+    }
+
+
+def _read_feature_annotation_file(
+    annotation_file: str | Path | None,
+) -> tuple[dict[str, str], dict[str, Any]]:
+    """Read an explicit source-to-curated identifier map without altering source IDs."""
+
+    if annotation_file is None:
+        return {}, {
+            "status": "not_provided",
+            "format": "csv",
+            "mapping_entry_count": 0,
+            "source_sha256": None,
+        }
+
+    payload = _safe_persistence.read_bytes(
+        annotation_file,
+        field="GEO feature annotation map",
+        max_bytes=MAX_FEATURE_ANNOTATION_BYTES,
+    )
+    try:
+        text = payload.decode("utf-8-sig")
+        reader = csv.reader(io.StringIO(text, newline=""), strict=True)
+        header = next(reader, None)
+        if header != ["source_feature_id", "curated_feature_id"]:
+            raise ValidationError(
+                "GEO feature annotation map requires the exact header "
+                "source_feature_id,curated_feature_id"
+            )
+        annotations: dict[str, str] = {}
+        for row_number, row in enumerate(reader, start=2):
+            if not row or all(not cell.strip() for cell in row):
+                continue
+            if len(row) != 2:
+                raise ValidationError(
+                    f"GEO feature annotation row {row_number} must contain exactly two columns"
+                )
+            source_id = _required_text(
+                row[0], "GEO source feature identifier", maximum=256
+            )
+            curated_id = _required_text(
+                row[1], "GEO curated feature identifier", maximum=256
+            )
+            if _FEATURE_RE.fullmatch(source_id) is None:
+                raise ValidationError("GEO source feature identifier is malformed")
+            if _FEATURE_RE.fullmatch(curated_id) is None:
+                raise ValidationError("GEO curated feature identifier is malformed")
+            if source_id in annotations:
+                raise ValidationError("GEO feature annotation map repeats a source identifier")
+            annotations[source_id] = curated_id
+            if len(annotations) > MAX_FEATURE_ANNOTATION_ROWS:
+                raise ValidationError("GEO feature annotation map exceeds its row limit")
+    except UnicodeDecodeError as error:
+        raise ValidationError("GEO feature annotation map must be UTF-8 CSV") from error
+    except csv.Error as error:
+        raise ValidationError("GEO feature annotation map is malformed CSV") from error
+
+    if not annotations:
+        raise ValidationError("GEO feature annotation map must contain at least one mapping")
+    return annotations, {
+        "status": "provided",
+        "format": "csv",
+        "mapping_entry_count": len(annotations),
+        "source_sha256": f"sha256:{hashlib.sha256(payload).hexdigest()}",
+    }
 
 
 def _required_text(value: object, label: str, *, maximum: int = 512) -> str:
@@ -314,9 +429,31 @@ def _finite_median(values: Sequence[float]) -> float:
     return ordered[middle - 1] / 2.0 + ordered[middle] / 2.0
 
 
+def _finite_distribution_summary(values: Sequence[int | float]) -> dict[str, int | float]:
+    """Return bounded descriptive statistics without retaining source records."""
+
+    if not values or any(not math.isfinite(float(value)) for value in values):
+        raise ValidationError("GEO count quality summaries require finite observations")
+    ordered = sorted(values)
+    return {
+        "sample_count": len(ordered),
+        "minimum": ordered[0],
+        "median": _finite_median(tuple(float(value) for value in ordered)),
+        "maximum": ordered[-1],
+    }
+
+
 def _finite_difference(left: float, right: float) -> float | None:
     difference = left - right
     return difference if math.isfinite(difference) else None
+
+
+def _effect_direction(value: float, *, zero_label: str) -> str:
+    if value > 0.0:
+        return "case_higher"
+    if value < 0.0:
+        return "case_lower"
+    return zero_label
 
 
 def _parse_series_matrix_features(
@@ -823,6 +960,14 @@ def _iter_geo_supplementary_count_rows(
             if current_feature in seen_features:
                 summary.duplicate_feature_label_count += 1
                 summary.duplicate_feature_ids.add(current_feature)
+            else:
+                if _feature_label_is_date_like(current_feature):
+                    summary.date_like_feature_label_count += 1
+                    if (
+                        len(summary.date_like_feature_labels)
+                        < _MAX_REPORTED_DATE_LIKE_FEATURE_LABELS
+                    ):
+                        summary.date_like_feature_labels.append(current_feature)
             seen_features.add(current_feature)
 
             counts: list[int] = []
@@ -849,6 +994,195 @@ def _iter_geo_supplementary_count_rows(
         raise ValidationError("GEO count matrix contains a zero-size sample library")
 
 
+def _normalize_count_normalization_method(value: object) -> str:
+    if not isinstance(value, str) or value not in GEO_COUNT_NORMALIZATION_METHODS:
+        accepted = ", ".join(GEO_COUNT_NORMALIZATION_METHODS)
+        raise ValidationError(f"GEO count normalization method must be one of: {accepted}")
+    return value
+
+
+def _trimmed_tmm_value_bounds(
+    ordered_values: Sequence[float], trim_fraction: float
+) -> tuple[float, float] | None:
+    """Return the inclusive value range retained by average-rank trimming."""
+
+    observation_count = len(ordered_values)
+    first_rank = math.floor(observation_count * trim_fraction) + 1
+    last_rank = observation_count + 1 - first_rank
+    lower_bound: float | None = None
+    upper_bound: float | None = None
+    index = 0
+    while index < observation_count:
+        end = index + 1
+        while end < observation_count and ordered_values[end] == ordered_values[index]:
+            end += 1
+        average_rank = (index + 1 + end) / 2.0
+        if first_rank <= average_rank <= last_rank:
+            if lower_bound is None:
+                lower_bound = ordered_values[index]
+            upper_bound = ordered_values[index]
+        index = end
+    if lower_bound is None or upper_bound is None:
+        return None
+    return lower_bound, upper_bound
+
+
+def _estimate_geo_tmm_factors(
+    payload: bytes,
+    *,
+    delimiter: str,
+    library_sizes: Sequence[int],
+    duplicate_feature_ids: set[str] | frozenset[str],
+) -> tuple[float, ...]:
+    """Estimate edgeR-style TMM scaling factors from unique count rows.
+
+    The matrix cell limit bounds the packed count storage. Repeated feature IDs
+    are omitted from normalization because their biological identity is
+    ambiguous; they remain included in the original library-size totals.
+    """
+
+    summary = _GeoCountTableSummary()
+    columns: list[array[int]] | None = None
+    for feature_id, counts in _iter_geo_supplementary_count_rows(
+        payload, delimiter=delimiter, summary=summary
+    ):
+        if columns is None:
+            columns = [array("Q") for _ in counts]
+        if feature_id in duplicate_feature_ids or not any(counts):
+            continue
+        for index, count in enumerate(counts):
+            columns[index].append(count)
+
+    if tuple(summary.library_sizes) != tuple(library_sizes):
+        raise ValidationError("GEO count matrix library totals changed during normalization")
+    if columns is None or not columns[0]:
+        raise ValidationError("TMM normalization has no uniquely identified features")
+    sample_count = len(columns)
+    if sample_count == 1:
+        return (1.0,)
+
+    # edgeR chooses the library whose CPM upper quartile is closest to the
+    # cohort mean upper quartile. Use the standard type-7 interpolated quantile.
+    upper_quartiles: list[float] = []
+    for column, library_size in zip(columns, library_sizes, strict=True):
+        ordered_counts = sorted(column)
+        position = 0.75 * (len(ordered_counts) - 1)
+        lower_index = math.floor(position)
+        upper_index = math.ceil(position)
+        fraction = position - lower_index
+        quantile = ordered_counts[lower_index] * (1.0 - fraction)
+        quantile += ordered_counts[upper_index] * fraction
+        upper_quartiles.append(quantile / library_size * 1_000_000.0)
+    mean_upper_quartile = math.fsum(upper_quartiles) / sample_count
+    if _finite_median(upper_quartiles) < 1e-20:
+        reference_index = max(
+            range(sample_count),
+            key=lambda index: math.fsum(math.sqrt(value) for value in columns[index]),
+        )
+    else:
+        reference_index = min(
+            range(sample_count),
+            key=lambda index: abs(upper_quartiles[index] - mean_upper_quartile),
+        )
+    reference_library_size = library_sizes[reference_index]
+    reference_counts = columns[reference_index]
+    factors = [1.0] * sample_count
+
+    for sample_index, (sample_counts, sample_library_size) in enumerate(
+        zip(columns, library_sizes, strict=True)
+    ):
+        if sample_index == reference_index:
+            continue
+        records: list[tuple[float, float, float]] = []
+        for sample_count_value, reference_count_value in zip(
+            sample_counts, reference_counts, strict=True
+        ):
+            if sample_count_value == 0 or reference_count_value == 0:
+                continue
+            sample_proportion = sample_count_value / sample_library_size
+            reference_proportion = reference_count_value / reference_library_size
+            log_ratio = math.log2(sample_proportion / reference_proportion)
+            average_log_expression = 0.5 * math.log2(
+                sample_proportion * reference_proportion
+            )
+            variance = (
+                1.0 / sample_count_value
+                - 1.0 / sample_library_size
+                + 1.0 / reference_count_value
+                - 1.0 / reference_library_size
+            )
+            if variance > 0.0 and math.isfinite(variance):
+                records.append((log_ratio, average_log_expression, 1.0 / variance))
+        if not records:
+            raise ValidationError("TMM normalization has no shared positive-count features")
+        if max(abs(record[0]) for record in records) < 1e-6:
+            factors[sample_index] = 1.0
+            continue
+
+        m_trim = math.floor(len(records) * 0.30)
+        a_trim = math.floor(len(records) * 0.05)
+        records.sort(key=lambda record: record[0])
+        m_bounds = _trimmed_tmm_value_bounds(
+            [record[0] for record in records], m_trim / len(records)
+        )
+        records.sort(key=lambda record: record[1])
+        a_bounds = _trimmed_tmm_value_bounds(
+            [record[1] for record in records], a_trim / len(records)
+        )
+        if m_bounds is None or a_bounds is None:
+            raise ValidationError("TMM trimming left no features for a normalization factor")
+        records = [
+            record
+            for record in records
+            if m_bounds[0] <= record[0] <= m_bounds[1]
+            and a_bounds[0] <= record[1] <= a_bounds[1]
+        ]
+        if not records:
+            raise ValidationError("TMM trimming left no features for a normalization factor")
+        weighted_mean = math.fsum(
+            m_value * weight for m_value, _, weight in records
+        ) / math.fsum(weight for _, _, weight in records)
+        factors[sample_index] = 2.0**weighted_mean
+
+    geometric_mean = math.exp(math.fsum(math.log(factor) for factor in factors) / sample_count)
+    normalized_factors = tuple(factor / geometric_mean for factor in factors)
+    if any(not math.isfinite(factor) or factor <= 0.0 for factor in normalized_factors):
+        raise ValidationError("TMM normalization produced a non-finite factor")
+    return normalized_factors
+
+
+def _count_normalization_report(
+    method: str, factors: Sequence[float]
+) -> dict[str, Any]:
+    tmm_used = method == "tmm_log2_cpm"
+    return {
+        "method": method,
+        "expression_scale": "log2(count / effective_library_size * 1,000,000 + 1)",
+        "effective_library_size": (
+            "raw library size multiplied by a TMM normalization factor"
+            if tmm_used
+            else "raw library size"
+        ),
+        "normalization_factor_summary": _finite_distribution_summary(factors),
+        "tmm_reference": (
+            "sample whose CPM upper quartile is closest to the cohort mean"
+            if tmm_used
+            else None
+        ),
+        "tmm_trim": (
+            {"log_ratio_each_tail": 0.30, "average_abundance_each_tail": 0.05}
+            if tmm_used
+            else None
+        ),
+        "duplicate_feature_policy": (
+            "exclude duplicated feature IDs from factor estimation; retain all rows "
+            "in raw library sizes"
+            if tmm_used
+            else "not applicable"
+        ),
+    }
+
+
 def parse_geo_supplementary_count_matrix(
     payload: bytes,
     *,
@@ -857,6 +1191,8 @@ def parse_geo_supplementary_count_matrix(
     delimiter: str = ",",
     source_file_name: str = "count-matrix.csv.gz",
     source_url: str | None = None,
+    annotation_source_ids: frozenset[str] = frozenset(),
+    normalization_method: str = "log2_cpm",
 ) -> _GeoCountMatrix:
     """Parse one bounded gene-by-sample integer-count table for one feature.
 
@@ -865,6 +1201,7 @@ def parse_geo_supplementary_count_matrix(
     """
 
     normalized_accession = validate_accession(accession)
+    normalized_normalization_method = _normalize_count_normalization_method(normalization_method)
     selected_feature = _required_text(feature_id, "GEO gene feature ID", maximum=256)
     if _FEATURE_RE.fullmatch(selected_feature) is None:
         raise ValidationError("GEO gene feature ID contains unsupported characters")
@@ -875,9 +1212,16 @@ def parse_geo_supplementary_count_matrix(
             raise ValidationError("GEO count matrix source URL is not canonical")
     summary = _GeoCountTableSummary()
     selected_counts: tuple[int, ...] | None = None
+    found_annotation_source_ids: set[str] = set()
+    duplicate_annotation_source_ids: set[str] = set()
     for current_feature, counts in _iter_geo_supplementary_count_rows(
         payload, delimiter=delimiter, summary=summary
     ):
+        if current_feature in annotation_source_ids:
+            if current_feature in found_annotation_source_ids:
+                duplicate_annotation_source_ids.add(current_feature)
+            else:
+                found_annotation_source_ids.add(current_feature)
         if current_feature == selected_feature:
             if selected_counts is not None:
                 raise ValidationError("requested GEO feature appears more than once")
@@ -885,6 +1229,16 @@ def parse_geo_supplementary_count_matrix(
 
     if selected_counts is None:
         raise ValidationError("requested GEO feature is absent from the count matrix")
+    normalization_factors = (
+        _estimate_geo_tmm_factors(
+            payload,
+            delimiter=delimiter,
+            library_sizes=summary.library_sizes,
+            duplicate_feature_ids=summary.duplicate_feature_ids,
+        )
+        if normalized_normalization_method == "tmm_log2_cpm"
+        else (1.0,) * len(summary.sample_ids)
+    )
     return _GeoCountMatrix(
         accession=normalized_accession,
         feature_id=selected_feature,
@@ -898,6 +1252,9 @@ def parse_geo_supplementary_count_matrix(
         source_sha256=hashlib.sha256(payload).hexdigest(),
         compressed_bytes=len(payload),
         decompressed_bytes=summary.decompressed_bytes,
+        annotation_source_ids_found=tuple(sorted(found_annotation_source_ids)),
+        duplicate_annotation_source_ids=tuple(sorted(duplicate_annotation_source_ids)),
+        normalization_factors=normalization_factors,
     )
 
 
@@ -908,7 +1265,10 @@ def _parse_geo_count_metadata(
     sample_key_column: str,
     requested_fields: Sequence[str],
     delimiter: str,
+    require_exact_sample_set: bool = True,
 ) -> tuple[dict[str, dict[str, str]], tuple[str, ...], int]:
+    if type(require_exact_sample_set) is not bool:
+        raise ValidationError("GEO exact sample-key join policy must be boolean")
     if not isinstance(sample_key_column, str) or len(sample_key_column) > 256:
         raise ValidationError("GEO metadata sample-key column must be a bounded string")
     if any(ord(character) < 32 for character in sample_key_column):
@@ -976,7 +1336,7 @@ def _parse_geo_count_metadata(
             "GEO supplementary sample metadata is not valid delimited text"
         ) from error
 
-    if set(records) != set(sample_ids):
+    if require_exact_sample_set and set(records) != set(sample_ids):
         raise ValidationError("GEO count matrix and sample metadata keys do not match exactly")
     if decompressed_bytes == 0:
         raise ValidationError("GEO supplementary sample metadata is empty")
@@ -1397,6 +1757,257 @@ def _paired_sign_test(
     )
 
 
+def _leave_one_out_medians(values: Sequence[float]) -> tuple[float, ...]:
+    """Return every one-observation-deleted median using sorted order statistics."""
+
+    if len(values) < 3:
+        raise ValidationError("leave-one-out median sensitivity requires at least three values")
+    if any(not math.isfinite(value) for value in values):
+        raise ValidationError("GEO expression values for leave-one-out sensitivity must be finite")
+
+    ordered = sorted(values)
+    retained_count = len(ordered) - 1
+    lower_rank = (retained_count - 1) // 2
+    upper_rank = retained_count // 2
+    return tuple(
+        ordered[lower_rank + (lower_rank >= omitted_rank)] / 2.0
+        + ordered[upper_rank + (upper_rank >= omitted_rank)] / 2.0
+        for omitted_rank in range(len(ordered))
+    )
+
+
+def _paired_leave_one_out_median_sensitivity(differences: Sequence[float]) -> dict[str, Any]:
+    """Describe how the paired median changes when each matched pair is omitted.
+
+    The sorted-order-statistic implementation evaluates every omission in
+    O(n log n) total time rather than re-sorting once per pair. These are
+    descriptive influence diagnostics; no inferential test is refit.
+    """
+
+    if len(differences) < 3:
+        raise ValidationError("leave-one-pair-out sensitivity requires at least three pairs")
+    if any(not math.isfinite(value) for value in differences):
+        raise ValidationError("paired GEO expression differences must be finite")
+    omitted_medians = _leave_one_out_medians(differences)
+
+    def direction(value: float) -> str:
+        return "case_higher" if value > 0.0 else "case_lower" if value < 0.0 else "tied"
+
+    full_direction = direction(_finite_median(differences))
+    direction_counts = Counter(direction(value) for value in omitted_medians)
+    return {
+        "omitted_pair_count": len(differences),
+        "median_difference_range_log2_cpm": [min(omitted_medians), max(omitted_medians)],
+        "direction_counts": {
+            key: direction_counts[key] for key in ("case_higher", "case_lower", "tied")
+        },
+        "direction_stable": all(direction(value) == full_direction for value in omitted_medians),
+    }
+
+
+def _unpaired_leave_one_out_median_sensitivity(
+    case_values: Sequence[float], reference_values: Sequence[float]
+) -> dict[str, Any]:
+    """Summarize median-direction stability across eligible single-sample deletions.
+
+    Deletions are evaluated separately within each group and are eligible only
+    when at least two observations remain in both groups. The result describes
+    raw, unadjusted group medians; no rank test, model, or p-value is refit.
+    """
+
+    if any(not math.isfinite(value) for value in (*case_values, *reference_values)):
+        raise ValidationError("GEO expression values for leave-one-out sensitivity must be finite")
+
+    observed_sample_count = len(case_values) + len(reference_values)
+    if len(case_values) < 2 or len(reference_values) < 2:
+        return {
+            "basis": "unadjusted_group_medians",
+            "status": "unavailable",
+            "reason": "fewer_than_two_nonmissing_observations_in_a_group",
+            "full_data_median_direction": None,
+            "omitted_case_sample_count": 0,
+            "omitted_reference_sample_count": 0,
+            "eligible_omission_count": 0,
+            "observed_sample_count": observed_sample_count,
+            "eligible_omission_coverage": 0.0,
+            "direction_counts": {
+                "case_higher": 0,
+                "case_lower": 0,
+                "no_median_difference": 0,
+            },
+            "direction_stable": None,
+            "median_difference_range": None,
+        }
+
+    case_median = _finite_median(case_values)
+    reference_median = _finite_median(reference_values)
+
+    def direction(case_center: float, reference_center: float) -> str:
+        if case_center > reference_center:
+            return "case_higher"
+        if case_center < reference_center:
+            return "case_lower"
+        return "no_median_difference"
+
+    full_direction = direction(case_median, reference_median)
+    omitted_case_medians = _leave_one_out_medians(case_values) if len(case_values) >= 3 else ()
+    omitted_reference_medians = (
+        _leave_one_out_medians(reference_values) if len(reference_values) >= 3 else ()
+    )
+    direction_counts = Counter()
+    minimum_difference: float | None = None
+    maximum_difference: float | None = None
+    representable_differences = 0
+
+    for omitted_case_median in omitted_case_medians:
+        direction_counts[direction(omitted_case_median, reference_median)] += 1
+        difference = _finite_difference(omitted_case_median, reference_median)
+        if difference is not None:
+            minimum_difference = (
+                difference if minimum_difference is None else min(minimum_difference, difference)
+            )
+            maximum_difference = (
+                difference if maximum_difference is None else max(maximum_difference, difference)
+            )
+            representable_differences += 1
+    for omitted_reference_median in omitted_reference_medians:
+        direction_counts[direction(case_median, omitted_reference_median)] += 1
+        difference = _finite_difference(case_median, omitted_reference_median)
+        if difference is not None:
+            minimum_difference = (
+                difference if minimum_difference is None else min(minimum_difference, difference)
+            )
+            maximum_difference = (
+                difference if maximum_difference is None else max(maximum_difference, difference)
+            )
+            representable_differences += 1
+
+    omitted_case_count = len(omitted_case_medians)
+    omitted_reference_count = len(omitted_reference_medians)
+    eligible_omission_count = omitted_case_count + omitted_reference_count
+    if omitted_case_count and omitted_reference_count:
+        status = "complete"
+        reason = None
+    elif eligible_omission_count:
+        status = "partial"
+        reason = "a_group_has_only_two_observed_values"
+    else:
+        status = "unavailable"
+        reason = "no_eligible_single_sample_deletions"
+
+    return {
+        "basis": "unadjusted_group_medians",
+        "status": status,
+        "reason": reason,
+        "full_data_median_direction": full_direction,
+        "omitted_case_sample_count": omitted_case_count,
+        "omitted_reference_sample_count": omitted_reference_count,
+        "eligible_omission_count": eligible_omission_count,
+        "observed_sample_count": observed_sample_count,
+        "eligible_omission_coverage": (
+            eligible_omission_count / observed_sample_count if observed_sample_count else 0.0
+        ),
+        "direction_counts": {
+            key: direction_counts[key]
+            for key in ("case_higher", "case_lower", "no_median_difference")
+        },
+        "direction_stable": (
+            all(
+                key == full_direction
+                for key, count in direction_counts.items()
+                if count > 0
+            )
+            if eligible_omission_count
+            else None
+        ),
+        "median_difference_range": (
+            [minimum_difference, maximum_difference]
+            if representable_differences == eligible_omission_count
+            and minimum_difference is not None
+            and maximum_difference is not None
+            else None
+        ),
+    }
+
+
+@lru_cache(maxsize=128)
+def _paired_median_sign_interval_critical_values(
+    pair_count: int, confidence_level: float
+) -> tuple[int | None, float | None, float]:
+    """Cache exact central sign-test ranks shared by every feature in a contrast."""
+
+    denominator = 2**pair_count
+    confidence_numerator, confidence_denominator = confidence_level.as_integer_ratio()
+    lower_tail_assignments = 0
+    binomial_coefficient = 1
+    selected_rank: int | None = None
+    achieved_level: float | None = None
+    maximum_finite_level = 0.0
+    for rank in range((pair_count + 1) // 2):
+        if rank:
+            binomial_coefficient = binomial_coefficient * (pair_count - rank + 1) // rank
+        lower_tail_assignments += binomial_coefficient
+        coverage_numerator = denominator - 2 * lower_tail_assignments
+        if rank == 0:
+            maximum_finite_level = float(Fraction(coverage_numerator, denominator))
+        if coverage_numerator * confidence_denominator >= confidence_numerator * denominator:
+            selected_rank = rank
+            achieved_level = float(Fraction(coverage_numerator, denominator))
+        else:
+            break
+    return selected_rank, achieved_level, maximum_finite_level
+
+
+def _paired_median_sign_interval(
+    differences: Sequence[float], *, confidence_level: float
+) -> dict[str, Any]:
+    """Invert the exact sign test to form a conservative median interval.
+
+    The central order-statistic interval has binomial coverage. If the pair
+    count cannot attain the requested level with finite endpoints, no interval
+    is emitted rather than silently reporting a lower-coverage range.
+    """
+
+    if (
+        isinstance(confidence_level, bool)
+        or not isinstance(confidence_level, (int, float))
+        or not math.isfinite(confidence_level)
+        or not 0.0 < confidence_level < 1.0
+    ):
+        raise ValidationError("confidence level must be finite and strictly between zero and one")
+    if not differences or any(not math.isfinite(value) for value in differences):
+        raise ValidationError("paired GEO expression differences must be finite and non-empty")
+
+    ordered = sorted(differences)
+    pair_count = len(ordered)
+    selected_rank, achieved_level, maximum_finite_level = (
+        _paired_median_sign_interval_critical_values(pair_count, float(confidence_level))
+    )
+
+    if selected_rank is None:
+        return {
+            "method": "exact_sign_order_statistics",
+            "requested_confidence_level": float(confidence_level),
+            "achieved_confidence_level": None,
+            "maximum_finite_interval_confidence_level": maximum_finite_level,
+            "bounds_log2_cpm": None,
+            "lower_order_statistic_rank": None,
+            "upper_order_statistic_rank": None,
+            "status": "no_finite_interval_at_requested_confidence",
+        }
+
+    return {
+        "method": "exact_sign_order_statistics",
+        "requested_confidence_level": float(confidence_level),
+        "achieved_confidence_level": achieved_level,
+        "maximum_finite_interval_confidence_level": maximum_finite_level,
+        "bounds_log2_cpm": [ordered[selected_rank], ordered[pair_count - selected_rank - 1]],
+        "lower_order_statistic_rank": selected_rank + 1,
+        "upper_order_statistic_rank": pair_count - selected_rank,
+        "status": "bounded",
+    }
+
+
 def _adjust_p_values(p_values: Sequence[float], *, method: str) -> list[float]:
     """Compute deterministic monotone BH or BY adjusted p-values."""
 
@@ -1436,6 +2047,7 @@ def build_expression_contrast_report(
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     fdr_threshold: float = 0.05,
     fdr_method: str = "bh",
+    confidence_level: float = DEFAULT_GEO_CONFIDENCE_LEVEL,
     top: int = 1_000,
     track_feature_ids: Sequence[str] = (),
     covariates: Sequence[tuple[str, str]] = (),
@@ -1488,7 +2100,7 @@ def build_expression_contrast_report(
         matrix_file=matrix_file,
         timeout_seconds=float(timeout_seconds),
     )
-    matrix = parse_series_matrix_features(
+    matrix = parse_series_matrix_metadata(
         payload,
         accession=normalized_accession,
         source_file_name=source_file_name,
@@ -1555,7 +2167,7 @@ def build_expression_contrast_report(
         if adjusted_contrast is not None
         else {"exact_label_permutation": 0, "tie_corrected_normal_approximation": 0}
     )
-    for feature in matrix.features:
+    def process_feature(feature: GeoMatrixFeature) -> None:
         case_values = tuple(
             feature.values[index]
             for index in analysis_case_indices
@@ -1593,6 +2205,28 @@ def build_expression_contrast_report(
             "test_method": None,
             "fdr_significant": False,
             "reason": None,
+            "leave_one_sample_out_median_sensitivity": (
+                _unpaired_leave_one_out_median_sensitivity(case_values, reference_values)
+                if adjusted_contrast is None
+                else {
+                    "basis": "unadjusted_group_medians",
+                    "status": "not_calculated",
+                    "reason": "covariate_adjusted_contrast",
+                    "full_data_median_direction": None,
+                    "omitted_case_sample_count": 0,
+                    "omitted_reference_sample_count": 0,
+                    "eligible_omission_count": 0,
+                    "observed_sample_count": len(case_values) + len(reference_values),
+                    "eligible_omission_coverage": 0.0,
+                    "direction_counts": {
+                        "case_higher": 0,
+                        "case_lower": 0,
+                        "no_median_difference": 0,
+                    },
+                    "direction_stable": None,
+                    "median_difference_range": None,
+                }
+            ),
         }
         if adjusted_contrast is not None:
             row.update(
@@ -1659,7 +2293,7 @@ def build_expression_contrast_report(
                 min(
                     MAX_EXACT_RANK_ASSIGNMENTS,
                     MAX_TOTAL_EXACT_RANK_SUMS
-                    // max(1, len(matrix.features) * min(len(case_values), len(reference_values))),
+                    // max(1, matrix.feature_count * min(len(case_values), len(reference_values))),
                 ),
             )
             effect, p_value, method = _mann_whitney_test(
@@ -1678,6 +2312,16 @@ def build_expression_contrast_report(
             tested_rows.append(len(preliminary_rows))
             p_values.append(p_value)
         preliminary_rows.append(row)
+
+    scanned_matrix = scan_series_matrix_features(
+        payload,
+        accession=normalized_accession,
+        feature_consumer=process_feature,
+        source_file_name=source_file_name,
+    )
+    if scanned_matrix != matrix:
+        raise ValidationError("GEO Series Matrix metadata changed between contrast passes")
+    matrix = scanned_matrix
 
     adjusted_values = _adjust_p_values(p_values, method=normalized_fdr_method)
     for row_index, q_value in zip(tested_rows, adjusted_values, strict=True):
@@ -1830,6 +2474,11 @@ def build_expression_contrast_report(
             ),
             dependence_limitation,
             (
+                "Leave-one-sample-out median sensitivity is not calculated for covariate-adjusted "
+                "contrasts; the unadjusted median difference is descriptive and distinct from the "
+                "adjusted model coefficient."
+            ),
+            (
                 "Feature identifiers remain platform identifiers; transcript or gene identity "
                 "was not inferred."
             ),
@@ -1851,6 +2500,10 @@ def build_expression_contrast_report(
                 "inspecting results."
             ),
             dependence_limitation,
+            (
+                "Leave-one-sample-out sensitivity is based on unadjusted group medians and is a "
+                "descriptive influence check; it does not refit the rank test or change p-values."
+            ),
             (
                 "Per-feature missingness is reported but not modeled; informative missingness "
                 "may bias a comparison."
@@ -1930,6 +2583,17 @@ def build_expression_contrast_report(
                 for row in preliminary_rows
             ),
             "test_method_counts": method_counts,
+            "median_sensitivity_status_counts": {
+                status: sum(
+                    row["leave_one_sample_out_median_sensitivity"]["status"] == status
+                    for row in preliminary_rows
+                )
+                for status in ("complete", "partial", "unavailable", "not_calculated")
+            },
+            "median_sensitivity_direction_unstable_feature_count": sum(
+                row["leave_one_sample_out_median_sensitivity"]["direction_stable"] is False
+                for row in preliminary_rows
+            ),
             "reported_feature_count": min(top, len(preliminary_rows)),
             "additional_feature_result_count": len(additional_feature_rows),
             "result_limit": top,
@@ -1940,6 +2604,8 @@ def build_expression_contrast_report(
             "max_exact_assignments_per_feature": MAX_EXACT_RANK_ASSIGNMENTS,
             "max_exact_rank_sums_per_screen": MAX_TOTAL_EXACT_RANK_SUMS,
             "max_matrix_cells": MAX_MATRIX_CELLS,
+            "matrix_scan_passes": 2,
+            "retains_feature_vectors": False,
         },
         "results": ranked_rows,
         "additional_feature_results": additional_feature_rows,
@@ -2208,18 +2874,21 @@ def build_geo_count_outlier_report(
     counts_delimiter: str = ",",
     metadata_delimiter: str = ",",
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+    feature_annotation_file: str | Path | None = None,
+    normalization_method: str = "log2_cpm",
 ) -> dict[str, Any]:
     """Build an aggregate leave-one-out expression report from GEO count files.
 
     This bounded adapter handles one-feature queries over an explicitly selected
     gene-by-sample non-negative integer count matrix and a sample metadata table.
-    It computes log2(CPM + 1) from the full supplied matrix, then compares each
-    selected sample with the remaining selected samples using the existing
-    robust expression analyzer. Source sample keys and individual values are
-    deliberately omitted from the returned aggregate report.
+    It computes log2(CPM + 1), optionally using TMM effective library sizes,
+    then compares each selected sample with the remaining selected samples
+    using the existing robust expression analyzer. Source sample keys and
+    individual values are deliberately omitted from the returned aggregate.
     """
 
     normalized_accession = validate_accession(accession)
+    normalized_normalization_method = _normalize_count_normalization_method(normalization_method)
     selected_feature = _required_text(feature_id, "GEO gene feature ID", maximum=256)
     if _FEATURE_RE.fullmatch(selected_feature) is None:
         raise ValidationError("GEO gene feature ID contains unsupported characters")
@@ -2230,6 +2899,9 @@ def build_geo_count_outlier_report(
     normalized_filters = _normalize_filters(sample_filters, "sample")
     count_delimiter = _normalize_delimiter(counts_delimiter, "GEO count matrix delimiter")
     metadata_separator = _normalize_delimiter(metadata_delimiter, "GEO metadata delimiter")
+    feature_annotations, feature_annotation_provenance = _read_feature_annotation_file(
+        feature_annotation_file
+    )
     if not isinstance(sample_key_column, str) or len(sample_key_column) > 256:
         raise ValidationError("GEO metadata sample-key column must be a bounded string")
 
@@ -2256,7 +2928,18 @@ def build_geo_count_outlier_report(
         delimiter=count_delimiter,
         source_file_name=count_name,
         source_url=count_source_url,
+        annotation_source_ids=frozenset(feature_annotations),
+        normalization_method=normalized_normalization_method,
     )
+    duplicate_annotation_count = len(matrix.duplicate_annotation_source_ids)
+    missing_annotation_count = len(
+        set(feature_annotations) - set(matrix.annotation_source_ids_found)
+    )
+    if duplicate_annotation_count or missing_annotation_count:
+        raise ValidationError(
+            "GEO feature annotation map must reference existing unique source rows "
+            f"(missing={missing_annotation_count}; duplicated={duplicate_annotation_count})"
+        )
     metadata, metadata_headers, metadata_decompressed_bytes = _parse_geo_count_metadata(
         metadata_payload,
         sample_ids=matrix.sample_ids,
@@ -2284,23 +2967,33 @@ def build_geo_count_outlier_report(
         {"field": field, "equals": expected} for field, expected in normalized_filters
     ]
     filter_address = content_hash(
-        {"accession": normalized_accession, "filters": filter_records},
+        {
+            "accession": normalized_accession,
+            "filters": filter_records,
+            "normalization_method": normalized_normalization_method,
+        },
         prefix="geo-count-cohort",
     )
-    source_version = content_hash(
-        {
-            "counts_sha256": matrix.source_sha256,
-            "metadata_sha256": hashlib.sha256(metadata_payload).hexdigest(),
-        },
-        prefix="geo-count-inputs",
-    )
+    source_version_inputs = {
+        "counts_sha256": matrix.source_sha256,
+        "metadata_sha256": hashlib.sha256(metadata_payload).hexdigest(),
+    }
+    annotation_sha256 = feature_annotation_provenance["source_sha256"]
+    if annotation_sha256 is not None:
+        source_version_inputs["feature_annotation_map_sha256"] = str(
+            annotation_sha256
+        ).removeprefix("sha256:")
+    source_version = content_hash(source_version_inputs, prefix="geo-count-inputs")
     cohort_sample_set = set(cohort_sample_ids)
     observations: tuple[ExpressionObservation, ...] = tuple(
         ExpressionObservation(
             feature_id=selected_feature,
             sample_key=f"private:geo:{sample_id}",
             value=math.log2(
-                matrix.feature_counts[index] / matrix.library_sizes[index] * 1_000_000 + 1
+                matrix.feature_counts[index]
+                / (matrix.library_sizes[index] * matrix.normalization_factors[index])
+                * 1_000_000
+                + 1
             ),
             scale=ExpressionScale.LOG2_CPM,
             context_key=filter_address,
@@ -2367,6 +3060,7 @@ def build_geo_count_outlier_report(
                 "compressed_bytes": len(metadata_payload),
                 "decompressed_bytes": metadata_decompressed_bytes,
             },
+            "feature_annotation_map": feature_annotation_provenance,
         },
         "matrix": {
             "feature_id": selected_feature,
@@ -2374,15 +3068,40 @@ def build_geo_count_outlier_report(
             "duplicate_feature_label_count": matrix.duplicate_feature_label_count,
             "sample_count": len(matrix.sample_ids),
             "library_size_method": "sum of all non-negative integer count rows per sample",
+            "feature_label_review": {
+                "selected_label_matches_date_like_pattern": _feature_label_is_date_like(
+                    selected_feature
+                ),
+                "automatic_normalization_performed": False,
+                "manual_annotation_review_recommended": _feature_label_is_date_like(
+                    selected_feature
+                ),
+            },
+            "feature_annotation": {
+                "status": "mapped"
+                if selected_feature in feature_annotations
+                else "unmapped",
+                "curated_feature_id": feature_annotations.get(selected_feature),
+            },
         },
         "comparison": {
             "selection_filters": filter_records,
             "comparison_mode": "symmetric_leave_one_out",
             "feature_id": selected_feature,
-            "feature_identity_scope": "exact source-matrix row label; no gene annotation inferred",
-            "normalization": "log2(counts per million + 1)",
+            "feature_identity_scope": (
+                "exact source-matrix row label; optional user-supplied curation is separate"
+            ),
+            "normalization": (
+                "log2(counts per million + 1)"
+                if normalized_normalization_method == "log2_cpm"
+                else "TMM-adjusted log2(counts per million + 1)"
+            ),
+            "normalization_details": _count_normalization_report(
+                normalized_normalization_method, matrix.normalization_factors
+            ),
             "scale": ExpressionScale.LOG2_CPM.value,
             "context_key": filter_address,
+            "source_version": source_version,
             "method": "median/MAD robust outlier with IQR fallback",
             "selected_sample_count": len(cohort_sample_ids),
             "comparison_count": len(observations),
@@ -2409,9 +3128,24 @@ def build_geo_count_outlier_report(
             ),
         },
         "limitations": [
-            "Supplementary count-table layouts are not standardized; this importer requires an explicit delimiter, sample-key column, and matrix row-label contract.",
-            "CPM is a library-size transform for descriptive comparison, not a count-model differential-expression analysis.",
-            "Each selected observation is compared with the other selected observations; repeated specimens may not be independent.",
+            (
+                "Supplementary count-table layouts are not standardized; this importer requires "
+                "an explicit delimiter, sample-key column, and matrix row-label contract."
+            ),
+            (
+                "CPM is a library-size transform for descriptive comparison, not a count-model "
+                "differential-expression analysis."
+            ),
+            (
+                "TMM normalization is optional and assumes most uniquely identified features "
+                "are not differentially expressed; it does not fit a count model."
+            ),
+            (
+                "Each selected observation is compared with the other selected observations; "
+                "repeated specimens may not be independent."
+            ),
+            "Date-shaped feature labels are only flagged for review; no gene identity is "
+            "inferred and no source label is normalized.",
             "This is not matched-case evidence, a population-level test, or clinical guidance.",
         ],
     }
@@ -2435,13 +3169,17 @@ def build_geo_count_contrast_report(
     metadata_delimiter: str = ",",
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     fdr_threshold: float = 0.05,
+    confidence_level: float = DEFAULT_GEO_CONFIDENCE_LEVEL,
     fdr_method: str = "bh",
     top: int = 1_000,
+    feature_annotation_file: str | Path | None = None,
+    normalization_method: str = "log2_cpm",
 ) -> dict[str, Any]:
     """Run a paired signed-rank screen over a bounded GEO integer-count matrix.
 
     The feature table is validated once to compute library sizes and duplicate
-    labels, then streamed a second time for per-feature log2-CPM paired tests.
+    labels, then streamed for per-feature paired tests. Normalization defaults
+    to raw-library CPM and can optionally use TMM effective library sizes.
     Exact duplicate feature identifiers are excluded from the testing family;
     their counts still contribute to library sizes.
     A separately adjusted paired sign test and pair-direction counts complement
@@ -2449,6 +3187,7 @@ def build_geo_count_contrast_report(
     """
 
     normalized_accession = validate_accession(accession)
+    normalized_normalization_method = _normalize_count_normalization_method(normalization_method)
     normalized_case = sorted(
         _normalize_filters(case_filters, "case"),
         key=lambda item: (item[0].casefold(), item[1].casefold()),
@@ -2476,6 +3215,14 @@ def build_geo_count_contrast_report(
     fdr_threshold = float(fdr_threshold)
     if not math.isfinite(fdr_threshold) or not 0.0 < fdr_threshold <= 1.0:
         raise ValidationError("FDR threshold must be greater than zero and at most one")
+    if (
+        isinstance(confidence_level, bool)
+        or not isinstance(confidence_level, (int, float))
+        or not math.isfinite(confidence_level)
+        or not 0.0 < confidence_level < 1.0
+    ):
+        raise ValidationError("confidence level must be finite and strictly between zero and one")
+    confidence_level = float(confidence_level)
     if not isinstance(fdr_method, str) or fdr_method.strip().casefold() not in {"bh", "by"}:
         raise ValidationError("FDR method must be 'bh' or 'by'")
     normalized_fdr_method = fdr_method.strip().casefold()
@@ -2486,6 +3233,9 @@ def build_geo_count_contrast_report(
     )
     normalized_metadata_delimiter = _normalize_delimiter(
         metadata_delimiter, "GEO metadata delimiter"
+    )
+    feature_annotations, feature_annotation_provenance = _read_feature_annotation_file(
+        feature_annotation_file
     )
 
     count_payload, count_name, count_response_url, count_source_url = _read_supplementary_file(
@@ -2504,12 +3254,14 @@ def build_geo_count_contrast_report(
     )
 
     matrix_summary = _GeoCountTableSummary()
-    for _ in _iter_geo_supplementary_count_rows(
+    found_annotation_sources: set[str] = set()
+    for row in _iter_geo_supplementary_count_rows(
         count_payload,
         delimiter=normalized_count_delimiter,
         summary=matrix_summary,
     ):
-        pass
+        if row[0] in feature_annotations:
+            found_annotation_sources.add(row[0])
     if matrix_summary.feature_count > MAX_CONTRAST_FEATURES:
         raise ValidationError(
             f"GEO paired count contrast is limited to {MAX_CONTRAST_FEATURES} feature rows"
@@ -2517,6 +3269,15 @@ def build_geo_count_contrast_report(
     duplicate_feature_row_count = matrix_summary.duplicate_feature_label_count + len(
         matrix_summary.duplicate_feature_ids
     )
+    duplicate_annotation_count = len(
+        set(feature_annotations).intersection(matrix_summary.duplicate_feature_ids)
+    )
+    missing_annotation_count = len(set(feature_annotations) - found_annotation_sources)
+    if duplicate_annotation_count or missing_annotation_count:
+        raise ValidationError(
+            "GEO feature annotation map must reference existing unique source rows "
+            f"(missing={missing_annotation_count}; duplicated={duplicate_annotation_count})"
+        )
     analyzable_feature_count = matrix_summary.feature_count - duplicate_feature_row_count
     if analyzable_feature_count < 1:
         raise ValidationError("GEO count matrix has no uniquely identified features to test")
@@ -2567,18 +3328,36 @@ def build_geo_count_contrast_report(
     case_by_pair = samples_by_pair(case_sample_ids, "case")
     reference_by_pair = samples_by_pair(reference_sample_ids, "reference")
     matched_pair_keys = tuple(sorted(case_by_pair.keys() & reference_by_pair.keys()))
-    if len(matched_pair_keys) < 3:
+    if len(matched_pair_keys) < MIN_GEO_COUNT_CONTRAST_PAIRS:
         raise ValidationError("GEO paired count contrast requires at least three complete pairs")
 
     case_indices = tuple(sample_index[case_by_pair[key]] for key in matched_pair_keys)
     reference_indices = tuple(sample_index[reference_by_pair[key]] for key in matched_pair_keys)
     library_sizes = tuple(matrix_summary.library_sizes)
+    normalization_factors = (
+        _estimate_geo_tmm_factors(
+            count_payload,
+            delimiter=normalized_count_delimiter,
+            library_sizes=library_sizes,
+            duplicate_feature_ids=matrix_summary.duplicate_feature_ids,
+        )
+        if normalized_normalization_method == "tmm_log2_cpm"
+        else (1.0,) * len(library_sizes)
+    )
+    effective_library_sizes = tuple(
+        size * factor for size, factor in zip(library_sizes, normalization_factors, strict=True)
+    )
     count_source_sha256 = hashlib.sha256(count_payload).hexdigest()
     metadata_source_sha256 = hashlib.sha256(metadata_payload).hexdigest()
-    source_version = content_hash(
-        {"counts_sha256": count_source_sha256, "metadata_sha256": metadata_source_sha256},
-        prefix="geo-count-inputs",
-    )
+    source_version_inputs = {
+        "counts_sha256": count_source_sha256,
+        "metadata_sha256": metadata_source_sha256,
+    }
+    annotation_sha256 = feature_annotation_provenance["source_sha256"]
+    if annotation_sha256 is not None:
+        annotation_hash_value = str(annotation_sha256).removeprefix("sha256:")
+        source_version_inputs["feature_annotation_map_sha256"] = annotation_hash_value
+    source_version = content_hash(source_version_inputs, prefix="geo-count-inputs")
     normalized_case_records = [
         {"field": field, "equals": expected} for field, expected in normalized_case
     ]
@@ -2591,6 +3370,7 @@ def build_geo_count_contrast_report(
             "case_filters": normalized_case_records,
             "reference_filters": normalized_reference_records,
             "pair_key_column": pair_field,
+            "normalization_method": normalized_normalization_method,
         },
         prefix="geo-paired-count-contrast",
     )
@@ -2600,6 +3380,11 @@ def build_geo_count_contrast_report(
     sign_test_p_values: list[float] = []
     method_counts: Counter[str] = Counter()
     sign_test_method_counts: Counter[str] = Counter()
+    detection_thresholds = (1, 5, 10)
+    detected_unique_feature_counts = {
+        threshold: [0] * len(matrix_summary.sample_ids) for threshold in detection_thresholds
+    }
+    top_unique_feature_counts = [[] for _ in matrix_summary.sample_ids]
     second_summary = _GeoCountTableSummary()
     for feature_id, counts in _iter_geo_supplementary_count_rows(
         count_payload,
@@ -2608,12 +3393,21 @@ def build_geo_count_contrast_report(
     ):
         if feature_id in matrix_summary.duplicate_feature_ids:
             continue
+        for sample_index, count in enumerate(counts):
+            for threshold in detection_thresholds:
+                if count >= threshold:
+                    detected_unique_feature_counts[threshold][sample_index] += 1
+            sample_top_counts = top_unique_feature_counts[sample_index]
+            if len(sample_top_counts) < 10:
+                heapq.heappush(sample_top_counts, count)
+            elif count > sample_top_counts[0]:
+                heapq.heapreplace(sample_top_counts, count)
         case_values = tuple(
-            math.log2(counts[index] / library_sizes[index] * 1_000_000 + 1)
+            math.log2(counts[index] / effective_library_sizes[index] * 1_000_000 + 1)
             for index in case_indices
         )
         reference_values = tuple(
-            math.log2(counts[index] / library_sizes[index] * 1_000_000 + 1)
+            math.log2(counts[index] / effective_library_sizes[index] * 1_000_000 + 1)
             for index in reference_indices
         )
         differences = tuple(
@@ -2626,8 +3420,18 @@ def build_geo_count_contrast_report(
         )
         mean_difference = _finite_mean(differences)
         median_difference = _finite_median(differences)
+        median_difference_interval = _paired_median_sign_interval(
+            differences, confidence_level=confidence_level
+        )
+        pair_deletion_sensitivity = _paired_leave_one_out_median_sensitivity(differences)
+        curated_feature_id = feature_annotations.get(feature_id)
         row = {
             "feature_id": feature_id,
+            "feature_label_review": _feature_label_review(feature_id),
+            "feature_annotation": {
+                "status": "mapped" if curated_feature_id is not None else "unmapped",
+                "curated_feature_id": curated_feature_id,
+            },
             "paired_sample_count": len(matched_pair_keys),
             "nonzero_pair_count": nonzero_pair_count,
             "case_higher_pair_count": positive_pair_count,
@@ -2637,13 +3441,20 @@ def build_geo_count_contrast_report(
             "reference_median_log2_cpm": _finite_median(reference_values),
             "mean_paired_difference_log2_cpm": mean_difference,
             "median_paired_difference_log2_cpm": median_difference,
+            "median_paired_difference_confidence_interval_log2_cpm": median_difference_interval,
+            "leave_one_pair_out_median_sensitivity": pair_deletion_sensitivity,
             "matched_pairs_rank_biserial_correlation": rank_biserial,
-            "effect_direction": (
-                "case_higher"
-                if mean_difference > 0.0
-                else "case_lower"
-                if mean_difference < 0.0
-                else "no_mean_difference"
+            "effect_direction": _effect_direction(
+                mean_difference, zero_label="no_mean_difference"
+            ),
+            "mean_effect_direction": _effect_direction(
+                mean_difference, zero_label="no_mean_difference"
+            ),
+            "median_effect_direction": _effect_direction(
+                median_difference, zero_label="no_median_difference"
+            ),
+            "rank_biserial_effect_direction": _effect_direction(
+                rank_biserial, zero_label="no_rank_shift"
             ),
             "p_value": p_value,
             "q_value": None,
@@ -2671,6 +3482,47 @@ def build_geo_count_contrast_report(
         or second_summary.decompressed_bytes != matrix_summary.decompressed_bytes
     ):
         raise ValidationError("GEO count matrix changed during paired contrast processing")
+
+    def sample_quality_summary(sample_indices: Sequence[int]) -> dict[str, Any]:
+        return {
+            "sample_count": len(sample_indices),
+            "library_size": _finite_distribution_summary(
+                [library_sizes[index] for index in sample_indices]
+            ),
+            "effective_library_size": _finite_distribution_summary(
+                [effective_library_sizes[index] for index in sample_indices]
+            ),
+            "unique_features_detected_by_minimum_count": {
+                str(threshold): _finite_distribution_summary(
+                    [detected_unique_feature_counts[threshold][index] for index in sample_indices]
+                )
+                for threshold in detection_thresholds
+            },
+            "top_unique_feature_share_of_full_library": {
+                "top_one": _finite_distribution_summary(
+                    [
+                        max(top_unique_feature_counts[index], default=0)
+                        / library_sizes[index]
+                        for index in sample_indices
+                    ]
+                ),
+                "top_ten": _finite_distribution_summary(
+                    [
+                        math.fsum(top_unique_feature_counts[index]) / library_sizes[index]
+                        for index in sample_indices
+                    ]
+                ),
+            },
+        }
+
+    case_library_sizes = [library_sizes[index] for index in case_indices]
+    reference_library_sizes = [library_sizes[index] for index in reference_indices]
+    paired_library_imbalance = [
+        max(case_size, reference_size) / min(case_size, reference_size)
+        for case_size, reference_size in zip(
+            case_library_sizes, reference_library_sizes, strict=True
+        )
+    ]
     adjusted_p_values = _adjust_p_values(p_values, method=normalized_fdr_method)
     adjusted_sign_test_p_values = _adjust_p_values(sign_test_p_values, method=normalized_fdr_method)
     for row_index, q_value, sign_test_q_value in zip(
@@ -2691,6 +3543,14 @@ def build_geo_count_contrast_report(
     reported_rows = rows[:top]
     significant_count = sum(bool(row["fdr_significant"]) for row in rows)
     sign_test_significant_count = sum(bool(row["sign_test_fdr_significant"]) for row in rows)
+    pair_deletion_direction_change_count = sum(
+        not row["leave_one_pair_out_median_sensitivity"]["direction_stable"] for row in rows
+    )
+    significant_pair_deletion_direction_change_count = sum(
+        bool(row["fdr_significant"])
+        and not row["leave_one_pair_out_median_sensitivity"]["direction_stable"]
+        for row in rows
+    )
     result_body: dict[str, Any] = {
         "schema": "glio-noncode.geo-paired-count-contrast.v1",
         "status": "completed",
@@ -2717,6 +3577,7 @@ def build_geo_count_contrast_report(
                 "compressed_bytes": len(metadata_payload),
                 "decompressed_bytes": metadata_decompressed_bytes,
             },
+            "feature_annotation_map": feature_annotation_provenance,
         },
         "matrix": {
             "feature_row_count": matrix_summary.feature_count,
@@ -2726,6 +3587,7 @@ def build_geo_count_contrast_report(
             "uniquely_identified_feature_count_tested": len(rows),
             "sample_count": len(matrix_summary.sample_ids),
             "library_size_method": "sum of all non-negative integer count rows per sample",
+            "feature_label_review": _date_like_feature_label_review(matrix_summary),
         },
         "comparison": {
             "case_filters": normalized_case_records,
@@ -2737,9 +3599,29 @@ def build_geo_count_contrast_report(
             "reference_sample_count_selected": len(reference_sample_ids),
             "case_sample_count_unmatched": len(case_sample_ids) - len(matched_pair_keys),
             "reference_sample_count_unmatched": len(reference_sample_ids) - len(matched_pair_keys),
-            "normalization": "log2(counts per million + 1)",
+            "normalization": (
+                "log2(counts per million + 1)"
+                if normalized_normalization_method == "log2_cpm"
+                else "TMM-adjusted log2(counts per million + 1)"
+            ),
+            "normalization_details": _count_normalization_report(
+                normalized_normalization_method, normalization_factors
+            ),
             "effect_size": "matched-pairs rank-biserial correlation",
+            "effect_direction_basis": "sign of mean paired difference (compatibility field)",
+            "rank_biserial_effect_direction_basis": (
+                "sign of matched-pairs rank-biserial correlation"
+            ),
             "test": "two-sided paired Wilcoxon signed-rank test on log2-CPM differences",
+            "effect_sensitivity": (
+                "leave-one-pair-out range and direction of the median paired difference; "
+                "descriptive only, with no inferential test refit"
+            ),
+            "median_difference_interval_method": (
+                "central exact sign-order-statistic interval; ties retained; "
+                "pointwise and not adjusted across features"
+            ),
+            "median_difference_interval_confidence_level": confidence_level,
             "exact_test_maximum_nonzero_pairs": MAX_EXACT_SIGNED_RANK_PAIRS,
             "sensitivity_test": (
                 "two-sided paired sign test on nonzero log2-CPM differences; ties excluded"
@@ -2752,6 +3634,19 @@ def build_geo_count_contrast_report(
             "source_version": source_version,
             "individual_sample_and_pair_keys_emitted": False,
         },
+        "quality_control": {
+            "scope": "matched case/reference samples only; unmatched selected samples are excluded",
+            "library_size_basis": "all count-matrix rows, including duplicated feature identifiers",
+            "feature_detection_basis": (
+                "uniquely identified feature rows; duplicated identifiers are excluded"
+            ),
+            "case": sample_quality_summary(case_indices),
+            "reference": sample_quality_summary(reference_indices),
+            "paired_library_size_imbalance_fold": _finite_distribution_summary(
+                paired_library_imbalance
+            ),
+            "automatic_sample_exclusion": False,
+        },
         "summary": {
             "tested_feature_count": len(rows),
             "fdr_significant_feature_count": significant_count,
@@ -2760,7 +3655,20 @@ def build_geo_count_contrast_report(
             "sign_test_fdr_significant_feature_count": sign_test_significant_count,
             "not_sign_test_fdr_significant_feature_count": len(rows) - sign_test_significant_count,
             "sign_test_method_counts": dict(sorted(sign_test_method_counts.items())),
+            "pair_deletion_sensitivity": {
+                "feature_count": len(rows),
+                "features_with_direction_change_count": pair_deletion_direction_change_count,
+                "fdr_significant_features_with_direction_change_count": (
+                    significant_pair_deletion_direction_change_count
+                ),
+            },
             "reported_feature_count": len(reported_rows),
+            "reported_date_like_feature_label_count": sum(
+                _feature_label_is_date_like(str(row["feature_id"])) for row in reported_rows
+            ),
+            "reported_curated_feature_count": sum(
+                row["feature_annotation"]["status"] == "mapped" for row in reported_rows
+            ),
         },
         "analysis_limits": {
             "max_compressed_bytes_per_file": MAX_COMPRESSED_BYTES,
@@ -2769,15 +3677,41 @@ def build_geo_count_contrast_report(
             "max_samples": MAX_SAMPLE_COUNT,
             "max_feature_rows": MAX_CONTRAST_FEATURES,
             "max_matrix_cells": MAX_MATRIX_CELLS,
-            "minimum_complete_pairs": 3,
+            "minimum_complete_pairs": MIN_GEO_COUNT_CONTRAST_PAIRS,
         },
         "results": reported_rows,
         "limitations": [
-            "The paired signed-rank test assumes independent pairs and exchangeable signs of within-pair differences under the null; it is not a negative-binomial count model or a voom/precision-weighted analysis.",
-            "The paired sign-test sensitivity uses only the direction of nonzero differences, excludes ties, and has lower power when difference magnitudes are informative.",
-            "log2(CPM + 1) is a simple library-size transform; gene-specific mean-variance, composition, batch, purity, and other nuisance effects are not modeled.",
-            "Rows with repeated exact feature identifiers are excluded from testing to avoid ambiguous multiple-testing units; all their counts remain in library-size totals.",
-            "The result is a cohort-level exploratory association, not a patient-matched variant claim, causal conclusion, diagnosis, or treatment recommendation.",
+            (
+                "The paired signed-rank test assumes independent pairs and exchangeable signs of "
+                "within-pair differences under the null; it is not a negative-binomial count "
+                "model or a voom/precision-weighted analysis."
+            ),
+            (
+                "The paired sign-test sensitivity uses only the direction of nonzero differences, "
+                "excludes ties, and has lower power when difference magnitudes are informative."
+            ),
+            (
+                "log2(CPM + 1) is a simple library-size transform; gene-specific mean-variance, "
+                "batch, purity, and other nuisance effects are not modeled. Optional TMM adjusts "
+                "composition under a majority-stable-features assumption but does not fit "
+                "a count model."
+            ),
+            (
+                "Rows with repeated exact feature identifiers are excluded from testing to avoid "
+                "ambiguous multiple-testing units; all their counts remain in library-size totals."
+            ),
+            (
+                "Date-shaped feature labels are flagged for manual review only; no source label "
+                "is normalized and no gene identity is inferred."
+            ),
+            (
+                "Curated feature identifiers, when supplied, are user annotations only; they are "
+                "not validated against an external authority, merged, or used in statistical tests."
+            ),
+            (
+                "The result is a cohort-level exploratory association, not a patient-matched "
+                "variant claim, causal conclusion, diagnosis, or treatment recommendation."
+            ),
         ],
     }
     return result_body | {

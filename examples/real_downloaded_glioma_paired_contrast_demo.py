@@ -9,7 +9,10 @@ import sys
 from pathlib import Path
 
 from glio_noncode.errors import GlioError
-from glio_noncode.geo_expression import build_geo_count_contrast_report
+from glio_noncode.geo_expression import (
+    GEO_COUNT_NORMALIZATION_METHODS,
+    build_geo_count_contrast_report,
+)
 
 ACCESSION = "GSE141945"
 COUNTS_FILE_NAME = "GSE141945_RNAseq.counts.csv.gz"
@@ -24,10 +27,12 @@ def run_demo(
     *,
     counts_file: Path | None = None,
     metadata_file: Path | None = None,
+    feature_annotation_file: Path | None = None,
     timeout_seconds: float = 30.0,
     fdr_threshold: float = 0.05,
     fdr_method: str = "bh",
     top: int = 25,
+    normalization_method: str = "log2_cpm",
 ) -> dict[str, object]:
     if (counts_file is None) != (metadata_file is None):
         raise ValueError("provide both local supplementary files or neither")
@@ -47,6 +52,8 @@ def run_demo(
         fdr_threshold=fdr_threshold,
         fdr_method=fdr_method,
         top=top,
+        feature_annotation_file=feature_annotation_file,
+        normalization_method=normalization_method,
     )
 
 
@@ -54,10 +61,21 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--counts-file", type=Path, help="use a downloaded count matrix locally")
     parser.add_argument("--metadata-file", type=Path, help="use downloaded sample metadata locally")
+    parser.add_argument(
+        "--feature-annotation-file",
+        type=Path,
+        help="optional source_feature_id,curated_feature_id CSV for reviewed identifiers",
+    )
     parser.add_argument("--timeout", type=float, default=30.0, help="NCBI HTTPS timeout in seconds")
     parser.add_argument("--fdr", type=float, default=0.05, help="adjusted p-value threshold")
     parser.add_argument("--fdr-method", choices=("bh", "by"), default="bh")
     parser.add_argument("--top", type=int, default=25, help="ranked rows to include in the output")
+    parser.add_argument(
+        "--normalization-method",
+        choices=GEO_COUNT_NORMALIZATION_METHODS,
+        default="log2_cpm",
+        help="use raw-library CPM or optional TMM-adjusted CPM",
+    )
     return parser
 
 
@@ -67,10 +85,12 @@ def main(argv: list[str] | None = None) -> int:
         report = run_demo(
             counts_file=args.counts_file,
             metadata_file=args.metadata_file,
+            feature_annotation_file=args.feature_annotation_file,
             timeout_seconds=args.timeout,
             fdr_threshold=args.fdr,
             fdr_method=args.fdr_method,
             top=args.top,
+            normalization_method=args.normalization_method,
         )
     except (GlioError, OSError, ValueError) as error:
         print(

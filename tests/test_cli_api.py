@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import gzip
+import io
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from http.client import HTTPConnection
 from pathlib import Path
 from threading import Thread
@@ -45,6 +48,161 @@ class CliApiTests(unittest.TestCase):
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(payload["receipt"]["accepted_count"], 1)
             self.assertEqual(payload["variants"][0]["variant_id"], "test-tsv:2")
+
+    def test_reference_block_query_handles_plain_and_gzipped_gvcf(self) -> None:
+        gvcf = "\n".join(
+            (
+                "##fileformat=VCFv4.5",
+                '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
+                '##FORMAT=<ID=LEN,Number=1,Type=Integer,Description="Reference block length">',
+                "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1",
+                "7\t101\t.\tA\t<*>\t.\tPASS\t.\tGT:LEN\t0/0:5",
+                "7\t103\t.\tA\t<NON_REF>\t.\tPASS\t.\tGT:LEN\t./.:5",
+            )
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            for suffix, payload in (
+                (".g.vcf", gvcf.encode("utf-8")),
+                (".g.vcf.gz", gzip.compress(gvcf.encode("utf-8"))),
+            ):
+                with self.subTest(suffix=suffix):
+                    source = Path(directory) / f"sample{suffix}"
+                    output = Path(directory) / f"coverage{suffix}.json"
+                    source.write_bytes(payload)
+                    self.assertEqual(
+                        main(
+                            [
+                                "reference-block-query",
+                                str(source),
+                                "--sample-id",
+                                "S1",
+                                "--genome-build",
+                                "GRCh38",
+                                "--chromosome",
+                                "chr7",
+                                "--start",
+                                "100",
+                                "--end",
+                                "107",
+                                "--output",
+                                str(output),
+                            ]
+                        ),
+                        0,
+                    )
+                    report = json.loads(output.read_text(encoding="utf-8"))
+                    self.assertEqual(report["status"], "completed")
+                    self.assertEqual(report["source"]["sample_id"], "S1")
+                    self.assertTrue(report["source"]["file_sha256"].startswith("sha256:"))
+                    self.assertEqual(report["coverage"]["status"], "conflicting")
+                    self.assertEqual(report["coverage"]["base_counts"]["conflict"], 3)
+
+    def test_reference_block_query_blocks_sources_without_reference_blocks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "variants.g.vcf"
+            output = Path(directory) / "coverage.json"
+            source.write_text(
+                "\n".join(
+                    (
+                        "##fileformat=VCFv4.5",
+                        '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
+                        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1",
+                        "7\t101\t.\tA\tC\t.\tPASS\t.\tGT\t0/1",
+                    )
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "reference-block-query",
+                        str(source),
+                        "--sample-id",
+                        "S1",
+                        "--chromosome",
+                        "7",
+                        "--start",
+                        "100",
+                        "--end",
+                        "101",
+                        "--output",
+                        str(output),
+                    ]
+                ),
+                2,
+            )
+            report = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(report["status"], "blocked")
+            self.assertEqual(report["failure_code"], "no_reference_blocks")
+            self.assertIsNone(report["coverage"])
+
+    def test_reference_block_query_accepts_canonical_variant_span(self) -> None:
+        gvcf = "\n".join(
+            (
+                "##fileformat=VCFv4.5",
+                '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">',
+                '##FORMAT=<ID=LEN,Number=1,Type=Integer,Description="Reference block length">',
+                "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1",
+                "7\t101\t.\tA\t<*>\t.\tPASS\t.\tGT:LEN\t0/0:5",
+                "7\t103\t.\tA\t<NON_REF>\t.\tPASS\t.\tGT:LEN\t./.:5",
+            )
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "sample.g.vcf"
+            output = Path(directory) / "coverage.json"
+            source.write_text(gvcf, encoding="utf-8")
+
+            self.assertEqual(
+                main(
+                    [
+                        "reference-block-query",
+                        str(source),
+                        "--sample-id",
+                        "S1",
+                        "--genome-build",
+                        "GRCh38",
+                        "--variant",
+                        "chr7:103:A>T",
+                        "--output",
+                        str(output),
+                    ]
+                ),
+                0,
+            )
+
+            report = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(report["status"], "completed")
+            self.assertEqual(report["query"]["mode"], "variant_reference_span")
+            self.assertEqual(
+                report["query"]["coordinate_conversion"],
+                "one_based_closed_to_zero_based_half_open",
+            )
+            self.assertEqual(report["query"]["variant"]["start"], 103)
+            self.assertEqual(report["coverage"]["chromosome"], "chr7")
+            self.assertEqual((report["coverage"]["start"], report["coverage"]["end"]), (102, 103))
+            self.assertEqual(report["coverage"]["status"], "conflicting")
+            self.assertEqual(report["coverage"]["base_counts"]["conflict"], 1)
+
+    def test_reference_block_query_rejects_invalid_variant_query_arguments(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            missing_source = str(Path(directory) / "not-read.g.vcf")
+            invalid_queries = (
+                ["--variant", "7:0:A>T"],
+                ["--variant", "7:101:A>T", "--start", "100"],
+            )
+            for query_args in invalid_queries:
+                with self.subTest(query_args=query_args):
+                    with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as raised:
+                        main(
+                            [
+                                "reference-block-query",
+                                missing_source,
+                                "--sample-id",
+                                "S1",
+                                *query_args,
+                            ]
+                        )
+                    self.assertEqual(raised.exception.code, 2)
 
     def test_capability_track_and_normalize_commands(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

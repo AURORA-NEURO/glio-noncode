@@ -170,18 +170,27 @@ def run_cohort_alpha_frontier_pipeline(fixture: CohortAlphaFrontierFixture | Non
     performance = measure_cohort_alpha_frontier_performance(evaluation)
     migration = build_cohort_alpha_frontier_migration_plan()
     dataset = build_cohort_alpha_frontier_dataset_manifest(value, data_audit)
+    claims = build_cohort_alpha_frontier_claim_evidence(value, policy, dataset)
     dictionary = build_cohort_alpha_frontier_data_dictionary(schema)
     bundle = assemble_cohort_alpha_frontier_bundle(value, evaluation, metrics, policy, reconciliation, quality)
     replay = replay_cohort_alpha_frontier(value)
     manifest = build_cohort_alpha_frontier_release_manifest(bundle, quality, replay)
     package = assemble_cohort_alpha_frontier_package(bundle)
     views = build_cohort_alpha_frontier_views(evaluation, policy, review)
-    report = build_cohort_alpha_frontier_report(evaluation, metrics, policy, review, quality, manifest)
+    report = build_cohort_alpha_frontier_report(
+        evaluation,
+        metrics,
+        policy,
+        review,
+        quality,
+        manifest,
+        dataset_manifest=dataset,
+        claim_evidence=claims,
+    )
     runbook = build_cohort_alpha_frontier_runbook(quality, manifest)
     accessibility = build_cohort_alpha_frontier_accessibility(report)
     assurance = evaluate_cohort_alpha_frontier_assurance(quality, lineage, replay, integrity, policy)
     retention = build_cohort_alpha_frontier_retention_plan(package)
-    claims = build_cohort_alpha_frontier_claim_evidence(value, policy)
     compatibility = build_cohort_alpha_frontier_compatibility(package)
     monitoring = build_cohort_alpha_frontier_monitoring(metrics, policy)
     evidence = build_cohort_alpha_frontier_evidence_matrix(value, evaluation, policy, lineage, quality)

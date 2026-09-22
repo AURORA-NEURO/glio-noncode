@@ -65,6 +65,49 @@ and one or more `FIELD=VALUE` cohort filters. It never guesses a group from
 sample names or downloads arbitrary URLs; remote files are fetched only from
 the validated NCBI GEO supplementary path for the requested GSE accession.
 
+### Inspect supplementary-count metadata before selecting groups
+
+Use `geo-count-metadata` to discover exact metadata headers, sample-level
+category counts, and whether a proposed subject key is complete or repeated.
+This lets you inspect a supplementary metadata file before writing the explicit
+`FIELD=VALUE` filters required by `geo-count-outlier` and `geo-count-contrast`:
+
+```console
+glio-noncode geo-count-metadata GSE141945 \
+  --sample-key-column "" \
+  --pair-key-column Patient \
+  --metadata-file-name GSE141945_RNAseq.metadata.csv.gz \
+  --metadata-delimiter comma
+```
+
+The same report accepts a local file with `--metadata-file` instead of the GEO
+filename. It validates UTF-8 and gzip integrity, rectangular rows, unique
+case-insensitive headers, the exact sample-key column, unique sample keys, and
+an optional pair-key column. It reports row/column coverage and category
+frequencies (casefolded in the same way as the contrast filters), plus optional
+pair-key missingness, nonblank coverage, unique-key count, repeated-key rows,
+and maximum rows per key. Repeated samples per subject are summarized, not
+treated as duplicate errors; the paired contrast applies its own per-group
+one-sample-per-subject validation after filters are selected. Pair keys are
+trimmed for this summary, matching the paired contrast's
+join behavior. The report does not emit sample or pair-key values and does not
+assign groups or validate that metadata keys match a count matrix; the count
+analysis performs that exact cross-file join before testing.
+
+At most 25 category values per field are listed. Higher-cardinality fields
+report a distinct-value lower bound and suppress values. Sample-key, pair-key,
+and identifier-like fields never list category labels. Long category values
+are truncated at 1,024 characters, and the report marks whether each shown
+value can be copied into a CLI filter without changing it. Matching is
+case-insensitive but does not trim metadata values, so leading or trailing
+whitespace can make a value non-round-trippable. Source filename, canonical
+response URL when fetched, SHA-256, and byte sizes are included; local directory
+paths are not.
+
+The metadata reader is bounded to 25 MB compressed, 256 MB decompressed, 4 MB
+per line, 2,048 metadata rows, 2,000 samples, and 256 columns. This is a design
+and data-inspection aid, not a statistical analysis or clinical report.
+
 For a count matrix whose first metadata column has a blank header:
 
 ```console
@@ -81,22 +124,91 @@ glio-noncode geo-count-outlier GSE141945 \
 The importer validates a rectangular table of non-negative integer counts,
 tracks every row in the per-sample library totals, and requires the requested
 feature row to occur exactly once. Non-target duplicate row labels are
-preserved and counted. It computes `log2(CPM + 1)` using all matrix rows, then
-runs a symmetric leave-one-out median/MAD comparison within the explicitly
-selected metadata cohort. The sample-level keys and values are not emitted in
-the aggregate report; source names, hashes, byte sizes, filter definitions,
-sample counts, outcome counts, and an addressed report are retained instead.
+preserved and counted. By default, it computes `log2(CPM + 1)` using raw
+library sizes from all matrix rows. Optional `--normalization-method
+tmm_log2_cpm` estimates TMM factors across all samples, excludes duplicated
+feature IDs from factor estimation, and uses effective library sizes; duplicated
+rows still contribute to raw library totals. Both modes run a symmetric
+leave-one-out median/MAD comparison within the explicitly selected metadata
+cohort. Sample-level keys and values are not emitted in the aggregate report;
+source names, hashes, byte sizes, filters, sample counts, outcomes, and an
+addressed report are retained instead.
 
 This route is limited to one exact matrix row per invocation. It is a
 descriptive outlier screen, not a count-model differential-expression test,
 multiple-testing-corrected finding, patient-matched result, or clinical
-interpretation. CPM normalization does not correct for batch, composition,
-gene length, or repeated-specimen dependence. The count and metadata tables
+interpretation. Basic CPM does not correct for composition. Optional TMM uses
+a trimmed, weighted log-ratio estimate and assumes most uniquely identified
+features are not changing. Neither method corrects for batch, gene length, or
+repeated-specimen dependence; TMM is not a count model. The count and metadata tables
 must have exactly the same sample keys. Compressed files are limited to 25 MB,
 decompressed text to 256 MB, individual lines to 4 MB, samples to 2,000, gene
 rows to 1,000,000, and matrix cells to 5,000,000.
 
+The single-feature command also accepts `--feature-annotation-file` using the
+same exact two-column CSV format described below. The selected source label
+stays in `matrix.feature_id`; its optional user-supplied curation is reported
+separately in `matrix.feature_annotation`. Every mapping entry is checked
+against the count matrix, including duplicate source rows, and the mapping hash
+is included in the source provenance and `comparison.source_version`.
+
 ## Paired supplementary-count contrast
+
+### Preflight the sample join and paired design
+
+Run `geo-count-design` before a feature-wide paired screen when you want to
+verify the count-table shape, exact sample-key join, explicit group selection,
+and pair-key structure without calculating effects or p-values:
+
+    glio-noncode geo-count-design GSE141945 --case-filter Timepoint=Tumor --reference-filter Timepoint=1wk --sample-key-column "" --pair-key-column Patient --counts-file-name GSE141945_RNAseq.counts.csv.gz --metadata-file-name GSE141945_RNAseq.metadata.csv.gz
+
+The report marks the design `estimable` or `not_estimable`, lists aggregate
+selected, overlapping, unmatched, blank-key, and duplicate-key counts, and
+includes source hashes for reproducibility. Sample and pair IDs are never
+emitted. The matrix is still fully scanned to validate its integer counts and
+structure, but no expression vectors, effects, p-values, or q-values are
+calculated. A structurally malformed input returns an invalid-input report. A
+non-exact sample-key join instead returns a completed but `not_estimable`
+diagnostic with aggregate counts of matrix keys missing from metadata, metadata
+keys missing from the matrix, and the shared-key rows used for group summaries;
+no mismatched key values are emitted.
+
+The count preflight and paired screen also flag up to 25 distinct feature labels
+that match a day/month-shaped pattern, along with the total number found. This
+is a review hint for possible spreadsheet-coerced identifiers, not a gene
+annotation or a claim that a label was corrupted. Source labels are preserved
+verbatim and never normalized automatically. Each emitted contrast result now
+also carries its own `feature_label_review` object, so a suspicious label stays
+attached when a result is copied or filtered away from the matrix-level report.
+The object records whether the label matches the pattern, whether manual
+annotation review is recommended, and that the source label was preserved
+without automatic normalization. `summary.reported_date_like_feature_label_count`
+counts flagged rows among the limited results emitted by `--top`; the matrix
+review count remains the count across the full input.
+
+To attach analyst-reviewed identifiers without guessing corrections, provide
+`--feature-annotation-file annotations.csv`. The UTF-8 CSV must use the exact
+header `source_feature_id,curated_feature_id`; each source ID must resolve to
+one unique row in the count matrix. For example:
+
+```csv
+source_feature_id,curated_feature_id
+2-Sep,VERIFIED_TARGET_ID
+```
+
+The source-matrix `feature_id` remains unchanged. In a paired contrast, each
+result carries the user-supplied value in
+`results[].feature_annotation.curated_feature_id`; in the single-feature
+outlier report it is under `matrix.feature_annotation.curated_feature_id`.
+The map's SHA-256 and entry count are recorded under
+`source.feature_annotation_map`, and its hash participates in
+`comparison.source_version`. Missing source IDs,
+duplicate mapping keys, and mapping keys that point to repeated matrix rows are
+rejected. Curated identifiers are not checked against an external authority;
+multiple source rows may share a curated identifier and are never merged. The
+map changes display/interpretation metadata only, not counts, tests, FDR family,
+or effect estimates. `VERIFIED_TARGET_ID` is a placeholder: replace it only
+after checking the intended identifier against a trusted annotation source.
 
 When a supplementary matrix has a separate subject/pair key, use
 `geo-count-contrast` to compare two explicitly filtered sample groups within
@@ -117,19 +229,39 @@ glio-noncode geo-count-contrast GSE141945 \
   --metadata-file-name GSE141945_RNAseq.metadata.csv.gz \
   --counts-delimiter comma \
   --metadata-delimiter comma \
+  --normalization-method tmm_log2_cpm \
   --fdr-method bh \
   --top 1000
 ```
 
 The workflow validates every count and metadata row, computes each sample's
 library size from the entire matrix, and analyzes uniquely labeled rows on
-`log2(CPM + 1)`. It uses a two-sided paired Wilcoxon signed-rank test on
+`log2(CPM + 1)` by default. Pass `--normalization-method tmm_log2_cpm` to
+estimate composition factors across all matrix samples and use effective
+library sizes. The report records method assumptions and aggregate factor
+range, not per-sample factors. It uses a two-sided paired Wilcoxon signed-rank test on
 within-subject differences: the exact sign-assignment distribution is used for
 up to 32 nonzero pairs per feature, with a continuity-corrected normal
 approximation above that bound. The matched-pairs rank-biserial effect,
 mean/median paired difference, p-value, and BH or BY adjusted q-value are
 reported. The correction family is all uniquely identified tested feature rows,
 not only the displayed `--top` subset.
+
+For both supplementary-count reports, `comparison.source_version` fingerprints
+the input count and metadata files (and an optional annotation-map file), while
+`comparison.context_key` fingerprints the selected groups/design and
+normalization method. Analyses of the same files using CPM and TMM therefore
+retain the same source version but have different context keys. The report's
+`content_address` additionally fingerprints the resulting report contents.
+
+For compatibility with existing v1 reports, `effect_direction` remains the
+sign of the mean paired difference. New consumers should use the explicit
+`mean_effect_direction`, `median_effect_direction`, and
+`rank_biserial_effect_direction` fields to match a direction to its estimate.
+The last field is the sign of `matched_pairs_rank_biserial_correlation`, the
+declared rank-based effect size. A skewed paired distribution can make the mean,
+median, and rank-biserial directions disagree; zero effects use explicit
+no-difference labels.
 
 The direction-only paired sign test is reported as a sensitivity view. It
 excludes zero differences, uses the exact binomial distribution through 128
@@ -138,6 +270,38 @@ bound. Because it ignores difference magnitude, it helps show whether a ranked
 result persists when only directional consistency is considered. Each feature
 reports case-higher, case-lower, and tied pair counts; sign-test q-values are
 adjusted separately from the primary test.
+
+Each feature also includes `leave_one_pair_out_median_sensitivity`. It removes
+each matched pair in turn and summarizes the range and direction counts of the
+remaining median paired log2-CPM difference. The `direction_stable` flag is
+true only when every omission has the same median direction as the full paired
+set. The aggregate summary counts features, including FDR-significant features,
+whose median direction changes after at least one omission. This is a
+descriptive influence diagnostic: it does not refit a hypothesis test, create
+another p-value family, or establish that any pair is erroneous. Sample and
+pair identifiers remain omitted. The calculation sorts each feature's paired
+differences once and evaluates omissions from order statistics.
+
+Each feature also reports `median_paired_difference_confidence_interval_log2_cpm`,
+a central exact sign/order-statistic interval for the median paired difference.
+`--confidence-level` sets its requested coverage (default 0.95); the report
+records the attained binomial coverage and order-statistic ranks. Tied
+differences are retained. Because finite-sample coverage is discrete, a small
+number of pairs may not support any finite interval at the requested level; in
+that case bounds and attained coverage are null and the report gives the maximum
+coverage available from finite endpoints. These are pointwise intervals, not
+adjusted across the feature family. They do not change the Wilcoxon p-values,
+FDR correction, or exploratory status of the workflow.
+
+The `quality_control` section summarizes matched case and reference samples
+without emitting their identifiers. It reports library-size distributions,
+the number of uniquely identified feature rows detected at raw counts of at
+least 1, 5, and 10, top-one/top-ten feature count shares of the full library,
+and the paired library-size imbalance distribution. Library sizes use every
+input row; feature detection and top-feature shares exclude duplicated feature
+IDs, and unmatched selected samples are not included in the group summaries.
+These are descriptive checks only: they do not remove samples, filter tested
+features, or modify the normalization or inference.
 
 Repeated exact feature identifiers are excluded from the hypothesis-testing
 family so a duplicated source label cannot be counted as two tests; all source
@@ -150,8 +314,11 @@ This is a paired exploratory log2-CPM screen, not a negative-binomial count
 model or a voom/precision-weighted analysis. Inference assumes independent
 pairs; the primary test uses exchangeable signs of ranked differences, while
 the sign-test sensitivity uses exchangeable signs among nonzero differences.
-Library-size normalization does not model composition, gene-specific mean/variance, batch,
-purity, or other nuisance effects. FDR-screened rows remain research
+Leave-one-pair-out direction stability is descriptive and does not relax the
+independence assumption.
+Basic library-size normalization does not model composition. Optional TMM adjusts
+composition under a majority-stable-features assumption, but neither path models
+gene-specific mean/variance, batch, purity, or other nuisance effects. FDR-screened rows remain research
 associations—not validated biology, causal variant evidence, or clinical
 guidance. The feature-row limit is 100,000; compressed/decompressed byte,
 sample, line, and cell limits are shared with the supplementary-count importer.
@@ -178,11 +345,21 @@ features in that sample; standard deviation is null when fewer than two values
 are observed or when the result cannot be represented as a finite number.
 Statistics for a sample with no observed values are null.
 
+Each sample row also reports `exact_profile_group_size`: the number of samples
+whose parsed values and missingness positions match that sample across every
+feature row. A value of 1 means no exact duplicate was found; larger values
+identify exact repeated profiles. Samples with no observed values receive null
+and are excluded from profile matching. The summary counts repeated groups by
+size. SHA-256 profile fingerprints are used internally but are never emitted;
+near-duplicates are not detected. This is a review signal only and does not
+exclude or classify samples.
+
 The quality calculation consumes each validated feature row once and does not
 materialize the full feature-by-sample matrix. It retains per-sample running
-statistics, the missingness histogram, and a bounded set of feature IDs for
-duplicate detection; the compressed source and unique-feature count are also
-bounded. Only the current decoded row is processed at a time.
+statistics, one streaming profile digest per sample, the missingness histogram,
+and a bounded set of feature IDs for duplicate detection; the compressed source
+and unique-feature count are also bounded. Only the current decoded row is
+processed at a time.
 
 This is descriptive QC, not an automated quality decision. Samples are never
 removed or ranked, and no threshold is applied. These summaries do not infer
@@ -257,11 +434,35 @@ tested family or the significant-feature summary. The full screen is bounded
 to 100,000 retained features in addition to the compressed/decompressed byte,
 sample, line, and matrix-cell limits above.
 
+`geo-contrast` scans the already buffered matrix twice: the first pass validates
+metadata and establishes the feature count, and the second streams one feature
+row at a time into the analysis. It does not retain a complete
+feature-by-sample expression table, though it retains per-feature result rows
+for FDR correction and ranking and keeps the bounded source payload available.
+This trades an extra parse pass for lower peak memory. The report records
+`analysis_limits.matrix_scan_passes=2` and
+`analysis_limits.retains_feature_vectors=false`.
+
 Each reported row includes group counts, means/medians differences, a
 rank-biserial effect size, raw p-value, adjusted q-value, and test method.
 Missing features remain visible as untestable rows and do not enter the
 multiple-testing family. The report includes its matrix digest, sample IDs,
 filter context, analysis limits, and content address.
+
+For an unadjusted contrast, each feature row also reports
+`leave_one_sample_out_median_sensitivity`. It recomputes the case-minus-reference
+median direction after omitting each eligible observed sample in turn, while
+retaining at least two observations in both groups. `complete` means both
+groups had eligible omissions; `partial` means only one group did; `unavailable`
+means no deletion was eligible or the feature was not testable. The report gives
+omission counts, coverage, direction counts, whether every eligible deletion
+matches the full-data median direction, and the range of deleted-sample median
+differences when representable. It emits aggregate counts, not sample identities.
+This is a descriptive influence check on unadjusted medians: it does not refit
+the Mann–Whitney test, change p- or q-values, or automatically reject a feature.
+For covariate-adjusted OLS contrasts, the per-feature status is
+`not_calculated`; raw median sensitivity is not a sensitivity analysis of the
+adjusted model coefficient.
 
 When exact label permutations are used, `comparison.finite_sample_resolution`
 reports the number of exact-tested features, the range of label-assignment
@@ -292,8 +493,15 @@ clinical vocabulary, or expression values.
 The report lists selected case, reference, overlapping, and unassigned sample
 accessions. For adjusted designs it also reports covariate-complete samples,
 per-group covariate summaries, the same deterministic encoding used by
-`geo-contrast`, model parameter count, and residual degrees of freedom. Samples
-missing a declared covariate are listed with the exact missing fields. Overlap,
+`geo-contrast`, model parameter count, and residual degrees of freedom. Numeric
+covariates include a descriptive case-minus-reference standardized mean
+difference using the pooled within-group sample standard deviation, plus an
+observed-range overlap indicator and intersection. Categorical covariates show
+per-level group fractions, absolute fraction gaps, shared levels, and the
+largest level gap. These summaries are descriptive only: range overlap is not a
+distribution-overlap test, and no balance threshold or adjustment decision is
+applied. Samples missing a declared covariate are listed with the exact missing
+fields. Overlap,
 insufficient group size, missing/invalid covariates, rank deficiency, or an
 unsupported multi-platform matrix produce `not_estimable` with a reason; the
 command does not repair the design or silently change group membership.
@@ -361,8 +569,16 @@ only reports from the same GPL platform and requires equal expression scale,
 FDR method and threshold, and covariate specification. Feature IDs are exact
 and case-sensitive, with no alias or cross-platform gene mapping. A feature not
 present in either the ranked rows or explicitly tracked rows is `not reported`,
-not a null result. The report compares tested effect directions and records
-per-Series FDR status without combining p-values, q-values, or effect sizes.
+not a null result. The report compares tested effect directions, separately
+summarizes agreement among FDR-significant reports, and copies each source
+report's effect estimates and per-feature sample counts into the corresponding
+study row: unadjusted rows retain their mean difference, median difference,
+and rank-biserial correlation; adjusted rows retain the covariate-adjusted mean
+difference and its confidence interval when available. It does not pool effect
+sizes, p-values, q-values, or confidence intervals. A non-significant report is
+not counted as evidence for the opposite direction; at least two
+FDR-significant reports are required to call significant-direction agreement
+or disagreement.
 It can identify repeated GSM sample IDs and conflicting case/reference roles,
 but distinct accessions and source hashes do not prove cohort independence.
 These exploratory comparisons are not clinical evidence.

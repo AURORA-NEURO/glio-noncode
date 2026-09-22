@@ -124,9 +124,13 @@ def build_geo_contrast_consistency_report(
     concordant_feature_count = 0
     discordant_feature_count = 0
     insufficient_feature_count = 0
+    fdr_concordant_feature_count = 0
+    fdr_discordant_feature_count = 0
+    fdr_insufficient_feature_count = 0
     for feature_id in normalized_features:
         study_observations: list[dict[str, Any]] = []
         directions: list[str] = []
+        fdr_significant_directions: list[str] = []
         tested_count = 0
         untestable_count = 0
         fdr_significant_count = 0
@@ -143,8 +147,11 @@ def build_geo_contrast_consistency_report(
                         "contrast_report_address": study["report_content_address"],
                         "case_sample_count": study["case_sample_count"],
                         "reference_sample_count": study["reference_sample_count"],
+                        "feature_case_sample_count": None,
+                        "feature_reference_sample_count": None,
                         "result_state": "not_reported_in_bounded_or_tracked_results",
                         "effect_direction": None,
+                        "effect_estimates": None,
                         "p_value": None,
                         "q_value": None,
                         "fdr_significant": None,
@@ -163,6 +170,8 @@ def build_geo_contrast_consistency_report(
                 direction = _direction_category(row["effect_direction"])
                 directions.append(direction)
                 fdr_significant_count += int(row["fdr_significant"])
+                if row["fdr_significant"]:
+                    fdr_significant_directions.append(direction)
             study_observations.append(
                 {
                     "accession": study["source"]["accession"],
@@ -171,8 +180,11 @@ def build_geo_contrast_consistency_report(
                     "contrast_report_address": study["report_content_address"],
                     "case_sample_count": study["case_sample_count"],
                     "reference_sample_count": study["reference_sample_count"],
+                    "feature_case_sample_count": row["case_n"],
+                    "feature_reference_sample_count": row["reference_n"],
                     "result_state": result_state,
                     "effect_direction": direction,
+                    "effect_estimates": row["effect_estimates"],
                     "p_value": row["p_value"],
                     "q_value": row["q_value"],
                     "fdr_significant": (
@@ -192,6 +204,16 @@ def build_geo_contrast_consistency_report(
         else:
             direction_consistency = "discordant_among_reported"
             discordant_feature_count += 1
+        distinct_fdr_significant_directions = sorted(set(fdr_significant_directions))
+        if len(fdr_significant_directions) < 2:
+            fdr_significant_direction_consistency = "insufficient_fdr_significant_reports"
+            fdr_insufficient_feature_count += 1
+        elif len(distinct_fdr_significant_directions) == 1:
+            fdr_significant_direction_consistency = "concordant_among_fdr_significant"
+            fdr_concordant_feature_count += 1
+        else:
+            fdr_significant_direction_consistency = "discordant_among_fdr_significant"
+            fdr_discordant_feature_count += 1
         output_features.append(
             {
                 "feature_id": feature_id,
@@ -206,6 +228,15 @@ def build_geo_contrast_consistency_report(
                     "distinct_directions": distinct_directions,
                     "direction_consistency": direction_consistency,
                     "fdr_significant_count": fdr_significant_count,
+                    "fdr_significant_direction_observation_count": len(
+                        fdr_significant_directions
+                    ),
+                    "distinct_fdr_significant_directions": (
+                        distinct_fdr_significant_directions
+                    ),
+                    "fdr_significant_direction_consistency": (
+                        fdr_significant_direction_consistency
+                    ),
                 },
             }
         )
@@ -252,6 +283,9 @@ def build_geo_contrast_consistency_report(
             "concordant_feature_count": concordant_feature_count,
             "discordant_feature_count": discordant_feature_count,
             "insufficient_feature_count": insufficient_feature_count,
+            "fdr_significant_concordant_feature_count": fdr_concordant_feature_count,
+            "fdr_significant_discordant_feature_count": fdr_discordant_feature_count,
+            "fdr_significant_insufficient_feature_count": fdr_insufficient_feature_count,
             "shared_sample_id_count_across_series": shared_sample_id_count,
             "sample_ids_assigned_to_different_groups": cross_role_sample_id_count,
         },
@@ -265,8 +299,11 @@ def build_geo_contrast_consistency_report(
             "missing_report_rows_treated_as_negative": False,
         },
         "limitations": [
-            "This report compares directions only; it does not pool effect sizes, p-values, "
-            "or false-discovery estimates.",
+            "This report compares tested directions and separately summarizes direction "
+            "agreement among FDR-significant reports. Effect estimates and their feature-level "
+            "sample counts are copied per Series for inspection, not pooled or meta-analyzed; "
+            "p-values and false-discovery estimates are not combined. Non-significant results "
+            "are not counted as opposite-direction evidence.",
             "Feature identity is exact and case-sensitive. Matching IDs do not prove that "
             "different platforms measured the same transcript or gene.",
             "Studies must declare identical case and reference filter definitions; matching "
@@ -378,7 +415,17 @@ def _validate_contrast_report(report: Mapping[str, Any]) -> dict[str, Any]:
     ):
         raise ValidationError("GEO contrast report FDR threshold must be in (0, 1]")
 
-    model_signature = _model_signature(comparison.get("model"))
+    model_value = comparison.get("model")
+    model_signature = _model_signature(model_value)
+    confidence_level = None
+    if model_signature["type"] == "additive_ordinary_least_squares":
+        if not isinstance(model_value, Mapping):
+            raise ValidationError("GEO adjusted model configuration must be an object")
+        confidence_level = _finite_number(
+            model_value.get("confidence_level"), "adjusted-model confidence level"
+        )
+        if confidence_level is not None and not 0.0 < confidence_level < 1.0:
+            raise ValidationError("GEO adjusted-model confidence level must be in (0, 1)")
     matrix_feature_count = _count(summary.get("matrix_feature_count"), "matrix feature count")
     tested_feature_count = _count(summary.get("tested_feature_count"), "tested feature count")
     reported_feature_count = _count(summary.get("reported_feature_count"), "reported feature count")
@@ -446,10 +493,73 @@ def _validate_contrast_report(report: Mapping[str, Any]) -> dict[str, Any]:
         test_method = raw_row.get("test_method")
         if p_value is not None and (not isinstance(test_method, str) or not test_method):
             raise ValidationError("tested GEO contrast feature must provide its test method")
+        case_n = _optional_count(raw_row.get("case_n"), "feature case sample count")
+        reference_n = _optional_count(
+            raw_row.get("reference_n"), "feature reference sample count"
+        )
+        if case_n is not None and case_n > len(case_ids):
+            raise ValidationError("GEO feature case count exceeds its selected case samples")
+        if reference_n is not None and reference_n > len(reference_ids):
+            raise ValidationError(
+                "GEO feature reference count exceeds its selected reference samples"
+            )
+
+        if model_signature["type"] == "unadjusted":
+            mean_difference = _finite_number(
+                raw_row.get("mean_difference"), "feature mean difference"
+            )
+            median_difference = _finite_number(
+                raw_row.get("median_difference"), "feature median difference"
+            )
+            rank_biserial = _finite_number(
+                raw_row.get("rank_biserial_correlation"),
+                "feature rank-biserial correlation",
+            )
+            if rank_biserial is not None and not -1.0 <= rank_biserial <= 1.0:
+                raise ValidationError("GEO feature rank-biserial correlation must be in [-1, 1]")
+            effect_estimates = {
+                "mode": "unadjusted",
+                "mean_difference": mean_difference,
+                "median_difference": median_difference,
+                "rank_biserial_correlation": rank_biserial,
+            }
+        else:
+            adjusted_mean_difference = _finite_number(
+                raw_row.get("adjusted_mean_difference"),
+                "feature adjusted mean difference",
+            )
+            confidence_low = _finite_number(
+                raw_row.get("adjusted_mean_difference_ci_low"),
+                "feature adjusted mean-difference confidence interval lower bound",
+            )
+            confidence_high = _finite_number(
+                raw_row.get("adjusted_mean_difference_ci_high"),
+                "feature adjusted mean-difference confidence interval upper bound",
+            )
+            if (confidence_low is None) != (confidence_high is None):
+                raise ValidationError("GEO adjusted-effect confidence interval is incomplete")
+            if confidence_low is not None and confidence_high is not None:
+                if confidence_low > confidence_high:
+                    raise ValidationError("GEO adjusted-effect confidence interval is reversed")
+                if adjusted_mean_difference is None:
+                    raise ValidationError("GEO adjusted confidence interval has no point estimate")
+            effect_estimates = {
+                "mode": "covariate_adjusted_ols",
+                "adjusted_mean_difference": adjusted_mean_difference,
+                "confidence_level": confidence_level,
+                "confidence_interval": (
+                    [confidence_low, confidence_high]
+                    if confidence_low is not None and confidence_high is not None
+                    else None
+                ),
+            }
         rows_by_feature[feature_id] = {
             "p_value": p_value,
             "q_value": q_value,
             "effect_direction": effect_direction,
+            "case_n": case_n,
+            "reference_n": reference_n,
+            "effect_estimates": effect_estimates,
             "fdr_significant": significant,
             "test_method": test_method,
         }
@@ -574,6 +684,24 @@ def _probability(value: object, label: str) -> float | None:
     ):
         raise ValidationError(f"GEO contrast {label} must be a finite probability or null")
     return float(value)
+
+
+def _finite_number(value: object, label: str) -> float | None:
+    if value is None:
+        return None
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(float(value))
+    ):
+        raise ValidationError(f"GEO {label} must be a finite number or null")
+    return float(value)
+
+
+def _optional_count(value: object, label: str) -> int | None:
+    if value is None:
+        return None
+    return _count(value, label)
 
 
 def _direction_category(value: str) -> str:

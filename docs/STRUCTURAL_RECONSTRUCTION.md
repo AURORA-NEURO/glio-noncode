@@ -24,6 +24,22 @@ event. `reconstruction_support` describes the integrity of the deterministic
 parse, not a clinical or empirical probability; source measurements remain
 separate evidence inputs.
 
+## Structural model validation
+
+The typed records reject boolean or fractional genomic coordinates, non-finite
+or negative copy-number values, invalid orientations, duplicate identifiers,
+and missing or non-reciprocal breakend mates. A `BREAKEND_PAIR` contains exactly
+two mates; a `HAPLOTYPE` retains at least one phased segment. Identifier fields
+are bounded to 256 control-free characters, and allele strings are bounded to
+100,000 control-free characters. Confidence-like support and uncertainty
+values must be finite numbers in `[0, 1]`; they remain descriptive rather than
+calibrated probabilities.
+
+Event input sequences are copied into tuples, source variant IDs are checked for
+duplicates, and JSON annotations are recursively frozen at construction. These
+constraints keep a frozen event's content address stable even if the caller
+later mutates the input dictionaries or lists.
+
 ## Replay surface
 
 `ReconstructionResult` includes the source ID, deferred count, events, issues,
