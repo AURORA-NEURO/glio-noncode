@@ -90,16 +90,33 @@ _REPORT_SPECS: dict[str, tuple[str, str, tuple[str, ...]]] = {
         "count_contrast_design",
         "geo-count-contrast-design",
         (
-            "selected_case_count",
-            "selected_reference_count",
-            "overlap_count",
-            "unassigned_count",
-            "complete_pair_count",
+            "case_sample_count",
+            "reference_sample_count",
+            "overlap_sample_count",
+            "matched_pair_count",
+            "feature_row_count",
+            "uniquely_labeled_feature_count",
             "design_estimable",
         ),
     ),
 }
 _KIND_TO_SCHEMA = {spec[0]: schema for schema, spec in _REPORT_SPECS.items()}
+_LEGACY_METRIC_FIELDS = {
+    "glio-noncode.geo-count-contrast-design.v1": (
+        "selected_case_count",
+        "selected_reference_count",
+        "overlap_count",
+        "unassigned_count",
+        "complete_pair_count",
+        "design_estimable",
+    )
+}
+_LEGACY_SOURCE_DIMENSION_SCHEMAS = frozenset(
+    {
+        "glio-noncode.geo-count-metadata.v1",
+        "glio-noncode.geo-count-contrast-design.v1",
+    }
+)
 _SUMMARY_FIELDS = frozenset(
     {
         "accession",
@@ -125,6 +142,26 @@ def _bounded_scalar(value: object) -> int | float | bool | str | None:
 
 def _nonnegative_count(value: object) -> int | None:
     return value if type(value) is int and value >= 0 else None
+
+
+def _report_counts(
+    report_schema: str,
+    report: Mapping[str, Any],
+    source: Mapping[str, Any],
+    summary: Mapping[str, Any],
+) -> tuple[int | None, int | None]:
+    """Project source dimensions while respecting each preflight schema's shape."""
+
+    sample_count = _nonnegative_count(source.get("sample_count"))
+    feature_count = _nonnegative_count(source.get("feature_count"))
+    if report_schema == "glio-noncode.geo-count-metadata.v1" and sample_count is None:
+        sample_count = _nonnegative_count(summary.get("sample_count"))
+    elif report_schema == "glio-noncode.geo-count-contrast-design.v1":
+        matrix = report.get("matrix")
+        if isinstance(matrix, Mapping):
+            sample_count = _nonnegative_count(matrix.get("sample_count"))
+            feature_count = _nonnegative_count(matrix.get("feature_row_count"))
+    return sample_count, feature_count
 
 
 def _spec(report_schema: object) -> tuple[str, str, tuple[str, ...]]:
@@ -172,12 +209,13 @@ def summarize_geo_preflight_report(report: Mapping[str, Any]) -> dict[str, Any]:
     design = report.get("design")
     design_state = design.get("state") if isinstance(design, Mapping) else None
     metrics = {key: _bounded_scalar(summary.get(key)) for key in metric_fields}
+    sample_count, feature_count = _report_counts(report_schema, report, source, summary)
     return {
         "accession": source["accession"],
         "retrieval": source.get("retrieval"),
         "source_sha256": source["source_sha256"],
-        "sample_count": _nonnegative_count(source.get("sample_count")),
-        "feature_count": _nonnegative_count(source.get("feature_count")),
+        "sample_count": sample_count,
+        "feature_count": feature_count,
         "design_state": design_state if type(design_state) is str else None,
         "metrics": metrics,
         "kind": kind,
@@ -212,7 +250,10 @@ def _validate_summary_projection(
     if type(metrics) is not dict:
         raise StoreError("GEO preflight catalog metrics are invalid")
     _kind, _prefix, metric_fields = _spec(report_schema)
-    if frozenset(metrics) != frozenset(metric_fields):
+    accepted_metric_fields = {frozenset(metric_fields)}
+    if report_schema in _LEGACY_METRIC_FIELDS:
+        accepted_metric_fields.add(frozenset(_LEGACY_METRIC_FIELDS[report_schema]))
+    if frozenset(metrics) not in accepted_metric_fields:
         raise StoreError("GEO preflight catalog metrics have an invalid shape")
     for value in metrics.values():
         if _bounded_scalar(value) != value:
@@ -378,10 +419,21 @@ class GeoPreflightStore:
         record = self._decode_record(path)
         report = self.objects.get(record["report_address"])
         validated = validate_geo_preflight_report(report)
-        if summarize_geo_preflight_report(validated) != {
-            **record["summary"],
-            "kind": record["kind"],
-        }:
+        expected_summary = summarize_geo_preflight_report(validated)
+        stored_summary = {**record["summary"], "kind": record["kind"]}
+        legacy_fields = _LEGACY_METRIC_FIELDS.get(record["report_schema"])
+        if record["report_schema"] in _LEGACY_SOURCE_DIMENSION_SCHEMAS:
+            expected_summary = dict(expected_summary)
+            for field in ("sample_count", "feature_count"):
+                if record["summary"].get(field) is None:
+                    expected_summary[field] = None
+        if legacy_fields and frozenset(record["summary"]["metrics"]) == frozenset(legacy_fields):
+            expected_summary = dict(expected_summary)
+            expected_summary["metrics"] = {
+                key: _bounded_scalar(validated["summary"].get(key))
+                for key in legacy_fields
+            }
+        if expected_summary != stored_summary:
             raise StoreError("GEO preflight catalog summary does not match its report")
         return {
             "schema": GEO_PREFLIGHT_RECORD_SCHEMA,

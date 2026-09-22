@@ -47,6 +47,48 @@ def _quality_report(accession: str = "GSE141945") -> dict[str, object]:
     return body | {"content_address": content_hash(body, prefix="geo-expression-quality")}
 
 
+def _count_metadata_report() -> dict[str, object]:
+    body: dict[str, object] = {
+        "schema": "glio-noncode.geo-count-metadata.v1",
+        "status": "completed",
+        "source": {
+            "accession": "GSE141945",
+            "retrieval": "https",
+            "source_sha256": "sha256:" + "b" * 64,
+        },
+        "summary": {
+            "sample_count": 81,
+            "column_count": 3,
+            "distinct_non_key_category_count_lower_bound": 6,
+            "fields_with_suppressed_values_count": 2,
+        },
+    }
+    return body | {"content_address": content_hash(body, prefix="geo-count-metadata")}
+
+
+def _count_design_report() -> dict[str, object]:
+    body: dict[str, object] = {
+        "schema": "glio-noncode.geo-count-contrast-design.v1",
+        "status": "completed",
+        "source": {
+            "accession": "GSE141945",
+            "retrieval": "https",
+            "source_sha256": "sha256:" + "c" * 64,
+        },
+        "matrix": {"sample_count": 81, "feature_row_count": 56832},
+        "summary": {
+            "case_sample_count": 17,
+            "reference_sample_count": 17,
+            "overlap_sample_count": 0,
+            "matched_pair_count": 17,
+            "feature_row_count": 56832,
+            "uniquely_labeled_feature_count": 56828,
+            "design_estimable": True,
+        },
+    }
+    return body | {"content_address": content_hash(body, prefix="geo-count-contrast-design")}
+
+
 class GeoPreflightStoreTests(unittest.TestCase):
     def test_save_list_and_reopen_uses_bounded_catalog_projection(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -74,6 +116,19 @@ class GeoPreflightStoreTests(unittest.TestCase):
         self.assertEqual(first, second)
         with self.assertRaises(ValidationError):
             validate_geo_preflight_report(tampered)
+
+    def test_schema_specific_count_projection_preserves_real_dimensions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = GeoPreflightStore(Path(directory) / "workspace")
+            metadata = store.save(_count_metadata_report())
+            design = store.save(_count_design_report())
+            rows = store.list_reports()["rows"]
+
+        by_id = {row["preflight_id"]: row for row in rows}
+        self.assertEqual(by_id[metadata["preflight_id"]]["sample_count"], 81)
+        self.assertIsNone(by_id[metadata["preflight_id"]]["feature_count"])
+        self.assertEqual(by_id[design["preflight_id"]]["sample_count"], 81)
+        self.assertEqual(by_id[design["preflight_id"]]["feature_count"], 56832)
 
     def test_unsupported_schema_and_filters_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
