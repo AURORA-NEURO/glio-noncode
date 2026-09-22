@@ -230,6 +230,14 @@ def geo_review_ledger_csv(
 ) -> str:
     """Serialize the aggregate GEO ledger without private or raw data fields."""
 
+    return render_geo_review_ledger_csv(
+        build_geo_review_ledger(root, verify_reports=verify_reports)
+    )
+
+
+def render_geo_review_ledger_csv(ledger: list[Mapping[str, Any]]) -> str:
+    """Render already-verified ledger rows without reopening stored reports."""
+
     output = io.StringIO(newline="")
     writer = csv.DictWriter(
         output,
@@ -238,7 +246,7 @@ def geo_review_ledger_csv(
         lineterminator="\n",
     )
     writer.writeheader()
-    writer.writerows(build_geo_review_ledger(root, verify_reports=verify_reports))
+    writer.writerows(ledger)
     return output.getvalue()
 
 
@@ -334,4 +342,5 @@ __all__ = [
     "build_geo_review_ledger",
     "build_geo_review_summary",
     "geo_review_ledger_csv",
+    "render_geo_review_ledger_csv",
 ]

@@ -7,7 +7,11 @@ import sys
 
 from ._cli_support import write_json
 from .errors import StoreError, ValidationError
-from .geo_review_summary import build_geo_review_summary, geo_review_ledger_csv
+from .geo_review_summary import (
+    build_geo_review_ledger,
+    build_geo_review_summary,
+    render_geo_review_ledger_csv,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -46,15 +50,18 @@ def main(argv: list[str] | None = None) -> int:
         if args.csv:
             from ._safe_persistence import atomic_write_text
 
-            payload = geo_review_ledger_csv(
+            ledger = build_geo_review_ledger(
                 args.data_root,
                 verify_reports=verify_reports,
             )
+            payload = render_geo_review_ledger_csv(ledger)
             if args.output == "-":
                 sys.stdout.write(payload)
             else:
                 atomic_write_text(args.output, payload, field="GEO review CSV output")
-            return 0
+            return 0 if all(
+                row["verification"] not in {"invalid", "failed"} for row in ledger
+            ) else 2
         summary = build_geo_review_summary(
             args.data_root,
             verify_reports=verify_reports,

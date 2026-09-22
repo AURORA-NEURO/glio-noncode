@@ -13,8 +13,10 @@ from glio_noncode._cli_geo_review_summary import main as summary_main
 from glio_noncode.api import create_server
 from glio_noncode.geo_analysis_store import GeoAnalysisStore
 from glio_noncode.geo_review_summary import (
+    build_geo_review_ledger,
     build_geo_review_summary,
     geo_review_ledger_csv,
+    render_geo_review_ledger_csv,
 )
 
 from .test_geo_count_consistency import _report
@@ -123,6 +125,18 @@ class GeoReviewSummaryTests(unittest.TestCase):
         self.assertNotIn("sample_ids", ledger)
         self.assertNotIn("agent", ledger.lower())
         self.assertNotIn("language", ledger.lower())
+
+    def test_ledger_renderer_does_not_reopen_reports(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            workspace = root / "workspace"
+            GeoAnalysisStore(workspace).save(_report(root / "source", "GSE141945"))
+            rows = build_geo_review_ledger(workspace, verify_reports=False)
+            rendered = render_geo_review_ledger_csv(rows)
+            expected = geo_review_ledger_csv(workspace, verify_reports=False)
+
+        self.assertIn("GSE141945", rendered)
+        self.assertEqual(rendered, expected)
 
 
 if __name__ == "__main__":
