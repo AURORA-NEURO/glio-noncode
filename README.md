@@ -84,6 +84,13 @@ expression feature vectors:
 
     glio-noncode geo-metadata GSE103227
 
+After choosing explicit groups, `geo-design` checks sample membership, declared
+covariate completeness, and model estimability before running the feature-wide
+screen. It validates the source matrix but does not calculate expression
+effects, test statistics, or p-values:
+
+    glio-noncode geo-design GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal
+
     glio-noncode geo-outlier GSE103227 --feature-id ASHGA5P000001 --target-sample GSM2758529 --reference-filter diagnosis=normal --scale normalized_intensity
 
 For a two-group exploratory screen across one GEO platform, `geo-contrast`

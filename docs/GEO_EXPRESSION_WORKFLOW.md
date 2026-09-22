@@ -162,6 +162,69 @@ Missing features remain visible as untestable rows and do not enter the
 multiple-testing family. The report includes its matrix digest, sample IDs,
 filter context, analysis limits, and content address.
 
+## Contrast design preflight
+
+Before scanning every feature, use `geo-design` to verify explicit sample
+selection and model encodability using only GEO metadata:
+
+    glio-noncode geo-design GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal
+
+For a previously downloaded Series Matrix, add
+`--matrix-file GSE103227_series_matrix.txt.gz`. Add each proposed adjustment
+with an explicit type, for example `--covariate age=continuous` or
+`--covariate batch=categorical`; group labels are never inferred from titles,
+clinical vocabulary, or expression values.
+
+The report lists selected case, reference, overlapping, and unassigned sample
+accessions. For adjusted designs it also reports covariate-complete samples,
+per-group covariate summaries, the same deterministic encoding used by
+`geo-contrast`, model parameter count, and residual degrees of freedom. Samples
+missing a declared covariate are listed with the exact missing fields. Overlap,
+insufficient group size, missing/invalid covariates, rank deficiency, or an
+unsupported multi-platform matrix produce `not_estimable` with a reason; the
+command does not repair the design or silently change group membership.
+
+This is a metadata-only preflight in the sense that it retains no feature rows
+or computes a group effect, statistic, p-value, or FDR value. It still reads
+and validates the complete bounded Series Matrix, including the numeric matrix
+cells, source digest, and feature count. Successful output is content-addressed
+and records only the local source filename, not its directory. A successful
+preflight does not guarantee that each feature will have enough observed values
+for a later analysis, nor does covariate balance establish causal exchangeability.
+
+### Reproducible local-data walkthrough
+
+On the downloaded `GSE103227_series_matrix.txt.gz` used for this walkthrough,
+the metadata report exposes five `diagnosis=glioblastoma` and five
+`diagnosis=normal` samples. Streamed QC validated 58,944 features and 589,440
+measurements, with no missing matrix values. Replay those checks without a new
+network fetch:
+
+    glio-noncode geo-metadata GSE103227 --matrix-file GSE103227_series_matrix.txt.gz
+    glio-noncode geo-qc GSE103227 --scale normalized_intensity --matrix-file GSE103227_series_matrix.txt.gz
+
+Then preflight the explicit contrast before calculating effects:
+
+    glio-noncode geo-design GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --matrix-file GSE103227_series_matrix.txt.gz
+
+That preflight selected GSM2758529–GSM2758533 as cases and GSM2758524–GSM2758528
+as references. The unadjusted two-group design was estimable with two
+parameters and eight residual degrees of freedom. It retained no expression
+vectors and calculated no effect sizes or p-values.
+
+Replay the matching exploratory feature screen and retain only the top ten
+rows in the output report:
+
+    glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --fdr 0.05 --top 10 --matrix-file GSE103227_series_matrix.txt.gz --output GSE103227-contrast.json
+
+The exact-label permutation screen tested all 58,944 features. The top reported
+feature was ASHGA5P000002 (median difference -2.9241, case lower, rank-biserial
+correlation -1, raw p=0.00794, BH q=0.01876). The full FDR family contained
+26,699 features at q≤0.05 (13,463 higher and 13,236 lower in the case group).
+This is a small exploratory cohort result—not evidence of causality,
+replication, diagnosis, or treatment response. Platform IDs are not mapped to
+genes unless an explicit matching platform annotation file is supplied.
+
 ## Covariate-adjusted mode
 
 The rank-based comparison above is the default and remains unchanged when no

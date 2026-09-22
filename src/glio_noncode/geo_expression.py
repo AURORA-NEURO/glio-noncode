@@ -714,7 +714,7 @@ def _normalize_covariates(value: object) -> list[tuple[str, str]]:
 
 
 def _prepare_geo_contrast(
-    matrix: GeoFeatureMatrix,
+    matrix: GeoFeatureMatrix | GeoMatrixMetadata,
     *,
     case_indices: Sequence[int],
     reference_indices: Sequence[int],

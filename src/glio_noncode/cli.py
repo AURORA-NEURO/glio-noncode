@@ -18,6 +18,7 @@ Focused commands:
   geo-outlier          compare one GEO expression feature with explicit references
   geo-qc               summarize sample coverage and matrix quality before analysis
   geo-metadata         inventory GEO sample characteristics before contrast design
+  geo-design           check GEO cohort selection and contrast estimability
   geo-contrast         screen GEO groups, optionally joining platform annotations
   verify-release-evidence  verify a portable release-evidence ZIP
   report-capabilities  inspect supported report audiences, formats, and limits
@@ -127,6 +128,8 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_geo_qc").main(command_argv)
     if command == "geo-metadata":
         return importlib.import_module(f"{__package__}._cli_geo_metadata").main(command_argv)
+    if command == "geo-design":
+        return importlib.import_module(f"{__package__}._cli_geo_design").main(command_argv)
     if command == "geo-contrast":
         return importlib.import_module(f"{__package__}._cli_geo_contrast").main(command_argv)
     if command == "verify-release-evidence":

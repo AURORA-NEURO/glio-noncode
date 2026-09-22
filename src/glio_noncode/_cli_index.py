@@ -19604,6 +19604,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'screen two GEO sample groups across all platform features',
     ),
     (
+        'geo-design',
+        'check GEO cohort selection and contrast estimability',
+    ),
+    (
         'geo-metadata',
         'inventory GEO sample characteristics before contrast design',
     ),
