@@ -165,7 +165,9 @@ then exposes a verified `geo-expression-*` catalog, paged aggregate feature
 effects, direction/FDR filters, and a privacy-safe CSV projection; exact GEO
 sample selections remain in the explicit reproducibility JSON export. See
 [`docs/GEO_EXPRESSION_WORKFLOW.md`](docs/GEO_EXPRESSION_WORKFLOW.md) for the
-catalog and HTTP contracts.
+catalog and HTTP contracts. Saved expression contrasts can also be compared by
+catalog ID into immutable `geo-consistency-*` records with paged, aggregate-only
+direction review and CSV export.
 
 For the single-feature `geo-count-outlier` and paired `geo-count-contrast`
 workflows, manually reviewed identifiers can be added with

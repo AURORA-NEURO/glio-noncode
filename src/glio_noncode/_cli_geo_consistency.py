@@ -7,12 +7,13 @@ import sys
 from typing import Any
 
 from ._cli_support import read_mapping, write_json
-from .errors import ValidationError
+from .errors import StoreError, ValidationError
 from .geo_consistency import (
     MAX_CONTRAST_REPORTS,
     ContrastCompatibilityError,
     build_geo_contrast_consistency_report,
 )
+from .geo_expression_consistency_store import GeoExpressionConsistencyStore
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -37,6 +38,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="exact case-sensitive platform feature ID to compare; repeat as needed",
     )
     parser.add_argument("--output", default="-", help="JSON report path, or - for stdout")
+    parser.add_argument(
+        "--save-to-workspace",
+        action="store_true",
+        help="persist the completed consistency report in the local catalog",
+    )
+    parser.add_argument(
+        "--data-root",
+        default=".glio",
+        help="local GLIO-NONCODE data root used with --save-to-workspace",
+    )
     return parser
 
 
@@ -71,6 +82,18 @@ def main(argv: list[str] | None = None) -> int:
             "A contrast report could not be read, verified, or compared with the requested "
             "features.",
         )
+
+    if args.save_to_workspace and report.get("status") == "completed":
+        try:
+            saved = GeoExpressionConsistencyStore(args.data_root).save(report)
+        except (OSError, StoreError, ValidationError) as error:
+            print(
+                "error: GEO consistency report could not be saved "
+                f"({type(error).__name__})",
+                file=sys.stderr,
+            )
+            return 2
+        print(f"Saved GEO consistency {saved['comparison_id']}", file=sys.stderr)
 
     try:
         write_json(report, args.output)

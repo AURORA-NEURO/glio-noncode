@@ -26085,6 +26085,116 @@ class ApiHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
+        if path == "/v1/geo-expression-consistency" or path.startswith("/v1/geo-expression-consistency/"):
+            try:
+                from .geo_expression_consistency_store import GeoExpressionConsistencyStore
+
+                store = GeoExpressionConsistencyStore(self._runtime().store.root)
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path == "/v1/geo-expression-consistency":
+                    unknown = set(query) - {"offset", "limit"}
+                    if unknown:
+                        raise ValueError(
+                            f"GEO consistency catalog has unknown query parameters: {sorted(unknown)}"
+                        )
+                    self._write(
+                        HTTPStatus.OK,
+                        store.list_reports(
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 20),
+                        ),
+                    )
+                    return
+                segments = [unquote(item) for item in path.split("/") if item]
+                if len(segments) == 4 and segments[:2] == ["v1", "geo-expression-consistency"]:
+                    if segments[3] == "features.csv":
+                        unknown = set(query) - {
+                            "feature_contains", "direction_consistency",
+                            "fdr_direction_consistency",
+                        }
+                        if unknown:
+                            raise ValueError(
+                                f"GEO consistency CSV has unknown query parameters: {sorted(unknown)}"
+                            )
+                        payload = store.features_csv(
+                            segments[2],
+                            feature_contains=self._query_value(query, "feature_contains"),
+                            direction_consistency=self._query_value(query, "direction_consistency"),
+                            fdr_direction_consistency=self._query_value(
+                                query, "fdr_direction_consistency"
+                            ),
+                        )
+                        self._write_bytes(
+                            HTTPStatus.OK,
+                            payload.encode("utf-8"),
+                            content_type="text/csv; charset=utf-8",
+                            headers={
+                                "Content-Disposition": (
+                                    f'attachment; filename="GLIO-NONCODE-{segments[2]}-features.csv"'
+                                )
+                            },
+                        )
+                        return
+                    if segments[3] == "report.json":
+                        if query:
+                            raise ValueError(
+                                "GEO consistency report export does not accept query parameters"
+                            )
+                        saved = store.get_report(segments[2])
+                        self._write(
+                            HTTPStatus.OK,
+                            saved["report"],
+                            headers={
+                                "Content-Disposition": (
+                                    f'attachment; filename="GLIO-NONCODE-{segments[2]}.json"'
+                                )
+                            },
+                        )
+                        return
+                    self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                    return
+                if len(segments) != 3 or segments[:2] != ["v1", "geo-expression-consistency"]:
+                    self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                    return
+                unknown = set(query) - {
+                    "offset", "limit", "feature_contains", "direction_consistency",
+                    "fdr_direction_consistency",
+                }
+                if unknown:
+                    raise ValueError(
+                        f"GEO consistency page has unknown query parameters: {sorted(unknown)}"
+                    )
+                self._write(
+                    HTTPStatus.OK,
+                    store.page_features(
+                        segments[2],
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 25),
+                        feature_contains=self._query_value(query, "feature_contains"),
+                        direction_consistency=self._query_value(query, "direction_consistency"),
+                        fdr_direction_consistency=self._query_value(
+                            query, "fdr_direction_consistency"
+                        ),
+                    ),
+                )
+            except KeyError:
+                self._write(
+                    HTTPStatus.NOT_FOUND,
+                    {"error": "not_found", "message": "GEO expression consistency not found"},
+                )
+            except (ValidationError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except StoreError:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {
+                        "error": "geo_expression_consistency_unavailable",
+                        "message": "GEO expression consistency could not be verified",
+                    },
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
         if path == "/v1/runs" or path.startswith("/v1/runs/"):
             try:
                 runtime = self._runtime()
@@ -26977,6 +27087,43 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/geo-expression-consistency":
+            try:
+                from .geo_expression_consistency_store import GeoExpressionConsistencyStore
+
+                if parsed.query:
+                    raise ValueError("GEO expression consistency persistence does not accept query parameters")
+                payload = self._read_json(strict=True)
+                if set(payload) != {"analysis_ids", "feature_ids"}:
+                    raise ValueError("GEO expression consistency requires analysis_ids and feature_ids")
+                store = GeoExpressionConsistencyStore(self._runtime().store.root)
+                record = store.save_from_expression_analyses(
+                    payload["analysis_ids"], feature_ids=payload["feature_ids"]
+                )
+                self._write(HTTPStatus.CREATED, {"record": record})
+            except KeyError:
+                self._write(
+                    HTTPStatus.NOT_FOUND,
+                    {"error": "geo_expression_analysis_not_found", "message": "one expression analysis was not found"},
+                )
+            except ValidationError as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_geo_expression_consistency", "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_geo_expression_consistency_request", "message": str(exc)},
+                )
+            except StoreError as exc:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "geo_expression_consistency_unavailable", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/geo-expression-analyses":
             try:

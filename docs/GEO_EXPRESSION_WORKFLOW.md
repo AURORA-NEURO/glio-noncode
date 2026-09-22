@@ -614,6 +614,22 @@ Matching filter definitions still do not prove that labels have the same
 biological meaning in different studies; assess cohort and assay context
 before treating directional agreement as replication.
 
+Completed saved expression analyses can be compared by catalog identifier and
+retained as a separate consistency record. The API accepts two or more saved
+analysis IDs and exact source feature IDs:
+
+    curl -X POST http://127.0.0.1:8786/v1/geo-expression-consistency \
+      -H "Content-Type: application/json" \
+      -d '{"analysis_ids":["geo-expression-...","geo-expression-..."],"feature_ids":["EXACT_PLATFORM_ID"]}'
+
+The resulting `geo-consistency-*` record is immutable and can be listed at
+`/v1/geo-expression-consistency`, paged at
+`/v1/geo-expression-consistency/{comparison_id}`, or exported through
+`features.csv`. Its public rows retain per-study direction and effect
+estimates, but never emit GSM, subject, or pair identifiers. It does not pool
+effects or p-values, resolve aliases, or treat an omitted bounded row as a
+negative result.
+
 ## Covariate-adjusted mode
 
 The rank-based comparison above is the default and remains unchanged when no
