@@ -96,6 +96,66 @@ must have exactly the same sample keys. Compressed files are limited to 25 MB,
 decompressed text to 256 MB, individual lines to 4 MB, samples to 2,000, gene
 rows to 1,000,000, and matrix cells to 5,000,000.
 
+## Paired supplementary-count contrast
+
+When a supplementary matrix has a separate subject/pair key, use
+`geo-count-contrast` to compare two explicitly filtered sample groups within
+matched subjects. Each subject must contribute exactly one selected case and
+one selected reference sample; subjects missing either group are excluded and
+reported as aggregate counts. At least three complete pairs are required.
+Pair keys are used only for the join and are not included in the output.
+
+For the GSE141945 tumor and one-week organoid groups:
+
+```console
+glio-noncode geo-count-contrast GSE141945 \
+  --case-filter Timepoint=Tumor \
+  --reference-filter Timepoint=1wk \
+  --sample-key-column "" \
+  --pair-key-column Patient \
+  --counts-file-name GSE141945_RNAseq.counts.csv.gz \
+  --metadata-file-name GSE141945_RNAseq.metadata.csv.gz \
+  --counts-delimiter comma \
+  --metadata-delimiter comma \
+  --fdr-method bh \
+  --top 1000
+```
+
+The workflow validates every count and metadata row, computes each sample's
+library size from the entire matrix, and analyzes uniquely labeled rows on
+`log2(CPM + 1)`. It uses a two-sided paired Wilcoxon signed-rank test on
+within-subject differences: the exact sign-assignment distribution is used for
+up to 32 nonzero pairs per feature, with a continuity-corrected normal
+approximation above that bound. The matched-pairs rank-biserial effect,
+mean/median paired difference, p-value, and BH or BY adjusted q-value are
+reported. The correction family is all uniquely identified tested feature rows,
+not only the displayed `--top` subset.
+
+The direction-only paired sign test is reported as a sensitivity view. It
+excludes zero differences, uses the exact binomial distribution through 128
+nonzero pairs, and uses a continuity-corrected normal approximation above that
+bound. Because it ignores difference magnitude, it helps show whether a ranked
+result persists when only directional consistency is considered. Each feature
+reports case-higher, case-lower, and tied pair counts; sign-test q-values are
+adjusted separately from the primary test.
+
+Repeated exact feature identifiers are excluded from the hypothesis-testing
+family so a duplicated source label cannot be counted as two tests; all source
+rows, including duplicates, still contribute to library totals. The report
+records duplicate and unmatched counts, source hashes and byte sizes, exact
+selection filters, method counts, and a content address. It omits sample IDs,
+pair IDs, and individual expression values.
+
+This is a paired exploratory log2-CPM screen, not a negative-binomial count
+model or a voom/precision-weighted analysis. Inference assumes independent
+pairs; the primary test uses exchangeable signs of ranked differences, while
+the sign-test sensitivity uses exchangeable signs among nonzero differences.
+Library-size normalization does not model composition, gene-specific mean/variance, batch,
+purity, or other nuisance effects. FDR-screened rows remain research
+associations—not validated biology, causal variant evidence, or clinical
+guidance. The feature-row limit is 100,000; compressed/decompressed byte,
+sample, line, and cell limits are shared with the supplementary-count importer.
+
 ## Sample and matrix quality summary
 
 Run `geo-qc` before a contrast to review coverage and per-sample expression

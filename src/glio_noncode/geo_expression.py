@@ -15,8 +15,10 @@ import math
 import re
 import zlib
 from collections import Counter
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
+from dataclasses import field as dataclass_field
+from functools import lru_cache
 from itertools import combinations
 from pathlib import Path
 from typing import Any
@@ -177,6 +179,16 @@ class _GeoCountMatrix:
     source_sha256: str
     compressed_bytes: int
     decompressed_bytes: int
+
+
+@dataclass(slots=True)
+class _GeoCountTableSummary:
+    sample_ids: tuple[str, ...] = ()
+    library_sizes: list[int] = dataclass_field(default_factory=list)
+    feature_count: int = 0
+    duplicate_feature_label_count: int = 0
+    duplicate_feature_ids: set[str] = dataclass_field(default_factory=set)
+    decompressed_bytes: int = 0
 
 
 def _required_text(value: object, label: str, *, maximum: int = 512) -> str:
@@ -760,34 +772,15 @@ def _normalize_delimiter(value: object, label: str) -> str:
     return str(value)
 
 
-def parse_geo_supplementary_count_matrix(
+def _iter_geo_supplementary_count_rows(
     payload: bytes,
     *,
-    accession: str,
-    feature_id: str,
-    delimiter: str = ",",
-    source_file_name: str = "count-matrix.csv.gz",
-    source_url: str | None = None,
-) -> _GeoCountMatrix:
-    """Parse one bounded gene-by-sample integer-count table for one feature.
-
-    The parser retains only the requested row and per-sample library totals.
-    Other repeated feature labels are counted but preserved in those totals.
-    """
-
-    normalized_accession = validate_accession(accession)
-    selected_feature = _required_text(feature_id, "GEO gene feature ID", maximum=256)
-    if _FEATURE_RE.fullmatch(selected_feature) is None:
-        raise ValidationError("GEO gene feature ID contains unsupported characters")
-    normalized_delimiter = _normalize_delimiter(delimiter, "GEO count matrix delimiter")
-    file_name = _supplementary_file_name(source_file_name, "GEO count matrix file name")
-    if source_url is not None:
-        expected_url = geo_series_supplementary_url(normalized_accession, file_name)
-        if source_url != expected_url:
-            raise ValidationError("GEO count matrix source URL is not canonical")
+    delimiter: str,
+    summary: _GeoCountTableSummary,
+) -> Iterator[tuple[str, tuple[int, ...]]]:
     if not isinstance(payload, bytes) or len(payload) > MAX_COMPRESSED_BYTES:
         raise ValidationError("GEO supplementary count matrix exceeds its compressed byte bound")
-
+    normalized_delimiter = _normalize_delimiter(delimiter, "GEO count matrix delimiter")
     decompressed_bytes = 0
 
     def decoded_text_lines() -> Iterable[str]:
@@ -810,11 +803,9 @@ def parse_geo_supplementary_count_matrix(
     if len(sample_ids) != len(set(sample_ids)):
         raise ValidationError("GEO count matrix contains duplicate sample keys")
 
-    library_sizes = [0] * len(sample_ids)
+    summary.sample_ids = sample_ids
+    summary.library_sizes = [0] * len(sample_ids)
     seen_features: set[str] = set()
-    selected_counts: tuple[int, ...] | None = None
-    feature_count = 0
-    duplicate_feature_label_count = 0
     try:
         for row in reader:
             if not row or len(row) != len(header):
@@ -824,15 +815,14 @@ def parse_geo_supplementary_count_matrix(
             )
             if _FEATURE_RE.fullmatch(current_feature) is None:
                 raise ValidationError("GEO count matrix feature identifier is malformed")
-            feature_count += 1
-            if feature_count > MAX_FEATURE_COUNT:
+            summary.feature_count += 1
+            if summary.feature_count > MAX_FEATURE_COUNT:
                 raise ValidationError("GEO supplementary count matrix exceeds its feature limit")
-            if feature_count * len(sample_ids) > MAX_MATRIX_CELLS:
+            if summary.feature_count * len(sample_ids) > MAX_MATRIX_CELLS:
                 raise ValidationError("GEO supplementary count matrix exceeds its cell limit")
             if current_feature in seen_features:
-                duplicate_feature_label_count += 1
-                if current_feature == selected_feature:
-                    raise ValidationError("requested GEO feature appears more than once")
+                summary.duplicate_feature_label_count += 1
+                summary.duplicate_feature_ids.add(current_feature)
             seen_features.add(current_feature)
 
             counts: list[int] = []
@@ -845,33 +835,69 @@ def parse_geo_supplementary_count_matrix(
                     raise ValidationError("GEO supplementary count exceeds the signed 64-bit limit")
                 counts.append(count)
             for index, count in enumerate(counts):
-                library_sizes[index] += count
-            if current_feature == selected_feature:
-                selected_counts = tuple(counts)
+                summary.library_sizes[index] += count
+            yield current_feature, tuple(counts)
     except csv.Error as error:
         raise ValidationError(
             "GEO supplementary count matrix is not valid delimited text"
         ) from error
 
-    if feature_count == 0 or selected_counts is None:
-        raise ValidationError("requested GEO feature is absent from the count matrix")
-    if any(total == 0 for total in library_sizes):
-        raise ValidationError("GEO count matrix contains a zero-size sample library")
-    if decompressed_bytes == 0:
+    summary.decompressed_bytes = decompressed_bytes
+    if summary.feature_count == 0 or decompressed_bytes == 0:
         raise ValidationError("GEO supplementary count matrix is empty")
+    if any(total == 0 for total in summary.library_sizes):
+        raise ValidationError("GEO count matrix contains a zero-size sample library")
+
+
+def parse_geo_supplementary_count_matrix(
+    payload: bytes,
+    *,
+    accession: str,
+    feature_id: str,
+    delimiter: str = ",",
+    source_file_name: str = "count-matrix.csv.gz",
+    source_url: str | None = None,
+) -> _GeoCountMatrix:
+    """Parse one bounded gene-by-sample integer-count table for one feature.
+
+    The parser retains only the requested row and per-sample library totals.
+    Other repeated feature labels are counted but preserved in those totals.
+    """
+
+    normalized_accession = validate_accession(accession)
+    selected_feature = _required_text(feature_id, "GEO gene feature ID", maximum=256)
+    if _FEATURE_RE.fullmatch(selected_feature) is None:
+        raise ValidationError("GEO gene feature ID contains unsupported characters")
+    file_name = _supplementary_file_name(source_file_name, "GEO count matrix file name")
+    if source_url is not None:
+        expected_url = geo_series_supplementary_url(normalized_accession, file_name)
+        if source_url != expected_url:
+            raise ValidationError("GEO count matrix source URL is not canonical")
+    summary = _GeoCountTableSummary()
+    selected_counts: tuple[int, ...] | None = None
+    for current_feature, counts in _iter_geo_supplementary_count_rows(
+        payload, delimiter=delimiter, summary=summary
+    ):
+        if current_feature == selected_feature:
+            if selected_counts is not None:
+                raise ValidationError("requested GEO feature appears more than once")
+            selected_counts = counts
+
+    if selected_counts is None:
+        raise ValidationError("requested GEO feature is absent from the count matrix")
     return _GeoCountMatrix(
         accession=normalized_accession,
         feature_id=selected_feature,
-        sample_ids=sample_ids,
+        sample_ids=summary.sample_ids,
         feature_counts=selected_counts,
-        library_sizes=tuple(library_sizes),
-        feature_count=feature_count,
-        duplicate_feature_label_count=duplicate_feature_label_count,
+        library_sizes=tuple(summary.library_sizes),
+        feature_count=summary.feature_count,
+        duplicate_feature_label_count=summary.duplicate_feature_label_count,
         source_file_name=file_name,
         source_url=source_url,
         source_sha256=hashlib.sha256(payload).hexdigest(),
         compressed_bytes=len(payload),
-        decompressed_bytes=decompressed_bytes,
+        decompressed_bytes=summary.decompressed_bytes,
     )
 
 
@@ -1259,6 +1285,116 @@ def _mann_whitney_test(
         z_score = max(0.0, (deviation - 0.5) / math.sqrt(variance))
         p_value = min(1.0, math.erfc(z_score / math.sqrt(2.0)))
     return rank_biserial, p_value, "tie_corrected_normal_approximation"
+
+
+MAX_EXACT_SIGNED_RANK_PAIRS = 32
+MAX_EXACT_SIGN_TEST_PAIRS = 128
+
+
+@lru_cache(maxsize=256)
+def _signed_rank_null_distribution(rank_weights: tuple[int, ...]) -> tuple[int, ...]:
+    """Count exact signed-rank assignments for one tied-rank pattern."""
+
+    assignment_counts = [1]
+    for rank_weight in rank_weights:
+        expanded = assignment_counts + [0] * rank_weight
+        for score in range(len(expanded) - 1, rank_weight - 1, -1):
+            expanded[score] += expanded[score - rank_weight]
+        assignment_counts = expanded
+    return tuple(assignment_counts)
+
+
+def _paired_signed_rank_test(
+    differences: Sequence[float],
+) -> tuple[float, float, str, int]:
+    """Return matched rank-biserial effect, two-sided p, method, and nonzero-pair count."""
+
+    nonzero = tuple(value for value in differences if value != 0.0)
+    if not nonzero:
+        return 0.0, 1.0, "exact_paired_signed_rank", 0
+    if any(not math.isfinite(value) for value in nonzero):
+        raise ValidationError("paired GEO expression differences must be finite")
+
+    ordered = sorted((abs(value), value > 0.0) for value in nonzero)
+    rank_weights = [0] * len(ordered)
+    positive_rank_sum = 0
+    start = 0
+    while start < len(ordered):
+        end = start + 1
+        while end < len(ordered) and ordered[end][0] == ordered[start][0]:
+            end += 1
+        doubled_rank = start + end + 1
+        for index in range(start, end):
+            rank_weights[index] = doubled_rank
+            if ordered[index][1]:
+                positive_rank_sum += doubled_rank
+        start = end
+
+    total_rank_sum = sum(rank_weights)
+    rank_biserial = (2 * positive_rank_sum - total_rank_sum) / total_rank_sum
+    nonzero_pair_count = len(nonzero)
+    center = total_rank_sum / 2.0
+    observed_distance = abs(positive_rank_sum - center)
+    if nonzero_pair_count <= MAX_EXACT_SIGNED_RANK_PAIRS:
+        distribution = _signed_rank_null_distribution(tuple(rank_weights))
+        extreme_assignments = sum(
+            assignments
+            for score, assignments in enumerate(distribution)
+            if abs(score - center) >= observed_distance
+        )
+        p_value = extreme_assignments / (2**nonzero_pair_count)
+        return rank_biserial, p_value, "exact_paired_signed_rank", nonzero_pair_count
+
+    variance = math.fsum(weight * weight for weight in rank_weights) / 4.0
+    z_score = max(0.0, observed_distance - 1.0) / math.sqrt(variance) if variance > 0.0 else 0.0
+    p_value = min(1.0, math.erfc(z_score / math.sqrt(2.0)))
+    return rank_biserial, p_value, "normal_approximation_paired_signed_rank", nonzero_pair_count
+
+
+@lru_cache(maxsize=8_192)
+def _exact_two_sided_sign_pvalue(positive_count: int, negative_count: int) -> float:
+    nonzero_pair_count = positive_count + negative_count
+    if nonzero_pair_count == 0:
+        return 1.0
+    lower_tail_count = min(positive_count, negative_count)
+    lower_tail_assignments = sum(
+        math.comb(nonzero_pair_count, count) for count in range(lower_tail_count + 1)
+    )
+    return min(1.0, 2.0 * lower_tail_assignments / (2**nonzero_pair_count))
+
+
+def _paired_sign_test(
+    differences: Sequence[float],
+) -> tuple[int, int, int, float, str]:
+    """Return positive, negative, tied pairs and a two-sided paired sign-test p-value."""
+
+    if any(not math.isfinite(value) for value in differences):
+        raise ValidationError("paired GEO expression differences must be finite")
+    positive_count = sum(value > 0.0 for value in differences)
+    negative_count = sum(value < 0.0 for value in differences)
+    tied_pair_count = len(differences) - positive_count - negative_count
+    nonzero_pair_count = positive_count + negative_count
+    if nonzero_pair_count <= MAX_EXACT_SIGN_TEST_PAIRS:
+        p_value = _exact_two_sided_sign_pvalue(positive_count, negative_count)
+        return (
+            positive_count,
+            negative_count,
+            tied_pair_count,
+            p_value,
+            "exact_paired_sign_test",
+        )
+
+    observed_distance = abs(positive_count - nonzero_pair_count / 2.0)
+    standard_deviation = math.sqrt(nonzero_pair_count / 4.0)
+    z_score = max(0.0, observed_distance - 0.5) / standard_deviation
+    p_value = min(1.0, math.erfc(z_score / math.sqrt(2.0)))
+    return (
+        positive_count,
+        negative_count,
+        tied_pair_count,
+        p_value,
+        "normal_approximation_paired_sign_test",
+    )
 
 
 def _adjust_p_values(p_values: Sequence[float], *, method: str) -> list[float]:
@@ -2281,6 +2417,371 @@ def build_geo_count_outlier_report(
     }
     return report_body | {
         "content_address": content_hash(report_body, prefix="geo-count-expression-outlier")
+    }
+
+
+def build_geo_count_contrast_report(
+    accession: str,
+    *,
+    case_filters: Sequence[tuple[str, str]],
+    reference_filters: Sequence[tuple[str, str]],
+    sample_key_column: str,
+    pair_key_column: str,
+    counts_file_name: str | None = None,
+    metadata_file_name: str | None = None,
+    counts_file: str | Path | None = None,
+    metadata_file: str | Path | None = None,
+    counts_delimiter: str = ",",
+    metadata_delimiter: str = ",",
+    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+    fdr_threshold: float = 0.05,
+    fdr_method: str = "bh",
+    top: int = 1_000,
+) -> dict[str, Any]:
+    """Run a paired signed-rank screen over a bounded GEO integer-count matrix.
+
+    The feature table is validated once to compute library sizes and duplicate
+    labels, then streamed a second time for per-feature log2-CPM paired tests.
+    Exact duplicate feature identifiers are excluded from the testing family;
+    their counts still contribute to library sizes.
+    A separately adjusted paired sign test and pair-direction counts complement
+    the magnitude-sensitive signed-rank result.
+    """
+
+    normalized_accession = validate_accession(accession)
+    normalized_case = sorted(
+        _normalize_filters(case_filters, "case"),
+        key=lambda item: (item[0].casefold(), item[1].casefold()),
+    )
+    normalized_reference = sorted(
+        _normalize_filters(reference_filters, "reference"),
+        key=lambda item: (item[0].casefold(), item[1].casefold()),
+    )
+    pair_field = _required_text(pair_key_column, "GEO pair-key column", maximum=256)
+    if not isinstance(sample_key_column, str) or len(sample_key_column) > 256:
+        raise ValidationError("GEO metadata sample-key column must be a bounded string")
+    if any(ord(character) < 32 for character in sample_key_column):
+        raise ValidationError("GEO metadata sample-key column contains control characters")
+    if pair_field.casefold() == sample_key_column.casefold():
+        raise ValidationError("GEO pair-key and sample-key columns must be different")
+    grouping_fields = {field.casefold() for field, _ in (*normalized_case, *normalized_reference)}
+    if pair_field.casefold() in grouping_fields:
+        raise ValidationError("GEO pair-key column cannot also define a comparison group")
+    if not isinstance(timeout_seconds, (int, float)) or isinstance(timeout_seconds, bool):
+        raise ValidationError("GEO request timeout must be numeric")
+    if not 0.1 <= float(timeout_seconds) <= 120.0:
+        raise ValidationError("GEO request timeout must be between 0.1 and 120 seconds")
+    if isinstance(fdr_threshold, bool) or not isinstance(fdr_threshold, (int, float)):
+        raise ValidationError("FDR threshold must be numeric")
+    fdr_threshold = float(fdr_threshold)
+    if not math.isfinite(fdr_threshold) or not 0.0 < fdr_threshold <= 1.0:
+        raise ValidationError("FDR threshold must be greater than zero and at most one")
+    if not isinstance(fdr_method, str) or fdr_method.strip().casefold() not in {"bh", "by"}:
+        raise ValidationError("FDR method must be 'bh' or 'by'")
+    normalized_fdr_method = fdr_method.strip().casefold()
+    if isinstance(top, bool) or not isinstance(top, int) or not 1 <= top <= MAX_CONTRAST_FEATURES:
+        raise ValidationError("top result limit must be an integer within the feature bound")
+    normalized_count_delimiter = _normalize_delimiter(
+        counts_delimiter, "GEO count matrix delimiter"
+    )
+    normalized_metadata_delimiter = _normalize_delimiter(
+        metadata_delimiter, "GEO metadata delimiter"
+    )
+
+    count_payload, count_name, count_response_url, count_source_url = _read_supplementary_file(
+        normalized_accession,
+        label="count matrix",
+        file_name=counts_file_name,
+        local_file=counts_file,
+        timeout_seconds=float(timeout_seconds),
+    )
+    metadata_payload, metadata_name, metadata_response_url, _ = _read_supplementary_file(
+        normalized_accession,
+        label="sample metadata",
+        file_name=metadata_file_name,
+        local_file=metadata_file,
+        timeout_seconds=float(timeout_seconds),
+    )
+
+    matrix_summary = _GeoCountTableSummary()
+    for _ in _iter_geo_supplementary_count_rows(
+        count_payload,
+        delimiter=normalized_count_delimiter,
+        summary=matrix_summary,
+    ):
+        pass
+    if matrix_summary.feature_count > MAX_CONTRAST_FEATURES:
+        raise ValidationError(
+            f"GEO paired count contrast is limited to {MAX_CONTRAST_FEATURES} feature rows"
+        )
+    duplicate_feature_row_count = matrix_summary.duplicate_feature_label_count + len(
+        matrix_summary.duplicate_feature_ids
+    )
+    analyzable_feature_count = matrix_summary.feature_count - duplicate_feature_row_count
+    if analyzable_feature_count < 1:
+        raise ValidationError("GEO count matrix has no uniquely identified features to test")
+
+    requested_fields_by_casefold = {
+        field.casefold(): field for field, _ in (*normalized_case, *normalized_reference)
+    }
+    requested_fields_by_casefold[pair_field.casefold()] = pair_field
+    metadata, metadata_headers, metadata_decompressed_bytes = _parse_geo_count_metadata(
+        metadata_payload,
+        sample_ids=matrix_summary.sample_ids,
+        sample_key_column=sample_key_column,
+        requested_fields=tuple(requested_fields_by_casefold.values()),
+        delimiter=normalized_metadata_delimiter,
+    )
+    fields_by_casefold = {name.casefold(): name for name in metadata_headers}
+    pair_header = fields_by_casefold[pair_field.casefold()]
+    pair_field = pair_header
+
+    def selected_samples(filters: Sequence[tuple[str, str]]) -> tuple[str, ...]:
+        return tuple(
+            sample_id
+            for sample_id in matrix_summary.sample_ids
+            if all(
+                metadata[sample_id][fields_by_casefold[field.casefold()]].casefold()
+                == expected.casefold()
+                for field, expected in filters
+            )
+        )
+
+    case_sample_ids = selected_samples(normalized_case)
+    reference_sample_ids = selected_samples(normalized_reference)
+    if set(case_sample_ids) & set(reference_sample_ids):
+        raise ValidationError("GEO case and reference filters select overlapping samples")
+    sample_index = {sample_id: index for index, sample_id in enumerate(matrix_summary.sample_ids)}
+
+    def samples_by_pair(sample_ids: Sequence[str], label: str) -> dict[str, str]:
+        by_pair: dict[str, str] = {}
+        for sample_id in sample_ids:
+            pair_value = metadata[sample_id][pair_header].strip()
+            if not pair_value:
+                raise ValidationError(f"selected GEO {label} sample has a blank pair key")
+            if pair_value in by_pair:
+                raise ValidationError(f"GEO {label} group has more than one sample per pair key")
+            by_pair[pair_value] = sample_id
+        return by_pair
+
+    case_by_pair = samples_by_pair(case_sample_ids, "case")
+    reference_by_pair = samples_by_pair(reference_sample_ids, "reference")
+    matched_pair_keys = tuple(sorted(case_by_pair.keys() & reference_by_pair.keys()))
+    if len(matched_pair_keys) < 3:
+        raise ValidationError("GEO paired count contrast requires at least three complete pairs")
+
+    case_indices = tuple(sample_index[case_by_pair[key]] for key in matched_pair_keys)
+    reference_indices = tuple(sample_index[reference_by_pair[key]] for key in matched_pair_keys)
+    library_sizes = tuple(matrix_summary.library_sizes)
+    count_source_sha256 = hashlib.sha256(count_payload).hexdigest()
+    metadata_source_sha256 = hashlib.sha256(metadata_payload).hexdigest()
+    source_version = content_hash(
+        {"counts_sha256": count_source_sha256, "metadata_sha256": metadata_source_sha256},
+        prefix="geo-count-inputs",
+    )
+    normalized_case_records = [
+        {"field": field, "equals": expected} for field, expected in normalized_case
+    ]
+    normalized_reference_records = [
+        {"field": field, "equals": expected} for field, expected in normalized_reference
+    ]
+    context_key = content_hash(
+        {
+            "accession": normalized_accession,
+            "case_filters": normalized_case_records,
+            "reference_filters": normalized_reference_records,
+            "pair_key_column": pair_field,
+        },
+        prefix="geo-paired-count-contrast",
+    )
+    rows: list[dict[str, Any]] = []
+    tested_rows: list[int] = []
+    p_values: list[float] = []
+    sign_test_p_values: list[float] = []
+    method_counts: Counter[str] = Counter()
+    sign_test_method_counts: Counter[str] = Counter()
+    second_summary = _GeoCountTableSummary()
+    for feature_id, counts in _iter_geo_supplementary_count_rows(
+        count_payload,
+        delimiter=normalized_count_delimiter,
+        summary=second_summary,
+    ):
+        if feature_id in matrix_summary.duplicate_feature_ids:
+            continue
+        case_values = tuple(
+            math.log2(counts[index] / library_sizes[index] * 1_000_000 + 1)
+            for index in case_indices
+        )
+        reference_values = tuple(
+            math.log2(counts[index] / library_sizes[index] * 1_000_000 + 1)
+            for index in reference_indices
+        )
+        differences = tuple(
+            case_value - reference_value
+            for case_value, reference_value in zip(case_values, reference_values, strict=True)
+        )
+        rank_biserial, p_value, method, nonzero_pair_count = _paired_signed_rank_test(differences)
+        positive_pair_count, negative_pair_count, tied_pair_count, sign_p_value, sign_method = (
+            _paired_sign_test(differences)
+        )
+        mean_difference = _finite_mean(differences)
+        median_difference = _finite_median(differences)
+        row = {
+            "feature_id": feature_id,
+            "paired_sample_count": len(matched_pair_keys),
+            "nonzero_pair_count": nonzero_pair_count,
+            "case_higher_pair_count": positive_pair_count,
+            "case_lower_pair_count": negative_pair_count,
+            "tied_pair_count": tied_pair_count,
+            "case_median_log2_cpm": _finite_median(case_values),
+            "reference_median_log2_cpm": _finite_median(reference_values),
+            "mean_paired_difference_log2_cpm": mean_difference,
+            "median_paired_difference_log2_cpm": median_difference,
+            "matched_pairs_rank_biserial_correlation": rank_biserial,
+            "effect_direction": (
+                "case_higher"
+                if mean_difference > 0.0
+                else "case_lower"
+                if mean_difference < 0.0
+                else "no_mean_difference"
+            ),
+            "p_value": p_value,
+            "q_value": None,
+            "test_method": method,
+            "fdr_significant": False,
+            "sign_test_p_value": sign_p_value,
+            "sign_test_q_value": None,
+            "sign_test_method": sign_method,
+            "sign_test_fdr_significant": False,
+        }
+        tested_rows.append(len(rows))
+        p_values.append(p_value)
+        sign_test_p_values.append(sign_p_value)
+        method_counts[method] += 1
+        sign_test_method_counts[sign_method] += 1
+        rows.append(row)
+
+    if (
+        second_summary.sample_ids != matrix_summary.sample_ids
+        or second_summary.library_sizes != matrix_summary.library_sizes
+        or second_summary.feature_count != matrix_summary.feature_count
+        or second_summary.duplicate_feature_label_count
+        != matrix_summary.duplicate_feature_label_count
+        or second_summary.duplicate_feature_ids != matrix_summary.duplicate_feature_ids
+        or second_summary.decompressed_bytes != matrix_summary.decompressed_bytes
+    ):
+        raise ValidationError("GEO count matrix changed during paired contrast processing")
+    adjusted_p_values = _adjust_p_values(p_values, method=normalized_fdr_method)
+    adjusted_sign_test_p_values = _adjust_p_values(sign_test_p_values, method=normalized_fdr_method)
+    for row_index, q_value, sign_test_q_value in zip(
+        tested_rows, adjusted_p_values, adjusted_sign_test_p_values, strict=True
+    ):
+        rows[row_index]["q_value"] = q_value
+        rows[row_index]["fdr_significant"] = q_value <= fdr_threshold
+        rows[row_index]["sign_test_q_value"] = sign_test_q_value
+        rows[row_index]["sign_test_fdr_significant"] = sign_test_q_value <= fdr_threshold
+    rows.sort(
+        key=lambda row: (
+            row["q_value"] is None,
+            row["q_value"] if row["q_value"] is not None else 1.0,
+            row["p_value"],
+            row["feature_id"],
+        )
+    )
+    reported_rows = rows[:top]
+    significant_count = sum(bool(row["fdr_significant"]) for row in rows)
+    sign_test_significant_count = sum(bool(row["sign_test_fdr_significant"]) for row in rows)
+    result_body: dict[str, Any] = {
+        "schema": "glio-noncode.geo-paired-count-contrast.v1",
+        "status": "completed",
+        "source": {
+            "database": "NCBI GEO",
+            "accession": normalized_accession,
+            "series_url": f"{GEO_RECORD_ORIGIN}/geo/query/acc.cgi?acc={normalized_accession}",
+            "retrieval": (
+                "https"
+                if count_response_url is not None or metadata_response_url is not None
+                else "local_file"
+            ),
+            "count_matrix": {
+                "file_name": count_name,
+                "response_url": count_response_url,
+                "source_sha256": f"sha256:{count_source_sha256}",
+                "compressed_bytes": len(count_payload),
+                "decompressed_bytes": matrix_summary.decompressed_bytes,
+            },
+            "sample_metadata": {
+                "file_name": metadata_name,
+                "response_url": metadata_response_url,
+                "source_sha256": f"sha256:{metadata_source_sha256}",
+                "compressed_bytes": len(metadata_payload),
+                "decompressed_bytes": metadata_decompressed_bytes,
+            },
+        },
+        "matrix": {
+            "feature_row_count": matrix_summary.feature_count,
+            "duplicate_feature_label_count": matrix_summary.duplicate_feature_label_count,
+            "duplicate_feature_id_count_excluded": len(matrix_summary.duplicate_feature_ids),
+            "duplicate_feature_row_count_excluded": duplicate_feature_row_count,
+            "uniquely_identified_feature_count_tested": len(rows),
+            "sample_count": len(matrix_summary.sample_ids),
+            "library_size_method": "sum of all non-negative integer count rows per sample",
+        },
+        "comparison": {
+            "case_filters": normalized_case_records,
+            "reference_filters": normalized_reference_records,
+            "pair_key_column": pair_field,
+            "design": "one case and one reference sample per matched pair",
+            "matched_pair_count": len(matched_pair_keys),
+            "case_sample_count_selected": len(case_sample_ids),
+            "reference_sample_count_selected": len(reference_sample_ids),
+            "case_sample_count_unmatched": len(case_sample_ids) - len(matched_pair_keys),
+            "reference_sample_count_unmatched": len(reference_sample_ids) - len(matched_pair_keys),
+            "normalization": "log2(counts per million + 1)",
+            "effect_size": "matched-pairs rank-biserial correlation",
+            "test": "two-sided paired Wilcoxon signed-rank test on log2-CPM differences",
+            "exact_test_maximum_nonzero_pairs": MAX_EXACT_SIGNED_RANK_PAIRS,
+            "sensitivity_test": (
+                "two-sided paired sign test on nonzero log2-CPM differences; ties excluded"
+            ),
+            "exact_sign_test_maximum_nonzero_pairs": MAX_EXACT_SIGN_TEST_PAIRS,
+            "fdr_method": normalized_fdr_method,
+            "fdr_threshold": fdr_threshold,
+            "multiple_testing_family_count": len(rows),
+            "context_key": context_key,
+            "source_version": source_version,
+            "individual_sample_and_pair_keys_emitted": False,
+        },
+        "summary": {
+            "tested_feature_count": len(rows),
+            "fdr_significant_feature_count": significant_count,
+            "not_fdr_significant_feature_count": len(rows) - significant_count,
+            "test_method_counts": dict(sorted(method_counts.items())),
+            "sign_test_fdr_significant_feature_count": sign_test_significant_count,
+            "not_sign_test_fdr_significant_feature_count": len(rows) - sign_test_significant_count,
+            "sign_test_method_counts": dict(sorted(sign_test_method_counts.items())),
+            "reported_feature_count": len(reported_rows),
+        },
+        "analysis_limits": {
+            "max_compressed_bytes_per_file": MAX_COMPRESSED_BYTES,
+            "max_decompressed_bytes_per_file": MAX_DECOMPRESSED_BYTES,
+            "max_matrix_line_bytes": MAX_MATRIX_LINE_BYTES,
+            "max_samples": MAX_SAMPLE_COUNT,
+            "max_feature_rows": MAX_CONTRAST_FEATURES,
+            "max_matrix_cells": MAX_MATRIX_CELLS,
+            "minimum_complete_pairs": 3,
+        },
+        "results": reported_rows,
+        "limitations": [
+            "The paired signed-rank test assumes independent pairs and exchangeable signs of within-pair differences under the null; it is not a negative-binomial count model or a voom/precision-weighted analysis.",
+            "The paired sign-test sensitivity uses only the direction of nonzero differences, excludes ties, and has lower power when difference magnitudes are informative.",
+            "log2(CPM + 1) is a simple library-size transform; gene-specific mean-variance, composition, batch, purity, and other nuisance effects are not modeled.",
+            "Rows with repeated exact feature identifiers are excluded from testing to avoid ambiguous multiple-testing units; all their counts remain in library-size totals.",
+            "The result is a cohort-level exploratory association, not a patient-matched variant claim, causal conclusion, diagnosis, or treatment recommendation.",
+        ],
+    }
+    return result_body | {
+        "content_address": content_hash(result_body, prefix="geo-paired-count-contrast")
     }
 
 

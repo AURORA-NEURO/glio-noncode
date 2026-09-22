@@ -16,6 +16,7 @@ SHELL_COMMANDS = (
     ("expression", "analyze expression and allele-specific RNA evidence"),
     ("geo-outlier", "compare one GEO expression feature with explicit references"),
     ("geo-count-outlier", "compare one gene row across a GEO supplementary count matrix"),
+    ("geo-count-contrast", "compare paired groups across a GEO supplementary count matrix"),
     ("geo-qc", "summarize sample coverage and matrix quality before analysis"),
     ("geo-metadata", "inventory GEO sample characteristics before contrast design"),
     ("geo-design", "check GEO cohort selection and contrast estimability"),
@@ -34,19 +35,14 @@ def _legacy_commands() -> tuple[tuple[str, str], ...]:
     legacy_cli = importlib.import_module("glio_noncode._legacy_cli")
     parser = legacy_cli.build_parser()
     subparsers = next(
-        action
-        for action in parser._actions
-        if isinstance(action, argparse._SubParsersAction)
+        action for action in parser._actions if isinstance(action, argparse._SubParsersAction)
     )
     help_by_name = {
         action.dest: "" if action.help is argparse.SUPPRESS else str(action.help or "")
         for action in subparsers._choices_actions
     }
     return tuple(
-        sorted(
-            (str(name), help_by_name.get(str(name), ""))
-            for name in subparsers.choices
-        )
+        sorted((str(name), help_by_name.get(str(name), "")) for name in subparsers.choices)
     )
 
 

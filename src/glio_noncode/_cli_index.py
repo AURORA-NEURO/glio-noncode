@@ -19612,6 +19612,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'screen two GEO sample groups across all platform features',
     ),
     (
+        'geo-count-contrast',
+        'compare paired groups across a GEO supplementary count matrix',
+    ),
+    (
         'geo-count-outlier',
         'compare one gene row across a GEO supplementary count matrix',
     ),

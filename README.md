@@ -123,6 +123,16 @@ and coverage, retains values verbatim, and does not infer gene identity:
 See `docs/GEO_EXPRESSION_WORKFLOW.md` for input bounds, exact-match behavior,
 missing annotation handling, and provenance fields.
 
+For GEO supplementary integer-count tables with a subject key, `geo-count-contrast`
+performs a paired two-group screen on `log2(CPM + 1)`, excludes incomplete
+pairs, applies BH or BY correction across all uniquely labeled tested rows, and
+omits sample/pair identifiers from its aggregate report. It is explicitly
+exploratory and not a count-model differential-expression workflow. It also
+reports pair-direction counts and a separately adjusted direction-only
+sign-test sensitivity:
+
+    glio-noncode geo-count-contrast GSE141945 --case-filter Timepoint=Tumor --reference-filter Timepoint=1wk --sample-key-column "" --pair-key-column Patient --counts-file-name GSE141945_RNAseq.counts.csv.gz --metadata-file-name GSE141945_RNAseq.metadata.csv.gz --top 1000
+
 To compare up to 500 exact platform feature IDs across completed Series reports,
 add `--track-feature-id` to each contrast when a feature may
 fall outside its ranked `--top` rows, then run `geo-consistency` on the reports.
