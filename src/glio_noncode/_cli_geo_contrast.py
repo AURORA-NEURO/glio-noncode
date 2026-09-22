@@ -119,6 +119,16 @@ def build_parser() -> argparse.ArgumentParser:
         default=1_000,
         help="maximum ranked feature rows to include (all features are tested), default 1000",
     )
+    parser.add_argument(
+        "--track-feature-id",
+        action="append",
+        default=[],
+        metavar="ID",
+        help=(
+            "also retain this exact case-sensitive feature row outside the ranked result limit; "
+            "repeat for selected candidates"
+        ),
+    )
     parser.add_argument("--timeout", type=float, default=30.0, help="HTTPS timeout in seconds")
     parser.add_argument("--output", default="-", help="JSON report path, or - for stdout")
     return parser
@@ -145,6 +155,7 @@ def main(argv: list[str] | None = None) -> int:
             fdr_threshold=args.fdr,
             fdr_method=args.fdr_method,
             top=args.top,
+            track_feature_ids=args.track_feature_id,
             covariates=args.covariate,
             platform_annotation_file=args.platform_annotation_file,
             annotation_id_column=args.annotation_id_column,

@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'c2290596c1986d9bdd397cdb04e8eeec43540fa1dc6f856f0e13e28f52e1984f'
-SURFACE_DIGEST = 'eedff80d9941003de71c438fd67ab69fa21bb72c4f9637bc2cb14f7a8512cd43'
+SURFACE_DIGEST = 'fafa140862e86b7ba6001c01201fc06af1aacbe9de58a887163325a6d974acf2'
 
 ALL = (
     'CaseManifest',
@@ -44182,6 +44182,7 @@ CHILD_MODULES = {
     'frontier_release_hardening': 'glio_noncode.frontier_release_hardening',
     'frontier_replay': 'glio_noncode.frontier_replay',
     'frontier_scenario_matrix': 'glio_noncode.frontier_scenario_matrix',
+    'geo_consistency': 'glio_noncode.geo_consistency',
     'geo_design': 'glio_noncode.geo_design',
     'geo_expression': 'glio_noncode.geo_expression',
     'geo_metadata': 'glio_noncode.geo_metadata',
@@ -49457,6 +49458,7 @@ LAZY_MODULES = (
     'glio_noncode.frontier_release_hardening',
     'glio_noncode.frontier_replay',
     'glio_noncode.frontier_scenario_matrix',
+    'glio_noncode.geo_consistency',
     'glio_noncode.geo_design',
     'glio_noncode.geo_expression',
     'glio_noncode.geo_metadata',

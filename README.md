@@ -118,6 +118,17 @@ and coverage, retains values verbatim, and does not infer gene identity:
 See `docs/GEO_EXPRESSION_WORKFLOW.md` for input bounds, exact-match behavior,
 missing annotation handling, and provenance fields.
 
+To compare up to 500 exact platform feature IDs across completed Series reports,
+add `--track-feature-id` to each contrast when a feature may
+fall outside its ranked `--top` rows, then run `geo-consistency` on the reports.
+It requires one shared GPL platform and identical scale, FDR settings, and
+covariate specification. It reports direction agreement only; it does not pool
+statistics, map aliases, or establish independent cohorts:
+
+    glio-noncode geo-contrast GSE_A --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --track-feature-id EXACT_PLATFORM_ID --output GSE_A.json
+    glio-noncode geo-contrast GSE_B --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --track-feature-id EXACT_PLATFORM_ID --output GSE_B.json
+    glio-noncode geo-consistency GSE_A.json GSE_B.json --feature-id EXACT_PLATFORM_ID
+
 Package-root exports resolve lazily, and help, version, discovery, `case`,
 `expression`, and report commands stay on focused startup paths. The curated
 root surface includes the typed quality evaluator/report contracts, adapter

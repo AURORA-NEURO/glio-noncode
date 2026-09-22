@@ -225,6 +225,34 @@ This is a small exploratory cohort result—not evidence of causality,
 replication, diagnosis, or treatment response. Platform IDs are not mapped to
 genes unless an explicit matching platform annotation file is supplied.
 
+## Compare exact feature directions across Series
+
+When reviewing a candidate platform feature in multiple Series, retain it
+explicitly even if it falls outside the ranked `--top` output. Repeat
+`--track-feature-id` for each feature of interest, then compare two to eight
+completed contrast reports:
+
+The consistency command accepts two to eight reports and up to 500 requested
+feature IDs per run. A tracked ID must be present in that Series Matrix or the
+contrast fails rather than silently dropping the requested feature.
+
+    glio-noncode geo-contrast GSE_A --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --track-feature-id EXACT_PLATFORM_ID --output GSE_A.json
+    glio-noncode geo-contrast GSE_B --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --track-feature-id EXACT_PLATFORM_ID --output GSE_B.json
+    glio-noncode geo-consistency GSE_A.json GSE_B.json --feature-id EXACT_PLATFORM_ID
+
+Tracked rows outside the ranked result limit are stored separately from the
+top-ranked rows and remain part of the same full-matrix multiple-testing
+correction; tracking does not change the test family. `geo-consistency` accepts
+only reports from the same GPL platform and requires equal expression scale,
+FDR method and threshold, and covariate specification. Feature IDs are exact
+and case-sensitive, with no alias or cross-platform gene mapping. A feature not
+present in either the ranked rows or explicitly tracked rows is `not reported`,
+not a null result. The report compares tested effect directions and records
+per-Series FDR status without combining p-values, q-values, or effect sizes.
+It can identify repeated GSM sample IDs and conflicting case/reference roles,
+but distinct accessions and source hashes do not prove cohort independence.
+These exploratory comparisons are not clinical evidence.
+
 ## Covariate-adjusted mode
 
 The rank-based comparison above is the default and remains unchanged when no

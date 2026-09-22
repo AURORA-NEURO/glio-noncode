@@ -50,6 +50,7 @@ MAX_SAMPLE_COUNT = 2_000
 MAX_FEATURE_COUNT = 1_000_000
 MAX_MATRIX_CELLS = 5_000_000
 MAX_CONTRAST_FEATURES = 100_000
+MAX_TRACKED_GEO_FEATURES = 500
 MAX_EXACT_RANK_ASSIGNMENTS = 20_000
 MAX_TOTAL_EXACT_RANK_SUMS = 100_000_000
 MAX_GEO_COVARIATES = 16
@@ -694,6 +695,26 @@ def _normalize_filters(value: object, label: str) -> list[tuple[str, str]]:
     return normalized
 
 
+def _normalize_tracked_feature_ids(value: object) -> tuple[str, ...]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
+        raise ValidationError("tracked GEO feature IDs must be supplied as a sequence")
+    if len(value) > MAX_TRACKED_GEO_FEATURES:
+        raise ValidationError(
+            f"at most {MAX_TRACKED_GEO_FEATURES} GEO feature IDs can be tracked per contrast"
+    )
+    normalized: list[str] = []
+    for feature_id in value:
+        if not isinstance(feature_id, str) or feature_id != feature_id.strip():
+            raise ValidationError("tracked GEO feature ID uses an unsupported identifier format")
+        text = _required_text(feature_id, "tracked GEO feature ID", maximum=256)
+        if not _FEATURE_RE.fullmatch(text):
+            raise ValidationError("tracked GEO feature ID uses an unsupported identifier format")
+        normalized.append(text)
+    if len(set(normalized)) != len(normalized):
+        raise ValidationError("tracked GEO feature IDs must be unique")
+    return tuple(normalized)
+
+
 def _normalize_covariates(value: object) -> list[tuple[str, str]]:
     if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
         raise ValidationError("GEO covariates must be a sequence of field/type pairs")
@@ -1001,6 +1022,7 @@ def build_expression_contrast_report(
     fdr_threshold: float = 0.05,
     fdr_method: str = "bh",
     top: int = 1_000,
+    track_feature_ids: Sequence[str] = (),
     covariates: Sequence[tuple[str, str]] = (),
     platform_annotation_file: str | Path | None = None,
     annotation_id_column: str = "ID",
@@ -1012,6 +1034,7 @@ def build_expression_contrast_report(
     normalized_case = _normalize_filters(case_filters, "case")
     normalized_reference = _normalize_filters(reference_filters, "reference")
     normalized_covariates = _normalize_covariates(covariates)
+    normalized_tracked_features = _normalize_tracked_feature_ids(track_feature_ids)
     if not isinstance(fdr_method, str):
         raise ValidationError("FDR method must be 'bh' or 'by'")
     normalized_fdr_method = fdr_method.strip().casefold()
@@ -1267,6 +1290,24 @@ def build_expression_contrast_report(
             row["feature_id"],
         )
     )
+    ranked_rows = preliminary_rows[:top]
+    ranked_feature_ids = {row["feature_id"] for row in ranked_rows}
+    rows_by_feature_id = {row["feature_id"]: row for row in preliminary_rows}
+    missing_tracked_features = [
+        feature_id
+        for feature_id in normalized_tracked_features
+        if feature_id not in rows_by_feature_id
+    ]
+    if missing_tracked_features:
+        raise ValidationError(
+            f"{len(missing_tracked_features)} requested tracked GEO feature ID(s) were not "
+            "present in the Series Matrix"
+        )
+    additional_feature_rows = [
+        rows_by_feature_id[feature_id]
+        for feature_id in normalized_tracked_features
+        if feature_id not in ranked_feature_ids
+    ]
 
     source_version = f"sha256:{matrix.source_sha256}"
 
@@ -1391,6 +1432,7 @@ def build_expression_contrast_report(
             "fdr_threshold": fdr_threshold,
             "matched_to_case_sample": False,
             "population_generalization": False,
+            "tracked_feature_ids": list(normalized_tracked_features),
         },
         "summary": {
             "matrix_feature_count": matrix.feature_count,
@@ -1409,6 +1451,7 @@ def build_expression_contrast_report(
             ),
             "test_method_counts": method_counts,
             "reported_feature_count": min(top, len(preliminary_rows)),
+            "additional_feature_result_count": len(additional_feature_rows),
             "result_limit": top,
             "fdr_family_size": len(tested_rows),
         },
@@ -1418,7 +1461,8 @@ def build_expression_contrast_report(
             "max_exact_rank_sums_per_screen": MAX_TOTAL_EXACT_RANK_SUMS,
             "max_matrix_cells": MAX_MATRIX_CELLS,
         },
-        "results": preliminary_rows[:top],
+        "results": ranked_rows,
+        "additional_feature_results": additional_feature_rows,
         "limitations": limitations,
     }
     if platform_annotations is not None:

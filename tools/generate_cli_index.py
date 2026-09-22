@@ -17,6 +17,7 @@ SHELL_COMMANDS = (
     ("geo-qc", "summarize sample coverage and matrix quality before analysis"),
     ("geo-metadata", "inventory GEO sample characteristics before contrast design"),
     ("geo-design", "check GEO cohort selection and contrast estimability"),
+    ("geo-consistency", "compare exact feature directions across GEO contrasts"),
     ("geo-contrast", "screen two GEO sample groups across all platform features"),
     ("verify-release-evidence", "verify a portable release-evidence ZIP"),
     ("assessment-capabilities", "inspect verified-run assessment contracts and limits"),

@@ -394,6 +394,56 @@ class GeoContrastTests(unittest.TestCase):
         self.assertIsNone(unmatched["platform_annotation"])
         self.assertNotIn(str(root), serialized)
 
+    def test_cli_tracks_a_requested_feature_outside_the_ranked_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            matrix_path = root / "downloaded.txt.gz"
+            report_path = root / "contrast.json"
+            matrix_path.write_bytes(_matrix_payload())
+            exit_code = cli_main(
+                [
+                    "geo-contrast",
+                    "GSE123456",
+                    "--case-filter",
+                    "diagnosis=glioblastoma",
+                    "--reference-filter",
+                    "diagnosis=normal",
+                    "--scale",
+                    "normalized_intensity",
+                    "--matrix-file",
+                    str(matrix_path),
+                    "--top",
+                    "1",
+                    "--track-feature-id",
+                    "probe-null",
+                    "--output",
+                    str(report_path),
+                ]
+            )
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(report["comparison"]["tracked_feature_ids"], ["probe-null"])
+        self.assertEqual(report["summary"]["additional_feature_result_count"], 1)
+        self.assertEqual(
+            report["additional_feature_results"][0]["feature_id"], "probe-null"
+        )
+        self.assertEqual(report["summary"]["reported_feature_count"], 1)
+
+    def test_missing_tracked_feature_is_rejected_instead_of_silently_omitted(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "matrix.txt.gz"
+            matrix_path.write_bytes(_matrix_payload())
+            with self.assertRaisesRegex(ValidationError, "requested tracked GEO feature"):
+                build_expression_contrast_report(
+                    "GSE123456",
+                    case_filters=(("diagnosis", "glioblastoma"),),
+                    reference_filters=(("diagnosis", "normal"),),
+                    scale="normalized_intensity",
+                    matrix_file=matrix_path,
+                    track_feature_ids=("not-in-the-matrix",),
+                )
+
     def test_annotation_file_platform_must_match_series_matrix(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
