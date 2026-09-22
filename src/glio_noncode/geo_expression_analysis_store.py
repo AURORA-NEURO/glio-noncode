@@ -45,7 +45,7 @@ _DIRECTIONS = frozenset(
         "no_rank_shift",
     }
 )
-_SUMMARY_FIELDS = frozenset(
+_BASE_SUMMARY_FIELDS = frozenset(
     {
         "accession",
         "series_url",
@@ -70,6 +70,14 @@ _SUMMARY_FIELDS = frozenset(
         "model_type",
     }
 )
+_COVERAGE_SUMMARY_FIELDS = frozenset(
+    {
+        "ranked_feature_count_total",
+        "additional_tracked_feature_count_total",
+        "tracked_feature_id_count_total",
+    }
+)
+_SUMMARY_FIELDS = _BASE_SUMMARY_FIELDS | _COVERAGE_SUMMARY_FIELDS
 _SAFE_RESULT_FIELDS = (
     "feature_id",
     "case_n",
@@ -180,6 +188,15 @@ def summarize_geo_expression_contrast_report(report: Mapping[str, Any]) -> dict[
         "tested_feature_count": summary["tested_feature_count"],
         "reported_feature_count": summary["reported_feature_count"],
         "additional_feature_result_count": summary["additional_feature_result_count"],
+        "ranked_feature_count_total": (
+            summary["reported_feature_count"] - summary["additional_feature_result_count"]
+        ),
+        "additional_tracked_feature_count_total": summary[
+            "additional_feature_result_count"
+        ],
+        "tracked_feature_id_count_total": len(
+            comparison.get("tracked_feature_ids", [])
+        ),
         "fdr_significant_feature_count": summary["fdr_significant_feature_count"],
         "fdr_significant_case_higher_count": summary["fdr_significant_case_higher_count"],
         "fdr_significant_case_lower_count": summary["fdr_significant_case_lower_count"],
@@ -255,7 +272,8 @@ class GeoExpressionAnalysisStore:
             raise StoreError("GEO expression analysis identifier is invalid")
         if _ADDRESS_RE.fullmatch(str(raw["report_address"])) is None:
             raise StoreError("GEO expression report address is invalid")
-        if type(raw["summary"]) is not dict or frozenset(raw["summary"]) != _SUMMARY_FIELDS:
+        summary_keys = frozenset(raw["summary"]) if type(raw["summary"]) is dict else frozenset()
+        if summary_keys not in {_BASE_SUMMARY_FIELDS, _SUMMARY_FIELDS}:
             raise StoreError("GEO expression catalog summary has an invalid shape")
         body = {key: value for key, value in raw.items() if key != "analysis_id"}
         if self._analysis_id(body) != raw["analysis_id"]:
@@ -321,7 +339,10 @@ class GeoExpressionAnalysisStore:
         record = self._decode_record(path)
         report = self.objects.get(record["report_address"])
         validated = validate_geo_expression_contrast_report(report)
-        if summarize_geo_expression_contrast_report(validated) != record["summary"]:
+        expected_summary = summarize_geo_expression_contrast_report(validated)
+        if expected_summary != record["summary"] and {
+            key: expected_summary[key] for key in _BASE_SUMMARY_FIELDS
+        } != record["summary"]:
             raise StoreError("GEO expression catalog summary does not match its report")
         return {
             "schema": GEO_EXPRESSION_RECORD_SCHEMA,

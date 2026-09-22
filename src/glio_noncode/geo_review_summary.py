@@ -432,6 +432,11 @@ def build_geo_review_summary(
         tested_key="tested_feature_count",
         reported_key="reported_feature_count",
         fdr_key="fdr_significant_feature_count",
+        total_keys=(
+            "ranked_feature_count_total",
+            "additional_tracked_feature_count_total",
+            "tracked_feature_id_count_total",
+        ),
         verify_reports=verify_reports,
     )
     count_comparisons, count_comparison_failures = _catalog_projection(

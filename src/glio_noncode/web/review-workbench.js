@@ -558,10 +558,10 @@
     const consistencyRankedCount = Number(countComparisons.ranked_feature_count_total || 0);
     const consistencyTrackedCount = Number(countComparisons.additional_tracked_feature_count_total || 0);
     const consistencyTrackedIdCount = Number(countComparisons.tracked_feature_id_count_total || 0);
-    const expressionCatalog = catalogs.find((item) => item.name === "expression_comparisons") || {};
-    const expressionRankedCount = Number(expressionCatalog.ranked_feature_count_total || 0);
-    const expressionTrackedCount = Number(expressionCatalog.additional_tracked_feature_count_total || 0);
-    const expressionTrackedIdCount = Number(expressionCatalog.tracked_feature_id_count_total || 0);
+    const expressionComparisonCatalog = catalogs.find((item) => item.name === "expression_comparisons") || {};
+    const expressionRankedCount = Number(expression.ranked_feature_count_total || 0) + Number(expressionComparisonCatalog.ranked_feature_count_total || 0);
+    const expressionTrackedCount = Number(expression.additional_tracked_feature_count_total || 0) + Number(expressionComparisonCatalog.additional_tracked_feature_count_total || 0);
+    const expressionTrackedIdCount = Number(expression.tracked_feature_id_count_total || 0) + Number(expressionComparisonCatalog.tracked_feature_id_count_total || 0);
     $("geo-review-subtitle").textContent = `${formatCount(analysisCount)} analyses · ${formatCount(comparisonCount)} saved comparisons · ${summary.integrity?.report_objects || "review"}`;
     $("geo-review-address").textContent = summary.content_address || "Address unavailable";
     $("geo-review-analysis-count").textContent = formatCount(analysisCount);

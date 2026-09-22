@@ -127,6 +127,8 @@ Cross-study paired-count comparisons expose matching study-level coverage and
 provide a verified `studies.csv` export with the same aggregate-only boundary.
 Expression consistency comparisons expose the same ranked/tracked coverage
 and study-level export contract.
+Single expression-analysis catalog rows contribute the same derived coverage
+totals to the archive-health projection.
 
 For reproducible cross-normalization coverage, pass repeated
 `--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The

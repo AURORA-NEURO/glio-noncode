@@ -257,6 +257,8 @@ Cross-study paired-count comparisons expose the same coverage totals and a
 verified `studies.csv` export for each source report.
 Expression consistency comparisons now expose matching ranked/tracked totals
 and a verified study-coverage export as well.
+Single expression-analysis catalogs also aggregate ranked rows, explicitly
+tracked rows, and tracked source-ID slots in archive health.
 
 Run `geo-review-summary --data-root .glio` to verify the saved GEO catalogs and
 reopen each report object through its content address. The same aggregate-only

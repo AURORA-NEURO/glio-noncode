@@ -14,6 +14,7 @@ from glio_noncode.cli import main as cli_main
 from glio_noncode.errors import ValidationError
 from glio_noncode.geo_expression import build_expression_contrast_report
 from glio_noncode.geo_expression_analysis_store import GeoExpressionAnalysisStore
+from glio_noncode.geo_review_summary import build_geo_review_summary
 
 from .test_geo_contrast import _matrix_payload
 
@@ -40,6 +41,18 @@ class GeoExpressionAnalysisStoreTests(unittest.TestCase):
             first = store.save(report)
             self.assertEqual(store.save(report), first)
             self.assertEqual(store.list_reports()["total_count"], 1)
+            expected_ranked = report["summary"]["reported_feature_count"] - report["summary"][
+                "additional_feature_result_count"
+            ]
+            expected_tracked = len(report["comparison"]["tracked_feature_ids"])
+            self.assertEqual(first["summary"]["ranked_feature_count_total"], expected_ranked)
+            self.assertEqual(first["summary"]["additional_tracked_feature_count_total"], 1)
+            self.assertEqual(first["summary"]["tracked_feature_id_count_total"], expected_tracked)
+            health = build_geo_review_summary(root / "workspace")
+            expression_catalog = health["catalogs"]["expression_analyses"]
+            self.assertEqual(expression_catalog["ranked_feature_count_total"], expected_ranked)
+            self.assertEqual(expression_catalog["additional_tracked_feature_count_total"], 1)
+            self.assertEqual(expression_catalog["tracked_feature_id_count_total"], expected_tracked)
             self.assertNotIn("case_sample_ids", json.dumps(store.list_reports()))
 
             page = store.page_results(first["analysis_id"], limit=2)
