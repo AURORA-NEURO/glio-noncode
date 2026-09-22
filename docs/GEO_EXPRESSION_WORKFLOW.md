@@ -630,6 +630,30 @@ estimates, but never emit GSM, subject, or pair identifiers. It does not pool
 effects or p-values, resolve aliases, or treat an omitted bounded row as a
 negative result.
 
+## Persist paired-count consistency comparisons
+
+The paired integer-count workflow has the same durable comparison boundary.
+After saving completed paired-count analyses into the local GEO workspace, use
+their catalog IDs to create a content-addressed comparison:
+
+    glio-noncode geo-count-consistency --data-root .glio \
+      --analysis-id geo-analysis-... --analysis-id geo-analysis-... \
+      --feature-id EXACT_COUNT_FEATURE --save-to-workspace
+
+The API equivalent is:
+
+    curl -X POST http://127.0.0.1:8786/v1/geo-count-consistency \
+      -H "Content-Type: application/json" \
+      -d '{"analysis_ids":["geo-analysis-...","geo-analysis-..."],"feature_ids":["EXACT_COUNT_FEATURE"]}'
+
+The resulting `geo-count-consistency-*` record is immutable and can be listed
+at `/v1/geo-count-consistency`, paged at
+`/v1/geo-count-consistency/{comparison_id}`, or exported through
+`features.csv`. It preserves each study's paired design, normalization, and
+aggregate direction state without pooling effects or p-values. Missing bounded
+rows remain `not_reported_in_bounded_results`, and sample, subject, pair, and
+analysis identifiers are withheld from the public comparison projection.
+
 ## Covariate-adjusted mode
 
 The rank-based comparison above is the default and remains unchanged when no

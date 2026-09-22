@@ -201,6 +201,17 @@ is not established:
     glio-noncode geo-contrast GSE_B --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --track-feature-id EXACT_PLATFORM_ID --output GSE_B.json
     glio-noncode geo-consistency GSE_A.json GSE_B.json --feature-id EXACT_PLATFORM_ID
 
+Paired integer-count contrasts can be persisted and compared through the same
+bounded archive. After saving two or more `geo-count-contrast` reports with
+`geo-count-contrast --save-to-workspace --data-root .glio`, save the comparison
+from catalog IDs with `geo-count-consistency --analysis-id ... --feature-id ...
+--save-to-workspace --data-root .glio`. The immutable `geo-count-consistency-*`
+records are listed at `/v1/geo-count-consistency`, reopened at
+`/v1/geo-count-consistency/{comparison_id}`, and exported through
+`features.csv`; the workbench exposes the same save, reopen, filter, and export
+path. Public comparison rows preserve aggregate directions only and never emit
+sample, subject, or pair identifiers.
+
 Package-root exports resolve lazily, and help, version, discovery, `case`,
 `expression`, and report commands stay on focused startup paths. The curated
 root surface includes the typed quality evaluator/report contracts, adapter

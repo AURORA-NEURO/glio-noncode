@@ -15,6 +15,7 @@ from .geo_count_consistency import (
     CountContrastCompatibilityError,
     build_geo_count_consistency_report,
 )
+from .geo_count_consistency_store import GeoCountConsistencyStore
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -54,6 +55,11 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument("--output", default="-", help="JSON report path, or - for stdout")
+    parser.add_argument(
+        "--save-to-workspace",
+        action="store_true",
+        help="persist a completed comparison in the GEO count consistency workspace",
+    )
     return parser
 
 
@@ -99,6 +105,20 @@ def main(argv: list[str] | None = None) -> int:
             "A paired-count report or saved analysis could not be read, verified, or compared "
             "with the requested features.",
         )
+
+    if report.get("status") == "completed" and args.save_to_workspace:
+        try:
+            saved = GeoCountConsistencyStore(args.data_root).save(report)
+            print(
+                f"Saved GEO count consistency {saved['comparison_id']}",
+                file=sys.stderr,
+            )
+        except (OSError, StoreError, ValidationError, ValueError):
+            print(
+                "error: GEO count consistency report could not be saved",
+                file=sys.stderr,
+            )
+            return 2
 
     try:
         write_json(report, args.output)

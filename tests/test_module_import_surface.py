@@ -3016,6 +3016,7 @@ MODULE_IDS = (
     "glio_noncode.geo_analysis_store",
     "glio_noncode.geo_consistency",
     "glio_noncode.geo_count_consistency",
+    "glio_noncode.geo_count_consistency_store",
     "glio_noncode.geo_design",
     "glio_noncode.geo_expression",
     "glio_noncode.geo_expression_analysis_store",
