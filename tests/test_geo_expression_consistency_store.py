@@ -52,11 +52,23 @@ class GeoExpressionConsistencyStoreTests(unittest.TestCase):
             self.assertEqual(page["schema"], "glio-noncode.geo-expression-consistency-page.v1")
             self.assertEqual(page["total_features"], 3)
             self.assertEqual(len(page["features"]), 2)
+            self.assertEqual(page["filtered_feature_summary"]["feature_count"], 3)
+            self.assertEqual(
+                sum(page["filtered_feature_summary"]["direction_consistency_counts"].values()),
+                page["total_features"],
+            )
             self.assertNotIn('"sample_ids":', json.dumps(page))
             filtered = store.page_features(
                 record["comparison_id"], direction_consistency="discordant_among_reported"
             )
             self.assertEqual(filtered["total_features"], 1)
+            self.assertEqual(filtered["filtered_feature_summary"]["feature_count"], 1)
+            self.assertEqual(
+                filtered["filtered_feature_summary"]["direction_consistency_counts"][
+                    "discordant_among_reported"
+                ],
+                1,
+            )
             csv_body = store.features_csv(record["comparison_id"], feature_contains="probe")
             self.assertIn("feature_id", csv_body.splitlines()[0])
             self.assertIn("probe-b-discordant", csv_body)

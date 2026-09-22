@@ -563,6 +563,11 @@ directions, p-values, q-values, and provenance without selected GSM accessions.
 Each page also includes a bounded `filtered_result_summary` with direction and
 FDR counts computed before pagination, so a client can explain its filters
 without loading every result row.
+Cross-study expression-consistency pages expose the same idea as
+`filtered_feature_summary`: a deterministic count and direction/FDR state
+breakdown for the entire filtered feature set, calculated before the requested
+page slice. Paired-count consistency and normalization-sensitivity pages expose
+the same contract for their additional sign-test and stability states.
 Filtered aggregate CSV is available at
 `/v1/geo-expression-analyses/{analysis_id}/results.csv`; the explicit
 `report.json` export is the reproducibility artifact and includes the exact

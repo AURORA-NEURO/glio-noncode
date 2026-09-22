@@ -47,6 +47,11 @@ class GeoCountConsistencyStoreTests(unittest.TestCase):
             self.assertEqual(store.list_reports()["total_count"], 1)
             self.assertEqual(page["schema"], "glio-noncode.geo-count-consistency-page.v1")
             self.assertEqual(page["features"][0]["feature_id"], "SIGNAL")
+            self.assertEqual(page["filtered_feature_summary"]["feature_count"], 1)
+            self.assertEqual(
+                sum(page["filtered_feature_summary"]["direction_consistency_counts"].values()),
+                page["total_features"],
+            )
             self.assertIn("feature_id,direction_consistency", exported)
             self.assertIn("ranked_feature_count", studies_csv.splitlines()[0])
             self.assertIn("tracked_feature_ids", studies_csv.splitlines()[0])

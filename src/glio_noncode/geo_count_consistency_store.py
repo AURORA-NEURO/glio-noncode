@@ -456,6 +456,27 @@ class GeoCountConsistencyStore:
         ]
         return rows, {"feature_contains": feature_contains, "direction_consistency": direction_consistency, "fdr_direction_consistency": fdr_direction_consistency, "sign_test_direction_consistency": sign_test_direction_consistency}
 
+    @staticmethod
+    def _filtered_feature_summary(features: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+        """Summarize the complete filtered set before the page slice is applied."""
+
+        def counts(state_key: str, states: frozenset[str]) -> dict[str, int]:
+            return {
+                state: sum(1 for feature in features if feature["summary"][state_key] == state)
+                for state in sorted(states)
+            }
+
+        return {
+            "feature_count": len(features),
+            "direction_consistency_counts": counts("direction_consistency", _DIRECTION_STATES),
+            "fdr_direction_consistency_counts": counts(
+                "fdr_significant_direction_consistency", _FDR_DIRECTION_STATES
+            ),
+            "sign_test_direction_consistency_counts": counts(
+                "sign_test_fdr_significant_direction_consistency", _SIGN_DIRECTION_STATES
+            ),
+        }
+
     def page_features(self, comparison_id: str, *, offset: int = 0, limit: int = 25, feature_contains: str | None = None, direction_consistency: str | None = None, fdr_direction_consistency: str | None = None, sign_test_direction_consistency: str | None = None) -> dict[str, Any]:
         if type(offset) is not int or not 0 <= offset <= MAX_COUNT_CONSISTENCY_OFFSET:
             raise ValidationError("GEO count consistency feature offset is outside the supported range")
@@ -465,7 +486,7 @@ class GeoCountConsistencyStore:
         report = saved["report"]
         features, filters = self._filter_features(report["features"], feature_contains=feature_contains, direction_consistency=direction_consistency, fdr_direction_consistency=fdr_direction_consistency, sign_test_direction_consistency=sign_test_direction_consistency)
         page = features[offset : offset + limit]
-        return {"schema": GEO_COUNT_CONSISTENCY_PAGE_SCHEMA, "comparison_id": comparison_id, "report_address": saved["report_address"], "summary": saved["summary"], "comparison": report["comparison"], "studies": report["studies"], "features": page, "offset": offset, "limit": limit, "total_features": len(features), "unfiltered_feature_count": len(report["features"]), "filters": filters, "analysis": report["analysis"], "limitations": report["limitations"], "has_more": offset + len(page) < len(features)}
+        return {"schema": GEO_COUNT_CONSISTENCY_PAGE_SCHEMA, "comparison_id": comparison_id, "report_address": saved["report_address"], "summary": saved["summary"], "comparison": report["comparison"], "studies": report["studies"], "features": page, "offset": offset, "limit": limit, "total_features": len(features), "unfiltered_feature_count": len(report["features"]), "filters": filters, "filtered_feature_summary": self._filtered_feature_summary(features), "analysis": report["analysis"], "limitations": report["limitations"], "has_more": offset + len(page) < len(features)}
 
     def features_csv(self, comparison_id: str, *, feature_contains: str | None = None, direction_consistency: str | None = None, fdr_direction_consistency: str | None = None, sign_test_direction_consistency: str | None = None) -> str:
         saved = self.get_report(comparison_id)

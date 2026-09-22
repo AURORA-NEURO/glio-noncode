@@ -141,6 +141,11 @@ class GeoCountSensitivityTests(unittest.TestCase):
             )
             self.assertEqual(page["total_features"], 1)
             self.assertEqual(page["features"][0]["feature_id"], "2-Sep")
+            self.assertEqual(page["filtered_feature_summary"]["feature_count"], 1)
+            self.assertEqual(
+                sum(page["filtered_feature_summary"]["direction_sensitivity_counts"].values()),
+                page["total_features"],
+            )
             self.assertIn("left_result_state", store.features_csv(record["comparison_id"]))
             runs_csv = store.runs_csv(record["comparison_id"])
             self.assertIn("ranked_feature_count", runs_csv.splitlines()[0])

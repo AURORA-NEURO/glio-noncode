@@ -196,6 +196,11 @@ direction review and CSV export.
 Each paged GEO feature response also includes a deterministic
 `filtered_result_summary` with direction and significance counts calculated before
 pagination, so clients can explain a filter without loading every result page.
+The paired-count consistency, normalization-sensitivity, and expression-consistency
+pages provide the corresponding `filtered_feature_summary`, including the complete
+filtered feature count and fixed-state direction/FDR breakdowns before pagination.
+This keeps comparison dashboards numerically stable even when the visible page is
+small or empty.
 The archive-health ledger CSV also exposes per-record ranked rows, explicitly tracked
 rows, and tracked source-ID slot counts so bounded coverage can be audited without
 opening raw matrices.

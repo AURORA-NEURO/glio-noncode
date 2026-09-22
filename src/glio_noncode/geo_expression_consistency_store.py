@@ -520,6 +520,24 @@ class GeoExpressionConsistencyStore:
             "fdr_direction_consistency": fdr_direction_consistency,
         }
 
+    @staticmethod
+    def _filtered_feature_summary(features: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+        """Summarize the complete filtered set before the page slice is applied."""
+
+        def counts(state_key: str, states: frozenset[str]) -> dict[str, int]:
+            return {
+                state: sum(1 for feature in features if feature["summary"][state_key] == state)
+                for state in sorted(states)
+            }
+
+        return {
+            "feature_count": len(features),
+            "direction_consistency_counts": counts("direction_consistency", _DIRECTION_STATES),
+            "fdr_direction_consistency_counts": counts(
+                "fdr_significant_direction_consistency", _FDR_DIRECTION_STATES
+            ),
+        }
+
     def page_features(
         self,
         comparison_id: str,
@@ -556,6 +574,7 @@ class GeoExpressionConsistencyStore:
             "total_features": len(features),
             "unfiltered_feature_count": len(report["features"]),
             "filters": filters,
+            "filtered_feature_summary": self._filtered_feature_summary(features),
             "analysis": report["analysis"],
             "limitations": report["limitations"],
             "has_more": offset + len(page) < len(features),

@@ -1772,6 +1772,10 @@
     $("geo-expression-consistency-result-count").textContent = expressionFiltered
       ? `${formatCount(page.features.length)} shown · ${formatCount(page.total_features)} filtered`
       : `${formatCount(page.features.length)} feature rows`;
+    const filteredSummary = page.filtered_feature_summary || {};
+    const directionCounts = filteredSummary.direction_consistency_counts || {};
+    const fdrDirectionCounts = filteredSummary.fdr_direction_consistency_counts || {};
+    $("geo-expression-consistency-filter-summary").textContent = `${formatCount(filteredSummary.feature_count ?? 0)} filtered rows · directions ${formatCount(directionCounts.concordant_among_reported || 0)} concordant / ${formatCount(directionCounts.discordant_among_reported || 0)} discordant · FDR ${formatCount(fdrDirectionCounts.concordant_among_fdr_significant || 0)} concordant / ${formatCount(fdrDirectionCounts.discordant_among_fdr_significant || 0)} discordant`;
     body.replaceChildren();
     if (!page.features.length) body.append(emptyRow(5, "No requested feature IDs were reported."));
     for (const feature of page.features) {
@@ -1944,6 +1948,11 @@
     $("geo-sensitivity-result-count").textContent = filtered
       ? `${formatCount(page.features.length)} shown · ${formatCount(page.total_features)} filtered`
       : `${formatCount(page.features.length)} feature rows`;
+    const filteredSummary = page.filtered_feature_summary || {};
+    const directionCounts = filteredSummary.direction_sensitivity_counts || {};
+    const fdrCounts = filteredSummary.fdr_sensitivity_counts || {};
+    const signFdrCounts = filteredSummary.sign_test_fdr_sensitivity_counts || {};
+    $("geo-sensitivity-filter-summary").textContent = `${formatCount(filteredSummary.feature_count ?? 0)} filtered rows · direction ${formatCount(directionCounts.stable_direction || 0)} stable / ${formatCount(directionCounts.changed_direction || 0)} changed · FDR ${formatCount(fdrCounts.stable_fdr_significance || 0)} stable / ${formatCount(fdrCounts.changed_fdr_significance || 0)} changed · sign-test FDR ${formatCount(signFdrCounts.stable_sign_test_fdr_significance || 0)} stable / ${formatCount(signFdrCounts.changed_sign_test_fdr_significance || 0)} changed`;
     const limitations = $("geo-sensitivity-limitations");
     limitations.replaceChildren();
     for (const limitation of page.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
@@ -2011,6 +2020,11 @@
     $("geo-consistency-result-count").textContent = countFiltered
       ? `${formatCount(report.features.length)} shown · ${formatCount(report.total_features)} filtered`
       : `${formatCount(report.features.length)} feature rows`;
+    const filteredSummary = report.filtered_feature_summary || {};
+    const directionCounts = filteredSummary.direction_consistency_counts || {};
+    const fdrDirectionCounts = filteredSummary.fdr_direction_consistency_counts || {};
+    const signDirectionCounts = filteredSummary.sign_test_direction_consistency_counts || {};
+    $("geo-consistency-filter-summary").textContent = `${formatCount(filteredSummary.feature_count ?? 0)} filtered rows · directions ${formatCount(directionCounts.concordant_among_tested || 0)} concordant / ${formatCount(directionCounts.discordant_among_tested || 0)} discordant · FDR ${formatCount(fdrDirectionCounts.concordant_among_fdr_significant || 0)} concordant / ${formatCount(fdrDirectionCounts.discordant_among_fdr_significant || 0)} discordant · sign-test FDR ${formatCount(signDirectionCounts.concordant_among_sign_test_fdr_significant || 0)} concordant / ${formatCount(signDirectionCounts.discordant_among_sign_test_fdr_significant || 0)} discordant`;
     const limitations = $("geo-consistency-limitations");
     limitations.replaceChildren();
     for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
