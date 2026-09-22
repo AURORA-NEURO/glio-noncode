@@ -6765,6 +6765,95 @@ class ApiHandler(BaseHTTPRequestHandler):
         path = parsed.path
         if not self._authorize_request():
             return
+        if path == "/v1/sequence-comparisons" or path.startswith("/v1/sequence-comparisons/"):
+            try:
+                from .sequence_batch_comparison_store import SequenceBatchComparisonStore
+
+                store = SequenceBatchComparisonStore(self._runtime().store.root)
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path == "/v1/sequence-comparisons":
+                    unknown = set(query) - {"offset", "limit"}
+                    if unknown:
+                        raise ValueError(
+                            f"sequence comparison catalog has unknown query parameters: {sorted(unknown)}"
+                        )
+                    self._write(
+                        HTTPStatus.OK,
+                        store.list_reports(
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 20),
+                        ),
+                    )
+                    return
+                segments = [unquote(item) for item in path.split("/") if item]
+                if len(segments) == 4 and segments[:2] == ["v1", "sequence-comparisons"] and segments[3] == "report.json":
+                    if query:
+                        raise ValueError("sequence comparison report export does not accept query parameters")
+                    saved = store.get_report(segments[2])
+                    self._write(
+                        HTTPStatus.OK,
+                        saved["report"],
+                        headers={
+                            "Content-Disposition": (
+                                f'attachment; filename="GLIO-NONCODE-{segments[2]}.json"'
+                            )
+                        },
+                    )
+                    return
+                if len(segments) == 4 and segments[:2] == ["v1", "sequence-comparisons"] and segments[3] == "changes.csv":
+                    unknown = set(query) - {"change", "direction", "motif_contains"}
+                    if unknown:
+                        raise ValueError(
+                            f"sequence comparison CSV has unknown query parameters: {sorted(unknown)}"
+                        )
+                    payload = store.changes_csv(
+                        segments[2],
+                        change=self._query_value(query, "change"),
+                        direction=self._query_value(query, "direction"),
+                        motif_contains=self._query_value(query, "motif_contains"),
+                    )
+                    self._write_bytes(
+                        HTTPStatus.OK,
+                        payload.encode("utf-8"),
+                        content_type="text/csv; charset=utf-8",
+                        headers={
+                            "Content-Disposition": (
+                                f'attachment; filename="GLIO-NONCODE-{segments[2]}-changes.csv"'
+                            )
+                        },
+                    )
+                    return
+                if len(segments) != 3 or segments[:2] != ["v1", "sequence-comparisons"]:
+                    self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                    return
+                unknown = set(query) - {"offset", "limit", "change", "direction", "motif_contains"}
+                if unknown:
+                    raise ValueError(
+                        f"sequence comparison changes has unknown query parameters: {sorted(unknown)}"
+                    )
+                self._write(
+                    HTTPStatus.OK,
+                    store.page_changes(
+                        segments[2],
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 25),
+                        change=self._query_value(query, "change"),
+                        direction=self._query_value(query, "direction"),
+                        motif_contains=self._query_value(query, "motif_contains"),
+                    ),
+                )
+            except KeyError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "sequence comparison not found"})
+            except (ValidationError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except StoreError:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "sequence_comparison_unavailable", "message": "sequence comparison could not be verified"},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
         if path in {
             "/",
             "/workspace",
@@ -25647,7 +25736,47 @@ class ApiHandler(BaseHTTPRequestHandler):
                         },
                     )
                     return
-                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                if len(segments) == 4 and segments[:2] == ["v1", "sequence-batches"] and segments[3] == "changes.csv":
+                    unknown = set(query) - {"change", "motif_contains"}
+                    if unknown:
+                        raise ValueError(
+                            f"sequence batch change CSV has unknown query parameters: {sorted(unknown)}"
+                        )
+                    payload = store.changes_csv(
+                        segments[2],
+                        change=self._query_value(query, "change"),
+                        motif_contains=self._query_value(query, "motif_contains"),
+                    )
+                    self._write_bytes(
+                        HTTPStatus.OK,
+                        payload.encode("utf-8"),
+                        content_type="text/csv; charset=utf-8",
+                        headers={
+                            "Content-Disposition": (
+                                f'attachment; filename="GLIO-NONCODE-{segments[2]}-changes.csv"'
+                            )
+                        },
+                    )
+                    return
+                if len(segments) != 3 or segments[:2] != ["v1", "sequence-batches"]:
+                    self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                    return
+                unknown = set(query) - {"offset", "limit", "change", "motif_contains"}
+                if unknown:
+                    raise ValueError(
+                        f"sequence batch changes has unknown query parameters: {sorted(unknown)}"
+                    )
+                self._write(
+                    HTTPStatus.OK,
+                    store.page_changes(
+                        segments[2],
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 25),
+                        change=self._query_value(query, "change"),
+                        motif_contains=self._query_value(query, "motif_contains"),
+                    ),
+                )
+                return
             except KeyError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "sequence batch not found"})
             except (ValidationError, ValueError) as exc:
@@ -25656,6 +25785,75 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(
                     HTTPStatus.INTERNAL_SERVER_ERROR,
                     {"error": "sequence_batch_unavailable", "message": "sequence batch could not be verified"},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/sequence-review/summary",
+            "/v1/sequence-review/verify",
+            "/v1/sequence-review/motifs",
+            "/v1/sequence-review/motifs.csv",
+        }:
+            try:
+                from .sequence_review_store import SequenceReviewStore
+
+                store = SequenceReviewStore(self._runtime().store.root)
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path.endswith("/summary"):
+                    if query:
+                        raise ValueError("sequence review summary does not accept query parameters")
+                    payload = store.summary()
+                elif path.endswith("/verify"):
+                    if query:
+                        raise ValueError("sequence review verification does not accept query parameters")
+                    payload = store.verify()
+                else:
+                    unknown = set(query) - {
+                        "source_id", "genome_build", "change", "motif_contains", "offset", "limit"
+                    }
+                    if unknown:
+                        raise ValueError(
+                            f"sequence review motifs has unknown query parameters: {sorted(unknown)}"
+                        )
+                    filters = {
+                        "source_id": self._query_value(query, "source_id"),
+                        "genome_build": self._query_value(query, "genome_build"),
+                        "change": self._query_value(query, "change"),
+                        "motif_contains": self._query_value(query, "motif_contains"),
+                    }
+                    if path.endswith(".csv"):
+                        if set(query) - set(filters):
+                            raise ValueError(
+                                f"sequence review motif CSV has unknown query parameters: {sorted(set(query) - set(filters))}"
+                            )
+                        payload = store.motifs_csv(**filters)
+                        self._write_bytes(
+                            HTTPStatus.OK,
+                            payload.encode("utf-8"),
+                            content_type="text/csv; charset=utf-8",
+                            headers={
+                                "Content-Disposition": 'attachment; filename="GLIO-NONCODE-sequence-motifs.csv"'
+                            },
+                        )
+                        return
+                    unknown = set(query) - set(filters) - {"offset", "limit"}
+                    if unknown:
+                        raise ValueError(
+                            f"sequence review motifs has unknown query parameters: {sorted(unknown)}"
+                        )
+                    payload = store.motif_activity(
+                        **filters,
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 100),
+                    )
+                self._write(HTTPStatus.OK, payload)
+            except (ValidationError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except StoreError:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "sequence_review_unavailable", "message": "sequence review could not be verified"},
                 )
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
@@ -26724,6 +26922,34 @@ class ApiHandler(BaseHTTPRequestHandler):
                     HTTPStatus.INTERNAL_SERVER_ERROR,
                     {"error": "internal_error", "message": str(exc)},
                 )
+            return
+        if path == "/v1/sequence-comparisons":
+            try:
+                from ._cli_sequence_batch_compare import build_batch_comparison
+                from .sequence_batch_comparison_store import SequenceBatchComparisonStore
+                from .sequence_batch_store import SequenceBatchStore
+
+                if parsed.query:
+                    raise ValueError("sequence comparison persistence does not accept query parameters")
+                payload = self._read_json(strict=True)
+                if set(payload) != {"left_batch_id", "right_batch_id"}:
+                    raise ValueError("sequence comparison persistence requires left_batch_id and right_batch_id")
+                batches = SequenceBatchStore(self._runtime().store.root)
+                left = batches.get_report(payload["left_batch_id"])["report"]
+                right = batches.get_report(payload["right_batch_id"])["report"]
+                report = build_batch_comparison(left, right)
+                record = SequenceBatchComparisonStore(self._runtime().store.root).save(report)
+                self._write(HTTPStatus.CREATED, {"record": record, "report": report})
+            except KeyError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "sequence_batch_not_found", "message": "one comparison batch was not found"})
+            except ValidationError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_sequence_batch_comparison", "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_sequence_comparison_request", "message": str(exc)})
+            except StoreError as exc:
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "sequence_comparison_unavailable", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/sequence-haplotype":
             try:

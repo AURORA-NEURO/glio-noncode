@@ -172,12 +172,42 @@ To retain the aggregate result in the local catalog, send the same exact input
 to `POST /v1/sequence-batches`; list saved batch summaries with
 `GET /v1/sequence-batches` and export a verified report from
 `GET /v1/sequence-batches/{batch_id}/report.json`.
+The CLI can persist the same report with `--save-to-workspace --data-root
+.glio`. A saved batch's aggregate changes are available at
+`GET /v1/sequence-batches/{batch_id}?change=created|disrupted` and
+`GET /v1/sequence-batches/{batch_id}/changes.csv`; both reopen and validate the
+immutable batch object before returning rows.
 Two compatible batch reports can be compared with
 `glio-noncode sequence-batch-compare left.json right.json`; the result keeps
 exact motif identity and reports prevalence deltas while treating a missing
 row as `not_reported_in_one_batch`. The read-only API equivalent is
 `POST /v1/sequence-haplotype/batch/compare` with `left` and `right` report
-objects.
+objects. Persist a comparison from two saved batch IDs with
+`POST /v1/sequence-comparisons` and `{ "left_batch_id": "...", "right_batch_id": "..." }`;
+the resulting catalog is listed at `GET /v1/sequence-comparisons` and its
+verified changes are available through `/changes.csv`.
+
+Saved single analyses and aggregate batches can be reviewed together without
+opening raw reference windows in the catalog view:
+
+```powershell
+glio-noncode sequence-review summary --data-root .glio
+glio-noncode sequence-review motifs --data-root .glio --motif-contains CTCF
+glio-noncode sequence-review motifs --data-root .glio --change disrupted --csv --output motif-activity.csv
+glio-noncode sequence-review verify --data-root .glio
+```
+
+The summary validates immutable catalog records and reports record counts,
+state counts, source counts, and aggregate change counts. `verify` reopens every
+content-addressed report object and emits a path-free integrity ledger. The
+motif projection groups exact change direction, motif ID, matched string,
+strand, and source ID across single reports and batches; batch fractions remain
+separate from single-analysis counts. The HTTP equivalents are
+`GET /v1/sequence-review/summary`, `GET /v1/sequence-review/motifs`,
+`GET /v1/sequence-review/motifs.csv`, and `GET /v1/sequence-review/verify`.
+These endpoints omit raw bases, genotype strings, sample identifiers, and
+subject identifiers. A passed integrity check does not make sequence-only
+evidence causal or clinical.
 
 For a reusable local catalog, use `--save-to-workspace`:
 
@@ -206,6 +236,8 @@ The sequence workflow is intentionally split into reviewable boundaries:
 | `sequence-files` | Local plain/gzip FASTA plus phased VCF | The same motif-delta report | Optional `sequence-analyses` record |
 | `sequence-batch` | Several compatible haplotype inputs | Aggregate state and exact motif prevalence | Optional `sequence-batches` record through HTTP |
 | `sequence-batch-compare` | Two completed batch reports | Exact prevalence deltas | Portable JSON comparison |
+| persisted comparison | Two saved batch IDs | Immutable exact prevalence comparison | `sequence-comparisons` catalog |
+| `sequence-review` | Saved sequence catalogs | Integrity ledger and exact motif activity | Read-only archive projections |
 
 Every boundary preserves the same safety properties: bounded input, explicit
 source receipt, deterministic content address, no automatic phase inference,

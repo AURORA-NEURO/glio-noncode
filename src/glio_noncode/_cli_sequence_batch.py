@@ -9,7 +9,7 @@ from typing import Any
 
 from ._cli_sequence import build_analysis_report
 from ._cli_support import read_mapping, write_json
-from .errors import ValidationError
+from .errors import StoreError, ValidationError
 from .serialization import canonical_json, content_hash
 
 MAX_BATCH_ANALYSES = 128
@@ -27,6 +27,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("input", help="batch input JSON, or - for stdin")
     parser.add_argument("--output", default="-", help="JSON batch report path, or - for stdout")
+    parser.add_argument(
+        "--save-to-workspace",
+        action="store_true",
+        help="persist the completed aggregate report in the local workspace",
+    )
+    parser.add_argument(
+        "--data-root", default=".glio", help="workspace root used with --save-to-workspace"
+    )
     return parser
 
 
@@ -170,6 +178,27 @@ def main(argv: list[str] | None = None) -> int:
         }
         if args.output == "-":
             print(f"error: {type(error).__name__}: {error}", file=sys.stderr)
+    if report.get("status") == "completed" and args.save_to_workspace:
+        try:
+            from .sequence_batch_store import SequenceBatchStore
+
+            saved = SequenceBatchStore(args.data_root).save(report)
+        except (OSError, StoreError, ValidationError) as error:
+            report = {
+                "schema": _OUTPUT_SCHEMA,
+                "status": "invalid",
+                "error": {
+                    "code": "sequence_batch_persistence_failed",
+                    "message": "The completed sequence batch could not be saved to the workspace.",
+                },
+            }
+            if args.output == "-":
+                print(f"error: {type(error).__name__}: {error}", file=sys.stderr)
+        else:
+            print(
+                f"Saved sequence batch {saved['batch_id']} to {args.data_root}",
+                file=sys.stderr,
+            )
     try:
         write_json(report, args.output)
     except (OSError, ValueError, ValidationError) as error:

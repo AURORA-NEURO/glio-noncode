@@ -17,6 +17,7 @@ SHELL_COMMANDS = (
     ("geo-outlier", "compare one GEO expression feature with explicit references"),
     ("geo-count-outlier", "compare one gene row across a GEO supplementary count matrix"),
     ("geo-count-contrast", "compare paired groups across a GEO supplementary count matrix"),
+    ("geo-count-consistency", "compare exact feature directions across saved paired GEO contrasts"),
     ("geo-count-design", "preflight paired GEO count-matrix joins without feature tests"),
     ("geo-count-metadata", "inspect GEO supplementary count-matrix sample metadata"),
     (
@@ -28,11 +29,16 @@ SHELL_COMMANDS = (
     ("geo-design", "check GEO cohort selection and contrast estimability"),
     ("geo-consistency", "compare exact feature directions across GEO contrasts"),
     ("geo-contrast", "screen two GEO sample groups across all platform features"),
+    ("sequence-haplotype", "analyze explicitly phased sequence and motif changes"),
+    ("sequence-files", "analyze a downloaded FASTA window and explicitly phased VCF calls"),
+    ("sequence-batch", "aggregate motif changes across phased sequence inputs"),
+    ("sequence-batch-compare", "compare motif prevalence across two sequence batches"),
     ("verify-release-evidence", "verify a portable release-evidence ZIP"),
     ("assessment-capabilities", "inspect verified-run assessment contracts and limits"),
     ("report-capabilities", "inspect supported report audiences, formats, and limits"),
     ("run-assessment", "build one replay, quality, report, and rendering closure"),
     ("run-report", "render one replay-verified persisted run"),
+    ("sequence-review", "audit and project the saved phased-sequence archive"),
 )
 
 

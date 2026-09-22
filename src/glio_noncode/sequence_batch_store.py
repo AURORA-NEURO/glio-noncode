@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import csv
+import io
 import math
 import re
 from collections.abc import Mapping
@@ -20,6 +22,8 @@ MAX_BATCH_REPORT_BYTES = 16 * 1024 * 1024
 MAX_BATCH_RECORD_BYTES = 256 * 1024
 MAX_BATCH_RECORDS = 10_000
 MAX_BATCH_PAGE_SIZE = 50
+MAX_BATCH_CHANGE_QUERY_LENGTH = 256
+MAX_BATCH_CHANGE_EXPORT_BYTES = 4 * 1024 * 1024
 
 _BATCH_ID_RE = re.compile(r"batch-[0-9a-f]{64}\Z")
 _ADDRESS_RE = re.compile(r"sha256:[0-9a-f]{64}\Z")
@@ -396,10 +400,100 @@ class SequenceBatchStore:
             "report": report,
         }
 
+    def page_changes(
+        self,
+        batch_id: str,
+        *,
+        offset: int = 0,
+        limit: int = 25,
+        change: str | None = None,
+        motif_contains: str | None = None,
+    ) -> dict[str, Any]:
+        """Page aggregate motif prevalence rows from one verified batch."""
+
+        if type(offset) is not int or not 0 <= offset <= 10_000:
+            raise ValidationError("sequence batch change offset is outside its supported range")
+        if type(limit) is not int or not 1 <= limit <= MAX_BATCH_PAGE_SIZE:
+            raise ValidationError("sequence batch change limit is outside its supported range")
+        if change is not None and change not in {"created", "disrupted"}:
+            raise ValidationError("sequence batch change must be created or disrupted")
+        if motif_contains is not None:
+            if (
+                type(motif_contains) is not str
+                or not motif_contains.strip()
+                or len(motif_contains) > MAX_BATCH_CHANGE_QUERY_LENGTH
+                or any(ord(character) < 32 or ord(character) == 127 for character in motif_contains)
+            ):
+                raise ValidationError("sequence batch motif query is outside its supported range")
+            motif_contains = motif_contains.casefold()
+        saved = self.get_report(batch_id)
+        changes = saved["report"]["motif_changes"]
+        filtered = [
+            item
+            for item in changes
+            if (change is None or item["change"] == change)
+            and (
+                motif_contains is None
+                or motif_contains in item["motif_id"].casefold()
+                or motif_contains in item["name"].casefold()
+            )
+        ]
+        return {
+            "schema": "glio-noncode.sequence-haplotype-batch-changes.v1",
+            "batch_id": batch_id,
+            "offset": offset,
+            "limit": limit,
+            "total_changes": len(filtered),
+            "unfiltered_change_count": len(changes),
+            "has_more": offset + limit < len(filtered),
+            "filters": {"change": change, "motif_contains": motif_contains},
+            "changes": filtered[offset : offset + limit],
+        }
+
+    def changes_csv(
+        self,
+        batch_id: str,
+        *,
+        change: str | None = None,
+        motif_contains: str | None = None,
+    ) -> str:
+        """Render bounded aggregate motif prevalence as stable CSV."""
+
+        page = self.page_changes(
+            batch_id,
+            offset=0,
+            limit=MAX_BATCH_PAGE_SIZE,
+            change=change,
+            motif_contains=motif_contains,
+        )
+        if page["total_changes"] > MAX_BATCH_PAGE_SIZE:
+            raise StoreError("sequence batch motif CSV requires a narrower filter")
+        fields = (
+            "change",
+            "motif_id",
+            "name",
+            "matched_sequence",
+            "strand",
+            "source_id",
+            "analysis_count",
+            "analysis_fraction",
+        )
+        output = io.StringIO(newline="")
+        writer = csv.writer(output, lineterminator="\n")
+        writer.writerow(fields)
+        for item in page["changes"]:
+            writer.writerow(tuple(item[field] for field in fields))
+        rendered = output.getvalue()
+        if len(rendered.encode("utf-8")) > MAX_BATCH_CHANGE_EXPORT_BYTES:
+            raise StoreError("sequence batch motif CSV exceeds the export byte limit")
+        return rendered
+
 
 __all__ = [
     "BATCH_CATALOG_SCHEMA",
     "BATCH_RECORD_SCHEMA",
+    "MAX_BATCH_CHANGE_QUERY_LENGTH",
+    "MAX_BATCH_CHANGE_EXPORT_BYTES",
     "SequenceBatchStore",
     "summarize_sequence_batch_report",
     "validate_sequence_batch_report",

@@ -31,6 +31,7 @@ glio-noncode registry
 glio-noncode bindings
 glio-noncode references
 glio-noncode capabilities
+glio-noncode sequence-review summary --data-root .glio
 ```
 
 ### Case and expression workflow

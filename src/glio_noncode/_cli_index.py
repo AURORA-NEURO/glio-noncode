@@ -19612,12 +19612,12 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'screen two GEO sample groups across all platform features',
     ),
     (
-        'geo-count-contrast',
-        'compare paired groups across a GEO supplementary count matrix',
-    ),
-    (
         'geo-count-consistency',
         'compare exact feature directions across saved paired GEO contrasts',
+    ),
+    (
+        'geo-count-contrast',
+        'compare paired groups across a GEO supplementary count matrix',
     ),
     (
         'geo-count-design',
@@ -19648,22 +19648,6 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'summarize sample coverage and matrix quality before analysis',
     ),
     (
-        'sequence-haplotype',
-        'analyze explicitly phased sequence and motif changes',
-    ),
-    (
-        'sequence-files',
-        'analyze a downloaded FASTA window and explicitly phased VCF calls',
-    ),
-    (
-        'sequence-batch',
-        'aggregate motif changes across phased sequence inputs',
-    ),
-    (
-        'sequence-batch-compare',
-        'compare motif prevalence across two sequence batches',
-    ),
-    (
         'reference-block-query',
         "query one sample's gVCF blocks by interval or canonical variant span",
     ),
@@ -19678,6 +19662,26 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
     (
         'run-report',
         'render one replay-verified persisted run',
+    ),
+    (
+        'sequence-batch',
+        'aggregate motif changes across phased sequence inputs',
+    ),
+    (
+        'sequence-batch-compare',
+        'compare motif prevalence across two sequence batches',
+    ),
+    (
+        'sequence-files',
+        'analyze a downloaded FASTA window and explicitly phased VCF calls',
+    ),
+    (
+        'sequence-haplotype',
+        'analyze explicitly phased sequence and motif changes',
+    ),
+    (
+        'sequence-review',
+        'audit and project the saved phased-sequence archive',
     ),
     (
         'verify-release-evidence',

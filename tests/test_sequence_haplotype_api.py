@@ -167,6 +167,19 @@ class SequenceHaplotypeApiTests(unittest.TestCase):
                 report = json.loads(report_response.read())
                 self.assertEqual(report_response.status, 200)
                 self.assertEqual(report["content_address"], saved["report"]["content_address"])
+
+                connection.request("GET", f"/v1/sequence-batches/{batch_id}?motif_contains=joint")
+                changes_response = connection.getresponse()
+                changes = json.loads(changes_response.read())
+                self.assertEqual(changes_response.status, 200)
+                self.assertEqual(changes["total_changes"], 1)
+
+                connection.request("GET", f"/v1/sequence-batches/{batch_id}/changes.csv")
+                csv_response = connection.getresponse()
+                csv_body = csv_response.read().decode("utf-8")
+                self.assertEqual(csv_response.status, 200)
+                self.assertIn("analysis_fraction", csv_body)
+                self.assertNotIn("PRIVATE_SAMPLE_1", csv_body)
                 connection.close()
             finally:
                 server.shutdown()
@@ -223,3 +236,68 @@ class SequenceHaplotypeApiTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join(timeout=3)
+
+    def test_persisted_batch_comparison_uses_saved_batch_ids_and_exports_changes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            server = create_server("127.0.0.1", 0, directory)
+            thread = Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                connection = HTTPConnection(host, port, timeout=30)
+                headers = {"Content-Type": "application/json"}
+                batch_reports = [
+                    {
+                        "schema": "glio-noncode.sequence-haplotype-batch-input.v1",
+                        "analyses": [_input()],
+                    },
+                    _batch_input(),
+                ]
+                batch_ids = []
+                for batch_input in batch_reports:
+                    connection.request(
+                        "POST",
+                        "/v1/sequence-batches",
+                        body=json.dumps(batch_input, separators=(",", ":")).encode(),
+                        headers=headers,
+                    )
+                    response = connection.getresponse()
+                    payload = json.loads(response.read())
+                    self.assertEqual(response.status, 201)
+                    batch_ids.append(payload["record"]["batch_id"])
+                connection.request(
+                    "POST",
+                    "/v1/sequence-comparisons",
+                    body=json.dumps(
+                        {"left_batch_id": batch_ids[0], "right_batch_id": batch_ids[1]},
+                        separators=(",", ":"),
+                    ).encode(),
+                    headers=headers,
+                )
+                comparison_response = connection.getresponse()
+                comparison = json.loads(comparison_response.read())
+                self.assertEqual(comparison_response.status, 201)
+                comparison_id = comparison["record"]["comparison_id"]
+
+                connection.request("GET", "/v1/sequence-comparisons?limit=5")
+                catalog_response = connection.getresponse()
+                catalog = json.loads(catalog_response.read())
+                self.assertEqual(catalog_response.status, 200)
+                self.assertEqual(catalog["rows"][0]["comparison_id"], comparison_id)
+                connection.request(
+                    "GET", f"/v1/sequence-comparisons/{comparison_id}?direction=decreased"
+                )
+                changes_response = connection.getresponse()
+                changes = json.loads(changes_response.read())
+                self.assertEqual(changes_response.status, 200)
+                self.assertEqual(changes["total_changes"], 1)
+                connection.request("GET", f"/v1/sequence-comparisons/{comparison_id}/changes.csv")
+                csv_response = connection.getresponse()
+                csv_body = csv_response.read().decode()
+                self.assertEqual(csv_response.status, 200)
+                self.assertIn("delta_fraction", csv_body)
+                self.assertNotIn("PRIVATE_SAMPLE_1", csv_body)
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=3)

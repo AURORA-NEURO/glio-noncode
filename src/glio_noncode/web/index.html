@@ -54,7 +54,15 @@
           <div class="section-head"><div><p class="eyebrow">Reference-window studies</p><h2 id="sequence-heading">Sequence analyses</h2></div><span id="sequence-count" class="count">—</span></div>
           <p id="sequence-list-summary" class="muted small">Loading saved sequence analyses…</p>
           <nav id="sequence-analysis-list" class="run-list sequence-analysis-list" aria-label="Saved sequence analyses"></nav>
+          <div class="section-head sequence-batch-head"><div><p class="eyebrow">Aggregate cohorts</p><h3 id="sequence-batch-heading">Sequence batches</h3></div><span id="sequence-batch-count" class="count">—</span></div>
+          <p id="sequence-batch-list-summary" class="muted small">Loading saved sequence batches…</p>
+          <nav id="sequence-batch-list" class="run-list sequence-batch-list" aria-label="Saved sequence batches"></nav>
           <p class="rail-note">Phased sequence reports retain hashes and motif changes, not raw bases or sample identifiers.</p>
+          <section class="sequence-review-controls" aria-labelledby="sequence-review-heading">
+            <div class="section-head"><div><p class="eyebrow">Archive integrity</p><h3 id="sequence-review-heading">Sequence review</h3></div></div>
+            <p id="sequence-review-summary" class="small muted">Loading saved sequence archive summary…</p>
+            <button id="sequence-review-open" class="button quiet" type="button">Open archive review</button>
+          </section>
         </aside>
         <section class="workspace" aria-label="Selected run review">
           <div id="empty-state" class="empty-state panel"><span class="empty-mark" aria-hidden="true">G</span><p class="eyebrow">Ready when you are</p><h2 id="empty-title">Select a case run</h2><p id="empty-copy">Choose a saved run to inspect candidate paths, edge-level evidence, alternatives, and provenance.</p></div>
@@ -116,6 +124,29 @@
             <section class="panel block"><div class="section-head"><div><p class="eyebrow">Source and phase</p><h2>Analysis provenance</h2></div><span id="sequence-source-version" class="quiet-tag">—</span></div><div id="sequence-provenance" class="geo-provenance"></div><p class="section-note">This projection keeps source and sequence hashes plus caller-provided phase metadata. Raw bases and sample IDs remain outside the saved report.</p></section>
             <section class="panel block"><div class="section-head"><div><p class="eyebrow">Motif deltas</p><h2>Created and disrupted patterns</h2></div><span id="sequence-change-count" class="quiet-tag">—</span></div><div class="table-scroll"><table><thead><tr><th>Change</th><th>Motif</th><th>Matched sequence</th><th>Strand</th><th>Variant IDs</th><th>Reference interval</th></tr></thead><tbody id="sequence-changes-table"></tbody></table></div></section>
             <section class="panel block"><div class="section-head"><div><p class="eyebrow">Interpretation limits</p><h2>What sequence-only analysis does not establish</h2></div></div><div id="sequence-limitations" class="stack"></div></section>
+          </div>
+          <div id="sequence-review-view" hidden>
+            <section class="run-header panel"><div><p class="eyebrow">Saved sequence archive · aggregate review projection</p><h2>Sequence archive review</h2><p id="sequence-review-subtitle" class="muted small">—</p></div><div class="run-status"><span class="state-pill ready">Catalog reviewed</span><span id="sequence-review-address" class="address">—</span></div></section>
+            <section class="metrics" aria-label="Sequence archive summary">
+              <article class="metric panel"><span>Single analyses</span><strong id="sequence-review-analyses">—</strong><small id="sequence-review-analysis-detail">Catalog records</small></article>
+              <article class="metric panel"><span>Batches</span><strong id="sequence-review-batches">—</strong><small id="sequence-review-batch-detail">Aggregate cohorts</small></article>
+              <article class="metric panel"><span>Motif changes</span><strong id="sequence-review-changes">—</strong><small>Created + disrupted records</small></article>
+              <article class="metric panel"><span>Object verification</span><strong id="sequence-review-integrity">—</strong><small>Run archive verification for details</small></article>
+            </section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Exact activity projection</p><h2>Motif activity across saved reports</h2></div><span id="sequence-review-motif-count" class="quiet-tag">—</span></div><div class="sequence-review-filters" aria-label="Sequence review filters"><label><span class="control-label">Find motif</span><input id="sequence-review-motif-filter" type="search" autocomplete="off" placeholder="motif ID or name"></label><label><span class="control-label">Change</span><select id="sequence-review-change-filter"><option value="">Created + disrupted</option><option value="created">Created</option><option value="disrupted">Disrupted</option></select></label></div><div class="table-scroll"><table><thead><tr><th>Change</th><th>Motif</th><th>Matched sequence</th><th>Single analyses</th><th>Batches</th><th>Maximum batch fraction</th></tr></thead><tbody id="sequence-review-motif-table"></tbody></table></div><p class="section-note">Rows are exact motif definitions and matched strings from saved aggregate reports. The projection does not infer binding, gene targets, or population prevalence.</p></section>
+            <section class="two-col"><section class="panel block"><div class="section-head"><div><p class="eyebrow">Integrity ledger</p><h2>Verification boundary</h2></div></div><div id="sequence-review-integrity-copy" class="stack"></div></section><section class="panel block"><div class="section-head"><div><p class="eyebrow">Interpretation limits</p><h2>Safe reading</h2></div></div><div id="sequence-review-limitations" class="stack"></div></section></section>
+          </div>
+          <div id="sequence-batch-view" hidden>
+            <section class="run-header panel"><div><p class="eyebrow">Phased sequence batch · aggregate research report</p><h2 id="sequence-batch-title">—</h2><p id="sequence-batch-subtitle" class="muted small">—</p></div><div class="run-status"><span id="sequence-batch-state" class="state-pill ready">Verified batch</span><span id="sequence-batch-address" class="address">—</span></div></section>
+            <section class="metrics" aria-label="Sequence batch summary">
+              <article class="metric panel"><span>Analyses</span><strong id="sequence-batch-metric-analyses">—</strong><small id="sequence-batch-metric-supported">—</small></article>
+              <article class="metric panel"><span>Variants</span><strong id="sequence-batch-metric-variants">—</strong><small>Public record rows</small></article>
+              <article class="metric panel"><span>Created patterns</span><strong id="sequence-batch-metric-created">—</strong><small>Aggregate prevalence rows</small></article>
+              <article class="metric panel"><span>Disrupted patterns</span><strong id="sequence-batch-metric-disrupted">—</strong><small>Aggregate prevalence rows</small></article>
+            </section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Shared source context</p><h2>Batch provenance</h2></div><span id="sequence-batch-source-version" class="quiet-tag">—</span></div><div id="sequence-batch-provenance" class="geo-provenance"></div><p class="section-note">All rows share one reference hash, interval, source receipt, and motif definition set. This projection does not emit sample identifiers or raw bases.</p></section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Aggregate motif prevalence</p><h2>Batch changes</h2></div><span id="sequence-batch-change-count" class="quiet-tag">—</span></div><div class="sequence-review-filters"><label><span class="control-label">Find motif</span><input id="sequence-batch-motif-filter" type="search" autocomplete="off" placeholder="motif ID or name"></label><label><span class="control-label">Change</span><select id="sequence-batch-change-filter"><option value="">Created + disrupted</option><option value="created">Created</option><option value="disrupted">Disrupted</option></select></label></div><div class="table-scroll"><table><thead><tr><th>Change</th><th>Motif</th><th>Matched sequence</th><th>Analyses</th><th>Fraction</th><th>Source</th></tr></thead><tbody id="sequence-batch-changes-table"></tbody></table></div></section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Interpretation limits</p><h2>Safe reading</h2></div></div><div id="sequence-batch-limitations" class="stack"></div></section>
           </div>
         </section>
       </div>

@@ -35,6 +35,7 @@ Focused commands:
   sequence-files        analyze a downloaded FASTA window and phased VCF calls
   sequence-batch        aggregate motif changes across phased sequence inputs
   sequence-batch-compare compare motif prevalence across two sequence batches
+  sequence-review       audit and project the saved sequence archive
   verify-release-evidence  verify a portable release-evidence ZIP
   report-capabilities  inspect supported report audiences, formats, and limits
   assessment-capabilities  inspect verified-run assessment contracts and limits
@@ -344,6 +345,8 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_sequence_batch").main(command_argv)
     if command == "sequence-batch-compare":
         return importlib.import_module(f"{__package__}._cli_sequence_batch_compare").main(command_argv)
+    if command == "sequence-review":
+        return importlib.import_module(f"{__package__}._cli_sequence_review").main(command_argv)
     if command == "verify-release-evidence":
         return importlib.import_module(f"{__package__}._cli_evidence").main(command_argv)
     if command in {

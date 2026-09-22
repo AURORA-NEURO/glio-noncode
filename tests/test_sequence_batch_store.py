@@ -86,3 +86,19 @@ class SequenceBatchStoreTests(unittest.TestCase):
             )
             with self.assertRaises(StoreError):
                 store.get_report(record["batch_id"])
+
+    def test_batch_change_pages_and_csv_keep_aggregate_boundary(self) -> None:
+        report = build_batch_report(_batch_input())
+        with tempfile.TemporaryDirectory() as directory:
+            store = SequenceBatchStore(directory)
+            record = store.save(report)
+            page = store.page_changes(record["batch_id"], motif_contains="joint")
+            self.assertEqual(page["schema"], "glio-noncode.sequence-haplotype-batch-changes.v1")
+            self.assertEqual(page["total_changes"], 1)
+            self.assertEqual(page["changes"][0]["analysis_count"], 2)
+            csv_body = store.changes_csv(record["batch_id"], change="created")
+            self.assertIn("analysis_fraction", csv_body.splitlines()[0])
+            self.assertIn("jointly-created motif", csv_body)
+            self.assertNotIn("PRIVATE_SAMPLE_1", csv_body)
+            with self.assertRaisesRegex(ValidationError, "change must"):
+                store.page_changes(record["batch_id"], change="unknown")

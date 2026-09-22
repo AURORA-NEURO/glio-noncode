@@ -46,8 +46,17 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="geo-consistency-view"', html)
         self.assertIn('id="sequence-analysis-list"', html)
         self.assertIn('id="sequence-analysis-view"', html)
+        self.assertIn('id="sequence-review-view"', html)
+        self.assertIn('id="sequence-review-open"', html)
+        self.assertIn('id="sequence-batch-list"', html)
+        self.assertIn('id="sequence-batch-view"', html)
         self.assertIn("/v1/geo-analyses/consistency?", javascript)
         self.assertIn("/v1/sequence-analyses", javascript)
+        self.assertIn("/v1/sequence-review/summary", javascript)
+        self.assertIn("/v1/sequence-review/motifs", javascript)
+        self.assertIn("/v1/sequence-batches", javascript)
+        self.assertIn("sequence-haplotype-batch-changes.v1", javascript)
+        self.assertIn("glio-noncode.sequence-review-motifs.v1", javascript)
         self.assertIn("sequence-haplotype-analysis.v1", javascript)
         self.assertIn("result_state", javascript)
         self.assertIn("Missing bounded rows remain", html)
@@ -187,7 +196,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("request !== model.geoListRequest", script)
         self.assertIn("request !== model.sequenceListRequest", script)
         self.assertIn(
-            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadSequenceAnalyses()])",
+            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])",
             script,
         )
 

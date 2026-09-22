@@ -161,7 +161,16 @@ tbody tr:last-child td { border-bottom: 0; }
 .rail-divider { height: 1px; margin: 18px 0 15px; background: var(--line); }
 .geo-analysis-list { max-height: 38vh; }
 .sequence-analysis-list { max-height: 30vh; }
+.sequence-batch-head { margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--line); }
+.sequence-batch-head h3 { margin: 0; font-size: 14px; }
+.sequence-batch-list { max-height: 24vh; }
 .sequence-analysis-list .run-status { max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sequence-review-controls { display: grid; gap: 8px; margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--line); }
+.sequence-review-controls h3 { margin: 0; font-size: 14px; }
+.sequence-review-controls .small { margin: 0; }
+.sequence-review-controls .button { width: 100%; }
+.sequence-review-filters { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(170px, .55fr); align-items: end; gap: 9px; margin: 12px 0 14px; }
+.sequence-review-filters input, .sequence-review-filters select { width: 100%; min-height: 38px; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfa; color: var(--ink); padding: 0 9px; }
 .geo-analysis-choice { display: block; }
 .geo-compare-controls { display: grid; gap: 8px; margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--line); }
 .geo-compare-controls h3 { margin: 0; font-size: 14px; }
@@ -184,3 +193,4 @@ tbody tr:last-child td { border-bottom: 0; }
 .check-control input { width: 16px; min-height: 16px; }
 @media (max-width: 700px) { .geo-provenance { grid-template-columns: 1fr; } }
 @media (max-width: 820px) { .geo-result-filters { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px) { .sequence-review-filters { grid-template-columns: 1fr; } }

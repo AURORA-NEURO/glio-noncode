@@ -8,6 +8,8 @@
     geoFilters: { feature_contains: "", effect_direction: "", min_abs_median_effect: "", fdr_significant: false, sign_test_fdr_significant: false },
     geoCompareIds: [], geoConsistency: null,
     sequenceAnalyses: [], sequenceTotal: 0, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
+    sequenceBatches: [], sequenceBatchTotal: 0, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
+    sequenceReviewSummary: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewFilterTimer: null,
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, sequenceListRequest: 0, geoFilterTimer: null, geoConsistencyRequest: 0,
   };
@@ -127,6 +129,30 @@
     }
   }
 
+  function renderSequenceBatches() {
+    const list = $("sequence-batch-list");
+    list.replaceChildren();
+    $("sequence-batch-count").textContent = String(model.sequenceBatchTotal);
+    $("sequence-batch-list-summary").textContent = `Showing ${model.sequenceBatches.length} of ${model.sequenceBatchTotal} saved sequence batches.`;
+    if (!model.sequenceBatches.length) {
+      list.append(element("p", "empty-inline", "No saved sequence batches yet."));
+      return;
+    }
+    for (const item of model.sequenceBatches) {
+      const button = element("button", "run-item");
+      button.type = "button";
+      button.setAttribute("aria-current", String(item.batch_id === model.selectedSequenceBatch));
+      button.setAttribute("aria-label", `Open sequence batch ${item.source_id}, ${item.analysis_count} analyses`);
+      const top = element("span", "run-top");
+      top.append(element("span", "run-case", item.source_id), element("span", "run-status", `${item.supported_count}/${item.analysis_count}`));
+      const meta = element("span", "run-meta");
+      meta.append(element("span", "run-id", shortened(item.batch_id, 28)), element("span", "", `${item.created_change_count + item.disrupted_change_count} motif rows`));
+      button.append(top, meta);
+      button.addEventListener("click", () => openSequenceBatch(item.batch_id));
+      list.append(button);
+    }
+  }
+
   async function loadSequenceAnalyses() {
     const request = model.sequenceListRequest = (model.sequenceListRequest || 0) + 1;
     try {
@@ -144,6 +170,41 @@
       model.sequenceLoaded = true;
       $("sequence-analysis-list").replaceChildren(element("p", "empty-inline", "Sequence analyses could not be loaded."));
       $("sequence-list-summary").textContent = "The local API could not verify a sequence analysis catalog.";
+      notice(error.message, true);
+    }
+  }
+
+  async function loadSequenceBatches() {
+    try {
+      const page = await getJson("/v1/sequence-batches?limit=50&offset=0");
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) throw new Error("The local API returned an invalid sequence batch catalog.");
+      model.sequenceBatchTotal = page.total_count;
+      model.sequenceBatches = page.rows;
+      renderSequenceBatches();
+    } catch (error) {
+      $("sequence-batch-list").replaceChildren(element("p", "empty-inline", "Sequence batches could not be loaded."));
+      $("sequence-batch-list-summary").textContent = "The local API could not verify a sequence batch catalog.";
+      notice(error.message, true);
+    }
+  }
+
+  function renderSequenceReviewSummary() {
+    const summary = model.sequenceReviewSummary;
+    if (!summary) return;
+    const analyses = summary.catalogs?.sequence_analyses || {};
+    const batches = summary.catalogs?.sequence_batches || {};
+    const changes = Number(analyses.created_motif_count || 0) + Number(analyses.disrupted_motif_count || 0) + Number(batches.created_change_count || 0) + Number(batches.disrupted_change_count || 0);
+    $("sequence-review-summary").textContent = `${formatCount(analyses.record_count || 0)} analyses · ${formatCount(batches.record_count || 0)} batches · ${formatCount(changes)} saved motif changes.`;
+  }
+
+  async function loadSequenceReview() {
+    try {
+      const summary = await getJson("/v1/sequence-review/summary");
+      if (summary.schema !== "glio-noncode.sequence-review-summary.v1" || !summary.catalogs || !summary.integrity) throw new Error("The local API returned an invalid sequence review summary.");
+      model.sequenceReviewSummary = summary;
+      renderSequenceReviewSummary();
+    } catch (error) {
+      $("sequence-review-summary").textContent = "The local API could not verify the saved sequence archive.";
       notice(error.message, true);
     }
   }
@@ -252,6 +313,8 @@
     $("geo-analysis-view").hidden = true;
     $("geo-consistency-view").hidden = true;
     $("sequence-analysis-view").hidden = true;
+    $("sequence-review-view").hidden = true;
+    $("sequence-batch-view").hidden = true;
     $("empty-state").hidden = false;
     $("empty-title").textContent = title;
     $("empty-copy").textContent = copy;
@@ -318,6 +381,34 @@
       link.removeAttribute("rel");
       csvLink.href = `/v1/sequence-analyses/${encodeURIComponent(model.selectedSequence)}/changes.csv`;
       csvLink.textContent = "Download motif CSV";
+      csvLink.hidden = false;
+      csvLink.classList.remove("disabled");
+      csvLink.setAttribute("aria-disabled", "false");
+      return;
+    }
+    if (model.activeView === "sequence-review" && model.sequenceReviewSummary?.content_address) {
+      link.href = "/v1/sequence-review/summary";
+      link.textContent = "Download archive summary";
+      link.classList.remove("disabled");
+      link.setAttribute("aria-disabled", "false");
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+      csvLink.href = "/v1/sequence-review/motifs.csv";
+      csvLink.textContent = "Download motif activity CSV";
+      csvLink.hidden = false;
+      csvLink.classList.remove("disabled");
+      csvLink.setAttribute("aria-disabled", "false");
+      return;
+    }
+    if (model.activeView === "sequence-batch" && model.selectedSequenceBatch && model.sequenceBatchReport?.content_address) {
+      link.href = `/v1/sequence-batches/${encodeURIComponent(model.selectedSequenceBatch)}/report.json`;
+      link.textContent = "Download batch JSON";
+      link.classList.remove("disabled");
+      link.setAttribute("aria-disabled", "false");
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+      csvLink.href = `/v1/sequence-batches/${encodeURIComponent(model.selectedSequenceBatch)}/changes.csv`;
+      csvLink.textContent = "Download batch motif CSV";
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
       csvLink.setAttribute("aria-disabled", "false");
@@ -470,6 +561,8 @@
       $("geo-analysis-view").hidden = true;
       $("geo-consistency-view").hidden = true;
       $("sequence-analysis-view").hidden = false;
+      $("sequence-review-view").hidden = true;
+      $("sequence-batch-view").hidden = true;
       renderSequenceReport();
       announceSelection(`Sequence analysis ${analysisId} opened. ${formatCount(report.inputs.variant_count)} phased variants and ${formatCount(changes.total_changes)} motif changes.`);
     } catch (error) {
@@ -477,6 +570,182 @@
       notice(`The selected sequence report could not be verified. ${error.message}`, true);
       showEmpty("Sequence report unavailable", "The selected sequence report could not be verified, so its detail panels remain hidden.");
     }
+  }
+
+  async function openSequenceBatch(batchId) {
+    model.activeView = "sequence-batch";
+    model.selectedSequenceBatch = batchId;
+    const request = model.selectionRequest = (model.selectionRequest || 0) + 1;
+    model.sequenceBatchReport = null;
+    model.sequenceBatchChanges = null;
+    renderSequenceBatches();
+    notice("");
+    exportHref();
+    showEmpty("Verifying sequence batch", "Loading the immutable aggregate batch report and its exact motif prevalence rows.");
+    try {
+      const [report, changes] = await Promise.all([
+        getJson(`/v1/sequence-batches/${encodeURIComponent(batchId)}/report.json`),
+        getJson(`/v1/sequence-batches/${encodeURIComponent(batchId)}?limit=50&offset=0`),
+      ]);
+      if (request !== model.selectionRequest || model.activeView !== "sequence-batch" || model.selectedSequenceBatch !== batchId) return;
+      if (report.schema !== "glio-noncode.sequence-haplotype-batch-analysis.v1" || report.status !== "completed" || !report.source || !report.design || changes.schema !== "glio-noncode.sequence-haplotype-batch-changes.v1" || !Array.isArray(changes.changes)) throw new Error("The local API returned an invalid sequence batch projection.");
+      model.sequenceBatchReport = report;
+      model.sequenceBatchChanges = changes;
+      $("empty-state").hidden = true;
+      $("run-view").hidden = true;
+      $("geo-analysis-view").hidden = true;
+      $("geo-consistency-view").hidden = true;
+      $("sequence-analysis-view").hidden = true;
+      $("sequence-review-view").hidden = true;
+      $("sequence-batch-view").hidden = false;
+      renderSequenceBatch();
+      exportHref();
+      announceSelection(`Sequence batch ${batchId} opened. ${formatCount(report.design.analysis_count)} analyses and ${formatCount(changes.total_changes)} motif rows.`);
+    } catch (error) {
+      if (request !== model.selectionRequest || model.activeView !== "sequence-batch" || model.selectedSequenceBatch !== batchId) return;
+      notice(`The selected sequence batch could not be verified. ${error.message}`, true);
+      showEmpty("Sequence batch unavailable", "The selected aggregate batch report could not be verified, so its detail panels remain hidden.");
+    }
+  }
+
+  function renderSequenceBatch() {
+    const report = model.sequenceBatchReport;
+    const changes = model.sequenceBatchChanges;
+    if (!report || !changes) return;
+    const source = report.source;
+    const design = report.design;
+    $("sequence-batch-title").textContent = `${source.source_id} · ${design.genome_build}`;
+    $("sequence-batch-subtitle").textContent = `${source.sequence_interval[0]}:${source.sequence_interval[1]}-${source.sequence_interval[2]} · shared context ${design.shared_context_hash}`;
+    $("sequence-batch-address").textContent = report.content_address;
+    $("sequence-batch-metric-analyses").textContent = formatCount(design.analysis_count);
+    $("sequence-batch-metric-supported").textContent = `${formatCount(design.supported_count)} supported · ${formatCount(design.abstained_count)} abstained`;
+    $("sequence-batch-metric-variants").textContent = formatCount(report.records.reduce((total, item) => total + item.variant_count, 0));
+    $("sequence-batch-metric-created").textContent = formatCount(report.motif_changes.filter((item) => item.change === "created").length);
+    $("sequence-batch-metric-disrupted").textContent = formatCount(report.motif_changes.filter((item) => item.change === "disrupted").length);
+    $("sequence-batch-source-version").textContent = source.source_version;
+    const provenance = $("sequence-batch-provenance");
+    provenance.replaceChildren();
+    for (const [label, value] of [["Source", source.source_id], ["Retrieved", source.retrieved_at], ["Sequence hash", source.sequence_hash], ["Response hash", source.response_hash], ["Analyses", design.analysis_count]]) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", value));
+      provenance.append(block);
+    }
+    $("sequence-batch-change-count").textContent = `${formatCount(changes.total_changes)} motif rows`;
+    const body = $("sequence-batch-changes-table");
+    body.replaceChildren();
+    if (!changes.changes.length) body.append(emptyRow(6, "No motif prevalence rows were reported for this batch."));
+    for (const item of changes.changes) {
+      const row = document.createElement("tr");
+      row.append(cell(consistencyText(item.change)), cell(item.name || item.motif_id), cell(item.matched_sequence), cell(formatCount(item.analysis_count)), cell(percent(item.analysis_fraction)), cell(item.source_id));
+      body.append(row);
+    }
+    const limitations = $("sequence-batch-limitations");
+    limitations.replaceChildren();
+    for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
+  }
+
+  function reloadSequenceBatchChanges() {
+    if (!model.selectedSequenceBatch) return;
+    const params = new URLSearchParams({ limit: "50", offset: "0" });
+    const motif = $("sequence-batch-motif-filter").value.trim();
+    const change = $("sequence-batch-change-filter").value;
+    if (motif) params.set("motif_contains", motif);
+    if (change) params.set("change", change);
+    getJson(`/v1/sequence-batches/${encodeURIComponent(model.selectedSequenceBatch)}?${params.toString()}`).then((changes) => {
+      if (model.activeView === "sequence-batch" && changes.schema === "glio-noncode.sequence-haplotype-batch-changes.v1") {
+        model.sequenceBatchChanges = changes;
+        renderSequenceBatch();
+      }
+    }).catch((error) => { if (model.activeView === "sequence-batch") notice(error.message, true); });
+  }
+
+  async function openSequenceReview() {
+    const request = model.sequenceReviewRequest = (model.sequenceReviewRequest || 0) + 1;
+    model.activeView = "sequence-review";
+    model.sequenceReviewSummary = null;
+    model.sequenceReviewMotifs = null;
+    notice("");
+    exportHref();
+    showEmpty("Verifying sequence archive", "Opening bounded catalog and motif-activity projections without exposing raw bases.");
+    try {
+      const [summary, motifs] = await Promise.all([
+        getJson("/v1/sequence-review/summary"),
+        getJson("/v1/sequence-review/motifs?limit=100&offset=0"),
+      ]);
+      if (request !== model.sequenceReviewRequest || model.activeView !== "sequence-review") return;
+      if (summary.schema !== "glio-noncode.sequence-review-summary.v1" || motifs.schema !== "glio-noncode.sequence-review-motifs.v1" || !Array.isArray(motifs.rows)) throw new Error("The local API returned an invalid sequence review projection.");
+      model.sequenceReviewSummary = summary;
+      model.sequenceReviewMotifs = motifs;
+      $("empty-state").hidden = true;
+      $("run-view").hidden = true;
+      $("geo-analysis-view").hidden = true;
+      $("geo-consistency-view").hidden = true;
+      $("sequence-analysis-view").hidden = true;
+      $("sequence-batch-view").hidden = true;
+      $("sequence-review-view").hidden = false;
+      renderSequenceReview();
+      exportHref();
+      announceSelection(`Sequence archive review opened. ${formatCount(motifs.total_count)} exact motif activity rows.`);
+    } catch (error) {
+      if (request !== model.sequenceReviewRequest || model.activeView !== "sequence-review") return;
+      notice(`The sequence archive review could not be verified. ${error.message}`, true);
+      showEmpty("Sequence archive unavailable", "The saved sequence catalog could not be verified, so aggregate activity remains hidden.");
+    }
+  }
+
+  function renderSequenceReview() {
+    const summary = model.sequenceReviewSummary;
+    const motifs = model.sequenceReviewMotifs;
+    if (!summary || !motifs) return;
+    const analyses = summary.catalogs.sequence_analyses;
+    const batches = summary.catalogs.sequence_batches;
+    const integrity = summary.integrity;
+    const changes = Number(analyses.created_motif_count || 0) + Number(analyses.disrupted_motif_count || 0) + Number(batches.created_change_count || 0) + Number(batches.disrupted_change_count || 0);
+    $("sequence-review-subtitle").textContent = `${formatCount(analyses.record_count || 0)} single analyses · ${formatCount(batches.record_count || 0)} aggregate batches · ${formatCount(changes)} saved change records`;
+    $("sequence-review-address").textContent = summary.content_address || "Address unavailable";
+    $("sequence-review-analyses").textContent = formatCount(analyses.record_count || 0);
+    $("sequence-review-analysis-detail").textContent = `${formatCount(analyses.supported_count || 0)} supported · ${formatCount(analyses.abstained_count || 0)} abstained`;
+    $("sequence-review-batches").textContent = formatCount(batches.record_count || 0);
+    $("sequence-review-batch-detail").textContent = `${formatCount(batches.supported_count || 0)} supported analyses`;
+    $("sequence-review-changes").textContent = formatCount(changes);
+    $("sequence-review-integrity").textContent = integrity.catalog_records === "validated" ? "Catalog OK" : "Review";
+    $("sequence-review-motif-count").textContent = `${formatCount(motifs.total_count)} exact rows`;
+    const body = $("sequence-review-motif-table");
+    body.replaceChildren();
+    if (!motifs.rows.length) body.append(emptyRow(6, "No exact motif activity matches the selected filters."));
+    for (const row of motifs.rows) {
+      const tr = document.createElement("tr");
+      tr.append(cell(consistencyText(row.change)), cell(row.name || row.motif_id), cell(row.matched_sequence), cell(formatCount(row.single_analysis_count)), cell(formatCount(row.batch_count)), cell(percent(row.max_batch_fraction)));
+      body.append(tr);
+    }
+    const integrityCopy = $("sequence-review-integrity-copy");
+    integrityCopy.replaceChildren();
+    for (const text of [
+      "Catalog records are validated before they enter this projection.",
+      "Report objects are opened and independently checked by the verification endpoint.",
+      "Raw bases, genotype strings, sample IDs, and subject IDs are not emitted here.",
+    ]) integrityCopy.append(element("p", "geo-limitation", text));
+    const limitations = $("sequence-review-limitations");
+    limitations.replaceChildren();
+    for (const text of summary.limitations || []) limitations.append(element("p", "geo-limitation", text));
+  }
+
+  function reloadSequenceReviewMotifs() {
+    if (model.sequenceReviewFilterTimer !== null) clearTimeout(model.sequenceReviewFilterTimer);
+    model.sequenceReviewFilterTimer = setTimeout(async () => {
+      model.sequenceReviewFilterTimer = null;
+      const params = new URLSearchParams({ limit: "100", offset: "0" });
+      const motif = $("sequence-review-motif-filter").value.trim();
+      const change = $("sequence-review-change-filter").value;
+      if (motif) params.set("motif_contains", motif);
+      if (change) params.set("change", change);
+      try {
+        const motifs = await getJson(`/v1/sequence-review/motifs?${params.toString()}`);
+        if (model.activeView !== "sequence-review" || motifs.schema !== "glio-noncode.sequence-review-motifs.v1") return;
+        model.sequenceReviewMotifs = motifs;
+        renderSequenceReview();
+      } catch (error) { if (model.activeView === "sequence-review") notice(error.message, true); }
+    }, 180);
   }
 
   function renderSequenceReport() {
@@ -891,7 +1160,7 @@
     renderHypotheses(); renderQueue(); renderDeltas(); exportHref();
   }
 
-  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadSequenceAnalyses()]));
+  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]));
   $("run-search").addEventListener("input", renderRuns);
   $("path-search").addEventListener("input", renderHypotheses);
   $("evidence-search").addEventListener("input", renderEvidence);
@@ -931,6 +1200,11 @@
     model.geoFilters.sign_test_fdr_significant = event.currentTarget.checked;
     reloadFilteredGeoResults();
   });
+  $("sequence-review-open").addEventListener("click", openSequenceReview);
+  $("sequence-review-motif-filter").addEventListener("input", reloadSequenceReviewMotifs);
+  $("sequence-review-change-filter").addEventListener("change", reloadSequenceReviewMotifs);
+  $("sequence-batch-motif-filter").addEventListener("input", reloadSequenceBatchChanges);
+  $("sequence-batch-change-filter").addEventListener("change", reloadSequenceBatchChanges);
   $("geo-consistency-features").addEventListener("input", updateGeoCompareControls);
   $("geo-compare-button").addEventListener("click", compareGeoAnalyses);
   $("markdown-export").addEventListener("click", (event) => {
@@ -941,7 +1215,7 @@
   });
   async function initializeWorkspace() {
     const initialSelectionRequest = model.selectionRequest || 0;
-    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadSequenceAnalyses()]);
+    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
     if (model.selectionRequest !== initialSelectionRequest || model.activeView !== "empty") return;
     if (model.runs.length) {
       await openRun(model.runs[0].run_id);
@@ -949,6 +1223,8 @@
       await openGeoAnalysis(model.geoAnalyses[0].analysis_id);
     } else if (model.sequenceAnalyses.length) {
       await openSequenceAnalysis(model.sequenceAnalyses[0].analysis_id);
+    } else if (model.sequenceBatches.length) {
+      await openSequenceBatch(model.sequenceBatches[0].batch_id);
     } else {
       showEmpty("No saved research records", "Case runs and aggregate GEO reports appear here after they are saved to the local workspace.");
     }

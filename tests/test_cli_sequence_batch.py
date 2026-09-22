@@ -74,6 +74,29 @@ class SequenceBatchCliTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         self.assertIn("sequence-batch", stdout.getvalue())
 
+    def test_batch_cli_can_persist_the_verified_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            input_path = root / "batch.json"
+            output_path = root / "batch-report.json"
+            input_path.write_text(json.dumps(_batch_input()), encoding="utf-8")
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                exit_code = main(
+                    [
+                        str(input_path),
+                        "--output",
+                        str(output_path),
+                        "--save-to-workspace",
+                        "--data-root",
+                        str(root / "workspace"),
+                    ]
+                )
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(
+                len(list((root / "workspace" / "sequence-batches").glob("batch-*.json"))),
+                1,
+            )
+
     def test_batch_input_requires_at_least_one_analysis(self) -> None:
         with self.assertRaisesRegex(ValidationError, "between 1"):
             build_batch_report(
