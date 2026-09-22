@@ -5,6 +5,7 @@
   const model = {
     runs: [], total: 0, selected: null, baseline: "", report: null, hypothesis: null,
     geoAnalyses: [], geoTotal: 0, selectedGeo: null, geoPage: null, geoResults: [], geoReviewSummary: null, geoReviewRequest: 0, geoReviewViewRequest: 0,
+    geoPreflights: [], geoPreflightTotal: 0, selectedGeoPreflight: null, geoPreflightReport: null, geoPreflightListRequest: 0, geoPreflightRequest: 0,
     geoExpressionAnalyses: [], geoExpressionTotal: 0, selectedGeoExpression: null, geoExpressionPage: null, geoExpressionResults: [],
     geoExpressionCompareIds: [], geoExpressionConsistency: null, geoExpressionConsistencyRequest: 0,
     geoExpressionConsistencyRecords: [], geoExpressionConsistencyTotal: 0, selectedGeoExpressionConsistency: null, geoExpressionConsistencyListRequest: 0,
@@ -109,6 +110,30 @@
       list.append(choice);
     }
     renderGeoCompareControls();
+  }
+
+  function renderGeoPreflights() {
+    const list = $("geo-preflight-list");
+    list.replaceChildren();
+    $("geo-preflight-count").textContent = String(model.geoPreflightTotal);
+    $("geo-preflight-list-summary").textContent = `Showing ${model.geoPreflights.length} of ${model.geoPreflightTotal} saved preparation preflights.`;
+    if (!model.geoPreflights.length) {
+      list.append(element("p", "empty-inline", "No saved GEO preflights yet."));
+      return;
+    }
+    for (const item of model.geoPreflights) {
+      const button = element("button", "run-item");
+      button.type = "button";
+      button.setAttribute("aria-current", String(item.preflight_id === model.selectedGeoPreflight));
+      button.setAttribute("aria-label", `Open ${item.kind || "GEO"} preflight for ${item.accession}`);
+      const top = element("span", "run-top");
+      top.append(element("span", "run-case", item.accession), element("span", "run-status", "Preflight"));
+      const meta = element("span", "run-meta");
+      meta.append(element("span", "run-id", consistencyText(item.kind)), element("span", "", `${formatCount(item.sample_count)} samples · ${formatCount(item.feature_count)} features`));
+      button.append(top, meta);
+      button.addEventListener("click", () => openGeoPreflight(item.preflight_id));
+      list.append(button);
+    }
   }
 
   function renderGeoExpressionAnalyses() {
@@ -416,6 +441,32 @@
     }
   }
 
+  async function loadGeoPreflights() {
+    const request = model.geoPreflightListRequest = (model.geoPreflightListRequest || 0) + 1;
+    try {
+      const page = await getJson("/v1/geo-preflights?limit=50&offset=0");
+      if (request !== model.geoPreflightListRequest) return;
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) {
+        throw new Error("The local API returned an invalid GEO preflight catalog.");
+      }
+      model.geoPreflightTotal = page.total_count;
+      model.geoPreflights = page.rows;
+      renderGeoPreflights();
+      if (model.activeView === "geo-preflight" && model.selectedGeoPreflight) {
+        if (model.geoPreflights.some((item) => item.preflight_id === model.selectedGeoPreflight)) {
+          await openGeoPreflight(model.selectedGeoPreflight);
+        } else {
+          showEmpty("No saved GEO preflight", "The previously selected preparation report is no longer present in the local catalog.");
+        }
+      }
+    } catch (error) {
+      if (request !== model.geoPreflightListRequest) return;
+      $("geo-preflight-list").replaceChildren(element("p", "empty-inline", "GEO preflights could not be loaded."));
+      $("geo-preflight-list-summary").textContent = "The local API could not verify the GEO preflight catalog.";
+      notice(error.message, true);
+    }
+  }
+
   function renderGeoReviewSummary() {
     const summary = model.geoReviewSummary;
     if (!summary) return;
@@ -555,6 +606,7 @@
     $("geo-expression-analysis-view").hidden = true;
     $("geo-expression-consistency-view").hidden = true;
     $("geo-review-view").hidden = true;
+    $("geo-preflight-view").hidden = true;
     $("geo-consistency-view").hidden = true;
     $("sequence-analysis-view").hidden = true;
     $("sequence-review-view").hidden = true;
@@ -628,6 +680,19 @@
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
       csvLink.setAttribute("aria-disabled", "false");
+      return;
+    }
+    if (model.activeView === "geo-preflight" && model.selectedGeoPreflight && model.geoPreflightReport?.content_address) {
+      link.href = `/v1/geo-preflights/${encodeURIComponent(model.selectedGeoPreflight)}/report.json`;
+      link.textContent = "Download preflight JSON";
+      link.classList.remove("disabled");
+      link.setAttribute("aria-disabled", "false");
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+      csvLink.href = "#";
+      csvLink.hidden = true;
+      csvLink.classList.add("disabled");
+      csvLink.setAttribute("aria-disabled", "true");
       return;
     }
     if (model.activeView === "geo-expression-consistency" && model.geoExpressionConsistency?.comparison_id) {
@@ -1258,6 +1323,90 @@
     return String(value || "—").replaceAll("_", " ");
   }
 
+  function renderGeoPreflight() {
+    const report = model.geoPreflightReport;
+    if (!report) return;
+    const source = report.source || {};
+    const summary = report.summary || {};
+    const catalogRow = model.geoPreflights.find((item) => item.preflight_id === model.selectedGeoPreflight) || {};
+    const kind = catalogRow.kind || consistencyText(report.schema?.replace("glio-noncode.geo-", "").replace(".v1", ""));
+    $("geo-preflight-title").textContent = `${source.accession || "GEO"} · ${consistencyText(kind)}`;
+    $("geo-preflight-subtitle").textContent = `${source.retrieval || "retrieval unavailable"} · ${formatCount(source.sample_count)} samples · ${formatCount(source.feature_count)} features`;
+    $("geo-preflight-state").textContent = report.status || "Unavailable";
+    $("geo-preflight-address").textContent = report.content_address || "Address unavailable";
+    $("geo-preflight-samples").textContent = formatCount(source.sample_count);
+    $("geo-preflight-features").textContent = formatCount(source.feature_count);
+    $("geo-preflight-kind").textContent = consistencyText(kind);
+    $("geo-preflight-retrieval").textContent = source.retrieval || "—";
+    const provenance = $("geo-preflight-provenance");
+    provenance.replaceChildren();
+    for (const [label, value] of [
+      ["Accession", source.accession],
+      ["Retrieval", source.retrieval],
+      ["Source digest", source.source_sha256],
+      ["Sample count", source.sample_count],
+      ["Feature count", source.feature_count],
+    ]) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", value ?? "—"));
+      provenance.append(block);
+    }
+    const metricRows = Object.entries(summary).filter(([key, value]) =>
+      !/(agent|language|sample[_-]?id|pair[_-]?id)/i.test(key)
+      && (value === null || ["string", "number", "boolean"].includes(typeof value))
+    );
+    const designState = report.design?.state;
+    if (typeof designState === "string") metricRows.push(["design_state", designState]);
+    $("geo-preflight-metric-count").textContent = `${formatCount(metricRows.length)} metrics`;
+    const metrics = $("geo-preflight-metrics");
+    metrics.replaceChildren();
+    if (!metricRows.length) metrics.append(emptyRow(2, "No bounded scalar metrics were reported."));
+    for (const [key, value] of metricRows) {
+      const row = document.createElement("tr");
+      row.append(cell(consistencyText(key)), cell(value == null ? "Not available" : value));
+      metrics.append(row);
+    }
+    const limitations = $("geo-preflight-limitations");
+    limitations.replaceChildren();
+    for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
+    if (!limitations.childElementCount) limitations.append(element("p", "muted", "No limitation notes were supplied."));
+  }
+
+  async function openGeoPreflight(preflightId) {
+    model.activeView = "geo-preflight";
+    model.selectedGeoPreflight = preflightId;
+    model.geoPreflightReport = null;
+    const request = model.geoPreflightRequest = (model.geoPreflightRequest || 0) + 1;
+    renderGeoPreflights();
+    notice("");
+    exportHref();
+    showEmpty("Verifying GEO preflight", "Reopening the preparation report through its content address. Private detail fields remain outside the catalog projection.");
+    try {
+      const report = await getJson(`/v1/geo-preflights/${encodeURIComponent(preflightId)}/report.json`);
+      if (request !== model.geoPreflightRequest || model.activeView !== "geo-preflight" || model.selectedGeoPreflight !== preflightId) return;
+      const catalogRow = model.geoPreflights.find((item) => item.preflight_id === preflightId);
+      if (!report.schema || report.status !== "completed" || !report.content_address || !report.source || !report.summary || (catalogRow?.report_schema && catalogRow.report_schema !== report.schema)) {
+        throw new Error("The local API returned an invalid GEO preflight report.");
+      }
+      model.geoPreflightReport = report;
+      $("empty-state").hidden = true;
+      $("run-view").hidden = true;
+      $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = true;
+      $("geo-expression-consistency-view").hidden = true;
+      $("geo-consistency-view").hidden = true;
+      $("geo-review-view").hidden = true;
+      $("geo-preflight-view").hidden = false;
+      renderGeoPreflight();
+      exportHref();
+      announceSelection(`GEO ${consistencyText(catalogRow?.kind || "preflight")} opened for ${report.source.accession || "the selected Series"}.`);
+    } catch (error) {
+      if (request !== model.geoPreflightRequest || model.activeView !== "geo-preflight") return;
+      notice(`The GEO preflight could not be verified. ${error.message}`, true);
+      showEmpty("GEO preflight unavailable", "The selected preparation report could not be verified, so its details remain hidden.");
+    }
+  }
+
   async function openGeoReview() {
     model.activeView = "geo-review";
     const request = model.geoReviewViewRequest = (model.geoReviewViewRequest || 0) + 1;
@@ -1779,7 +1928,7 @@
     renderHypotheses(); renderQueue(); renderDeltas(); exportHref();
   }
 
-  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]));
+  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]));
   $("run-search").addEventListener("input", renderRuns);
   $("path-search").addEventListener("input", renderHypotheses);
   $("evidence-search").addEventListener("input", renderEvidence);
@@ -1790,6 +1939,7 @@
   });
   $("geo-load-more-analyses").addEventListener("click", () => loadGeoAnalyses(true));
   $("geo-review-open").addEventListener("click", openGeoReview);
+
   $("geo-load-more").addEventListener("click", () => {
     if (model.selectedGeo) openGeoAnalysis(model.selectedGeo, { append: true });
   });
@@ -1878,7 +2028,7 @@
   });
   async function initializeWorkspace() {
     const initialSelectionRequest = model.selectionRequest || 0;
-    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
+    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
     if (model.selectionRequest !== initialSelectionRequest || model.activeView !== "empty") return;
     if (model.runs.length) {
       await openRun(model.runs[0].run_id);
@@ -1886,6 +2036,8 @@
       await openGeoAnalysis(model.geoAnalyses[0].analysis_id);
     } else if (model.geoExpressionAnalyses.length) {
       await openGeoExpressionAnalysis(model.geoExpressionAnalyses[0].analysis_id);
+    } else if (model.geoPreflights.length) {
+      await openGeoPreflight(model.geoPreflights[0].preflight_id);
     } else if (model.sequenceAnalyses.length) {
       await openSequenceAnalysis(model.sequenceAnalyses[0].analysis_id);
     } else if (model.sequenceBatches.length) {

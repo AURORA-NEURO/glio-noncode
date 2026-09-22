@@ -49,6 +49,9 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="geo-review-catalog-table"', html)
         self.assertIn('id="geo-review-tested-count"', html)
         self.assertIn('id="geo-review-fdr-count"', html)
+        self.assertIn('id="geo-preflight-list"', html)
+        self.assertIn('id="geo-preflight-view"', html)
+        self.assertIn('id="geo-preflight-metrics"', html)
         self.assertIn('id="geo-consistency-features"', html)
         self.assertIn('id="geo-consistency-view"', html)
         self.assertIn('id="geo-consistency-feature-filter"', html)
@@ -67,6 +70,9 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("/v1/geo-count-consistency", javascript)
         self.assertIn("/v1/geo-expression-analyses", javascript)
         self.assertIn("/v1/geo-review/summary", javascript)
+        self.assertIn("/v1/geo-preflights", javascript)
+        self.assertIn("function openGeoPreflight", javascript)
+        self.assertIn("report_schema", javascript)
         self.assertIn("/v1/geo-review/summary.csv?verify_reports=true", javascript)
         self.assertIn("Download health ledger", javascript)
         self.assertIn("geo-review-summary.v1", javascript)
@@ -228,7 +234,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn(
             (
                 "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), "
-                "loadGeoReviewSummary(), loadGeoExpressionAnalyses(), "
+                "loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), "
                 "loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), "
                 "loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])"
             ),
