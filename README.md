@@ -225,8 +225,11 @@ from catalog IDs with `geo-count-consistency --analysis-id ... --feature-id ...
 records are listed at `/v1/geo-count-consistency`, reopened at
 `/v1/geo-count-consistency/{comparison_id}`, and exported through
 `features.csv`; the workbench exposes the same save, reopen, filter, and export
-path. Public comparison rows preserve aggregate directions only and never emit
-sample, subject, or pair identifiers.
+path. Each study observation also records its ranked-row count, explicitly
+tracked-row count, and tracked source IDs, so matched features can be audited
+without guessing whether they came from a bounded ranking. Public comparison
+rows preserve aggregate directions only and never emit sample, subject, or pair
+identifiers.
 
 Two saved runs from the same Series can be reviewed as a separate normalization
 sensitivity artifact. This is intentionally distinct from cross-Series

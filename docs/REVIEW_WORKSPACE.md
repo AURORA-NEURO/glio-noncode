@@ -149,6 +149,11 @@ glio-noncode geo-count-consistency --data-root .glio `
   --feature-id SIGNAL --output consistency.json
 ```
 
+Each study row in that comparison preserves ranked-row coverage separately from
+explicitly tracked-row coverage, including the exact tracked source IDs. This
+makes a jointly reported feature auditable when it was retained outside a
+bounded ranking.
+
 The same projection is available at
 `GET /v1/geo-analyses/consistency?analysis_id=GEO_ID_A&analysis_id=GEO_ID_B&feature_id=SIGNAL`.
 The comparison requires compatible case/reference filters, pairing design,

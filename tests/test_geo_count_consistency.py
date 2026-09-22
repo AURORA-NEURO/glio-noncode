@@ -111,6 +111,48 @@ class GeoCountConsistencyTests(unittest.TestCase):
         self.assertEqual(report["studies"][1]["accession"], "GSE141946")
         self.assertNotIn("analysis_id", report["studies"][0])
 
+    def test_tracked_rows_retain_cross_study_coverage_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "first").mkdir()
+            (root / "second").mkdir()
+            first_counts, first_metadata = _write_files(root / "first")
+            second_counts, second_metadata = _write_files(
+                root / "second", include_direction_discordance=True
+            )
+            first = build_geo_count_contrast_report(
+                "GSE141945",
+                case_filters=(("Timepoint", "Tumor"),),
+                reference_filters=(("Timepoint", "1wk"),),
+                sample_key_column="",
+                pair_key_column="Patient",
+                counts_file=first_counts,
+                metadata_file=first_metadata,
+                fdr_threshold=1.0,
+                top=1,
+                track_feature_ids=("STABLE",),
+            )
+            second = build_geo_count_contrast_report(
+                "GSE141946",
+                case_filters=(("Timepoint", "Tumor"),),
+                reference_filters=(("Timepoint", "1wk"),),
+                sample_key_column="",
+                pair_key_column="Patient",
+                counts_file=second_counts,
+                metadata_file=second_metadata,
+                fdr_threshold=1.0,
+                top=1,
+                track_feature_ids=("STABLE",),
+            )
+            report = build_geo_count_consistency_report(
+                (first, second), feature_ids=("STABLE",)
+            )
+
+        for study in report["studies"]:
+            self.assertEqual(study["ranked_feature_count"], 1)
+            self.assertEqual(study["additional_tracked_feature_count"], 1)
+            self.assertEqual(study["tracked_feature_ids"], ["STABLE"])
+
     def test_incompatible_normalization_is_rejected_before_feature_join(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

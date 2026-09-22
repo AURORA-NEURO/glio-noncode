@@ -161,9 +161,12 @@ def validate_geo_count_consistency_report(report: object) -> dict[str, Any]:
             "matched_pair_count", "case_sample_count_selected", "reference_sample_count_selected",
             "normalization", "normalization_method", "expression_scale", "fdr_method",
             "fdr_threshold", "tested_feature_count", "reported_feature_count",
+            "ranked_feature_count", "additional_tracked_feature_count", "tracked_feature_ids",
             "fdr_significant_feature_count", "sign_test_fdr_significant_feature_count",
         ):
-            if key not in study:
+            if key not in study and key not in {
+                "ranked_feature_count", "additional_tracked_feature_count", "tracked_feature_ids"
+            }:
                 raise ValidationError(f"GEO count consistency study is missing {key}")
         accessions.append(_text(study["accession"], "study accession"))
         for key in ("count_matrix_source_sha256", "metadata_source_sha256"):
@@ -177,6 +180,26 @@ def validate_geo_count_consistency_report(report: object) -> dict[str, Any]:
             "sign_test_fdr_significant_feature_count",
         ):
             _count(study[key], f"study {key}")
+        ranked_count = _count(
+            study.get("ranked_feature_count", study["reported_feature_count"]),
+            "study ranked feature count",
+        )
+        additional_count = _count(
+            study.get("additional_tracked_feature_count", 0),
+            "study additional tracked feature count",
+        )
+        tracked_ids = study.get("tracked_feature_ids", [])
+        if (
+            type(tracked_ids) is not list
+            or any(
+                type(feature_id) is not str or not feature_id.strip()
+                for feature_id in tracked_ids
+            )
+            or len(set(tracked_ids)) != len(tracked_ids)
+            or ranked_count + additional_count != study["reported_feature_count"]
+            or additional_count > len(tracked_ids)
+        ):
+            raise ValidationError("GEO count consistency study coverage is inconsistent")
     if len(set(accessions)) != len(accessions):
         raise ValidationError("GEO count consistency studies must use distinct accessions")
 
@@ -432,4 +455,3 @@ class GeoCountConsistencyStore:
         if len(rendered.encode("utf-8")) > MAX_COUNT_CONSISTENCY_EXPORT_BYTES:
             raise StoreError("GEO count consistency CSV exceeds the export byte limit")
         return rendered
-
