@@ -51,6 +51,28 @@ The summary reports:
 
 The count is informational and will change if the downloaded ZIP changes. The audit and replay booleans are the acceptance boundary.
 
+## Verify a portable release-evidence archive
+
+After a D494 release-evidence ZIP has been produced, verify it without extracting
+its members:
+
+```text
+glio-noncode verify-release-evidence artifacts/release-evidence.zip --format markdown --output artifacts/release-evidence-audit.md
+```
+
+JSON is the default format; use `--output -` (the default) to print the report.
+The command replays the canonical ZIP layout, manifest, payload digests, linked
+runtime and query audits, and release disposition. Its exit codes are:
+
+- `0`: the archive is canonical, the independent audit passes, and the package is release-ready.
+- `2`: the input is unreadable or is not a canonical evidence archive, or the report cannot be written.
+- `3`: the archive is canonical but blocked or fails its independent readiness audit.
+
+The report includes the fixed allowlisted member inventory and audit checks, but
+not local paths or payload contents. Content digests verify integrity relative
+to the included manifest; this format is not a digital signature and does not
+authenticate who created the archive.
+
 ## Decision-ledger relationship
 
 The downloaded-data catalog is the safe intake surface. A canonical archive-registry federation plan can then be passed to the decision-ledger runtime:

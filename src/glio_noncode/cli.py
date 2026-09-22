@@ -15,6 +15,7 @@ Inspectable research hypothesis runtime.
 Focused commands:
   case                 prepare and run a case from source manifests
   expression           analyze expression and allele-specific RNA evidence
+  verify-release-evidence  verify a portable release-evidence ZIP
   report-capabilities  inspect supported report audiences, formats, and limits
   assessment-capabilities  inspect verified-run assessment contracts and limits
   run-report           render one replay-verified persisted run
@@ -116,6 +117,8 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_case").main(command_argv)
     if command == "expression":
         return importlib.import_module(f"{__package__}._cli_expression").main(command_argv)
+    if command == "verify-release-evidence":
+        return importlib.import_module(f"{__package__}._cli_evidence").main(command_argv)
     if command in {
         "assessment-capabilities",
         "report-capabilities",

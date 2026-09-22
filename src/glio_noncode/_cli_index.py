@@ -7501,6 +7501,14 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'audit a downloaded-data quality gate history runtime closure',
     ),
     (
+        'downloaded-data-quality-diff-gate-query',
+        'query downloaded-data quality diff release-gate findings',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-query-audit',
+        'audit a downloaded-data quality diff release-gate query',
+    ),
+    (
         'downloaded-data-quality-diff-gate-remediation',
         'build a value-free remediation plan from a downloaded-data quality diff gate',
     ),
@@ -7517,20 +7525,364 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'audit a downloaded-data quality diff gate remediation query',
     ),
     (
+        'downloaded-data-quality-diff-gate-remediation-resolution',
+        'record value-free dispositions for remediation actions',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-audit',
+        'audit a remediation resolution ledger',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history',
+        'build or append remediation resolution history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-audit',
+        'audit remediation resolution history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff',
+        'compare two value-free quality remediation resolution histories',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-audit',
+        'audit a quality remediation resolution history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy',
+        'evaluate a policy against a quality remediation resolution history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-audit',
+        'audit a quality remediation resolution history diff policy evaluation',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package',
+        'build and optionally persist a portable quality policy review package',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-audit',
+        'audit a quality policy review package',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-query',
+        'query a quality policy review package',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-query-audit',
+        'audit a quality policy review package query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry',
+        'build and optionally persist a registry of quality policy packages',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-audit',
+        'audit a quality policy package registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history',
+        'build and optionally persist policy package registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-audit',
+        'audit policy package registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff',
+        'compare two policy package registry histories',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-audit',
+        'audit a policy package registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-query',
+        'query a policy package registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-query-audit',
+        'audit a policy package registry history diff query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime',
+        'build and optionally persist a registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-audit',
+        'audit a registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry',
+        'build and optionally persist a history diff runtime registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-audit',
+        'audit a history diff runtime registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history',
+        'build and optionally persist runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-audit',
+        'audit runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff',
+        'compare two runtime registry histories',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-audit',
+        'audit a runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-query',
+        'query a runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-query-audit',
+        'audit a runtime registry history diff query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime',
+        'build and optionally persist a runtime-registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-audit',
+        'audit a runtime-registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry',
+        'build and optionally persist a runtime handoff registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit',
+        'audit a runtime handoff registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history',
+        'build and optionally persist runtime handoff registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit',
+        'audit runtime handoff registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff',
+        'compare two runtime handoff registry histories',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-audit',
+        'audit a runtime handoff registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query',
+        'query a runtime handoff registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query-audit',
+        'audit a runtime handoff registry history diff query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime',
+        'build and optionally persist a runtime handoff for a runtime handoff registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit',
+        'audit a runtime handoff for a runtime handoff registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history',
+        'build and optionally persist runtime handoff registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit',
+        'audit runtime handoff registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff',
+        'compare two runtime handoff registry histories',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-audit',
+        'audit a runtime handoff registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query',
+        'query a runtime handoff registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query-audit',
+        'audit a runtime handoff registry history diff query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime',
+        'build and optionally persist a runtime closure for a runtime handoff registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit',
+        'audit a runtime closure for a runtime handoff registry history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry',
+        'build and optionally persist a runtime closure registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit',
+        'audit a runtime closure registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history',
+        'build and optionally persist runtime closure registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit',
+        'audit runtime closure registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query',
+        'query runtime closure registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit',
+        'audit runtime closure registry history query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query',
+        'query a runtime closure registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit',
+        'audit a runtime closure registry query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query',
+        'query runtime handoff registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit',
+        'audit runtime handoff registry history query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query',
+        'query runtime handoff registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit',
+        'audit runtime handoff registry history query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-query',
+        'query a runtime handoff registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit',
+        'audit a runtime handoff registry query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-query',
+        'query runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-history-query-audit',
+        'audit a runtime registry history query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-query',
+        'query a history diff runtime registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-diff-runtime-registry-query-audit',
+        'audit a history diff runtime registry query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query',
+        'query policy package registry history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-history-query-audit',
+        'audit policy package registry history query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-query',
+        'query a quality policy package registry',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-package-registry-query-audit',
+        'audit a quality policy package registry query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query',
+        'query a quality remediation resolution history diff policy evaluation',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-query-audit',
+        'audit a quality remediation resolution history diff policy query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime',
+        'build and optionally persist a policy-governed quality remediation resolution history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-policy-runtime-audit',
+        'audit a policy-governed quality remediation resolution history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-query',
+        'query a quality remediation resolution history diff',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-query-audit',
+        'audit a quality remediation resolution history diff query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-runtime',
+        'build and optionally persist a quality remediation resolution history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-diff-runtime-audit',
+        'audit a quality remediation resolution history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-query',
+        'query remediation resolution history',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-query-audit',
+        'audit remediation resolution history query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-runtime',
+        'build and optionally persist remediation resolution history runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-history-runtime-audit',
+        'audit remediation resolution history runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-query',
+        'query remediation resolution dispositions',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-query-audit',
+        'audit a remediation resolution query',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-runtime',
+        'build and optionally persist a remediation resolution runtime',
+    ),
+    (
+        'downloaded-data-quality-diff-gate-remediation-resolution-runtime-audit',
+        'audit a remediation resolution runtime closure',
+    ),
+    (
         'downloaded-data-quality-diff-gate-remediation-runtime',
-        'build and optionally persist a downloaded-data quality gate remediation runtime',
+        'build and optionally persist a downloaded-data quality diff gate remediation runtime',
     ),
     (
         'downloaded-data-quality-diff-gate-remediation-runtime-audit',
-        'audit a downloaded-data quality gate remediation runtime closure',
-    ),
-    (
-        'downloaded-data-quality-diff-gate-query',
-        'query downloaded-data quality diff release-gate findings',
-    ),
-    (
-        'downloaded-data-quality-diff-gate-query-audit',
-        'audit a downloaded-data quality diff release-gate query',
+        'audit a downloaded-data quality diff gate remediation runtime closure',
     ),
     (
         'downloaded-data-quality-diff-gate-runtime',
@@ -7571,6 +7923,398 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
     (
         'downloaded-data-quality-runtime-audit',
         'audit a downloaded-data quality runtime closure',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence',
+        'package downloaded-data quality release evidence',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-audit',
+        'audit downloaded-data quality release evidence',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history',
+        'build a release-evidence history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-append',
+        'append release evidence to a history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-audit',
+        'audit a release-evidence history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-query',
+        'query a release-evidence history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-query-audit',
+        'audit a release-evidence history query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime',
+        'build a runtime decision over release-evidence history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-audit',
+        'audit a runtime decision',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-query',
+        'query a runtime decision',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-query-audit',
+        'audit a runtime query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry',
+        'admit runtime decisions into a registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-audit',
+        'audit a runtime registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history',
+        'build a runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-append',
+        'append a runtime registry snapshot',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-audit',
+        'audit a runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff',
+        'compare two runtime registry histories',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-audit',
+        'audit a runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-query',
+        'query a runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-query-audit',
+        'audit a runtime registry history diff query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime',
+        'evaluate a runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-audit',
+        'audit a runtime registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-query',
+        'query a runtime registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-query-audit',
+        'audit a runtime registry history diff runtime query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry',
+        'admit diff runtimes',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-audit',
+        'audit a diff-runtime registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history',
+        'build a diff-runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-append',
+        'append a diff-runtime registry snapshot',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-audit',
+        'audit a diff-runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff',
+        'compare two diff-runtime registry histories',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-audit',
+        'audit a diff-runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-query',
+        'query a diff-runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-query-audit',
+        'audit a diff-runtime registry history diff query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime',
+        'evaluate a runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit',
+        'audit a runtime registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query',
+        'query a runtime registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit',
+        'audit a runtime registry history diff runtime query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry',
+        'admit runtime history diff runtimes',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit',
+        'audit a runtime history diff runtime registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history',
+        'build a diff-runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-append',
+        'append a diff-runtime registry snapshot',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit',
+        'audit a diff-runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff',
+        'compare two diff-runtime registry histories',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-audit',
+        'audit a diff-runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query',
+        'query a diff-runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query-audit',
+        'audit a diff-runtime registry history diff query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime',
+        'evaluate a runtime registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit',
+        'audit a runtime registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query',
+        'query a runtime registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit',
+        'audit a runtime registry history diff runtime query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry',
+        'admit runtime registry history diff runtimes',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit',
+        'audit a runtime registry history diff registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history',
+        'build a diff-runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-append',
+        'append a diff-runtime registry snapshot',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit',
+        'audit a diff-runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff',
+        'compare two diff-runtime registry histories',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-audit',
+        'audit a diff-runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query',
+        'query a diff-runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query-audit',
+        'audit a diff-runtime registry history diff query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime',
+        'evaluate a runtime registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-audit',
+        'audit a runtime registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query',
+        'query a runtime registry history diff runtime',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-query-audit',
+        'audit a runtime registry history diff runtime query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry',
+        'admit runtime registry history diff policy runtimes',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-audit',
+        'audit a runtime registry history diff policy registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history',
+        'build a runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-append',
+        'append a runtime registry snapshot',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-audit',
+        'audit a runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff',
+        'compare two runtime registry histories',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-audit',
+        'audit a runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query',
+        'query a runtime registry history diff',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-query-audit',
+        'audit a runtime registry history diff query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query',
+        'query a runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit',
+        'audit a runtime registry history query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query',
+        'query a runtime registry history diff policy registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit',
+        'audit a runtime registry history diff policy registry query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query',
+        'query a diff-runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit',
+        'audit a diff-runtime registry history query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query',
+        'query a runtime registry history diff registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit',
+        'audit a runtime registry history diff registry query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query',
+        'query a diff-runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-history-query-audit',
+        'audit a diff-runtime registry history query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query',
+        'query a runtime history diff runtime registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-diff-runtime-registry-query-audit',
+        'audit a runtime history diff runtime registry query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-query',
+        'query a diff-runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-history-query-audit',
+        'audit a diff-runtime registry history query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-query',
+        'query a diff-runtime registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-diff-runtime-registry-query-audit',
+        'audit a diff-runtime registry query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-query',
+        'query a runtime registry history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-history-query-audit',
+        'audit a runtime registry history query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-query',
+        'query a runtime registry',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-history-runtime-registry-query-audit',
+        'audit a runtime registry query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-query',
+        'query downloaded-data quality release evidence',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-evidence-query-audit',
+        'audit a release evidence query',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-gate',
+        'evaluate a release policy over downloaded-data quality history',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-gate-audit',
+        'audit a downloaded-data quality release gate',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-gate-query',
+        'query a downloaded-data quality release gate',
+    ),
+    (
+        'downloaded-data-quality-runtime-history-release-gate-query-audit',
+        'audit a release gate query',
     ),
     (
         'editing-design-frontier-access',
@@ -18866,6 +19610,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
     (
         'run-report',
         'render one replay-verified persisted run',
+    ),
+    (
+        'verify-release-evidence',
+        'verify a portable release-evidence ZIP',
     ),
 )
 
