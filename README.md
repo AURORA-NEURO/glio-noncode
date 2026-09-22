@@ -79,7 +79,8 @@ clinical evidence.
 
 An opt-in additive model can adjust for declared continuous and categorical
 sample characteristics. Review its assumptions and missing-data rules in
-`docs/GEO_EXPRESSION_WORKFLOW.md` before interpreting adjusted results.
+`docs/GEO_EXPRESSION_WORKFLOW.md` before interpreting adjusted effects and their
+95% confidence intervals.
 
     glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --covariate age=continuous --covariate batch=categorical --top 1000
 

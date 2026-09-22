@@ -163,6 +163,9 @@ class GeoContrastTests(unittest.TestCase):
         signal = results["probe-adjusted"]
         self.assertAlmostEqual(signal["mean_difference"], 25.0)
         self.assertAlmostEqual(signal["adjusted_mean_difference"], 5.0, places=10)
+        self.assertLess(signal["adjusted_mean_difference_ci_low"], 5.0)
+        self.assertGreater(signal["adjusted_mean_difference_ci_high"], 5.0)
+        self.assertEqual(report["comparison"]["model"]["confidence_level"], 0.95)
         self.assertEqual(signal["case_n"], 5)
         self.assertEqual(signal["reference_n"], 5)
         self.assertEqual(signal["degrees_of_freedom"], 6)

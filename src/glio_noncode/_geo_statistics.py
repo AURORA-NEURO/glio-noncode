@@ -16,6 +16,7 @@ _BETA_FLOOR = 1.0e-300
 @dataclass(frozen=True, slots=True)
 class LinearContrastResult:
     coefficient: float | None
+    standard_error: float
     statistic: float
     degrees_of_freedom: int
     p_value: float
@@ -168,19 +169,23 @@ def fit_linear_contrast(
     if not math.isfinite(residual_sum_squares) or residual_sum_squares <= zero_residual_bound:
         return None
     residual_variance = residual_sum_squares / model.degrees_of_freedom
-    standard_error = math.sqrt(residual_variance * model.contrast_variance_factor)
-    if standard_error <= 0.0 or not math.isfinite(standard_error):
+    scaled_standard_error = math.sqrt(residual_variance * model.contrast_variance_factor)
+    if scaled_standard_error <= 0.0 or not math.isfinite(scaled_standard_error):
         raise ArithmeticError("adjusted model contrast standard error is not representable")
     scaled_coefficient = coefficients[model.contrast_index]
-    statistic = scaled_coefficient / standard_error
+    statistic = scaled_coefficient / scaled_standard_error
     if not math.isfinite(statistic):
         raise ArithmeticError("adjusted model contrast statistic is not representable")
     p_value = student_t_two_sided_p(statistic, model.degrees_of_freedom)
     coefficient = scaled_coefficient * response_scale
+    standard_error = scaled_standard_error * response_scale
     if not math.isfinite(coefficient):
         coefficient = None
+    if not math.isfinite(standard_error):
+        raise ArithmeticError("adjusted model contrast standard error is not representable")
     return LinearContrastResult(
         coefficient=coefficient,
+        standard_error=standard_error,
         statistic=statistic,
         degrees_of_freedom=model.degrees_of_freedom,
         p_value=p_value,
@@ -262,10 +267,45 @@ def student_t_two_sided_p(statistic: float, degrees_of_freedom: int) -> float:
     return _regularized_incomplete_beta(x, df / 2.0, 0.5)
 
 
+def student_t_critical_value(confidence_level: float, degrees_of_freedom: int) -> float:
+    """Return the positive critical value for a central two-sided t interval."""
+
+    if (
+        isinstance(confidence_level, bool)
+        or not isinstance(confidence_level, (int, float))
+        or not math.isfinite(float(confidence_level))
+        or not 0.0 < float(confidence_level) < 1.0
+    ):
+        raise ValidationError("Student t confidence level must be between zero and one")
+    if isinstance(degrees_of_freedom, bool) or not isinstance(degrees_of_freedom, int):
+        raise ValidationError("Student t degrees of freedom must be an integer")
+    if degrees_of_freedom <= 0:
+        raise ValidationError("Student t degrees of freedom must be positive")
+
+    target_two_sided_tail = 1.0 - float(confidence_level)
+    lower = 0.0
+    upper = 1.0
+    while student_t_two_sided_p(upper, degrees_of_freedom) > target_two_sided_tail:
+        upper *= 2.0
+    for _ in range(128):
+        midpoint = lower + (upper - lower) / 2.0
+        if midpoint == lower or midpoint == upper:
+            break
+        if student_t_two_sided_p(midpoint, degrees_of_freedom) > target_two_sided_tail:
+            lower = midpoint
+        else:
+            upper = midpoint
+    critical_value = lower + (upper - lower) / 2.0
+    if not math.isfinite(critical_value) or critical_value <= 0.0:
+        raise ArithmeticError("Student t critical value could not be represented")
+    return critical_value
+
+
 __all__ = [
     "LinearContrastResult",
     "PreparedLinearModel",
     "fit_linear_contrast",
     "prepare_linear_model",
+    "student_t_critical_value",
     "student_t_two_sided_p",
 ]

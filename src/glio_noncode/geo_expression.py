@@ -21,7 +21,12 @@ from pathlib import Path
 from typing import Any
 
 from . import _safe_persistence
-from ._geo_statistics import PreparedLinearModel, fit_linear_contrast, prepare_linear_model
+from ._geo_statistics import (
+    PreparedLinearModel,
+    fit_linear_contrast,
+    prepare_linear_model,
+    student_t_critical_value,
+)
 from .data_sources import UrllibTransport
 from .errors import SourceError, SourceNotFoundError, ValidationError
 from .expression_evidence import (
@@ -48,6 +53,7 @@ MAX_EXACT_RANK_ASSIGNMENTS = 20_000
 MAX_TOTAL_EXACT_RANK_SUMS = 100_000_000
 MAX_GEO_COVARIATES = 16
 MAX_GEO_MODEL_PARAMETERS = 24
+DEFAULT_GEO_CONFIDENCE_LEVEL = 0.95
 MAX_METADATA_ROWS = 2_048
 MAX_METADATA_VALUE_LENGTH = 8_192
 DEFAULT_TIMEOUT_SECONDS = 30.0
@@ -938,6 +944,14 @@ def build_expression_contrast_report(
         if normalized_covariates
         else None
     )
+    confidence_critical_value = (
+        student_t_critical_value(
+            DEFAULT_GEO_CONFIDENCE_LEVEL,
+            adjusted_contrast.model.degrees_of_freedom,
+        )
+        if adjusted_contrast is not None
+        else None
+    )
     analysis_case_indices = (
         adjusted_contrast.case_indices if adjusted_contrast is not None else case_indices
     )
@@ -996,6 +1010,8 @@ def build_expression_contrast_report(
             row.update(
                 {
                     "adjusted_mean_difference": None,
+                    "adjusted_mean_difference_ci_low": None,
+                    "adjusted_mean_difference_ci_high": None,
                     "t_statistic": None,
                     "degrees_of_freedom": None,
                     "model_sample_count": len(adjusted_contrast.sample_indices),
@@ -1016,7 +1032,18 @@ def build_expression_contrast_report(
                 elif fit.coefficient is None:
                     row["reason"] = "nonfinite_adjusted_group_effect"
                 else:
+                    if confidence_critical_value is None:
+                        raise ArithmeticError("adjusted model confidence limit is unavailable")
+                    confidence_margin = confidence_critical_value * fit.standard_error
+                    confidence_low = fit.coefficient - confidence_margin
+                    confidence_high = fit.coefficient + confidence_margin
+                    if not math.isfinite(confidence_low) or not math.isfinite(confidence_high):
+                        raise ArithmeticError(
+                            "adjusted model confidence interval is not representable"
+                        )
                     row["adjusted_mean_difference"] = fit.coefficient
+                    row["adjusted_mean_difference_ci_low"] = confidence_low
+                    row["adjusted_mean_difference_ci_high"] = confidence_high
                     row["t_statistic"] = fit.statistic
                     row["degrees_of_freedom"] = fit.degrees_of_freedom
                     row["effect_direction"] = (
@@ -1220,6 +1247,7 @@ def build_expression_contrast_report(
         body["comparison"]["model"] = {
             "type": "additive_ordinary_least_squares",
             "group_effect": "case_minus_reference_adjusted_for_declared_covariates",
+            "confidence_level": DEFAULT_GEO_CONFIDENCE_LEVEL,
             "parameter_names": list(adjusted_contrast.parameter_names),
             "residual_degrees_of_freedom": adjusted_contrast.model.degrees_of_freedom,
             "covariates": list(adjusted_contrast.covariate_metadata),
