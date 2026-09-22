@@ -250,6 +250,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("request !== model.geoConsistencyListRequest", script)
         self.assertIn("request !== model.geoSensitivityListRequest", script)
         self.assertIn("request !== model.sequenceListRequest", script)
+        self.assertIn('$("refresh-button").addEventListener("click"', script)
+        self.assertIn("loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords()", script)
         self.assertIn(
             (
                 "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), "
