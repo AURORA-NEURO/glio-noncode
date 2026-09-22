@@ -159,6 +159,14 @@ these exploratory tests into a count-model differential-expression analysis.
 See [the real downloaded-data demo](docs/REAL_GLIOMA_DATA_DEMO.md) for an
 executed CPM-versus-TMM comparison on GSE141945.
 
+Expression contrasts over downloaded Series Matrix files can also be retained
+with `geo-contrast --save-to-workspace --data-root .glio`. The local workbench
+then exposes a verified `geo-expression-*` catalog, paged aggregate feature
+effects, direction/FDR filters, and a privacy-safe CSV projection; exact GEO
+sample selections remain in the explicit reproducibility JSON export. See
+[`docs/GEO_EXPRESSION_WORKFLOW.md`](docs/GEO_EXPRESSION_WORKFLOW.md) for the
+catalog and HTTP contracts.
+
 For the single-feature `geo-count-outlier` and paired `geo-count-contrast`
 workflows, manually reviewed identifiers can be added with
 `--feature-annotation-file` and a UTF-8 CSV containing

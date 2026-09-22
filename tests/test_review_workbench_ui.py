@@ -44,6 +44,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="geo-compare-selection"', html)
         self.assertIn('id="geo-consistency-features"', html)
         self.assertIn('id="geo-consistency-view"', html)
+        self.assertIn('id="geo-expression-analysis-list"', html)
+        self.assertIn('id="geo-expression-analysis-view"', html)
         self.assertIn('id="sequence-analysis-list"', html)
         self.assertIn('id="sequence-analysis-view"', html)
         self.assertIn('id="sequence-review-view"', html)
@@ -51,6 +53,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="sequence-batch-list"', html)
         self.assertIn('id="sequence-batch-view"', html)
         self.assertIn("/v1/geo-analyses/consistency?", javascript)
+        self.assertIn("/v1/geo-expression-analyses", javascript)
+        self.assertIn("geo-expression-analysis-page.v1", javascript)
         self.assertIn("/v1/sequence-analyses", javascript)
         self.assertIn("/v1/sequence-review/summary", javascript)
         self.assertIn("/v1/sequence-review/motifs", javascript)
@@ -194,9 +198,10 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertGreaterEqual(script.count("request !== model.selectionRequest"), 4)
         self.assertIn("request !== model.runListRequest", script)
         self.assertIn("request !== model.geoListRequest", script)
+        self.assertIn("request !== model.geoExpressionListRequest", script)
         self.assertIn("request !== model.sequenceListRequest", script)
         self.assertIn(
-            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])",
+            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoExpressionAnalyses(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])",
             script,
         )
 

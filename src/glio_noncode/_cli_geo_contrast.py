@@ -7,9 +7,10 @@ import sys
 from typing import Any
 
 from ._cli_support import write_json
-from .errors import SourceError, SourceNotFoundError, ValidationError
+from .errors import SourceError, SourceNotFoundError, StoreError, ValidationError
 from .expression_evidence import ExpressionScale
 from .geo_expression import build_expression_contrast_report
+from .geo_expression_analysis_store import GeoExpressionAnalysisStore
 
 
 def _characteristic_filter(value: str) -> tuple[str, str]:
@@ -131,6 +132,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--timeout", type=float, default=30.0, help="HTTPS timeout in seconds")
     parser.add_argument("--output", default="-", help="JSON report path, or - for stdout")
+    parser.add_argument(
+        "--save-to-workspace",
+        action="store_true",
+        help="persist the completed expression report in the local GEO expression catalog",
+    )
+    parser.add_argument(
+        "--data-root",
+        default=".glio",
+        help="local GLIO-NONCODE data root used with --save-to-workspace",
+    )
     return parser
 
 
@@ -187,6 +198,18 @@ def main(argv: list[str] | None = None) -> int:
             "statistical_numerical_failure",
             "The adjusted-model calculation could not be represented reliably.",
         )
+
+    if args.save_to_workspace and report.get("status") == "completed":
+        try:
+            saved = GeoExpressionAnalysisStore(args.data_root).save(report)
+        except (OSError, StoreError, ValidationError) as error:
+            print(
+                "error: GEO expression report could not be saved "
+                f"({type(error).__name__})",
+                file=sys.stderr,
+            )
+            return 2
+        print(f"Saved GEO expression analysis {saved['analysis_id']}", file=sys.stderr)
 
     try:
         write_json(report, args.output)

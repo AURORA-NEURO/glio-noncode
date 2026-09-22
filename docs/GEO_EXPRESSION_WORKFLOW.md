@@ -547,6 +547,29 @@ This is a small exploratory cohort result—not evidence of causality,
 replication, diagnosis, or treatment response. Platform IDs are not mapped to
 genes unless an explicit matching platform annotation file is supplied.
 
+### Save and review the contrast locally
+
+For a downloaded matrix that should remain available in the local review
+workbench, persist the completed report in the content-addressed expression
+catalog while still writing the full JSON report to disk:
+
+    glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --matrix-file GSE103227_series_matrix.txt.gz --top 1000 --save-to-workspace --data-root .glio --output GSE103227-contrast.json
+
+The catalog stores the full report as a verified private object and creates a
+deterministic `geo-expression-*` record. `GET /v1/geo-expression-analyses`
+returns only bounded cohort and feature-count summaries. A detail page at
+`/v1/geo-expression-analyses/{analysis_id}` returns paged feature effects,
+directions, p-values, q-values, and provenance without selected GSM accessions.
+Filtered aggregate CSV is available at
+`/v1/geo-expression-analyses/{analysis_id}/results.csv`; the explicit
+`report.json` export is the reproducibility artifact and includes the exact
+sample selections needed to audit cohort assignment.
+
+The local workbench presents saved expression contrasts beside paired-count
+GEO analyses. It verifies the content address before rendering, supports
+feature, direction, and FDR filters, and keeps expression contrast metrics
+separate from the paired-count and sequence review surfaces.
+
 ## Compare exact feature directions across Series
 
 When reviewing a candidate platform feature in multiple Series, retain it

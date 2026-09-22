@@ -25979,6 +25979,112 @@ class ApiHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
+        if path == "/v1/geo-expression-analyses" or path.startswith("/v1/geo-expression-analyses/"):
+            try:
+                from .geo_expression_analysis_store import GeoExpressionAnalysisStore
+
+                store = GeoExpressionAnalysisStore(self._runtime().store.root)
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path == "/v1/geo-expression-analyses":
+                    unknown = set(query) - {"offset", "limit"}
+                    if unknown:
+                        raise ValueError(
+                            f"GEO expression catalog has unknown query parameters: {sorted(unknown)}"
+                        )
+                    self._write(
+                        HTTPStatus.OK,
+                        store.list_reports(
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 20),
+                        ),
+                    )
+                    return
+                segments = [unquote(item) for item in path.split("/") if item]
+                if len(segments) == 4 and segments[:2] == ["v1", "geo-expression-analyses"]:
+                    if segments[3] == "results.csv":
+                        unknown = set(query) - {
+                            "feature_contains", "effect_direction", "fdr_significant",
+                            "min_abs_effect",
+                        }
+                        if unknown:
+                            raise ValueError(
+                                f"GEO expression CSV has unknown query parameters: {sorted(unknown)}"
+                            )
+                        saved = store.get_report(segments[2])
+                        payload = store.results_csv(
+                            segments[2],
+                            feature_contains=self._query_value(query, "feature_contains"),
+                            effect_direction=self._query_value(query, "effect_direction"),
+                            fdr_significant=self._query_optional_bool(query, "fdr_significant"),
+                            min_abs_effect=self._query_float(query, "min_abs_effect"),
+                        )
+                        filename = (
+                            f"GLIO-NONCODE-{saved['summary']['accession']}-"
+                            f"{segments[2]}-results.csv"
+                        )
+                        self._write_bytes(
+                            HTTPStatus.OK,
+                            payload.encode("utf-8"),
+                            content_type="text/csv; charset=utf-8",
+                            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+                        )
+                        return
+                    if segments[3] == "report.json":
+                        if query:
+                            raise ValueError(
+                                "GEO expression report export does not accept query parameters"
+                            )
+                        saved = store.get_report(segments[2])
+                        filename = f"GLIO-NONCODE-{saved['summary']['accession']}-{segments[2]}.json"
+                        self._write(
+                            HTTPStatus.OK,
+                            saved["report"],
+                            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+                        )
+                        return
+                    self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                    return
+                if len(segments) != 3 or segments[:2] != ["v1", "geo-expression-analyses"]:
+                    self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                    return
+                unknown = set(query) - {
+                    "offset", "limit", "feature_contains", "effect_direction",
+                    "fdr_significant", "min_abs_effect",
+                }
+                if unknown:
+                    raise ValueError(
+                        f"GEO expression page has unknown query parameters: {sorted(unknown)}"
+                    )
+                self._write(
+                    HTTPStatus.OK,
+                    store.page_results(
+                        segments[2],
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 25),
+                        feature_contains=self._query_value(query, "feature_contains"),
+                        effect_direction=self._query_value(query, "effect_direction"),
+                        fdr_significant=self._query_optional_bool(query, "fdr_significant"),
+                        min_abs_effect=self._query_float(query, "min_abs_effect"),
+                    ),
+                )
+            except KeyError:
+                self._write(
+                    HTTPStatus.NOT_FOUND,
+                    {"error": "not_found", "message": "GEO expression analysis not found"},
+                )
+            except (ValidationError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except StoreError:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {
+                        "error": "geo_expression_analysis_unavailable",
+                        "message": "GEO expression analysis could not be verified",
+                    },
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
         if path == "/v1/runs" or path.startswith("/v1/runs/"):
             try:
                 runtime = self._runtime()
@@ -26871,6 +26977,35 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/geo-expression-analyses":
+            try:
+                from .geo_expression_analysis_store import GeoExpressionAnalysisStore
+
+                if parsed.query:
+                    raise ValueError("GEO expression persistence does not accept query parameters")
+                report = self._read_json(strict=True)
+                record = GeoExpressionAnalysisStore(self._runtime().store.root).save(report)
+                # The response is intentionally catalog-only.  The submitted
+                # report may contain exact GEO sample accessions.
+                self._write(HTTPStatus.CREATED, {"record": record})
+            except ValidationError as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_geo_expression_report", "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_geo_expression_request", "message": str(exc)},
+                )
+            except StoreError as exc:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "geo_expression_analysis_unavailable", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/sequence-haplotype/batch/compare":
             try:

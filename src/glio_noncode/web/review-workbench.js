@@ -5,13 +5,14 @@
   const model = {
     runs: [], total: 0, selected: null, baseline: "", report: null, hypothesis: null,
     geoAnalyses: [], geoTotal: 0, selectedGeo: null, geoPage: null, geoResults: [],
+    geoExpressionAnalyses: [], geoExpressionTotal: 0, selectedGeoExpression: null, geoExpressionPage: null, geoExpressionResults: [],
     geoFilters: { feature_contains: "", effect_direction: "", min_abs_median_effect: "", fdr_significant: false, sign_test_fdr_significant: false },
     geoCompareIds: [], geoConsistency: null,
     sequenceAnalyses: [], sequenceTotal: 0, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
     sequenceBatches: [], sequenceBatchTotal: 0, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
     sequenceReviewSummary: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewFilterTimer: null,
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
-    selectionRequest: 0, runListRequest: 0, geoListRequest: 0, sequenceListRequest: 0, geoFilterTimer: null, geoConsistencyRequest: 0,
+    selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
   };
   const pageSize = 50;
 
@@ -103,6 +104,30 @@
       list.append(choice);
     }
     renderGeoCompareControls();
+  }
+
+  function renderGeoExpressionAnalyses() {
+    const list = $("geo-expression-analysis-list");
+    list.replaceChildren();
+    $("geo-expression-count").textContent = String(model.geoExpressionTotal);
+    $("geo-expression-list-summary").textContent = `Showing ${model.geoExpressionAnalyses.length} of ${model.geoExpressionTotal} saved expression contrasts.`;
+    if (!model.geoExpressionAnalyses.length) {
+      list.append(element("p", "empty-inline", "No saved GEO expression contrasts yet."));
+      return;
+    }
+    for (const item of model.geoExpressionAnalyses) {
+      const button = element("button", "run-item");
+      button.type = "button";
+      button.setAttribute("aria-current", String(item.analysis_id === model.selectedGeoExpression));
+      button.setAttribute("aria-label", `Open GEO expression contrast ${item.accession}, ${item.fdr_significant_feature_count} FDR significant features`);
+      const top = element("span", "run-top");
+      top.append(element("span", "run-case", item.accession), element("span", "run-status", "Expression"));
+      const meta = element("span", "run-meta");
+      meta.append(element("span", "run-id", shortened(item.analysis_id, 28)), element("span", "", `${item.case_sample_count}/${item.reference_sample_count} samples · ${item.fdr_significant_feature_count} q-significant`));
+      button.append(top, meta);
+      button.addEventListener("click", () => openGeoExpressionAnalysis(item.analysis_id));
+      list.append(button);
+    }
   }
 
   function renderSequenceAnalyses() {
@@ -297,6 +322,23 @@
     }
   }
 
+  async function loadGeoExpressionAnalyses() {
+    const request = model.geoExpressionListRequest = (model.geoExpressionListRequest || 0) + 1;
+    try {
+      const page = await getJson("/v1/geo-expression-analyses?limit=50&offset=0");
+      if (request !== model.geoExpressionListRequest) return;
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) throw new Error("The local API returned an invalid GEO expression catalog.");
+      model.geoExpressionTotal = page.total_count;
+      model.geoExpressionAnalyses = page.rows;
+      renderGeoExpressionAnalyses();
+    } catch (error) {
+      if (request !== model.geoExpressionListRequest) return;
+      $("geo-expression-analysis-list").replaceChildren(element("p", "empty-inline", "GEO expression contrasts could not be loaded."));
+      $("geo-expression-list-summary").textContent = "The local API could not verify the GEO expression catalog.";
+      notice(error.message, true);
+    }
+  }
+
   function renderBaseline() {
     const select = $("baseline-select");
     const prior = model.baseline;
@@ -311,6 +353,7 @@
   function showEmpty(title, copy) {
     $("run-view").hidden = true;
     $("geo-analysis-view").hidden = true;
+    $("geo-expression-analysis-view").hidden = true;
     $("geo-consistency-view").hidden = true;
     $("sequence-analysis-view").hidden = true;
     $("sequence-review-view").hidden = true;
@@ -367,6 +410,21 @@
       link.removeAttribute("rel");
       const filterQuery = geoFilterQuery().toString();
       csvLink.href = `/v1/geo-analyses/${encodeURIComponent(model.selectedGeo)}/results.csv${filterQuery ? `?${filterQuery}` : ""}`;
+      csvLink.hidden = false;
+      csvLink.classList.remove("disabled");
+      csvLink.setAttribute("aria-disabled", "false");
+      return;
+    }
+    if (model.activeView === "geo-expression" && model.selectedGeoExpression && model.geoExpressionPage?.analysis_id === model.selectedGeoExpression) {
+      link.href = `/v1/geo-expression-analyses/${encodeURIComponent(model.selectedGeoExpression)}/report.json`;
+      link.textContent = "Download expression JSON";
+      link.classList.remove("disabled");
+      link.setAttribute("aria-disabled", "false");
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+      const filterQuery = geoExpressionFilterQuery().toString();
+      csvLink.href = `/v1/geo-expression-analyses/${encodeURIComponent(model.selectedGeoExpression)}/results.csv${filterQuery ? `?${filterQuery}` : ""}`;
+      csvLink.textContent = "Download expression CSV";
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
       csvLink.setAttribute("aria-disabled", "false");
@@ -452,6 +510,7 @@
       model.report = report;
       $("empty-state").hidden = true;
       $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = true;
       $("run-view").hidden = false;
       renderWorkspace();
       announceSelection(`Case run ${run?.case_id || runId} opened. Replay-verified review details are displayed.`);
@@ -489,6 +548,24 @@
     return params.toString();
   }
 
+  function geoExpressionFilterQuery() {
+    const params = new URLSearchParams();
+    const feature = $("geo-expression-feature-filter")?.value.trim();
+    const direction = $("geo-expression-direction-filter")?.value;
+    const fdr = $("geo-expression-fdr-filter")?.checked;
+    if (feature) params.set("feature_contains", feature);
+    if (direction) params.set("effect_direction", direction);
+    if (fdr) params.set("fdr_significant", "true");
+    return params;
+  }
+
+  function geoExpressionResultQuery(offset) {
+    const params = new URLSearchParams(geoExpressionFilterQuery());
+    params.set("limit", "25");
+    params.set("offset", String(offset));
+    return params.toString();
+  }
+
   async function openGeoAnalysis(analysisId, { append = false } = {}) {
     model.activeView = "geo";
     model.selectedGeo = analysisId;
@@ -521,6 +598,7 @@
       $("empty-state").hidden = true;
       $("run-view").hidden = true;
       $("geo-analysis-view").hidden = false;
+      $("geo-expression-analysis-view").hidden = true;
       renderGeoReport();
       if (append) {
         announceSelection(`Loaded ${formatCount(model.geoResults.length)} of ${formatCount(page.total_results)} reported features.`);
@@ -532,6 +610,82 @@
       notice(`The selected GEO report could not be verified. ${error.message}`, true);
       showEmpty("GEO report unavailable", "The stored aggregate report could not be verified, so its result details remain hidden.");
     }
+  }
+
+  async function openGeoExpressionAnalysis(analysisId, { append = false } = {}) {
+    model.activeView = "geo-expression";
+    model.selectedGeoExpression = analysisId;
+    const request = model.selectionRequest = (model.selectionRequest || 0) + 1;
+    renderGeoExpressionAnalyses();
+    notice("");
+    if (!append) {
+      model.geoExpressionPage = null;
+      model.geoExpressionResults = [];
+      showEmpty("Verifying GEO expression report", "Loading the immutable expression contrast and its aggregate-only result projection.");
+    }
+    const offset = append ? model.geoExpressionResults.length : 0;
+    try {
+      const page = await getJson(`/v1/geo-expression-analyses/${encodeURIComponent(analysisId)}?${geoExpressionResultQuery(offset)}`);
+      if (request !== model.selectionRequest || model.activeView !== "geo-expression" || model.selectedGeoExpression !== analysisId) return;
+      if (page.schema !== "glio-noncode.geo-expression-analysis-page.v1" || page.analysis_id !== analysisId || !Array.isArray(page.results) || !page.summary || !page.provenance) throw new Error("The local API returned an invalid GEO expression projection.");
+      if (append && model.geoExpressionPage?.report_address !== page.report_address) throw new Error("The saved GEO expression report changed while loading feature rows.");
+      model.geoExpressionPage = page;
+      model.geoExpressionResults = append ? model.geoExpressionResults.concat(page.results) : page.results;
+      exportHref();
+      $("empty-state").hidden = true;
+      $("run-view").hidden = true;
+      $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = false;
+      $("geo-consistency-view").hidden = true;
+      $("sequence-analysis-view").hidden = true;
+      $("sequence-review-view").hidden = true;
+      $("sequence-batch-view").hidden = true;
+      renderGeoExpressionReport();
+      announceSelection(`GEO expression analysis ${page.summary.accession} opened. ${formatCount(page.summary.tested_feature_count)} features tested.`);
+    } catch (error) {
+      if (request !== model.selectionRequest || model.activeView !== "geo-expression" || model.selectedGeoExpression !== analysisId) return;
+      notice(`The selected GEO expression report could not be verified. ${error.message}`, true);
+      showEmpty("GEO expression report unavailable", "The stored aggregate expression report could not be verified, so its result details remain hidden.");
+    }
+  }
+
+  function renderGeoExpressionReport() {
+    const page = model.geoExpressionPage;
+    if (!page) return;
+    const summary = page.summary;
+    const comparison = page.comparison;
+    $("geo-expression-title").textContent = `${summary.accession} · ${summary.platform_id}`;
+    $("geo-expression-subtitle").textContent = `${summary.model_type.replaceAll("_", " ")} · ${String(summary.fdr_method).toUpperCase()} q ≤ ${summary.fdr_threshold}`;
+    $("geo-expression-report-address").textContent = page.report_address;
+    $("geo-expression-metric-samples").textContent = formatCount(summary.sample_count);
+    $("geo-expression-metric-groups").textContent = `${formatCount(summary.case_sample_count)} case · ${formatCount(summary.reference_sample_count)} reference`;
+    $("geo-expression-metric-tested").textContent = formatCount(summary.tested_feature_count);
+    $("geo-expression-metric-fdr").textContent = formatCount(summary.fdr_significant_feature_count);
+    $("geo-expression-metric-fdr-method").textContent = `${String(summary.fdr_method).toUpperCase()} at ${summary.fdr_threshold}`;
+    $("geo-expression-metric-reported").textContent = formatCount(summary.reported_feature_count + summary.additional_feature_result_count);
+    $("geo-expression-scale").textContent = summary.scale;
+    const provenance = $("geo-expression-provenance");
+    provenance.replaceChildren();
+    const rows = [["Series", summary.accession], ["Platform", summary.platform_id], ["Source file", summary.source_file_name || "Remote GEO response"], ["Source digest", summary.source_sha256], ["Case filters", filterDescription(comparison.case_filters)], ["Reference filters", filterDescription(comparison.reference_filters)]];
+    for (const [label, value] of rows) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", value));
+      provenance.append(block);
+    }
+    $("geo-expression-result-count").textContent = `${formatCount(page.total_results)} of ${formatCount(page.unfiltered_result_count)} rows`;
+    $("geo-expression-load-more").hidden = !page.has_more;
+    const body = $("geo-expression-results-table");
+    body.replaceChildren();
+    if (!model.geoExpressionResults.length) body.append(emptyRow(6, "No expression rows match the selected filters."));
+    for (const result of model.geoExpressionResults) {
+      const effect = result.adjusted_mean_difference ?? result.mean_difference ?? result.median_difference;
+      const row = document.createElement("tr");
+      row.append(cell(result.feature_id), cell(consistencyText(result.effect_direction)), cell(formatEffect(effect)), cell(formatQ(result.p_value)), cell(formatQ(result.q_value)), cell(`${result.case_n ?? "—"} / ${result.reference_n ?? "—"}`));
+      body.append(row);
+    }
+    const limitations = $("geo-expression-limitations");
+    limitations.replaceChildren();
+    for (const limitation of page.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
   }
 
   async function openSequenceAnalysis(analysisId) {
@@ -559,6 +713,7 @@
       $("empty-state").hidden = true;
       $("run-view").hidden = true;
       $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = true;
       $("geo-consistency-view").hidden = true;
       $("sequence-analysis-view").hidden = false;
       $("sequence-review-view").hidden = true;
@@ -594,6 +749,7 @@
       $("empty-state").hidden = true;
       $("run-view").hidden = true;
       $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = true;
       $("geo-consistency-view").hidden = true;
       $("sequence-analysis-view").hidden = true;
       $("sequence-review-view").hidden = true;
@@ -679,6 +835,7 @@
       $("empty-state").hidden = true;
       $("run-view").hidden = true;
       $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = true;
       $("geo-consistency-view").hidden = true;
       $("sequence-analysis-view").hidden = true;
       $("sequence-batch-view").hidden = true;
@@ -1160,7 +1317,7 @@
     renderHypotheses(); renderQueue(); renderDeltas(); exportHref();
   }
 
-  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]));
+  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoExpressionAnalyses(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]));
   $("run-search").addEventListener("input", renderRuns);
   $("path-search").addEventListener("input", renderHypotheses);
   $("evidence-search").addEventListener("input", renderEvidence);
@@ -1172,6 +1329,9 @@
   $("geo-load-more-analyses").addEventListener("click", () => loadGeoAnalyses(true));
   $("geo-load-more").addEventListener("click", () => {
     if (model.selectedGeo) openGeoAnalysis(model.selectedGeo, { append: true });
+  });
+  $("geo-expression-load-more").addEventListener("click", () => {
+    if (model.selectedGeoExpression) openGeoExpressionAnalysis(model.selectedGeoExpression, { append: true });
   });
   function reloadFilteredGeoResults() {
     if (model.geoFilterTimer !== null) clearTimeout(model.geoFilterTimer);
@@ -1200,6 +1360,16 @@
     model.geoFilters.sign_test_fdr_significant = event.currentTarget.checked;
     reloadFilteredGeoResults();
   });
+  function reloadFilteredGeoExpressionResults() {
+    if (model.geoExpressionFilterTimer !== null) clearTimeout(model.geoExpressionFilterTimer);
+    model.geoExpressionFilterTimer = setTimeout(() => {
+      model.geoExpressionFilterTimer = null;
+      if (model.selectedGeoExpression) openGeoExpressionAnalysis(model.selectedGeoExpression);
+    }, 180);
+  }
+  $("geo-expression-feature-filter").addEventListener("input", reloadFilteredGeoExpressionResults);
+  $("geo-expression-direction-filter").addEventListener("change", reloadFilteredGeoExpressionResults);
+  $("geo-expression-fdr-filter").addEventListener("change", reloadFilteredGeoExpressionResults);
   $("sequence-review-open").addEventListener("click", openSequenceReview);
   $("sequence-review-motif-filter").addEventListener("input", reloadSequenceReviewMotifs);
   $("sequence-review-change-filter").addEventListener("change", reloadSequenceReviewMotifs);
@@ -1215,12 +1385,14 @@
   });
   async function initializeWorkspace() {
     const initialSelectionRequest = model.selectionRequest || 0;
-    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
+    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoExpressionAnalyses(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
     if (model.selectionRequest !== initialSelectionRequest || model.activeView !== "empty") return;
     if (model.runs.length) {
       await openRun(model.runs[0].run_id);
     } else if (model.geoAnalyses.length) {
       await openGeoAnalysis(model.geoAnalyses[0].analysis_id);
+    } else if (model.geoExpressionAnalyses.length) {
+      await openGeoExpressionAnalysis(model.geoExpressionAnalyses[0].analysis_id);
     } else if (model.sequenceAnalyses.length) {
       await openSequenceAnalysis(model.sequenceAnalyses[0].analysis_id);
     } else if (model.sequenceBatches.length) {
