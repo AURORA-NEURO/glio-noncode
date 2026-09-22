@@ -67,11 +67,22 @@ AND condition; sample titles are never interpreted as group labels.
 The analysis retains the matrix's platform feature IDs and screens every
 eligible feature. It uses a two-sided Mann–Whitney U statistic, exact label
 permutations when the bounded assignment budget permits, and a tie-corrected
-normal approximation otherwise. Benjamini–Hochberg adjusted p-values cover all
-features with at least two non-missing observations in each group. `--top`
-limits only how many ranked rows are serialized; it does not change the tested
-family or the significant-feature summary. The full screen is bounded to
-100,000 retained features in addition to the compressed/decompressed byte,
+normal approximation otherwise. By default, Benjamini–Hochberg adjusted
+p-values cover all features with at least two non-missing observations in each
+group. For dependent feature tests, `--fdr-method by` selects the more
+conservative Benjamini–Yekutieli adjustment, which controls false discovery
+rate under arbitrary dependence among valid per-feature p-values. This does not
+repair invalid feature-level tests, confounding, or post-selection. The default
+`--fdr-method bh` retains Benjamini–Hochberg. The chosen method is recorded in
+`comparison.fdr_method` and `comparison.multiple_testing_adjustment`; q-values
+and significance counts use that method. The BY procedure multiplies the ranked
+BH adjustment by the harmonic-number factor for the full test family.
+The procedure is described in Benjamini and Yekutieli, *The Annals of
+Statistics* 29(4), 1165–1188 (2001), doi:10.1214/aos/1013699998.
+
+`--top` limits only how many ranked rows are serialized; it does not change the
+tested family or the significant-feature summary. The full screen is bounded
+to 100,000 retained features in addition to the compressed/decompressed byte,
 sample, line, and matrix-cell limits above.
 
 Each reported row includes group counts, means/medians differences, a

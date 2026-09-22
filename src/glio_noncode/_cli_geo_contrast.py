@@ -105,6 +105,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="FDR threshold in (0, 1], default 0.05",
     )
     parser.add_argument(
+        "--fdr-method",
+        choices=("bh", "by"),
+        default="bh",
+        help=(
+            "multiple-testing adjustment: bh (Benjamini-Hochberg, default) or "
+            "by (Benjamini-Yekutieli for arbitrary dependence)"
+        ),
+    )
+    parser.add_argument(
         "--top",
         type=int,
         default=1_000,
@@ -134,6 +143,7 @@ def main(argv: list[str] | None = None) -> int:
             matrix_file=args.matrix_file,
             timeout_seconds=args.timeout,
             fdr_threshold=args.fdr,
+            fdr_method=args.fdr_method,
             top=args.top,
             covariates=args.covariate,
             platform_annotation_file=args.platform_annotation_file,

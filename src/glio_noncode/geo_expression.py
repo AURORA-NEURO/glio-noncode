@@ -850,19 +850,33 @@ def _mann_whitney_test(
     return rank_biserial, p_value, "tie_corrected_normal_approximation"
 
 
-def _benjamini_hochberg(p_values: Sequence[float]) -> list[float]:
-    """Compute deterministic monotone Benjamini-Hochberg adjusted p-values."""
+def _adjust_p_values(p_values: Sequence[float], *, method: str) -> list[float]:
+    """Compute deterministic monotone BH or BY adjusted p-values."""
 
-    ordered = sorted(enumerate(p_values), key=lambda item: (item[1], item[0]))
+    if method not in {"bh", "by"}:
+        raise ValidationError("FDR method must be 'bh' or 'by'")
+    values = tuple(float(value) for value in p_values)
+    if any(not math.isfinite(value) or not 0.0 <= value <= 1.0 for value in values):
+        raise ValidationError("FDR adjustment requires finite p-values in [0, 1]")
+    ordered = sorted(enumerate(values), key=lambda item: (item[1], item[0]))
     adjusted = [1.0] * len(ordered)
     running_minimum = 1.0
     count = len(ordered)
+    dependence_factor = (
+        math.fsum(1.0 / rank for rank in range(1, count + 1)) if method == "by" else 1.0
+    )
     for index in range(count - 1, -1, -1):
         original_index, p_value = ordered[index]
         rank = index + 1
-        running_minimum = min(running_minimum, p_value * count / rank)
+        running_minimum = min(running_minimum, p_value * count * dependence_factor / rank)
         adjusted[original_index] = min(1.0, running_minimum)
     return adjusted
+
+
+def _benjamini_hochberg(p_values: Sequence[float]) -> list[float]:
+    """Compute deterministic monotone Benjamini-Hochberg adjusted p-values."""
+
+    return _adjust_p_values(p_values, method="bh")
 
 
 def build_expression_contrast_report(
@@ -874,6 +888,7 @@ def build_expression_contrast_report(
     matrix_file: str | Path | None = None,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     fdr_threshold: float = 0.05,
+    fdr_method: str = "bh",
     top: int = 1_000,
     covariates: Sequence[tuple[str, str]] = (),
     platform_annotation_file: str | Path | None = None,
@@ -886,6 +901,11 @@ def build_expression_contrast_report(
     normalized_case = _normalize_filters(case_filters, "case")
     normalized_reference = _normalize_filters(reference_filters, "reference")
     normalized_covariates = _normalize_covariates(covariates)
+    if not isinstance(fdr_method, str):
+        raise ValidationError("FDR method must be 'bh' or 'by'")
+    normalized_fdr_method = fdr_method.strip().casefold()
+    if normalized_fdr_method not in {"bh", "by"}:
+        raise ValidationError("FDR method must be 'bh' or 'by'")
     normalized_annotation_columns = tuple(annotation_columns)
     if platform_annotation_file is None and (
         normalized_annotation_columns or annotation_id_column != "ID"
@@ -1112,7 +1132,7 @@ def build_expression_contrast_report(
             p_values.append(p_value)
         preliminary_rows.append(row)
 
-    adjusted_values = _benjamini_hochberg(p_values)
+    adjusted_values = _adjust_p_values(p_values, method=normalized_fdr_method)
     for row_index, q_value in zip(tested_rows, adjusted_values, strict=True):
         preliminary_rows[row_index]["q_value"] = q_value
         preliminary_rows[row_index]["fdr_significant"] = q_value <= fdr_threshold
@@ -1150,6 +1170,16 @@ def build_expression_contrast_report(
         if adjusted_contrast is not None
         else "two-sided Mann-Whitney U with exact label permutations when bounded"
     )
+    dependence_limitation = (
+        "Benjamini-Yekutieli adjustment controls false discovery rate under arbitrary dependence "
+        "among valid feature-level p-values, but can be conservative and does not repair invalid "
+        "tests or post-selection."
+        if normalized_fdr_method == "by"
+        else (
+            "Nominal FDR control depends on assumptions about test dependence; correlated platform "
+            "features may affect it."
+        )
+    )
     limitations = (
         [
             "Exploratory public-cohort group comparison; it is not matched-case RNA evidence.",
@@ -1173,10 +1203,7 @@ def build_expression_contrast_report(
                 "FDR adjustment covers testable rows in this matrix, not analyses selected after "
                 "inspecting results."
             ),
-            (
-                "Nominal FDR control depends on assumptions about test dependence; correlated "
-                "platform features may affect it."
-            ),
+            dependence_limitation,
             (
                 "Feature identifiers remain platform identifiers; transcript or gene identity "
                 "was not inferred."
@@ -1198,10 +1225,7 @@ def build_expression_contrast_report(
                 "FDR adjustment covers testable rows in this matrix, not analyses selected after "
                 "inspecting results."
             ),
-            (
-                "Nominal FDR control depends on assumptions about test dependence; correlated "
-                "platform features may affect it."
-            ),
+            dependence_limitation,
             (
                 "Per-feature missingness is reported but not modeled; informative missingness "
                 "may bias a comparison."
@@ -1246,7 +1270,13 @@ def build_expression_contrast_report(
             ),
             "scale": expression_scale.value,
             "test": test_description,
-            "multiple_testing_adjustment": "Benjamini-Hochberg over all testable matrix features",
+            "multiple_testing_adjustment": (
+                "Benjamini-Yekutieli"
+                if normalized_fdr_method == "by"
+                else "Benjamini-Hochberg"
+            )
+            + " over all testable matrix features",
+            "fdr_method": normalized_fdr_method,
             "fdr_threshold": fdr_threshold,
             "matched_to_case_sample": False,
             "population_generalization": False,

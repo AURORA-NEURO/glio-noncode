@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,6 +10,7 @@ from pathlib import Path
 from glio_noncode.cli import main as cli_main
 from glio_noncode.errors import ValidationError
 from glio_noncode.geo_expression import (
+    _adjust_p_values,
     _benjamini_hochberg,
     _mann_whitney_test,
     build_expression_contrast_report,
@@ -151,6 +153,11 @@ class GeoContrastTests(unittest.TestCase):
         self.assertEqual(report["results"][0]["effect_direction"], "case_higher")
         self.assertEqual(report["summary"]["fdr_significant_case_higher_count"], 5)
         self.assertEqual(report["summary"]["fdr_significant_case_lower_count"], 0)
+        self.assertEqual(report["comparison"]["fdr_method"], "bh")
+        self.assertEqual(
+            report["comparison"]["multiple_testing_adjustment"],
+            "Benjamini-Hochberg over all testable matrix features",
+        )
         self.assertEqual(report["analysis_limits"]["max_retained_features"], 100_000)
         self.assertEqual(report["content_address"].split(":", 1)[0], "geo-expression-contrast")
         self.assertIn(
@@ -455,6 +462,77 @@ class GeoContrastTests(unittest.TestCase):
         values = _benjamini_hochberg((0.04, 0.01, 0.03, 0.002))
 
         self.assertEqual(values, [0.04, 0.02, 0.04, 0.008])
+
+    def test_benjamini_yekutieli_adjustment_handles_dependence_conservatively(self) -> None:
+        p_values = (0.04, 0.01, 0.03, 0.002)
+
+        bh_values = _adjust_p_values(p_values, method="bh")
+        by_values = _adjust_p_values(p_values, method="by")
+
+        expected_by = (
+            0.04 * 25 / 12,
+            0.01 * 25 / 6,
+            0.03 * 25 / 9,
+            0.002 * 25 / 3,
+        )
+        for observed, expected in zip(by_values, expected_by, strict=True):
+            self.assertAlmostEqual(observed, expected)
+        self.assertTrue(all(by >= bh for by, bh in zip(by_values, bh_values, strict=True)))
+        self.assertEqual(_adjust_p_values((), method="by"), [])
+
+    def test_fdr_adjustment_rejects_unknown_methods_and_invalid_probabilities(self) -> None:
+        with self.assertRaisesRegex(ValidationError, "FDR method"):
+            _adjust_p_values((0.01,), method="holm")
+        with self.assertRaisesRegex(ValidationError, "finite p-values"):
+            _adjust_p_values((0.01, math.nan), method="by")
+
+    def test_by_adjustment_is_selected_in_report_and_cli(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            matrix_path = root / "matrix.txt.gz"
+            report_path = root / "contrast.json"
+            matrix_path.write_bytes(_matrix_payload())
+
+            exit_code = cli_main(
+                [
+                    "geo-contrast",
+                    "GSE123456",
+                    "--case-filter",
+                    "diagnosis=glioblastoma",
+                    "--reference-filter",
+                    "diagnosis=normal",
+                    "--scale",
+                    "normalized_intensity",
+                    "--matrix-file",
+                    str(matrix_path),
+                    "--fdr-method",
+                    "by",
+                    "--output",
+                    str(report_path),
+                ]
+            )
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(report["comparison"]["fdr_method"], "by")
+        self.assertEqual(
+            report["comparison"]["multiple_testing_adjustment"],
+            "Benjamini-Yekutieli over all testable matrix features",
+        )
+        self.assertTrue(
+            any("arbitrary dependence" in limitation for limitation in report["limitations"])
+        )
+
+    def test_unknown_fdr_method_is_rejected_before_matrix_read(self) -> None:
+        with self.assertRaisesRegex(ValidationError, "FDR method"):
+            build_expression_contrast_report(
+                "GSE123456",
+                case_filters=(("diagnosis", "glioblastoma"),),
+                reference_filters=(("diagnosis", "normal"),),
+                scale="normalized_intensity",
+                matrix_file="does-not-need-to-exist.txt.gz",
+                fdr_method="holm",
+            )
 
 
 if __name__ == "__main__":
