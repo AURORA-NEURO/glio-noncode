@@ -1966,6 +1966,10 @@
     $("geo-metric-fdr").textContent = formatCount(summary.fdr_significant_feature_count);
     $("geo-metric-fdr-method").textContent = `${String(summary.fdr_method).toUpperCase()} · q ≤ ${summary.fdr_threshold}`;
     $("geo-metric-sign").textContent = formatCount(summary.sign_test_fdr_significant_feature_count);
+    const rankedFeatureCount = summary.ranked_feature_count ?? summary.reported_feature_count;
+    const additionalTrackedFeatureCount = summary.additional_tracked_feature_count ?? 0;
+    $("geo-metric-reported").textContent = formatCount(summary.reported_feature_count);
+    $("geo-metric-reported-detail").textContent = `${formatCount(rankedFeatureCount)} ranked · ${formatCount(additionalTrackedFeatureCount)} tracked extras`;
     $("geo-normalization").textContent = comparison.normalization || "Normalization not reported";
 
     const provenance = $("geo-provenance");
@@ -2039,6 +2043,7 @@
       ["Repeated feature labels", `${formatCount(matrix.duplicate_feature_label_count)} labels; ${formatCount(matrix.duplicate_feature_id_count_excluded)} IDs excluded from testing`],
       ["Unmatched selected samples", `${formatCount(comparison.case_sample_count_unmatched)} case · ${formatCount(comparison.reference_sample_count_unmatched)} reference`],
       ["Automatic sample exclusion", "None"],
+      ["Reported row coverage", `${formatCount(page.summary.ranked_feature_count ?? page.summary.reported_feature_count)} ranked · ${formatCount(page.summary.additional_tracked_feature_count ?? 0)} explicitly tracked`],
       ["Date-like labels in reported rows", formatCount(page.summary.reported_date_like_feature_label_count)],
       ["Curated feature annotations", formatCount(page.summary.reported_curated_feature_count)],
     ];

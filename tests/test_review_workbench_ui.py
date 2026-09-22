@@ -49,6 +49,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="geo-review-catalog-table"', html)
         self.assertIn('id="geo-review-tested-count"', html)
         self.assertIn('id="geo-review-fdr-count"', html)
+        self.assertIn('id="geo-metric-reported"', html)
+        self.assertIn('id="geo-metric-reported-detail"', html)
         self.assertIn('id="geo-review-preflight-count"', html)
         self.assertIn('id="geo-review-preflight-kinds"', html)
         self.assertIn('id="geo-review-preflight-states"', html)
