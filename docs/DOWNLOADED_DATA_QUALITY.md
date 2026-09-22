@@ -9477,6 +9477,42 @@ The rerun summary is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d492-example-real/summary.json
 ```
 
+## D493 policy-driven ledger-diff release evaluation
+
+D493 applies an explicit release policy to a D492 history comparison. Policies
+can cap added, removed, and changed snapshots; require an improved direction,
+source acceptance, and a state transition; and optionally allow unchanged
+snapshots. Fifteen deterministic checks produce a content-addressed `ready` or
+`blocked` disposition. The four-file persisted runtime contains the manifest,
+full runtime, check ledger, and summary. Independent audits replay policy
+outcomes, comparison linkage, readiness, and artifact addresses. Bounded queries
+project summary, policy, checks, comparison, readiness, addresses, and limits;
+independent query audits re-evaluate resource selection, filters, paging, and
+row addresses.
+
+The real-data demo consumes the D492 comparison generated from the supplied
+downloaded ZIP, then evaluates the same comparison under strict and release
+budgets:
+
+```text
+python examples/downloaded_data_quality_d493_ledger_diff_runtime_demo.py C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d492-example-real/diff --destination D493_OUTPUT_DIR --source-zip C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip
+```
+
+On the downloaded-data comparison, the strict policy blocks the single added
+snapshot (13/15 checks), while the release policy allows one addition and
+accepts the improved `blocked->ready` transition (15/15). Both independent
+runtime audits pass 15/15, confirming the strict block is a valid policy result
+rather than an invalid artifact. The release query returns 63/63 rows without
+truncation, and its query audit passes 12/12. The output directory includes
+persisted strict and release runtimes, both runtime audits, a release audit in
+JSON and Markdown, the complete query in JSON and CSV, the query audit, a
+human-readable demo report, and a machine-readable summary. The rerun summary
+is stored at:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d493-example-real/summary.json
+```
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a
