@@ -51,6 +51,8 @@ class GeoStatisticsTests(unittest.TestCase):
         assert result is not None
         self.assertAlmostEqual(result.coefficient, 2.0)
         self.assertAlmostEqual(result.standard_error, math.sqrt(0.5))
+        self.assertAlmostEqual(result.residual_standard_error, math.sqrt(0.5))
+        self.assertAlmostEqual(result.adjusted_r_squared, 0.7)
         self.assertAlmostEqual(result.statistic, 2.0 * math.sqrt(2.0))
         self.assertEqual(result.degrees_of_freedom, 2)
         self.assertAlmostEqual(
@@ -71,6 +73,21 @@ class GeoStatisticsTests(unittest.TestCase):
             contrast_index=1,
         )
         self.assertIsNone(fit_linear_contrast(model, (1.0, 1.0, 3.0, 3.0)))
+
+    def test_model_fit_diagnostics_do_not_change_contrast_for_no_intercept_design(self) -> None:
+        model = prepare_linear_model(
+            ((1.0, 0.0), (0.0, 1.0), (1.0, 1.0), (0.0, 0.0)),
+            contrast_index=1,
+        )
+
+        result = fit_linear_contrast(model, (1.0, 1.0, 1.0, 1.0))
+
+        self.assertIsNotNone(result)
+        assert result is not None
+        self.assertIsNone(result.adjusted_r_squared)
+        self.assertIsNotNone(result.residual_standard_error)
+        assert result.residual_standard_error is not None
+        self.assertGreater(result.residual_standard_error, 0.0)
 
     def test_invalid_shapes_and_nonfinite_values_are_rejected(self) -> None:
         with self.assertRaisesRegex(ValidationError, "inconsistent widths"):

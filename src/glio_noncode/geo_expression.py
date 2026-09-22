@@ -1012,6 +1012,8 @@ def build_expression_contrast_report(
                     "adjusted_mean_difference": None,
                     "adjusted_mean_difference_ci_low": None,
                     "adjusted_mean_difference_ci_high": None,
+                    "residual_standard_error": None,
+                    "adjusted_r_squared": None,
                     "t_statistic": None,
                     "degrees_of_freedom": None,
                     "model_sample_count": len(adjusted_contrast.sample_indices),
@@ -1044,6 +1046,8 @@ def build_expression_contrast_report(
                     row["adjusted_mean_difference"] = fit.coefficient
                     row["adjusted_mean_difference_ci_low"] = confidence_low
                     row["adjusted_mean_difference_ci_high"] = confidence_high
+                    row["residual_standard_error"] = fit.residual_standard_error
+                    row["adjusted_r_squared"] = fit.adjusted_r_squared
                     row["t_statistic"] = fit.statistic
                     row["degrees_of_freedom"] = fit.degrees_of_freedom
                     row["effect_direction"] = (

@@ -17,6 +17,8 @@ _BETA_FLOOR = 1.0e-300
 class LinearContrastResult:
     coefficient: float | None
     standard_error: float
+    residual_standard_error: float | None
+    adjusted_r_squared: float | None
     statistic: float
     degrees_of_freedom: int
     p_value: float
@@ -163,12 +165,30 @@ def fit_linear_contrast(
         ** 2
         for row_index, response_value in enumerate(scaled_response)
     )
+    response_mean = math.fsum(scaled_response) / len(scaled_response)
+    total_sum_squares = math.fsum(
+        (value - response_mean) ** 2 for value in scaled_response
+    )
     response_energy = math.fsum(value * value for value in scaled_response)
     relative_roundoff = 64.0 * math.ulp(1.0) * max(len(response), len(projected))
     zero_residual_bound = relative_roundoff**2 * max(1.0, response_energy)
     if not math.isfinite(residual_sum_squares) or residual_sum_squares <= zero_residual_bound:
         return None
     residual_variance = residual_sum_squares / model.degrees_of_freedom
+    adjusted_r_squared: float | None = None
+    if total_sum_squares > zero_residual_bound:
+        candidate_adjusted_r_squared = 1.0 - residual_variance / (
+            total_sum_squares / (len(response) - 1)
+        )
+        if math.isfinite(candidate_adjusted_r_squared):
+            adjusted_r_squared = candidate_adjusted_r_squared
+    candidate_residual_standard_error = math.sqrt(residual_variance) * response_scale
+    residual_standard_error = (
+        candidate_residual_standard_error
+        if math.isfinite(candidate_residual_standard_error)
+        and candidate_residual_standard_error > 0.0
+        else None
+    )
     scaled_standard_error = math.sqrt(residual_variance * model.contrast_variance_factor)
     if scaled_standard_error <= 0.0 or not math.isfinite(scaled_standard_error):
         raise ArithmeticError("adjusted model contrast standard error is not representable")
@@ -186,6 +206,8 @@ def fit_linear_contrast(
     return LinearContrastResult(
         coefficient=coefficient,
         standard_error=standard_error,
+        residual_standard_error=residual_standard_error,
+        adjusted_r_squared=adjusted_r_squared,
         statistic=statistic,
         degrees_of_freedom=model.degrees_of_freedom,
         p_value=p_value,

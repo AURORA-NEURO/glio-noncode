@@ -109,9 +109,14 @@ not enter the Benjamini-Hochberg family.
 
 Adjusted rows retain descriptive group means and medians, but report the model's
 adjusted group coefficient separately, along with its t statistic, residual
-degrees of freedom, central 95% t confidence interval, p-value, and q-value.
-The interval uses the same residual standard error and degrees of freedom as
-the reported t test. Classical t inference assumes
+degrees of freedom, central 95% t confidence interval, residual standard error,
+adjusted R-squared, p-value, and q-value. The interval uses the same residual
+standard error and degrees of freedom as the reported t test. Adjusted
+R-squared compares residual and total mean squares, accounting for the fitted
+parameter count; it is a descriptive fit diagnostic, not evidence that the
+covariate model is correctly specified. A fit diagnostic is null when the
+response has no estimable total variance or the value is not representable.
+Classical t inference assumes
 independent samples and approximately normal, homoscedastic errors; continuous
 covariate effects are linear and no interactions, nonlinear terms, paired or
 repeated-measures structure are fitted. Adjustment covers only the covariates

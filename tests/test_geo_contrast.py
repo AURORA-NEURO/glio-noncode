@@ -165,6 +165,8 @@ class GeoContrastTests(unittest.TestCase):
         self.assertAlmostEqual(signal["adjusted_mean_difference"], 5.0, places=10)
         self.assertLess(signal["adjusted_mean_difference_ci_low"], 5.0)
         self.assertGreater(signal["adjusted_mean_difference_ci_high"], 5.0)
+        self.assertGreater(signal["residual_standard_error"], 0.0)
+        self.assertLessEqual(signal["adjusted_r_squared"], 1.0)
         self.assertEqual(report["comparison"]["model"]["confidence_level"], 0.95)
         self.assertEqual(signal["case_n"], 5)
         self.assertEqual(signal["reference_n"], 5)
@@ -177,6 +179,8 @@ class GeoContrastTests(unittest.TestCase):
             "missing_expression_in_covariate_complete_samples",
         )
         self.assertEqual(results["probe-flat"]["reason"], "zero_residual_variance")
+        self.assertIsNone(results["probe-flat"]["residual_standard_error"])
+        self.assertIsNone(results["probe-flat"]["adjusted_r_squared"])
         self.assertEqual(report["summary"]["tested_feature_count"], 1)
         self.assertEqual(report["summary"]["fdr_family_size"], 1)
         self.assertAlmostEqual(signal["q_value"], signal["p_value"])
