@@ -70,6 +70,10 @@ Download the kind-aware aggregate ledger with
 `GET /v1/geo-preflights.csv?verify_reports=true`; it includes report schema,
 source receipt, dimensions, design state, and verification without sample or
 pair identifiers.
+The structured equivalent is the content-addressed
+`glio-noncode.geo-preflight-ledger.v1` document from
+`glio-noncode geo-review-summary --preflights-json` or
+`GET /v1/geo-preflights.json?verify_reports=true`.
 The browser workbench renders these saved rows in a preparation rail, supports
 accession/kind filters and bounded loading, and opens a verified aggregate
 detail view; it keeps sample identifiers and pair-level detail outside the

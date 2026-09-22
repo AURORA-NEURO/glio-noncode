@@ -9,6 +9,7 @@ from ._cli_support import write_json
 from .errors import StoreError, ValidationError
 from .geo_review_summary import (
     build_geo_preflight_ledger,
+    build_geo_preflight_ledger_document,
     build_geo_review_ledger,
     build_geo_review_ledger_document,
     build_geo_review_summary,
@@ -30,20 +31,26 @@ def build_parser() -> argparse.ArgumentParser:
         default=".glio",
         help="local GLIO-NONCODE data root containing saved GEO records",
     )
-    parser.add_argument(
+    output_group = parser.add_mutually_exclusive_group()
+    output_group.add_argument(
         "--csv",
         action="store_true",
         help="emit the row-level aggregate health ledger instead of JSON",
     )
-    parser.add_argument(
+    output_group.add_argument(
         "--preflights-csv",
         action="store_true",
         help="emit a kind-aware aggregate ledger for saved GEO preflights",
     )
-    parser.add_argument(
+    output_group.add_argument(
         "--ledger-json",
         action="store_true",
         help="emit the content-addressed JSON form of the aggregate GEO ledger",
+    )
+    output_group.add_argument(
+        "--preflights-json",
+        action="store_true",
+        help="emit the content-addressed JSON form of the saved preflight ledger",
     )
     parser.add_argument(
         "--output", default="-", help="JSON/CSV summary path, or - for stdout"
@@ -60,6 +67,16 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         verify_reports = not args.skip_report_verification
+        if args.preflights_json:
+            document = build_geo_preflight_ledger_document(
+                args.data_root,
+                verify_reports=verify_reports,
+            )
+            write_json(document, args.output)
+            return 0 if all(
+                row["verification"] not in {"invalid", "failed"}
+                for row in document["rows"]
+            ) else 2
         if args.ledger_json:
             document = build_geo_review_ledger_document(
                 args.data_root,

@@ -108,6 +108,11 @@ available at `GET /v1/geo-preflights`, while full reports require the explicit
 visible alongside the final saved contrast without emitting sample or pair
 identifiers in catalog rows.
 
+The preparation archive also supports a content-addressed JSON ledger through
+`glio-noncode geo-review-summary --preflights-json` or
+`GET /v1/geo-preflights.json`; it carries the same aggregate-only boundary as the
+CSV ledger while preserving structured QC, metadata, and design receipts.
+
     glio-noncode geo-outlier GSE103227 --feature-id ASHGA5P000001 --target-sample GSM2758529 --reference-filter diagnosis=normal --scale normalized_intensity
 
 For a two-group exploratory screen across one GEO platform, `geo-contrast`

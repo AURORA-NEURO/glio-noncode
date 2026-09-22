@@ -19,6 +19,7 @@ from glio_noncode.geo_count_sensitivity_store import GeoCountSensitivityStore
 from glio_noncode.geo_preflight_store import GeoPreflightStore
 from glio_noncode.geo_review_summary import (
     build_geo_preflight_ledger,
+    build_geo_preflight_ledger_document,
     build_geo_review_ledger,
     build_geo_review_ledger_document,
     build_geo_review_summary,
@@ -313,6 +314,18 @@ class GeoReviewSummaryTests(unittest.TestCase):
             self.assertEqual(stderr.getvalue(), "")
             self.assertIn("expression_quality", stdout.getvalue())
 
+            json_stdout, json_stderr = io.StringIO(), io.StringIO()
+            with redirect_stdout(json_stdout), redirect_stderr(json_stderr):
+                json_result = summary_main(
+                    ["--data-root", str(workspace), "--preflights-json"]
+                )
+            self.assertEqual(json_result, 0)
+            self.assertEqual(json_stderr.getvalue(), "")
+            cli_document = json.loads(json_stdout.getvalue())
+            self.assertEqual(
+                cli_document["schema"], "glio-noncode.geo-preflight-ledger.v1"
+            )
+
             server = create_server("127.0.0.1", 0, str(workspace))
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -322,6 +335,24 @@ class GeoReviewSummaryTests(unittest.TestCase):
                 response = connection.getresponse()
                 payload = response.read().decode("utf-8")
                 connection.close()
+                json_connection = HTTPConnection(
+                    "127.0.0.1", server.server_port, timeout=30
+                )
+                json_connection.request(
+                    "GET", "/v1/geo-preflights.json?verify_reports=true"
+                )
+                json_response = json_connection.getresponse()
+                api_document = json.loads(json_response.read())
+                json_connection.close()
+                self.assertEqual(json_response.status, 200)
+                self.assertEqual(
+                    json_response.getheader("Content-Type"),
+                    "application/json; charset=utf-8",
+                )
+                self.assertIn(
+                    'attachment; filename="GLIO-NONCODE-geo-preflight-ledger.json"',
+                    json_response.getheader("Content-Disposition", ""),
+                )
             finally:
                 server.shutdown()
                 server.server_close()
@@ -334,6 +365,24 @@ class GeoReviewSummaryTests(unittest.TestCase):
             response.getheader("Content-Disposition", ""),
         )
         self.assertIn("GSE141945", payload)
+        self.assertEqual(api_document, cli_document)
+
+    def test_preflight_ledger_document_is_addressed_and_bounded(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory) / "workspace"
+            GeoPreflightStore(workspace).save(_quality_report())
+            document = build_geo_preflight_ledger_document(workspace)
+
+        self.assertEqual(document["schema"], "glio-noncode.geo-preflight-ledger.v1")
+        self.assertEqual(document["row_count"], len(document["rows"]))
+        self.assertTrue(
+            document["content_address"].startswith("geo-preflight-ledger:")
+        )
+        public = json.dumps(document)
+        self.assertNotIn("sample_ids", public)
+        self.assertNotIn("PRIVATE_SUBJECT_", public)
+        self.assertNotIn("agent", public.lower())
+        self.assertNotIn("language", public.lower())
 
 
 if __name__ == "__main__":

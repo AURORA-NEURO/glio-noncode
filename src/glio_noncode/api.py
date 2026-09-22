@@ -26316,9 +26316,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
-        if path == "/v1/geo-preflights.csv":
+        if path in {"/v1/geo-preflights.csv", "/v1/geo-preflights.json"}:
             try:
-                from .geo_review_summary import geo_preflight_ledger_csv
+                from .geo_review_summary import (
+                    build_geo_preflight_ledger_document,
+                    geo_preflight_ledger_csv,
+                )
 
                 query = parse_qs(parsed.query, keep_blank_values=False)
                 unknown = set(query) - {"verify_reports"}
@@ -26328,19 +26331,33 @@ class ApiHandler(BaseHTTPRequestHandler):
                     )
                 verify_reports = self._query_optional_bool(query, "verify_reports")
                 should_verify = True if verify_reports is None else verify_reports
-                self._write_bytes(
-                    HTTPStatus.OK,
-                    geo_preflight_ledger_csv(
-                        self._runtime().store.root,
-                        verify_reports=should_verify,
-                    ).encode("utf-8"),
-                    content_type="text/csv; charset=utf-8",
-                    headers={
-                        "Content-Disposition": (
-                            'attachment; filename="GLIO-NONCODE-geo-preflight-ledger.csv"'
-                        )
-                    },
-                )
+                if path == "/v1/geo-preflights.json":
+                    self._write(
+                        HTTPStatus.OK,
+                        build_geo_preflight_ledger_document(
+                            self._runtime().store.root,
+                            verify_reports=should_verify,
+                        ),
+                        headers={
+                            "Content-Disposition": (
+                                'attachment; filename="GLIO-NONCODE-geo-preflight-ledger.json"'
+                            )
+                        },
+                    )
+                else:
+                    self._write_bytes(
+                        HTTPStatus.OK,
+                        geo_preflight_ledger_csv(
+                            self._runtime().store.root,
+                            verify_reports=should_verify,
+                        ).encode("utf-8"),
+                        content_type="text/csv; charset=utf-8",
+                        headers={
+                            "Content-Disposition": (
+                                'attachment; filename="GLIO-NONCODE-geo-preflight-ledger.csv"'
+                            )
+                        },
+                    )
             except (ValidationError, ValueError) as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
             except StoreError:
