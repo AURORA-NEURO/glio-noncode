@@ -129,6 +129,9 @@ Expression consistency comparisons expose the same ranked/tracked coverage
 and study-level export contract.
 Single expression-analysis catalog rows contribute the same derived coverage
 totals to the archive-health projection.
+The aggregate ledger CSV carries those ranked, explicitly tracked, and tracked-ID
+counts per catalog record as well, while keeping sample and raw-matrix identifiers
+out of the export.
 
 For reproducible cross-normalization coverage, pass repeated
 `--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The

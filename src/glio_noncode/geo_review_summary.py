@@ -27,6 +27,9 @@ GEO_REVIEW_LEDGER_COLUMNS = (
     "feature_count",
     "tested_feature_count",
     "reported_feature_count",
+    "ranked_feature_count",
+    "additional_tracked_feature_count",
+    "tracked_feature_id_count",
     "fdr_significant_feature_count",
     "verification",
     "state",
@@ -67,6 +70,15 @@ def _catalog_rows(store: Any) -> list[dict[str, Any]]:
 def _number(row: Mapping[str, Any], key: str) -> int:
     value = row.get(key, 0)
     return value if type(value) is int and value >= 0 else 0
+
+
+def _first_number(row: Mapping[str, Any], keys: Sequence[str], *, default: int = 0) -> int:
+    """Read the first present non-negative integer field without truthiness fallbacks."""
+
+    for key in keys:
+        if key in row:
+            return _number(row, key)
+    return default
 
 
 def _accessions(rows: list[Mapping[str, Any]]) -> list[str]:
@@ -224,7 +236,31 @@ def _catalog_ledger(
                 "tested_feature_count": (
                     _number(row, tested_key) if tested_key is not None else 0
                 ),
-                "reported_feature_count": _number(row, "reported_feature_count"),
+                "reported_feature_count": _first_number(
+                    row, ("reported_feature_count", "reported_feature_count_total")
+                ),
+                "ranked_feature_count": _first_number(
+                    row,
+                    (
+                        "ranked_feature_count",
+                        "ranked_feature_count_total",
+                    ),
+                    default=_first_number(
+                        row, ("reported_feature_count", "reported_feature_count_total")
+                    ),
+                ),
+                "additional_tracked_feature_count": _first_number(
+                    row,
+                    (
+                        "additional_tracked_feature_count",
+                        "additional_tracked_feature_count_total",
+                    ),
+                ),
+                "tracked_feature_id_count": (
+                    len(row["tracked_feature_ids"])
+                    if type(row.get("tracked_feature_ids")) is list
+                    else _first_number(row, ("tracked_feature_id_count_total",))
+                ),
                 "fdr_significant_feature_count": (
                     _number(row, fdr_key) if fdr_key is not None else 0
                 ),

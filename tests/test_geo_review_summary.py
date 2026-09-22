@@ -83,7 +83,9 @@ class GeoReviewSummaryTests(unittest.TestCase):
             self.assertEqual(stderr_csv.getvalue(), "")
             self.assertIn(
                 "catalog,record_id,accessions,feature_count,tested_feature_count,"
-                "reported_feature_count,fdr_significant_feature_count,verification,state\n",
+                "reported_feature_count,ranked_feature_count,"
+                "additional_tracked_feature_count,tracked_feature_id_count,"
+                "fdr_significant_feature_count,verification,state\n",
                 stdout_csv.getvalue(),
             )
             self.assertIn("GSE141945", stdout_csv.getvalue())
@@ -124,7 +126,10 @@ class GeoReviewSummaryTests(unittest.TestCase):
         self.assertEqual(api_summary["catalogs"], cli_summary["catalogs"])
         self.assertEqual(api_summary["integrity"], cli_summary["integrity"])
         self.assertIn(
-            "catalog,record_id,accessions,feature_count,tested_feature_count,reported_feature_count,fdr_significant_feature_count,verification,state\n",
+            "catalog,record_id,accessions,feature_count,tested_feature_count,"
+            "reported_feature_count,ranked_feature_count,"
+            "additional_tracked_feature_count,tracked_feature_id_count,"
+            "fdr_significant_feature_count,verification,state\n",
             ledger_csv,
         )
         self.assertIn("paired_count_analyses", ledger_csv)
@@ -165,6 +170,7 @@ class GeoReviewSummaryTests(unittest.TestCase):
                 )
             )
             summary = build_geo_review_summary(workspace)
+            ledger_rows = build_geo_review_ledger(workspace, verify_reports=False)
 
         catalog = summary["catalogs"]["paired_count_sensitivity_comparisons"]
         self.assertEqual(catalog["reported_feature_count_total"], 4)
@@ -178,6 +184,30 @@ class GeoReviewSummaryTests(unittest.TestCase):
         self.assertEqual(consistency["reported_feature_count_total"], expected_reported)
         self.assertEqual(consistency["ranked_feature_count_total"], expected_reported)
         self.assertEqual(consistency["additional_tracked_feature_count_total"], 0)
+        ledger_by_catalog = {
+            row["catalog"]: row
+            for row in ledger_rows
+            if row["catalog"] in {
+                "paired_count_comparisons",
+                "paired_count_sensitivity_comparisons",
+            }
+        }
+        self.assertEqual(
+            ledger_by_catalog["paired_count_comparisons"]["reported_feature_count"],
+            expected_reported,
+        )
+        self.assertEqual(
+            ledger_by_catalog["paired_count_sensitivity_comparisons"][
+                "ranked_feature_count"
+            ],
+            2,
+        )
+        self.assertEqual(
+            ledger_by_catalog["paired_count_sensitivity_comparisons"][
+                "additional_tracked_feature_count"
+            ],
+            2,
+        )
 
     def test_ledger_is_aggregate_only_and_can_skip_reopen(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -189,6 +219,7 @@ class GeoReviewSummaryTests(unittest.TestCase):
 
         self.assertIn("paired_count_analyses", ledger)
         self.assertIn("GSE141945", ledger)
+        self.assertIn(",4,4,0,0,", ledger)
         self.assertIn(",not_requested,cataloged\n", ledger)
         self.assertNotIn("PRIVATE_SUBJECT_", ledger)
         self.assertNotIn("sample_ids", ledger)

@@ -184,6 +184,9 @@ sample selections remain in the explicit reproducibility JSON export. See
 catalog and HTTP contracts. Saved expression contrasts can also be compared by
 catalog ID into immutable `geo-consistency-*` records with paged, aggregate-only
 direction review and CSV export.
+The archive-health ledger CSV also exposes per-record ranked rows, explicitly tracked
+rows, and tracked source-ID slot counts so bounded coverage can be audited without
+opening raw matrices.
 
 For the single-feature `geo-count-outlier` and paired `geo-count-contrast`
 workflows, manually reviewed identifiers can be added with

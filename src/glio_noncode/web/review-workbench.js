@@ -584,7 +584,7 @@
     body.replaceChildren();
     for (const catalog of catalogs) {
       const row = document.createElement("tr");
-      row.append(cell(catalog.name), cell(formatCount(catalog.record_count)), cell(formatCount(catalog.verified_record_count)), cell(formatCount(catalog.feature_count_total)), cell(formatCount(catalog.tested_feature_count_total)), cell(formatCount(catalog.fdr_significant_feature_count_total)), cell(formatCount(catalog.accession_count)), cell(catalog.catalog_state));
+      row.append(cell(catalog.name), cell(formatCount(catalog.record_count)), cell(formatCount(catalog.verified_record_count)), cell(formatCount(catalog.feature_count_total)), cell(formatCount(catalog.tested_feature_count_total)), cell(formatCount(catalog.reported_feature_count_total)), cell(`${formatCount(catalog.ranked_feature_count_total)} + ${formatCount(catalog.additional_tracked_feature_count_total)} (${formatCount(catalog.tracked_feature_id_count_total)} IDs)`), cell(formatCount(catalog.fdr_significant_feature_count_total)), cell(formatCount(catalog.accession_count)), cell(catalog.catalog_state));
       body.append(row);
     }
     const limitations = $("geo-review-limitations");
