@@ -61,6 +61,7 @@ class ExpressionScale(StrEnum):
     VST = "vst"
     RLOG = "rlog"
     VOOM = "voom"
+    NORMALIZED_INTENSITY = "normalized_intensity"
     RAW_COUNT = "raw_count"
 
     @property

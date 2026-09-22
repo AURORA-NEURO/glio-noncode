@@ -61,6 +61,14 @@ probability. See the [case and expression workflow](docs/CASE_EXPRESSION_WORKFLO
 for exact Python, CLI, and HTTP request shapes, identity and provenance semantics,
 fail-closed gates, privacy boundaries, and a reproducible walkthrough.
 
+For a direct analysis of a public NCBI GEO Series Matrix, the focused
+geo-outlier command fetches bounded data and compares one selected feature in
+one target sample with an explicitly filtered reference group. See
+docs/GEO_EXPRESSION_WORKFLOW.md for the real GSE103227 example, local-file mode,
+provenance fields, resource limits, and interpretation boundaries.
+
+    glio-noncode geo-outlier GSE103227 --feature-id ASHGA5P000001 --target-sample GSM2758529 --reference-filter diagnosis=normal --scale normalized_intensity
+
 Package-root exports resolve lazily, and help, version, discovery, `case`,
 `expression`, and report commands stay on focused startup paths. The curated
 root surface includes the typed quality evaluator/report contracts, adapter
