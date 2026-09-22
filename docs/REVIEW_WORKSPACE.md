@@ -47,7 +47,13 @@ shows a per-catalog ledger of records, verified objects, feature-row totals,
 accession counts, and state. Its aggregate-only JSON export is
 `GET /v1/geo-review/summary`; the CLI equivalent is
 `glio-noncode geo-review-summary --data-root .glio`. These counts are catalog
-summaries and are not deduplicated across studies or comparisons.
+summaries and are not deduplicated across studies or comparisons. The
+row-level, aggregate-only health ledger is available as
+`GET /v1/geo-review/summary.csv?verify_reports=true`. It contains one row per
+saved analysis or comparison, the public GEO accession(s), bounded feature
+counts, and verification state. The CSV never contains sample, subject, pair,
+raw matrix, agent, or language metadata. The workbench exposes it as
+`Download health ledger` after archive health has been opened.
 
 Feature pages accept bounded aggregate filters before pagination:
 `feature_contains` performs case-insensitive source-label matching,

@@ -619,10 +619,11 @@
       link.setAttribute("aria-disabled", "false");
       link.removeAttribute("target");
       link.removeAttribute("rel");
-      csvLink.href = "#";
-      csvLink.hidden = true;
-      csvLink.classList.add("disabled");
-      csvLink.setAttribute("aria-disabled", "true");
+      csvLink.href = "/v1/geo-review/summary.csv?verify_reports=true";
+      csvLink.textContent = "Download health ledger";
+      csvLink.hidden = false;
+      csvLink.classList.remove("disabled");
+      csvLink.setAttribute("aria-disabled", "false");
       return;
     }
     if (model.activeView === "geo-expression-consistency" && model.geoExpressionConsistency?.comparison_id) {

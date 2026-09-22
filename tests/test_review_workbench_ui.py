@@ -65,6 +65,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("/v1/geo-count-consistency", javascript)
         self.assertIn("/v1/geo-expression-analyses", javascript)
         self.assertIn("/v1/geo-review/summary", javascript)
+        self.assertIn("/v1/geo-review/summary.csv?verify_reports=true", javascript)
+        self.assertIn("Download health ledger", javascript)
         self.assertIn("geo-review-summary.v1", javascript)
         self.assertIn("function openGeoReview()", javascript)
         self.assertIn("geo-expression-analysis-page.v1", javascript)
@@ -220,7 +222,12 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("request !== model.geoConsistencyListRequest", script)
         self.assertIn("request !== model.sequenceListRequest", script)
         self.assertIn(
-            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])",
+            (
+                "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), "
+                "loadGeoReviewSummary(), loadGeoExpressionAnalyses(), "
+                "loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), "
+                "loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])"
+            ),
             script,
         )
 

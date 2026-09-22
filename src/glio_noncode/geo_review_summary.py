@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import csv
+import io
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -16,6 +18,16 @@ from .serialization import content_hash
 GEO_REVIEW_SUMMARY_SCHEMA = "glio-noncode.geo-review-summary.v1"
 MAX_GEO_REVIEW_RECORDS = 10_000
 CATALOG_PAGE_SIZE = 20
+GEO_REVIEW_LEDGER_COLUMNS = (
+    "catalog",
+    "record_id",
+    "accessions",
+    "feature_count",
+    "tested_feature_count",
+    "fdr_significant_feature_count",
+    "verification",
+    "state",
+)
 
 
 def _catalog_rows(store: Any) -> list[dict[str, Any]]:
@@ -100,6 +112,136 @@ def _catalog_projection(
     return projection, failures
 
 
+def _catalog_ledger(
+    *,
+    name: str,
+    store: Any,
+    identifier_key: str,
+    feature_key: str,
+    tested_key: str | None,
+    fdr_key: str | None,
+    verify_reports: bool,
+) -> tuple[list[dict[str, Any]], int]:
+    """Return one bounded, public ledger row for every catalog record."""
+
+    rows = _catalog_rows(store)
+    ledger: list[dict[str, Any]] = []
+    failures = 0
+    for row in rows:
+        identifier = row.get(identifier_key)
+        accession_values = _accessions([row])
+        verification = "not_requested"
+        state = "review"
+        if type(identifier) is not str or not identifier:
+            failures += 1
+            verification = "invalid"
+        elif verify_reports:
+            try:
+                store.get_report(identifier)
+            except (KeyError, OSError, StoreError, ValidationError, ValueError):
+                failures += 1
+                verification = "failed"
+            else:
+                verification = "verified"
+                state = "verified"
+        else:
+            state = "cataloged"
+        ledger.append(
+            {
+                "catalog": name,
+                "record_id": identifier if type(identifier) is str else "",
+                "accessions": ",".join(accession_values),
+                "feature_count": _number(row, feature_key),
+                "tested_feature_count": (
+                    _number(row, tested_key) if tested_key is not None else 0
+                ),
+                "fdr_significant_feature_count": (
+                    _number(row, fdr_key) if fdr_key is not None else 0
+                ),
+                "verification": verification,
+                "state": state,
+            }
+        )
+    return ledger, failures
+
+
+def build_geo_review_ledger(
+    root: str | Path,
+    *,
+    verify_reports: bool = True,
+) -> list[dict[str, Any]]:
+    """Build the row-level aggregate ledger used by CSV export."""
+
+    if type(verify_reports) is not bool:
+        raise ValidationError("GEO review report verification flag must be boolean")
+    specifications = (
+        {
+            "name": "paired_count_analyses",
+            "store": GeoAnalysisStore(root),
+            "identifier_key": "analysis_id",
+            "feature_key": "feature_row_count",
+            "tested_key": "tested_feature_count",
+            "fdr_key": "fdr_significant_feature_count",
+        },
+        {
+            "name": "expression_analyses",
+            "store": GeoExpressionAnalysisStore(root),
+            "identifier_key": "analysis_id",
+            "feature_key": "feature_count",
+            "tested_key": "tested_feature_count",
+            "fdr_key": "fdr_significant_feature_count",
+        },
+        {
+            "name": "paired_count_comparisons",
+            "store": GeoCountConsistencyStore(root),
+            "identifier_key": "comparison_id",
+            "feature_key": "feature_count",
+            "tested_key": None,
+            "fdr_key": None,
+        },
+        {
+            "name": "expression_comparisons",
+            "store": GeoExpressionConsistencyStore(root),
+            "identifier_key": "comparison_id",
+            "feature_key": "feature_count",
+            "tested_key": None,
+            "fdr_key": None,
+        },
+    )
+    ledger: list[dict[str, Any]] = []
+    for specification in specifications:
+        rows, _ = _catalog_ledger(
+            name=specification["name"],
+            store=specification["store"],
+            identifier_key=specification["identifier_key"],
+            feature_key=specification["feature_key"],
+            tested_key=specification["tested_key"],
+            fdr_key=specification["fdr_key"],
+            verify_reports=verify_reports,
+        )
+        ledger.extend(rows)
+    return ledger
+
+
+def geo_review_ledger_csv(
+    root: str | Path,
+    *,
+    verify_reports: bool = True,
+) -> str:
+    """Serialize the aggregate GEO ledger without private or raw data fields."""
+
+    output = io.StringIO(newline="")
+    writer = csv.DictWriter(
+        output,
+        fieldnames=list(GEO_REVIEW_LEDGER_COLUMNS),
+        extrasaction="ignore",
+        lineterminator="\n",
+    )
+    writer.writeheader()
+    writer.writerows(build_geo_review_ledger(root, verify_reports=verify_reports))
+    return output.getvalue()
+
+
 def build_geo_review_summary(
     root: str | Path,
     *,
@@ -169,12 +311,27 @@ def build_geo_review_summary(
             "verification_failure_count": failures,
         },
         "limitations": [
-            "This is an archive-health projection, not a statistical reanalysis or scientific conclusion.",
-            "Counts are sums of catalog summaries and are not deduplicated across studies or comparisons.",
-            "Sample, subject, pair, and raw matrix identifiers are never included in this projection.",
+            (
+                "This is an archive-health projection, not a statistical reanalysis "
+                "or scientific conclusion."
+            ),
+            (
+                "Counts are sums of catalog summaries and are not deduplicated across "
+                "studies or comparisons."
+            ),
+            (
+                "Sample, subject, pair, and raw matrix identifiers are never included "
+                "in this projection."
+            ),
         ],
     }
     return body | {"content_address": content_hash(body, prefix="geo-review-summary")}
 
 
-__all__ = ["GEO_REVIEW_SUMMARY_SCHEMA", "build_geo_review_summary"]
+__all__ = [
+    "GEO_REVIEW_LEDGER_COLUMNS",
+    "GEO_REVIEW_SUMMARY_SCHEMA",
+    "build_geo_review_ledger",
+    "build_geo_review_summary",
+    "geo_review_ledger_csv",
+]

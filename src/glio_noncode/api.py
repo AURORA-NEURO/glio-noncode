@@ -26095,9 +26095,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
-        if path == "/v1/geo-review/summary":
+        if path in {"/v1/geo-review/summary", "/v1/geo-review/summary.csv"}:
             try:
-                from .geo_review_summary import build_geo_review_summary
+                from .geo_review_summary import (
+                    build_geo_review_summary,
+                    geo_review_ledger_csv,
+                )
 
                 query = parse_qs(parsed.query, keep_blank_values=False)
                 unknown = set(query) - {"verify_reports"}
@@ -26106,11 +26109,27 @@ class ApiHandler(BaseHTTPRequestHandler):
                         f"GEO review summary has unknown query parameters: {sorted(unknown)}"
                     )
                 verify_reports = self._query_optional_bool(query, "verify_reports")
+                should_verify = True if verify_reports is None else verify_reports
+                if path == "/v1/geo-review/summary.csv":
+                    self._write_bytes(
+                        HTTPStatus.OK,
+                        geo_review_ledger_csv(
+                            self._runtime().store.root,
+                            verify_reports=should_verify,
+                        ).encode("utf-8"),
+                        content_type="text/csv; charset=utf-8",
+                        headers={
+                            "Content-Disposition": (
+                                'attachment; filename="GLIO-NONCODE-geo-review-ledger.csv"'
+                            )
+                        },
+                    )
+                    return
                 self._write(
                     HTTPStatus.OK,
                     build_geo_review_summary(
                         self._runtime().store.root,
-                        verify_reports=True if verify_reports is None else verify_reports,
+                        verify_reports=should_verify,
                     ),
                 )
             except (ValidationError, ValueError) as exc:
