@@ -5,7 +5,8 @@
   const model = {
     runs: [], total: 0, selected: null, baseline: "", report: null, hypothesis: null,
     geoAnalyses: [], geoTotal: 0, selectedGeo: null, geoPage: null, geoResults: [], geoReviewSummary: null, geoReviewRequest: 0, geoReviewViewRequest: 0,
-    geoPreflights: [], geoPreflightTotal: 0, selectedGeoPreflight: null, geoPreflightReport: null, geoPreflightListRequest: 0, geoPreflightRequest: 0,
+    geoPreflights: [], geoPreflightTotal: 0, geoPreflightHasMore: false, selectedGeoPreflight: null, geoPreflightReport: null, geoPreflightListRequest: 0, geoPreflightRequest: 0, geoPreflightFilterTimer: null,
+    geoPreflightFilters: { accession: "", kind: "" },
     geoExpressionAnalyses: [], geoExpressionTotal: 0, selectedGeoExpression: null, geoExpressionPage: null, geoExpressionResults: [],
     geoExpressionCompareIds: [], geoExpressionConsistency: null, geoExpressionConsistencyRequest: 0,
     geoExpressionConsistencyRecords: [], geoExpressionConsistencyTotal: 0, selectedGeoExpressionConsistency: null, geoExpressionConsistencyListRequest: 0,
@@ -116,7 +117,9 @@
     const list = $("geo-preflight-list");
     list.replaceChildren();
     $("geo-preflight-count").textContent = String(model.geoPreflightTotal);
-    $("geo-preflight-list-summary").textContent = `Showing ${model.geoPreflights.length} of ${model.geoPreflightTotal} saved preparation preflights.`;
+    const filterText = [model.geoPreflightFilters.accession && `accession ${model.geoPreflightFilters.accession}`, model.geoPreflightFilters.kind && consistencyText(model.geoPreflightFilters.kind)].filter(Boolean).join(" · ");
+    $("geo-preflight-list-summary").textContent = `Showing ${model.geoPreflights.length} of ${model.geoPreflightTotal} saved preparation preflights${filterText ? ` · ${filterText}` : ""}.`;
+    $("geo-preflight-load-more").hidden = !model.geoPreflightHasMore;
     if (!model.geoPreflights.length) {
       list.append(element("p", "empty-inline", "No saved GEO preflights yet."));
       return;
@@ -441,26 +444,25 @@
     }
   }
 
-  async function loadGeoPreflights() {
+  async function loadGeoPreflights(append = false) {
     const request = model.geoPreflightListRequest = (model.geoPreflightListRequest || 0) + 1;
     try {
-      const page = await getJson("/v1/geo-preflights?limit=50&offset=0");
+      const offset = append ? model.geoPreflights.length : 0;
+      const page = await getJson(`/v1/geo-preflights?${geoPreflightQuery(offset)}`);
       if (request !== model.geoPreflightListRequest) return;
-      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) {
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count) || page.offset !== offset || typeof page.has_more !== "boolean") {
         throw new Error("The local API returned an invalid GEO preflight catalog.");
       }
       model.geoPreflightTotal = page.total_count;
-      model.geoPreflights = page.rows;
+      model.geoPreflightHasMore = page.has_more;
+      model.geoPreflights = append ? model.geoPreflights.concat(page.rows) : page.rows;
       renderGeoPreflights();
-      if (model.activeView === "geo-preflight" && model.selectedGeoPreflight) {
-        if (model.geoPreflights.some((item) => item.preflight_id === model.selectedGeoPreflight)) {
-          await openGeoPreflight(model.selectedGeoPreflight);
-        } else {
-          showEmpty("No saved GEO preflight", "The previously selected preparation report is no longer present in the local catalog.");
-        }
+      if (!append && model.activeView === "geo-preflight" && model.selectedGeoPreflight && model.geoPreflights.some((item) => item.preflight_id === model.selectedGeoPreflight)) {
+        await openGeoPreflight(model.selectedGeoPreflight);
       }
     } catch (error) {
       if (request !== model.geoPreflightListRequest) return;
+      model.geoPreflightHasMore = false;
       $("geo-preflight-list").replaceChildren(element("p", "empty-inline", "GEO preflights could not be loaded."));
       $("geo-preflight-list-summary").textContent = "The local API could not verify the GEO preflight catalog.";
       notice(error.message, true);
@@ -852,6 +854,21 @@
     if (filters.fdr_significant) params.set("fdr_significant", "true");
     if (filters.sign_test_fdr_significant) params.set("sign_test_fdr_significant", "true");
     return params.toString();
+  }
+
+  function geoPreflightQuery(offset) {
+    const params = new URLSearchParams({ limit: "50", offset: String(offset) });
+    if (model.geoPreflightFilters.accession) params.set("accession", model.geoPreflightFilters.accession);
+    if (model.geoPreflightFilters.kind) params.set("kind", model.geoPreflightFilters.kind);
+    return params.toString();
+  }
+
+  function reloadGeoPreflights() {
+    if (model.geoPreflightFilterTimer !== null) clearTimeout(model.geoPreflightFilterTimer);
+    model.geoPreflightFilterTimer = setTimeout(() => {
+      model.geoPreflightFilterTimer = null;
+      loadGeoPreflights();
+    }, 180);
   }
 
   function geoResultQuery(offset) {
@@ -1939,6 +1956,15 @@
   });
   $("geo-load-more-analyses").addEventListener("click", () => loadGeoAnalyses(true));
   $("geo-review-open").addEventListener("click", openGeoReview);
+  $("geo-preflight-accession-filter").addEventListener("input", (event) => {
+    model.geoPreflightFilters.accession = event.currentTarget.value.trim();
+    reloadGeoPreflights();
+  });
+  $("geo-preflight-kind-filter").addEventListener("change", (event) => {
+    model.geoPreflightFilters.kind = event.currentTarget.value;
+    reloadGeoPreflights();
+  });
+  $("geo-preflight-load-more").addEventListener("click", () => loadGeoPreflights(true));
 
   $("geo-load-more").addEventListener("click", () => {
     if (model.selectedGeo) openGeoAnalysis(model.selectedGeo, { append: true });

@@ -65,9 +65,10 @@ Their bounded catalog rows identify the preflight kind, GEO accession, source
 digest, sample/feature counts, and selected design metrics; full reports remain
 explicit exports from `GET /v1/geo-preflights/{preflight_id}/report.json`.
 List them with `GET /v1/geo-preflights?kind=contrast_design&accession=GSE141945`.
-The browser workbench renders these saved rows in a preparation rail and opens
-a verified aggregate detail view; it keeps sample identifiers and pair-level
-detail outside the browser projection.
+The browser workbench renders these saved rows in a preparation rail, supports
+accession/kind filters and bounded loading, and opens a verified aggregate
+detail view; it keeps sample identifiers and pair-level detail outside the
+browser projection.
 The archive-health summary and CSV ledger verify these preflights alongside
 the final analysis and cross-study comparison catalogs.
 
