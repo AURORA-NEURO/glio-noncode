@@ -22,6 +22,7 @@ Focused commands:
   geo-outlier          compare one GEO expression feature with explicit references
   geo-count-outlier    compare a gene row across a GEO supplementary count matrix
   geo-count-contrast   compare paired groups across a GEO supplementary count matrix
+  geo-count-consistency compare exact feature directions across saved paired GEO contrasts
   geo-count-design     preflight a paired GEO count design without testing features
   geo-count-metadata   inspect GEO supplementary count-matrix sample metadata
   reference-block-query query one sample's gVCF reference-confidence intervals
@@ -30,6 +31,10 @@ Focused commands:
   geo-design           check GEO cohort selection and contrast estimability
   geo-consistency      compare tested and FDR-significant directions across GEO contrasts
   geo-contrast         screen GEO groups, optionally joining platform annotations
+  sequence-haplotype    analyze explicitly phased sequence and motif changes
+  sequence-files        analyze a downloaded FASTA window and phased VCF calls
+  sequence-batch        aggregate motif changes across phased sequence inputs
+  sequence-batch-compare compare motif prevalence across two sequence batches
   verify-release-evidence  verify a portable release-evidence ZIP
   report-capabilities  inspect supported report audiences, formats, and limits
   assessment-capabilities  inspect verified-run assessment contracts and limits
@@ -311,6 +316,10 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_geo").count_main(command_argv)
     if command == "geo-count-contrast":
         return importlib.import_module(f"{__package__}._cli_geo_count_contrast").main(command_argv)
+    if command == "geo-count-consistency":
+        return importlib.import_module(f"{__package__}._cli_geo_count_consistency").main(
+            command_argv
+        )
     if command == "geo-count-design":
         return importlib.import_module(f"{__package__}._cli_geo_count_contrast").design_main(
             command_argv
@@ -327,6 +336,14 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_geo_consistency").main(command_argv)
     if command == "geo-contrast":
         return importlib.import_module(f"{__package__}._cli_geo_contrast").main(command_argv)
+    if command == "sequence-haplotype":
+        return importlib.import_module(f"{__package__}._cli_sequence").main(command_argv)
+    if command == "sequence-files":
+        return importlib.import_module(f"{__package__}._cli_sequence_files").main(command_argv)
+    if command == "sequence-batch":
+        return importlib.import_module(f"{__package__}._cli_sequence_batch").main(command_argv)
+    if command == "sequence-batch-compare":
+        return importlib.import_module(f"{__package__}._cli_sequence_batch_compare").main(command_argv)
     if command == "verify-release-evidence":
         return importlib.import_module(f"{__package__}._cli_evidence").main(command_argv)
     if command in {

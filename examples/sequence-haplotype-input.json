@@ -1,0 +1,39 @@
+{
+  "schema": "glio-noncode.sequence-haplotype-input.v1",
+  "genome_build": "GRCh38",
+  "sequence": {
+    "assembly": "GRCh38",
+    "chromosome": "chr7",
+    "start": 100,
+    "end": 111,
+    "sequence": "AACCGGTTAACC",
+    "source_id": "SRC-UCSC-REST",
+    "source_url": "https://api.example/sequence",
+    "source_version": "fixture-1",
+    "retrieved_at": "2026-08-20T00:00:00+00:00"
+  },
+  "variants": [
+    {
+      "notation": "7:103:C>T",
+      "variant_id": "snv-1",
+      "sample_id": "fixture-sample",
+      "phase_set": "phase-1",
+      "haplotype_index": 1
+    },
+    {
+      "notation": "7:104:G>A",
+      "variant_id": "snv-2",
+      "sample_id": "fixture-sample",
+      "phase_set": "phase-1",
+      "haplotype_index": 1
+    }
+  ],
+  "motifs": [
+    {
+      "motif_id": "joint",
+      "name": "jointly-created motif",
+      "pattern": "CTAG",
+      "source_id": "motif-fixture"
+    }
+  ]
+}

@@ -27,7 +27,7 @@
       <section class="toolbar" aria-label="Run filters">
         <label><span class="control-label">Find a run</span><input id="run-search" type="search" autocomplete="off" placeholder="Run ID, case ID, or status"></label>
         <label><span class="control-label">Compare against</span><select id="baseline-select"><option value="">No baseline</option></select></label>
-        <a id="markdown-export" class="button outline disabled" href="#" aria-disabled="true">Export review</a>
+        <a id="markdown-export" class="button outline disabled" href="#" aria-disabled="true">Export review</a><a id="geo-csv-export" class="button outline disabled" href="#" aria-disabled="true" hidden>Download filtered CSV</a>
       </section>
       <div class="layout">
         <aside class="run-rail panel" aria-labelledby="runs-heading">
@@ -42,6 +42,19 @@
           <nav id="geo-analysis-list" class="run-list geo-analysis-list" aria-label="Saved GEO analyses"></nav>
           <button id="geo-load-more-analyses" class="button quiet load-more" type="button" hidden>Load more analyses</button>
           <p class="rail-note">Aggregate cohort results are separate from case dossiers and do not imply causal or patient-level findings.</p>
+          <section class="geo-compare-controls" aria-labelledby="geo-compare-heading">
+            <div class="section-head"><div><p class="eyebrow">Cross-study check</p><h3 id="geo-compare-heading">Compare saved analyses</h3></div></div>
+            <p class="small muted">Select at least two studies and enter exact source feature IDs. Comparisons keep each study's aggregate statistics separate.</p>
+            <div id="geo-compare-selection" class="geo-compare-selection"></div>
+            <label><span class="control-label">Feature IDs</span><textarea id="geo-consistency-features" rows="3" spellcheck="false" placeholder="SIGNAL&#10;INFLUENTIAL"></textarea></label>
+            <button id="geo-compare-button" class="button quiet" type="button" disabled>Compare exact IDs</button>
+            <p id="geo-compare-status" class="small muted" role="status" aria-live="polite">Choose two saved analyses to begin.</p>
+          </section>
+          <div class="rail-divider"></div>
+          <div class="section-head"><div><p class="eyebrow">Reference-window studies</p><h2 id="sequence-heading">Sequence analyses</h2></div><span id="sequence-count" class="count">—</span></div>
+          <p id="sequence-list-summary" class="muted small">Loading saved sequence analyses…</p>
+          <nav id="sequence-analysis-list" class="run-list sequence-analysis-list" aria-label="Saved sequence analyses"></nav>
+          <p class="rail-note">Phased sequence reports retain hashes and motif changes, not raw bases or sample identifiers.</p>
         </aside>
         <section class="workspace" aria-label="Selected run review">
           <div id="empty-state" class="empty-state panel"><span class="empty-mark" aria-hidden="true">G</span><p class="eyebrow">Ready when you are</p><h2 id="empty-title">Select a case run</h2><p id="empty-copy">Choose a saved run to inspect candidate paths, edge-level evidence, alternatives, and provenance.</p></div>
@@ -77,8 +90,32 @@
               <article class="metric panel"><span>Sign-test FDR</span><strong id="geo-metric-sign">—</strong><small>Direction-only sensitivity</small></article>
             </section>
             <section class="panel block"><div class="section-head"><div><p class="eyebrow">Study design & lineage</p><h2>Analysis provenance</h2></div><span id="geo-normalization" class="quiet-tag">—</span></div><div id="geo-provenance" class="geo-provenance"></div><p class="section-note">This cohort-level screen is exploratory. It is not patient-specific variant evidence, a causal result, a diagnosis, or treatment guidance.</p></section>
-            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Reported feature rows</p><h2>Feature results</h2></div><span id="geo-result-count" class="quiet-tag">—</span></div><div class="table-scroll"><table><thead><tr><th>Source feature</th><th>Effect direction</th><th>Median Δ log₂ CPM</th><th>Signed-rank q</th><th>Sign-test q</th><th>Pairs higher / lower / tie</th></tr></thead><tbody id="geo-results-table"></tbody></table></div><p class="section-note">Source feature labels are preserved exactly as supplied. Labels marked “Review source label” may have been transformed by spreadsheet software and require annotation review.</p><button id="geo-load-more" class="button quiet load-more" type="button" hidden>Load more features</button></section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Reported feature rows</p><h2>Feature results</h2></div><span id="geo-result-count" class="quiet-tag">—</span></div><div class="geo-result-filters" aria-label="GEO feature filters"><label><span class="control-label">Find source feature</span><input id="geo-feature-filter" type="search" autocomplete="off" placeholder="e.g. EGFR or enhancer"></label><label><span class="control-label">Mean direction</span><select id="geo-direction-filter"><option value="">All directions</option><option value="case_higher">Case higher</option><option value="case_lower">Case lower</option><option value="no_mean_difference">No mean difference</option></select></label><label><span class="control-label">Minimum |median effect|</span><input id="geo-effect-filter" type="number" min="0" step="0.001" inputmode="decimal" placeholder="e.g. 0.5"></label><label class="check-control"><input id="geo-fdr-filter" type="checkbox"><span>Signed-rank FDR significant</span></label><label class="check-control"><input id="geo-sign-filter" type="checkbox"><span>Sign-test FDR significant</span></label></div><div class="table-scroll"><table><thead><tr><th>Source feature</th><th>Effect direction</th><th>Median Δ log₂ CPM</th><th>Signed-rank q</th><th>Sign-test q</th><th>Pairs higher / lower / tie</th></tr></thead><tbody id="geo-results-table"></tbody></table></div><p class="section-note">Source feature labels are preserved exactly as supplied. Labels marked “Review source label” may have been transformed by spreadsheet software and require annotation review. Filters apply to aggregate report rows before pagination.</p><button id="geo-load-more" class="button quiet load-more" type="button" hidden>Load more features</button></section>
             <section class="two-col"><section class="panel block"><div class="section-head"><div><p class="eyebrow">Interpretation limits</p><h2>What this screen does not establish</h2></div></div><div id="geo-limitations" class="stack"></div></section><section class="panel block"><div class="section-head"><div><p class="eyebrow">Input quality</p><h2>Matrix checks</h2></div></div><div id="geo-quality" class="stack"></div></section></section>
+          </div>
+          <div id="geo-consistency-view" hidden>
+            <section class="run-header panel"><div><p class="eyebrow">GEO cross-study direction consistency · aggregate research report</p><h2>Saved paired-count comparison</h2><p id="geo-consistency-subtitle" class="muted small">—</p></div><div class="run-status"><span class="state-pill">Verified comparison</span><span id="geo-consistency-address" class="address">—</span></div></section>
+            <section class="metrics" aria-label="GEO consistency summary">
+              <article class="metric panel"><span>Studies compared</span><strong id="geo-consistency-studies">—</strong><small>Distinct saved reports</small></article>
+              <article class="metric panel"><span>Features requested</span><strong id="geo-consistency-features-count">—</strong><small>Exact source IDs</small></article>
+              <article class="metric panel"><span>Concordant</span><strong id="geo-consistency-concordant">—</strong><small>Among tested reports</small></article>
+              <article class="metric panel"><span>Discordant</span><strong id="geo-consistency-discordant">—</strong><small>Among tested reports</small></article>
+            </section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Comparison contract</p><h2>Compatible study settings</h2></div><span id="geo-consistency-settings" class="quiet-tag">—</span></div><div id="geo-consistency-provenance" class="geo-provenance"></div><p class="section-note">Missing bounded rows remain “not reported”; they are never interpreted as negative or non-significant evidence.</p></section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Per-feature direction review</p><h2>Consistency results</h2></div><span id="geo-consistency-result-count" class="quiet-tag">—</span></div><div class="table-scroll"><table><thead><tr><th>Source feature</th><th>Tested directions</th><th>Direction consistency</th><th>Signed-rank FDR</th><th>Sign-test FDR</th><th>Study observations</th></tr></thead><tbody id="geo-consistency-table"></tbody></table></div></section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Interpretation limits</p><h2>What cross-study consistency does not establish</h2></div></div><div id="geo-consistency-limitations" class="stack"></div></section>
+          </div>
+          <div id="sequence-analysis-view" hidden>
+            <section class="run-header panel"><div><p class="eyebrow">Phased sequence and motif analysis · aggregate report</p><h2 id="sequence-title">—</h2><p id="sequence-subtitle" class="muted small">—</p></div><div class="run-status"><span id="sequence-state" class="state-pill">—</span><span id="sequence-report-address" class="address">—</span></div></section>
+            <section class="metrics" aria-label="Sequence analysis summary">
+              <article class="metric panel"><span>Variants</span><strong id="sequence-metric-variants">—</strong><small>Explicitly phased calls</small></article>
+              <article class="metric panel"><span>Motifs supplied</span><strong id="sequence-metric-motifs">—</strong><small>Curated definitions</small></article>
+              <article class="metric panel"><span>Created hits</span><strong id="sequence-metric-created">—</strong><small>Reference → haplotype</small></article>
+              <article class="metric panel"><span>Disrupted hits</span><strong id="sequence-metric-disrupted">—</strong><small>Haplotype → reference</small></article>
+            </section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Source and phase</p><h2>Analysis provenance</h2></div><span id="sequence-source-version" class="quiet-tag">—</span></div><div id="sequence-provenance" class="geo-provenance"></div><p class="section-note">This projection keeps source and sequence hashes plus caller-provided phase metadata. Raw bases and sample IDs remain outside the saved report.</p></section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Motif deltas</p><h2>Created and disrupted patterns</h2></div><span id="sequence-change-count" class="quiet-tag">—</span></div><div class="table-scroll"><table><thead><tr><th>Change</th><th>Motif</th><th>Matched sequence</th><th>Strand</th><th>Variant IDs</th><th>Reference interval</th></tr></thead><tbody id="sequence-changes-table"></tbody></table></div></section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Interpretation limits</p><h2>What sequence-only analysis does not establish</h2></div></div><div id="sequence-limitations" class="stack"></div></section>
           </div>
         </section>
       </div>

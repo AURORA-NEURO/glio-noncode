@@ -19616,6 +19616,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'compare paired groups across a GEO supplementary count matrix',
     ),
     (
+        'geo-count-consistency',
+        'compare exact feature directions across saved paired GEO contrasts',
+    ),
+    (
         'geo-count-design',
         'preflight paired GEO count-matrix joins without feature tests',
     ),
@@ -19642,6 +19646,22 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
     (
         'geo-qc',
         'summarize sample coverage and matrix quality before analysis',
+    ),
+    (
+        'sequence-haplotype',
+        'analyze explicitly phased sequence and motif changes',
+    ),
+    (
+        'sequence-files',
+        'analyze a downloaded FASTA window and explicitly phased VCF calls',
+    ),
+    (
+        'sequence-batch',
+        'aggregate motif changes across phased sequence inputs',
+    ),
+    (
+        'sequence-batch-compare',
+        'compare motif prevalence across two sequence batches',
     ),
     (
         'reference-block-query',

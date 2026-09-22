@@ -35,6 +35,23 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("function announceSelection(text)", javascript)
         self.assertIn("GEO analysis ${page.summary.accession} opened.", javascript)
         self.assertIn("Case run ${run?.case_id || runId} opened.", javascript)
+        self.assertIn("feature_contains", javascript)
+        self.assertIn("fdr_significant", javascript)
+        self.assertIn("min_abs_median_effect", javascript)
+        self.assertIn("results.csv", javascript)
+        self.assertIn("geoFilterTimer", javascript)
+        self.assertIn("geo-result-filters", html)
+        self.assertIn('id="geo-compare-selection"', html)
+        self.assertIn('id="geo-consistency-features"', html)
+        self.assertIn('id="geo-consistency-view"', html)
+        self.assertIn('id="sequence-analysis-list"', html)
+        self.assertIn('id="sequence-analysis-view"', html)
+        self.assertIn("/v1/geo-analyses/consistency?", javascript)
+        self.assertIn("/v1/sequence-analyses", javascript)
+        self.assertIn("sequence-haplotype-analysis.v1", javascript)
+        self.assertIn("result_state", javascript)
+        self.assertIn("Missing bounded rows remain", html)
+        self.assertIn("Compare exact IDs", html)
 
     def test_visible_workbench_text_has_a_readable_minimum_size(self) -> None:
         stylesheet = workbench_asset("/assets/review-workbench.css")
@@ -168,8 +185,9 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertGreaterEqual(script.count("request !== model.selectionRequest"), 4)
         self.assertIn("request !== model.runListRequest", script)
         self.assertIn("request !== model.geoListRequest", script)
+        self.assertIn("request !== model.sequenceListRequest", script)
         self.assertIn(
-            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true)])",
+            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadSequenceAnalyses()])",
             script,
         )
 

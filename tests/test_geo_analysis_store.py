@@ -51,6 +51,46 @@ class GeoAnalysisStoreTests(unittest.TestCase):
             self.assertNotIn("PRIVATE_TUMOR_", serialized)
             self.assertNotIn("PRIVATE_SUBJECT_", serialized)
 
+    def test_result_pages_support_bounded_aggregate_filters(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = GeoAnalysisStore(root / "workspace")
+            analysis_id = store.save(self._report(root))["analysis_id"]
+
+            feature_page = store.page_results(analysis_id, feature_contains="SIGN")
+            self.assertEqual(feature_page["total_results"], 1)
+            self.assertEqual(feature_page["results"][0]["feature_id"], "SIGNAL")
+            self.assertEqual(feature_page["filters"]["feature_contains"], "sign")
+
+            direction_page = store.page_results(analysis_id, effect_direction="case_higher")
+            self.assertTrue(direction_page["results"])
+            self.assertTrue(
+                all(item["effect_direction"] == "case_higher" for item in direction_page["results"])
+            )
+
+            significant_page = store.page_results(analysis_id, fdr_significant=False)
+            self.assertTrue(significant_page["results"])
+            self.assertTrue(
+                all(not item["fdr_significant"] for item in significant_page["results"])
+            )
+
+            magnitude_page = store.page_results(analysis_id, min_abs_median_effect=0.4)
+            self.assertTrue(magnitude_page["results"])
+            self.assertTrue(
+                all(
+                    abs(item["median_paired_difference_log2_cpm"]) >= 0.4
+                    for item in magnitude_page["results"]
+                )
+            )
+            self.assertEqual(magnitude_page["unfiltered_result_count"], 4)
+
+            with self.assertRaises(ValidationError):
+                store.page_results(analysis_id, effect_direction="unknown")
+            with self.assertRaises(ValidationError):
+                store.page_results(analysis_id, feature_contains="x" * 257)
+            with self.assertRaises(ValidationError):
+                store.page_results(analysis_id, min_abs_median_effect=-1.0)
+
     def test_report_integrity_and_individual_key_boundary_are_required(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -213,6 +253,41 @@ class GeoAnalysisStoreTests(unittest.TestCase):
                 self.assertEqual(page_response.status, 200)
                 self.assertEqual(len(page["results"]), 2)
                 self.assertNotIn("PRIVATE_SUBJECT_", json.dumps(page))
+
+                connection.request(
+                    "GET",
+                    f"/v1/geo-analyses/{record['analysis_id']}?feature_contains=SIGN"
+                    "&effect_direction=case_higher&limit=5",
+                )
+                filtered_response = connection.getresponse()
+                filtered_page = json.loads(filtered_response.read())
+                self.assertEqual(filtered_response.status, 200)
+                self.assertEqual(filtered_page["total_results"], 1)
+                self.assertEqual(filtered_page["results"][0]["feature_id"], "SIGNAL")
+
+                connection.request(
+                    "GET",
+                    f"/v1/geo-analyses/{record['analysis_id']}/results.csv"
+                    "?feature_contains=SIGN&effect_direction=case_higher",
+                )
+                csv_response = connection.getresponse()
+                csv_body = csv_response.read().decode("utf-8")
+                self.assertEqual(csv_response.status, 200)
+                self.assertTrue(csv_response.getheader("Content-Type", "").startswith("text/csv"))
+                self.assertIn("results.csv", csv_response.getheader("Content-Disposition", ""))
+                self.assertIn("feature_id", csv_body.splitlines()[0])
+                self.assertIn("SIGNAL", csv_body)
+                self.assertNotIn("PRIVATE_SUBJECT_", csv_body)
+
+                connection.request(
+                    "GET", f"/v1/geo-analyses/{record['analysis_id']}/results.csv?limit=1"
+                )
+                self.assertEqual(connection.getresponse().status, 400)
+
+                connection.request(
+                    "GET", f"/v1/geo-analyses/{record['analysis_id']}?fdr_significant=maybe"
+                )
+                self.assertEqual(connection.getresponse().status, 400)
 
                 expected_report = store.get_report(record["analysis_id"])["report"]
                 connection.request(

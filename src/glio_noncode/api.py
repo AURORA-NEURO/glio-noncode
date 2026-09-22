@@ -3694,6 +3694,12 @@ class ApiHandler(BaseHTTPRequestHandler):
         raise ValueError(f"query parameter {name} must be true or false")
 
     @classmethod
+    def _query_optional_bool(cls, query: dict[str, list[str]], name: str) -> bool | None:
+        if cls._query_value(query, name) is None:
+            return None
+        return cls._query_bool(query, name)
+
+    @classmethod
     def _query_int(cls, query: dict[str, list[str]], name: str, default: int) -> int:
         value = cls._query_value(query, name)
         if value is None:
@@ -25516,6 +25522,144 @@ class ApiHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
+        if path == "/v1/sequence-analyses" or path.startswith("/v1/sequence-analyses/"):
+            try:
+                from .sequence_haplotype_store import SequenceHaplotypeStore
+
+                store = SequenceHaplotypeStore(self._runtime().store.root)
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path == "/v1/sequence-analyses":
+                    unknown = set(query) - {"offset", "limit"}
+                    if unknown:
+                        raise ValueError(
+                            f"sequence analysis catalog has unknown query parameters: {sorted(unknown)}"
+                        )
+                    self._write(
+                        HTTPStatus.OK,
+                        store.list_reports(
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 20),
+                        ),
+                    )
+                    return
+                segments = [unquote(item) for item in path.split("/") if item]
+                if len(segments) == 4 and segments[:2] == ["v1", "sequence-analyses"]:
+                    if segments[3] == "changes.csv":
+                        unknown = set(query) - {"change", "motif_contains"}
+                        if unknown:
+                            raise ValueError(
+                                f"sequence change CSV has unknown query parameters: {sorted(unknown)}"
+                            )
+                        payload = store.changes_csv(
+                            segments[2],
+                            change=self._query_value(query, "change"),
+                            motif_contains=self._query_value(query, "motif_contains"),
+                        )
+                        self._write_bytes(
+                            HTTPStatus.OK,
+                            payload.encode("utf-8"),
+                            content_type="text/csv; charset=utf-8",
+                            headers={
+                                "Content-Disposition": (
+                                    f'attachment; filename="GLIO-NONCODE-{segments[2]}-changes.csv"'
+                                )
+                            },
+                        )
+                        return
+                    if segments[3] == "report.json":
+                        if query:
+                            raise ValueError("sequence report export does not accept query parameters")
+                        saved = store.get_report(segments[2])
+                        self._write(
+                            HTTPStatus.OK,
+                            saved["report"],
+                            headers={
+                                "Content-Disposition": (
+                                    f'attachment; filename="GLIO-NONCODE-{segments[2]}.json"'
+                                )
+                            },
+                        )
+                        return
+                    self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                    return
+                if len(segments) != 3 or segments[:2] != ["v1", "sequence-analyses"]:
+                    self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+                    return
+                unknown = set(query) - {"offset", "limit", "change", "motif_contains"}
+                if unknown:
+                    raise ValueError(
+                        f"sequence analysis changes has unknown query parameters: {sorted(unknown)}"
+                    )
+                self._write(
+                    HTTPStatus.OK,
+                    store.page_changes(
+                        segments[2],
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 25),
+                        change=self._query_value(query, "change"),
+                        motif_contains=self._query_value(query, "motif_contains"),
+                    ),
+                )
+            except KeyError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "sequence analysis not found"})
+            except (ValidationError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except StoreError:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "sequence_haplotype_unavailable", "message": "sequence analysis could not be verified"},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/sequence-batches" or path.startswith("/v1/sequence-batches/"):
+            try:
+                from .sequence_batch_store import SequenceBatchStore
+
+                store = SequenceBatchStore(self._runtime().store.root)
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path == "/v1/sequence-batches":
+                    unknown = set(query) - {"offset", "limit"}
+                    if unknown:
+                        raise ValueError(
+                            f"sequence batch catalog has unknown query parameters: {sorted(unknown)}"
+                        )
+                    self._write(
+                        HTTPStatus.OK,
+                        store.list_reports(
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 20),
+                        ),
+                    )
+                    return
+                segments = [unquote(item) for item in path.split("/") if item]
+                if len(segments) == 4 and segments[:2] == ["v1", "sequence-batches"] and segments[3] == "report.json":
+                    if query:
+                        raise ValueError("sequence batch report export does not accept query parameters")
+                    saved = store.get_report(segments[2])
+                    self._write(
+                        HTTPStatus.OK,
+                        saved["report"],
+                        headers={
+                            "Content-Disposition": (
+                                f'attachment; filename="GLIO-NONCODE-{segments[2]}.json"'
+                            )
+                        },
+                    )
+                    return
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+            except KeyError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "sequence batch not found"})
+            except (ValidationError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except StoreError:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "sequence_batch_unavailable", "message": "sequence batch could not be verified"},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
         if path == "/v1/geo-analyses" or path.startswith("/v1/geo-analyses/"):
             try:
                 from .geo_analysis_store import GeoAnalysisStore
@@ -25537,7 +25681,52 @@ class ApiHandler(BaseHTTPRequestHandler):
                     )
                     return
                 segments = [unquote(item) for item in path.split("/") if item]
+                if len(segments) == 3 and segments[2] == "consistency":
+                    unknown = set(query) - {"analysis_id", "feature_id"}
+                    if unknown:
+                        raise ValueError(
+                            f"GEO consistency has unknown query parameters: {sorted(unknown)}"
+                        )
+                    self._write(
+                        HTTPStatus.OK,
+                        store.compare_consistency(
+                            self._query_values(query, "analysis_id"),
+                            feature_ids=self._query_values(query, "feature_id"),
+                        ),
+                    )
+                    return
                 if len(segments) == 4 and segments[:2] == ["v1", "geo-analyses"]:
+                    if segments[3] == "results.csv":
+                        unknown = set(query) - {
+                            "feature_contains", "effect_direction", "fdr_significant",
+                            "sign_test_fdr_significant", "min_abs_median_effect",
+                        }
+                        if unknown:
+                            raise ValueError(
+                                f"GEO result CSV has unknown query parameters: {sorted(unknown)}"
+                            )
+                        saved = store.get_report(segments[2])
+                        payload = store.results_csv(
+                            segments[2],
+                            feature_contains=self._query_value(query, "feature_contains"),
+                            effect_direction=self._query_value(query, "effect_direction"),
+                            fdr_significant=self._query_optional_bool(query, "fdr_significant"),
+                            sign_test_fdr_significant=self._query_optional_bool(
+                                query, "sign_test_fdr_significant"
+                            ),
+                            min_abs_median_effect=self._query_float(
+                                query, "min_abs_median_effect"
+                            ),
+                        )
+                        accession = saved["summary"]["accession"]
+                        filename = f"GLIO-NONCODE-{accession}-{segments[2]}-results.csv"
+                        self._write_bytes(
+                            HTTPStatus.OK,
+                            payload.encode("utf-8"),
+                            content_type="text/csv; charset=utf-8",
+                            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+                        )
+                        return
                     if segments[3] != "report.json":
                         self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
                         return
@@ -25555,7 +25744,10 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if len(segments) != 3 or segments[:2] != ["v1", "geo-analyses"]:
                     self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
                     return
-                unknown = set(query) - {"offset", "limit"}
+                unknown = set(query) - {
+                    "offset", "limit", "feature_contains", "effect_direction",
+                    "fdr_significant", "sign_test_fdr_significant", "min_abs_median_effect",
+                }
                 if unknown:
                     raise ValueError(
                         f"GEO analysis page has unknown query parameters: {sorted(unknown)}"
@@ -25566,6 +25758,15 @@ class ApiHandler(BaseHTTPRequestHandler):
                         segments[2],
                         offset=self._query_int(query, "offset", 0),
                         limit=self._query_int(query, "limit", 25),
+                        feature_contains=self._query_value(query, "feature_contains"),
+                        effect_direction=self._query_value(query, "effect_direction"),
+                        fdr_significant=self._query_optional_bool(query, "fdr_significant"),
+                        sign_test_fdr_significant=self._query_optional_bool(
+                            query, "sign_test_fdr_significant"
+                        ),
+                        min_abs_median_effect=self._query_float(
+                            query, "min_abs_median_effect"
+                        ),
                     ),
                 )
             except KeyError:
@@ -26472,6 +26673,143 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/sequence-haplotype/batch/compare":
+            try:
+                from ._cli_sequence_batch_compare import build_batch_comparison
+
+                if parsed.query:
+                    raise ValueError("sequence batch comparison does not accept query parameters")
+                payload = self._read_json(strict=True)
+                if set(payload) != {"left", "right"}:
+                    raise ValueError("sequence batch comparison requires left and right reports")
+                report = build_batch_comparison(payload["left"], payload["right"])
+                self._write(HTTPStatus.OK, report)
+            except ValidationError as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_sequence_batch_comparison", "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_sequence_batch_comparison_request", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
+            return
+        if path == "/v1/sequence-haplotype/batch":
+            try:
+                from ._cli_sequence_batch import build_batch_report
+
+                if parsed.query:
+                    raise ValueError("sequence batch analysis does not accept query parameters")
+                report = build_batch_report(self._read_json(strict=True))
+                self._write(HTTPStatus.OK, report)
+            except ValidationError as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_sequence_batch_input", "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_sequence_batch_request", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
+            return
+        if path == "/v1/sequence-haplotype":
+            try:
+                from ._cli_sequence import build_analysis_report
+
+                if parsed.query:
+                    raise ValueError("sequence-haplotype analysis does not accept query parameters")
+                report = build_analysis_report(self._read_json(strict=True))
+                self._write(HTTPStatus.OK, report)
+            except ValidationError as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_sequence_haplotype_input", "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_sequence_haplotype_request", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
+            return
+        if path == "/v1/sequence-analyses":
+            try:
+                from ._cli_sequence import build_analysis_report
+                from .sequence_haplotype_store import SequenceHaplotypeStore
+
+                if parsed.query:
+                    raise ValueError("sequence analysis persistence does not accept query parameters")
+                report = build_analysis_report(self._read_json(strict=True))
+                record = SequenceHaplotypeStore(self._runtime().store.root).save(report)
+                self._write(HTTPStatus.CREATED, {"record": record, "report": report})
+            except ValidationError as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_sequence_haplotype_input", "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_sequence_haplotype_request", "message": str(exc)},
+                )
+            except StoreError as exc:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "sequence_haplotype_unavailable", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
+            return
+        if path == "/v1/sequence-batches":
+            try:
+                from ._cli_sequence_batch import build_batch_report
+                from .sequence_batch_store import SequenceBatchStore
+
+                if parsed.query:
+                    raise ValueError("sequence batch persistence does not accept query parameters")
+                report = build_batch_report(self._read_json(strict=True))
+                record = SequenceBatchStore(self._runtime().store.root).save(report)
+                self._write(HTTPStatus.CREATED, {"record": record, "report": report})
+            except ValidationError as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_sequence_batch_input", "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_sequence_batch_request", "message": str(exc)},
+                )
+            except StoreError as exc:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "sequence_batch_unavailable", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
             return
         if path == "/v1/case-workflow/prepare":
             try:

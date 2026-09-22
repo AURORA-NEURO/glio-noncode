@@ -41,6 +41,188 @@ The verified complete report can be downloaded as JSON from
 named with its GEO accession and content-addressed analysis ID. The workbench
 enables this export only after the selected report page has passed verification.
 
+Feature pages accept bounded aggregate filters before pagination:
+`feature_contains` performs case-insensitive source-label matching,
+`effect_direction` accepts `case_higher`, `case_lower`, or
+`no_mean_difference`, and `fdr_significant` and
+`sign_test_fdr_significant` accept `true` or `false`. The optional
+`min_abs_median_effect` threshold filters on the absolute median paired
+difference in log2-CPM units. The response reports both
+`total_results` after filtering and `unfiltered_result_count`, along with the
+normalized `filters` object. These filters operate only on the immutable
+feature-result rows; they never search or expose sample, patient, or pair keys.
+For example:
+
+```text
+GET /v1/geo-analyses/{analysis_id}?feature_contains=EGFR&fdr_significant=true&limit=25
+```
+
+The same filters can be exported without pagination as a bounded, aggregate-only
+CSV from `GET /v1/geo-analyses/{analysis_id}/results.csv`. Its columns contain
+source feature labels, review flags, paired effect summaries, p/q values, and
+significance flags; it does not contain sample, patient, or pair identifiers.
+The workbench's `Download filtered CSV` control follows the active filters.
+
+The GEO rail also includes a cross-study check. Select two or more saved
+analyses, enter exact source feature IDs (one per line or separated by commas),
+and compare the reports in a separate aggregate view. The view shows tested,
+untestable, FDR-significant, sign-test-significant, and not-reported states per
+Series. It does not merge curated aliases, pool effect sizes, combine p-values,
+or expose individual sample or pair identifiers.
+
+Saved paired-count reports can also be compared across distinct GEO Series
+without exposing their sample or pair keys. The focused CLI accepts either
+portable report files or immutable store IDs:
+
+```powershell
+glio-noncode geo-count-consistency first.json second.json `
+  --feature-id SIGNAL --feature-id INFLUENTIAL --output consistency.json
+glio-noncode geo-count-consistency --data-root .glio `
+  --analysis-id GEO_ID_A --analysis-id GEO_ID_B `
+  --feature-id SIGNAL --output consistency.json
+```
+
+The same projection is available at
+`GET /v1/geo-analyses/consistency?analysis_id=GEO_ID_A&analysis_id=GEO_ID_B&feature_id=SIGNAL`.
+The comparison requires compatible case/reference filters, pairing design,
+normalization, effect-direction basis, statistical test, and FDR settings.
+It reports per-Series aggregate values and separately classifies tested,
+untestable, FDR-significant, sign-test-significant, and not-reported rows.
+Missing rows remain `not_reported_in_bounded_results`; they are never treated
+as negative evidence. Effect sizes and p-values are never pooled or combined.
+
+## Phased sequence and motif analysis
+
+The focused `sequence-haplotype` command runs the sequence-inference module on
+one bounded sequence window and an explicitly phased set of SNV/indel records.
+It is intended for downloaded FASTA/VCF-derived slices after the caller has
+resolved the reference interval, genome build, phase block, and motif catalog.
+The command does not fetch remote data itself; the input records the retrieval
+receipt that belongs to the already downloaded window.
+
+The exact input contract is `glio-noncode.sequence-haplotype-input.v1`:
+
+```powershell
+glio-noncode sequence-haplotype examples/sequence-haplotype-input.json `
+  --output sequence-haplotype-report.json
+```
+
+The `sequence` object contains the assembly, interval, bases, source identity,
+source URL, source version, and retrieval timestamp. Every variant must carry
+an explicit phase set and haplotype index. The parser rejects unphased blocks,
+unsupported variant syntax, interval/sequence-length mismatches, duplicate
+fields, and records over the module's bounded limits. Motifs are supplied as
+named definitions with a source ID rather than being silently inferred from an
+untracked database.
+
+The output is `glio-noncode.sequence-haplotype-analysis.v1` and is content
+addressed. It keeps the source and response digests, interval, canonical
+variant IDs, phase metadata, motif definitions, created/disrupted motif hits,
+the inference state, and limitations. It deliberately omits raw bases and
+sample IDs, so the report is an aggregate review artifact rather than a sample
+export. A valid run can finish as `supported` or `abstained`; an abstained
+state is still a complete, inspectable report with an explicit limitation.
+
+The checked-in fixture is synthetic but follows the same shape as a downloaded
+reference slice plus a VCF-derived phased call set. Replace its sequence and
+variant records with locally downloaded data, retain the receipt fields, and
+rerun the command to obtain a deterministic content address. The report can be
+reviewed without granting the workbench access to the original FASTA or VCF.
+The same bounded projection is available as a read-only HTTP operation:
+`POST /v1/sequence-haplotype` with the exact input object as its JSON body.
+Query parameters are rejected, and validation errors do not produce a partial
+analysis.
+
+For downloaded files, the adapter constructs that exact input contract from a
+local FASTA window and a phased VCF sample. It accepts plain or gzip-compressed
+files, requires a `GT` value with `|` separators, uses a record `PS` value (or
+an explicit fallback), and selects only the requested haplotype. For example:
+
+```powershell
+glio-noncode sequence-files `
+  --fasta downloads/GRCh38.fa.gz `
+  --vcf downloads/sample.phased.vcf.gz `
+  --sample-id SAMPLE_1 --genome-build GRCh38 --chromosome chr7 `
+  --start 140453100 --end 140453300 `
+  --source-id reference-download --source-url https://example.org/reference `
+  --source-version 2026-08 --retrieved-at 2026-08-20T00:00:00Z `
+  --motifs motifs.json --output sequence-report.json
+```
+
+The adapter rejects missing sample columns, unphased genotypes, no-call
+alleles, malformed FASTA contigs, out-of-window requests, unsupported file
+sizes, and missing phase provenance before motif analysis starts. The VCF and
+FASTA are read locally; their bases, genotype strings, and sample IDs do not
+cross into the persisted public report.
+
+When several downloaded samples share the same reference window and motif
+catalog, `sequence-batch` aggregates the individual reports without emitting
+sample rows:
+
+```powershell
+glio-noncode sequence-batch batch-input.json --output batch-report.json
+```
+
+The batch projection reports supported versus abstained analyses and counts
+how many reports created or disrupted each exact motif pattern. It requires a
+single shared reference hash, interval, source receipt, and motif definition
+set; mixed contexts are rejected. The equivalent read-only HTTP operation is
+`POST /v1/sequence-haplotype/batch`.
+To retain the aggregate result in the local catalog, send the same exact input
+to `POST /v1/sequence-batches`; list saved batch summaries with
+`GET /v1/sequence-batches` and export a verified report from
+`GET /v1/sequence-batches/{batch_id}/report.json`.
+Two compatible batch reports can be compared with
+`glio-noncode sequence-batch-compare left.json right.json`; the result keeps
+exact motif identity and reports prevalence deltas while treating a missing
+row as `not_reported_in_one_batch`. The read-only API equivalent is
+`POST /v1/sequence-haplotype/batch/compare` with `left` and `right` report
+objects.
+
+For a reusable local catalog, use `--save-to-workspace`:
+
+```powershell
+glio-noncode sequence-haplotype downloaded-slice.json `
+  --save-to-workspace --data-root .glio
+```
+
+Saved reports are listed at `GET /v1/sequence-analyses` and opened through
+`GET /v1/sequence-analyses/{analysis_id}/report.json`. The aggregate motif
+delta page is `GET /v1/sequence-analyses/{analysis_id}` with optional
+`change=created|disrupted` and `motif_contains=...` filters; the same bounded
+rows can be downloaded from `/changes.csv`. The persistence layer reopens and
+revalidates the report address, source hashes, interval, analysis state, motif
+hit shapes, and public-key boundary before returning any row.
+The browser workbench shows saved sequence analyses in a separate rail and
+renders their phase block, interval, hashes, motif changes, and limitations.
+It keeps sequence reports separate from both patient-specific case dossiers
+and cohort-level GEO contrasts.
+
+The sequence workflow is intentionally split into reviewable boundaries:
+
+| Boundary | Input | Public output | Persistence |
+| --- | --- | --- | --- |
+| `sequence-haplotype` | One bounded reference window and phased calls | One deterministic motif-delta report | Optional `sequence-analyses` record |
+| `sequence-files` | Local plain/gzip FASTA plus phased VCF | The same motif-delta report | Optional `sequence-analyses` record |
+| `sequence-batch` | Several compatible haplotype inputs | Aggregate state and exact motif prevalence | Optional `sequence-batches` record through HTTP |
+| `sequence-batch-compare` | Two completed batch reports | Exact prevalence deltas | Portable JSON comparison |
+
+Every boundary preserves the same safety properties: bounded input, explicit
+source receipt, deterministic content address, no automatic phase inference,
+and no private sample keys in the public projection. A report may be useful for
+review while remaining `abstained`; that state is distinct from malformed
+input, unavailable source data, or a failed persistence verification.
+
+For operational triage, start with the catalog summary, then open the verified
+report, then inspect motif rows or CSV only after the report address matches.
+When comparing batches, inspect the shared reference hashes first; a missing
+row means that the motif was not reported in that bounded result set. These
+steps keep provenance, analysis state, and interpretation limits visible at
+the same time rather than collapsing them into a single score.
+The browser follows this ordering for saved sequence and GEO studies.
+This makes a saved result auditable without exposing the downloaded source
+files to the review client.
+
 ## Review collections
 
 - `hypotheses` retains mechanism, context, status, support, uncertainty, edge

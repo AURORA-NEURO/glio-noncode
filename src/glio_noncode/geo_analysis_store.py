@@ -5,9 +5,11 @@ Study-level cohort analyses remain distinct from patient-specific case runs.
 
 from __future__ import annotations
 
+import csv
+import io
 import math
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Literal, overload
 from urllib.parse import urlsplit
@@ -24,6 +26,8 @@ MAX_GEO_ANALYSIS_RECORD_BYTES = 256 * 1024
 MAX_GEO_ANALYSIS_RECORDS = 10_000
 MAX_GEO_ANALYSIS_PAGE_SIZE = 50
 MAX_GEO_ANALYSIS_OFFSET = 10_000
+MAX_GEO_RESULT_FEATURE_QUERY_LENGTH = 256
+MAX_GEO_RESULT_EXPORT_BYTES = 8 * 1024 * 1024
 
 _ANALYSIS_ID_RE = re.compile(r"geo-[0-9a-f]{64}\Z")
 _ACCESSION_RE = re.compile(r"GSE[0-9]{1,12}\Z")
@@ -976,14 +980,113 @@ class GeoAnalysisStore:
             "report": validated,
         }
 
+    def compare_consistency(
+        self,
+        analysis_ids: Sequence[str],
+        *,
+        feature_ids: Sequence[str],
+    ) -> dict[str, Any]:
+        """Compare selected saved paired-count reports by exact source feature ID.
+
+        The selected reports are reopened through the immutable catalog before
+        comparison.  The returned consistency report contains only aggregate
+        study and feature observations; individual sample and pair keys remain
+        outside the store's public projection.
+        """
+
+        if not isinstance(analysis_ids, Sequence) or isinstance(
+            analysis_ids, (str, bytes, bytearray)
+        ):
+            raise ValidationError("GEO consistency analysis IDs must be a sequence")
+        from .geo_count_consistency import build_geo_count_consistency_report
+
+        reports = tuple(self.get_report(analysis_id)["report"] for analysis_id in analysis_ids)
+        return build_geo_count_consistency_report(reports, feature_ids=feature_ids)
+
+    @staticmethod
+    def _filter_results(
+        results: list[dict[str, Any]],
+        *,
+        feature_contains: str | None,
+        effect_direction: str | None,
+        fdr_significant: bool | None,
+        sign_test_fdr_significant: bool | None,
+        min_abs_median_effect: float | None,
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        if feature_contains is not None:
+            if (
+                type(feature_contains) is not str
+                or not feature_contains.strip()
+                or len(feature_contains) > MAX_GEO_RESULT_FEATURE_QUERY_LENGTH
+                or any(
+                    ord(character) < 32 or ord(character) == 127
+                    for character in feature_contains
+                )
+            ):
+                raise ValidationError("GEO feature query is outside the supported range")
+            feature_contains = feature_contains.casefold()
+        if effect_direction is not None and effect_direction not in {
+            "case_higher",
+            "case_lower",
+            "no_mean_difference",
+        }:
+            raise ValidationError("GEO effect direction is unsupported")
+        if min_abs_median_effect is not None:
+            _finite_number(
+                min_abs_median_effect,
+                "minimum absolute median effect",
+                minimum=0.0,
+            )
+        filtered = [
+            result
+            for result in results
+            if (
+                feature_contains is None
+                or feature_contains in result["feature_id"].casefold()
+            )
+            and (
+                effect_direction is None
+                or result["effect_direction"] == effect_direction
+            )
+            and (
+                fdr_significant is None
+                or result["fdr_significant"] is fdr_significant
+            )
+            and (
+                sign_test_fdr_significant is None
+                or result["sign_test_fdr_significant"] is sign_test_fdr_significant
+            )
+            and (
+                min_abs_median_effect is None
+                or abs(result["median_paired_difference_log2_cpm"]) >= min_abs_median_effect
+            )
+        ]
+        return filtered, {
+            "feature_contains": feature_contains,
+            "effect_direction": effect_direction,
+            "fdr_significant": fdr_significant,
+            "sign_test_fdr_significant": sign_test_fdr_significant,
+            "min_abs_median_effect": min_abs_median_effect,
+        }
+
     def page_results(
         self,
         analysis_id: str,
         *,
         offset: int = 0,
         limit: int = 25,
+        feature_contains: str | None = None,
+        effect_direction: str | None = None,
+        fdr_significant: bool | None = None,
+        sign_test_fdr_significant: bool | None = None,
+        min_abs_median_effect: float | None = None,
     ) -> dict[str, Any]:
-        """Return one feature-result page with its study-level context."""
+        """Return one filtered feature-result page with its study-level context.
+
+        Filtering is applied to already validated aggregate rows before
+        pagination. It does not change the immutable stored report or expose
+        sample-level data.
+        """
 
         if type(offset) is not int or not 0 <= offset <= MAX_GEO_ANALYSIS_OFFSET:
             raise ValidationError("GEO result offset is outside the supported range")
@@ -991,7 +1094,15 @@ class GeoAnalysisStore:
             raise ValidationError("GEO result limit is outside the supported range")
         saved = self.get_report(analysis_id)
         report = saved["report"]
-        results = report["results"]
+        all_results = report["results"]
+        results, filters = self._filter_results(
+            all_results,
+            feature_contains=feature_contains,
+            effect_direction=effect_direction,
+            fdr_significant=fdr_significant,
+            sign_test_fdr_significant=sign_test_fdr_significant,
+            min_abs_median_effect=min_abs_median_effect,
+        )
         page = results[offset : offset + limit]
         return {
             "schema": "glio-noncode.geo-analysis-page.v1",
@@ -1008,5 +1119,79 @@ class GeoAnalysisStore:
             "offset": offset,
             "limit": limit,
             "total_results": len(results),
+            "unfiltered_result_count": len(all_results),
+            "filters": filters,
             "has_more": offset + len(page) < len(results),
         }
+
+    def results_csv(
+        self,
+        analysis_id: str,
+        *,
+        feature_contains: str | None = None,
+        effect_direction: str | None = None,
+        fdr_significant: bool | None = None,
+        sign_test_fdr_significant: bool | None = None,
+        min_abs_median_effect: float | None = None,
+    ) -> str:
+        """Export filtered aggregate result rows without individual identifiers."""
+
+        saved = self.get_report(analysis_id)
+        results, _filters = self._filter_results(
+            saved["report"]["results"],
+            feature_contains=feature_contains,
+            effect_direction=effect_direction,
+            fdr_significant=fdr_significant,
+            sign_test_fdr_significant=sign_test_fdr_significant,
+            min_abs_median_effect=min_abs_median_effect,
+        )
+        fields = (
+            "feature_id",
+            "possible_date_like_source_label",
+            "manual_annotation_review_recommended",
+            "curated_feature_id",
+            "paired_sample_count",
+            "case_higher_pair_count",
+            "case_lower_pair_count",
+            "tied_pair_count",
+            "mean_paired_difference_log2_cpm",
+            "median_paired_difference_log2_cpm",
+            "effect_direction",
+            "p_value",
+            "q_value",
+            "sign_test_p_value",
+            "sign_test_q_value",
+            "fdr_significant",
+            "sign_test_fdr_significant",
+        )
+        output = io.StringIO(newline="")
+        writer = csv.writer(output, lineterminator="\n")
+        writer.writerow(fields)
+        for result in results:
+            review = result["feature_label_review"]
+            annotation = result["feature_annotation"]
+            writer.writerow(
+                (
+                    result["feature_id"],
+                    review["possible_date_like_source_label"],
+                    review["manual_annotation_review_recommended"],
+                    annotation["curated_feature_id"],
+                    result["paired_sample_count"],
+                    result["case_higher_pair_count"],
+                    result["case_lower_pair_count"],
+                    result["tied_pair_count"],
+                    result["mean_paired_difference_log2_cpm"],
+                    result["median_paired_difference_log2_cpm"],
+                    result["effect_direction"],
+                    result["p_value"],
+                    result["q_value"],
+                    result["sign_test_p_value"],
+                    result["sign_test_q_value"],
+                    result["fdr_significant"],
+                    result["sign_test_fdr_significant"],
+                )
+            )
+        rendered = output.getvalue()
+        if len(rendered.encode("utf-8")) > MAX_GEO_RESULT_EXPORT_BYTES:
+            raise StoreError("GEO result CSV exceeds the export byte limit")
+        return rendered
