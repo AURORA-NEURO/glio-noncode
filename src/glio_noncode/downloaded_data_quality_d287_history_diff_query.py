@@ -252,7 +252,7 @@ def query_csv(value: DiffQuery) -> str:
 def render_query_markdown(value: DiffQuery) -> str:
     value = verify_query(value)
     lines = [f"# Runtime registry history diff query {value.query_id}", "", f"- Diff: {value.diff_id}", f"- Rows: {value.returned_count}/{value.total_count}", f"- Truncated: {str(value.truncated).lower()}", "", "| Ordinal | Resource | Key | Change | Value |", "| ---: | --- | --- | --- | --- |"]
-    lines.extend(f"| {item.ordinal} | {item.resource} | {item.key} | {item.change or '—'} | {item.value.replace('|', '\\|')} |" for item in value.rows)
+    lines.extend(f"| {item.ordinal} | {item.resource} | {item.key} | {item.change or '—'} | {item.value.replace('|', chr(92) + '|')} |" for item in value.rows)
     return "\n".join(lines) + "\n"
 
 

@@ -248,7 +248,7 @@ def query_csv(value: RuntimeQuery) -> str:
 
 def render_query_markdown(value: RuntimeQuery) -> str:
     value = verify_query(value); lines = [f"# Runtime registry history diff runtime query {value.query_id}", "", f"- Runtime: {value.runtime_id}", f"- Rows: {value.returned_count}/{value.total_count}", f"- Truncated: {str(value.truncated).lower()}", "", "| Ordinal | Resource | Key | Result | Severity | Value |", "| ---: | --- | --- | --- | --- | --- |"]
-    lines.extend(f"| {item.ordinal} | {item.resource} | {item.key} | {item.passed if item.passed is not None else '—'} | {item.severity or '—'} | {item.value.replace('|', '\\|')} |" for item in value.rows); return "\n".join(lines) + "\n"
+    lines.extend(f"| {item.ordinal} | {item.resource} | {item.key} | {item.passed if item.passed is not None else '—'} | {item.severity or '—'} | {item.value.replace('|', chr(92) + '|')} |" for item in value.rows); return "\n".join(lines) + "\n"
 
 
 def row_schema() -> dict[str, Any]:
