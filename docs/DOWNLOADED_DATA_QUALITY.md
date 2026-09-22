@@ -9513,6 +9513,32 @@ is stored at:
 C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d493-example-real/summary.json
 ```
 
+## D494 portable release-evidence archive
+
+D494 packages a D492 comparison summary, both D493 policy runtimes and their
+independent audits, the release query and query audit, and a readable report
+into a deterministic ZIP. The archive contains exactly eight allowlisted
+payloads plus its manifest. It deliberately excludes snapshot records, local
+paths, and the source ZIP. Its bounded loader checks member order and type,
+canonical JSON, fixed ZIP metadata, per-file SHA-256 values, content addresses,
+policy strictness ordering, source-comparison links, query replay, and the
+release disposition. The archive is integrity checked, not digitally signed;
+its hashes do not establish the identity of the party that created it.
+
+The D493 real-data command also writes and reloads a D494 release bundle. For
+the supplied comparison, the ZIP contains 8 payload files totaling 74,343
+bytes; the loaded archive matches the original address, and its independent
+archive audit passes 12/12:
+
+```text
+C:/Users/murar/AppData/Local/Temp/glio-noncode-d188-real-demo-20260921/d493-example-real/release-evidence.zip
+```
+
+The separate audit is available in JSON and Markdown at
+`release-evidence-audit.json` and `release-evidence-audit.md` in the same output
+directory. The rerun's machine-readable result records the archive identity,
+file inventory, readiness, and round-trip status.
+
 ## D213 history diff runtime registry admission
 
 D213 aggregates exact four-file D212 strict and release runtimes into a

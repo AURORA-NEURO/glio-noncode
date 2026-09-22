@@ -11,6 +11,8 @@ from glio_noncode import downloaded_data_quality_d493_ledger_diff_runtime_regist
 from glio_noncode import downloaded_data_quality_d493_ledger_diff_runtime_registry_history_diff_runtime_audit as audit_model
 from glio_noncode import downloaded_data_quality_d493_ledger_diff_runtime_registry_history_diff_runtime_query as query_model
 from glio_noncode import downloaded_data_quality_d493_ledger_diff_runtime_registry_history_diff_runtime_query_audit as query_audit_model
+from glio_noncode import downloaded_data_quality_d494_release_evidence_archive as evidence_model
+from glio_noncode import downloaded_data_quality_d494_release_evidence_archive_audit as evidence_audit_model
 
 
 def _policy(policy_id: str, diff_id: str, maximum_added: int) -> runtime_model.RuntimePolicy:
@@ -54,6 +56,11 @@ def build_demo(
         limit=query_model.MAX_LIMIT,
     )
     query_audit = query_audit_model.audit_query(release_query, release)
+    evidence = evidence_model.build_archive(
+        source, strict, strict_audit, release, release_audit, release_query, query_audit,
+        bundle_id="glio-noncode-d494-real-release-evidence",
+    )
+    evidence_audit = evidence_audit_model.audit_archive(evidence)
     blocked_checks = [item.check_id for item in strict.checks if not item.passed]
     result: dict[str, Any] = {
         "source_zip": str(Path(source_zip).resolve()) if source_zip is not None else None,
@@ -102,6 +109,15 @@ def build_demo(
             "audit_accepted": query_audit.accepted,
             "audit_checks": f"{query_audit.passed_count}/{query_audit.check_count}",
         },
+        "evidence_bundle": {
+            "state": evidence.manifest.state,
+            "release_ready": evidence.manifest.release_ready,
+            "file_count": evidence.manifest.file_count,
+            "total_size": evidence.manifest.total_size,
+            "archive_address": evidence.content_address,
+            "audit_accepted": evidence_audit.accepted,
+            "audit_checks": f"{evidence_audit.passed_count}/{evidence_audit.check_count}",
+        },
     }
     if destination is not None:
         root = Path(destination)
@@ -114,10 +130,18 @@ def build_demo(
         (root / "release-query.json").write_text(query_model.query_json(release_query) + "\n", encoding="utf-8")
         (root / "release-query.csv").write_text(query_model.query_csv(release_query), encoding="utf-8")
         (root / "release-query-audit.json").write_text(query_audit_model.audit_json(query_audit) + "\n", encoding="utf-8")
+        archive_path = evidence_model.persist_archive(evidence, root / "release-evidence.zip", overwrite=True)
+        loaded_evidence = evidence_model.load_archive(archive_path)
+        loaded_audit = evidence_audit_model.audit_archive(loaded_evidence)
+        (root / "release-evidence-audit.json").write_text(evidence_audit_model.audit_json(loaded_audit) + "\n", encoding="utf-8")
+        (root / "release-evidence-audit.md").write_text(evidence_audit_model.render_audit_markdown(loaded_audit), encoding="utf-8")
+        result["evidence_bundle"]["archive_path"] = str(archive_path.resolve())
+        result["evidence_bundle"]["round_trip_verified"] = loaded_evidence.content_address == evidence.content_address
+        result["evidence_bundle"]["loaded_audit_accepted"] = loaded_audit.accepted
         result["output_directory"] = str(root.resolve())
         result["report_path"] = str((root / "demo-report.md").resolve())
         report = [
-            "# D493 real downloaded-data demonstration",
+            "# D493/D494 real downloaded-data demonstration",
             "",
             f"- Source archive: `{result['source_zip']}`",
             f"- Comparison: `{source.diff_id}` ({source.content_address})",
@@ -135,6 +159,8 @@ def build_demo(
             "",
             f"- Query: {release_query.returned_count}/{release_query.total_count} rows; truncated: `{str(release_query.truncated).lower()}`.",
             f"- Query audit: {query_audit.passed_count}/{query_audit.check_count} checks; accepted: `{str(query_audit.accepted).lower()}`.",
+            f"- Portable evidence ZIP: **{evidence.manifest.state}**, {evidence.manifest.file_count} allowlisted files, {evidence.manifest.total_size} bytes; archive audit {evidence_audit.passed_count}/{evidence_audit.check_count}.",
+            "- The ZIP contains a redacted comparison summary, runtimes, audits, query, and report; it excludes source snapshots and paths.",
             "- Persisted outputs: `strict-runtime/`, `release-runtime/`, runtime audits, query JSON/CSV, and query audit.",
             "",
             "This demonstration uses aggregate comparison metadata only; it does not print source records or payload contents.",
@@ -162,6 +188,9 @@ def main() -> int:
         and result["release_audit"]["accepted"]
         and result["release_query"]["audit_accepted"]
         and not result["release_query"]["truncated"]
+        and result["evidence_bundle"]["audit_accepted"]
+        and result["evidence_bundle"].get("round_trip_verified", True)
+        and result["evidence_bundle"].get("loaded_audit_accepted", True)
     ) else 2
 
 
