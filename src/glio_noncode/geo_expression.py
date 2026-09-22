@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from . import _safe_persistence
+from ._geo_statistics import PreparedLinearModel, fit_linear_contrast, prepare_linear_model
 from .data_sources import UrllibTransport
 from .errors import SourceError, SourceNotFoundError, ValidationError
 from .expression_evidence import (
@@ -45,6 +46,8 @@ MAX_MATRIX_CELLS = 5_000_000
 MAX_CONTRAST_FEATURES = 100_000
 MAX_EXACT_RANK_ASSIGNMENTS = 20_000
 MAX_TOTAL_EXACT_RANK_SUMS = 100_000_000
+MAX_GEO_COVARIATES = 16
+MAX_GEO_MODEL_PARAMETERS = 24
 MAX_METADATA_ROWS = 2_048
 MAX_METADATA_VALUE_LENGTH = 8_192
 DEFAULT_TIMEOUT_SECONDS = 30.0
@@ -120,6 +123,18 @@ class GeoFeatureMatrix:
     source_file_name: str | None
     compressed_bytes: int
     decompressed_bytes: int
+
+
+@dataclass(frozen=True, slots=True)
+class _PreparedGeoContrast:
+    model: PreparedLinearModel
+    sample_indices: tuple[int, ...]
+    case_indices: tuple[int, ...]
+    reference_indices: tuple[int, ...]
+    parameter_names: tuple[str, ...]
+    covariate_metadata: tuple[dict[str, Any], ...]
+    excluded_case_indices: tuple[int, ...]
+    excluded_reference_indices: tuple[int, ...]
 
 
 def _required_text(value: object, label: str, *, maximum: int = 512) -> str:
@@ -259,8 +274,7 @@ def _parse_series_matrix_features(
         raise ValidationError("GEO Series Matrix exceeds its compressed byte bound")
     if feature_ids is not None:
         feature_ids = frozenset(
-            _required_text(feature_id, "GEO feature ID", maximum=256)
-            for feature_id in feature_ids
+            _required_text(feature_id, "GEO feature ID", maximum=256) for feature_id in feature_ids
         )
         if not feature_ids or any(not _FEATURE_RE.fullmatch(item) for item in feature_ids):
             raise ValidationError("GEO feature IDs are empty or contain unsupported characters")
@@ -562,6 +576,207 @@ def _normalize_filters(value: object, label: str) -> list[tuple[str, str]]:
     return normalized
 
 
+def _normalize_covariates(value: object) -> list[tuple[str, str]]:
+    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+        raise ValidationError("GEO covariates must be a sequence of field/type pairs")
+    if len(value) > MAX_GEO_COVARIATES:
+        raise ValidationError(f"at most {MAX_GEO_COVARIATES} GEO covariates are supported")
+    normalized: list[tuple[str, str]] = []
+    for item in value:
+        if isinstance(item, (str, bytes)) or not isinstance(item, Sequence) or len(item) != 2:
+            raise ValidationError("each GEO covariate must contain one field and one type")
+        field = _required_text(item[0], "GEO covariate field", maximum=256)
+        kind = _required_text(item[1], "GEO covariate type", maximum=32).casefold()
+        if kind not in {"continuous", "categorical"}:
+            raise ValidationError("GEO covariate type must be continuous or categorical")
+        if any(field.casefold() == prior[0].casefold() for prior in normalized):
+            raise ValidationError("GEO covariate fields must be unique")
+        normalized.append((field, kind))
+    return normalized
+
+
+def _prepare_geo_contrast(
+    matrix: GeoFeatureMatrix,
+    *,
+    case_indices: Sequence[int],
+    reference_indices: Sequence[int],
+    covariates: Sequence[tuple[str, str]],
+) -> _PreparedGeoContrast:
+    case_set = set(case_indices)
+    reference_set = set(reference_indices)
+    selected_indices = tuple(
+        index for index in range(len(matrix.samples)) if index in case_set or index in reference_set
+    )
+    parsed: dict[int, dict[str, float | str]] = {}
+    excluded: set[int] = set()
+    missing_markers = _MISSING_MATRIX_VALUES | {"n/a", "none"}
+
+    for sample_index in selected_indices:
+        sample = matrix.samples[sample_index]
+        sample_covariates: dict[str, float | str] = {}
+        incomplete = False
+        for field, kind in covariates:
+            raw_values = sample.values_for((field,))[field]
+            values = [
+                candidate.strip()
+                for candidate in raw_values
+                if candidate.strip().casefold() not in missing_markers
+            ]
+            if not values:
+                incomplete = True
+                continue
+            if kind == "continuous":
+                try:
+                    numeric_values = [float(raw_value) for raw_value in values]
+                except ValueError as error:
+                    raise ValidationError(
+                        f"continuous GEO covariate {field} contains a non-numeric value"
+                    ) from error
+                if any(not math.isfinite(value) for value in numeric_values):
+                    raise ValidationError(
+                        f"continuous GEO covariate {field} contains a non-finite value"
+                    )
+                if len(set(numeric_values)) > 1:
+                    raise ValidationError(
+                        f"sample {sample.accession} has multiple values for GEO covariate {field}"
+                    )
+                sample_covariates[field] = numeric_values[0]
+            else:
+                distinct = {candidate.casefold() for candidate in values}
+                if len(distinct) > 1:
+                    raise ValidationError(
+                        f"sample {sample.accession} has multiple values for GEO covariate {field}"
+                    )
+                sample_covariates[field] = values[0]
+        if incomplete:
+            excluded.add(sample_index)
+        else:
+            parsed[sample_index] = sample_covariates
+
+    complete_indices = tuple(index for index in selected_indices if index not in excluded)
+    complete_case_indices = tuple(index for index in complete_indices if index in case_set)
+    complete_reference_indices = tuple(
+        index for index in complete_indices if index in reference_set
+    )
+    if len(complete_case_indices) < 2 or len(complete_reference_indices) < 2:
+        raise ValidationError("covariate-complete model needs at least two samples in each group")
+
+    parameter_names = ["intercept", "group_case_minus_reference"]
+    metadata: list[dict[str, Any]] = []
+    encoded_covariates: dict[str, tuple[tuple[str, float], ...]] = {}
+    for covariate_index, (field, kind) in enumerate(covariates):
+        if kind == "continuous":
+            values = [float(parsed[index][field]) for index in complete_indices]
+            magnitude = max(abs(value) for value in values)
+            if magnitude == 0.0:
+                raise ValidationError(f"continuous GEO covariate {field} is constant")
+            scaled_values = [value / magnitude for value in values]
+            scaled_center = math.fsum(scaled_values) / len(scaled_values)
+            centered = [value - scaled_center for value in scaled_values]
+            scaled_standard_deviation = math.sqrt(
+                math.fsum(value * value for value in centered) / len(centered)
+            )
+            if scaled_standard_deviation == 0.0:
+                raise ValidationError(f"continuous GEO covariate {field} is constant")
+            center = scaled_center * magnitude
+            standard_deviation = scaled_standard_deviation * magnitude
+            parameter_name = f"covariate_{covariate_index + 1}:{field}_standardized"
+            encoded_covariates[field] = tuple(
+                (
+                    parameter_name,
+                    (float(parsed[index][field]) / magnitude - scaled_center)
+                    / scaled_standard_deviation,
+                )
+                for index in complete_indices
+            )
+            parameter_names.append(parameter_name)
+            metadata.append(
+                {
+                    "field": field,
+                    "type": kind,
+                    "encoding": "centered_and_scaled_by_population_standard_deviation",
+                    "center": center,
+                    "scale": standard_deviation,
+                    "parameter": parameter_name,
+                }
+            )
+            continue
+
+        level_by_key: dict[str, str] = {}
+        for index in complete_indices:
+            value = str(parsed[index][field])
+            key = value.casefold()
+            maximum_levels = MAX_GEO_MODEL_PARAMETERS - len(parameter_names) + 1
+            if key not in level_by_key and len(level_by_key) >= maximum_levels:
+                raise ValidationError(
+                    f"GEO adjusted model exceeds {MAX_GEO_MODEL_PARAMETERS} parameters"
+                )
+            level_by_key.setdefault(key, value)
+        levels = sorted(level_by_key.values(), key=lambda value: (value.casefold(), value))
+        if len(levels) < 2:
+            raise ValidationError(f"categorical GEO covariate {field} has fewer than two levels")
+        reference_level = levels[0]
+        categorical_parameters = [
+            (level, f"covariate_{covariate_index + 1}:{field}[{level}]") for level in levels[1:]
+        ]
+        for _level, parameter in categorical_parameters:
+            parameter_names.append(parameter)
+        metadata.append(
+            {
+                "field": field,
+                "type": kind,
+                "encoding": "treatment_coded",
+                "levels": levels,
+                "reference_level": reference_level,
+                "parameters": [parameter for _, parameter in categorical_parameters],
+            }
+        )
+
+    if len(parameter_names) > MAX_GEO_MODEL_PARAMETERS:
+        raise ValidationError(f"GEO adjusted model exceeds {MAX_GEO_MODEL_PARAMETERS} parameters")
+    residual_degrees_of_freedom = len(complete_indices) - len(parameter_names)
+    if residual_degrees_of_freedom < 3:
+        raise ValidationError(
+            "GEO adjusted model requires at least three residual degrees of freedom"
+        )
+
+    # Reconstruct columns in the declared parameter order, with treatment-coded levels.
+    columns: list[tuple[float, ...]] = [
+        tuple(1.0 for _ in complete_indices),
+        tuple(1.0 if index in case_set else 0.0 for index in complete_indices),
+    ]
+    for field, kind in covariates:
+        if kind == "continuous":
+            columns.append(tuple(value for _, value in encoded_covariates[field]))
+        else:
+            covariate_info = next(item for item in metadata if item["field"] == field)
+            for level in covariate_info["levels"][1:]:
+                columns.append(
+                    tuple(
+                        1.0 if str(parsed[index][field]).casefold() == level.casefold() else 0.0
+                        for index in complete_indices
+                    )
+                )
+    design_rows = [
+        tuple(column[row_index] for column in columns) for row_index in range(len(complete_indices))
+    ]
+    model = prepare_linear_model(design_rows, contrast_index=1)
+    return _PreparedGeoContrast(
+        model=model,
+        sample_indices=complete_indices,
+        case_indices=complete_case_indices,
+        reference_indices=complete_reference_indices,
+        parameter_names=tuple(parameter_names),
+        covariate_metadata=tuple(metadata),
+        excluded_case_indices=tuple(
+            index for index in selected_indices if index in excluded and index in case_set
+        ),
+        excluded_reference_indices=tuple(
+            index for index in selected_indices if index in excluded and index in reference_set
+        ),
+    )
+
+
 def _mann_whitney_test(
     case_values: Sequence[float],
     reference_values: Sequence[float],
@@ -653,12 +868,17 @@ def build_expression_contrast_report(
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
     fdr_threshold: float = 0.05,
     top: int = 1_000,
+    covariates: Sequence[tuple[str, str]] = (),
 ) -> dict[str, Any]:
-    """Screen all retained platform features between two explicit sample groups."""
+    """Screen all retained features with rank tests or an additive adjusted model."""
 
     normalized_accession = validate_accession(accession)
     normalized_case = _normalize_filters(case_filters, "case")
     normalized_reference = _normalize_filters(reference_filters, "reference")
+    normalized_covariates = _normalize_covariates(covariates)
+    group_fields = {field.casefold() for field, _ in (*normalized_case, *normalized_reference)}
+    if any(field.casefold() in group_fields for field, _ in normalized_covariates):
+        raise ValidationError("GEO covariates cannot reuse sample fields that define group labels")
     if isinstance(fdr_threshold, bool) or not isinstance(fdr_threshold, (int, float)):
         raise ValidationError("FDR threshold must be numeric")
     fdr_threshold = float(fdr_threshold)
@@ -706,24 +926,42 @@ def build_expression_contrast_report(
         index for index, sample in enumerate(matrix.samples) if sample.accession in case_ids
     )
     reference_indices = tuple(
-        index
-        for index, sample in enumerate(matrix.samples)
-        if sample.accession in reference_ids
+        index for index, sample in enumerate(matrix.samples) if sample.accession in reference_ids
+    )
+    adjusted_contrast = (
+        _prepare_geo_contrast(
+            matrix,
+            case_indices=case_indices,
+            reference_indices=reference_indices,
+            covariates=normalized_covariates,
+        )
+        if normalized_covariates
+        else None
+    )
+    analysis_case_indices = (
+        adjusted_contrast.case_indices if adjusted_contrast is not None else case_indices
+    )
+    analysis_reference_indices = (
+        adjusted_contrast.reference_indices if adjusted_contrast is not None else reference_indices
     )
 
     preliminary_rows: list[dict[str, Any]] = []
     p_values: list[float] = []
     tested_rows: list[int] = []
-    method_counts = {"exact_label_permutation": 0, "tie_corrected_normal_approximation": 0}
+    method_counts = (
+        {"covariate_adjusted_ols_t_test": 0}
+        if adjusted_contrast is not None
+        else {"exact_label_permutation": 0, "tie_corrected_normal_approximation": 0}
+    )
     for feature in matrix.features:
         case_values = tuple(
             feature.values[index]
-            for index in case_indices
+            for index in analysis_case_indices
             if feature.values[index] is not None
         )
         reference_values = tuple(
             feature.values[index]
-            for index in reference_indices
+            for index in analysis_reference_indices
             if feature.values[index] is not None
         )
         case_median = _finite_median(case_values) if case_values else None
@@ -754,7 +992,47 @@ def build_expression_contrast_report(
             "fdr_significant": False,
             "reason": None,
         }
-        if len(case_values) < 2 or len(reference_values) < 2:
+        if adjusted_contrast is not None:
+            row.update(
+                {
+                    "adjusted_mean_difference": None,
+                    "t_statistic": None,
+                    "degrees_of_freedom": None,
+                    "model_sample_count": len(adjusted_contrast.sample_indices),
+                }
+            )
+            model_values = tuple(
+                feature.values[index] for index in adjusted_contrast.sample_indices
+            )
+            if any(value is None for value in model_values):
+                row["reason"] = "missing_expression_in_covariate_complete_samples"
+            else:
+                fit = fit_linear_contrast(
+                    adjusted_contrast.model,
+                    tuple(float(value) for value in model_values if value is not None),
+                )
+                if fit is None:
+                    row["reason"] = "zero_residual_variance"
+                elif fit.coefficient is None:
+                    row["reason"] = "nonfinite_adjusted_group_effect"
+                else:
+                    row["adjusted_mean_difference"] = fit.coefficient
+                    row["t_statistic"] = fit.statistic
+                    row["degrees_of_freedom"] = fit.degrees_of_freedom
+                    row["effect_direction"] = (
+                        "case_higher"
+                        if fit.coefficient > 0
+                        else "case_lower"
+                        if fit.coefficient < 0
+                        else "no_adjusted_group_effect"
+                    )
+                    row["p_value"] = fit.p_value
+                    row["test_method"] = "covariate_adjusted_ols_t_test"
+                    row["reason"] = None
+                    tested_rows.append(len(preliminary_rows))
+                    p_values.append(fit.p_value)
+                    method_counts["covariate_adjusted_ols_t_test"] += 1
+        elif len(case_values) < 2 or len(reference_values) < 2:
             row["reason"] = "fewer_than_two_nonmissing_observations_in_a_group"
         else:
             assignment_limit = max(
@@ -802,6 +1080,75 @@ def build_expression_contrast_report(
             f"{field.casefold()}={value.casefold()}"
             for field, value in sorted(filters, key=lambda item: item[0].casefold())
         )
+
+    test_description = (
+        "additive ordinary least squares adjusted group coefficient with two-sided Student t test"
+        if adjusted_contrast is not None
+        else "two-sided Mann-Whitney U with exact label permutations when bounded"
+    )
+    limitations = (
+        [
+            "Exploratory public-cohort group comparison; it is not matched-case RNA evidence.",
+            (
+                "Only explicitly declared covariates are adjusted; unmeasured confounding and "
+                "unmodeled batch effects remain."
+            ),
+            (
+                "The additive ordinary least squares model assumes independent samples, a linear "
+                "continuous-covariate effect, and approximately normal homoscedastic residuals."
+            ),
+            (
+                "Samples missing any declared covariate are excluded listwise; a feature missing "
+                "in any analyzed sample is untestable in the adjusted model."
+            ),
+            (
+                "Paired or repeated measures, interactions, and nonlinear covariate effects "
+                "are not modeled."
+            ),
+            (
+                "FDR adjustment covers testable rows in this matrix, not analyses selected after "
+                "inspecting results."
+            ),
+            (
+                "Nominal FDR control depends on assumptions about test dependence; correlated "
+                "platform features may affect it."
+            ),
+            (
+                "Feature identifiers remain platform identifiers; transcript or gene identity "
+                "was not inferred."
+            ),
+            "Results do not support diagnosis or treatment decisions.",
+        ]
+        if adjusted_contrast is not None
+        else [
+            "Exploratory public-cohort group comparison; it is not matched-case RNA evidence.",
+            (
+                "Group labels use submitted sample characteristics; covariates and batch effects "
+                "are not modeled."
+            ),
+            (
+                "The test assumes exchangeable independent samples; paired or repeated measures "
+                "are not modeled."
+            ),
+            (
+                "FDR adjustment covers testable rows in this matrix, not analyses selected after "
+                "inspecting results."
+            ),
+            (
+                "Nominal FDR control depends on assumptions about test dependence; correlated "
+                "platform features may affect it."
+            ),
+            (
+                "Per-feature missingness is reported but not modeled; informative missingness "
+                "may bias a comparison."
+            ),
+            (
+                "Feature identifiers remain platform identifiers; transcript or gene identity "
+                "was not inferred."
+            ),
+            "Results do not support diagnosis or treatment decisions.",
+        ]
+    )
     body: dict[str, Any] = {
         "schema": "glio-noncode.geo-expression-contrast.v1",
         "status": "completed",
@@ -834,7 +1181,7 @@ def build_expression_contrast_report(
                 len(matrix.samples) - len(case_samples) - len(reference_samples)
             ),
             "scale": expression_scale.value,
-            "test": "two-sided Mann-Whitney U with exact label permutations when bounded",
+            "test": test_description,
             "multiple_testing_adjustment": "Benjamini-Hochberg over all testable matrix features",
             "fdr_threshold": fdr_threshold,
             "matched_to_case_sample": False,
@@ -867,39 +1214,45 @@ def build_expression_contrast_report(
             "max_matrix_cells": MAX_MATRIX_CELLS,
         },
         "results": preliminary_rows[:top],
-        "limitations": [
-            "Exploratory public-cohort group comparison; it is not matched-case RNA evidence.",
-            (
-                "Group labels use submitted sample characteristics; covariates and batch effects "
-                "are not modeled."
-            ),
-            (
-                "The test assumes exchangeable independent samples; paired or repeated measures "
-                "are not modeled."
-            ),
-            (
-                "FDR adjustment covers testable rows in this matrix, not analyses selected after "
-                "inspecting results."
-            ),
-            (
-                "Nominal FDR control depends on assumptions about test dependence; correlated "
-                "platform features may affect it."
-            ),
-            (
-                "Per-feature missingness is reported but not modeled; informative missingness "
-                "may bias a comparison."
-            ),
-            (
-                "Feature identifiers remain platform identifiers; transcript or gene identity "
-                "was not inferred."
-            ),
-            "Results do not support diagnosis or treatment decisions.",
-        ],
+        "limitations": limitations,
     }
+    if adjusted_contrast is not None:
+        body["comparison"]["model"] = {
+            "type": "additive_ordinary_least_squares",
+            "group_effect": "case_minus_reference_adjusted_for_declared_covariates",
+            "parameter_names": list(adjusted_contrast.parameter_names),
+            "residual_degrees_of_freedom": adjusted_contrast.model.degrees_of_freedom,
+            "covariates": list(adjusted_contrast.covariate_metadata),
+        }
+        body["comparison"]["analysis_case_sample_ids"] = [
+            matrix.samples[index].accession for index in adjusted_contrast.case_indices
+        ]
+        body["comparison"]["analysis_reference_sample_ids"] = [
+            matrix.samples[index].accession for index in adjusted_contrast.reference_indices
+        ]
+        body["comparison"]["covariate_excluded_case_sample_ids"] = [
+            matrix.samples[index].accession for index in adjusted_contrast.excluded_case_indices
+        ]
+        body["comparison"]["covariate_excluded_reference_sample_ids"] = [
+            matrix.samples[index].accession
+            for index in adjusted_contrast.excluded_reference_indices
+        ]
+        body["summary"]["covariate_complete_sample_count"] = len(adjusted_contrast.sample_indices)
+        body["summary"]["covariate_excluded_sample_count"] = len(
+            adjusted_contrast.excluded_case_indices
+        ) + len(adjusted_contrast.excluded_reference_indices)
+        body["analysis_limits"]["max_covariates"] = MAX_GEO_COVARIATES
+        body["analysis_limits"]["max_model_parameters"] = MAX_GEO_MODEL_PARAMETERS
+        body["analysis_limits"]["minimum_residual_degrees_of_freedom"] = 3
     body["comparison"]["context_key"] = (
         f"geo-contrast:{normalized_accession}:{matrix.platform_ids[0]}:"
         f"case[{filter_context(normalized_case)}]:reference[{filter_context(normalized_reference)}]"
     )
+    if adjusted_contrast is not None:
+        covariate_context = ",".join(
+            f"{field.casefold()}:{kind}" for field, kind in normalized_covariates
+        )
+        body["comparison"]["context_key"] += f":covariates[{covariate_context}]"
     return body | {"content_address": content_hash(body, prefix="geo-expression-contrast")}
 
 

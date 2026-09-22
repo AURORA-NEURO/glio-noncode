@@ -21,12 +21,24 @@ def _characteristic_filter(value: str) -> tuple[str, str]:
     return field.strip(), expected.strip()
 
 
+def _covariate_specification(value: str) -> tuple[str, str]:
+    if "=" not in value:
+        raise argparse.ArgumentTypeError("covariate must be FIELD=continuous or FIELD=categorical")
+    field, kind = value.split("=", 1)
+    field = field.strip()
+    kind = kind.strip().casefold()
+    if not field or kind not in {"continuous", "categorical"}:
+        raise argparse.ArgumentTypeError("covariate must be FIELD=continuous or FIELD=categorical")
+    return field, kind
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="glio-noncode geo-contrast",
         description=(
             "Screen all features in one GEO matrix between explicitly selected "
-            "sample groups with multiple-testing correction."
+            "sample groups with multiple-testing correction; optional covariates "
+            "use an additive linear model."
         ),
     )
     parser.add_argument("accession", help="NCBI GEO Series accession, such as GSE103227")
@@ -51,6 +63,17 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         choices=tuple(item.value for item in ExpressionScale),
         help="declared data scale after reviewing GEO processing metadata",
+    )
+    parser.add_argument(
+        "--covariate",
+        action="append",
+        type=_covariate_specification,
+        default=[],
+        metavar="FIELD=continuous|categorical",
+        help=(
+            "adjust for a declared sample characteristic; repeat as needed, "
+            "for example age=continuous or batch=categorical"
+        ),
     )
     parser.add_argument(
         "--matrix-file",
@@ -93,6 +116,7 @@ def main(argv: list[str] | None = None) -> int:
             timeout_seconds=args.timeout,
             fdr_threshold=args.fdr,
             top=args.top,
+            covariates=args.covariate,
         )
     except SourceNotFoundError:
         report = _error_report(
@@ -114,6 +138,11 @@ def main(argv: list[str] | None = None) -> int:
         report = _error_report(
             "matrix_read_error",
             "The local GEO Series Matrix could not be read as a regular bounded file.",
+        )
+    except ArithmeticError:
+        report = _error_report(
+            "statistical_numerical_failure",
+            "The adjusted-model calculation could not be represented reliably.",
         )
 
     try:

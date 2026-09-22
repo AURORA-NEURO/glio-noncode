@@ -80,6 +80,43 @@ Missing features remain visible as untestable rows and do not enter the
 multiple-testing family. The report includes its matrix digest, sample IDs,
 filter context, analysis limits, and content address.
 
+## Covariate-adjusted mode
+
+The rank-based comparison above is the default and remains unchanged when no
+covariates are supplied. To fit an additive ordinary least squares model, pass
+each covariate with an explicit type:
+
+    glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --covariate age=continuous --covariate batch=categorical --fdr 0.05 --top 1000
+
+The model estimates the case-minus-reference group coefficient while adjusting
+for the declared fields. Continuous fields are centered and scaled by their
+population standard deviation; this does not change the group coefficient.
+Categorical fields use treatment coding with a deterministic, case-insensitive
+sorted reference level. The report records the encoding, levels, parameter
+names, and continuous-field center and scale. Covariates must come from sample
+characteristics, must not also define the case/reference groups, and are never
+inferred automatically.
+
+Samples missing any declared covariate are excluded listwise and their GEO
+sample IDs are reported separately from the originally selected groups. The
+model requires at least two complete samples per group and at least three
+residual degrees of freedom. Rank-deficient, collinear, constant-covariate, or
+ill-conditioned designs are rejected. The model is bounded to 16 covariates
+and 24 total parameters. An expression feature is untestable if any covariate-
+complete model sample lacks its expression value; this fixed-sample rule avoids
+silently fitting different designs feature by feature. Untestable features do
+not enter the Benjamini-Hochberg family.
+
+Adjusted rows retain descriptive group means and medians, but report the model's
+adjusted group coefficient separately, along with its t statistic, residual
+degrees of freedom, p-value, and q-value. Classical t inference assumes
+independent samples and approximately normal, homoscedastic errors; continuous
+covariate effects are linear and no interactions, nonlinear terms, paired or
+repeated-measures structure are fitted. Adjustment covers only the covariates
+the user supplies, so omitted batch effects and residual confounding remain
+possible. The adjusted analysis is still exploratory and is not clinical
+evidence.
+
 ## Reproducible run on GSE103227
 
 Running the command above on the downloaded 2,609,899-byte Series Matrix with

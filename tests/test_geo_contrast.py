@@ -20,9 +20,7 @@ SAMPLE_IDS = tuple(f"GSM0000{index}" for index in range(1, 11))
 
 def _matrix_payload() -> bytes:
     samples = "\t".join(f'"{sample}"' for sample in SAMPLE_IDS)
-    diagnoses = "\t".join(
-        ['"diagnosis: normal"'] * 5 + ['"diagnosis: glioblastoma"'] * 5
-    )
+    diagnoses = "\t".join(['"diagnosis: normal"'] * 5 + ['"diagnosis: glioblastoma"'] * 5)
     rows = [
         '!Series_geo_accession\t"GSE123456"',
         '!Series_title\t"Fixture public expression series"',
@@ -41,6 +39,51 @@ def _matrix_payload() -> bytes:
     rows.append("probe-null\t" + "\t".join(map(str, references + references)))
     rows.append("probe-missing\tNA\tNA\tNA\tNA\t1\t2\t3\t4\t5\t6")
     rows.append("!series_matrix_table_end")
+    return gzip.compress(("\n".join(rows) + "\n").encode("utf-8"), mtime=0)
+
+
+def _covariate_matrix_payload(
+    *,
+    missing_age_index: int | None = None,
+    nonnumeric_age_index: int | None = None,
+    confounded_batch: bool = False,
+) -> bytes:
+    samples = "\t".join(f'"{sample}"' for sample in SAMPLE_IDS)
+    diagnoses = ["normal"] * 5 + ["glioblastoma"] * 5
+    age_measurements = [30, 40, 50, 60, 70, 40, 50, 60, 70, 80]
+    ages: list[int | str] = list(age_measurements)
+    if missing_age_index is not None:
+        ages[missing_age_index] = "NA"
+    if nonnumeric_age_index is not None:
+        ages[nonnumeric_age_index] = "old"
+    batches = (
+        ["A"] * 5 + ["B"] * 5
+        if confounded_batch
+        else ["A", "B", "A", "B", "A", "A", "B", "A", "B", "A"]
+    )
+    noises = [-1, 1, 1, -1, 0, 1, -1, -1, 1, 0]
+    expression = [
+        100 + (5 if index >= 5 else 0) + 2 * (age - 55) + (3 if batch == "B" else 0) + noise
+        for index, (age, batch, noise) in enumerate(
+            zip(age_measurements, batches, noises, strict=True)
+        )
+    ]
+    rows = [
+        '!Series_geo_accession\t"GSE123456"',
+        '!Series_title\t"Fixture public expression series"',
+        '!Series_type\t"Expression profiling by array"',
+        '!Series_platform_id\t"GPL123"',
+        f"!Sample_geo_accession\t{samples}",
+        "!Sample_characteristics_ch1\t" + "\t".join(f'"diagnosis: {value}"' for value in diagnoses),
+        "!Sample_characteristics_ch1\t" + "\t".join(f'"age: {value}"' for value in ages),
+        "!Sample_characteristics_ch1\t" + "\t".join(f'"batch: {value}"' for value in batches),
+        "!series_matrix_table_begin",
+        f"ID_REF\t{samples}",
+        "probe-adjusted\t" + "\t".join(map(str, expression)),
+        "probe-adjusted-missing\tNA\t" + "\t".join(map(str, expression[1:])),
+        "probe-flat\t" + "\t".join("4" for _ in SAMPLE_IDS),
+        "!series_matrix_table_end",
+    ]
     return gzip.compress(("\n".join(rows) + "\n").encode("utf-8"), mtime=0)
 
 
@@ -101,6 +144,150 @@ class GeoContrastTests(unittest.TestCase):
             "covariates and batch effects are not modeled",
             " ".join(report["limitations"]),
         )
+
+    def test_covariate_adjusted_screen_separates_group_effect_from_age_and_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "covariates.txt.gz"
+            matrix_path.write_bytes(_covariate_matrix_payload())
+            report = build_expression_contrast_report(
+                "GSE123456",
+                case_filters=(("diagnosis", "glioblastoma"),),
+                reference_filters=(("diagnosis", "normal"),),
+                scale="normalized_intensity",
+                matrix_file=matrix_path,
+                top=3,
+                covariates=(("age", "continuous"), ("batch", "categorical")),
+            )
+
+        results = {row["feature_id"]: row for row in report["results"]}
+        signal = results["probe-adjusted"]
+        self.assertAlmostEqual(signal["mean_difference"], 25.0)
+        self.assertAlmostEqual(signal["adjusted_mean_difference"], 5.0, places=10)
+        self.assertEqual(signal["case_n"], 5)
+        self.assertEqual(signal["reference_n"], 5)
+        self.assertEqual(signal["degrees_of_freedom"], 6)
+        self.assertTrue(0.0 <= signal["p_value"] <= 1.0)
+        self.assertEqual(signal["test_method"], "covariate_adjusted_ols_t_test")
+        self.assertIsNone(signal["rank_biserial_correlation"])
+        self.assertEqual(
+            results["probe-adjusted-missing"]["reason"],
+            "missing_expression_in_covariate_complete_samples",
+        )
+        self.assertEqual(results["probe-flat"]["reason"], "zero_residual_variance")
+        self.assertEqual(report["summary"]["tested_feature_count"], 1)
+        self.assertEqual(report["summary"]["fdr_family_size"], 1)
+        self.assertAlmostEqual(signal["q_value"], signal["p_value"])
+        self.assertEqual(
+            report["comparison"]["model"]["parameter_names"],
+            [
+                "intercept",
+                "group_case_minus_reference",
+                "covariate_1:age_standardized",
+                "covariate_2:batch[B]",
+            ],
+        )
+        self.assertEqual(report["comparison"]["model"]["covariates"][1]["reference_level"], "A")
+        self.assertEqual(report["summary"]["covariate_complete_sample_count"], 10)
+        self.assertIn(
+            "covariates[age:continuous,batch:categorical]",
+            report["comparison"]["context_key"],
+        )
+        self.assertIn(
+            "approximately normal homoscedastic residuals",
+            " ".join(report["limitations"]),
+        )
+
+    def test_covariate_missingness_is_listwise_and_reported_by_sample(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "covariates.txt.gz"
+            matrix_path.write_bytes(_covariate_matrix_payload(missing_age_index=7))
+            report = build_expression_contrast_report(
+                "GSE123456",
+                case_filters=(("diagnosis", "glioblastoma"),),
+                reference_filters=(("diagnosis", "normal"),),
+                scale="normalized_intensity",
+                matrix_file=matrix_path,
+                covariates=(("age", "continuous"), ("batch", "categorical")),
+            )
+
+        comparison = report["comparison"]
+        self.assertEqual(comparison["case_sample_ids"], list(SAMPLE_IDS[5:]))
+        self.assertEqual(
+            comparison["analysis_case_sample_ids"],
+            [SAMPLE_IDS[5], SAMPLE_IDS[6], SAMPLE_IDS[8], SAMPLE_IDS[9]],
+        )
+        self.assertEqual(comparison["covariate_excluded_case_sample_ids"], [SAMPLE_IDS[7]])
+        self.assertEqual(report["summary"]["covariate_complete_sample_count"], 9)
+        self.assertEqual(report["summary"]["covariate_excluded_sample_count"], 1)
+        self.assertEqual(report["results"][0]["case_n"], 4)
+        self.assertEqual(report["results"][0]["degrees_of_freedom"], 5)
+
+    def test_rank_deficient_or_confounded_covariate_design_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "confounded.txt.gz"
+            matrix_path.write_bytes(_covariate_matrix_payload(confounded_batch=True))
+            with self.assertRaisesRegex(ValidationError, "rank deficient|collinear"):
+                build_expression_contrast_report(
+                    "GSE123456",
+                    case_filters=(("diagnosis", "glioblastoma"),),
+                    reference_filters=(("diagnosis", "normal"),),
+                    scale="normalized_intensity",
+                    matrix_file=matrix_path,
+                    covariates=(("batch", "categorical"),),
+                )
+
+    def test_covariates_cannot_reuse_group_fields_or_accept_invalid_continuous_values(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            matrix_path = Path(temporary) / "covariates.txt.gz"
+            matrix_path.write_bytes(_covariate_matrix_payload())
+            base = {
+                "accession": "GSE123456",
+                "case_filters": (("diagnosis", "glioblastoma"),),
+                "reference_filters": (("diagnosis", "normal"),),
+                "scale": "normalized_intensity",
+                "matrix_file": matrix_path,
+            }
+            with self.assertRaisesRegex(ValidationError, "cannot reuse"):
+                build_expression_contrast_report(**base, covariates=(("diagnosis", "categorical"),))
+
+            matrix_path.write_bytes(_covariate_matrix_payload(nonnumeric_age_index=0))
+            with self.assertRaisesRegex(ValidationError, "non-numeric"):
+                build_expression_contrast_report(
+                    **base,
+                    covariates=(("age", "continuous"), ("batch", "categorical")),
+                )
+
+    def test_cli_accepts_repeated_typed_covariates(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            matrix_path = root / "covariates.txt.gz"
+            report_path = root / "contrast.json"
+            matrix_path.write_bytes(_covariate_matrix_payload())
+            exit_code = cli_main(
+                [
+                    "geo-contrast",
+                    "GSE123456",
+                    "--case-filter",
+                    "diagnosis=glioblastoma",
+                    "--reference-filter",
+                    "diagnosis=normal",
+                    "--scale",
+                    "normalized_intensity",
+                    "--matrix-file",
+                    str(matrix_path),
+                    "--covariate",
+                    "age=continuous",
+                    "--covariate",
+                    "batch=categorical",
+                    "--output",
+                    str(report_path),
+                ]
+            )
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(report["status"], "completed")
+        self.assertEqual(report["results"][0]["test_method"], "covariate_adjusted_ols_t_test")
 
     def test_unstable_missing_feature_is_reported_but_not_in_fdr_family(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

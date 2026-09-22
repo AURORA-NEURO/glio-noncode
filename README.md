@@ -71,10 +71,17 @@ provenance fields, resource limits, and interpretation boundaries.
 
 For a two-group exploratory screen across one GEO platform, `geo-contrast`
 tests all eligible matrix features and applies Benjamini-Hochberg correction.
-Group membership comes only from explicit sample-characteristic filters; this
-does not adjust for covariates or establish clinical evidence.
+Group membership comes only from explicit sample-characteristic filters. The
+default rank-based comparison does not adjust for covariates or establish
+clinical evidence.
 
     glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --fdr 0.05 --top 1000
+
+An opt-in additive model can adjust for declared continuous and categorical
+sample characteristics. Review its assumptions and missing-data rules in
+`docs/GEO_EXPRESSION_WORKFLOW.md` before interpreting adjusted results.
+
+    glio-noncode geo-contrast GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --covariate age=continuous --covariate batch=categorical --top 1000
 
 Package-root exports resolve lazily, and help, version, discovery, `case`,
 `expression`, and report commands stay on focused startup paths. The curated
