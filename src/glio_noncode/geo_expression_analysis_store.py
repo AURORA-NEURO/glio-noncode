@@ -13,7 +13,7 @@ import csv
 import io
 import math
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -389,6 +389,33 @@ class GeoExpressionAnalysisStore:
             "min_abs_effect": min_abs_effect,
         }
 
+    @staticmethod
+    def _filtered_result_summary(results: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+        """Summarize a filtered aggregate result set before bounded pagination."""
+
+        directions = {
+            direction: sum(result.get("effect_direction") == direction for result in results)
+            for direction in sorted(_DIRECTIONS)
+        }
+        return {
+            "result_count": len(results),
+            "effect_direction_counts": directions,
+            "fdr_significant_count": sum(
+                result.get("fdr_significant") is True for result in results
+            ),
+            "missing_effect_count": sum(
+                all(
+                    result.get(key) is None
+                    for key in (
+                        "adjusted_mean_difference",
+                        "mean_difference",
+                        "median_difference",
+                    )
+                )
+                for result in results
+            ),
+        }
+
     def _all_results(self, analysis_id: str) -> tuple[dict[str, Any], list[Mapping[str, Any]]]:
         saved = self.get_report(analysis_id)
         report = saved["report"]
@@ -450,6 +477,7 @@ class GeoExpressionAnalysisStore:
             "total_results": len(results),
             "unfiltered_result_count": len(all_results),
             "filters": filters,
+            "filtered_result_summary": self._filtered_result_summary(results),
             "has_more": offset + len(page) < len(results),
         }
 

@@ -193,6 +193,9 @@ sample selections remain in the explicit reproducibility JSON export. See
 catalog and HTTP contracts. Saved expression contrasts can also be compared by
 catalog ID into immutable `geo-consistency-*` records with paged, aggregate-only
 direction review and CSV export.
+Each paged GEO feature response also includes a deterministic
+`filtered_result_summary` with direction and significance counts calculated before
+pagination, so clients can explain a filter without loading every result page.
 The archive-health ledger CSV also exposes per-record ranked rows, explicitly tracked
 rows, and tracked source-ID slot counts so bounded coverage can be audited without
 opening raw matrices.

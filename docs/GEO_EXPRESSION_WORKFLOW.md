@@ -560,6 +560,9 @@ deterministic `geo-expression-*` record. `GET /v1/geo-expression-analyses`
 returns only bounded cohort and feature-count summaries. A detail page at
 `/v1/geo-expression-analyses/{analysis_id}` returns paged feature effects,
 directions, p-values, q-values, and provenance without selected GSM accessions.
+Each page also includes a bounded `filtered_result_summary` with direction and
+FDR counts computed before pagination, so a client can explain its filters
+without loading every result row.
 Filtered aggregate CSV is available at
 `/v1/geo-expression-analyses/{analysis_id}/results.csv`; the explicit
 `report.json` export is the reproducibility artifact and includes the exact

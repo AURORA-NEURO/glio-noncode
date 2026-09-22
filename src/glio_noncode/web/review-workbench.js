@@ -1239,6 +1239,9 @@
       provenance.append(block);
     }
     $("geo-expression-result-count").textContent = `${formatCount(page.total_results)} of ${formatCount(page.unfiltered_result_count)} rows`;
+    const expressionFilteredSummary = page.filtered_result_summary || {};
+    const expressionDirections = expressionFilteredSummary.effect_direction_counts || {};
+    $("geo-expression-filter-summary").textContent = `${formatCount(expressionFilteredSummary.result_count || 0)} filtered rows · ${formatCount(expressionFilteredSummary.fdr_significant_count || 0)} FDR significant · directions ${formatCount(expressionDirections.case_higher || 0)} higher / ${formatCount(expressionDirections.case_lower || 0)} lower / ${formatCount(expressionDirections.no_rank_shift || 0)} unchanged`;
     $("geo-expression-load-more").hidden = !page.has_more;
     const body = $("geo-expression-results-table");
     body.replaceChildren();
@@ -2059,6 +2062,9 @@
     const body = $("geo-results-table");
     body.replaceChildren();
     const page = model.geoPage;
+    const filteredSummary = page?.filtered_result_summary || {};
+    const directionCounts = filteredSummary.effect_direction_counts || {};
+    $("geo-result-filter-summary").textContent = `${formatCount(filteredSummary.result_count || 0)} filtered rows · ${formatCount(filteredSummary.fdr_significant_count || 0)} signed-rank FDR significant · ${formatCount(filteredSummary.sign_test_fdr_significant_count || 0)} sign-test FDR significant · directions ${formatCount(directionCounts.case_higher || 0)} higher / ${formatCount(directionCounts.case_lower || 0)} lower / ${formatCount(directionCounts.no_mean_difference || 0)} no mean difference`;
     if (!page || !model.geoResults.length) {
       body.append(emptyRow(6, "No reported feature rows are available."));
       $("geo-result-count").textContent = "0 reported rows";

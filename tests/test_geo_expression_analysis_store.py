@@ -59,6 +59,11 @@ class GeoExpressionAnalysisStoreTests(unittest.TestCase):
             self.assertEqual(page["schema"], "glio-noncode.geo-expression-analysis-page.v1")
             self.assertEqual(page["total_results"], 3)
             self.assertEqual(len(page["results"]), 2)
+            self.assertEqual(page["filtered_result_summary"]["result_count"], 3)
+            self.assertEqual(
+                sum(page["filtered_result_summary"]["effect_direction_counts"].values()),
+                3,
+            )
             self.assertNotIn("case_sample_ids", json.dumps(page))
             self.assertNotIn("reference_sample_ids", json.dumps(page))
 
@@ -67,6 +72,10 @@ class GeoExpressionAnalysisStoreTests(unittest.TestCase):
             )
             self.assertTrue(filtered["results"])
             self.assertTrue(all(row["fdr_significant"] for row in filtered["results"]))
+            self.assertEqual(
+                filtered["filtered_result_summary"]["fdr_significant_count"],
+                filtered["total_results"],
+            )
             csv_body = store.results_csv(first["analysis_id"], effect_direction="case_higher")
             self.assertIn("feature_id", csv_body.splitlines()[0])
             self.assertIn("probe-up-1", csv_body)

@@ -1139,6 +1139,34 @@ class GeoAnalysisStore:
             "min_abs_median_effect": min_abs_median_effect,
         }
 
+    @staticmethod
+    def _filtered_result_summary(results: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+        """Summarize a filtered aggregate result set without reopening or rescanning pages."""
+
+        directions = {"case_higher": 0, "case_lower": 0, "no_mean_difference": 0}
+        for result in results:
+            direction = result["effect_direction"]
+            if direction in directions:
+                directions[direction] += 1
+        return {
+            "result_count": len(results),
+            "effect_direction_counts": directions,
+            "fdr_significant_count": sum(
+                result["fdr_significant"] is True for result in results
+            ),
+            "sign_test_fdr_significant_count": sum(
+                result["sign_test_fdr_significant"] is True for result in results
+            ),
+            "manual_annotation_review_recommended_count": sum(
+                result["feature_label_review"]["manual_annotation_review_recommended"] is True
+                for result in results
+            ),
+            "possible_date_like_source_label_count": sum(
+                result["feature_label_review"]["possible_date_like_source_label"] is True
+                for result in results
+            ),
+        }
+
     def page_results(
         self,
         analysis_id: str,
@@ -1191,6 +1219,7 @@ class GeoAnalysisStore:
             "total_results": len(results),
             "unfiltered_result_count": len(all_results),
             "filters": filters,
+            "filtered_result_summary": self._filtered_result_summary(results),
             "has_more": offset + len(page) < len(results),
         }
 

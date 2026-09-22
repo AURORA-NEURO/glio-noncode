@@ -47,6 +47,14 @@ class GeoAnalysisStoreTests(unittest.TestCase):
             page = store.page_results(first["analysis_id"], limit=2)
             self.assertEqual(len(page["results"]), 2)
             self.assertTrue(page["has_more"])
+            self.assertEqual(
+                page["filtered_result_summary"]["result_count"],
+                page["total_results"],
+            )
+            self.assertEqual(
+                sum(page["filtered_result_summary"]["effect_direction_counts"].values()),
+                page["total_results"],
+            )
             serialized = canonical_json(catalog)
             self.assertNotIn("PRIVATE_TUMOR_", serialized)
             self.assertNotIn("PRIVATE_SUBJECT_", serialized)
@@ -66,6 +74,12 @@ class GeoAnalysisStoreTests(unittest.TestCase):
             self.assertTrue(direction_page["results"])
             self.assertTrue(
                 all(item["effect_direction"] == "case_higher" for item in direction_page["results"])
+            )
+            self.assertEqual(
+                direction_page["filtered_result_summary"]["effect_direction_counts"][
+                    "case_higher"
+                ],
+                direction_page["total_results"],
             )
 
             significant_page = store.page_results(analysis_id, fdr_significant=False)
