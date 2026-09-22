@@ -51,6 +51,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="geo-review-fdr-count"', html)
         self.assertIn('id="geo-metric-reported"', html)
         self.assertIn('id="geo-metric-reported-detail"', html)
+        self.assertIn('id="geo-review-reported-count"', html)
         self.assertIn('id="geo-sensitivity-sign-fdr-filter"', html)
         self.assertIn('id="geo-review-preflight-count"', html)
         self.assertIn('id="geo-review-preflight-kinds"', html)

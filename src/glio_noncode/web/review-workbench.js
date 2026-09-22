@@ -550,6 +550,7 @@
     }
     const accessionCount = accessionValues.size;
     const testedCount = catalogs.reduce((total, item) => total + Number(item.tested_feature_count_total || 0), 0);
+    const reportedCount = catalogs.reduce((total, item) => total + Number(item.reported_feature_count_total || 0), 0);
     const fdrCount = catalogs.reduce((total, item) => total + Number(item.fdr_significant_feature_count_total || 0), 0);
     $("geo-review-subtitle").textContent = `${formatCount(analysisCount)} analyses · ${formatCount(comparisonCount)} saved comparisons · ${summary.integrity?.report_objects || "review"}`;
     $("geo-review-address").textContent = summary.content_address || "Address unavailable";
@@ -558,6 +559,7 @@
     $("geo-review-preflight-count").textContent = formatCount(preflightCount);
     $("geo-review-accession-count").textContent = formatCount(accessionCount);
     $("geo-review-tested-count").textContent = formatCount(testedCount);
+    $("geo-review-reported-count").textContent = formatCount(reportedCount);
     $("geo-review-fdr-count").textContent = formatCount(fdrCount);
     $("geo-review-integrity").textContent = summary.integrity?.verification_failure_count === 0 ? "Accepted" : "Review";
     renderGeoReviewBreakdown("geo-review-preflight-kinds", preflightCatalog.kind_counts, "No saved preflight kinds yet.");

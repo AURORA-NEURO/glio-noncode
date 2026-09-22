@@ -26,6 +26,7 @@ GEO_REVIEW_LEDGER_COLUMNS = (
     "accessions",
     "feature_count",
     "tested_feature_count",
+    "reported_feature_count",
     "fdr_significant_feature_count",
     "verification",
     "state",
@@ -87,6 +88,7 @@ def _catalog_projection(
     identifier_key: str,
     feature_key: str,
     tested_key: str | None,
+    reported_key: str | None,
     fdr_key: str | None,
     verify_reports: bool,
 ) -> tuple[dict[str, Any], int]:
@@ -119,6 +121,10 @@ def _catalog_projection(
     if tested_key is not None:
         projection["tested_feature_count_total"] = sum(
             _number(row, tested_key) for row in rows
+        )
+    if reported_key is not None:
+        projection["reported_feature_count_total"] = sum(
+            _number(row, reported_key) for row in rows
         )
     if fdr_key is not None:
         projection["fdr_significant_feature_count_total"] = sum(
@@ -215,6 +221,7 @@ def _catalog_ledger(
                 "tested_feature_count": (
                     _number(row, tested_key) if tested_key is not None else 0
                 ),
+                "reported_feature_count": _number(row, "reported_feature_count"),
                 "fdr_significant_feature_count": (
                     _number(row, fdr_key) if fdr_key is not None else 0
                 ),
@@ -410,6 +417,7 @@ def build_geo_review_summary(
         identifier_key="analysis_id",
         feature_key="feature_row_count",
         tested_key="tested_feature_count",
+        reported_key="reported_feature_count",
         fdr_key="fdr_significant_feature_count",
         verify_reports=verify_reports,
     )
@@ -419,6 +427,7 @@ def build_geo_review_summary(
         identifier_key="analysis_id",
         feature_key="feature_count",
         tested_key="tested_feature_count",
+        reported_key="reported_feature_count",
         fdr_key="fdr_significant_feature_count",
         verify_reports=verify_reports,
     )
@@ -428,6 +437,7 @@ def build_geo_review_summary(
         identifier_key="comparison_id",
         feature_key="feature_count",
         tested_key=None,
+        reported_key=None,
         fdr_key=None,
         verify_reports=verify_reports,
     )
@@ -437,6 +447,7 @@ def build_geo_review_summary(
         identifier_key="comparison_id",
         feature_key="feature_count",
         tested_key=None,
+        reported_key=None,
         fdr_key=None,
         verify_reports=verify_reports,
     )
@@ -446,6 +457,7 @@ def build_geo_review_summary(
         identifier_key="comparison_id",
         feature_key="feature_count",
         tested_key=None,
+        reported_key=None,
         fdr_key=None,
         verify_reports=verify_reports,
     )
