@@ -7,7 +7,7 @@ import sys
 
 from ._cli_support import write_json
 from .errors import StoreError, ValidationError
-from .geo_review_summary import build_geo_review_summary
+from .geo_review_summary import build_geo_review_summary, geo_review_ledger_csv
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,7 +23,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=".glio",
         help="local GLIO-NONCODE data root containing saved GEO records",
     )
-    parser.add_argument("--output", default="-", help="JSON summary path, or - for stdout")
+    parser.add_argument(
+        "--csv",
+        action="store_true",
+        help="emit the row-level aggregate health ledger instead of JSON",
+    )
+    parser.add_argument(
+        "--output", default="-", help="JSON/CSV summary path, or - for stdout"
+    )
     parser.add_argument(
         "--skip-report-verification",
         action="store_true",
@@ -35,9 +42,22 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        verify_reports = not args.skip_report_verification
+        if args.csv:
+            from ._safe_persistence import atomic_write_text
+
+            payload = geo_review_ledger_csv(
+                args.data_root,
+                verify_reports=verify_reports,
+            )
+            if args.output == "-":
+                sys.stdout.write(payload)
+            else:
+                atomic_write_text(args.output, payload, field="GEO review CSV output")
+            return 0
         summary = build_geo_review_summary(
             args.data_root,
-            verify_reports=not args.skip_report_verification,
+            verify_reports=verify_reports,
         )
         write_json(summary, args.output)
     except (OSError, StoreError, ValidationError, ValueError) as error:

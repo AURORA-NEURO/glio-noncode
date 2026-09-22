@@ -53,7 +53,10 @@ row-level, aggregate-only health ledger is available as
 saved analysis or comparison, the public GEO accession(s), bounded feature
 counts, and verification state. The CSV never contains sample, subject, pair,
 raw matrix, agent, or language metadata. The workbench exposes it as
-`Download health ledger` after archive health has been opened.
+`Download health ledger` after archive health has been opened. The same
+projection is available from the CLI:
+`glio-noncode geo-review-summary --csv --data-root .glio
+--output geo-review-ledger.csv`.
 
 Feature pages accept bounded aggregate filters before pagination:
 `feature_contains` performs case-insensitive source-label matching,

@@ -54,6 +54,18 @@ class GeoReviewSummaryTests(unittest.TestCase):
             cli_summary = json.loads(stdout.getvalue())
             self.assertEqual(stderr.getvalue(), "")
 
+            stdout_csv, stderr_csv = io.StringIO(), io.StringIO()
+            with redirect_stdout(stdout_csv), redirect_stderr(stderr_csv):
+                csv_result = summary_main(["--data-root", str(workspace), "--csv"])
+            self.assertEqual(csv_result, 0)
+            self.assertEqual(stderr_csv.getvalue(), "")
+            self.assertIn(
+                "catalog,record_id,accessions,feature_count,tested_feature_count,"
+                "fdr_significant_feature_count,verification,state\n",
+                stdout_csv.getvalue(),
+            )
+            self.assertIn("GSE141945", stdout_csv.getvalue())
+
             server = create_server("127.0.0.1", 0, str(workspace))
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
