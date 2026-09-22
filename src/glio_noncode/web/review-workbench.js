@@ -104,7 +104,7 @@
       const top = element("span", "run-top");
       top.append(element("span", "run-case", item.accession), element("span", "run-status", "GEO"));
       const meta = element("span", "run-meta");
-      meta.append(element("span", "run-id", shortened(item.analysis_id, 28)), element("span", "", `${item.matched_pair_count} pairs · ${item.fdr_significant_feature_count} q-significant`));
+      meta.append(element("span", "run-id", shortened(item.analysis_id, 28)), element("span", "", `${item.matched_pair_count} pairs · ${item.fdr_significant_feature_count} q-significant · ${consistencyText(item.normalization || "normalization unavailable")}`));
       button.append(top, meta);
       button.addEventListener("click", () => openGeoAnalysis(item.analysis_id));
       choice.append(button);
