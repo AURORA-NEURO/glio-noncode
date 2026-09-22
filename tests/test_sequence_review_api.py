@@ -67,6 +67,19 @@ class SequenceReviewApiTests(unittest.TestCase):
                 self.assertIn(",joint,jointly-created motif,", csv_body)
                 self.assertEqual(csv_response.getheader("Content-Type"), "text/csv; charset=utf-8")
 
+                connection.request("GET", "/v1/sequence-review/capabilities")
+                capabilities_response = connection.getresponse()
+                capabilities = json.loads(capabilities_response.read())
+                self.assertEqual(capabilities_response.status, 200)
+                self.assertEqual(
+                    capabilities["schema"], "glio-noncode.sequence-review-capabilities.v1"
+                )
+                connection.request("GET", "/v1/sequence-review/schema?document=motifs")
+                schema_response = connection.getresponse()
+                motifs_schema = json.loads(schema_response.read())
+                self.assertEqual(schema_response.status, 200)
+                self.assertEqual(motifs_schema["title"], "GLIO-NONCODE sequence review motifs")
+
                 connection.request("GET", "/v1/sequence-review/summary?unexpected=1")
                 self.assertEqual(connection.getresponse().status, 400)
                 connection.close()

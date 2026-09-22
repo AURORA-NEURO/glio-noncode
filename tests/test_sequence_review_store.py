@@ -10,10 +10,15 @@ from glio_noncode._cli_sequence_batch import build_batch_report
 from glio_noncode._cli_sequence_review import main as review_main
 from glio_noncode.errors import ValidationError
 from glio_noncode.sequence_review_store import (
+    SEQUENCE_REVIEW_CAPABILITIES_SCHEMA,
     SEQUENCE_REVIEW_MOTIFS_SCHEMA,
     SEQUENCE_REVIEW_SUMMARY_SCHEMA,
     SEQUENCE_REVIEW_VERIFY_SCHEMA,
     SequenceReviewStore,
+    sequence_review_capabilities,
+    sequence_review_motifs_schema,
+    sequence_review_summary_schema,
+    sequence_review_verification_schema,
 )
 from tests.test_cli_sequence import _input
 from tests.test_cli_sequence_batch import _batch_input
@@ -35,6 +40,19 @@ class SequenceReviewStoreTests(unittest.TestCase):
             self.assertTrue(summary["content_address"].startswith("sequence-review-summary:"))
             self.assertNotIn("AACCGGTTAACC", json.dumps(summary))
             self.assertNotIn("PRIVATE_SAMPLE_1", json.dumps(summary))
+
+    def test_discovery_contracts_are_closed_and_capabilities_are_public(self) -> None:
+        summary_schema = sequence_review_summary_schema()
+        verification_schema = sequence_review_verification_schema()
+        motifs_schema = sequence_review_motifs_schema()
+        capabilities = sequence_review_capabilities()
+        self.assertFalse(summary_schema["additionalProperties"])
+        self.assertFalse(verification_schema["additionalProperties"])
+        self.assertFalse(motifs_schema["additionalProperties"])
+        self.assertEqual(capabilities["schema"], SEQUENCE_REVIEW_CAPABILITIES_SCHEMA)
+        self.assertIn("/v1/sequence-review/motifs", capabilities["endpoints"]["motifs"])
+        self.assertNotIn("agent", json.dumps(capabilities).lower())
+        self.assertNotIn("language", json.dumps(capabilities).lower())
 
     def test_motif_activity_combines_single_and_batch_reports_with_exact_filters(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -131,6 +149,41 @@ class SequenceReviewStoreTests(unittest.TestCase):
                 0,
             )
             self.assertEqual(json.loads(motifs_path.read_text(encoding="utf-8"))["total_count"], 1)
+            schema_path = Path(directory) / "motifs-schema.json"
+            self.assertEqual(
+                review_main(
+                    [
+                        "--data-root",
+                        directory,
+                        "schema",
+                        "motifs",
+                        "--output",
+                        str(schema_path),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                json.loads(schema_path.read_text(encoding="utf-8"))["title"],
+                "GLIO-NONCODE sequence review motifs",
+            )
+            capabilities_path = Path(directory) / "capabilities.json"
+            self.assertEqual(
+                review_main(
+                    [
+                        "--data-root",
+                        directory,
+                        "capabilities",
+                        "--output",
+                        str(capabilities_path),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                json.loads(capabilities_path.read_text(encoding="utf-8"))["schema"],
+                SEQUENCE_REVIEW_CAPABILITIES_SCHEMA,
+            )
 
 
 if __name__ == "__main__":

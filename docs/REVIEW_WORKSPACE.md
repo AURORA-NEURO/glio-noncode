@@ -152,6 +152,11 @@ motif-source counts before pagination. The `source_id` filter applies to the
 saved report source; motif source IDs remain the provenance on each aggregate
 motif row. The workbench exposes all four filters and
 renders that summary without loading additional motif rows.
+Integrators can discover the closed response contracts at
+`GET /v1/sequence-review/schema?document=summary|verification|motifs` and the
+public operation inventory at `GET /v1/sequence-review/capabilities`. The CLI
+equivalents are `glio-noncode sequence-review schema motifs` and
+`glio-noncode sequence-review capabilities`.
 
 For reproducible cross-normalization coverage, pass repeated
 `--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The

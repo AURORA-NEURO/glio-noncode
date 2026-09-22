@@ -24,12 +24,276 @@ SEQUENCE_REVIEW_SUMMARY_SCHEMA = "glio-noncode.sequence-review-summary.v1"
 SEQUENCE_REVIEW_VERIFY_SCHEMA = "glio-noncode.sequence-review-verification.v1"
 SEQUENCE_REVIEW_MOTIFS_SCHEMA = "glio-noncode.sequence-review-motifs.v1"
 SEQUENCE_REVIEW_MOTIFS_CSV_SCHEMA = "glio-noncode.sequence-review-motifs-csv.v1"
+SEQUENCE_REVIEW_CAPABILITIES_SCHEMA = "glio-noncode.sequence-review-capabilities.v1"
 
 MAX_REVIEW_CATALOG_RECORDS = 10_000
 MAX_REVIEW_MOTIF_ROWS = 5_000
 MAX_REVIEW_PAGE_SIZE = 100
 MAX_REVIEW_QUERY_LENGTH = 256
 MAX_REVIEW_CSV_BYTES = 4 * 1024 * 1024
+
+
+def _json_schema_object(
+    title: str, required: tuple[str, ...], properties: dict[str, Any]
+) -> dict[str, Any]:
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": title,
+        "type": "object",
+        "additionalProperties": False,
+        "required": list(required),
+        "properties": properties,
+    }
+
+
+def sequence_review_summary_schema() -> dict[str, Any]:
+    """Return the closed root contract for the sequence archive summary."""
+
+    catalog = {
+        "type": "object",
+        "required": ["record_count"],
+        "properties": {
+            "record_count": {"type": "integer", "minimum": 0},
+            "analysis_count": {"type": "integer", "minimum": 0},
+            "supported_count": {"type": "integer", "minimum": 0},
+            "abstained_count": {"type": "integer", "minimum": 0},
+            "supported_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+            "created_motif_count": {"type": "integer", "minimum": 0},
+            "disrupted_motif_count": {"type": "integer", "minimum": 0},
+            "created_change_count": {"type": "integer", "minimum": 0},
+            "disrupted_change_count": {"type": "integer", "minimum": 0},
+            "genome_build_counts": {
+                "type": "object",
+                "additionalProperties": {"type": "integer", "minimum": 0},
+            },
+            "source_id_counts": {
+                "type": "object",
+                "additionalProperties": {"type": "integer", "minimum": 0},
+            },
+            "state_counts": {
+                "type": "object",
+                "additionalProperties": {"type": "integer", "minimum": 0},
+            },
+            "interval_count": {"type": "integer", "minimum": 0},
+        },
+        "additionalProperties": True,
+    }
+    return _json_schema_object(
+        "GLIO-NONCODE sequence review summary",
+        (
+            "schema",
+            "catalogs",
+            "integrity",
+            "limitations",
+            "content_address",
+        ),
+        {
+            "schema": {"const": SEQUENCE_REVIEW_SUMMARY_SCHEMA},
+            "catalogs": {"type": "object", "additionalProperties": catalog},
+            "integrity": _json_schema_object(
+                "GLIO-NONCODE sequence review integrity",
+                (
+                    "catalog_records",
+                    "report_objects",
+                    "raw_bases_emitted",
+                    "individual_identifiers_emitted",
+                ),
+                {
+                    "catalog_records": {"const": "validated"},
+                    "report_objects": {"const": "not_opened"},
+                    "raw_bases_emitted": {"const": False},
+                    "individual_identifiers_emitted": {"const": False},
+                },
+            ),
+            "limitations": {"type": "array", "items": {"type": "string"}},
+            "content_address": {"type": "string"},
+        },
+    )
+
+
+def sequence_review_verification_schema() -> dict[str, Any]:
+    """Return the closed root contract for sequence object verification."""
+
+    result = _json_schema_object(
+        "GLIO-NONCODE sequence review verification row",
+        ("kind", "record_id", "status"),
+        {
+            "kind": {"enum": ["sequence_analysis", "sequence_batch"]},
+            "record_id": {"type": "string"},
+            "status": {"enum": ["verified", "failed"]},
+            "content_address": {"type": "string"},
+            "error": {
+                "type": "object",
+                "required": ["code", "message"],
+                "properties": {"code": {"type": "string"}, "message": {"type": "string"}},
+                "additionalProperties": False,
+            },
+        },
+    )
+    return _json_schema_object(
+        "GLIO-NONCODE sequence review verification",
+        (
+            "schema",
+            "record_count",
+            "verified_count",
+            "failed_count",
+            "results",
+            "privacy",
+            "content_address",
+        ),
+        {
+            "schema": {"const": SEQUENCE_REVIEW_VERIFY_SCHEMA},
+            "record_count": {"type": "integer", "minimum": 0},
+            "verified_count": {"type": "integer", "minimum": 0},
+            "failed_count": {"type": "integer", "minimum": 0},
+            "results": {"type": "array", "items": result},
+            "privacy": _json_schema_object(
+                "GLIO-NONCODE sequence review verification privacy",
+                ("raw_bases_emitted", "sample_or_subject_identifiers_emitted"),
+                {
+                    "raw_bases_emitted": {"const": False},
+                    "sample_or_subject_identifiers_emitted": {"const": False},
+                },
+            ),
+            "content_address": {"type": "string"},
+        },
+    )
+
+
+def sequence_review_motifs_schema() -> dict[str, Any]:
+    """Return the closed root contract for a paged motif activity response."""
+
+    row = _json_schema_object(
+        "GLIO-NONCODE sequence review motif row",
+        (
+            "change",
+            "motif_id",
+            "name",
+            "matched_sequence",
+            "strand",
+            "source_id",
+            "single_analysis_count",
+            "batch_count",
+            "occurrence_count",
+            "max_analysis_fraction",
+            "max_batch_fraction",
+        ),
+        {
+            "change": {"enum": ["created", "disrupted"]},
+            "motif_id": {"type": "string"},
+            "name": {"type": "string"},
+            "matched_sequence": {"type": "string"},
+            "strand": {"enum": ["+", "-"]},
+            "source_id": {"type": "string"},
+            "single_analysis_count": {"type": "integer", "minimum": 0},
+            "batch_count": {"type": "integer", "minimum": 0},
+            "occurrence_count": {"type": "integer", "minimum": 0},
+            "max_analysis_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+            "max_batch_fraction": {"type": "number", "minimum": 0, "maximum": 1},
+        },
+    )
+    filtered_summary = _json_schema_object(
+        "GLIO-NONCODE filtered sequence motif summary",
+        (
+            "row_count",
+            "created_row_count",
+            "disrupted_row_count",
+            "occurrence_count",
+            "single_analysis_occurrence_count",
+            "batch_occurrence_count",
+            "motif_source_id_counts",
+        ),
+        {
+            "row_count": {"type": "integer", "minimum": 0},
+            "created_row_count": {"type": "integer", "minimum": 0},
+            "disrupted_row_count": {"type": "integer", "minimum": 0},
+            "occurrence_count": {"type": "integer", "minimum": 0},
+            "single_analysis_occurrence_count": {"type": "integer", "minimum": 0},
+            "batch_occurrence_count": {"type": "integer", "minimum": 0},
+            "motif_source_id_counts": {
+                "type": "object",
+                "additionalProperties": {"type": "integer", "minimum": 0},
+            },
+        },
+    )
+    return _json_schema_object(
+        "GLIO-NONCODE sequence review motifs",
+        (
+            "schema",
+            "offset",
+            "limit",
+            "total_count",
+            "has_more",
+            "filters",
+            "filtered_motif_summary",
+            "rows",
+            "privacy",
+            "content_address",
+        ),
+        {
+            "schema": {"const": SEQUENCE_REVIEW_MOTIFS_SCHEMA},
+            "offset": {"type": "integer", "minimum": 0},
+            "limit": {"type": "integer", "minimum": 1, "maximum": MAX_REVIEW_PAGE_SIZE},
+            "total_count": {"type": "integer", "minimum": 0},
+            "has_more": {"type": "boolean"},
+            "filters": _json_schema_object(
+                "GLIO-NONCODE sequence review motif filters",
+                ("source_id", "genome_build", "change", "motif_contains"),
+                {
+                    "source_id": {"type": ["string", "null"]},
+                    "genome_build": {"type": ["string", "null"]},
+                    "change": {"enum": ["created", "disrupted", None]},
+                    "motif_contains": {"type": ["string", "null"]},
+                },
+            ),
+            "filtered_motif_summary": filtered_summary,
+            "rows": {"type": "array", "items": row},
+            "privacy": _json_schema_object(
+                "GLIO-NONCODE sequence review motif privacy",
+                ("raw_bases_emitted", "sample_or_subject_identifiers_emitted"),
+                {
+                    "raw_bases_emitted": {"const": False},
+                    "sample_or_subject_identifiers_emitted": {"const": False},
+                },
+            ),
+            "content_address": {"type": "string"},
+        },
+    )
+
+
+def sequence_review_capabilities() -> dict[str, Any]:
+    """Describe the public sequence archive review surface."""
+
+    return {
+        "schema": SEQUENCE_REVIEW_CAPABILITIES_SCHEMA,
+        "public": True,
+        "read_only": True,
+        "verification": "catalog projections or reopened immutable report objects",
+        "documents": {
+            "summary": SEQUENCE_REVIEW_SUMMARY_SCHEMA,
+            "verification": SEQUENCE_REVIEW_VERIFY_SCHEMA,
+            "motifs": SEQUENCE_REVIEW_MOTIFS_SCHEMA,
+            "motifs_csv": SEQUENCE_REVIEW_MOTIFS_CSV_SCHEMA,
+        },
+        "formats": ["json", "csv"],
+        "operations": ["summary", "verify", "motifs", "motifs_csv", "schema_discovery"],
+        "limits": {
+            "max_catalog_records": MAX_REVIEW_CATALOG_RECORDS,
+            "max_motif_rows": MAX_REVIEW_MOTIF_ROWS,
+            "max_page_size": MAX_REVIEW_PAGE_SIZE,
+            "max_csv_bytes": MAX_REVIEW_CSV_BYTES,
+        },
+        "endpoints": {
+            "summary": "/v1/sequence-review/summary",
+            "verification": "/v1/sequence-review/verify",
+            "motifs": "/v1/sequence-review/motifs",
+            "motifs_csv": "/v1/sequence-review/motifs.csv",
+            "schema_summary": "/v1/sequence-review/schema?document=summary",
+            "schema_verification": "/v1/sequence-review/schema?document=verification",
+            "schema_motifs": "/v1/sequence-review/schema?document=motifs",
+            "capabilities": "/v1/sequence-review/capabilities",
+        },
+    }
 
 
 def _text(value: object, label: str, *, maximum: int = MAX_REVIEW_QUERY_LENGTH) -> str:
@@ -458,7 +722,12 @@ __all__ = [
     "MAX_REVIEW_PAGE_SIZE",
     "SEQUENCE_REVIEW_MOTIFS_CSV_SCHEMA",
     "SEQUENCE_REVIEW_MOTIFS_SCHEMA",
+    "SEQUENCE_REVIEW_CAPABILITIES_SCHEMA",
     "SEQUENCE_REVIEW_SUMMARY_SCHEMA",
     "SEQUENCE_REVIEW_VERIFY_SCHEMA",
+    "sequence_review_capabilities",
+    "sequence_review_motifs_schema",
+    "sequence_review_summary_schema",
+    "sequence_review_verification_schema",
     "SequenceReviewStore",
 ]

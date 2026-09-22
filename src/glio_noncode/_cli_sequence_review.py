@@ -8,7 +8,13 @@ from typing import Any
 
 from ._cli_support import write_json
 from .errors import StoreError, ValidationError
-from .sequence_review_store import SequenceReviewStore
+from .sequence_review_store import (
+    SequenceReviewStore,
+    sequence_review_capabilities,
+    sequence_review_motifs_schema,
+    sequence_review_summary_schema,
+    sequence_review_verification_schema,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -38,6 +44,19 @@ def build_parser() -> argparse.ArgumentParser:
     verify = commands.add_parser("verify", help="reopen and verify every saved sequence object")
     add_data_root_option(verify)
     verify.add_argument("--output", default="-", help="JSON result path, or - for stdout")
+
+    schema = commands.add_parser("schema", help="emit one closed JSON response schema")
+    add_data_root_option(schema)
+    schema.add_argument(
+        "document", choices=("summary", "verification", "motifs"), help="document contract"
+    )
+    schema.add_argument("--output", default="-", help="JSON result path, or - for stdout")
+
+    capabilities = commands.add_parser(
+        "capabilities", help="describe the public sequence review surface"
+    )
+    add_data_root_option(capabilities)
+    capabilities.add_argument("--output", default="-", help="JSON result path, or - for stdout")
 
     motifs = commands.add_parser(
         "motifs", help="aggregate exact motif changes across saved reports"
@@ -73,6 +92,15 @@ def main(argv: list[str] | None = None) -> int:
         elif args.operation == "verify":
             payload = store.verify()
             write_json(payload, args.output)
+        elif args.operation == "schema":
+            payload = {
+                "summary": sequence_review_summary_schema,
+                "verification": sequence_review_verification_schema,
+                "motifs": sequence_review_motifs_schema,
+            }[args.document]()
+            write_json(payload, args.output)
+        elif args.operation == "capabilities":
+            write_json(sequence_review_capabilities(), args.output)
         else:
             filters = {
                 "source_id": args.source_id,

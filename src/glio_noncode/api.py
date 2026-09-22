@@ -25794,9 +25794,17 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/sequence-review/verify",
             "/v1/sequence-review/motifs",
             "/v1/sequence-review/motifs.csv",
+            "/v1/sequence-review/schema",
+            "/v1/sequence-review/capabilities",
         }:
             try:
-                from .sequence_review_store import SequenceReviewStore
+                from .sequence_review_store import (
+                    SequenceReviewStore,
+                    sequence_review_capabilities,
+                    sequence_review_motifs_schema,
+                    sequence_review_summary_schema,
+                    sequence_review_verification_schema,
+                )
 
                 store = SequenceReviewStore(self._runtime().store.root)
                 query = parse_qs(parsed.query, keep_blank_values=False)
@@ -25808,6 +25816,28 @@ class ApiHandler(BaseHTTPRequestHandler):
                     if query:
                         raise ValueError("sequence review verification does not accept query parameters")
                     payload = store.verify()
+                elif path.endswith("/schema"):
+                    if set(query) - {"document"}:
+                        raise ValueError(
+                            "sequence review schema accepts only the document parameter"
+                        )
+                    document = self._query_value(query, "document")
+                    schemas = {
+                        "summary": sequence_review_summary_schema,
+                        "verification": sequence_review_verification_schema,
+                        "motifs": sequence_review_motifs_schema,
+                    }
+                    if document not in schemas:
+                        raise ValueError(
+                            "sequence review schema document must be summary, verification, or motifs"
+                        )
+                    payload = schemas[document]()
+                elif path.endswith("/capabilities"):
+                    if query:
+                        raise ValueError(
+                            "sequence review capabilities does not accept query parameters"
+                        )
+                    payload = sequence_review_capabilities()
                 else:
                     unknown = set(query) - {
                         "source_id", "genome_build", "change", "motif_contains", "offset", "limit"
