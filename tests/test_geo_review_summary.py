@@ -12,6 +12,7 @@ from threading import Thread
 from glio_noncode._cli_geo_review_summary import main as summary_main
 from glio_noncode.api import create_server
 from glio_noncode.geo_analysis_store import GeoAnalysisStore
+from glio_noncode.geo_preflight_store import GeoPreflightStore
 from glio_noncode.geo_review_summary import (
     build_geo_review_ledger,
     build_geo_review_summary,
@@ -20,6 +21,7 @@ from glio_noncode.geo_review_summary import (
 )
 
 from .test_geo_count_consistency import _report
+from .test_geo_preflight_store import _quality_report
 
 
 class GeoReviewSummaryTests(unittest.TestCase):
@@ -28,6 +30,7 @@ class GeoReviewSummaryTests(unittest.TestCase):
             root = Path(directory)
             workspace = root / "workspace"
             GeoAnalysisStore(workspace).save(_report(root / "source", "GSE141945"))
+            GeoPreflightStore(workspace).save(_quality_report())
             summary = build_geo_review_summary(workspace)
             skipped = build_geo_review_summary(workspace, verify_reports=False)
 
@@ -37,6 +40,11 @@ class GeoReviewSummaryTests(unittest.TestCase):
         self.assertEqual(summary["catalogs"]["paired_count_analyses"]["record_count"], 1)
         self.assertEqual(
             summary["catalogs"]["paired_count_analyses"]["accessions"], ["GSE141945"]
+        )
+        self.assertEqual(summary["catalogs"]["preflights"]["record_count"], 1)
+        self.assertEqual(
+            summary["catalogs"]["preflights"]["kind_counts"],
+            {"expression_quality": 1},
         )
         self.assertEqual(skipped["integrity"]["report_objects"], "not_requested")
         public = json.dumps(summary)

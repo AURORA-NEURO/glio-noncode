@@ -99,6 +99,15 @@ level fractions and prevalence gaps; they apply no balance threshold:
 
     glio-noncode geo-design GSE103227 --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal
 
+Preparation reports can be retained for later review with
+`--save-to-workspace --data-root .glio` on `geo-qc`, `geo-metadata`, and
+`geo-design`; the supplementary-count `geo-count-metadata` and
+`geo-count-design` commands support the same option. Their bounded catalog is
+available at `GET /v1/geo-preflights`, while full reports require the explicit
+`/report.json` export. This keeps the data-quality and group-design evidence
+visible alongside the final saved contrast without emitting sample or pair
+identifiers in catalog rows.
+
     glio-noncode geo-outlier GSE103227 --feature-id ASHGA5P000001 --target-sample GSM2758529 --reference-filter diagnosis=normal --scale normalized_intensity
 
 For a two-group exploratory screen across one GEO platform, `geo-contrast`

@@ -13,6 +13,7 @@ from .geo_analysis_store import GeoAnalysisStore
 from .geo_count_consistency_store import GeoCountConsistencyStore
 from .geo_expression_analysis_store import GeoExpressionAnalysisStore
 from .geo_expression_consistency_store import GeoExpressionConsistencyStore
+from .geo_preflight_store import GeoPreflightStore
 from .serialization import content_hash
 
 GEO_REVIEW_SUMMARY_SCHEMA = "glio-noncode.geo-review-summary.v1"
@@ -112,6 +113,51 @@ def _catalog_projection(
     return projection, failures
 
 
+def _preflight_projection(
+    root: str | Path,
+    *,
+    verify_reports: bool,
+) -> tuple[dict[str, Any], int]:
+    store = GeoPreflightStore(root)
+    rows = _catalog_rows(store)
+    verified = 0
+    failures = 0
+    kind_counts: dict[str, int] = {}
+    design_state_counts: dict[str, int] = {}
+    for row in rows:
+        kind = row.get("kind")
+        if type(kind) is str and kind:
+            kind_counts[kind] = kind_counts.get(kind, 0) + 1
+        design_state = row.get("design_state")
+        if type(design_state) is str and design_state:
+            design_state_counts[design_state] = design_state_counts.get(design_state, 0) + 1
+        identifier = row.get("preflight_id")
+        if not verify_reports:
+            verified += 1
+            continue
+        if type(identifier) is not str or not identifier:
+            failures += 1
+            continue
+        try:
+            store.get_report(identifier)
+        except (KeyError, OSError, StoreError, ValidationError, ValueError):
+            failures += 1
+        else:
+            verified += 1
+    return {
+        "name": "preflights",
+        "record_count": len(rows),
+        "verified_record_count": verified,
+        "feature_count_total": sum(_number(row, "feature_count") for row in rows),
+        "sample_count_total": sum(_number(row, "sample_count") for row in rows),
+        "accession_count": len(_accessions(rows)),
+        "accessions": _accessions(rows),
+        "kind_counts": dict(sorted(kind_counts.items())),
+        "design_state_counts": dict(sorted(design_state_counts.items())),
+        "catalog_state": "verified" if failures == 0 else "review",
+    }, failures
+
+
 def _catalog_ledger(
     *,
     name: str,
@@ -207,6 +253,14 @@ def build_geo_review_ledger(
             "tested_key": None,
             "fdr_key": None,
         },
+        {
+            "name": "preflights",
+            "store": GeoPreflightStore(root),
+            "identifier_key": "preflight_id",
+            "feature_key": "feature_count",
+            "tested_key": None,
+            "fdr_key": None,
+        },
     )
     ledger: list[dict[str, Any]] = []
     for specification in specifications:
@@ -295,11 +349,16 @@ def build_geo_review_summary(
         fdr_key=None,
         verify_reports=verify_reports,
     )
+    preflights, preflight_failures = _preflight_projection(
+        root,
+        verify_reports=verify_reports,
+    )
     failures = (
         analysis_failures
         + expression_failures
         + count_comparison_failures
         + expression_comparison_failures
+        + preflight_failures
     )
     body = {
         "schema": GEO_REVIEW_SUMMARY_SCHEMA,
@@ -310,6 +369,7 @@ def build_geo_review_summary(
             "expression_analyses": expression,
             "paired_count_comparisons": count_comparisons,
             "expression_comparisons": expression_comparisons,
+            "preflights": preflights,
         },
         "integrity": {
             "catalog_records": "validated",

@@ -26145,6 +26145,66 @@ class ApiHandler(BaseHTTPRequestHandler):
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
+        if path == "/v1/geo-preflights" or path.startswith("/v1/geo-preflights/"):
+            try:
+                from .geo_preflight_store import GeoPreflightStore
+
+                store = GeoPreflightStore(self._runtime().store.root)
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path == "/v1/geo-preflights":
+                    unknown = set(query) - {"offset", "limit", "kind", "accession"}
+                    if unknown:
+                        raise ValueError(
+                            f"GEO preflight catalog has unknown query parameters: {sorted(unknown)}"
+                        )
+                    self._write(
+                        HTTPStatus.OK,
+                        store.list_reports(
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 20),
+                            kind=self._query_value(query, "kind"),
+                            accession=self._query_value(query, "accession"),
+                        ),
+                    )
+                    return
+                segments = [unquote(item) for item in path.split("/") if item]
+                if (
+                    len(segments) == 4
+                    and segments[:2] == ["v1", "geo-preflights"]
+                    and segments[3] == "report.json"
+                ):
+                    if query:
+                        raise ValueError("GEO preflight report export does not accept query parameters")
+                    saved = store.get_report(segments[2])
+                    self._write(
+                        HTTPStatus.OK,
+                        saved["report"],
+                        headers={
+                            "Content-Disposition": (
+                                f'attachment; filename="GLIO-NONCODE-{segments[2]}.json"'
+                            )
+                        },
+                    )
+                    return
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found"})
+            except KeyError:
+                self._write(
+                    HTTPStatus.NOT_FOUND,
+                    {"error": "not_found", "message": "GEO preflight not found"},
+                )
+            except (ValidationError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except StoreError:
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {
+                        "error": "geo_preflight_unavailable",
+                        "message": "GEO preflight catalog could not be verified",
+                    },
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
         if path == "/v1/geo-expression-analyses" or path.startswith("/v1/geo-expression-analyses/"):
             try:
                 from .geo_expression_analysis_store import GeoExpressionAnalysisStore

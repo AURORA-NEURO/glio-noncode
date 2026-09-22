@@ -3024,6 +3024,7 @@ MODULE_IDS = (
     "glio_noncode.geo_expression_consistency_store",
     "glio_noncode.geo_metadata",
     "glio_noncode.geo_platform_annotations",
+    "glio_noncode.geo_preflight_store",
     "glio_noncode.geo_quality",
     "glio_noncode.geo_review_summary",
     "glio_noncode.history_observatory_archive_transfer_recovery_execution",

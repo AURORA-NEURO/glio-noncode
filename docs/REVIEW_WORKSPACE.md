@@ -58,6 +58,16 @@ projection is available from the CLI:
 `glio-noncode geo-review-summary --csv --data-root .glio
 --output geo-review-ledger.csv`.
 
+Preparation preflights can also be retained before a final contrast is run.
+The `geo-qc`, `geo-metadata`, `geo-design`, `geo-count-metadata`, and
+`geo-count-design` commands accept `--save-to-workspace --data-root .glio`.
+Their bounded catalog rows identify the preflight kind, GEO accession, source
+digest, sample/feature counts, and selected design metrics; full reports remain
+explicit exports from `GET /v1/geo-preflights/{preflight_id}/report.json`.
+List them with `GET /v1/geo-preflights?kind=contrast_design&accession=GSE141945`.
+The archive-health summary and CSV ledger verify these preflights alongside
+the final analysis and cross-study comparison catalogs.
+
 Feature pages accept bounded aggregate filters before pagination:
 `feature_contains` performs case-insensitive source-label matching,
 `effect_direction` accepts `case_higher`, `case_lower`, or

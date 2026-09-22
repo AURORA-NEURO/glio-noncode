@@ -15,6 +15,7 @@ from .geo_expression import (
     build_geo_count_contrast_report,
 )
 from .geo_metadata import build_geo_count_contrast_design_report
+from .geo_preflight_store import GeoPreflightStore
 
 
 def _group_filter(value: str, label: str) -> tuple[str, str]:
@@ -270,6 +271,16 @@ def build_design_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--timeout", type=float, default=30.0, help="HTTPS timeout in seconds")
     parser.add_argument("--output", default="-", help="JSON report path, or - for stdout")
+    parser.add_argument(
+        "--save-to-workspace",
+        action="store_true",
+        help="save the completed preflight in the local catalog",
+    )
+    parser.add_argument(
+        "--data-root",
+        default=".glio",
+        help="local GLIO-NONCODE data root used with --save-to-workspace",
+    )
     return parser
 
 
@@ -329,6 +340,17 @@ def design_main(argv: list[str] | None = None) -> int:
                 "message": "A local GEO file could not be read as a regular bounded file.",
             },
         }
+
+    if args.save_to_workspace and report.get("status") == "completed":
+        try:
+            saved = GeoPreflightStore(args.data_root).save(report)
+        except (OSError, StoreError, ValidationError) as error:
+            print(
+                f"error: GEO count-design report could not be saved ({type(error).__name__})",
+                file=sys.stderr,
+            )
+            return 2
+        print(f"Saved GEO preflight {saved['preflight_id']}", file=sys.stderr)
 
     try:
         write_json(report, args.output)
