@@ -134,6 +134,7 @@ class AggregateSupport:
     missing_claim_ids: tuple[str, ...]
     channel_groups: tuple[str, ...]
     rationale: str
+    context_support_claim_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         for field_name in ("score", "uncertainty", "context_support"):
@@ -152,6 +153,7 @@ class AggregateSupport:
             ("negative_claim_ids", self.negative_claim_ids),
             ("missing_claim_ids", self.missing_claim_ids),
             ("channel_groups", self.channel_groups),
+            ("context_support_claim_ids", self.context_support_claim_ids),
         ):
             if type(values) is not tuple:
                 raise ValidationError(f"{field_name} must be a tuple")
@@ -159,8 +161,7 @@ class AggregateSupport:
                 _required_string(value, f"{field_name}[{index}]")
             if len(values) > MAX_EVIDENCE_CLAIMS:
                 raise ValidationError(
-                    f"{field_name} exceeds the safety ceiling of "
-                    f"{MAX_EVIDENCE_CLAIMS} items"
+                    f"{field_name} exceeds the safety ceiling of {MAX_EVIDENCE_CLAIMS} items"
                 )
             if len(values) != len(set(values)):
                 raise ValidationError(f"{field_name} must contain unique values")
@@ -169,6 +170,19 @@ class AggregateSupport:
         classified_ids = tuple(item for values in claim_id_groups for item in values)
         if len(classified_ids) != len(set(classified_ids)):
             raise ValidationError("aggregate claim classifications must be disjoint")
+        informative_ids = set(self.supported_claim_ids) | set(self.negative_claim_ids)
+        if not set(self.context_support_claim_ids).issubset(informative_ids):
+            raise ValidationError(
+                "context support claim IDs must identify supported or negative claims"
+            )
+        if self.context_support > 0.0 and not self.context_support_claim_ids:
+            raise ValidationError(
+                "non-zero context support requires auditable context support claim IDs"
+            )
+        if len(self.context_support_claim_ids) > len(self.channel_groups):
+            raise ValidationError(
+                "context support claim IDs cannot exceed the number of channel groups"
+            )
         _required_string(self.rationale, "rationale")
 
     def to_dict(self) -> dict[str, object]:
@@ -176,6 +190,7 @@ class AggregateSupport:
             "score": self.score,
             "uncertainty": self.uncertainty,
             "context_support": self.context_support,
+            "context_support_claim_ids": list(self.context_support_claim_ids),
             "supported_claim_ids": list(self.supported_claim_ids),
             "negative_claim_ids": list(self.negative_claim_ids),
             "missing_claim_ids": list(self.missing_claim_ids),
@@ -255,8 +270,7 @@ class EvidenceGraph:
                     )
                 if evidence_id in external_dependencies:
                     raise ValidationError(
-                        "evidence ID collides with an earlier external dependency: "
-                        f"{evidence_id}"
+                        f"evidence ID collides with an earlier external dependency: {evidence_id}"
                     )
 
                 for dependency in claim.depends_on:
@@ -288,10 +302,13 @@ class EvidenceGraph:
                             f"another edge: {claim.supersedes}"
                         )
 
-                edge_count = edge_counts.get(
-                    claim.edge_id,
-                    len(self._edge_claims.get(claim.edge_id, ())),
-                ) + 1
+                edge_count = (
+                    edge_counts.get(
+                        claim.edge_id,
+                        len(self._edge_claims.get(claim.edge_id, ())),
+                    )
+                    + 1
+                )
                 if edge_count > self.limits.max_claims_per_edge:
                     raise ValidationError(
                         f"edge {claim.edge_id} exceeds the configured maximum of "
@@ -350,8 +367,7 @@ class EvidenceGraph:
                 self._assert_stored_claim(evidence_id, claim)
                 if claim.edge_id != edge_id:
                     raise ValidationError(
-                        f"evidence claim {evidence_id} is bound to {claim.edge_id}, "
-                        f"not {edge_id}"
+                        f"evidence claim {evidence_id} is bound to {claim.edge_id}, not {edge_id}"
                     )
                 claims.append(claim)
             return tuple(claims)
@@ -375,9 +391,7 @@ class EvidenceGraph:
             indexed_ids = self._edge_claims.get(edge.edge_id, ())
             indexed_id_set = set(indexed_ids)
             if len(indexed_ids) != len(indexed_id_set):
-                raise ValidationError(
-                    f"edge {edge.edge_id} contains duplicate claim indexes"
-                )
+                raise ValidationError(f"edge {edge.edge_id} contains duplicate claim indexes")
             unresolved_declared_ids: list[str] = []
             for evidence_id in edge.claim_ids:
                 claim = self._claims.get(evidence_id)
@@ -414,22 +428,15 @@ class EvidenceGraph:
                 registered.append(claim)
 
             superseded_ids = {
-                claim.supersedes
-                for claim in registered
-                if claim.supersedes is not None
+                claim.supersedes for claim in registered if claim.supersedes is not None
             }
-            claims = tuple(
-                claim for claim in registered if claim.evidence_id not in superseded_ids
-            )
+            claims = tuple(claim for claim in registered if claim.evidence_id not in superseded_ids)
 
-            supported = tuple(
-                claim for claim in claims if claim.state is EvidenceState.SUPPORTED
-            )
+            supported = tuple(claim for claim in claims if claim.state is EvidenceState.SUPPORTED)
             negative = tuple(
                 claim
                 for claim in claims
-                if claim.state
-                in (EvidenceState.MEASURED_NEGATIVE, EvidenceState.CONTRADICTORY)
+                if claim.state in (EvidenceState.MEASURED_NEGATIVE, EvidenceState.CONTRADICTORY)
             )
             missing = tuple(
                 claim
@@ -443,15 +450,14 @@ class EvidenceGraph:
                 )
             )
             missing_ids = tuple(
-                sorted(
-                    (*unresolved_declared_ids, *(claim.evidence_id for claim in missing))
-                )
+                sorted((*unresolved_declared_ids, *(claim.evidence_id for claim in missing)))
             )
 
             groups: set[str] = set()
             informative_groups: set[str] = set()
             supported_by_group: dict[str, float] = {}
             negative_by_group: dict[str, float] = {}
+            context_support_by_group: dict[str, EvidenceClaim] = {}
             for claim in claims:
                 group = self._channel_group(claim.channel)
                 groups.add(group)
@@ -472,23 +478,40 @@ class EvidenceGraph:
                         value,
                         negative_by_group.get(group, 0.0),
                     )
+                if claim.state in (
+                    EvidenceState.SUPPORTED,
+                    EvidenceState.MEASURED_NEGATIVE,
+                    EvidenceState.CONTRADICTORY,
+                ):
+                    previous_context_claim = context_support_by_group.get(group)
+                    if (
+                        previous_context_claim is None
+                        or claim.confidence > previous_context_claim.confidence
+                        or (
+                            claim.confidence == previous_context_claim.confidence
+                            and claim.evidence_id < previous_context_claim.evidence_id
+                        )
+                    ):
+                        context_support_by_group[group] = claim
 
-            positive = self._dependence_adjusted_mean(
-                tuple(supported_by_group.values())
-            )
+            positive = self._dependence_adjusted_mean(tuple(supported_by_group.values()))
             negative_total = _safe_fsum(
                 sorted(negative_by_group.values()),
                 "negative evidence penalty",
             )
             negative_penalty = min(0.45, negative_total * 0.22)
             score = round(max(0.0, min(1.0, positive - negative_penalty)), 6)
-            informative = (*supported, *negative)
+            context_support_claims = tuple(
+                context_support_by_group[group] for group in sorted(context_support_by_group)
+            )
             context_total = _safe_fsum(
-                sorted(claim.confidence for claim in informative),
+                sorted(claim.confidence for claim in context_support_claims),
                 "context support",
             )
             context_support = (
-                0.0 if not informative else round(context_total / len(informative), 6)
+                0.0
+                if not context_support_claims
+                else round(context_total / len(context_support_claims), 6)
             )
             uncertainty = round(
                 max(
@@ -508,22 +531,21 @@ class EvidenceGraph:
                 f"{len(supported)} supported, {len(negative)} negative, "
                 f"{len(missing_ids)} missing/unsupported; "
                 f"{len(informative_groups)} informative channel groups with "
-                f"dependence-adjusted "
-                f"aggregation; {superseded_count} superseded claim(s) excluded."
+                f"dependence-adjusted scoring and at most one highest-confidence context claim "
+                f"per group; {superseded_count} superseded claim(s) excluded."
             )
             result = AggregateSupport(
                 score=score,
                 uncertainty=uncertainty,
                 context_support=context_support,
-                supported_claim_ids=tuple(
-                    sorted(claim.evidence_id for claim in supported)
-                ),
-                negative_claim_ids=tuple(
-                    sorted(claim.evidence_id for claim in negative)
-                ),
+                supported_claim_ids=tuple(sorted(claim.evidence_id for claim in supported)),
+                negative_claim_ids=tuple(sorted(claim.evidence_id for claim in negative)),
                 missing_claim_ids=missing_ids,
                 channel_groups=tuple(sorted(groups)),
                 rationale=rationale,
+                context_support_claim_ids=tuple(
+                    sorted(claim.evidence_id for claim in context_support_claims)
+                ),
             )
             self._edge_bindings.setdefault(edge.edge_id, binding)
             return result
@@ -642,14 +664,11 @@ class EvidenceGraph:
 
     def _assert_stored_claim(self, evidence_id: str, claim: EvidenceClaim) -> None:
         if claim.evidence_id != evidence_id:
-            raise ValidationError(
-                f"stored evidence claim identity was mutated: {evidence_id}"
-            )
+            raise ValidationError(f"stored evidence claim identity was mutated: {evidence_id}")
         canonical, fingerprint = self._validate_claim(claim)
-        if (
-            self._claim_fingerprints.get(evidence_id) != fingerprint
-            or self._claim_sizes.get(evidence_id) != len(canonical)
-        ):
+        if self._claim_fingerprints.get(evidence_id) != fingerprint or self._claim_sizes.get(
+            evidence_id
+        ) != len(canonical):
             raise ValidationError(f"stored evidence claim was mutated: {evidence_id}")
 
     def _validate_graph_integrity(self) -> None:
@@ -716,9 +735,7 @@ class EvidenceGraph:
         indegree = {evidence_id: 0 for evidence_id in self._claims}
         for evidence_id, claim in self._claims.items():
             predecessors = {
-                dependency
-                for dependency in claim.depends_on
-                if dependency in self._claims
+                dependency for dependency in claim.depends_on if dependency in self._claims
             }
             if claim.supersedes is not None:
                 predecessors.add(claim.supersedes)
@@ -807,8 +824,7 @@ class EvidenceGraph:
             raise ValidationError("aggregate values must be a list or tuple")
         if len(values) > MAX_EVIDENCE_CLAIMS:
             raise ValidationError(
-                "aggregate values exceeds the safety ceiling of "
-                f"{MAX_EVIDENCE_CLAIMS} items"
+                f"aggregate values exceeds the safety ceiling of {MAX_EVIDENCE_CLAIMS} items"
             )
         normalized = [
             _unit_interval(value, f"aggregate values[{index}]")

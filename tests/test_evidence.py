@@ -143,9 +143,7 @@ class EvidenceGraphLimitTests(unittest.TestCase):
         self.assertEqual(edge_limited.all_claims(), (first,))
 
         external = "source:" + "a" * 64
-        dependency_limited = EvidenceGraph(
-            limits=EvidenceGraphLimits(max_dependencies_per_claim=1)
-        )
+        dependency_limited = EvidenceGraph(limits=EvidenceGraphLimits(max_dependencies_per_claim=1))
         with self.assertRaisesRegex(ValidationError, "dependencies.*maximum of 1"):
             dependency_limited.append(
                 evidence_claim("many-dependencies", depends_on=(external, external[:-1] + "b"))
@@ -154,9 +152,7 @@ class EvidenceGraphLimitTests(unittest.TestCase):
 
         oversized = evidence_claim("oversized", payload={"value": "large-payload"})
         size = len(canonical_bytes(oversized.to_dict()))
-        claim_limited = EvidenceGraph(
-            limits=EvidenceGraphLimits(max_claim_bytes=size - 1)
-        )
+        claim_limited = EvidenceGraph(limits=EvidenceGraphLimits(max_claim_bytes=size - 1))
         with self.assertRaisesRegex(ValidationError, "maximum canonical size"):
             claim_limited.append(oversized)
         self.assertEqual(claim_limited.all_claims(), ())
@@ -167,21 +163,23 @@ class EvidenceGraphLimitTests(unittest.TestCase):
         graph_limited.append(oversized)
         before = graph_limited.all_claims()
         with self.assertRaisesRegex(ValidationError, "graph.*maximum canonical size"):
-            graph_limited.append(
-                evidence_claim("oversize2", payload={"value": "large-payload"})
-            )
+            graph_limited.append(evidence_claim("oversize2", payload={"value": "large-payload"}))
         self.assertEqual(graph_limited.all_claims(), before)
 
 
 class EvidenceGraphValidationTests(unittest.TestCase):
     def test_append_rejects_non_claims_and_invalid_direct_runtime_types(self) -> None:
         valid = evidence_claim("valid")
+        bad_score = replace(valid, evidence_id="bad-score")
+        object.__setattr__(bad_score, "score", True)
+        bad_confidence = replace(valid, evidence_id="bad-confidence")
+        object.__setattr__(bad_confidence, "confidence", True)
         invalid = (
             object(),
             replace(valid, evidence_id="bad-state", state=cast(EvidenceState, "supported")),
             replace(valid, evidence_id="bad-tier", tier=cast(EvidenceTier, "computed")),
-            replace(valid, evidence_id="bad-score", score=cast(float, True)),
-            replace(valid, evidence_id="bad-confidence", confidence=cast(float, True)),
+            bad_score,
+            bad_confidence,
             replace(
                 valid,
                 evidence_id="bad-context",
@@ -222,13 +220,16 @@ class EvidenceGraphValidationTests(unittest.TestCase):
         aggregate = graph.aggregate(hypothesis_edge("immutable"))
         exported = aggregate.to_dict()
         cast(list[str], exported["supported_claim_ids"]).append("forged")
+        cast(list[str], exported["context_support_claim_ids"]).append("forged")
         self.assertEqual(aggregate.supported_claim_ids, ("immutable",))
+        self.assertEqual(aggregate.context_support_claim_ids, ("immutable",))
 
     def test_aggregate_support_validates_metrics_order_and_disjoint_classes(self) -> None:
         valid = {
             "score": 0.5,
             "uncertainty": 0.5,
             "context_support": 0.5,
+            "context_support_claim_ids": ("a",),
             "supported_claim_ids": ("a",),
             "negative_claim_ids": ("b",),
             "missing_claim_ids": ("c",),
@@ -239,6 +240,10 @@ class EvidenceGraphValidationTests(unittest.TestCase):
             {"score": math.nan},
             {"uncertainty": math.inf},
             {"context_support": -0.1},
+            {"context_support_claim_ids": cast(tuple[str, ...], ["a"])},
+            {"context_support_claim_ids": ("z", "a")},
+            {"context_support_claim_ids": ("unclassified",)},
+            {"context_support_claim_ids": ()},
             {"supported_claim_ids": cast(tuple[str, ...], ["a"])},
             {"supported_claim_ids": ("z", "a")},
             {"negative_claim_ids": ("a",)},
@@ -347,9 +352,7 @@ class EvidenceGraphClosureTests(unittest.TestCase):
             assay_support=("ATAC-seq",),
             source_version="2026-09",
         )
-        graph.append(
-            evidence_claim("source-context", context=source_specific_context)
-        )
+        graph.append(evidence_claim("source-context", context=source_specific_context))
         other_context = replace(CONTEXT, age_group="pediatric")
         with self.assertRaisesRegex(ValidationError, "share the graph context"):
             graph.append(evidence_claim("other-context", context=other_context))
@@ -471,6 +474,87 @@ class EvidenceGraphAggregationTests(unittest.TestCase):
         )
 
         self.assertEqual(many_result.score, one_result.score)
+        self.assertEqual(many_result.context_support, one_result.context_support)
+        self.assertEqual(
+            many_result.context_support_claim_ids,
+            ("negative-0", "positive"),
+        )
+
+    def test_correlated_claims_do_not_change_context_support_unless_representative_changes(
+        self,
+    ) -> None:
+        sequence = evidence_claim("sequence", channel="motif_delta", confidence=0.9)
+        chromatin = evidence_claim(
+            "z-chromatin-primary",
+            channel="accessibility",
+            confidence=0.6,
+        )
+        weak_correlated = evidence_claim(
+            "weak-correlated",
+            channel="histone_activity",
+            confidence=0.2,
+        )
+
+        baseline = EvidenceGraph()
+        baseline.extend((sequence, chromatin))
+        baseline_result = baseline.aggregate(
+            hypothesis_edge(sequence.evidence_id, chromatin.evidence_id)
+        )
+
+        with_weak_duplicate = EvidenceGraph()
+        with_weak_duplicate.extend((sequence, chromatin, weak_correlated))
+        weak_result = with_weak_duplicate.aggregate(
+            hypothesis_edge(
+                sequence.evidence_id,
+                chromatin.evidence_id,
+                weak_correlated.evidence_id,
+            )
+        )
+
+        self.assertEqual(baseline_result.context_support, 0.75)
+        self.assertEqual(weak_result.context_support, baseline_result.context_support)
+        self.assertEqual(weak_result.uncertainty, baseline_result.uncertainty)
+        self.assertEqual(weak_result.score, baseline_result.score)
+        self.assertEqual(
+            weak_result.context_support_claim_ids,
+            ("sequence", "z-chromatin-primary"),
+        )
+
+        tied_correlated = evidence_claim(
+            "a-chromatin-peer",
+            channel="methylation",
+            confidence=0.6,
+        )
+        tied_graph = EvidenceGraph()
+        tied_graph.extend((sequence, chromatin, weak_correlated, tied_correlated))
+        edge = hypothesis_edge(
+            sequence.evidence_id,
+            chromatin.evidence_id,
+            weak_correlated.evidence_id,
+            tied_correlated.evidence_id,
+        )
+        tied_result = tied_graph.aggregate(edge)
+
+        reversed_graph = EvidenceGraph()
+        reversed_graph.extend((tied_correlated, weak_correlated, chromatin, sequence))
+        reversed_result = reversed_graph.aggregate(
+            hypothesis_edge(
+                *reversed(
+                    (
+                        sequence.evidence_id,
+                        chromatin.evidence_id,
+                        weak_correlated.evidence_id,
+                        tied_correlated.evidence_id,
+                    )
+                )
+            )
+        )
+        self.assertEqual(tied_result.context_support, 0.75)
+        self.assertEqual(
+            tied_result.context_support_claim_ids,
+            ("a-chromatin-peer", "sequence"),
+        )
+        self.assertEqual(tied_result.to_dict(), reversed_result.to_dict())
 
     def test_abstentions_do_not_create_false_context_support(self) -> None:
         abstentions = tuple(
@@ -486,12 +570,11 @@ class EvidenceGraphAggregationTests(unittest.TestCase):
         graph = EvidenceGraph()
         graph.extend(abstentions)
 
-        aggregate = graph.aggregate(
-            hypothesis_edge(*(claim.evidence_id for claim in abstentions))
-        )
+        aggregate = graph.aggregate(hypothesis_edge(*(claim.evidence_id for claim in abstentions)))
 
         self.assertEqual(aggregate.score, 0.0)
         self.assertEqual(aggregate.context_support, 0.0)
+        self.assertEqual(aggregate.context_support_claim_ids, ())
         self.assertEqual(aggregate.uncertainty, 1.0)
         self.assertEqual(
             aggregate.channel_groups,
@@ -535,8 +618,7 @@ class EvidenceGraphAggregationTests(unittest.TestCase):
 
     def test_unique_channel_aggregation_performs_linear_grouping_work(self) -> None:
         claims = tuple(
-            evidence_claim(f"claim-{index:03}", channel=f"unique-{index:03}")
-            for index in range(64)
+            evidence_claim(f"claim-{index:03}", channel=f"unique-{index:03}") for index in range(64)
         )
         graph = EvidenceGraph()
         graph.extend(reversed(claims))

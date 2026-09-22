@@ -262,7 +262,12 @@ missing/unsupported claim IDs in disjoint sorted tuples. Contradictory and measu
 apply a bounded penalty; absent, unsupported, out-of-domain, abstained, and unresolved declared
 claims increase visible uncertainty rather than being treated as zero-valued support. Read
 `AggregateSupport.rationale`, `context_support`, channel groups, and all three claim-ID collections
-with the score.
+with the score. `context_support` averages the confidence of at most one representative claim per
+informative dependence group: the highest-confidence claim, with lexicographically smallest evidence
+ID breaking ties. `context_support_claim_ids` exposes those representatives. Adding a lower-confidence
+correlated observation therefore cannot by itself raise or dilute context support or reduce the
+reported uncertainty; a stronger observation may replace the group representative. This is a
+dependence-aware descriptive summary, not a calibrated probability.
 
 ### Live-reference network, cache, and receipt boundary
 
