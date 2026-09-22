@@ -160,6 +160,13 @@ do not change the signed-rank test or FDR results:
 
     glio-noncode geo-count-contrast GSE141945 --case-filter Timepoint=Tumor --reference-filter Timepoint=1wk --sample-key-column "" --pair-key-column Patient --counts-file-name GSE141945_RNAseq.counts.csv.gz --metadata-file-name GSE141945_RNAseq.metadata.csv.gz --top 1000
 
+When comparing two normalization runs, repeat `--track-feature-id` for exact
+source rows that must remain available even when they fall outside the ranked
+`--top` projection. The report records ranked rows separately from explicitly
+tracked rows, without changing the tested family:
+
+    glio-noncode geo-count-contrast GSE141945 --case-filter Timepoint=Tumor --reference-filter Timepoint=1wk --sample-key-column "" --pair-key-column Patient --counts-file-name GSE141945_RNAseq.counts.csv.gz --metadata-file-name GSE141945_RNAseq.metadata.csv.gz --top 25 --track-feature-id 2-Sep --track-feature-id AAGAB
+
 Both count workflows default to raw-library `log2(CPM + 1)`. Opt into
 composition adjustment with `--normalization-method tmm_log2_cpm`; this
 estimates TMM factors across the matrix and reports aggregate factor summaries.

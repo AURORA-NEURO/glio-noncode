@@ -120,6 +120,16 @@ def build_parser() -> argparse.ArgumentParser:
         default=1_000,
         help="maximum ranked features to include; all eligible rows are tested",
     )
+    parser.add_argument(
+        "--track-feature-id",
+        action="append",
+        default=[],
+        metavar="FEATURE_ID",
+        help=(
+            "retain this exact source feature ID even when it falls outside --top; "
+            "repeat for explicit cross-run sensitivity features"
+        ),
+    )
     parser.add_argument("--timeout", type=float, default=30.0, help="HTTPS timeout in seconds")
     parser.add_argument("--output", default="-", help="JSON report path, or - for stdout")
     parser.add_argument(
@@ -166,6 +176,7 @@ def main(argv: list[str] | None = None) -> int:
             top=args.top,
             feature_annotation_file=args.feature_annotation_file,
             normalization_method=args.normalization_method,
+            track_feature_ids=args.track_feature_id,
         )
     except SourceNotFoundError:
         report = _error_report(

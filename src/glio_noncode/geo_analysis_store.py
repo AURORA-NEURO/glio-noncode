@@ -47,8 +47,12 @@ _REPORT_SUMMARY_FIELDS = frozenset(
         "sign_test_fdr_significant_feature_count",
         "not_sign_test_fdr_significant_feature_count", "sign_test_method_counts",
         "pair_deletion_sensitivity", "reported_feature_count",
+        "ranked_feature_count", "additional_tracked_feature_count",
         "reported_date_like_feature_label_count", "reported_curated_feature_count",
     }
+)
+_LEGACY_REPORT_SUMMARY_FIELDS = _REPORT_SUMMARY_FIELDS - frozenset(
+    {"ranked_feature_count", "additional_tracked_feature_count"}
 )
 _CATALOG_SUMMARY_FIELDS = frozenset(
     {
@@ -60,8 +64,13 @@ _CATALOG_SUMMARY_FIELDS = frozenset(
         "reference_sample_count_unmatched", "normalization", "fdr_method",
         "fdr_threshold", "fdr_significant_feature_count",
         "sign_test_fdr_significant_feature_count",
+        "ranked_feature_count", "additional_tracked_feature_count",
+        "tracked_feature_ids",
         "reported_date_like_feature_label_count", "reported_curated_feature_count",
     }
+)
+_LEGACY_CATALOG_SUMMARY_FIELDS = _CATALOG_SUMMARY_FIELDS - frozenset(
+    {"ranked_feature_count", "additional_tracked_feature_count", "tracked_feature_ids"}
 )
 _SOURCE_FIELDS = frozenset(
     {
@@ -102,8 +111,10 @@ _COMPARISON_FIELDS = frozenset(
         "exact_sign_test_maximum_nonzero_pairs", "fdr_method", "fdr_threshold",
         "multiple_testing_family_count", "context_key", "source_version",
         "individual_sample_and_pair_keys_emitted",
+        "tracked_feature_ids",
     }
 )
+_LEGACY_COMPARISON_FIELDS = _COMPARISON_FIELDS - frozenset({"tracked_feature_ids"})
 _NORMALIZATION_FIELDS = frozenset(
     {
         "method", "expression_scale", "effective_library_size",
@@ -174,6 +185,7 @@ _SENSITIVE_KEYS = frozenset(
     {
         "gsm_id", "gsm_ids", "pair_id", "pair_ids", "patient_id", "patient_ids",
         "sample_id", "sample_ids", "subject_id", "subject_ids",
+        "agent", "language",
     }
 )
 
@@ -193,6 +205,33 @@ def _object(value: object, fields: frozenset[str], label: str) -> dict[str, Any]
     if type(value) is not dict or frozenset(value) != fields:
         raise ValidationError(f"GEO {label} has an invalid v1 shape")
     return value
+
+
+def _comparison_object(value: object) -> dict[str, Any]:
+    """Accept pre-tracking v1 reports while exposing an empty tracking set to validators."""
+
+    if type(value) is not dict:
+        raise ValidationError("GEO comparison design must be an object")
+    if frozenset(value) == _COMPARISON_FIELDS:
+        return _object(value, _COMPARISON_FIELDS, "comparison design")
+    if frozenset(value) == _LEGACY_COMPARISON_FIELDS:
+        return value | {"tracked_feature_ids": []}
+    raise ValidationError("comparison design has an invalid shape")
+
+
+def _summary_object(value: object) -> dict[str, Any]:
+    """Accept pre-tracking v1 summaries and derive their zero-extra-row fields."""
+
+    if type(value) is not dict:
+        raise ValidationError("GEO summary must be an object")
+    if frozenset(value) == _REPORT_SUMMARY_FIELDS:
+        return _object(value, _REPORT_SUMMARY_FIELDS, "summary")
+    if frozenset(value) == _LEGACY_REPORT_SUMMARY_FIELDS:
+        return value | {
+            "ranked_feature_count": value["reported_feature_count"],
+            "additional_tracked_feature_count": 0,
+        }
+    raise ValidationError("summary has an invalid shape")
 
 
 def _count(value: object, label: str, *, minimum: int = 0) -> int:
@@ -387,7 +426,7 @@ def _validate_contrast_report_sections(report: dict[str, Any]) -> None:
     if label_review["automatic_normalization_performed"]:
         raise ValidationError("GEO source feature labels must not be normalized automatically")
 
-    comparison = _object(report["comparison"], _COMPARISON_FIELDS, "comparison design")
+    comparison = _comparison_object(report["comparison"])
     if comparison["individual_sample_and_pair_keys_emitted"] is not False:
         raise ValidationError("GEO report must withhold individual sample and pair keys")
     if (
@@ -534,8 +573,8 @@ def validate_geo_count_contrast_report(report: object) -> dict[str, Any]:
     _check_no_individual_keys(report)
     _validate_contrast_report_sections(report)
     matrix = report["matrix"]
-    comparison = report["comparison"]
-    summary = _object(report["summary"], _REPORT_SUMMARY_FIELDS, "summary")
+    comparison = _comparison_object(report["comparison"])
+    summary = _summary_object(report["summary"])
     results = report["results"]
     if type(results) is not list:
         raise ValidationError("GEO analysis results must be a list")
@@ -546,6 +585,21 @@ def validate_geo_count_contrast_report(report: object) -> dict[str, Any]:
     reported_count = _count(summary["reported_feature_count"], "reported feature count")
     if len(results) != reported_count or reported_count > tested_features:
         raise ValidationError("GEO result count does not match its summary")
+    ranked_count = _count(summary["ranked_feature_count"], "ranked feature count", minimum=1)
+    additional_tracked_count = _count(
+        summary["additional_tracked_feature_count"],
+        "additional tracked feature count",
+    )
+    if ranked_count + additional_tracked_count != reported_count:
+        raise ValidationError("GEO ranked and tracked result counts do not reconcile")
+    tracked_feature_ids = comparison["tracked_feature_ids"]
+    if type(tracked_feature_ids) is not list or any(
+        type(feature_id) is not str or not feature_id.strip()
+        for feature_id in tracked_feature_ids
+    ) or len(set(tracked_feature_ids)) != len(tracked_feature_ids):
+        raise ValidationError("GEO tracked feature IDs must be a unique list of text")
+    if additional_tracked_count > len(tracked_feature_ids):
+        raise ValidationError("GEO additional tracked feature count exceeds tracked IDs")
     fdr_count = _count(summary["fdr_significant_feature_count"], "FDR-significant feature count")
     not_fdr_count = _count(
         summary["not_fdr_significant_feature_count"], "not-FDR-significant feature count"
@@ -813,6 +867,12 @@ def summarize_geo_count_contrast_report(report: Mapping[str, Any]) -> dict[str, 
         "feature_row_count": matrix["feature_row_count"],
         "tested_feature_count": summary["tested_feature_count"],
         "reported_feature_count": summary["reported_feature_count"],
+        "ranked_feature_count": summary.get(
+            "ranked_feature_count", summary["reported_feature_count"]
+        ),
+        "additional_tracked_feature_count": summary.get(
+            "additional_tracked_feature_count", 0
+        ),
         "sample_count": matrix["sample_count"],
         "pair_key_column": comparison["pair_key_column"],
         "case_filters": comparison["case_filters"],
@@ -823,6 +883,7 @@ def summarize_geo_count_contrast_report(report: Mapping[str, Any]) -> dict[str, 
         "case_sample_count_unmatched": comparison["case_sample_count_unmatched"],
         "reference_sample_count_unmatched": comparison["reference_sample_count_unmatched"],
         "normalization": comparison["normalization"],
+        "tracked_feature_ids": comparison.get("tracked_feature_ids", []),
         "fdr_method": comparison["fdr_method"],
         "fdr_threshold": comparison["fdr_threshold"],
         "fdr_significant_feature_count": summary["fdr_significant_feature_count"],
@@ -899,7 +960,10 @@ class GeoAnalysisStore:
         if type(address) is not str or _ADDRESS_RE.fullmatch(address) is None:
             raise StoreError("GEO report address is invalid")
         summary = raw.get("summary")
-        if type(summary) is not dict or frozenset(summary) != _CATALOG_SUMMARY_FIELDS:
+        if type(summary) is not dict or frozenset(summary) not in {
+            _CATALOG_SUMMARY_FIELDS,
+            _LEGACY_CATALOG_SUMMARY_FIELDS,
+        }:
             raise StoreError("GEO analysis catalog summary has an invalid shape")
         body = {key: value for key, value in raw.items() if key != "analysis_id"}
         if self._analysis_id(body) != analysis_id:
@@ -970,7 +1034,13 @@ class GeoAnalysisStore:
         record = self._decode_record(path)
         report = self.objects.get(record["report_address"])
         validated = validate_geo_count_contrast_report(report)
-        if summarize_geo_count_contrast_report(validated) != record["summary"]:
+        computed_summary = summarize_geo_count_contrast_report(validated)
+        if frozenset(record["summary"]) == _LEGACY_CATALOG_SUMMARY_FIELDS:
+            computed_summary = {
+                key: value for key, value in computed_summary.items()
+                if key in _LEGACY_CATALOG_SUMMARY_FIELDS
+            }
+        if computed_summary != record["summary"]:
             raise StoreError("GEO analysis catalog summary does not match its report")
         return {
             "schema": GEO_ANALYSIS_RECORD_SCHEMA,

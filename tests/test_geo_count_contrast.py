@@ -230,6 +230,42 @@ class GeoCountContrastTests(unittest.TestCase):
         self.assertFalse(ordinary_result["feature_label_review"]["possible_date_like_source_label"])
         self.assertEqual(ordinary_result["feature_label_review"]["source_label_preserved"], True)
 
+    def test_tracked_feature_is_retained_outside_ranked_result_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            counts_path, metadata_path = _write_files(
+                Path(directory), include_date_like_feature=True
+            )
+            report = _build_report(
+                counts_file=counts_path,
+                metadata_file=metadata_path,
+                top=1,
+                track_feature_ids=("2-Sep",),
+                fdr_threshold=1.0,
+            )
+
+        self.assertEqual(report["summary"]["ranked_feature_count"], 1)
+        self.assertEqual(report["summary"]["additional_tracked_feature_count"], 1)
+        self.assertEqual(report["summary"]["reported_feature_count"], 2)
+        self.assertEqual(report["comparison"]["tracked_feature_ids"], ["2-Sep"])
+        self.assertEqual(
+            {row["feature_id"] for row in report["results"]},
+            {report["results"][0]["feature_id"], "2-Sep"},
+        )
+        self.assertEqual(
+            report["summary"]["reported_date_like_feature_label_count"], 1
+        )
+
+    def test_tracked_feature_ids_require_unique_present_source_rows(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            counts_path, metadata_path = _write_files(
+                Path(directory), include_date_like_feature=True
+            )
+            options = {"counts_file": counts_path, "metadata_file": metadata_path}
+            with self.assertRaisesRegex(ValidationError, "must be unique"):
+                _build_report(**options, track_feature_ids=("2-Sep", "2-Sep"))
+            with self.assertRaisesRegex(ValidationError, "not present"):
+                _build_report(**options, track_feature_ids=("MISSING_FEATURE",))
+
     def test_explicit_feature_annotation_preserves_statistics_and_provenance(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

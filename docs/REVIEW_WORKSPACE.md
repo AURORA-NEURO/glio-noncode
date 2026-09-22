@@ -116,6 +116,13 @@ insufficient, and not-reported states for direction, signed-rank FDR, and
 direction-only sign-test FDR. It never pools statistics or treats a missing
 bounded row as negative evidence.
 
+For reproducible cross-normalization coverage, pass repeated
+`--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The
+report retains the ranked `--top` rows plus those exact source IDs, records
+`ranked_feature_count` and `additional_tracked_feature_count`, and rejects
+duplicate or absent IDs. This keeps a requested row jointly reportable without
+changing the multiple-testing family, ranking, or statistical calculations.
+
 The sensitivity CLI accepts saved IDs or two portable report files:
 
 ```powershell

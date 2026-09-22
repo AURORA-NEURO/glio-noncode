@@ -3174,6 +3174,7 @@ def build_geo_count_contrast_report(
     top: int = 1_000,
     feature_annotation_file: str | Path | None = None,
     normalization_method: str = "log2_cpm",
+    track_feature_ids: Sequence[str] = (),
 ) -> dict[str, Any]:
     """Run a paired signed-rank screen over a bounded GEO integer-count matrix.
 
@@ -3228,6 +3229,7 @@ def build_geo_count_contrast_report(
     normalized_fdr_method = fdr_method.strip().casefold()
     if isinstance(top, bool) or not isinstance(top, int) or not 1 <= top <= MAX_CONTRAST_FEATURES:
         raise ValidationError("top result limit must be an integer within the feature bound")
+    normalized_tracked_features = _normalize_tracked_feature_ids(track_feature_ids)
     normalized_count_delimiter = _normalize_delimiter(
         counts_delimiter, "GEO count matrix delimiter"
     )
@@ -3371,6 +3373,7 @@ def build_geo_count_contrast_report(
             "reference_filters": normalized_reference_records,
             "pair_key_column": pair_field,
             "normalization_method": normalized_normalization_method,
+            "tracked_feature_ids": list(normalized_tracked_features),
         },
         prefix="geo-paired-count-contrast",
     )
@@ -3541,6 +3544,24 @@ def build_geo_count_contrast_report(
         )
     )
     reported_rows = rows[:top]
+    reported_feature_ids = {row["feature_id"] for row in reported_rows}
+    rows_by_feature_id = {row["feature_id"]: row for row in rows}
+    missing_tracked_features = [
+        feature_id
+        for feature_id in normalized_tracked_features
+        if feature_id not in rows_by_feature_id
+    ]
+    if missing_tracked_features:
+        raise ValidationError(
+            f"{len(missing_tracked_features)} requested tracked GEO feature ID(s) were not "
+            "present in the count matrix"
+        )
+    additional_tracked_rows = [
+        rows_by_feature_id[feature_id]
+        for feature_id in normalized_tracked_features
+        if feature_id not in reported_feature_ids
+    ]
+    retained_rows = reported_rows + additional_tracked_rows
     significant_count = sum(bool(row["fdr_significant"]) for row in rows)
     sign_test_significant_count = sum(bool(row["sign_test_fdr_significant"]) for row in rows)
     pair_deletion_direction_change_count = sum(
@@ -3599,6 +3620,7 @@ def build_geo_count_contrast_report(
             "reference_sample_count_selected": len(reference_sample_ids),
             "case_sample_count_unmatched": len(case_sample_ids) - len(matched_pair_keys),
             "reference_sample_count_unmatched": len(reference_sample_ids) - len(matched_pair_keys),
+            "tracked_feature_ids": list(normalized_tracked_features),
             "normalization": (
                 "log2(counts per million + 1)"
                 if normalized_normalization_method == "log2_cpm"
@@ -3662,12 +3684,14 @@ def build_geo_count_contrast_report(
                     significant_pair_deletion_direction_change_count
                 ),
             },
-            "reported_feature_count": len(reported_rows),
+            "ranked_feature_count": len(reported_rows),
+            "additional_tracked_feature_count": len(additional_tracked_rows),
+            "reported_feature_count": len(retained_rows),
             "reported_date_like_feature_label_count": sum(
-                _feature_label_is_date_like(str(row["feature_id"])) for row in reported_rows
+                _feature_label_is_date_like(str(row["feature_id"])) for row in retained_rows
             ),
             "reported_curated_feature_count": sum(
-                row["feature_annotation"]["status"] == "mapped" for row in reported_rows
+                row["feature_annotation"]["status"] == "mapped" for row in retained_rows
             ),
         },
         "analysis_limits": {
@@ -3679,7 +3703,7 @@ def build_geo_count_contrast_report(
             "max_matrix_cells": MAX_MATRIX_CELLS,
             "minimum_complete_pairs": MIN_GEO_COUNT_CONTRAST_PAIRS,
         },
-        "results": reported_rows,
+        "results": retained_rows,
         "limitations": [
             (
                 "The paired signed-rank test assumes independent pairs and exchangeable signs of "

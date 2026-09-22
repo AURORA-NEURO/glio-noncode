@@ -88,6 +88,8 @@ glio-noncode geo-count-contrast GSE141945 `
   --metadata-file-name GSE141945_RNAseq.metadata.csv.gz `
   --fdr-method bh `
   --top 25 `
+  --track-feature-id 2-Sep `
+  --track-feature-id AAGAB `
   --save-to-workspace `
   --data-root .glio
 ```
@@ -166,6 +168,21 @@ not a pooled result or evidence that either normalization is biologically
 correct. The saved artifact is exposed at
 `/v1/geo-count-sensitivity/{comparison_id}` and its aggregate feature ledger at
 `/v1/geo-count-sensitivity/{comparison_id}/features.csv`.
+
+For a stricter rerun, adding `--track-feature-id 2-Sep --track-feature-id AAGAB`
+to both normalization commands retains those exact source rows even if the
+ranked top-25 lists change. This changes only report coverage: all 56,828
+eligible rows remain in the BH and sign-test families, while the report records
+which rows were ranked and which were explicitly retained.
+
+That tracked-row path was exercised with `--top 1` on the downloaded files. The
+TMM report `geo-cf1af3836345459b224f73453469a62e08c998a9b45169f67f07082f48a12f9e`
+and CPM report
+`geo-5049128ffc96687078eb58fe6ae7fd981346aab10846839f630345a8cb08f617` each
+returned one ranked row plus one explicitly tracked row. Their saved sensitivity
+comparison `geo-count-sensitivity-df5ccabdd18ad5c2faf1e4a7bd293601c2ecd8d4231a590b46349ef266f8628c`
+reported stable direction, signed-rank FDR, and sign-test FDR states for both
+`2-Sep` and `AAGAB`.
 
 The GEO series describes RNA-seq of glioblastoma tumor and organoid samples.
 The results above remain an exploratory re-analysis of a small public study;
