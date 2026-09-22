@@ -1851,6 +1851,10 @@
     $("geo-sensitivity-settings").textContent = `${String(comparison.fdr_method).toUpperCase()} q ≤ ${comparison.fdr_threshold}`;
     const provenance = $("geo-sensitivity-provenance");
     provenance.replaceChildren();
+    const runCoverage = (page.runs || []).map((run) => (
+      `${run.role}: ${formatCount(run.ranked_feature_count ?? run.reported_feature_count)} ranked · ` +
+      `${formatCount(run.additional_tracked_feature_count ?? 0)} tracked`
+    )).join(" · ");
     const rows = [
       ["Series", comparison.accession],
       ["Left normalization", comparison.left_normalization],
@@ -1859,6 +1863,7 @@
       ["Reference group", filterDescription(comparison.reference_filters)],
       ["Pairing field", comparison.pair_key_column],
       ["Source count digest", comparison.count_matrix_source_sha256],
+      ["Report coverage", runCoverage || "Not reported"],
     ];
     for (const [label, value] of rows) {
       const block = element("div", "geo-provenance-item");

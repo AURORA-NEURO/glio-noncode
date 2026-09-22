@@ -279,7 +279,15 @@ def validate_geo_count_sensitivity_report(report: object) -> dict[str, Any]:
             "fdr_significant_feature_count",
             "sign_test_fdr_significant_feature_count",
         }
-        if frozenset(run) != frozenset(required_run):
+        optional_run = {
+            "ranked_feature_count",
+            "additional_tracked_feature_count",
+            "tracked_feature_ids",
+        }
+        run_keys = frozenset(run)
+        if not required_run.issubset(run_keys) or not run_keys.issubset(
+            required_run | optional_run
+        ):
             raise ValidationError("GEO count sensitivity run has an invalid shape")
         role = _text(run["role"], "run role")
         roles.append(role)
@@ -302,6 +310,26 @@ def validate_geo_count_sensitivity_report(report: object) -> dict[str, Any]:
             "sign_test_fdr_significant_feature_count",
         ):
             _count(run[key], f"run {key}")
+        ranked_feature_count = _count(
+            run.get("ranked_feature_count", run["reported_feature_count"]),
+            "run ranked_feature_count",
+        )
+        additional_tracked_feature_count = _count(
+            run.get("additional_tracked_feature_count", 0),
+            "run additional_tracked_feature_count",
+        )
+        tracked_feature_ids = run.get("tracked_feature_ids", [])
+        if type(tracked_feature_ids) is not list or any(
+            type(feature_id) is not str or not feature_id.strip()
+            for feature_id in tracked_feature_ids
+        ) or len(set(tracked_feature_ids)) != len(tracked_feature_ids):
+            raise ValidationError("GEO count sensitivity run tracked feature IDs are invalid")
+        if (
+            ranked_feature_count + additional_tracked_feature_count
+            != run["reported_feature_count"]
+            or additional_tracked_feature_count > len(tracked_feature_ids)
+        ):
+            raise ValidationError("GEO count sensitivity run coverage is inconsistent")
         _finite(run["fdr_threshold"], "run FDR threshold")
     if roles != ["left", "right"]:
         raise ValidationError("GEO count sensitivity run roles must be left then right")

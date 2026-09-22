@@ -223,6 +223,13 @@ def _run_summary(report: Mapping[str, Any], role: str) -> dict[str, Any]:
         "fdr_threshold": comparison["fdr_threshold"],
         "tested_feature_count": summary["tested_feature_count"],
         "reported_feature_count": summary["reported_feature_count"],
+        "ranked_feature_count": summary.get(
+            "ranked_feature_count", summary["reported_feature_count"]
+        ),
+        "additional_tracked_feature_count": summary.get(
+            "additional_tracked_feature_count", 0
+        ),
+        "tracked_feature_ids": comparison.get("tracked_feature_ids", []),
         "fdr_significant_feature_count": summary["fdr_significant_feature_count"],
         "sign_test_fdr_significant_feature_count": summary[
             "sign_test_fdr_significant_feature_count"

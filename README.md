@@ -245,6 +245,9 @@ Sensitivity records are listed at `/v1/geo-count-sensitivity`, reopened at
 the cross-study comparison controls. Missing bounded rows remain explicitly
 not reported; sample, subject, pair, agent, and language metadata are never
 included in the aggregate sensitivity projection.
+Each sensitivity run also retains ranked-row and explicitly tracked-row
+coverage, so cross-normalization stability can be audited when a requested
+feature was kept outside the bounded ranking.
 
 Run `geo-review-summary --data-root .glio` to verify the saved GEO catalogs and
 reopen each report object through its content address. The same aggregate-only

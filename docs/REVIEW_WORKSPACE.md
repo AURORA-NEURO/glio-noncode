@@ -115,6 +115,9 @@ normalization/expression scale may differ. It emits stable, changed,
 insufficient, and not-reported states for direction, signed-rank FDR, and
 direction-only sign-test FDR. It never pools statistics or treats a missing
 bounded row as negative evidence.
+Each run exposes ranked-row count, additional tracked-row count, and tracked
+source IDs so normalization stability remains auditable outside the bounded
+ranking.
 
 For reproducible cross-normalization coverage, pass repeated
 `--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The

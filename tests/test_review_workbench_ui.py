@@ -80,6 +80,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="geo-consistency-list"', html)
         self.assertIn("/v1/geo-count-consistency", javascript)
         self.assertIn("sign_test_fdr_sensitivity", javascript)
+        self.assertIn("ranked_feature_count", javascript)
+        self.assertIn("Report coverage", javascript)
         self.assertIn("/v1/geo-expression-analyses", javascript)
         self.assertIn("/v1/geo-review/summary", javascript)
         self.assertIn("/v1/geo-preflights", javascript)

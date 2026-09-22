@@ -53,6 +53,39 @@ class GeoCountSensitivityTests(unittest.TestCase):
             self.assertNotIn("PRIVATE_SUBJECT_", serialized)
             self.assertNotIn('"agent"', serialized)
             self.assertNotIn('"language"', serialized)
+            for run in report["runs"]:
+                self.assertEqual(run["ranked_feature_count"], 5)
+                self.assertEqual(run["additional_tracked_feature_count"], 0)
+                self.assertEqual(run["tracked_feature_ids"], [])
+
+    def test_tracked_rows_retain_normalization_coverage_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            counts, metadata = _write_files(root, include_date_like_feature=True)
+            left = _build_report(
+                counts_file=counts,
+                metadata_file=metadata,
+                top=1,
+                track_feature_ids=("2-Sep",),
+                normalization_method="tmm_log2_cpm",
+                fdr_threshold=1.0,
+            )
+            right = _build_report(
+                counts_file=counts,
+                metadata_file=metadata,
+                top=1,
+                track_feature_ids=("2-Sep",),
+                normalization_method="log2_cpm",
+                fdr_threshold=1.0,
+            )
+            report = build_geo_count_sensitivity_report(
+                (left, right), feature_ids=("2-Sep",)
+            )
+
+        for run in report["runs"]:
+            self.assertEqual(run["ranked_feature_count"], 1)
+            self.assertEqual(run["additional_tracked_feature_count"], 1)
+            self.assertEqual(run["tracked_feature_ids"], ["2-Sep"])
 
     def test_sensitivity_requires_different_normalization_and_same_source(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
