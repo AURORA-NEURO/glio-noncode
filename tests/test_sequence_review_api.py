@@ -48,6 +48,8 @@ class SequenceReviewApiTests(unittest.TestCase):
                 self.assertEqual(motifs_response.status, 200)
                 self.assertEqual(motifs["total_count"], 1)
                 self.assertEqual(motifs["rows"][0]["motif_id"], "joint")
+                self.assertEqual(motifs["filtered_motif_summary"]["row_count"], 1)
+                self.assertEqual(motifs["filtered_motif_summary"]["occurrence_count"], 2)
                 self.assertNotIn("PRIVATE_SAMPLE_1", json.dumps(motifs))
 
                 connection.request("GET", "/v1/sequence-review/verify")

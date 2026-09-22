@@ -143,6 +143,16 @@ Consumers that need a structured interchange form can use the content-addressed
 `glio-noncode.geo-review-ledger.v1` document from the CLI `--ledger-json` option or
 the `/v1/geo-review/ledger.json` endpoint.
 
+The sequence archive review follows the same bounded pattern. `GET
+/v1/sequence-review/motifs` accepts `source_id`, `genome_build`, `change`, and
+`motif_contains` filters. Every response includes `filtered_motif_summary`,
+covering the complete filtered motif-row count, created/disrupted row counts,
+occurrence totals, single-analysis versus batch occurrences, and aggregate
+motif-source counts before pagination. The `source_id` filter applies to the
+saved report source; motif source IDs remain the provenance on each aggregate
+motif row. The workbench exposes all four filters and
+renders that summary without loading additional motif rows.
+
 For reproducible cross-normalization coverage, pass repeated
 `--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The
 report retains the ranked `--top` rows plus those exact source IDs, records

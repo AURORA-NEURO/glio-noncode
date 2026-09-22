@@ -390,6 +390,19 @@ class SequenceReviewStore:
         )
         if len(rows) > MAX_REVIEW_MOTIF_ROWS:
             raise StoreError("sequence review motif catalog exceeds its row limit")
+        filtered_motif_summary = {
+            "row_count": len(rows),
+            "created_row_count": sum(row["change"] == "created" for row in rows),
+            "disrupted_row_count": sum(row["change"] == "disrupted" for row in rows),
+            "occurrence_count": sum(int(row["occurrence_count"]) for row in rows),
+            "single_analysis_occurrence_count": sum(
+                int(row["single_analysis_count"]) for row in rows
+            ),
+            "batch_occurrence_count": sum(int(row["batch_count"]) for row in rows),
+            "motif_source_id_counts": _counter_dict(
+                Counter(str(row["source_id"]) for row in rows)
+            ),
+        }
         body = {
             "schema": SEQUENCE_REVIEW_MOTIFS_SCHEMA,
             "offset": offset,
@@ -402,6 +415,7 @@ class SequenceReviewStore:
                 "change": change,
                 "motif_contains": motif_contains,
             },
+            "filtered_motif_summary": filtered_motif_summary,
             "rows": rows[offset : offset + limit],
             "privacy": {
                 "raw_bases_emitted": False,

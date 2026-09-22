@@ -1447,6 +1447,10 @@
       tr.append(cell(consistencyText(row.change)), cell(row.name || row.motif_id), cell(row.matched_sequence), cell(formatCount(row.single_analysis_count)), cell(formatCount(row.batch_count)), cell(percent(row.max_batch_fraction)));
       body.append(tr);
     }
+    const motifSummary = motifs.filtered_motif_summary || {};
+    const sourceCounts = motifSummary.motif_source_id_counts || {};
+    const sourceCountText = Object.entries(sourceCounts).map(([source, count]) => `${source}: ${formatCount(count)}`).join(" · ") || "none";
+    $("sequence-review-motif-filter-summary").textContent = `${formatCount(motifSummary.row_count ?? 0)} filtered motif rows · ${formatCount(motifSummary.occurrence_count ?? 0)} occurrences · ${formatCount(motifSummary.created_row_count ?? 0)} created / ${formatCount(motifSummary.disrupted_row_count ?? 0)} disrupted · sources ${sourceCountText}`;
     const integrityCopy = $("sequence-review-integrity-copy");
     integrityCopy.replaceChildren();
     for (const text of [
@@ -1465,8 +1469,12 @@
       model.sequenceReviewFilterTimer = null;
       const params = new URLSearchParams({ limit: "100", offset: "0" });
       const motif = $("sequence-review-motif-filter").value.trim();
+      const sourceId = $("sequence-review-source-filter").value.trim();
+      const genomeBuild = $("sequence-review-genome-filter").value.trim();
       const change = $("sequence-review-change-filter").value;
       if (motif) params.set("motif_contains", motif);
+      if (sourceId) params.set("source_id", sourceId);
+      if (genomeBuild) params.set("genome_build", genomeBuild);
       if (change) params.set("change", change);
       try {
         const motifs = await getJson(`/v1/sequence-review/motifs?${params.toString()}`);
@@ -2391,6 +2399,8 @@
   });
   $("sequence-review-open").addEventListener("click", openSequenceReview);
   $("sequence-review-motif-filter").addEventListener("input", reloadSequenceReviewMotifs);
+  $("sequence-review-source-filter").addEventListener("input", reloadSequenceReviewMotifs);
+  $("sequence-review-genome-filter").addEventListener("input", reloadSequenceReviewMotifs);
   $("sequence-review-change-filter").addEventListener("change", reloadSequenceReviewMotifs);
   $("sequence-batch-motif-filter").addEventListener("input", reloadSequenceBatchChanges);
   $("sequence-batch-change-filter").addEventListener("change", reloadSequenceBatchChanges);
