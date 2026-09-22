@@ -41,6 +41,14 @@ The verified complete report can be downloaded as JSON from
 named with its GEO accession and content-addressed analysis ID. The workbench
 enables this export only after the selected report page has passed verification.
 
+The GEO rail also exposes `Open archive health`. That panel reopens every
+cataloged GEO analysis and comparison object through its content address and
+shows a per-catalog ledger of records, verified objects, feature-row totals,
+accession counts, and state. Its aggregate-only JSON export is
+`GET /v1/geo-review/summary`; the CLI equivalent is
+`glio-noncode geo-review-summary --data-root .glio`. These counts are catalog
+summaries and are not deduplicated across studies or comparisons.
+
 Feature pages accept bounded aggregate filters before pagination:
 `feature_contains` performs case-insensitive source-label matching,
 `effect_direction` accepts `case_higher`, `case_lower`, or

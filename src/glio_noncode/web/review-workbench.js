@@ -4,7 +4,7 @@
   const $ = (id) => document.getElementById(id);
   const model = {
     runs: [], total: 0, selected: null, baseline: "", report: null, hypothesis: null,
-    geoAnalyses: [], geoTotal: 0, selectedGeo: null, geoPage: null, geoResults: [], geoReviewSummary: null, geoReviewRequest: 0,
+    geoAnalyses: [], geoTotal: 0, selectedGeo: null, geoPage: null, geoResults: [], geoReviewSummary: null, geoReviewRequest: 0, geoReviewViewRequest: 0,
     geoExpressionAnalyses: [], geoExpressionTotal: 0, selectedGeoExpression: null, geoExpressionPage: null, geoExpressionResults: [],
     geoExpressionCompareIds: [], geoExpressionConsistency: null, geoExpressionConsistencyRequest: 0,
     geoExpressionConsistencyRecords: [], geoExpressionConsistencyTotal: 0, selectedGeoExpressionConsistency: null, geoExpressionConsistencyListRequest: 0,
@@ -430,6 +430,31 @@
     $("geo-review-status").textContent = summary.status === "ready" ? "Verified" : "Review required";
   }
 
+  function renderGeoReviewDetail() {
+    const summary = model.geoReviewSummary;
+    if (!summary) return;
+    const catalogs = Object.values(summary.catalogs || {});
+    const analysisCount = catalogs.filter((item) => item.name.endsWith("analyses")).reduce((total, item) => total + Number(item.record_count || 0), 0);
+    const comparisonCount = catalogs.filter((item) => item.name.endsWith("comparisons")).reduce((total, item) => total + Number(item.record_count || 0), 0);
+    const accessionCount = catalogs.reduce((total, item) => total + Number(item.accession_count || 0), 0);
+    $("geo-review-subtitle").textContent = `${formatCount(analysisCount)} analyses · ${formatCount(comparisonCount)} saved comparisons · ${summary.integrity?.report_objects || "review"}`;
+    $("geo-review-address").textContent = summary.content_address || "Address unavailable";
+    $("geo-review-analysis-count").textContent = formatCount(analysisCount);
+    $("geo-review-comparison-count").textContent = formatCount(comparisonCount);
+    $("geo-review-accession-count").textContent = formatCount(accessionCount);
+    $("geo-review-integrity").textContent = summary.integrity?.verification_failure_count === 0 ? "Accepted" : "Review";
+    const body = $("geo-review-catalog-table");
+    body.replaceChildren();
+    for (const catalog of catalogs) {
+      const row = document.createElement("tr");
+      row.append(cell(catalog.name), cell(formatCount(catalog.record_count)), cell(formatCount(catalog.verified_record_count)), cell(formatCount(catalog.feature_count_total)), cell(formatCount(catalog.accession_count)), cell(catalog.catalog_state));
+      body.append(row);
+    }
+    const limitations = $("geo-review-limitations");
+    limitations.replaceChildren();
+    for (const limitation of summary.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
+  }
+
   async function loadGeoReviewSummary() {
     const request = model.geoReviewRequest = (model.geoReviewRequest || 0) + 1;
     try {
@@ -438,6 +463,7 @@
       if (summary.schema !== "glio-noncode.geo-review-summary.v1" || !summary.catalogs || !summary.integrity) throw new Error("The local API returned an invalid GEO workspace summary.");
       model.geoReviewSummary = summary;
       renderGeoReviewSummary();
+      if (model.activeView === "geo-review") renderGeoReviewDetail();
     } catch (error) {
       if (request !== model.geoReviewRequest) return;
       $("geo-review-summary").textContent = "The GEO archive summary could not be verified.";
@@ -524,6 +550,7 @@
     $("geo-analysis-view").hidden = true;
     $("geo-expression-analysis-view").hidden = true;
     $("geo-expression-consistency-view").hidden = true;
+    $("geo-review-view").hidden = true;
     $("geo-consistency-view").hidden = true;
     $("sequence-analysis-view").hidden = true;
     $("sequence-review-view").hidden = true;
@@ -583,6 +610,19 @@
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
       csvLink.setAttribute("aria-disabled", "false");
+      return;
+    }
+    if (model.activeView === "geo-review" && model.geoReviewSummary?.content_address) {
+      link.href = "/v1/geo-review/summary";
+      link.textContent = "Download GEO health summary";
+      link.classList.remove("disabled");
+      link.setAttribute("aria-disabled", "false");
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+      csvLink.href = "#";
+      csvLink.hidden = true;
+      csvLink.classList.add("disabled");
+      csvLink.setAttribute("aria-disabled", "true");
       return;
     }
     if (model.activeView === "geo-expression-consistency" && model.geoExpressionConsistency?.comparison_id) {
@@ -1213,6 +1253,34 @@
     return String(value || "—").replaceAll("_", " ");
   }
 
+  async function openGeoReview() {
+    model.activeView = "geo-review";
+    const request = model.geoReviewViewRequest = (model.geoReviewViewRequest || 0) + 1;
+    notice("");
+    showEmpty("Verifying GEO workspace", "Reopening every saved GEO catalog record and report object through its content address.");
+    try {
+      const summary = await getJson("/v1/geo-review/summary?verify_reports=true");
+      if (request !== model.geoReviewViewRequest || model.activeView !== "geo-review") return;
+      if (summary.schema !== "glio-noncode.geo-review-summary.v1" || !summary.catalogs || !summary.integrity) throw new Error("The local API returned an invalid GEO workspace summary.");
+      model.geoReviewSummary = summary;
+      $("empty-state").hidden = true;
+      $("run-view").hidden = true;
+      $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = true;
+      $("geo-consistency-view").hidden = true;
+      $("geo-expression-consistency-view").hidden = true;
+      $("geo-review-view").hidden = false;
+      renderGeoReviewSummary();
+      renderGeoReviewDetail();
+      exportHref();
+      announceSelection(`GEO workspace health opened. ${formatCount(summary.integrity.verification_failure_count)} verification failures.`);
+    } catch (error) {
+      if (request !== model.geoReviewViewRequest || model.activeView !== "geo-review") return;
+      notice(`The GEO workspace could not be verified. ${error.message}`, true);
+      showEmpty("GEO workspace unavailable", "The saved GEO catalogs could not be verified, so archive details remain hidden.");
+    }
+  }
+
   async function openGeoConsistency(comparisonId) {
     if (model.selectedGeoConsistency !== comparisonId) resetGeoConsistencyFilters();
     model.activeView = "geo-consistency";
@@ -1716,6 +1784,7 @@
     if (model.activeView === "case" && model.selected) openRun(model.selected);
   });
   $("geo-load-more-analyses").addEventListener("click", () => loadGeoAnalyses(true));
+  $("geo-review-open").addEventListener("click", openGeoReview);
   $("geo-load-more").addEventListener("click", () => {
     if (model.selectedGeo) openGeoAnalysis(model.selectedGeo, { append: true });
   });
