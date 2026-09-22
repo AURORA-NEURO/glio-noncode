@@ -14,6 +14,7 @@ from glio_noncode.cli import main as cli_main
 from glio_noncode.errors import ValidationError
 from glio_noncode.geo_expression_analysis_store import GeoExpressionAnalysisStore
 from glio_noncode.geo_expression_consistency_store import GeoExpressionConsistencyStore
+from glio_noncode.geo_review_summary import build_geo_review_summary
 from glio_noncode.serialization import canonical_json
 
 from .test_geo_consistency import _contrast_report
@@ -60,6 +61,20 @@ class GeoExpressionConsistencyStoreTests(unittest.TestCase):
             self.assertIn("feature_id", csv_body.splitlines()[0])
             self.assertIn("probe-b-discordant", csv_body)
             self.assertNotIn("GSM", csv_body)
+            studies_csv = store.studies_csv(record["comparison_id"])
+            self.assertIn("ranked_feature_count", studies_csv.splitlines()[0])
+            self.assertIn("tracked_feature_ids", studies_csv.splitlines()[0])
+            self.assertNotIn("GSM", studies_csv)
+            summary = build_geo_review_summary(root / "workspace")
+            catalog_summary = summary["catalogs"]["expression_comparisons"]
+            self.assertEqual(
+                catalog_summary["reported_feature_count_total"],
+                record["summary"]["reported_feature_count_total"],
+            )
+            self.assertEqual(
+                catalog_summary["ranked_feature_count_total"],
+                record["summary"]["ranked_feature_count_total"],
+            )
 
     def test_filters_and_tampered_addresses_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -162,6 +177,15 @@ class GeoExpressionConsistencyStoreTests(unittest.TestCase):
                 self.assertEqual(response.status, 200)
                 self.assertIn("probe-a-concordant", csv_body)
                 self.assertNotIn("GSM", csv_body)
+
+                connection.request(
+                    "GET", f"/v1/geo-expression-consistency/{record['comparison_id']}/studies.csv"
+                )
+                response = connection.getresponse()
+                studies_csv = response.read().decode("utf-8")
+                self.assertEqual(response.status, 200)
+                self.assertIn("ranked_feature_count", studies_csv.splitlines()[0])
+                self.assertIn("tracked_feature_ids", studies_csv.splitlines()[0])
                 connection.close()
             finally:
                 server.shutdown()

@@ -474,6 +474,12 @@ def build_geo_review_summary(
         tested_key=None,
         reported_key=None,
         fdr_key=None,
+        total_keys=(
+            "reported_feature_count_total",
+            "ranked_feature_count_total",
+            "additional_tracked_feature_count_total",
+            "tracked_feature_id_count_total",
+        ),
         verify_reports=verify_reports,
     )
     preflights, preflight_failures = _preflight_projection(

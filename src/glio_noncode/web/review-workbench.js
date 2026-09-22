@@ -558,12 +558,18 @@
     const consistencyRankedCount = Number(countComparisons.ranked_feature_count_total || 0);
     const consistencyTrackedCount = Number(countComparisons.additional_tracked_feature_count_total || 0);
     const consistencyTrackedIdCount = Number(countComparisons.tracked_feature_id_count_total || 0);
+    const expressionCatalog = catalogs.find((item) => item.name === "expression_comparisons") || {};
+    const expressionRankedCount = Number(expressionCatalog.ranked_feature_count_total || 0);
+    const expressionTrackedCount = Number(expressionCatalog.additional_tracked_feature_count_total || 0);
+    const expressionTrackedIdCount = Number(expressionCatalog.tracked_feature_id_count_total || 0);
     $("geo-review-subtitle").textContent = `${formatCount(analysisCount)} analyses · ${formatCount(comparisonCount)} saved comparisons · ${summary.integrity?.report_objects || "review"}`;
     $("geo-review-address").textContent = summary.content_address || "Address unavailable";
     $("geo-review-analysis-count").textContent = formatCount(analysisCount);
     $("geo-review-comparison-count").textContent = formatCount(comparisonCount);
     $("geo-review-consistency-coverage").textContent = `${formatCount(consistencyRankedCount)} + ${formatCount(consistencyTrackedCount)}`;
     $("geo-review-consistency-coverage-detail").textContent = `${formatCount(consistencyTrackedIdCount)} tracked IDs across studies`;
+    $("geo-review-expression-coverage").textContent = `${formatCount(expressionRankedCount)} + ${formatCount(expressionTrackedCount)}`;
+    $("geo-review-expression-coverage-detail").textContent = `${formatCount(expressionTrackedIdCount)} tracked IDs across studies`;
     $("geo-review-preflight-count").textContent = formatCount(preflightCount);
     $("geo-review-accession-count").textContent = formatCount(accessionCount);
     $("geo-review-tested-count").textContent = formatCount(testedCount);
@@ -812,6 +818,11 @@
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
       csvLink.setAttribute("aria-disabled", "false");
+      runCsvLink.href = `/v1/geo-expression-consistency/${encodeURIComponent(comparisonId)}/studies.csv`;
+      runCsvLink.textContent = "Download study coverage CSV";
+      runCsvLink.hidden = false;
+      runCsvLink.classList.remove("disabled");
+      runCsvLink.setAttribute("aria-disabled", "false");
       return;
     }
     if (model.activeView === "geo-consistency" && model.geoConsistency?.comparison_id) {
@@ -1743,6 +1754,7 @@
     $("geo-expression-consistency-features-count").textContent = formatCount(summary.feature_count);
     $("geo-expression-consistency-concordant").textContent = formatCount(summary.concordant_feature_count);
     $("geo-expression-consistency-discordant").textContent = formatCount(summary.discordant_feature_count);
+    $("geo-expression-consistency-coverage").textContent = `${formatCount(summary.ranked_feature_count_total || 0)} + ${formatCount(summary.additional_tracked_feature_count_total || 0)}`;
     const expressionFiltered = page.total_features !== page.unfiltered_feature_count;
     $("geo-expression-consistency-result-count").textContent = expressionFiltered
       ? `${formatCount(page.features.length)} shown · ${formatCount(page.total_features)} filtered`

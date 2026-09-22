@@ -125,6 +125,8 @@ The archive-health view aggregates the same ranked, additional-tracked, and
 tracked-ID-slot totals across saved sensitivity records.
 Cross-study paired-count comparisons expose matching study-level coverage and
 provide a verified `studies.csv` export with the same aggregate-only boundary.
+Expression consistency comparisons expose the same ranked/tracked coverage
+and study-level export contract.
 
 For reproducible cross-normalization coverage, pass repeated
 `--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The
