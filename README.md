@@ -221,6 +221,21 @@ records are listed at `/v1/geo-count-consistency`, reopened at
 path. Public comparison rows preserve aggregate directions only and never emit
 sample, subject, or pair identifiers.
 
+Two saved runs from the same Series can be reviewed as a separate normalization
+sensitivity artifact. This is intentionally distinct from cross-Series
+consistency: it requires identical source digests and design settings, permits
+the normalization method or expression scale to differ, and reports stable or
+changed directions/significance without pooling statistics:
+
+    glio-noncode geo-count-sensitivity --data-root .glio --analysis-id GEO_TMM_ID --analysis-id GEO_CPM_ID --feature-id 2-Sep --feature-id EGFR --save-to-workspace
+
+Sensitivity records are listed at `/v1/geo-count-sensitivity`, reopened at
+`/v1/geo-count-sensitivity/{comparison_id}`, and exported through
+`features.csv`. The workbench exposes the same same-Series review path beside
+the cross-study comparison controls. Missing bounded rows remain explicitly
+not reported; sample, subject, pair, agent, and language metadata are never
+included in the aggregate sensitivity projection.
+
 Run `geo-review-summary --data-root .glio` to verify the saved GEO catalogs and
 reopen each report object through its content address. The same aggregate-only
 health projection is available at `/v1/geo-review/summary` and appears in the

@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'b6aca4e16a469626cd32846e9bac38c0fd53d0c154aebb49bc72d42241b55145'
-SURFACE_DIGEST = 'fbf8be9e86b6702317fee3173f5d46a421fbfaa41f8b71cbc95baa47bb6a3778'
+SURFACE_DIGEST = '1426a98d7d2f4310ab42b07cba68a06d1a4e88dccb235aaa06cdc98c108d2cc1'
 
 ALL = (
     'CaseManifest',
@@ -44206,6 +44206,8 @@ CHILD_MODULES = {
     'geo_consistency': 'glio_noncode.geo_consistency',
     'geo_count_consistency': 'glio_noncode.geo_count_consistency',
     'geo_count_consistency_store': 'glio_noncode.geo_count_consistency_store',
+    'geo_count_sensitivity': 'glio_noncode.geo_count_sensitivity',
+    'geo_count_sensitivity_store': 'glio_noncode.geo_count_sensitivity_store',
     'geo_design': 'glio_noncode.geo_design',
     'geo_expression': 'glio_noncode.geo_expression',
     'geo_expression_analysis_store': 'glio_noncode.geo_expression_analysis_store',
@@ -49495,6 +49497,8 @@ LAZY_MODULES = (
     'glio_noncode.geo_consistency',
     'glio_noncode.geo_count_consistency',
     'glio_noncode.geo_count_consistency_store',
+    'glio_noncode.geo_count_sensitivity',
+    'glio_noncode.geo_count_sensitivity_store',
     'glio_noncode.geo_design',
     'glio_noncode.geo_expression',
     'glio_noncode.geo_expression_analysis_store',

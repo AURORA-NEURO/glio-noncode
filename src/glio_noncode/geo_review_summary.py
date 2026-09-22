@@ -11,6 +11,7 @@ from typing import Any
 from .errors import StoreError, ValidationError
 from .geo_analysis_store import GeoAnalysisStore
 from .geo_count_consistency_store import GeoCountConsistencyStore
+from .geo_count_sensitivity_store import GeoCountSensitivityStore
 from .geo_expression_analysis_store import GeoExpressionAnalysisStore
 from .geo_expression_consistency_store import GeoExpressionConsistencyStore
 from .geo_preflight_store import GeoPreflightStore
@@ -259,6 +260,14 @@ def build_geo_review_ledger(
             "fdr_key": None,
         },
         {
+            "name": "paired_count_sensitivity_comparisons",
+            "store": GeoCountSensitivityStore(root),
+            "identifier_key": "comparison_id",
+            "feature_key": "feature_count",
+            "tested_key": None,
+            "fdr_key": None,
+        },
+        {
             "name": "expression_comparisons",
             "store": GeoExpressionConsistencyStore(root),
             "identifier_key": "comparison_id",
@@ -422,6 +431,15 @@ def build_geo_review_summary(
         fdr_key=None,
         verify_reports=verify_reports,
     )
+    count_sensitivities, count_sensitivity_failures = _catalog_projection(
+        name="paired_count_sensitivity_comparisons",
+        store=GeoCountSensitivityStore(root),
+        identifier_key="comparison_id",
+        feature_key="feature_count",
+        tested_key=None,
+        fdr_key=None,
+        verify_reports=verify_reports,
+    )
     expression_comparisons, expression_comparison_failures = _catalog_projection(
         name="expression_comparisons",
         store=GeoExpressionConsistencyStore(root),
@@ -439,6 +457,7 @@ def build_geo_review_summary(
         analysis_failures
         + expression_failures
         + count_comparison_failures
+        + count_sensitivity_failures
         + expression_comparison_failures
         + preflight_failures
     )
@@ -450,6 +469,7 @@ def build_geo_review_summary(
             "paired_count_analyses": analysis,
             "expression_analyses": expression,
             "paired_count_comparisons": count_comparisons,
+            "paired_count_sensitivity_comparisons": count_sensitivities,
             "expression_comparisons": expression_comparisons,
             "preflights": preflights,
         },

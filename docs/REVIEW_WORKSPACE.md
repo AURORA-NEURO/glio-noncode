@@ -106,6 +106,30 @@ untestable, FDR-significant, sign-test-significant, and not-reported states per
 Series. It does not merge curated aliases, pool effect sizes, combine p-values,
 or expose individual sample or pair identifiers.
 
+The paired-count rail also supports same-Series normalization sensitivity. Select
+exactly two saved paired-count runs, enter source feature IDs, and choose
+`Review normalization sensitivity`. The sensitivity contract requires the same
+Series accession, count-matrix and metadata digests, case/reference filters,
+pairing design, effect basis, test, and FDR settings; only the declared
+normalization/expression scale may differ. It emits stable, changed,
+insufficient, and not-reported states for direction, signed-rank FDR, and
+direction-only sign-test FDR. It never pools statistics or treats a missing
+bounded row as negative evidence.
+
+The sensitivity CLI accepts saved IDs or two portable report files:
+
+```powershell
+glio-noncode geo-count-sensitivity --data-root .glio `
+  --analysis-id GEO_TMM_ID --analysis-id GEO_CPM_ID `
+  --feature-id 2-Sep --feature-id EGFR --save-to-workspace
+```
+
+The immutable records are listed by `GET /v1/geo-count-sensitivity`, opened by
+`GET /v1/geo-count-sensitivity/{comparison_id}`, and exported as aggregate CSV
+from `GET /v1/geo-count-sensitivity/{comparison_id}/features.csv`. Archive
+health includes the sensitivity catalog as
+`paired_count_sensitivity_comparisons`.
+
 Saved paired-count reports can also be compared across distinct GEO Series
 without exposing their sample or pair keys. The focused CLI accepts either
 portable report files or immutable store IDs:

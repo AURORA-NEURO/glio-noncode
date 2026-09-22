@@ -135,7 +135,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertEqual(set(variables), {"--muted", "--soft"})
 
         def luminance(hex_color: str) -> float:
-            channels = [int(hex_color[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+            channels = [int(hex_color[index : index + 2], 16) / 255 for index in (1, 3, 5)]
             linear = [
                 value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4
                 for value in channels
@@ -248,12 +248,14 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("request !== model.geoExpressionListRequest", script)
         self.assertIn("request !== model.geoExpressionConsistencyListRequest", script)
         self.assertIn("request !== model.geoConsistencyListRequest", script)
+        self.assertIn("request !== model.geoSensitivityListRequest", script)
         self.assertIn("request !== model.sequenceListRequest", script)
         self.assertIn(
             (
                 "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), "
                 "loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), "
-                "loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), "
+                "loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), "
+                "loadGeoExpressionConsistencyRecords(), "
                 "loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])"
             ),
             script,

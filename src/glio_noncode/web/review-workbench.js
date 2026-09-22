@@ -14,6 +14,9 @@
     geoCompareIds: [], geoConsistency: null, geoConsistencyRecords: [], geoConsistencyTotal: 0,
     selectedGeoConsistency: null, geoConsistencyListRequest: 0, geoConsistencyFilterTimer: null,
     geoConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "", sign_test_direction_consistency: "" },
+    geoSensitivity: null, geoSensitivityRecords: [], geoSensitivityTotal: 0,
+    selectedGeoSensitivity: null, geoSensitivityListRequest: 0, geoSensitivityRequest: 0, geoSensitivityFilterTimer: null,
+    geoSensitivityFilters: { feature_contains: "", direction_sensitivity: "", fdr_sensitivity: "" },
     geoExpressionConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "" }, geoExpressionConsistencyFilterTimer: null,
     sequenceAnalyses: [], sequenceTotal: 0, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
     sequenceBatches: [], sequenceBatchTotal: 0, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
@@ -341,13 +344,20 @@
     model.geoCompareIds = checked.map((input) => input.value);
     const features = consistencyFeatureIds();
     const button = $("geo-compare-button");
+    const sensitivityButton = $("geo-sensitivity-button");
     button.disabled = model.geoCompareIds.length < 2 || features.length < 1;
+    sensitivityButton.disabled = model.geoCompareIds.length !== 2 || features.length < 1;
     if (model.geoCompareIds.length < 2) {
       $("geo-compare-status").textContent = "Choose at least two saved analyses.";
+      $("geo-sensitivity-status").textContent = "Select two runs from the same Series to review normalization stability.";
     } else if (!features.length) {
       $("geo-compare-status").textContent = "Enter one or more exact source feature IDs.";
+      $("geo-sensitivity-status").textContent = "Enter one or more exact source feature IDs.";
     } else {
       $("geo-compare-status").textContent = `${model.geoCompareIds.length} studies · ${features.length} feature IDs ready.`;
+      $("geo-sensitivity-status").textContent = model.geoCompareIds.length === 2
+        ? "Two runs ready for same-source normalization sensitivity review."
+        : "Select exactly two runs for normalization sensitivity review.";
     }
   }
 
@@ -395,6 +405,30 @@
       meta.append(element("span", "run-id", shortened(item.comparison_id, 28)), element("span", "", `${item.feature_count} features · ${item.concordant_feature_count} concordant · ${item.discordant_feature_count} discordant`));
       button.append(top, meta);
       button.addEventListener("click", () => openGeoConsistency(item.comparison_id));
+      list.append(button);
+    }
+  }
+
+  function renderGeoSensitivityRecords() {
+    const list = $("geo-sensitivity-list");
+    list.replaceChildren();
+    $("geo-sensitivity-count").textContent = String(model.geoSensitivityTotal);
+    $("geo-sensitivity-list-summary").textContent = `Showing ${model.geoSensitivityRecords.length} of ${model.geoSensitivityTotal} saved sensitivity comparisons.`;
+    if (!model.geoSensitivityRecords.length) {
+      list.append(element("p", "empty-inline", "No saved normalization sensitivity comparisons yet."));
+      return;
+    }
+    for (const item of model.geoSensitivityRecords) {
+      const button = element("button", "run-item");
+      button.type = "button";
+      button.setAttribute("aria-current", String(item.comparison_id === model.selectedGeoSensitivity));
+      button.setAttribute("aria-label", `Open normalization sensitivity for ${item.accession}, ${item.feature_count} features`);
+      const top = element("span", "run-top");
+      top.append(element("span", "run-case", item.accession), element("span", "run-status", "Sensitivity"));
+      const meta = element("span", "run-meta");
+      meta.append(element("span", "run-id", shortened(item.comparison_id, 28)), element("span", "", `${item.feature_count} features · ${item.stable_direction_feature_count} stable · ${item.changed_direction_feature_count} changed`));
+      button.append(top, meta);
+      button.addEventListener("click", () => openGeoSensitivity(item.comparison_id));
       list.append(button);
     }
   }
@@ -476,9 +510,10 @@
     const count = catalogs.paired_count_analyses || {};
     const expression = catalogs.expression_analyses || {};
     const countComparisons = catalogs.paired_count_comparisons || {};
+    const sensitivityComparisons = catalogs.paired_count_sensitivity_comparisons || {};
     const expressionComparisons = catalogs.expression_comparisons || {};
     const preflights = catalogs.preflights || {};
-    const comparisonCount = Number(countComparisons.record_count || 0) + Number(expressionComparisons.record_count || 0);
+    const comparisonCount = Number(countComparisons.record_count || 0) + Number(sensitivityComparisons.record_count || 0) + Number(expressionComparisons.record_count || 0);
     const analysisCount = Number(count.record_count || 0) + Number(expression.record_count || 0);
     $("geo-review-summary").textContent = `${formatCount(analysisCount)} analyses · ${formatCount(comparisonCount)} comparisons · ${formatCount(Number(preflights.record_count || 0))} preflights · ${summary.integrity?.report_objects || "review"}`;
     $("geo-review-status").textContent = summary.status === "ready" ? "Verified" : "Review required";
@@ -594,6 +629,27 @@
     }
   }
 
+  async function loadGeoSensitivityRecords() {
+    const request = model.geoSensitivityListRequest = (model.geoSensitivityListRequest || 0) + 1;
+    try {
+      const page = await getJson("/v1/geo-count-sensitivity?limit=50&offset=0");
+      if (request !== model.geoSensitivityListRequest) return;
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) throw new Error("The local API returned an invalid GEO sensitivity catalog.");
+      model.geoSensitivityTotal = page.total_count;
+      model.geoSensitivityRecords = page.rows;
+      renderGeoSensitivityRecords();
+      if (model.activeView === "geo-sensitivity" && model.selectedGeoSensitivity) {
+        if (model.geoSensitivityRecords.some((item) => item.comparison_id === model.selectedGeoSensitivity)) await openGeoSensitivity(model.selectedGeoSensitivity);
+        else showEmpty("No saved normalization sensitivity", "The previously selected sensitivity comparison is no longer present in the local catalog.");
+      }
+    } catch (error) {
+      if (request !== model.geoSensitivityListRequest) return;
+      $("geo-sensitivity-list").replaceChildren(element("p", "empty-inline", "Normalization sensitivity comparisons could not be loaded."));
+      $("geo-sensitivity-list-summary").textContent = "The local API could not verify the GEO sensitivity catalog.";
+      notice(error.message, true);
+    }
+  }
+
   async function loadGeoExpressionConsistencyRecords() {
     const request = model.geoExpressionConsistencyListRequest = (model.geoExpressionConsistencyListRequest || 0) + 1;
     try {
@@ -637,6 +693,7 @@
     $("geo-review-view").hidden = true;
     $("geo-preflight-view").hidden = true;
     $("geo-consistency-view").hidden = true;
+    $("geo-sensitivity-view").hidden = true;
     $("sequence-analysis-view").hidden = true;
     $("sequence-review-view").hidden = true;
     $("sequence-batch-view").hidden = true;
@@ -751,6 +808,22 @@
       const filterQuery = geoConsistencyFilterQuery().toString();
       csvLink.href = `/v1/geo-count-consistency/${encodeURIComponent(comparisonId)}/features.csv${filterQuery ? `?${filterQuery}` : ""}`;
       csvLink.textContent = "Download comparison CSV";
+      csvLink.hidden = false;
+      csvLink.classList.remove("disabled");
+      csvLink.setAttribute("aria-disabled", "false");
+      return;
+    }
+    if (model.activeView === "geo-sensitivity" && model.geoSensitivity?.comparison_id) {
+      const comparisonId = model.geoSensitivity.comparison_id;
+      link.href = `/v1/geo-count-sensitivity/${encodeURIComponent(comparisonId)}/report.json`;
+      link.textContent = "Download sensitivity JSON";
+      link.classList.remove("disabled");
+      link.setAttribute("aria-disabled", "false");
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+      const filters = geoSensitivityFilterQuery().toString();
+      csvLink.href = `/v1/geo-count-sensitivity/${encodeURIComponent(comparisonId)}/features.csv${filters ? `?${filters}` : ""}`;
+      csvLink.textContent = "Download sensitivity CSV";
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
       csvLink.setAttribute("aria-disabled", "false");
@@ -933,6 +1006,15 @@
     return params;
   }
 
+  function geoSensitivityFilterQuery() {
+    const params = new URLSearchParams();
+    const filters = model.geoSensitivityFilters;
+    if (filters.feature_contains) params.set("feature_contains", filters.feature_contains);
+    if (filters.direction_sensitivity) params.set("direction_sensitivity", filters.direction_sensitivity);
+    if (filters.fdr_sensitivity) params.set("fdr_sensitivity", filters.fdr_sensitivity);
+    return params;
+  }
+
   function geoExpressionConsistencyFilterQuery() {
     const params = new URLSearchParams();
     const filters = model.geoExpressionConsistencyFilters;
@@ -954,6 +1036,16 @@
     if (sign) sign.value = "";
   }
 
+  function resetGeoSensitivityFilters() {
+    model.geoSensitivityFilters = { feature_contains: "", direction_sensitivity: "", fdr_sensitivity: "" };
+    const feature = $("geo-sensitivity-feature-filter");
+    const direction = $("geo-sensitivity-direction-filter");
+    const fdr = $("geo-sensitivity-fdr-filter");
+    if (feature) feature.value = "";
+    if (direction) direction.value = "";
+    if (fdr) fdr.value = "";
+  }
+
   function resetGeoExpressionConsistencyFilters() {
     model.geoExpressionConsistencyFilters = { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "" };
     const feature = $("geo-expression-consistency-feature-filter");
@@ -969,6 +1061,14 @@
     model.geoConsistencyFilterTimer = setTimeout(() => {
       model.geoConsistencyFilterTimer = null;
       if (model.selectedGeoConsistency) openGeoConsistency(model.selectedGeoConsistency);
+    }, 180);
+  }
+
+  function reloadGeoSensitivityPage() {
+    if (model.geoSensitivityFilterTimer !== null) clearTimeout(model.geoSensitivityFilterTimer);
+    model.geoSensitivityFilterTimer = setTimeout(() => {
+      model.geoSensitivityFilterTimer = null;
+      if (model.selectedGeoSensitivity) openGeoSensitivity(model.selectedGeoSensitivity);
     }, 180);
   }
 
@@ -1663,6 +1763,132 @@
     }
   }
 
+  async function openGeoSensitivity(comparisonId) {
+    if (model.selectedGeoSensitivity !== comparisonId) resetGeoSensitivityFilters();
+    model.activeView = "geo-sensitivity";
+    model.selectedGeoSensitivity = comparisonId;
+    const request = model.geoSensitivityRequest = (model.geoSensitivityRequest || 0) + 1;
+    model.geoSensitivity = null;
+    renderGeoSensitivityRecords();
+    notice("");
+    exportHref();
+    showEmpty("Verifying normalization sensitivity", "Loading the immutable same-source comparison and its aggregate stability projection.");
+    try {
+      const params = geoSensitivityFilterQuery();
+      params.set("limit", "100");
+      params.set("offset", "0");
+      const page = await getJson(`/v1/geo-count-sensitivity/${encodeURIComponent(comparisonId)}?${params.toString()}`);
+      if (request !== model.geoSensitivityRequest || model.activeView !== "geo-sensitivity" || model.selectedGeoSensitivity !== comparisonId) return;
+      if (page.schema !== "glio-noncode.geo-count-sensitivity-page.v1" || page.comparison_id !== comparisonId || !Array.isArray(page.features) || !page.summary || !page.comparison) throw new Error("The local API returned an invalid GEO normalization sensitivity projection.");
+      model.geoSensitivity = page;
+      $("empty-state").hidden = true;
+      $("run-view").hidden = true;
+      $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = true;
+      $("geo-consistency-view").hidden = true;
+      $("geo-expression-consistency-view").hidden = true;
+      $("geo-review-view").hidden = true;
+      $("geo-preflight-view").hidden = true;
+      $("geo-sensitivity-view").hidden = false;
+      renderGeoSensitivity();
+      exportHref();
+      announceSelection(`GEO normalization sensitivity opened for ${page.comparison.accession}. ${formatCount(page.summary.feature_count)} source feature IDs reviewed.`);
+    } catch (error) {
+      if (request !== model.geoSensitivityRequest || model.activeView !== "geo-sensitivity" || model.selectedGeoSensitivity !== comparisonId) return;
+      notice(`The GEO normalization sensitivity could not be verified. ${error.message}`, true);
+      showEmpty("Normalization sensitivity unavailable", "The saved same-source comparison could not be verified, so its feature details remain hidden.");
+    }
+  }
+
+  async function compareGeoSensitivity() {
+    const analysisIds = [...new Set(model.geoCompareIds)];
+    const featureIds = consistencyFeatureIds();
+    if (analysisIds.length !== 2 || !featureIds.length) {
+      updateGeoCompareControls();
+      return;
+    }
+    const request = model.geoSensitivityRequest = (model.geoSensitivityRequest || 0) + 1;
+    model.activeView = "geo-sensitivity";
+    model.geoSensitivity = null;
+    notice("");
+    exportHref();
+    showEmpty("Saving normalization sensitivity", "Verifying the same source, design, and feature contract before comparing transforms.");
+    try {
+      const response = await fetch("/v1/geo-count-sensitivity", {
+        method: "POST",
+        headers: { "Accept": "application/json", "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ analysis_ids: analysisIds, feature_ids: featureIds }),
+      });
+      const created = await response.json();
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${created.message || "Sensitivity comparison rejected."}`);
+      if (!created.record?.comparison_id) throw new Error("The local API returned an invalid sensitivity record.");
+      await loadGeoSensitivityRecords();
+      await openGeoSensitivity(created.record.comparison_id);
+    } catch (error) {
+      if (request !== model.geoSensitivityRequest || model.activeView !== "geo-sensitivity") return;
+      notice(`The GEO normalization sensitivity could not be verified. ${error.message}`, true);
+      showEmpty("Normalization sensitivity unavailable", "The selected runs were not compatible or could not be verified.");
+    }
+  }
+
+  function renderGeoSensitivity() {
+    const page = model.geoSensitivity;
+    if (!page) return;
+    const summary = page.summary;
+    const comparison = page.comparison;
+    $("geo-sensitivity-subtitle").textContent = `${comparison.accession} · ${formatCount(summary.feature_count)} exact source feature IDs · ${comparison.left_normalization_method} versus ${comparison.right_normalization_method}`;
+    $("geo-sensitivity-address").textContent = page.report_address || "Address unavailable";
+    $("geo-sensitivity-runs").textContent = formatCount(summary.run_count);
+    $("geo-sensitivity-features-count").textContent = formatCount(summary.feature_count);
+    $("geo-sensitivity-stable").textContent = formatCount(summary.stable_direction_feature_count);
+    $("geo-sensitivity-changed").textContent = formatCount(summary.changed_direction_feature_count);
+    $("geo-sensitivity-settings").textContent = `${String(comparison.fdr_method).toUpperCase()} q ≤ ${comparison.fdr_threshold}`;
+    const provenance = $("geo-sensitivity-provenance");
+    provenance.replaceChildren();
+    const rows = [
+      ["Series", comparison.accession],
+      ["Left normalization", comparison.left_normalization],
+      ["Right normalization", comparison.right_normalization],
+      ["Case group", filterDescription(comparison.case_filters)],
+      ["Reference group", filterDescription(comparison.reference_filters)],
+      ["Pairing field", comparison.pair_key_column],
+      ["Source count digest", comparison.count_matrix_source_sha256],
+    ];
+    for (const [label, value] of rows) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", value));
+      provenance.append(block);
+    }
+    const body = $("geo-sensitivity-table");
+    body.replaceChildren();
+    if (!page.features.length) body.append(emptyRow(6, "No requested feature IDs match the sensitivity filters."));
+    for (const feature of page.features) {
+      const featureSummary = feature.summary || {};
+      const observations = (feature.runs || []).map((run) => {
+        const aggregate = run.aggregate_result;
+        return `${run.role}: ${consistencyText(aggregate?.effect_direction || run.result_state)}`;
+      }).join(" · ");
+      const row = document.createElement("tr");
+      row.append(
+        cell(feature.feature_id),
+        cell(consistencyText(featureSummary.direction_sensitivity)),
+        cell(consistencyText(featureSummary.fdr_sensitivity)),
+        cell(consistencyText(featureSummary.sign_test_fdr_sensitivity)),
+        cell(formatEffect(featureSummary.median_effect_delta_right_minus_left)),
+        cell(observations),
+      );
+      body.append(row);
+    }
+    const filtered = page.total_features !== page.unfiltered_feature_count;
+    $("geo-sensitivity-result-count").textContent = filtered
+      ? `${formatCount(page.features.length)} shown · ${formatCount(page.total_features)} filtered`
+      : `${formatCount(page.features.length)} feature rows`;
+    const limitations = $("geo-sensitivity-limitations");
+    limitations.replaceChildren();
+    for (const limitation of page.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
+  }
+
   function renderGeoConsistency() {
     const report = model.geoConsistency;
     if (!report) return;
@@ -2083,6 +2309,7 @@
   $("sequence-batch-change-filter").addEventListener("change", reloadSequenceBatchChanges);
   $("geo-consistency-features").addEventListener("input", updateGeoCompareControls);
   $("geo-compare-button").addEventListener("click", compareGeoAnalyses);
+  $("geo-sensitivity-button").addEventListener("click", compareGeoSensitivity);
   $("geo-consistency-feature-filter").addEventListener("input", (event) => {
     model.geoConsistencyFilters.feature_contains = event.currentTarget.value.trim();
     reloadGeoConsistencyPage();
@@ -2099,6 +2326,18 @@
     model.geoConsistencyFilters.sign_test_direction_consistency = event.currentTarget.value;
     reloadGeoConsistencyPage();
   });
+  $("geo-sensitivity-feature-filter").addEventListener("input", (event) => {
+    model.geoSensitivityFilters.feature_contains = event.currentTarget.value.trim();
+    reloadGeoSensitivityPage();
+  });
+  $("geo-sensitivity-direction-filter").addEventListener("change", (event) => {
+    model.geoSensitivityFilters.direction_sensitivity = event.currentTarget.value;
+    reloadGeoSensitivityPage();
+  });
+  $("geo-sensitivity-fdr-filter").addEventListener("change", (event) => {
+    model.geoSensitivityFilters.fdr_sensitivity = event.currentTarget.value;
+    reloadGeoSensitivityPage();
+  });
   $("markdown-export").addEventListener("click", (event) => {
     if (event.currentTarget.getAttribute("aria-disabled") === "true") event.preventDefault();
   });
@@ -2107,7 +2346,7 @@
   });
   async function initializeWorkspace() {
     const initialSelectionRequest = model.selectionRequest || 0;
-    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
+    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
     if (model.selectionRequest !== initialSelectionRequest || model.activeView !== "empty") return;
     if (model.runs.length) {
       await openRun(model.runs[0].run_id);

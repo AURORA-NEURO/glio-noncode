@@ -153,6 +153,20 @@ preserves it verbatim and does not claim that it is a gene identifier. This is
 an important example of the importer surfacing a data-quality hazard instead
 of silently changing a row label.
 
+The two saved runs can now be reviewed directly as a same-Series normalization
+sensitivity comparison. In the downloaded-data run, the TMM report was the
+left run and the simple CPM report was the right run. Comparing the 25 displayed
+feature labels produced 14 stable directions, zero changed directions, and 11
+labels not present in both bounded top-row projections; the FDR and sign-test
+significance states were stable for the same 14 jointly reported labels. The
+date-shaped `2-Sep` row was jointly reported and direction/significance-stable,
+while its median paired effect changed by approximately `+0.2961` log2-CPM
+from TMM (left) to CPM (right). These are transform-sensitivity observations,
+not a pooled result or evidence that either normalization is biologically
+correct. The saved artifact is exposed at
+`/v1/geo-count-sensitivity/{comparison_id}` and its aggregate feature ledger at
+`/v1/geo-count-sensitivity/{comparison_id}/features.csv`.
+
 The GEO series describes RNA-seq of glioblastoma tumor and organoid samples.
 The results above remain an exploratory re-analysis of a small public study;
 they do not establish independent-patient replication, validated biology,

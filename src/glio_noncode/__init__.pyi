@@ -17052,6 +17052,8 @@ from . import geo_analysis_store as geo_analysis_store
 from . import geo_consistency as geo_consistency
 from . import geo_count_consistency as geo_count_consistency
 from . import geo_count_consistency_store as geo_count_consistency_store
+from . import geo_count_sensitivity as geo_count_sensitivity
+from . import geo_count_sensitivity_store as geo_count_sensitivity_store
 from . import geo_design as geo_design
 from . import geo_expression as geo_expression
 from . import geo_expression_analysis_store as geo_expression_analysis_store

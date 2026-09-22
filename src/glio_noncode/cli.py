@@ -23,6 +23,7 @@ Focused commands:
   geo-count-outlier    compare a gene row across a GEO supplementary count matrix
   geo-count-contrast   compare paired groups across a GEO supplementary count matrix
   geo-count-consistency compare exact feature directions across saved paired GEO contrasts
+  geo-count-sensitivity compare two same-Series paired GEO runs across normalization methods
   geo-review-summary   verify the saved GEO workspace and summarize archive health
   geo-count-design     preflight a paired GEO count design without testing features
   geo-count-metadata   inspect GEO supplementary count-matrix sample metadata
@@ -320,6 +321,10 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_geo_count_contrast").main(command_argv)
     if command == "geo-count-consistency":
         return importlib.import_module(f"{__package__}._cli_geo_count_consistency").main(
+            command_argv
+        )
+    if command == "geo-count-sensitivity":
+        return importlib.import_module(f"{__package__}._cli_geo_count_sensitivity").main(
             command_argv
         )
     if command == "geo-review-summary":

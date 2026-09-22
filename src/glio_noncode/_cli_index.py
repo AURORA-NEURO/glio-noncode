@@ -19632,6 +19632,10 @@ SHELL_COMMANDS: tuple[tuple[str, str], ...] = (
         'compare one gene row across a GEO supplementary count matrix',
     ),
     (
+        'geo-count-sensitivity',
+        'compare two same-Series paired GEO runs across normalization methods',
+    ),
+    (
         'geo-design',
         'check GEO cohort selection and contrast estimability',
     ),
