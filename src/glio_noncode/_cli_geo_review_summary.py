@@ -8,8 +8,10 @@ import sys
 from ._cli_support import write_json
 from .errors import StoreError, ValidationError
 from .geo_review_summary import (
+    build_geo_preflight_ledger,
     build_geo_review_ledger,
     build_geo_review_summary,
+    render_geo_preflight_ledger_csv,
     render_geo_review_ledger_csv,
 )
 
@@ -33,6 +35,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit the row-level aggregate health ledger instead of JSON",
     )
     parser.add_argument(
+        "--preflights-csv",
+        action="store_true",
+        help="emit a kind-aware aggregate ledger for saved GEO preflights",
+    )
+    parser.add_argument(
         "--output", default="-", help="JSON/CSV summary path, or - for stdout"
     )
     parser.add_argument(
@@ -47,14 +54,21 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         verify_reports = not args.skip_report_verification
-        if args.csv:
+        if args.csv or args.preflights_csv:
             from ._safe_persistence import atomic_write_text
 
-            ledger = build_geo_review_ledger(
-                args.data_root,
-                verify_reports=verify_reports,
-            )
-            payload = render_geo_review_ledger_csv(ledger)
+            if args.preflights_csv:
+                ledger = build_geo_preflight_ledger(
+                    args.data_root,
+                    verify_reports=verify_reports,
+                )
+                payload = render_geo_preflight_ledger_csv(ledger)
+            else:
+                ledger = build_geo_review_ledger(
+                    args.data_root,
+                    verify_reports=verify_reports,
+                )
+                payload = render_geo_review_ledger_csv(ledger)
             if args.output == "-":
                 sys.stdout.write(payload)
             else:

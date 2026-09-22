@@ -54,6 +54,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="geo-preflight-accession-filter"', html)
         self.assertIn('id="geo-preflight-kind-filter"', html)
         self.assertIn('id="geo-preflight-load-more"', html)
+        self.assertIn('id="geo-preflight-ledger-export"', html)
         self.assertIn('id="geo-preflight-view"', html)
         self.assertIn('id="geo-preflight-metrics"', html)
         self.assertIn('id="geo-consistency-features"', html)

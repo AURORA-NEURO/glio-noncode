@@ -65,6 +65,11 @@ Their bounded catalog rows identify the preflight kind, GEO accession, source
 digest, sample/feature counts, and selected design metrics; full reports remain
 explicit exports from `GET /v1/geo-preflights/{preflight_id}/report.json`.
 List them with `GET /v1/geo-preflights?kind=contrast_design&accession=GSE141945`.
+Download the kind-aware aggregate ledger with
+`glio-noncode geo-review-summary --preflights-csv` or
+`GET /v1/geo-preflights.csv?verify_reports=true`; it includes report schema,
+source receipt, dimensions, design state, and verification without sample or
+pair identifiers.
 The browser workbench renders these saved rows in a preparation rail, supports
 accession/kind filters and bounded loading, and opens a verified aggregate
 detail view; it keeps sample identifiers and pair-level detail outside the

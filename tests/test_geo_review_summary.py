@@ -14,9 +14,12 @@ from glio_noncode.api import create_server
 from glio_noncode.geo_analysis_store import GeoAnalysisStore
 from glio_noncode.geo_preflight_store import GeoPreflightStore
 from glio_noncode.geo_review_summary import (
+    build_geo_preflight_ledger,
     build_geo_review_ledger,
     build_geo_review_summary,
+    geo_preflight_ledger_csv,
     geo_review_ledger_csv,
+    render_geo_preflight_ledger_csv,
     render_geo_review_ledger_csv,
 )
 
@@ -145,6 +148,59 @@ class GeoReviewSummaryTests(unittest.TestCase):
 
         self.assertIn("GSE141945", rendered)
         self.assertEqual(rendered, expected)
+
+    def test_preflight_ledger_preserves_kind_dimensions_and_verification(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory) / "workspace"
+            GeoPreflightStore(workspace).save(_quality_report())
+            rows = build_geo_preflight_ledger(workspace)
+            rendered = render_geo_preflight_ledger_csv(rows)
+            skipped = geo_preflight_ledger_csv(workspace, verify_reports=False)
+
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["kind"], "expression_quality")
+        self.assertEqual(rows[0]["sample_count"], 81)
+        self.assertEqual(rows[0]["feature_count"], 56832)
+        self.assertEqual(rows[0]["verification"], "verified")
+        self.assertIn("preflight_id,kind,report_schema,accession", rendered)
+        self.assertIn("expression_quality", rendered)
+        self.assertIn(",not_requested\n", skipped)
+        self.assertNotIn("sample_ids", rendered)
+        self.assertNotIn("agent", rendered.lower())
+        self.assertNotIn("language", rendered.lower())
+
+    def test_preflight_ledger_cli_and_http_exports(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory) / "workspace"
+            GeoPreflightStore(workspace).save(_quality_report())
+            stdout, stderr = io.StringIO(), io.StringIO()
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                result = summary_main(["--data-root", str(workspace), "--preflights-csv"])
+            self.assertEqual(result, 0)
+            self.assertEqual(stderr.getvalue(), "")
+            self.assertIn("expression_quality", stdout.getvalue())
+
+            server = create_server("127.0.0.1", 0, str(workspace))
+            thread = Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                connection = HTTPConnection("127.0.0.1", server.server_port, timeout=30)
+                connection.request("GET", "/v1/geo-preflights.csv?verify_reports=true")
+                response = connection.getresponse()
+                payload = response.read().decode("utf-8")
+                connection.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
+
+        self.assertEqual(response.status, 200)
+        self.assertEqual(response.getheader("Content-Type"), "text/csv; charset=utf-8")
+        self.assertIn(
+            'attachment; filename="GLIO-NONCODE-geo-preflight-ledger.csv"',
+            response.getheader("Content-Disposition", ""),
+        )
+        self.assertIn("GSE141945", payload)
 
 
 if __name__ == "__main__":

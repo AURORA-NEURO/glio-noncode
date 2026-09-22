@@ -29,6 +29,19 @@ GEO_REVIEW_LEDGER_COLUMNS = (
     "verification",
     "state",
 )
+GEO_PREFLIGHT_LEDGER_COLUMNS = (
+    "preflight_id",
+    "kind",
+    "report_schema",
+    "accession",
+    "retrieval",
+    "source_sha256",
+    "report_address",
+    "sample_count",
+    "feature_count",
+    "design_state",
+    "verification",
+)
 
 
 def _catalog_rows(store: Any) -> list[dict[str, Any]]:
@@ -304,6 +317,75 @@ def render_geo_review_ledger_csv(ledger: list[Mapping[str, Any]]) -> str:
     return output.getvalue()
 
 
+def build_geo_preflight_ledger(
+    root: str | Path,
+    *,
+    verify_reports: bool = True,
+) -> list[dict[str, Any]]:
+    """Build a kind-aware aggregate ledger for saved preparation reports."""
+
+    if type(verify_reports) is not bool:
+        raise ValidationError("GEO preflight ledger verification flag must be boolean")
+    store = GeoPreflightStore(root)
+    rows = _catalog_rows(store)
+    ledger: list[dict[str, Any]] = []
+    for row in rows:
+        identifier = row.get("preflight_id")
+        verification = "not_requested"
+        if type(identifier) is not str or not identifier:
+            verification = "invalid"
+        elif verify_reports:
+            try:
+                store.get_report(identifier)
+            except (KeyError, OSError, StoreError, ValidationError, ValueError):
+                verification = "failed"
+            else:
+                verification = "verified"
+        ledger.append(
+            {
+                "preflight_id": identifier if type(identifier) is str else "",
+                "kind": row.get("kind") or "",
+                "report_schema": row.get("report_schema") or "",
+                "accession": row.get("accession") or "",
+                "retrieval": row.get("retrieval") or "",
+                "source_sha256": row.get("source_sha256") or "",
+                "report_address": row.get("report_address") or "",
+                "sample_count": row.get("sample_count"),
+                "feature_count": row.get("feature_count"),
+                "design_state": row.get("design_state") or "",
+                "verification": verification,
+            }
+        )
+    return ledger
+
+
+def render_geo_preflight_ledger_csv(ledger: list[Mapping[str, Any]]) -> str:
+    """Render the kind-aware aggregate preflight ledger as CSV."""
+
+    output = io.StringIO(newline="")
+    writer = csv.DictWriter(
+        output,
+        fieldnames=list(GEO_PREFLIGHT_LEDGER_COLUMNS),
+        extrasaction="ignore",
+        lineterminator="\n",
+    )
+    writer.writeheader()
+    writer.writerows(ledger)
+    return output.getvalue()
+
+
+def geo_preflight_ledger_csv(
+    root: str | Path,
+    *,
+    verify_reports: bool = True,
+) -> str:
+    """Build and serialize the aggregate preflight ledger."""
+
+    return render_geo_preflight_ledger_csv(
+        build_geo_preflight_ledger(root, verify_reports=verify_reports)
+    )
+
+
 def build_geo_review_summary(
     root: str | Path,
     *,
@@ -397,10 +479,14 @@ def build_geo_review_summary(
 
 
 __all__ = [
+    "GEO_PREFLIGHT_LEDGER_COLUMNS",
     "GEO_REVIEW_LEDGER_COLUMNS",
     "GEO_REVIEW_SUMMARY_SCHEMA",
+    "build_geo_preflight_ledger",
     "build_geo_review_ledger",
     "build_geo_review_summary",
+    "geo_preflight_ledger_csv",
     "geo_review_ledger_csv",
+    "render_geo_preflight_ledger_csv",
     "render_geo_review_ledger_csv",
 ]
