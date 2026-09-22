@@ -122,8 +122,10 @@ To compare up to 500 exact platform feature IDs across completed Series reports,
 add `--track-feature-id` to each contrast when a feature may
 fall outside its ranked `--top` rows, then run `geo-consistency` on the reports.
 It requires one shared GPL platform and identical scale, FDR settings, and
-covariate specification. It reports direction agreement only; it does not pool
-statistics, map aliases, or establish independent cohorts:
+covariate specification. Case and reference filters must also match in the same
+roles (case-insensitively; AND-filter order is ignored); incompatible definitions
+are rejected with a specific, path-free error. It reports direction agreement
+only; it does not pool statistics, map aliases, or establish independent cohorts:
 
     glio-noncode geo-contrast GSE_A --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --track-feature-id EXACT_PLATFORM_ID --output GSE_A.json
     glio-noncode geo-contrast GSE_B --case-filter diagnosis=glioblastoma --reference-filter diagnosis=normal --scale normalized_intensity --track-feature-id EXACT_PLATFORM_ID --output GSE_B.json

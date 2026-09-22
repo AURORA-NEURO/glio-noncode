@@ -253,6 +253,14 @@ It can identify repeated GSM sample IDs and conflicting case/reference roles,
 but distinct accessions and source hashes do not prove cohort independence.
 These exploratory comparisons are not clinical evidence.
 
+The declared case and reference filter sets must also match between reports,
+including their group roles. Filter fields and values follow the GEO matcher’s
+case-insensitive semantics, and the order of AND filters does not matter. A
+mismatch returns `incompatible_contrast_reports` with a path-free explanation.
+Matching filter definitions still do not prove that labels have the same
+biological meaning in different studies; assess cohort and assay context
+before treating directional agreement as replication.
+
 ## Covariate-adjusted mode
 
 The rank-based comparison above is the default and remains unchanged when no
