@@ -15,6 +15,12 @@ The release boundary is `public_aggregate_non_patient`. The pinned context is `G
 
 D11 does not claim causal identification, biological mechanism proof, clinical utility, treatment selection, or patient-specific inference. Posterior, driver, mediator, sensitivity, and dossier outputs are structured research proxies whose assumptions, dependence, missingness, and context boundaries remain visible.
 
+## Serial path semantics
+
+`CausalLattice` accepts an ordered, contiguous edge chain and rejects repeated edge IDs or disconnected neighbors. Its existing `support` value is the heuristic composite proxy from `derived_path_score` (a geometric-mean and arithmetic-mean blend), not a calibrated probability. `bottleneck_support` separately reports the minimum edge support, and `all_edges_have_nonzero_support` says only that no supplied link has a numeric zero. Candidate paths are ranked by bottleneck first, then by the composite proxy, uncertainty, and stable path ID.
+
+An edge challenge sets one required relation's score to zero. The aggregate proxy may remain positive because it includes an arithmetic-mean component; this must not be interpreted as an intact serial path. Each sensitivity row therefore reports its challenged bottleneck, whether every edge still has nonzero support, and aggregate-proxy sensitivity as separate fields. The challenge is a mathematical stress scenario—not evidence that an edge is biologically absent or that a real intervention would have the modeled effect.
+
 ## Runtime closure
 
 `run_causal_architecture` executes a 22-stage runtime. The stages cover fixture loading, source audit, schema validation, dependency planning, four family joins, case execution, review routing, lineage, ledger, metrics, replay, artifact materialization, bundle closure, release, quality, depth, controls, and observability. A release is published only when the audit, plan, evaluation, review routing, replay, quality gate, and release checks all close.

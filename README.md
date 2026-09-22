@@ -14,6 +14,11 @@ The first release slice is deliberately narrow and reproducible. It accepts a ca
 
 This repository does not diagnose, classify clinical significance, recommend treatment, decide trial eligibility, or declare an individual variant actionable. A high-support hypothesis is a research object that requires expert review and independent validation.
 
+Serial causal-path reports distinguish their heuristic aggregate support proxy
+from the weakest required link and reject disconnected edge chains. See
+[causal path semantics](docs/causal-architecture.md) before interpreting path
+rankings or edge-challenge sensitivity.
+
 ## Quick start
 
 ```powershell
