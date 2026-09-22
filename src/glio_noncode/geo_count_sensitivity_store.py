@@ -59,7 +59,7 @@ _SIGN_STATES = frozenset(
         "not_reported_in_bounded_results",
     }
 )
-_SUMMARY_FIELDS = frozenset(
+_BASE_SUMMARY_FIELDS = frozenset(
     {
         "content_address",
         "accession",
@@ -83,6 +83,15 @@ _SUMMARY_FIELDS = frozenset(
         "not_reported_sign_test_fdr_feature_count",
     }
 )
+_COVERAGE_SUMMARY_FIELDS = frozenset(
+    {
+        "reported_feature_count_total",
+        "ranked_feature_count_total",
+        "additional_tracked_feature_count_total",
+        "tracked_feature_id_count_total",
+    }
+)
+_SUMMARY_FIELDS = _BASE_SUMMARY_FIELDS | _COVERAGE_SUMMARY_FIELDS
 _REPORT_SUMMARY_FIELDS = frozenset(
     {
         "run_count",
@@ -494,7 +503,8 @@ class GeoCountSensitivityStore:
             raise StoreError("GEO count sensitivity identifier is invalid")
         if _ADDRESS_RE.fullmatch(str(raw["report_address"])) is None:
             raise StoreError("GEO count sensitivity report address is invalid")
-        if type(raw["summary"]) is not dict or frozenset(raw["summary"]) != _SUMMARY_FIELDS:
+        summary_keys = frozenset(raw["summary"]) if type(raw["summary"]) is dict else frozenset()
+        if summary_keys not in {_BASE_SUMMARY_FIELDS, _SUMMARY_FIELDS}:
             raise StoreError("GEO count sensitivity catalog summary has an invalid shape")
         body = {key: value for key, value in raw.items() if key != "comparison_id"}
         if self._comparison_id(body) != comparison_id:
@@ -580,7 +590,9 @@ class GeoCountSensitivityStore:
             "content_address": validated["content_address"],
             **summarize_geo_count_sensitivity_report(validated),
         }
-        if expected_summary != record["summary"]:
+        if expected_summary != record["summary"] and {
+            key: expected_summary[key] for key in _BASE_SUMMARY_FIELDS
+        } != record["summary"]:
             raise StoreError("GEO count sensitivity catalog summary does not match its report")
         return {
             "schema": GEO_COUNT_SENSITIVITY_RECORD_SCHEMA,

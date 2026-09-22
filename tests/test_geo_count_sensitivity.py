@@ -11,6 +11,7 @@ from glio_noncode.geo_analysis_store import GeoAnalysisStore
 from glio_noncode.geo_count_sensitivity import (
     CountSensitivityCompatibilityError,
     build_geo_count_sensitivity_report,
+    summarize_geo_count_sensitivity_report,
 )
 from glio_noncode.geo_count_sensitivity_store import GeoCountSensitivityStore
 from glio_noncode.geo_expression import build_geo_count_contrast_report
@@ -41,6 +42,11 @@ class GeoCountSensitivityTests(unittest.TestCase):
             self.assertEqual(report["comparison"]["accession"], "GSE141945")
             self.assertEqual(report["summary"]["run_count"], 2)
             self.assertEqual(report["summary"]["feature_count"], 3)
+            catalog_summary = summarize_geo_count_sensitivity_report(report)
+            self.assertEqual(catalog_summary["reported_feature_count_total"], 10)
+            self.assertEqual(catalog_summary["ranked_feature_count_total"], 10)
+            self.assertEqual(catalog_summary["additional_tracked_feature_count_total"], 0)
+            self.assertEqual(catalog_summary["tracked_feature_id_count_total"], 0)
             self.assertEqual(
                 report["summary"]["stable_direction_feature_count"]
                 + report["summary"]["changed_direction_feature_count"]
@@ -86,6 +92,11 @@ class GeoCountSensitivityTests(unittest.TestCase):
             self.assertEqual(run["ranked_feature_count"], 1)
             self.assertEqual(run["additional_tracked_feature_count"], 1)
             self.assertEqual(run["tracked_feature_ids"], ["2-Sep"])
+        catalog_summary = summarize_geo_count_sensitivity_report(report)
+        self.assertEqual(catalog_summary["reported_feature_count_total"], 4)
+        self.assertEqual(catalog_summary["ranked_feature_count_total"], 2)
+        self.assertEqual(catalog_summary["additional_tracked_feature_count_total"], 2)
+        self.assertEqual(catalog_summary["tracked_feature_id_count_total"], 2)
 
     def test_sensitivity_requires_different_normalization_and_same_source(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -119,6 +130,8 @@ class GeoCountSensitivityTests(unittest.TestCase):
             store = GeoCountSensitivityStore(root / "workspace")
             record = store.save(report)
             self.assertEqual(store.save(report), record)
+            self.assertEqual(record["summary"]["ranked_feature_count_total"], 10)
+            self.assertEqual(record["summary"]["additional_tracked_feature_count_total"], 0)
             catalog = store.list_reports(limit=1)
             self.assertEqual(catalog["total_count"], 1)
             self.assertEqual(catalog["rows"][0]["comparison_id"], record["comparison_id"])

@@ -12,6 +12,8 @@ from threading import Thread
 from glio_noncode._cli_geo_review_summary import main as summary_main
 from glio_noncode.api import create_server
 from glio_noncode.geo_analysis_store import GeoAnalysisStore
+from glio_noncode.geo_count_sensitivity import build_geo_count_sensitivity_report
+from glio_noncode.geo_count_sensitivity_store import GeoCountSensitivityStore
 from glio_noncode.geo_preflight_store import GeoPreflightStore
 from glio_noncode.geo_review_summary import (
     build_geo_preflight_ledger,
@@ -24,6 +26,7 @@ from glio_noncode.geo_review_summary import (
 )
 
 from .test_geo_count_consistency import _report
+from .test_geo_count_contrast import _build_report, _write_files
 from .test_geo_preflight_store import _quality_report
 
 
@@ -124,6 +127,41 @@ class GeoReviewSummaryTests(unittest.TestCase):
         )
         self.assertIn("paired_count_analyses", ledger_csv)
         self.assertIn("GSE141945", ledger_csv)
+
+    def test_summary_exposes_normalization_coverage_totals(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            workspace = root / "workspace"
+            (root / "source").mkdir(parents=True)
+            counts, metadata = _write_files(root / "source", include_date_like_feature=True)
+            left = _build_report(
+                counts_file=counts,
+                metadata_file=metadata,
+                top=1,
+                track_feature_ids=("2-Sep",),
+                normalization_method="tmm_log2_cpm",
+                fdr_threshold=1.0,
+            )
+            right = _build_report(
+                counts_file=counts,
+                metadata_file=metadata,
+                top=1,
+                track_feature_ids=("2-Sep",),
+                normalization_method="log2_cpm",
+                fdr_threshold=1.0,
+            )
+            GeoCountSensitivityStore(workspace).save(
+                build_geo_count_sensitivity_report(
+                    (left, right), feature_ids=("2-Sep",)
+                )
+            )
+            summary = build_geo_review_summary(workspace)
+
+        catalog = summary["catalogs"]["paired_count_sensitivity_comparisons"]
+        self.assertEqual(catalog["reported_feature_count_total"], 4)
+        self.assertEqual(catalog["ranked_feature_count_total"], 2)
+        self.assertEqual(catalog["additional_tracked_feature_count_total"], 2)
+        self.assertEqual(catalog["tracked_feature_id_count_total"], 2)
 
     def test_ledger_is_aggregate_only_and_can_skip_reopen(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

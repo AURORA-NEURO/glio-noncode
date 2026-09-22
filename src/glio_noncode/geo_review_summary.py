@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import csv
 import io
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -91,6 +91,7 @@ def _catalog_projection(
     reported_key: str | None,
     fdr_key: str | None,
     verify_reports: bool,
+    total_keys: Sequence[str] = (),
 ) -> tuple[dict[str, Any], int]:
     rows = _catalog_rows(store)
     verified = 0
@@ -130,6 +131,8 @@ def _catalog_projection(
         projection["fdr_significant_feature_count_total"] = sum(
             _number(row, fdr_key) for row in rows
         )
+    for key in total_keys:
+        projection[key] = sum(_number(row, key) for row in rows)
     return projection, failures
 
 
@@ -449,6 +452,12 @@ def build_geo_review_summary(
         tested_key=None,
         reported_key=None,
         fdr_key=None,
+        total_keys=(
+            "reported_feature_count_total",
+            "ranked_feature_count_total",
+            "additional_tracked_feature_count_total",
+            "tracked_feature_id_count_total",
+        ),
         verify_reports=verify_reports,
     )
     expression_comparisons, expression_comparison_failures = _catalog_projection(

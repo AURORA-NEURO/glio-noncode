@@ -251,6 +251,8 @@ feature was kept outside the bounded ranking.
 The report JSON, filtered feature CSV, and verified run-coverage CSV are
 available from the sensitivity detail endpoint; the run export contains only
 normalization, source-digest, count, and tracked-feature provenance.
+The archive-health summary also aggregates ranked rows, explicitly tracked
+rows, and tracked source-ID slots across saved sensitivity comparisons.
 
 Run `geo-review-summary --data-root .glio` to verify the saved GEO catalogs and
 reopen each report object through its content address. The same aggregate-only

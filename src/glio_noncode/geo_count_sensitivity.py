@@ -450,6 +450,7 @@ def build_geo_count_sensitivity_report(
 def summarize_geo_count_sensitivity_report(report: Mapping[str, Any]) -> dict[str, Any]:
     comparison = report["comparison"]
     summary = report["summary"]
+    runs = report["runs"]
     return {
         "content_address": report["content_address"],
         "accession": comparison["accession"],
@@ -459,6 +460,19 @@ def summarize_geo_count_sensitivity_report(report: Mapping[str, Any]) -> dict[st
         "right_normalization_method": comparison["right_normalization_method"],
         "fdr_method": comparison["fdr_method"],
         "fdr_threshold": comparison["fdr_threshold"],
+        "reported_feature_count_total": sum(
+            run["reported_feature_count"] for run in runs
+        ),
+        "ranked_feature_count_total": sum(
+            run.get("ranked_feature_count", run["reported_feature_count"])
+            for run in runs
+        ),
+        "additional_tracked_feature_count_total": sum(
+            run.get("additional_tracked_feature_count", 0) for run in runs
+        ),
+        "tracked_feature_id_count_total": sum(
+            len(run.get("tracked_feature_ids", [])) for run in runs
+        ),
         **{
             key: summary[key]
             for key in (

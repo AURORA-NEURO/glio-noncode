@@ -121,6 +121,8 @@ ranking.
 The detail view also exports a verified `runs.csv` alongside the filtered
 feature CSV; it contains normalization, source-digest, count, and coverage
 provenance without sample or pair identifiers.
+The archive-health view aggregates the same ranked, additional-tracked, and
+tracked-ID-slot totals across saved sensitivity records.
 
 For reproducible cross-normalization coverage, pass repeated
 `--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The
