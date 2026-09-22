@@ -202,9 +202,10 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("request !== model.runListRequest", script)
         self.assertIn("request !== model.geoListRequest", script)
         self.assertIn("request !== model.geoExpressionListRequest", script)
+        self.assertIn("request !== model.geoExpressionConsistencyListRequest", script)
         self.assertIn("request !== model.sequenceListRequest", script)
         self.assertIn(
-            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoExpressionAnalyses(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])",
+            "await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoExpressionAnalyses(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])",
             script,
         )
 

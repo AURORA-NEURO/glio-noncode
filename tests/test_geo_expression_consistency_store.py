@@ -3,14 +3,18 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from http.client import HTTPConnection
+from io import StringIO
 from pathlib import Path
 from threading import Thread
 
 from glio_noncode.api import create_server
+from glio_noncode.cli import main as cli_main
 from glio_noncode.errors import ValidationError
 from glio_noncode.geo_expression_analysis_store import GeoExpressionAnalysisStore
 from glio_noncode.geo_expression_consistency_store import GeoExpressionConsistencyStore
+from glio_noncode.serialization import canonical_json
 
 from .test_geo_consistency import _contrast_report
 
@@ -74,6 +78,34 @@ class GeoExpressionConsistencyStoreTests(unittest.TestCase):
             report["summary"] = dict(report["summary"], feature_count=99)
             with self.assertRaises(ValidationError):
                 store.save(report)
+
+    def test_cli_persists_consistency_from_completed_report_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = _contrast_report(root, "GSE123456")
+            second = _contrast_report(root, "GSE123457", reverse_discordant=True, sample_base=101)
+            first_path = root / "first.json"
+            second_path = root / "second.json"
+            output_path = root / "consistency.json"
+            workspace = root / "workspace"
+            first_path.write_text(canonical_json(first), encoding="utf-8")
+            second_path.write_text(canonical_json(second), encoding="utf-8")
+            stderr = StringIO()
+            with redirect_stderr(stderr):
+                exit_code = cli_main(
+                    [
+                        "geo-consistency", str(first_path), str(second_path),
+                        "--feature-id", "probe-a-concordant",
+                        "--save-to-workspace", "--data-root", str(workspace),
+                        "--output", str(output_path),
+                    ]
+                )
+            report = json.loads(output_path.read_text(encoding="utf-8"))
+            catalog = GeoExpressionConsistencyStore(workspace).list_reports()
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(report["status"], "completed")
+        self.assertEqual(catalog["total_count"], 1)
+        self.assertIn("Saved GEO consistency geo-consistency-", stderr.getvalue())
 
     def test_http_catalog_page_and_csv_are_available(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

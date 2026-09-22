@@ -7,6 +7,7 @@
     geoAnalyses: [], geoTotal: 0, selectedGeo: null, geoPage: null, geoResults: [],
     geoExpressionAnalyses: [], geoExpressionTotal: 0, selectedGeoExpression: null, geoExpressionPage: null, geoExpressionResults: [],
     geoExpressionCompareIds: [], geoExpressionConsistency: null, geoExpressionConsistencyRequest: 0,
+    geoExpressionConsistencyRecords: [], geoExpressionConsistencyTotal: 0, selectedGeoExpressionConsistency: null, geoExpressionConsistencyListRequest: 0,
     geoFilters: { feature_contains: "", effect_direction: "", min_abs_median_effect: "", fdr_significant: false, sign_test_fdr_significant: false },
     geoCompareIds: [], geoConsistency: null,
     sequenceAnalyses: [], sequenceTotal: 0, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
@@ -170,6 +171,30 @@
       box.append(label);
     }
     updateGeoExpressionCompareControls();
+  }
+
+  function renderGeoExpressionConsistencyRecords() {
+    const list = $("geo-expression-consistency-list");
+    list.replaceChildren();
+    $("geo-expression-consistency-count").textContent = String(model.geoExpressionConsistencyTotal);
+    $("geo-expression-consistency-list-summary").textContent = `Showing ${model.geoExpressionConsistencyRecords.length} of ${model.geoExpressionConsistencyTotal} saved comparisons.`;
+    if (!model.geoExpressionConsistencyRecords.length) {
+      list.append(element("p", "empty-inline", "No saved expression comparisons yet."));
+      return;
+    }
+    for (const item of model.geoExpressionConsistencyRecords) {
+      const button = element("button", "run-item");
+      button.type = "button";
+      button.setAttribute("aria-current", String(item.comparison_id === model.selectedGeoExpressionConsistency));
+      button.setAttribute("aria-label", `Open expression comparison of ${item.study_count} studies and ${item.feature_count} features`);
+      const top = element("span", "run-top");
+      top.append(element("span", "run-case", (item.accessions || []).join(" · ")), element("span", "run-status", "Comparison"));
+      const meta = element("span", "run-meta");
+      meta.append(element("span", "run-id", shortened(item.comparison_id, 28)), element("span", "", `${item.feature_count} features · ${item.concordant_feature_count} concordant · ${item.discordant_feature_count} discordant`));
+      button.append(top, meta);
+      button.addEventListener("click", () => openGeoExpressionConsistency(item.comparison_id));
+      list.append(button);
+    }
   }
 
   function renderSequenceAnalyses() {
@@ -377,6 +402,30 @@
       if (request !== model.geoExpressionListRequest) return;
       $("geo-expression-analysis-list").replaceChildren(element("p", "empty-inline", "GEO expression contrasts could not be loaded."));
       $("geo-expression-list-summary").textContent = "The local API could not verify the GEO expression catalog.";
+      notice(error.message, true);
+    }
+  }
+
+  async function loadGeoExpressionConsistencyRecords() {
+    const request = model.geoExpressionConsistencyListRequest = (model.geoExpressionConsistencyListRequest || 0) + 1;
+    try {
+      const page = await getJson("/v1/geo-expression-consistency?limit=50&offset=0");
+      if (request !== model.geoExpressionConsistencyListRequest) return;
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) throw new Error("The local API returned an invalid GEO consistency catalog.");
+      model.geoExpressionConsistencyTotal = page.total_count;
+      model.geoExpressionConsistencyRecords = page.rows;
+      renderGeoExpressionConsistencyRecords();
+      if (model.activeView === "geo-expression-consistency" && model.selectedGeoExpressionConsistency) {
+        if (model.geoExpressionConsistencyRecords.some((item) => item.comparison_id === model.selectedGeoExpressionConsistency)) {
+          await openGeoExpressionConsistency(model.selectedGeoExpressionConsistency);
+        } else {
+          showEmpty("No saved expression comparison", "The previously selected comparison is no longer present in the local catalog.");
+        }
+      }
+    } catch (error) {
+      if (request !== model.geoExpressionConsistencyListRequest) return;
+      $("geo-expression-consistency-list").replaceChildren(element("p", "empty-inline", "Expression comparisons could not be loaded."));
+      $("geo-expression-consistency-list-summary").textContent = "The local API could not verify the expression consistency catalog.";
       notice(error.message, true);
     }
   }
@@ -1012,6 +1061,35 @@
     return String(value || "—").replaceAll("_", " ");
   }
 
+  async function openGeoExpressionConsistency(comparisonId) {
+    model.activeView = "geo-expression-consistency";
+    model.selectedGeoExpressionConsistency = comparisonId;
+    const request = model.geoExpressionConsistencyRequest = (model.geoExpressionConsistencyRequest || 0) + 1;
+    model.geoExpressionConsistency = null;
+    renderGeoExpressionConsistencyRecords();
+    notice("");
+    showEmpty("Verifying expression comparison", "Loading the immutable cross-study record and its aggregate direction projection.");
+    try {
+      const page = await getJson(`/v1/geo-expression-consistency/${encodeURIComponent(comparisonId)}?limit=100&offset=0`);
+      if (request !== model.geoExpressionConsistencyRequest || model.activeView !== "geo-expression-consistency" || model.selectedGeoExpressionConsistency !== comparisonId) return;
+      if (page.schema !== "glio-noncode.geo-expression-consistency-page.v1" || page.comparison_id !== comparisonId || !Array.isArray(page.features) || !page.summary) throw new Error("The local API returned an invalid expression consistency projection.");
+      model.geoExpressionConsistency = page;
+      $("empty-state").hidden = true;
+      $("run-view").hidden = true;
+      $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = true;
+      $("geo-consistency-view").hidden = true;
+      $("geo-expression-consistency-view").hidden = false;
+      renderGeoExpressionConsistency();
+      exportHref();
+      announceSelection(`Expression comparison opened. ${formatCount(page.summary.study_count)} studies and ${formatCount(page.summary.feature_count)} exact source feature IDs.`);
+    } catch (error) {
+      if (request !== model.geoExpressionConsistencyRequest || model.activeView !== "geo-expression-consistency" || model.selectedGeoExpressionConsistency !== comparisonId) return;
+      notice(`The GEO expression comparison could not be verified. ${error.message}`, true);
+      showEmpty("Expression comparison unavailable", "The saved expression comparison could not be verified, so its feature details remain hidden.");
+    }
+  }
+
   async function compareGeoExpressionAnalyses() {
     const analysisIds = [...new Set(model.geoExpressionCompareIds)];
     const featureIds = expressionConsistencyFeatureIds();
@@ -1034,19 +1112,8 @@
       const created = await response.json();
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${created.message || "Comparison rejected."}`);
       if (!created.record?.comparison_id) throw new Error("The local API returned an invalid consistency record.");
-      const page = await getJson(`/v1/geo-expression-consistency/${encodeURIComponent(created.record.comparison_id)}?limit=100&offset=0`);
-      if (request !== model.geoExpressionConsistencyRequest || model.activeView !== "geo-expression-consistency") return;
-      if (page.schema !== "glio-noncode.geo-expression-consistency-page.v1" || !Array.isArray(page.features) || !page.summary) throw new Error("The local API returned an invalid expression consistency projection.");
-      model.geoExpressionConsistency = page;
-      $("empty-state").hidden = true;
-      $("run-view").hidden = true;
-      $("geo-analysis-view").hidden = true;
-      $("geo-expression-analysis-view").hidden = true;
-      $("geo-consistency-view").hidden = true;
-      $("geo-expression-consistency-view").hidden = false;
-      renderGeoExpressionConsistency();
-      exportHref();
-      announceSelection(`Compared ${formatCount(page.summary.study_count)} expression studies across ${formatCount(page.summary.feature_count)} exact source feature IDs.`);
+      await loadGeoExpressionConsistencyRecords();
+      await openGeoExpressionConsistency(created.record.comparison_id);
     } catch (error) {
       if (request !== model.geoExpressionConsistencyRequest || model.activeView !== "geo-expression-consistency") return;
       notice(`The GEO expression comparison could not be verified. ${error.message}`, true);
@@ -1448,7 +1515,7 @@
     renderHypotheses(); renderQueue(); renderDeltas(); exportHref();
   }
 
-  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoExpressionAnalyses(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]));
+  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoExpressionAnalyses(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]));
   $("run-search").addEventListener("input", renderRuns);
   $("path-search").addEventListener("input", renderHypotheses);
   $("evidence-search").addEventListener("input", renderEvidence);
@@ -1518,7 +1585,7 @@
   });
   async function initializeWorkspace() {
     const initialSelectionRequest = model.selectionRequest || 0;
-    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoExpressionAnalyses(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
+    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoExpressionAnalyses(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
     if (model.selectionRequest !== initialSelectionRequest || model.activeView !== "empty") return;
     if (model.runs.length) {
       await openRun(model.runs[0].run_id);
