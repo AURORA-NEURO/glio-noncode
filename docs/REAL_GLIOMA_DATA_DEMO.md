@@ -10,25 +10,40 @@ tumor-labeled samples.
 Run from the repository root:
 
 ```powershell
+$env:PYTHONPATH = "src"
 python examples/real_downloaded_glioma_expression_demo.py
 ```
 
-On first run it downloads two public GEO supplementary files into the ignored
-`.glio-gse141945-demo/` directory. It prints SHA-256 digests and byte sizes so
-the exact downloaded inputs are identifiable. Subsequent runs reuse those
-local files. Delete that specific cache directory when you no longer need it.
+The example uses the reusable GEO supplementary-count API. It fetches the two
+public source files over bounded HTTPS in memory and prints SHA-256 digests and
+byte sizes so the exact inputs are identifiable. It does not write the data
+files to the repository. To use files you already downloaded, pass both
+`--counts-file` and `--metadata-file`.
+
+The same operation is available as a CLI command:
+
+```powershell
+glio-noncode geo-count-outlier GSE141945 `
+  --feature-id EGFR `
+  --sample-key-column "" `
+  --sample-filter Timepoint=Tumor `
+  --counts-file-name GSE141945_RNAseq.counts.csv.gz `
+  --metadata-file-name GSE141945_RNAseq.metadata.csv.gz `
+  --counts-delimiter comma `
+  --metadata-delimiter comma
+```
 
 ## What the demo exercises
 
 The example streams the count matrix, checks its shape and integer counts,
-computes per-sample library totals, and extracts the `EGFR` row. It first sends
-raw counts through the expression comparator; the API correctly rejects all
-17 tumor-sample comparisons as out of domain because raw counts are not
-cohort-comparable. It then applies the deliberately simple transform
-`log2(CPM + 1)` and runs a symmetric leave-one-out comparison: each tumor
+computes per-sample library totals, and extracts the `EGFR` row. It treats the
+input as raw counts and explicitly transforms them with the deliberately simple
+`log2(CPM + 1)` calculation before constructing normalized expression
+observations. It then runs a symmetric leave-one-out comparison: each tumor
 sample is compared with the other tumor-labeled samples using the current
-median/MAD robust-outlier implementation. Sample keys and individual expression
-values are not printed.
+median/MAD robust-outlier implementation. Raw counts are never passed to the
+cohort comparator. Sample keys and individual expression values are not
+printed.
 
 With the downloaded files inspected for this demonstration, the matrix contains
 56,832 gene rows and 81 samples, of which 17 are labeled `Tumor`. The current

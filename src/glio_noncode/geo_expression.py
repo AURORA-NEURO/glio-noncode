@@ -14,6 +14,7 @@ import io
 import math
 import re
 import zlib
+from collections import Counter
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from itertools import combinations
@@ -62,6 +63,7 @@ DEFAULT_TIMEOUT_SECONDS = 30.0
 _GSE_RE = re.compile(r"GSE[0-9]{1,10}\Z")
 _GSM_RE = re.compile(r"GSM[0-9]{1,12}\Z")
 _FEATURE_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:@|/+=_-]{0,255}\Z")
+_SUPPLEMENTARY_FILE_NAME_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,254}\Z")
 _MISSING_MATRIX_VALUES = frozenset({"", "na", "null"})
 
 
@@ -161,6 +163,22 @@ class _PreparedGeoContrast:
     excluded_reference_indices: tuple[int, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class _GeoCountMatrix:
+    accession: str
+    feature_id: str
+    sample_ids: tuple[str, ...]
+    feature_counts: tuple[int, ...]
+    library_sizes: tuple[int, ...]
+    feature_count: int
+    duplicate_feature_label_count: int
+    source_file_name: str
+    source_url: str | None
+    source_sha256: str
+    compressed_bytes: int
+    decompressed_bytes: int
+
+
 def _required_text(value: object, label: str, *, maximum: int = 512) -> str:
     if not isinstance(value, str):
         raise ValidationError(f"{label} must be text")
@@ -204,7 +222,7 @@ def _csv_row(line: str, label: str) -> list[str]:
     return row
 
 
-def _decoded_lines(payload: bytes) -> Iterable[tuple[str, int]]:
+def _decoded_lines(payload: bytes, *, label: str = "Series Matrix") -> Iterable[tuple[str, int]]:
     stream: io.BufferedIOBase
     if payload.startswith(b"\x1f\x8b"):
         stream = gzip.GzipFile(fileobj=io.BytesIO(payload))
@@ -219,23 +237,21 @@ def _decoded_lines(payload: bytes) -> Iterable[tuple[str, int]]:
                 if not raw_line:
                     break
                 if len(raw_line) > MAX_MATRIX_LINE_BYTES:
-                    raise ValidationError("GEO Series Matrix line exceeds its byte bound")
+                    raise ValidationError(f"GEO {label} line exceeds its byte bound")
                 total += len(raw_line)
                 if total > MAX_DECOMPRESSED_BYTES:
-                    raise ValidationError("GEO Series Matrix exceeds its decompressed byte bound")
+                    raise ValidationError(f"GEO {label} exceeds its decompressed byte bound")
                 try:
                     line = raw_line.decode("utf-8-sig" if first_line else "utf-8")
                 except UnicodeDecodeError as error:
-                    raise ValidationError("GEO Series Matrix must use UTF-8 encoding") from error
+                    raise ValidationError(f"GEO {label} must use UTF-8 encoding") from error
                 first_line = False
                 yield line.rstrip("\r\n"), total
     except (EOFError, OSError, gzip.BadGzipFile, zlib.error) as error:
-        raise ValidationError("GEO Series Matrix gzip payload is incomplete or invalid") from error
+        raise ValidationError(f"GEO {label} gzip payload is incomplete or invalid") from error
 
 
-def _metadata_value(
-    row: list[str], label: str, *, allow_blank_values: bool = False
-) -> list[str]:
+def _metadata_value(row: list[str], label: str, *, allow_blank_values: bool = False) -> list[str]:
     if not row or not row[0].startswith("!"):
         raise ValidationError(f"GEO {label} row is malformed")
     values: list[str] = []
@@ -678,6 +694,269 @@ def _read_matrix(
     return response.body, response.url, None
 
 
+def _supplementary_file_name(value: object, label: str) -> str:
+    name = _required_text(value, label, maximum=255)
+    if _SUPPLEMENTARY_FILE_NAME_RE.fullmatch(name) is None or name in {".", ".."}:
+        raise ValidationError(f"{label} must be a simple file name, not a path")
+    return name
+
+
+def geo_series_supplementary_url(accession: str, file_name: str) -> str:
+    """Return the canonical NCBI GEO URL for one series supplementary file."""
+
+    normalized = validate_accession(accession)
+    name = _supplementary_file_name(file_name, "GEO supplementary file name")
+    digits = normalized[3:]
+    series_range = f"GSE{digits[:-3]}nnn"
+    return f"{GEO_FTP_ORIGIN}/geo/series/{series_range}/{normalized}/suppl/{name}"
+
+
+def _read_supplementary_file(
+    accession: str,
+    *,
+    label: str,
+    file_name: str | None,
+    local_file: str | Path | None,
+    timeout_seconds: float,
+) -> tuple[bytes, str, str | None, str | None]:
+    if local_file is not None:
+        path = Path(local_file)
+        payload = _safe_persistence.read_bytes(
+            path,
+            field=f"GEO {label} file",
+            max_bytes=MAX_COMPRESSED_BYTES,
+        )
+        local_name = _supplementary_file_name(path.name, f"GEO {label} file name")
+        if (
+            file_name is not None
+            and _supplementary_file_name(file_name, f"GEO {label} file name") != local_name
+        ):
+            raise ValidationError(f"local GEO {label} file name does not match its declaration")
+        return payload, local_name, None, None
+
+    if file_name is None:
+        raise ValidationError(f"GEO {label} requires a local file or supplementary file name")
+    name = _supplementary_file_name(file_name, f"GEO {label} file name")
+    url = geo_series_supplementary_url(accession, name)
+    response = UrllibTransport(max_response_bytes=MAX_COMPRESSED_BYTES).request(
+        "GET",
+        url,
+        {
+            "Accept": "application/gzip, application/octet-stream;q=0.9",
+            "User-Agent": "glio-noncode/0.1",
+        },
+        timeout_seconds,
+    )
+    if response.status == 404:
+        raise SourceNotFoundError(f"GEO supplementary {label} file was not found")
+    if response.status != 200:
+        raise SourceError(f"NCBI GEO returned HTTP {response.status} for supplementary {label}")
+    return response.body, name, response.url, response.url
+
+
+def _normalize_delimiter(value: object, label: str) -> str:
+    if not isinstance(value, str) or value not in {",", "\t"}:
+        raise ValidationError(f"{label} must be comma or tab")
+    return str(value)
+
+
+def parse_geo_supplementary_count_matrix(
+    payload: bytes,
+    *,
+    accession: str,
+    feature_id: str,
+    delimiter: str = ",",
+    source_file_name: str = "count-matrix.csv.gz",
+    source_url: str | None = None,
+) -> _GeoCountMatrix:
+    """Parse one bounded gene-by-sample integer-count table for one feature.
+
+    The parser retains only the requested row and per-sample library totals.
+    Other repeated feature labels are counted but preserved in those totals.
+    """
+
+    normalized_accession = validate_accession(accession)
+    selected_feature = _required_text(feature_id, "GEO gene feature ID", maximum=256)
+    if _FEATURE_RE.fullmatch(selected_feature) is None:
+        raise ValidationError("GEO gene feature ID contains unsupported characters")
+    normalized_delimiter = _normalize_delimiter(delimiter, "GEO count matrix delimiter")
+    file_name = _supplementary_file_name(source_file_name, "GEO count matrix file name")
+    if source_url is not None:
+        expected_url = geo_series_supplementary_url(normalized_accession, file_name)
+        if source_url != expected_url:
+            raise ValidationError("GEO count matrix source URL is not canonical")
+    if not isinstance(payload, bytes) or len(payload) > MAX_COMPRESSED_BYTES:
+        raise ValidationError("GEO supplementary count matrix exceeds its compressed byte bound")
+
+    decompressed_bytes = 0
+
+    def decoded_text_lines() -> Iterable[str]:
+        nonlocal decompressed_bytes
+        for line, total in _decoded_lines(payload, label="supplementary count matrix"):
+            decompressed_bytes = total
+            yield line
+
+    reader = csv.reader(decoded_text_lines(), delimiter=normalized_delimiter, strict=True)
+    try:
+        header = next(reader)
+    except (StopIteration, csv.Error) as error:
+        raise ValidationError("GEO supplementary count matrix has no valid header") from error
+    if len(header) < 2 or len(header) - 1 > MAX_SAMPLE_COUNT:
+        raise ValidationError("GEO supplementary count matrix has an invalid sample count")
+    sample_ids = tuple(
+        _required_text(sample_id, "GEO count matrix sample key", maximum=256)
+        for sample_id in header[1:]
+    )
+    if len(sample_ids) != len(set(sample_ids)):
+        raise ValidationError("GEO count matrix contains duplicate sample keys")
+
+    library_sizes = [0] * len(sample_ids)
+    seen_features: set[str] = set()
+    selected_counts: tuple[int, ...] | None = None
+    feature_count = 0
+    duplicate_feature_label_count = 0
+    try:
+        for row in reader:
+            if not row or len(row) != len(header):
+                raise ValidationError("GEO supplementary count matrix contains a ragged row")
+            current_feature = _required_text(
+                row[0], "GEO count matrix feature identifier", maximum=256
+            )
+            if _FEATURE_RE.fullmatch(current_feature) is None:
+                raise ValidationError("GEO count matrix feature identifier is malformed")
+            feature_count += 1
+            if feature_count > MAX_FEATURE_COUNT:
+                raise ValidationError("GEO supplementary count matrix exceeds its feature limit")
+            if feature_count * len(sample_ids) > MAX_MATRIX_CELLS:
+                raise ValidationError("GEO supplementary count matrix exceeds its cell limit")
+            if current_feature in seen_features:
+                duplicate_feature_label_count += 1
+                if current_feature == selected_feature:
+                    raise ValidationError("requested GEO feature appears more than once")
+            seen_features.add(current_feature)
+
+            counts: list[int] = []
+            for raw_count in row[1:]:
+                value = raw_count.strip()
+                if len(value) > 19 or re.fullmatch(r"[0-9]{1,19}", value) is None:
+                    raise ValidationError("GEO supplementary count matrix requires integer counts")
+                count = int(value)
+                if count > 9_223_372_036_854_775_807:
+                    raise ValidationError("GEO supplementary count exceeds the signed 64-bit limit")
+                counts.append(count)
+            for index, count in enumerate(counts):
+                library_sizes[index] += count
+            if current_feature == selected_feature:
+                selected_counts = tuple(counts)
+    except csv.Error as error:
+        raise ValidationError(
+            "GEO supplementary count matrix is not valid delimited text"
+        ) from error
+
+    if feature_count == 0 or selected_counts is None:
+        raise ValidationError("requested GEO feature is absent from the count matrix")
+    if any(total == 0 for total in library_sizes):
+        raise ValidationError("GEO count matrix contains a zero-size sample library")
+    if decompressed_bytes == 0:
+        raise ValidationError("GEO supplementary count matrix is empty")
+    return _GeoCountMatrix(
+        accession=normalized_accession,
+        feature_id=selected_feature,
+        sample_ids=sample_ids,
+        feature_counts=selected_counts,
+        library_sizes=tuple(library_sizes),
+        feature_count=feature_count,
+        duplicate_feature_label_count=duplicate_feature_label_count,
+        source_file_name=file_name,
+        source_url=source_url,
+        source_sha256=hashlib.sha256(payload).hexdigest(),
+        compressed_bytes=len(payload),
+        decompressed_bytes=decompressed_bytes,
+    )
+
+
+def _parse_geo_count_metadata(
+    payload: bytes,
+    *,
+    sample_ids: Sequence[str],
+    sample_key_column: str,
+    requested_fields: Sequence[str],
+    delimiter: str,
+) -> tuple[dict[str, dict[str, str]], tuple[str, ...], int]:
+    if not isinstance(sample_key_column, str) or len(sample_key_column) > 256:
+        raise ValidationError("GEO metadata sample-key column must be a bounded string")
+    if any(ord(character) < 32 for character in sample_key_column):
+        raise ValidationError("GEO metadata sample-key column contains control characters")
+    normalized_delimiter = _normalize_delimiter(delimiter, "GEO metadata delimiter")
+    if not isinstance(payload, bytes) or len(payload) > MAX_COMPRESSED_BYTES:
+        raise ValidationError("GEO supplementary metadata exceeds its compressed byte bound")
+
+    decompressed_bytes = 0
+
+    def decoded_text_lines() -> Iterable[str]:
+        nonlocal decompressed_bytes
+        for line, total in _decoded_lines(payload, label="supplementary sample metadata"):
+            decompressed_bytes = total
+            yield line
+
+    reader = csv.reader(decoded_text_lines(), delimiter=normalized_delimiter, strict=True)
+    try:
+        header = next(reader)
+    except (StopIteration, csv.Error) as error:
+        raise ValidationError("GEO supplementary sample metadata has no valid header") from error
+    if not header or len(header) > 256:
+        raise ValidationError("GEO supplementary sample metadata has an invalid column count")
+    if any(len(name) > 256 or any(ord(char) < 32 for char in name) for name in header):
+        raise ValidationError("GEO supplementary sample metadata has an invalid column name")
+    normalized_headers = [name.casefold() for name in header]
+    if len(normalized_headers) != len(set(normalized_headers)):
+        raise ValidationError("GEO supplementary sample metadata has duplicate columns")
+    sample_key_indexes = [index for index, name in enumerate(header) if name == sample_key_column]
+    if len(sample_key_indexes) != 1:
+        raise ValidationError("GEO metadata sample-key column must match one exact header")
+    sample_key_index = sample_key_indexes[0]
+    field_indexes: dict[str, int] = {}
+    for requested_field in requested_fields:
+        matches = [
+            index
+            for index, name in enumerate(header)
+            if name.casefold() == requested_field.casefold()
+        ]
+        if len(matches) != 1:
+            raise ValidationError("one or more GEO sample filter fields are absent from metadata")
+        field_indexes[header[matches[0]]] = matches[0]
+
+    records: dict[str, dict[str, str]] = {}
+    try:
+        for row in reader:
+            if not row or len(row) != len(header):
+                raise ValidationError("GEO supplementary sample metadata contains a ragged row")
+            sample_id = _required_text(
+                row[sample_key_index], "GEO metadata sample key", maximum=256
+            )
+            if sample_id in records:
+                raise ValidationError("GEO supplementary sample metadata has duplicate sample keys")
+            if len(records) >= MAX_METADATA_ROWS:
+                raise ValidationError("GEO supplementary sample metadata exceeds its row limit")
+            if any(
+                len(value) > MAX_METADATA_VALUE_LENGTH
+                or any(ord(character) < 32 for character in value)
+                for value in row
+            ):
+                raise ValidationError("GEO supplementary sample metadata contains invalid values")
+            records[sample_id] = {header[index]: row[index] for index in field_indexes.values()}
+    except csv.Error as error:
+        raise ValidationError(
+            "GEO supplementary sample metadata is not valid delimited text"
+        ) from error
+
+    if set(records) != set(sample_ids):
+        raise ValidationError("GEO count matrix and sample metadata keys do not match exactly")
+    if decompressed_bytes == 0:
+        raise ValidationError("GEO supplementary sample metadata is empty")
+    return records, tuple(header), decompressed_bytes
+
+
 def _normalize_filters(value: object, label: str) -> list[tuple[str, str]]:
     if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
         raise ValidationError(f"{label} filters must be a sequence of field/value pairs")
@@ -701,7 +980,7 @@ def _normalize_tracked_feature_ids(value: object) -> tuple[str, ...]:
     if len(value) > MAX_TRACKED_GEO_FEATURES:
         raise ValidationError(
             f"at most {MAX_TRACKED_GEO_FEATURES} GEO feature IDs can be tracked per contrast"
-    )
+        )
     normalized: list[str] = []
     for feature_id in value:
         if not isinstance(feature_id, str) or feature_id != feature_id.strip():
@@ -1044,9 +1323,7 @@ def build_expression_contrast_report(
     if platform_annotation_file is None and (
         normalized_annotation_columns or annotation_id_column != "ID"
     ):
-        raise ValidationError(
-            "GEO platform annotation columns require a platform annotation file"
-        )
+        raise ValidationError("GEO platform annotation columns require a platform annotation file")
     group_fields = {field.casefold() for field, _ in (*normalized_case, *normalized_reference)}
     if any(field.casefold() in group_fields for field, _ in normalized_covariates):
         raise ValidationError("GEO covariates cannot reuse sample fields that define group labels")
@@ -1491,9 +1768,7 @@ def build_expression_contrast_report(
             "scale": expression_scale.value,
             "test": test_description,
             "multiple_testing_adjustment": (
-                "Benjamini-Yekutieli"
-                if normalized_fdr_method == "by"
-                else "Benjamini-Hochberg"
+                "Benjamini-Yekutieli" if normalized_fdr_method == "by" else "Benjamini-Hochberg"
             )
             + " over all testable matrix features",
             "fdr_method": normalized_fdr_method,
@@ -1782,6 +2057,231 @@ def build_expression_outlier_report(
         ],
     }
     return body | {"content_address": content_hash(body, prefix="geo-expression-outlier")}
+
+
+def build_geo_count_outlier_report(
+    accession: str,
+    *,
+    feature_id: str,
+    sample_key_column: str,
+    sample_filters: Sequence[tuple[str, str]],
+    counts_file_name: str | None = None,
+    metadata_file_name: str | None = None,
+    counts_file: str | Path | None = None,
+    metadata_file: str | Path | None = None,
+    counts_delimiter: str = ",",
+    metadata_delimiter: str = ",",
+    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+) -> dict[str, Any]:
+    """Build an aggregate leave-one-out expression report from GEO count files.
+
+    This bounded adapter handles one-feature queries over an explicitly selected
+    gene-by-sample non-negative integer count matrix and a sample metadata table.
+    It computes log2(CPM + 1) from the full supplied matrix, then compares each
+    selected sample with the remaining selected samples using the existing
+    robust expression analyzer. Source sample keys and individual values are
+    deliberately omitted from the returned aggregate report.
+    """
+
+    normalized_accession = validate_accession(accession)
+    selected_feature = _required_text(feature_id, "GEO gene feature ID", maximum=256)
+    if _FEATURE_RE.fullmatch(selected_feature) is None:
+        raise ValidationError("GEO gene feature ID contains unsupported characters")
+    if not isinstance(timeout_seconds, (float, int)) or isinstance(timeout_seconds, bool):
+        raise ValidationError("GEO request timeout must be numeric")
+    if not 0.1 <= float(timeout_seconds) <= 120.0:
+        raise ValidationError("GEO request timeout must be between 0.1 and 120 seconds")
+    normalized_filters = _normalize_filters(sample_filters, "sample")
+    count_delimiter = _normalize_delimiter(counts_delimiter, "GEO count matrix delimiter")
+    metadata_separator = _normalize_delimiter(metadata_delimiter, "GEO metadata delimiter")
+    if not isinstance(sample_key_column, str) or len(sample_key_column) > 256:
+        raise ValidationError("GEO metadata sample-key column must be a bounded string")
+
+    count_payload, count_name, count_response_url, count_source_url = _read_supplementary_file(
+        normalized_accession,
+        label="count matrix",
+        file_name=counts_file_name,
+        local_file=counts_file,
+        timeout_seconds=float(timeout_seconds),
+    )
+    metadata_payload, metadata_name, metadata_response_url, metadata_source_url = (
+        _read_supplementary_file(
+            normalized_accession,
+            label="sample metadata",
+            file_name=metadata_file_name,
+            local_file=metadata_file,
+            timeout_seconds=float(timeout_seconds),
+        )
+    )
+    matrix = parse_geo_supplementary_count_matrix(
+        count_payload,
+        accession=normalized_accession,
+        feature_id=selected_feature,
+        delimiter=count_delimiter,
+        source_file_name=count_name,
+        source_url=count_source_url,
+    )
+    metadata, metadata_headers, metadata_decompressed_bytes = _parse_geo_count_metadata(
+        metadata_payload,
+        sample_ids=matrix.sample_ids,
+        sample_key_column=sample_key_column,
+        requested_fields=tuple(field for field, _ in normalized_filters),
+        delimiter=metadata_separator,
+    )
+    fields_by_casefold = {name.casefold(): name for name in metadata_headers}
+    missing_filter_fields = [
+        field for field, _ in normalized_filters if field.casefold() not in fields_by_casefold
+    ]
+    if missing_filter_fields:
+        raise ValidationError("one or more GEO sample filter fields are absent from metadata")
+
+    cohort_sample_ids = tuple(
+        sample_id
+        for sample_id in matrix.sample_ids
+        if all(
+            metadata[sample_id][fields_by_casefold[field.casefold()]].casefold()
+            == expected.casefold()
+            for field, expected in normalized_filters
+        )
+    )
+    filter_records = [
+        {"field": field, "equals": expected} for field, expected in normalized_filters
+    ]
+    filter_address = content_hash(
+        {"accession": normalized_accession, "filters": filter_records},
+        prefix="geo-count-cohort",
+    )
+    source_version = content_hash(
+        {
+            "counts_sha256": matrix.source_sha256,
+            "metadata_sha256": hashlib.sha256(metadata_payload).hexdigest(),
+        },
+        prefix="geo-count-inputs",
+    )
+    cohort_sample_set = set(cohort_sample_ids)
+    observations: tuple[ExpressionObservation, ...] = tuple(
+        ExpressionObservation(
+            feature_id=selected_feature,
+            sample_key=f"private:geo:{sample_id}",
+            value=math.log2(
+                matrix.feature_counts[index] / matrix.library_sizes[index] * 1_000_000 + 1
+            ),
+            scale=ExpressionScale.LOG2_CPM,
+            context_key=filter_address,
+            source_id=f"GEO:{normalized_accession}",
+            source_version=source_version,
+        )
+        for index, sample_id in enumerate(matrix.sample_ids)
+        if sample_id in cohort_sample_set
+    )
+
+    states: Counter[str] = Counter()
+    calls: Counter[str] = Counter()
+    directions: Counter[str] = Counter()
+    reasons: Counter[str] = Counter()
+    robust_scores: list[float] = []
+    reference_counts: list[int] = []
+    if observations:
+        reference_batch = ExpressionBatch.from_observations(observations)
+        analyzer = RobustExpressionOutlierAnalyzer()
+        for target in observations:
+            result = analyzer.analyze(
+                target,
+                reference_batch,
+                expected_context_key=filter_address,
+            )
+            states[result.state.value] += 1
+            directions[result.direction.value] += 1
+            reasons.update(result.reason_codes)
+            reference_counts.append(result.reference_count)
+            if result.robust_z is not None:
+                robust_scores.append(result.robust_z)
+            if result.state is RNAEvidenceState.SUPPORTED:
+                calls["descriptive_outlier"] += 1
+            elif result.state is RNAEvidenceState.MEASURED_NEGATIVE:
+                calls["no_descriptive_outlier"] += 1
+            else:
+                calls["unresolved"] += 1
+    else:
+        reasons["no_samples_match_metadata_filters"] = 1
+
+    report_body: dict[str, Any] = {
+        "schema": "glio-noncode.geo-count-expression-outlier.v1",
+        "status": "completed" if observations else "unresolved",
+        "source": {
+            "database": "NCBI GEO",
+            "accession": normalized_accession,
+            "series_url": f"{GEO_RECORD_ORIGIN}/geo/query/acc.cgi?acc={normalized_accession}",
+            "retrieval": (
+                "https"
+                if count_response_url is not None or metadata_response_url is not None
+                else "local_file"
+            ),
+            "count_matrix": {
+                "file_name": matrix.source_file_name,
+                "response_url": count_response_url,
+                "source_sha256": f"sha256:{matrix.source_sha256}",
+                "compressed_bytes": matrix.compressed_bytes,
+                "decompressed_bytes": matrix.decompressed_bytes,
+            },
+            "sample_metadata": {
+                "file_name": metadata_name,
+                "response_url": metadata_response_url,
+                "source_sha256": f"sha256:{hashlib.sha256(metadata_payload).hexdigest()}",
+                "compressed_bytes": len(metadata_payload),
+                "decompressed_bytes": metadata_decompressed_bytes,
+            },
+        },
+        "matrix": {
+            "feature_id": selected_feature,
+            "feature_count": matrix.feature_count,
+            "duplicate_feature_label_count": matrix.duplicate_feature_label_count,
+            "sample_count": len(matrix.sample_ids),
+            "library_size_method": "sum of all non-negative integer count rows per sample",
+        },
+        "comparison": {
+            "selection_filters": filter_records,
+            "comparison_mode": "symmetric_leave_one_out",
+            "feature_id": selected_feature,
+            "feature_identity_scope": "exact source-matrix row label; no gene annotation inferred",
+            "normalization": "log2(counts per million + 1)",
+            "scale": ExpressionScale.LOG2_CPM.value,
+            "context_key": filter_address,
+            "method": "median/MAD robust outlier with IQR fallback",
+            "selected_sample_count": len(cohort_sample_ids),
+            "comparison_count": len(observations),
+            "reference_count_range": (
+                [min(reference_counts), max(reference_counts)] if reference_counts else []
+            ),
+            "matched_to_case_sample": False,
+            "population_level_test": False,
+            "multiple_testing_adjustment": "none; one explicitly selected feature was analyzed",
+        },
+        "result": {
+            "call_counts": {
+                "descriptive_outlier": calls["descriptive_outlier"],
+                "no_descriptive_outlier": calls["no_descriptive_outlier"],
+                "unresolved": calls["unresolved"],
+            },
+            "evidence_state_counts": dict(sorted(states.items())),
+            "direction_counts": dict(sorted(directions.items())),
+            "reason_code_counts": dict(sorted(reasons.items())),
+            "robust_z_range": (
+                [round(min(robust_scores), 6), round(max(robust_scores), 6)]
+                if robust_scores
+                else None
+            ),
+        },
+        "limitations": [
+            "Supplementary count-table layouts are not standardized; this importer requires an explicit delimiter, sample-key column, and matrix row-label contract.",
+            "CPM is a library-size transform for descriptive comparison, not a count-model differential-expression analysis.",
+            "Each selected observation is compared with the other selected observations; repeated specimens may not be independent.",
+            "This is not matched-case evidence, a population-level test, or clinical guidance.",
+        ],
+    }
+    return report_body | {
+        "content_address": content_hash(report_body, prefix="geo-count-expression-outlier")
+    }
 
 
 def _unresolved_result(reason: str) -> dict[str, Any]:

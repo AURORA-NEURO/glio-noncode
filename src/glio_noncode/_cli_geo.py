@@ -9,7 +9,7 @@ from typing import Any
 from ._cli_support import write_json
 from .errors import SourceError, SourceNotFoundError, ValidationError
 from .expression_evidence import ExpressionScale
-from .geo_expression import build_expression_outlier_report
+from .geo_expression import build_expression_outlier_report, build_geo_count_outlier_report
 
 
 def _reference_filter(value: str) -> tuple[str, str]:
@@ -18,6 +18,15 @@ def _reference_filter(value: str) -> tuple[str, str]:
     field, expected = value.split("=", 1)
     if not field.strip() or not expected.strip():
         raise argparse.ArgumentTypeError("reference filter must be FIELD=VALUE")
+    return field.strip(), expected.strip()
+
+
+def _sample_filter(value: str) -> tuple[str, str]:
+    if "=" not in value:
+        raise argparse.ArgumentTypeError("sample filter must be FIELD=VALUE")
+    field, expected = value.split("=", 1)
+    if not field.strip() or not expected.strip():
+        raise argparse.ArgumentTypeError("sample filter must be FIELD=VALUE")
     return field.strip(), expected.strip()
 
 
@@ -103,3 +112,109 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: GEO report could not be written ({type(error).__name__})", file=sys.stderr)
         return 2
     return 0 if report.get("status") == "completed" else 2
+
+
+def build_count_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="glio-noncode geo-count-outlier",
+        description=(
+            "Compare one exact gene row across an explicitly selected GEO count-matrix cohort. "
+            "This is descriptive research output, not differential-expression evidence."
+        ),
+    )
+    parser.add_argument("accession", help="NCBI GEO Series accession, such as GSE141945")
+    parser.add_argument("--feature-id", required=True, help="exact matrix row label, such as EGFR")
+    parser.add_argument(
+        "--sample-key-column",
+        required=True,
+        help="exact metadata header naming matrix samples; pass an empty string for a blank header",
+    )
+    parser.add_argument(
+        "--sample-filter",
+        required=True,
+        action="append",
+        type=_sample_filter,
+        metavar="FIELD=VALUE",
+        help="metadata condition defining the comparison group; repeat for AND filters",
+    )
+    parser.add_argument("--counts-file-name", help="GEO supplementary count-matrix filename")
+    parser.add_argument("--metadata-file-name", help="GEO supplementary sample-metadata filename")
+    parser.add_argument(
+        "--counts-file", help="local count matrix .csv/.tsv or compressed equivalent"
+    )
+    parser.add_argument(
+        "--metadata-file", help="local sample metadata .csv/.tsv or compressed equivalent"
+    )
+    parser.add_argument(
+        "--counts-delimiter",
+        choices=("comma", "tab"),
+        default="comma",
+        help="explicit delimiter used by the count matrix",
+    )
+    parser.add_argument(
+        "--metadata-delimiter",
+        choices=("comma", "tab"),
+        default="comma",
+        help="explicit delimiter used by the sample metadata",
+    )
+    parser.add_argument("--timeout", type=float, default=30.0, help="HTTPS timeout in seconds")
+    parser.add_argument("--output", default="-", help="JSON report path, or - for stdout")
+    return parser
+
+
+def count_main(argv: list[str] | None = None) -> int:
+    args = build_count_parser().parse_args(argv)
+    delimiter = {"comma": ",", "tab": "\t"}
+    try:
+        report = build_geo_count_outlier_report(
+            args.accession,
+            feature_id=args.feature_id,
+            sample_key_column=args.sample_key_column,
+            sample_filters=args.sample_filter,
+            counts_file_name=args.counts_file_name,
+            metadata_file_name=args.metadata_file_name,
+            counts_file=args.counts_file,
+            metadata_file=args.metadata_file,
+            counts_delimiter=delimiter[args.counts_delimiter],
+            metadata_delimiter=delimiter[args.metadata_delimiter],
+            timeout_seconds=args.timeout,
+        )
+    except SourceNotFoundError:
+        report = {
+            "schema": "glio-noncode.geo-count-expression-outlier.v1",
+            "status": "invalid",
+            "error": {"code": "supplementary_file_not_found", "message": "GEO file was not found."},
+        }
+    except SourceError:
+        report = {
+            "schema": "glio-noncode.geo-count-expression-outlier.v1",
+            "status": "invalid",
+            "error": {"code": "source_unavailable", "message": "NCBI GEO could not be reached."},
+        }
+    except ValidationError:
+        report = {
+            "schema": "glio-noncode.geo-count-expression-outlier.v1",
+            "status": "invalid",
+            "error": {
+                "code": "invalid_input_or_matrix",
+                "message": "GEO count files, sample filters, or matrix failed validation.",
+            },
+        }
+    except OSError:
+        report = {
+            "schema": "glio-noncode.geo-count-expression-outlier.v1",
+            "status": "invalid",
+            "error": {
+                "code": "matrix_read_error",
+                "message": "A local GEO file could not be read.",
+            },
+        }
+    try:
+        write_json(report, args.output)
+    except (OSError, ValueError, ValidationError) as error:
+        print(
+            f"error: GEO count report could not be written ({type(error).__name__})",
+            file=sys.stderr,
+        )
+        return 2
+    return 0 if report.get("status") in {"completed", "unresolved"} else 2

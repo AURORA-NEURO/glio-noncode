@@ -15,6 +15,7 @@ SHELL_COMMANDS = (
     ("cohort-recurrence", "compare a locus with callable-subject-matched controls"),
     ("expression", "analyze expression and allele-specific RNA evidence"),
     ("geo-outlier", "compare one GEO expression feature with explicit references"),
+    ("geo-count-outlier", "compare one gene row across a GEO supplementary count matrix"),
     ("geo-qc", "summarize sample coverage and matrix quality before analysis"),
     ("geo-metadata", "inventory GEO sample characteristics before contrast design"),
     ("geo-design", "check GEO cohort selection and contrast estimability"),

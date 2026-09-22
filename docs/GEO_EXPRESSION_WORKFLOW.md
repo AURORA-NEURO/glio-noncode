@@ -55,6 +55,47 @@ individual lines to 4 MB, samples to 2,000, and matrix cells to 5,000,000. It
 validates gzip checksums, matrix dimensions, sample IDs, numeric values, and
 the selected feature before returning a report.
 
+## Supplementary integer count tables
+
+Some GEO series publish a gene-by-sample integer count matrix and a separate
+sample metadata table instead of a Series Matrix. Use `geo-count-outlier` for
+the supported bounded table format. The command requires exact file names (or
+local file paths), explicit comma/tab delimiters, a metadata sample-key column,
+and one or more `FIELD=VALUE` cohort filters. It never guesses a group from
+sample names or downloads arbitrary URLs; remote files are fetched only from
+the validated NCBI GEO supplementary path for the requested GSE accession.
+
+For a count matrix whose first metadata column has a blank header:
+
+```console
+glio-noncode geo-count-outlier GSE141945 \
+  --feature-id EGFR \
+  --sample-key-column "" \
+  --sample-filter Timepoint=Tumor \
+  --counts-file-name GSE141945_RNAseq.counts.csv.gz \
+  --metadata-file-name GSE141945_RNAseq.metadata.csv.gz \
+  --counts-delimiter comma \
+  --metadata-delimiter comma
+```
+
+The importer validates a rectangular table of non-negative integer counts,
+tracks every row in the per-sample library totals, and requires the requested
+feature row to occur exactly once. Non-target duplicate row labels are
+preserved and counted. It computes `log2(CPM + 1)` using all matrix rows, then
+runs a symmetric leave-one-out median/MAD comparison within the explicitly
+selected metadata cohort. The sample-level keys and values are not emitted in
+the aggregate report; source names, hashes, byte sizes, filter definitions,
+sample counts, outcome counts, and an addressed report are retained instead.
+
+This route is limited to one exact matrix row per invocation. It is a
+descriptive outlier screen, not a count-model differential-expression test,
+multiple-testing-corrected finding, patient-matched result, or clinical
+interpretation. CPM normalization does not correct for batch, composition,
+gene length, or repeated-specimen dependence. The count and metadata tables
+must have exactly the same sample keys. Compressed files are limited to 25 MB,
+decompressed text to 256 MB, individual lines to 4 MB, samples to 2,000, gene
+rows to 1,000,000, and matrix cells to 5,000,000.
+
 ## Sample and matrix quality summary
 
 Run `geo-qc` before a contrast to review coverage and per-sample expression

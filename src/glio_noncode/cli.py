@@ -17,6 +17,7 @@ Focused commands:
   expression           analyze expression and allele-specific RNA evidence
   cohort-recurrence    compare a locus with callable-subject-matched controls
   geo-outlier          compare one GEO expression feature with explicit references
+  geo-count-outlier    compare a gene row across a GEO supplementary count matrix
   geo-qc               summarize sample coverage and matrix quality before analysis
   geo-metadata         inventory GEO sample characteristics before contrast design
   geo-design           check GEO cohort selection and contrast estimability
@@ -128,6 +129,8 @@ def main(argv: list[str] | None = None) -> int:
         return importlib.import_module(f"{__package__}._cli_cohort_recurrence").main(command_argv)
     if command == "geo-outlier":
         return importlib.import_module(f"{__package__}._cli_geo").main(command_argv)
+    if command == "geo-count-outlier":
+        return importlib.import_module(f"{__package__}._cli_geo").count_main(command_argv)
     if command == "geo-qc":
         return importlib.import_module(f"{__package__}._cli_geo_qc").main(command_argv)
     if command == "geo-metadata":
