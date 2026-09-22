@@ -26136,6 +26136,23 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 segments = [unquote(item) for item in path.split("/") if item]
                 if len(segments) == 4 and segments[:2] == ["v1", "geo-count-consistency"]:
+                    if segments[3] == "studies.csv":
+                        if query:
+                            raise ValueError(
+                                "GEO count consistency study export does not accept query parameters"
+                            )
+                        payload = store.studies_csv(segments[2])
+                        self._write_bytes(
+                            HTTPStatus.OK,
+                            payload.encode("utf-8"),
+                            content_type="text/csv; charset=utf-8",
+                            headers={
+                                "Content-Disposition": (
+                                    f'attachment; filename="GLIO-NONCODE-{segments[2]}-studies.csv"'
+                                )
+                            },
+                        )
+                        return
                     if segments[3] == "features.csv":
                         unknown = set(query) - {
                             "feature_contains", "direction_consistency",

@@ -12,6 +12,8 @@ from threading import Thread
 from glio_noncode._cli_geo_review_summary import main as summary_main
 from glio_noncode.api import create_server
 from glio_noncode.geo_analysis_store import GeoAnalysisStore
+from glio_noncode.geo_count_consistency import build_geo_count_consistency_report
+from glio_noncode.geo_count_consistency_store import GeoCountConsistencyStore
 from glio_noncode.geo_count_sensitivity import build_geo_count_sensitivity_report
 from glio_noncode.geo_count_sensitivity_store import GeoCountSensitivityStore
 from glio_noncode.geo_preflight_store import GeoPreflightStore
@@ -155,6 +157,13 @@ class GeoReviewSummaryTests(unittest.TestCase):
                     (left, right), feature_ids=("2-Sep",)
                 )
             )
+            first = _report(root / "first", "GSE141945")
+            second = _report(root / "second", "GSE141946", direction_fixture=True)
+            GeoCountConsistencyStore(workspace).save(
+                build_geo_count_consistency_report(
+                    (first, second), feature_ids=("SIGNAL",)
+                )
+            )
             summary = build_geo_review_summary(workspace)
 
         catalog = summary["catalogs"]["paired_count_sensitivity_comparisons"]
@@ -162,6 +171,13 @@ class GeoReviewSummaryTests(unittest.TestCase):
         self.assertEqual(catalog["ranked_feature_count_total"], 2)
         self.assertEqual(catalog["additional_tracked_feature_count_total"], 2)
         self.assertEqual(catalog["tracked_feature_id_count_total"], 2)
+        consistency = summary["catalogs"]["paired_count_comparisons"]
+        expected_reported = first["summary"]["reported_feature_count"] + second["summary"][
+            "reported_feature_count"
+        ]
+        self.assertEqual(consistency["reported_feature_count_total"], expected_reported)
+        self.assertEqual(consistency["ranked_feature_count_total"], expected_reported)
+        self.assertEqual(consistency["additional_tracked_feature_count_total"], 0)
 
     def test_ledger_is_aggregate_only_and_can_skip_reopen(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

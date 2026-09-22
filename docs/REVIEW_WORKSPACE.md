@@ -123,6 +123,8 @@ feature CSV; it contains normalization, source-digest, count, and coverage
 provenance without sample or pair identifiers.
 The archive-health view aggregates the same ranked, additional-tracked, and
 tracked-ID-slot totals across saved sensitivity records.
+Cross-study paired-count comparisons expose matching study-level coverage and
+provide a verified `studies.csv` export with the same aggregate-only boundary.
 
 For reproducible cross-normalization coverage, pass repeated
 `--track-feature-id FEATURE_ID` options to each `geo-count-contrast` run. The

@@ -48,7 +48,7 @@ _SIGN_DIRECTION_STATES = frozenset(
         "insufficient_sign_test_fdr_significant_reports",
     }
 )
-_SUMMARY_FIELDS = frozenset(
+_BASE_SUMMARY_FIELDS = frozenset(
     {
         "content_address", "study_count", "feature_count", "accessions", "pair_key_column",
         "normalization_method", "expression_scale", "fdr_method", "fdr_threshold",
@@ -61,6 +61,15 @@ _SUMMARY_FIELDS = frozenset(
         "sign_test_fdr_significant_insufficient_feature_count",
     }
 )
+_COVERAGE_SUMMARY_FIELDS = frozenset(
+    {
+        "reported_feature_count_total",
+        "ranked_feature_count_total",
+        "additional_tracked_feature_count_total",
+        "tracked_feature_id_count_total",
+    }
+)
+_SUMMARY_FIELDS = _BASE_SUMMARY_FIELDS | _COVERAGE_SUMMARY_FIELDS
 
 
 def _count(value: object, label: str, *, minimum: int = 0) -> int:
@@ -279,6 +288,19 @@ def summarize_geo_count_consistency_report(report: Mapping[str, Any]) -> dict[st
         "expression_scale": comparison["expression_scale"],
         "fdr_method": comparison["fdr_method"],
         "fdr_threshold": comparison["fdr_threshold"],
+        "reported_feature_count_total": sum(
+            study["reported_feature_count"] for study in studies
+        ),
+        "ranked_feature_count_total": sum(
+            study.get("ranked_feature_count", study["reported_feature_count"])
+            for study in studies
+        ),
+        "additional_tracked_feature_count_total": sum(
+            study.get("additional_tracked_feature_count", 0) for study in studies
+        ),
+        "tracked_feature_id_count_total": sum(
+            len(study.get("tracked_feature_ids", [])) for study in studies
+        ),
         **{
             key: summary[key]
             for key in (
@@ -346,7 +368,8 @@ class GeoCountConsistencyStore:
             raise StoreError("GEO count consistency identifier is invalid")
         if _ADDRESS_RE.fullmatch(str(raw["report_address"])) is None:
             raise StoreError("GEO count consistency report address is invalid")
-        if type(raw["summary"]) is not dict or frozenset(raw["summary"]) != _SUMMARY_FIELDS:
+        summary_keys = frozenset(raw["summary"]) if type(raw["summary"]) is dict else frozenset()
+        if summary_keys not in {_BASE_SUMMARY_FIELDS, _SUMMARY_FIELDS}:
             raise StoreError("GEO count consistency catalog summary has an invalid shape")
         body = {key: value for key, value in raw.items() if key != "comparison_id"}
         if self._comparison_id(body) != comparison_id:
@@ -408,7 +431,10 @@ class GeoCountConsistencyStore:
         record = self._decode_record(path)
         report = self.objects.get(record["report_address"])
         validated = validate_geo_count_consistency_report(report)
-        if summarize_geo_count_consistency_report(validated) != record["summary"]:
+        expected_summary = summarize_geo_count_consistency_report(validated)
+        if expected_summary != record["summary"] and {
+            key: expected_summary[key] for key in _BASE_SUMMARY_FIELDS
+        } != record["summary"]:
             raise StoreError("GEO count consistency catalog summary does not match its report")
         return {"schema": GEO_COUNT_CONSISTENCY_RECORD_SCHEMA, "comparison_id": comparison_id, "report_address": record["report_address"], "summary": record["summary"], "report": validated}
 
@@ -454,4 +480,63 @@ class GeoCountConsistencyStore:
         rendered = output.getvalue()
         if len(rendered.encode("utf-8")) > MAX_COUNT_CONSISTENCY_EXPORT_BYTES:
             raise StoreError("GEO count consistency CSV exceeds the export byte limit")
+        return rendered
+
+    def studies_csv(self, comparison_id: str) -> str:
+        """Export verified study-level coverage without private sample metadata."""
+
+        saved = self.get_report(comparison_id)
+        fields = (
+            "study_index",
+            "accession",
+            "normalization",
+            "normalization_method",
+            "expression_scale",
+            "count_matrix_source_sha256",
+            "metadata_source_sha256",
+            "pair_key_column",
+            "matched_pair_count",
+            "case_sample_count_selected",
+            "reference_sample_count_selected",
+            "fdr_method",
+            "fdr_threshold",
+            "tested_feature_count",
+            "reported_feature_count",
+            "ranked_feature_count",
+            "additional_tracked_feature_count",
+            "tracked_feature_ids",
+            "fdr_significant_feature_count",
+            "sign_test_fdr_significant_feature_count",
+        )
+        output = io.StringIO(newline="")
+        writer = csv.writer(output, lineterminator="\n")
+        writer.writerow(fields)
+        for index, study in enumerate(saved["report"]["studies"], start=1):
+            writer.writerow(
+                (
+                    index,
+                    study["accession"],
+                    study["normalization"],
+                    study["normalization_method"],
+                    study["expression_scale"],
+                    study["count_matrix_source_sha256"],
+                    study["metadata_source_sha256"],
+                    study["pair_key_column"],
+                    study["matched_pair_count"],
+                    study["case_sample_count_selected"],
+                    study["reference_sample_count_selected"],
+                    study["fdr_method"],
+                    study["fdr_threshold"],
+                    study["tested_feature_count"],
+                    study["reported_feature_count"],
+                    study.get("ranked_feature_count", study["reported_feature_count"]),
+                    study.get("additional_tracked_feature_count", 0),
+                    canonical_json(study.get("tracked_feature_ids", [])),
+                    study["fdr_significant_feature_count"],
+                    study["sign_test_fdr_significant_feature_count"],
+                )
+            )
+        rendered = output.getvalue()
+        if len(rendered.encode("utf-8")) > MAX_COUNT_CONSISTENCY_EXPORT_BYTES:
+            raise StoreError("GEO count consistency study CSV exceeds the export byte limit")
         return rendered

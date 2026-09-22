@@ -41,12 +41,24 @@ class GeoCountConsistencyStoreTests(unittest.TestCase):
                 record["comparison_id"], feature_contains="signal", limit=1
             )
             exported = store.features_csv(record["comparison_id"], feature_contains="signal")
+            studies_csv = store.studies_csv(record["comparison_id"])
 
             self.assertEqual(record, same)
             self.assertEqual(store.list_reports()["total_count"], 1)
             self.assertEqual(page["schema"], "glio-noncode.geo-count-consistency-page.v1")
             self.assertEqual(page["features"][0]["feature_id"], "SIGNAL")
             self.assertIn("feature_id,direction_consistency", exported)
+            self.assertIn("ranked_feature_count", studies_csv.splitlines()[0])
+            self.assertIn("tracked_feature_ids", studies_csv.splitlines()[0])
+            self.assertNotIn("PRIVATE_SUBJECT_", studies_csv)
+            expected_ranked = sum(
+                GeoAnalysisStore(workspace).get_report(analysis_id)["report"]["summary"][
+                    "ranked_feature_count"
+                ]
+                for analysis_id in (first_id, second_id)
+            )
+            self.assertEqual(record["summary"]["ranked_feature_count_total"], expected_ranked)
+            self.assertEqual(record["summary"]["additional_tracked_feature_count_total"], 0)
             public = json.dumps(store.get_report(record["comparison_id"]))
             self.assertNotIn("PRIVATE_SUBJECT_", public)
             self.assertNotIn("analysis_id", public)
@@ -129,6 +141,15 @@ class GeoCountConsistencyStoreTests(unittest.TestCase):
                 csv_payload = response.read().decode("utf-8")
                 self.assertEqual(response.status, 200)
                 self.assertIn("feature_id,direction_consistency", csv_payload)
+
+                connection.request(
+                    "GET", f"/v1/geo-count-consistency/{comparison_id}/studies.csv"
+                )
+                response = connection.getresponse()
+                studies_csv_payload = response.read().decode("utf-8")
+                self.assertEqual(response.status, 200)
+                self.assertIn("ranked_feature_count", studies_csv_payload.splitlines()[0])
+                self.assertIn("tracked_feature_ids", studies_csv_payload.splitlines()[0])
             finally:
                 if connection is not None:
                     connection.close()

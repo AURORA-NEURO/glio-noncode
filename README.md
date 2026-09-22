@@ -253,6 +253,8 @@ available from the sensitivity detail endpoint; the run export contains only
 normalization, source-digest, count, and tracked-feature provenance.
 The archive-health summary also aggregates ranked rows, explicitly tracked
 rows, and tracked source-ID slots across saved sensitivity comparisons.
+Cross-study paired-count comparisons expose the same coverage totals and a
+verified `studies.csv` export for each source report.
 
 Run `geo-review-summary --data-root .glio` to verify the saved GEO catalogs and
 reopen each report object through its content address. The same aggregate-only

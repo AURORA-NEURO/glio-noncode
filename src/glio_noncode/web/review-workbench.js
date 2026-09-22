@@ -555,10 +555,15 @@
     const sensitivityRankedCount = Number(sensitivityComparisons.ranked_feature_count_total || 0);
     const sensitivityTrackedCount = Number(sensitivityComparisons.additional_tracked_feature_count_total || 0);
     const sensitivityTrackedIdCount = Number(sensitivityComparisons.tracked_feature_id_count_total || 0);
+    const consistencyRankedCount = Number(countComparisons.ranked_feature_count_total || 0);
+    const consistencyTrackedCount = Number(countComparisons.additional_tracked_feature_count_total || 0);
+    const consistencyTrackedIdCount = Number(countComparisons.tracked_feature_id_count_total || 0);
     $("geo-review-subtitle").textContent = `${formatCount(analysisCount)} analyses · ${formatCount(comparisonCount)} saved comparisons · ${summary.integrity?.report_objects || "review"}`;
     $("geo-review-address").textContent = summary.content_address || "Address unavailable";
     $("geo-review-analysis-count").textContent = formatCount(analysisCount);
     $("geo-review-comparison-count").textContent = formatCount(comparisonCount);
+    $("geo-review-consistency-coverage").textContent = `${formatCount(consistencyRankedCount)} + ${formatCount(consistencyTrackedCount)}`;
+    $("geo-review-consistency-coverage-detail").textContent = `${formatCount(consistencyTrackedIdCount)} tracked IDs across studies`;
     $("geo-review-preflight-count").textContent = formatCount(preflightCount);
     $("geo-review-accession-count").textContent = formatCount(accessionCount);
     $("geo-review-tested-count").textContent = formatCount(testedCount);
@@ -823,6 +828,11 @@
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
       csvLink.setAttribute("aria-disabled", "false");
+      runCsvLink.href = `/v1/geo-count-consistency/${encodeURIComponent(comparisonId)}/studies.csv`;
+      runCsvLink.textContent = "Download study coverage CSV";
+      runCsvLink.hidden = false;
+      runCsvLink.classList.remove("disabled");
+      runCsvLink.setAttribute("aria-disabled", "false");
       return;
     }
     if (model.activeView === "geo-sensitivity" && model.geoSensitivity?.comparison_id) {
@@ -1929,6 +1939,10 @@
 
     const provenance = $("geo-consistency-provenance");
     provenance.replaceChildren();
+    const studyCoverage = report.studies.map((study) => (
+      `${study.accession}: ${formatCount(study.ranked_feature_count ?? study.reported_feature_count)} ranked · ` +
+      `${formatCount(study.additional_tracked_feature_count ?? 0)} tracked`
+    )).join(" · ");
     const rows = [
       ["Studies", report.studies.map((study) => study.accession).join(" · ")],
       ["Case group", filterDescription(comparison.case_filters)],
@@ -1936,6 +1950,7 @@
       ["Pairing field", comparison.pair_key_column],
       ["Expression scale", comparison.expression_scale],
       ["Direction basis", comparison.effect_direction_basis],
+      ["Study coverage", studyCoverage || "Not reported"],
     ];
     for (const [label, value] of rows) {
       const block = element("div", "geo-provenance-item");
