@@ -484,6 +484,21 @@
     $("geo-review-status").textContent = summary.status === "ready" ? "Verified" : "Review required";
   }
 
+  function renderGeoReviewBreakdown(id, values, emptyText) {
+    const target = $(id);
+    target.replaceChildren();
+    const entries = Object.entries(values || {}).filter(([key, value]) => typeof key === "string" && Number.isSafeInteger(value) && value >= 0);
+    if (!entries.length) {
+      target.append(element("p", "muted", emptyText));
+      return;
+    }
+    for (const [key, value] of entries) {
+      const item = element("div", "geo-quality-item");
+      item.append(element("span", "control-label", consistencyText(key)), element("span", "lineage-meta", `${formatCount(value)} record${value === 1 ? "" : "s"}`));
+      target.append(item);
+    }
+  }
+
   function renderGeoReviewDetail() {
     const summary = model.geoReviewSummary;
     if (!summary) return;
@@ -491,6 +506,7 @@
     const analysisCount = catalogs.filter((item) => item.name.endsWith("analyses")).reduce((total, item) => total + Number(item.record_count || 0), 0);
     const comparisonCount = catalogs.filter((item) => item.name.endsWith("comparisons")).reduce((total, item) => total + Number(item.record_count || 0), 0);
     const preflightCount = catalogs.find((item) => item.name === "preflights")?.record_count || 0;
+    const preflightCatalog = catalogs.find((item) => item.name === "preflights") || {};
     const accessionValues = new Set();
     for (const catalog of catalogs) {
       for (const accession of catalog.accessions || []) {
@@ -509,6 +525,8 @@
     $("geo-review-tested-count").textContent = formatCount(testedCount);
     $("geo-review-fdr-count").textContent = formatCount(fdrCount);
     $("geo-review-integrity").textContent = summary.integrity?.verification_failure_count === 0 ? "Accepted" : "Review";
+    renderGeoReviewBreakdown("geo-review-preflight-kinds", preflightCatalog.kind_counts, "No saved preflight kinds yet.");
+    renderGeoReviewBreakdown("geo-review-preflight-states", preflightCatalog.design_state_counts, "No design-state reports yet.");
     const body = $("geo-review-catalog-table");
     body.replaceChildren();
     for (const catalog of catalogs) {
