@@ -16,7 +16,7 @@
     geoConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "", sign_test_direction_consistency: "" },
     geoSensitivity: null, geoSensitivityRecords: [], geoSensitivityTotal: 0,
     selectedGeoSensitivity: null, geoSensitivityListRequest: 0, geoSensitivityRequest: 0, geoSensitivityFilterTimer: null,
-    geoSensitivityFilters: { feature_contains: "", direction_sensitivity: "", fdr_sensitivity: "" },
+    geoSensitivityFilters: { feature_contains: "", direction_sensitivity: "", fdr_sensitivity: "", sign_test_fdr_sensitivity: "" },
     geoExpressionConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "" }, geoExpressionConsistencyFilterTimer: null,
     sequenceAnalyses: [], sequenceTotal: 0, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
     sequenceBatches: [], sequenceBatchTotal: 0, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
@@ -1012,6 +1012,7 @@
     if (filters.feature_contains) params.set("feature_contains", filters.feature_contains);
     if (filters.direction_sensitivity) params.set("direction_sensitivity", filters.direction_sensitivity);
     if (filters.fdr_sensitivity) params.set("fdr_sensitivity", filters.fdr_sensitivity);
+    if (filters.sign_test_fdr_sensitivity) params.set("sign_test_fdr_sensitivity", filters.sign_test_fdr_sensitivity);
     return params;
   }
 
@@ -1037,13 +1038,15 @@
   }
 
   function resetGeoSensitivityFilters() {
-    model.geoSensitivityFilters = { feature_contains: "", direction_sensitivity: "", fdr_sensitivity: "" };
+    model.geoSensitivityFilters = { feature_contains: "", direction_sensitivity: "", fdr_sensitivity: "", sign_test_fdr_sensitivity: "" };
     const feature = $("geo-sensitivity-feature-filter");
     const direction = $("geo-sensitivity-direction-filter");
     const fdr = $("geo-sensitivity-fdr-filter");
+    const sign = $("geo-sensitivity-sign-fdr-filter");
     if (feature) feature.value = "";
     if (direction) direction.value = "";
     if (fdr) fdr.value = "";
+    if (sign) sign.value = "";
   }
 
   function resetGeoExpressionConsistencyFilters() {
@@ -2341,6 +2344,10 @@
   });
   $("geo-sensitivity-fdr-filter").addEventListener("change", (event) => {
     model.geoSensitivityFilters.fdr_sensitivity = event.currentTarget.value;
+    reloadGeoSensitivityPage();
+  });
+  $("geo-sensitivity-sign-fdr-filter").addEventListener("change", (event) => {
+    model.geoSensitivityFilters.sign_test_fdr_sensitivity = event.currentTarget.value;
     reloadGeoSensitivityPage();
   });
   $("markdown-export").addEventListener("click", (event) => {
