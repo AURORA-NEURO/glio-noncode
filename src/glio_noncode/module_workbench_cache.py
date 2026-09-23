@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import gzip
 import hashlib
+import json
+import zlib
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
+from ._safe_persistence import atomic_write_bytes, read_bytes
 from .module_certification import verify_module_certification
 from .module_certification_contracts import (
     CertificationCheckKind,
@@ -50,6 +55,7 @@ from .module_workbench_contracts import (
 from .serialization import canonical_json
 
 MODULE_WORKBENCH_CACHE_SCHEMA = "module-workbench-cache-v1"
+MODULE_WORKBENCH_CACHE_MAX_BYTES = 512 * 1024 * 1024
 
 
 def _mapping(value: Any, field: str) -> Mapping[str, Any]:
@@ -374,4 +380,177 @@ def snapshot_from_mapping(
     return inventory, matrix, lineage, quality, workbench
 
 
-__all__ = ["MODULE_WORKBENCH_CACHE_SCHEMA", "snapshot_from_mapping", "snapshot_payload"]
+def module_workbench_source_signature(
+    source_root: str | Path | None = None,
+    *,
+    test_root: str | Path | None = None,
+    docs_root: str | Path | None = None,
+) -> tuple[tuple[str, int, int], ...]:
+    """Return the path-free source/test/document signature used by CLI caches."""
+
+    source = Path(source_root) if source_root is not None else Path(__file__).resolve().parent
+    tests = Path(test_root) if test_root is not None else source.parent.parent / "tests"
+    docs = Path(docs_root) if docs_root is not None else source.parent.parent / "docs"
+    roots = (
+        (0, source, ("*.py",)),
+        (1, tests, ("*.py",)),
+        (2, docs, ("*.md", "*.markdown")),
+    )
+    rows: list[tuple[str, int, int]] = []
+    for root_index, root, suffixes in roots:
+        if not root.exists() or not root.is_dir():
+            continue
+        for suffix in suffixes:
+            for path in root.rglob(suffix):
+                if path.is_symlink() or not path.is_file():
+                    continue
+                try:
+                    stat = path.stat()
+                    relative = path.relative_to(root).as_posix()
+                except (OSError, ValueError):
+                    continue
+                rows.append((f"{root_index}:{relative}", int(stat.st_size), int(stat.st_mtime_ns)))
+    return tuple(sorted(set(rows)))
+
+
+def module_workbench_source_signature_map(
+    signature: tuple[tuple[str, int, int], ...] | None,
+) -> dict[str, tuple[int, int]]:
+    """Project source rows from a complete CLI cache signature for inventory reuse."""
+
+    if signature is None:
+        return {}
+    result: dict[str, tuple[int, int]] = {}
+    for row in signature:
+        if not isinstance(row, tuple) or len(row) != 3:
+            continue
+        name, size, modified = row
+        if (
+            isinstance(name, str)
+            and name.startswith("0:")
+            and isinstance(size, int)
+            and not isinstance(size, bool)
+            and isinstance(modified, int)
+            and not isinstance(modified, bool)
+        ):
+            result[name[2:]] = (size, modified)
+    return result
+
+
+def _cache_payload(path: str | Path) -> Mapping[str, Any] | None:
+    target = Path(path)
+    if not target.exists() or target.is_symlink() or not target.is_file():
+        return None
+    try:
+        payload = json.loads(
+            gzip.decompress(
+                read_bytes(
+                    target,
+                    field="module workbench cache",
+                    max_bytes=MODULE_WORKBENCH_CACHE_MAX_BYTES,
+                )
+            ).decode("utf-8")
+        )
+    except (
+        OSError,
+        UnicodeDecodeError,
+        ValueError,
+        ValidationError,
+        EOFError,
+        gzip.BadGzipFile,
+        zlib.error,
+    ):
+        return None
+    return payload if isinstance(payload, Mapping) else None
+
+
+def _cache_signature(value: Mapping[str, Any]) -> tuple[tuple[str, int, int], ...] | None:
+    raw = value.get("signature")
+    if not isinstance(raw, list):
+        return None
+    rows: list[tuple[str, int, int]] = []
+    for row in raw:
+        if (
+            not isinstance(row, list)
+            or len(row) != 3
+            or not isinstance(row[0], str)
+            or isinstance(row[1], bool)
+            or not isinstance(row[1], int)
+            or isinstance(row[2], bool)
+            or not isinstance(row[2], int)
+        ):
+            return None
+        rows.append((row[0], row[1], row[2]))
+    return tuple(rows)
+
+
+def load_module_workbench_cache(
+    path: str | Path,
+    signature: tuple[tuple[str, int, int], ...],
+) -> tuple[ModuleInventory, ModuleCertificationMatrix, ModuleCertificationLineage, ModuleCertificationQualityReport, ModuleWorkbenchReport] | None:
+    """Load an exact addressed CLI snapshot, returning ``None`` when stale or invalid."""
+
+    payload = _cache_payload(path)
+    if payload is None or _cache_signature(payload) != signature:
+        return None
+    try:
+        return snapshot_from_mapping(payload, signature, verify_nested=False)
+    except (TypeError, ValueError, ValidationError):
+        return None
+
+
+def load_module_workbench_previous_inventory(
+    path: str | Path,
+) -> tuple[ModuleInventory, tuple[tuple[str, int, int], ...]] | None:
+    """Load only a stale inventory so a changed CLI build can reuse unchanged rows."""
+
+    payload = _cache_payload(path)
+    if payload is None:
+        return None
+    signature = _cache_signature(payload)
+    if signature is None:
+        return None
+    try:
+        inventory, _matrix, _lineage, _quality, _workbench = snapshot_from_mapping(
+            payload,
+            signature,
+            verify_nested=False,
+        )
+    except (TypeError, ValueError, ValidationError):
+        return None
+    return inventory, signature
+
+
+def persist_module_workbench_cache(
+    path: str | Path,
+    signature: tuple[tuple[str, int, int], ...],
+    inventory: ModuleInventory,
+    matrix: ModuleCertificationMatrix,
+    lineage: ModuleCertificationLineage,
+    quality: ModuleCertificationQualityReport,
+    workbench: ModuleWorkbenchReport,
+) -> None:
+    """Persist a deterministic gzip snapshot for repeated CLI and Actions runs."""
+
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    payload = snapshot_payload(signature, inventory, matrix, lineage, quality, workbench)
+    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    atomic_write_bytes(
+        target,
+        gzip.compress(encoded, compresslevel=6, mtime=0),
+        field="module workbench cache",
+    )
+
+
+__all__ = [
+    "MODULE_WORKBENCH_CACHE_MAX_BYTES",
+    "MODULE_WORKBENCH_CACHE_SCHEMA",
+    "load_module_workbench_cache",
+    "load_module_workbench_previous_inventory",
+    "module_workbench_source_signature",
+    "module_workbench_source_signature_map",
+    "persist_module_workbench_cache",
+    "snapshot_from_mapping",
+    "snapshot_payload",
+]

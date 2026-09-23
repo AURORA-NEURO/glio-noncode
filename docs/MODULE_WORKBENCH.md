@@ -178,6 +178,17 @@ glio-noncode module-workbench-observability-schema
 glio-noncode module-workbench-observability-capabilities
 ```
 
+For repeated local or Actions runs, provide a cache directory. The first run
+persists the exact gzip snapshot, unchanged inputs return `snapshot`, and a
+source, test, or documentation change returns `incremental` while reusing only
+unchanged source rows:
+
+```text
+glio-noncode module-workbench-observability \
+  --cache-root .glio/module-cache \
+  --output module-workbench-observability.json
+```
+
 ## Browser workbench
 
 The local review workbench exposes the same module contract in the left rail
@@ -447,7 +458,8 @@ per source fingerprint, so adjacent module-workbench routes reuse the same
 typed chain instead of rebuilding it independently. Any Python source or test
 file metadata change invalidates that chain before the next request; CLI
 invocations still build a fresh chain and expose that fact through the
-observability command.
+observability command. The CLI becomes restart-aware when `--cache-root` is
+provided; its cache uses the same canonical snapshot envelope as the service.
 
 ## Public boundary
 

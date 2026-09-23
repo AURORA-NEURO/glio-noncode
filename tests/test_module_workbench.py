@@ -799,6 +799,10 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             observability_schema_path = Path(directory) / "observability-schema.json"
             observability_caps_path = Path(directory) / "observability-caps.json"
             observability_path = Path(directory) / "observability.json"
+            cache_root = Path(directory) / "workbench-cache"
+            cached_first_path = Path(directory) / "observability-first.json"
+            cached_second_path = Path(directory) / "observability-second.json"
+            cached_incremental_path = Path(directory) / "observability-incremental.json"
             self.assertEqual(
                 main(
                     [
@@ -809,6 +813,25 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ),
                 0,
             )
+            for output in (cached_first_path, cached_second_path):
+                self.assertEqual(
+                    main(
+                        [
+                            "module-workbench-observability",
+                            "--source-root",
+                            str(self.package),
+                            "--test-root",
+                            str(self.tests),
+                            "--docs-root",
+                            str(self.docs),
+                            "--cache-root",
+                            str(cache_root),
+                            "--output",
+                            str(output),
+                        ]
+                    ),
+                    0,
+                )
             self.assertEqual(
                 main(
                     [
@@ -891,6 +914,42 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             self.assertEqual(observation["reparsed_module_count"], 3)
             self.assertEqual(observation["source_file_count"], 3)
             self.assertEqual(observation["test_file_count"], 1)
+            first_cached = json.loads(cached_first_path.read_text(encoding="utf-8"))
+            second_cached = json.loads(cached_second_path.read_text(encoding="utf-8"))
+            self.assertEqual(first_cached["rebuild_mode"], "full")
+            self.assertFalse(first_cached["cache_hit"])
+            self.assertEqual(first_cached["reparsed_module_count"], 3)
+            self.assertEqual(second_cached["rebuild_mode"], "snapshot")
+            self.assertTrue(second_cached["cache_hit"])
+            self.assertEqual(second_cached["reused_module_count"], 3)
+            self.assertEqual(second_cached["reparsed_module_count"], 0)
+            (self.package / "thin.py").write_text(
+                "def public_thin():\n    return 2\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench-observability",
+                        "--source-root",
+                        str(self.package),
+                        "--test-root",
+                        str(self.tests),
+                        "--docs-root",
+                        str(self.docs),
+                        "--cache-root",
+                        str(cache_root),
+                        "--output",
+                        str(cached_incremental_path),
+                    ]
+                ),
+                0,
+            )
+            incremental = json.loads(cached_incremental_path.read_text(encoding="utf-8"))
+            self.assertEqual(incremental["rebuild_mode"], "incremental")
+            self.assertFalse(incremental["cache_hit"])
+            self.assertEqual(incremental["reused_module_count"], 2)
+            self.assertEqual(incremental["reparsed_module_count"], 1)
             self.assertIn(
                 "module-workbench-detail-v1",
                 detail_schema_path.read_text(encoding="utf-8"),

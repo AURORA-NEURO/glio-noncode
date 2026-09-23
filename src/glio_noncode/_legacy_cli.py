@@ -2780,6 +2780,13 @@ from .module_workbench_observability import (
     module_workbench_observability_capabilities,
     module_workbench_observability_schema,
 )
+from .module_workbench_cache import (
+    load_module_workbench_cache,
+    load_module_workbench_previous_inventory,
+    module_workbench_source_signature,
+    module_workbench_source_signature_map,
+    persist_module_workbench_cache,
+)
 from .module_workbench_audit import (
     audit_module_workbench,
     module_workbench_audit_capabilities,
@@ -10191,6 +10198,11 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_observability.add_argument("--source-root", default=None)
     module_workbench_observability.add_argument("--test-root", default=None)
     module_workbench_observability.add_argument("--docs-root", default=None)
+    module_workbench_observability.add_argument(
+        "--cache-root",
+        default=None,
+        help="reuse and persist a verified snapshot under this directory",
+    )
     module_workbench_observability.add_argument("--output", default=None)
     subparsers.add_parser(
         "module-workbench-observability-schema",
@@ -48417,40 +48429,93 @@ def main(argv: list[str] | None = None) -> int:
                 if args.test_root is not None
                 else source_root.parent.parent / "tests"
             )
-            inventory = build_module_inventory(source_root, test_root=test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=source_root,
-                test_root=test_root,
-                docs_root=args.docs_root,
+            docs_root = (
+                Path(args.docs_root)
+                if args.docs_root is not None
+                else source_root.parent.parent / "docs"
             )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=source_root,
+            signature = module_workbench_source_signature(
+                source_root,
                 test_root=test_root,
-                docs_root=args.docs_root,
+                docs_root=docs_root,
             )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
-            test_file_count = (
-                sum(
-                    1
-                    for path in test_root.rglob("*.py")
-                    if path.is_file() and not path.is_symlink()
+            cache_path = (
+                Path(args.cache_root) / "snapshot.json.gz"
+                if args.cache_root is not None
+                else None
+            )
+            cached = (
+                load_module_workbench_cache(cache_path, signature)
+                if cache_path is not None
+                else None
+            )
+            if cached is not None:
+                inventory, matrix, lineage, quality, workbench = cached
+                rebuild_mode = "snapshot"
+                cache_hit = True
+                reused_module_count = len(inventory.modules)
+                reparsed_module_count = 0
+            else:
+                previous = (
+                    load_module_workbench_previous_inventory(cache_path)
+                    if cache_path is not None
+                    else None
                 )
-                if test_root.exists() and test_root.is_dir()
-                else 0
-            )
+                evidence: dict[str, Any] = {}
+                inventory = build_module_inventory(
+                    source_root,
+                    test_root=test_root,
+                    evidence=evidence,
+                    previous=previous[0] if previous is not None else None,
+                    previous_source_signature=(
+                        module_workbench_source_signature_map(previous[1])
+                        if previous is not None
+                        else None
+                    ),
+                    source_signature=module_workbench_source_signature_map(signature),
+                )
+                matrix = build_module_certification(
+                    inventory,
+                    test_modules=evidence.get("test_modules"),
+                    source_docstring_modules=evidence.get("source_docstring_modules"),
+                    source_root=source_root,
+                    test_root=test_root,
+                    docs_root=docs_root,
+                )
+                lineage = build_module_certification_lineage(
+                    inventory,
+                    matrix=matrix,
+                    source_root=source_root,
+                    test_root=test_root,
+                    docs_root=docs_root,
+                )
+                quality = build_module_certification_quality(matrix, lineage)
+                workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                rebuild_mode = str(evidence.get("inventory_rebuild_mode", "full"))
+                cache_hit = False
+                reused_module_count = int(evidence.get("reused_module_count", 0))
+                reparsed_module_count = int(
+                    evidence.get("reparsed_module_count", len(inventory.modules))
+                )
+                if cache_path is not None:
+                    persist_module_workbench_cache(
+                        cache_path,
+                        signature,
+                        inventory,
+                        matrix,
+                        lineage,
+                        quality,
+                        workbench,
+                    )
             observation = build_module_workbench_observability(
-                rebuild_mode="full",
-                cache_hit=False,
-                source_file_count=inventory.module_count,
-                test_file_count=test_file_count,
+                rebuild_mode=rebuild_mode,
+                cache_hit=cache_hit,
+                source_file_count=sum(item[0].startswith("0:") for item in signature),
+                test_file_count=sum(item[0].startswith("1:") for item in signature),
                 module_count=len(workbench.assessments),
                 task_count=len(workbench.tasks),
-                reused_module_count=0,
-                reparsed_module_count=inventory.module_count,
+                reused_module_count=reused_module_count,
+                reparsed_module_count=reparsed_module_count,
                 inventory_address=inventory.content_address,
                 certification_address=matrix.content_address,
                 lineage_address=lineage.content_address,

@@ -17,6 +17,10 @@ The workbench also exposes a bounded, timestamp-free cache observation: it
 distinguishes an exact durable snapshot from an incremental or full rebuild,
 reports reused versus reparsed module counts, and returns only content
 addresses and aggregate counts.
+The CLI observability command can use the same canonical snapshot envelope with
+`--cache-root`, allowing Actions and local automation to reuse exact snapshots
+without running the HTTP service. A direct invocation without that option is
+explicitly reported as a full, uncached build.
 Documentation inputs are included in the workbench signature, so a changed
 contract document invalidates certification and lineage projections without
 forcing unchanged Python source rows to be reparsed.

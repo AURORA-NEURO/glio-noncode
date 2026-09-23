@@ -1705,6 +1705,7 @@ python -m glio_noncode module-workbench-triage --reason unresolved_lineage --for
 python -m glio_noncode module-workbench-policy --format summary
 python -m glio_noncode module-workbench-audit --format csv --output module-audit.csv
 python -m glio_noncode module-workbench-observability --output workbench-observability.json
+python -m glio_noncode module-workbench-observability --cache-root .glio/module-cache
 ```
 
 The workbench also provides explainable module triage: every module receives a
