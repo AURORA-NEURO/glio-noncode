@@ -778,6 +778,8 @@ def module_workbench_execution_capabilities() -> dict[str, Any]:
         "export_events_csv",
         "render_markdown",
         "verify_nested_addresses",
+        "persist_command_journal",
+        "replay_source_bound_journal",
     )
     return {
         "version": "module-workbench-execution-v1",
@@ -786,7 +788,9 @@ def module_workbench_execution_capabilities() -> dict[str, Any]:
         "deterministic": True,
         "append_only_events": True,
         "evidence_gated_completion": True,
-        "read_only_projection": True,
+        "read_only_projection": False,
+        "durable_command_replay": True,
+        "optimistic_concurrency": True,
     }
 
 

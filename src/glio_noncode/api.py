@@ -1832,12 +1832,18 @@ from .module_workbench_audit import (
 )
 from .module_workbench_diff import module_workbench_diff_capabilities, module_workbench_diff_schema
 from .module_workbench_execution import (
+    apply_module_workbench_execution_command,
     build_module_workbench_execution,
+    execution_command,
     module_workbench_execution_capabilities,
     module_workbench_execution_csv,
     module_workbench_execution_schema,
     query_module_workbench_execution,
     render_module_workbench_execution_markdown,
+)
+from .module_workbench_execution_contracts import (
+    MODULE_WORKBENCH_EXECUTION_MAX_EVENTS,
+    MODULE_WORKBENCH_EXECUTION_VERSION,
 )
 from .module_workbench_execution_audit import (
     audit_module_workbench_execution,
@@ -3537,6 +3543,11 @@ def _module_inventory_source_signature() -> tuple[tuple[str, int, int], ...]:
 
 
 _MODULE_WORKBENCH_CACHE_MAX_BYTES = 512 * 1024 * 1024
+_MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION = "module-workbench-execution-journal-v1"
+_MODULE_WORKBENCH_EXECUTION_JOURNAL_MAX_BYTES = 64 * 1024 * 1024
+_MODULE_WORKBENCH_EXECUTION_COMMAND_FIELDS = frozenset(
+    {"task_id", "action", "detail", "evidence_addresses", "requirement"}
+)
 
 
 class ApiHandler(BaseHTTPRequestHandler):
@@ -3720,6 +3731,138 @@ class ApiHandler(BaseHTTPRequestHandler):
                 )
                 state["signature"] = signature
             return state["value"]
+
+    def _module_workbench_execution_journal_path(self) -> Path | None:
+        value = getattr(self.server, "glio_module_workbench_execution_journal_path", None)
+        return Path(value) if value is not None else None
+
+    @staticmethod
+    def _module_workbench_execution_signature_payload(
+        signature: tuple[tuple[str, int, int], ...],
+    ) -> list[list[Any]]:
+        return [[name, size, modified] for name, size, modified in signature]
+
+    def _load_module_workbench_execution_journal(
+        self,
+        signature: tuple[tuple[str, int, int], ...],
+        ledger: Any,
+    ) -> tuple[Any, tuple[Any, ...]]:
+        """Replay the bounded command journal only against its source snapshot."""
+
+        path = self._module_workbench_execution_journal_path()
+        if path is None or not path.exists() or path.is_symlink() or not path.is_file():
+            return ledger, ()
+        try:
+            raw = _safe_read_bytes_bounded(
+                path,
+                max_bytes=_MODULE_WORKBENCH_EXECUTION_JOURNAL_MAX_BYTES,
+                field="module workbench execution journal",
+            )
+            payload = json.loads(gzip.decompress(raw).decode("utf-8"))
+            if not isinstance(payload, Mapping):
+                return ledger, ()
+            if payload.get("version") != _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION:
+                return ledger, ()
+            source_signature_matches = (
+                payload.get("source_signature")
+                == self._module_workbench_execution_signature_payload(signature)
+            )
+            if not source_signature_matches and (
+                payload.get("report_address") != ledger.report_address
+                or payload.get("portfolio_address") != ledger.portfolio_address
+            ):
+                return ledger, ()
+            raw_commands = payload.get("commands", ())
+            if not isinstance(raw_commands, list) or len(raw_commands) > MODULE_WORKBENCH_EXECUTION_MAX_EVENTS:
+                return ledger, ()
+            current = ledger
+            commands: list[Any] = []
+            for raw_command in raw_commands:
+                if not isinstance(raw_command, Mapping):
+                    return ledger, ()
+                if set(raw_command) != _MODULE_WORKBENCH_EXECUTION_COMMAND_FIELDS:
+                    return ledger, ()
+                raw_evidence = raw_command.get("evidence_addresses", ())
+                if not isinstance(raw_evidence, list):
+                    return ledger, ()
+                command = execution_command(
+                    raw_command.get("task_id"),
+                    raw_command.get("action"),
+                    raw_command.get("detail"),
+                    evidence_addresses=tuple(raw_evidence),
+                    requirement=raw_command.get("requirement"),
+                )
+                current = apply_module_workbench_execution_command(current, command)
+                commands.append(command)
+            if payload.get("ledger_address") != current.content_address:
+                return ledger, ()
+            return current, tuple(commands)
+        except (
+            OSError,
+            UnicodeDecodeError,
+            ValueError,
+            TypeError,
+            ValidationError,
+            EOFError,
+            gzip.BadGzipFile,
+            zlib.error,
+        ):
+            return ledger, ()
+
+    def _persist_module_workbench_execution_journal(
+        self,
+        signature: tuple[tuple[str, int, int], ...],
+        ledger: Any,
+        commands: tuple[Any, ...],
+    ) -> bool:
+        """Atomically persist commands after a transition has passed validation."""
+
+        path = self._module_workbench_execution_journal_path()
+        if path is None:
+            return False
+        try:
+            payload = {
+                "version": _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION,
+                "execution_version": MODULE_WORKBENCH_EXECUTION_VERSION,
+                "source_signature": self._module_workbench_execution_signature_payload(signature),
+                "report_address": ledger.report_address,
+                "portfolio_address": ledger.portfolio_address,
+                "ledger_address": ledger.content_address,
+                "command_count": len(commands),
+                "commands": [command.to_dict() for command in commands],
+            }
+            encoded = json.dumps(
+                payload,
+                ensure_ascii=False,
+                allow_nan=False,
+                separators=(",", ":"),
+            ).encode("utf-8")
+            compressed = gzip.compress(encoded, compresslevel=6, mtime=0)
+            if len(compressed) > _MODULE_WORKBENCH_EXECUTION_JOURNAL_MAX_BYTES:
+                return False
+            _safe_atomic_write_bytes(path, compressed, field="module workbench execution journal")
+            return True
+        except (OSError, TypeError, ValueError, ValidationError):
+            return False
+
+    def _module_workbench_execution_context(self) -> dict[str, Any]:
+        """Return the source-bound mutable ledger and its replayable commands."""
+
+        signature = _module_inventory_source_signature()
+        state = getattr(self.server, "glio_module_workbench_execution_context", None)
+        if state is None:
+            state = {"lock": RLock(), "signature": None, "ledger": None, "commands": ()}
+            setattr(self.server, "glio_module_workbench_execution_context", state)
+        with state["lock"]:
+            if state["signature"] != signature or state["ledger"] is None:
+                _lineage, _quality, workbench = self._module_workbench_context()
+                portfolio = build_module_workbench_portfolio(workbench)
+                base = build_module_workbench_execution(workbench, portfolio)
+                ledger, commands = self._load_module_workbench_execution_journal(signature, base)
+                state["ledger"] = ledger
+                state["commands"] = commands
+                state["signature"] = signature
+            return state
 
     def _deployment_guard(self) -> DeploymentGuard:
         guard = getattr(self.server, "glio_deployment_guard", None)
@@ -6960,6 +7103,50 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path in {
+            "/v1/module-workbench/execution/command/schema",
+            "/v1/module-workbench/execution/command/capabilities",
+        }:
+            if parsed.query:
+                self._write_error(HTTPStatus.BAD_REQUEST, "execution command metadata does not accept query parameters")
+                return
+            if path.endswith("/schema"):
+                payload = {
+                    "version": MODULE_WORKBENCH_EXECUTION_VERSION,
+                    "journal_version": _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION,
+                    "boundary": "public_aggregate_module_workbench_execution",
+                    "method": "POST",
+                    "fields": {
+                        "task_id": "string, required",
+                        "action": "start|complete|block|unblock|skip|reopen|supersede, required",
+                        "detail": "non-empty string, required",
+                        "evidence_addresses": "sorted unique string array, optional",
+                        "requirement": "source|test|documentation|review|integration, optional",
+                        "expected_ledger_address": "string, optional optimistic concurrency guard",
+                    },
+                    "transition_rules": module_workbench_execution_schema()["transition_rules"],
+                    "response": "validated command, appended event, and current ledger summary",
+                }
+            else:
+                payload = {
+                    "version": MODULE_WORKBENCH_EXECUTION_VERSION,
+                    "journal_version": _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION,
+                    "operation_count": 6,
+                    "operations": [
+                        "validate_command",
+                        "enforce_transition_rules",
+                        "enforce_evidence_requirements",
+                        "append_addressed_event",
+                        "persist_compressed_journal",
+                        "replay_source_bound_journal",
+                    ],
+                    "durable": True,
+                    "append_only_events": True,
+                    "optimistic_concurrency": True,
+                    "evidence_gated_completion": True,
+                }
+            self._write(HTTPStatus.OK, payload)
             return
         if path == "/v1/sequence-comparisons" or path.startswith("/v1/sequence-comparisons/"):
             try:
@@ -23326,9 +23513,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution",
                     "/v1/module-workbench/execution/query",
                 }:
-                    lineage, quality, workbench = self._module_workbench_context()
-                    portfolio = build_module_workbench_portfolio(workbench)
-                    ledger = build_module_workbench_execution(workbench, portfolio)
+                    execution_state = self._module_workbench_execution_context()
+                    with execution_state["lock"]:
+                        ledger = execution_state["ledger"]
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution(
                             ledger,
@@ -27846,6 +28033,81 @@ class ApiHandler(BaseHTTPRequestHandler):
         path = parsed.path
         if not self._authorize_request():
             return
+        if path == "/v1/module-workbench/execution/command":
+            try:
+                if parsed.query:
+                    raise ValueError("execution commands do not accept query parameters")
+                payload = self._read_json(strict=True)
+                allowed = _MODULE_WORKBENCH_EXECUTION_COMMAND_FIELDS | {"expected_ledger_address"}
+                unknown = set(payload) - allowed
+                if unknown:
+                    raise ValueError(f"execution command has unknown fields: {sorted(unknown)}")
+                raw_evidence = payload.get("evidence_addresses", [])
+                if not isinstance(raw_evidence, list):
+                    raise ValueError("evidence_addresses must be an array")
+                expected_address = payload.get("expected_ledger_address")
+                if expected_address is not None and (
+                    not isinstance(expected_address, str) or not expected_address.strip()
+                ):
+                    raise ValueError("expected_ledger_address must be a non-empty string")
+                command = execution_command(
+                    payload.get("task_id"),
+                    payload.get("action"),
+                    payload.get("detail"),
+                    evidence_addresses=tuple(raw_evidence),
+                    requirement=payload.get("requirement"),
+                )
+                state = self._module_workbench_execution_context()
+                with state["lock"]:
+                    current = state["ledger"]
+                    if expected_address is not None and expected_address != current.content_address:
+                        self._write(
+                            HTTPStatus.CONFLICT,
+                            {
+                                "error": "execution_ledger_conflict",
+                                "message": "expected_ledger_address does not match the current ledger",
+                                "expected_ledger_address": expected_address,
+                                "current_ledger_address": current.content_address,
+                            },
+                        )
+                        return
+                    updated = apply_module_workbench_execution_command(current, command)
+                    commands = tuple(state["commands"]) + (command,)
+                    if not self._persist_module_workbench_execution_journal(
+                        state["signature"], updated, commands
+                    ):
+                        self._write(
+                            HTTPStatus.SERVICE_UNAVAILABLE,
+                            {
+                                "error": "execution_journal_unavailable",
+                                "message": "execution command was not applied because the journal could not be persisted",
+                            },
+                        )
+                        return
+                    state["ledger"] = updated
+                    state["commands"] = commands
+                self._write(
+                    HTTPStatus.CREATED,
+                    {
+                        "version": MODULE_WORKBENCH_EXECUTION_VERSION,
+                        "accepted": updated.accepted,
+                        "command": command.to_dict(),
+                        "event": updated.events[-1].to_dict(),
+                        "ledger": updated.to_dict(include_items=False, include_events=False),
+                        "journal": {
+                            "version": _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION,
+                            "command_count": len(commands),
+                            "durable": True,
+                        },
+                    },
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_execution_command", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
         if path == "/v1/geo-count-sensitivity":
             try:
                 from .geo_count_sensitivity_store import GeoCountSensitivityStore
@@ -29968,6 +30230,9 @@ def create_server(
     module_cache_root.mkdir(parents=True, exist_ok=True)
     _safe_validate_parent(module_cache_root, "module workbench cache directory")
     server.glio_module_workbench_cache_path = module_cache_root / "snapshot.json.gz"  # type: ignore[attr-defined]
+    server.glio_module_workbench_execution_journal_path = (  # type: ignore[attr-defined]
+        module_cache_root / "execution-journal.json.gz"
+    )
     server.glio_module_inventory_snapshot = {  # type: ignore[attr-defined]
         "lock": RLock(),
         "signature": None,

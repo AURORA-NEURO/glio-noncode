@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from http.client import HTTPConnection
@@ -709,6 +710,69 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join(timeout=10)
+
+    def test_http_execution_command_is_evidence_gated_and_replayed(self) -> None:
+        report = self.report()
+        with tempfile.TemporaryDirectory() as data_root:
+            with patch.object(ApiHandler, "_module_workbench_context", return_value=(None, None, report)):
+                server = create_server(host="127.0.0.1", port=0, data_root=data_root)
+                thread = Thread(target=server.serve_forever, daemon=True)
+                thread.start()
+                try:
+                    host, port = server.server_address
+                    connection = HTTPConnection(host, port, timeout=30)
+                    connection.request("GET", "/v1/module-workbench/execution/query?resource=items&state=ready&limit=1")
+                    response = connection.getresponse()
+                    ready_payload = json.loads(response.read().decode("utf-8"))
+                    self.assertEqual(response.status, 200)
+                    self.assertGreaterEqual(ready_payload["total"], 1)
+                    task_id = ready_payload["items"][0]["task_id"]
+                    ledger_address = ready_payload["ledger_address"]
+                    connection.request(
+                        "POST",
+                        "/v1/module-workbench/execution/command",
+                        body=json.dumps(
+                            {
+                                "task_id": task_id,
+                                "action": "start",
+                                "detail": "begin bounded implementation task",
+                                "expected_ledger_address": ledger_address,
+                            }
+                        ),
+                        headers={"Content-Type": "application/json"},
+                    )
+                    response = connection.getresponse()
+                    started_payload = json.loads(response.read().decode("utf-8"))
+                    self.assertEqual(response.status, 201)
+                    self.assertEqual(started_payload["event"]["to_state"], "in_progress")
+                    self.assertEqual(started_payload["journal"]["command_count"], 1)
+                    connection.close()
+                finally:
+                    server.shutdown()
+                    server.server_close()
+                    thread.join(timeout=10)
+
+            with patch.object(ApiHandler, "_module_workbench_context", return_value=(None, None, report)):
+                server = create_server(host="127.0.0.1", port=0, data_root=data_root)
+                thread = Thread(target=server.serve_forever, daemon=True)
+                thread.start()
+                try:
+                    host, port = server.server_address
+                    connection = HTTPConnection(host, port, timeout=30)
+                    connection.request(
+                        "GET",
+                        f"/v1/module-workbench/execution/query?resource=items&task_id={task_id}&limit=1",
+                    )
+                    response = connection.getresponse()
+                    replayed = json.loads(response.read().decode("utf-8"))
+                    connection.close()
+                finally:
+                    server.shutdown()
+                    server.server_close()
+                    thread.join(timeout=10)
+            self.assertEqual(response.status, 200)
+            self.assertEqual(replayed["items"][0]["state"], "in_progress")
+            self.assertEqual(replayed["items"][0]["event_count"], 1)
 
     def test_runtime_runs_the_complete_static_chain_once(self) -> None:
         runtime = run_module_workbench(
