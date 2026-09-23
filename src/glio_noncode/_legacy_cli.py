@@ -2780,6 +2780,18 @@ from .module_workbench_observability import (
     module_workbench_observability_capabilities,
     module_workbench_observability_schema,
 )
+from .module_workbench_archive import (
+    build_module_workbench_archive,
+    load_module_workbench_archive,
+    module_workbench_archive_capabilities,
+    module_workbench_archive_csv,
+    module_workbench_archive_json,
+    module_workbench_archive_schema,
+    query_module_workbench_archive,
+    render_module_workbench_archive_markdown,
+    verify_module_workbench_archive,
+    write_module_workbench_archive,
+)
 from .module_workbench_cache import (
     load_module_workbench_cache,
     load_module_workbench_previous_inventory,
@@ -10355,6 +10367,64 @@ def build_parser() -> argparse.ArgumentParser:
         "module-workbench-observability-capabilities",
         help="print module workbench observability capabilities",
     ).add_argument("--output", default=None)
+    module_workbench_archive = subparsers.add_parser(
+        "module-workbench-archive",
+        help="build a portable, verifiable module workbench report archive",
+    )
+    module_workbench_archive.add_argument("--source-root", default=None)
+    module_workbench_archive.add_argument("--test-root", default=None)
+    module_workbench_archive.add_argument("--docs-root", default=None)
+    module_workbench_archive.add_argument("--cache-root", default=None)
+    module_workbench_archive.add_argument(
+        "--archive-id",
+        default="glio-noncode-module-workbench-archive",
+    )
+    module_workbench_archive.add_argument("--destination", default=None)
+    module_workbench_archive.add_argument("--allow-existing", action="store_true")
+    module_workbench_archive.add_argument(
+        "--format", choices=("json", "csv", "markdown"), default="json"
+    )
+    module_workbench_archive.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-archive-schema",
+        help="print module workbench archive schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-archive-capabilities",
+        help="print module workbench archive capabilities",
+    ).add_argument("--output", default=None)
+    module_workbench_archive_verify = subparsers.add_parser(
+        "module-workbench-archive-verify",
+        help="verify a portable module workbench archive",
+    )
+    module_workbench_archive_verify.add_argument("archive", type=str)
+    module_workbench_archive_verify.add_argument("--output", default=None)
+    module_workbench_archive_load = subparsers.add_parser(
+        "module-workbench-archive-load",
+        help="load a verified module workbench report from an archive",
+    )
+    module_workbench_archive_load.add_argument("archive", type=str)
+    module_workbench_archive_load.add_argument("--output", default=None)
+    module_workbench_archive_query = subparsers.add_parser(
+        "module-workbench-archive-query",
+        help="query an archived module workbench report without source access",
+    )
+    module_workbench_archive_query.add_argument("archive", type=str)
+    module_workbench_archive_query.add_argument(
+        "--resource",
+        choices=("entries", "summary", "modules", "tasks", "families", "risks"),
+        default="entries",
+    )
+    module_workbench_archive_query.add_argument("--module-id", default=None)
+    module_workbench_archive_query.add_argument("--family", default=None)
+    module_workbench_archive_query.add_argument("--depth-band", default=None)
+    module_workbench_archive_query.add_argument("--risk", default=None)
+    module_workbench_archive_query.add_argument("--kind", default=None)
+    module_workbench_archive_query.add_argument("--text", default=None)
+    module_workbench_archive_query.add_argument("--offset", default=0, type=int)
+    module_workbench_archive_query.add_argument("--limit", default=50, type=int)
+    module_workbench_archive_query.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_archive_query.add_argument("--output", default=None)
     module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
@@ -48577,6 +48647,69 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "module-workbench-observability-capabilities":
             _write_json(module_workbench_observability_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-archive-schema":
+            _write_json(module_workbench_archive_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-archive-capabilities":
+            _write_json(module_workbench_archive_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-archive":
+            _inventory, _matrix, _lineage, _quality, workbench = _build_module_workbench_cli_chain(args)[:5]
+            archive = build_module_workbench_archive(workbench, archive_id=args.archive_id)
+            if args.destination:
+                archive = write_module_workbench_archive(
+                    archive,
+                    args.destination,
+                    allow_existing=args.allow_existing,
+                )
+            if args.format == "csv":
+                _write_text(module_workbench_archive_csv(archive), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_archive_markdown(archive), args.output)
+            else:
+                _write_text(module_workbench_archive_json(archive), args.output)
+            return 0
+        if args.command == "module-workbench-archive-verify":
+            verification = verify_module_workbench_archive(args.archive)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-workbench-archive-load":
+            report = load_module_workbench_archive(args.archive)
+            _write_text(module_workbench_json(report), args.output)
+            return 0
+        if args.command == "module-workbench-archive-query":
+            result = query_module_workbench_archive(
+                args.archive,
+                resource=args.resource,
+                module_id=args.module_id,
+                family=args.family,
+                depth_band=args.depth_band,
+                risk=args.risk,
+                kind=args.kind,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                archive = build_module_workbench_archive(load_module_workbench_archive(args.archive))
+                _write_text(
+                    module_workbench_archive_csv(
+                        archive,
+                        args.resource,
+                        module_id=args.module_id,
+                        family=args.family,
+                        depth_band=args.depth_band,
+                        risk=args.risk,
+                        kind=args.kind,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_json(result, args.output)
             return 0
         if args.command == "module-workbench-observability":
             (

@@ -1819,6 +1819,19 @@ from .module_workbench_observability import (
     module_workbench_observability_capabilities,
     module_workbench_observability_schema,
 )
+from .module_workbench_archive import (
+    build_module_workbench_archive,
+    load_module_workbench_archive,
+    module_workbench_archive_bytes,
+    module_workbench_archive_capabilities,
+    module_workbench_archive_csv,
+    module_workbench_archive_json,
+    module_workbench_archive_schema,
+    query_module_workbench_archive,
+    render_module_workbench_archive_markdown,
+    verify_module_workbench_archive,
+    write_module_workbench_archive,
+)
 from .module_workbench_triage import (
     build_module_workbench_triage,
     module_workbench_triage_capabilities,
@@ -22440,9 +22453,14 @@ class ApiHandler(BaseHTTPRequestHandler):
              "/v1/module-workbench/portfolio/schema",
              "/v1/module-workbench/portfolio/capabilities",
              "/v1/module-workbench/triage",
-             "/v1/module-workbench/triage/query",
-             "/v1/module-workbench/triage/schema",
-             "/v1/module-workbench/triage/capabilities",
+            "/v1/module-workbench/triage/query",
+            "/v1/module-workbench/triage/schema",
+            "/v1/module-workbench/triage/capabilities",
+            "/v1/module-workbench/archive",
+            "/v1/module-workbench/archive/query",
+            "/v1/module-workbench/archive/schema",
+            "/v1/module-workbench/archive/capabilities",
+            "/v1/module-workbench/archive.zip",
             "/v1/module-workbench/execution",
             "/v1/module-workbench/execution/query",
             "/v1/module-workbench/execution/schema",
@@ -23882,6 +23900,82 @@ class ApiHandler(BaseHTTPRequestHandler):
                             payload = triage.to_dict(include_items=False)
                         else:
                             payload = triage.to_dict(include_items=self._query_bool(query, "include_items") is not False)
+                elif path == "/v1/module-workbench/archive.zip":
+                    if query:
+                        raise ValueError("module workbench archive download does not accept query parameters")
+                    _lineage, _quality, workbench = self._module_workbench_context()
+                    archive = build_module_workbench_archive(workbench)
+                    self._write_bytes(
+                        HTTPStatus.OK,
+                        module_workbench_archive_bytes(archive),
+                        content_type="application/zip",
+                        headers={
+                            "Content-Disposition": (
+                                'attachment; filename="glio-noncode-module-workbench.zip"'
+                            ),
+                            "X-GLIO-Workbench-Address": archive.workbench_address,
+                            "X-GLIO-Archive-Address": archive.archive_address,
+                        },
+                    )
+                    return
+                elif path in {
+                    "/v1/module-workbench/archive",
+                    "/v1/module-workbench/archive/query",
+                    "/v1/module-workbench/archive/schema",
+                    "/v1/module-workbench/archive/capabilities",
+                }:
+                    if path.endswith("/schema"):
+                        payload = module_workbench_archive_schema()
+                    elif path.endswith("/capabilities"):
+                        payload = module_workbench_archive_capabilities()
+                    else:
+                        _lineage, _quality, workbench = self._module_workbench_context()
+                        archive = build_module_workbench_archive(workbench)
+                        if path.endswith("/query"):
+                            payload = query_module_workbench_archive(
+                                archive,
+                                resource=self._query_value(query, "resource") or "entries",
+                                module_id=self._query_value(query, "module_id"),
+                                family=self._query_value(query, "family"),
+                                depth_band=self._query_value(query, "depth_band"),
+                                risk=self._query_value(query, "risk"),
+                                kind=self._query_value(query, "kind"),
+                                text=self._query_value(query, "q") or self._query_value(query, "text"),
+                                offset=self._query_int(query, "offset", 0),
+                                limit=self._query_int(query, "limit", 50),
+                            )
+                        else:
+                            output_format = self._query_value(query, "format") or "json"
+                            if output_format == "csv":
+                                self._write_bytes(
+                                    HTTPStatus.OK,
+                                    module_workbench_archive_csv(
+                                        archive,
+                                        self._query_value(query, "resource") or "entries",
+                                        module_id=self._query_value(query, "module_id"),
+                                        family=self._query_value(query, "family"),
+                                        depth_band=self._query_value(query, "depth_band"),
+                                        risk=self._query_value(query, "risk"),
+                                        kind=self._query_value(query, "kind"),
+                                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                                        offset=self._query_int(query, "offset", 0),
+                                        limit=self._query_int(query, "limit", 50),
+                                    ).encode("utf-8"),
+                                    content_type="text/csv; charset=utf-8",
+                                )
+                                return
+                            if output_format == "markdown":
+                                self._write_bytes(
+                                    HTTPStatus.OK,
+                                    render_module_workbench_archive_markdown(archive).encode("utf-8"),
+                                    content_type="text/markdown; charset=utf-8",
+                                )
+                                return
+                            payload = (
+                                archive.to_dict(include_entries=False)
+                                if output_format == "summary"
+                                else archive.to_dict()
+                            )
                 elif path in {
                     "/v1/module-workbench/execution",
                     "/v1/module-workbench/execution/query",

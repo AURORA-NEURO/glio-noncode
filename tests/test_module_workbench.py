@@ -1142,6 +1142,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/portfolio/schema", "selection"),
                 ("/v1/module-workbench/triage/schema", "reason_codes"),
                 ("/v1/module-workbench/triage/capabilities", "operations"),
+                ("/v1/module-workbench/archive/schema", "members"),
+                ("/v1/module-workbench/archive/capabilities", "source_free_reload"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

@@ -10717,6 +10717,30 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'plan and query deep module-by-module implementation work',
     ),
     (
+        'module-workbench-archive',
+        'build a portable, verifiable module workbench report archive',
+    ),
+    (
+        'module-workbench-archive-capabilities',
+        'print module workbench archive capabilities',
+    ),
+    (
+        'module-workbench-archive-load',
+        'load a verified module workbench report from an archive',
+    ),
+    (
+        'module-workbench-archive-query',
+        'query an archived module workbench report without source access',
+    ),
+    (
+        'module-workbench-archive-schema',
+        'print module workbench archive schema',
+    ),
+    (
+        'module-workbench-archive-verify',
+        'verify a portable module workbench archive',
+    ),
+    (
         'module-workbench-audit',
         'audit module workbench invariants',
     ),

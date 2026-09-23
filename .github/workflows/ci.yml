@@ -94,6 +94,20 @@ jobs:
       - name: Verify independent diff conservation
         run: >-
           python -c "import json; module=json.load(open('.ci-workbench-diff.json', encoding='utf-8')); execution=json.load(open('.ci-workbench-execution-diff.json', encoding='utf-8')); assert module['accepted'] and module['added_count'] == 0 and module['removed_count'] == 0 and module['changed_count'] == 0; assert execution['accepted'] and execution['added_count'] == 0 and execution['removed_count'] == 0 and execution['changed_count'] == 0; print(f\"diff cache contract passed: {module['unchanged_count']} modules, {execution['unchanged_count']} execution items\")"
+      - name: Build portable module workbench archive
+        run: >-
+          python -m glio_noncode module-workbench-archive
+          --cache-root .ci-workbench-cache
+          --destination .ci-workbench.zip
+          --format json --output .ci-workbench-archive.json
+      - name: Verify and query portable archive without source rebuild
+        run: >-
+          python -m glio_noncode module-workbench-archive-verify
+          .ci-workbench.zip --output .ci-workbench-archive-verification.json
+          && python -m glio_noncode module-workbench-archive-query
+          .ci-workbench.zip --resource modules --limit 1
+          --output .ci-workbench-archive-query.json
+          && python -c "import json; verification=json.load(open('.ci-workbench-archive-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-archive-query.json', encoding='utf-8')); assert verification['accepted'] and verification['entry_count'] == 2 and not [check for check in verification['checks'] if not check['passed']]; assert query['total'] >= 1 and query['archive_address'] == verification['archive_address']; print('workbench archive contract passed')"
       - name: Upload workbench observations
         uses: actions/upload-artifact@v4
         with:
@@ -103,6 +117,10 @@ jobs:
             .ci-workbench-restart.json
             .ci-workbench-diff.json
             .ci-workbench-execution-diff.json
+            .ci-workbench-archive.json
+            .ci-workbench-archive-verification.json
+            .ci-workbench-archive-query.json
+            .ci-workbench.zip
           if-no-files-found: error
 
   pytest-contracts:

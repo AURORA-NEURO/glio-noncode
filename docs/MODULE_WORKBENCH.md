@@ -247,6 +247,34 @@ workers reopen the exact snapshot after the lock is released. The lock file
 contains no report data, is crash-released by the operating system, and is
 rejected when its parent is symlinked.
 
+## Portable report archives
+
+The complete aggregate workbench can be handed to another reviewer as a
+deterministic two-member ZIP archive. It contains only a canonical manifest
+and the path-free `workbench.json` report; it never copies source, test,
+documentation, downloaded data, absolute paths, timestamps, or private
+identity fields. The archive can therefore be reloaded and queried on a
+machine that does not have the analyzed repository:
+
+```text
+glio-noncode module-workbench-archive \
+  --cache-root .glio/module-cache \
+  --destination workbench.zip \
+  --format markdown --output workbench-archive.md
+glio-noncode module-workbench-archive-verify workbench.zip
+glio-noncode module-workbench-archive-query workbench.zip \
+  --resource modules --risk high --limit 50
+glio-noncode module-workbench-archive-load workbench.zip \
+  --output restored-workbench.json
+```
+
+Verification checks ZIP readability, duplicate and traversal-free member
+names, regular-file metadata, canonical JSON, exact member bytes, typed report
+hydration, every nested content address, state conservation, and the public
+aggregate boundary. A valid archive preserves the original workbench address;
+its report can be queried without rebuilding source inventory or accepting any
+archive-contained executable content.
+
 ## Browser workbench
 
 The local review workbench exposes the same module contract in the left rail
@@ -507,6 +535,11 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/triage/query` | bounded triage query by pressure signals |
 | `GET /v1/module-workbench/triage/schema` | triage schema and reason codes |
 | `GET /v1/module-workbench/triage/capabilities` | triage operations and guarantees |
+| `GET /v1/module-workbench/archive` | portable report archive descriptor or projection |
+| `GET /v1/module-workbench/archive/query` | bounded query over the current archive projection |
+| `GET /v1/module-workbench/archive.zip` | exact-byte deterministic workbench download |
+| `GET /v1/module-workbench/archive/schema` | archive member and boundary contract |
+| `GET /v1/module-workbench/archive/capabilities` | archive operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an
