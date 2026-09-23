@@ -314,6 +314,9 @@ showing the loaded-row count separately from the total catalog count.
 The comparison table loads bounded pages and preserves the active filters while
 loading additional rows; its filtered summary remains computed across the full
 matching set rather than only the rows currently visible.
+Saved paired-count, normalization-sensitivity, and expression-consistency
+catalogs also use continuation controls with stale-response protection, so large
+review archives do not stop at the first catalog page.
 Single-analysis and batch-detail motif tables use the same bounded-page contract,
 with motif/change filters, continuation controls, stale-response protection, and
 filtered CSV links. Single-analysis change pages also include a

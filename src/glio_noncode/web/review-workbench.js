@@ -9,12 +9,12 @@
     geoPreflightFilters: { accession: "", kind: "" },
     geoExpressionAnalyses: [], geoExpressionTotal: 0, selectedGeoExpression: null, geoExpressionPage: null, geoExpressionResults: [],
     geoExpressionCompareIds: [], geoExpressionConsistency: null, geoExpressionConsistencyRequest: 0,
-    geoExpressionConsistencyRecords: [], geoExpressionConsistencyTotal: 0, selectedGeoExpressionConsistency: null, geoExpressionConsistencyListRequest: 0,
+    geoExpressionConsistencyRecords: [], geoExpressionConsistencyTotal: 0, geoExpressionConsistencyHasMore: false, selectedGeoExpressionConsistency: null, geoExpressionConsistencyListRequest: 0,
     geoFilters: { feature_contains: "", effect_direction: "", min_abs_median_effect: "", fdr_significant: false, sign_test_fdr_significant: false },
-    geoCompareIds: [], geoConsistency: null, geoConsistencyRecords: [], geoConsistencyTotal: 0,
+    geoCompareIds: [], geoConsistency: null, geoConsistencyRecords: [], geoConsistencyTotal: 0, geoConsistencyHasMore: false,
     selectedGeoConsistency: null, geoConsistencyListRequest: 0, geoConsistencyFilterTimer: null,
     geoConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "", sign_test_direction_consistency: "" },
-    geoSensitivity: null, geoSensitivityRecords: [], geoSensitivityTotal: 0,
+    geoSensitivity: null, geoSensitivityRecords: [], geoSensitivityTotal: 0, geoSensitivityHasMore: false,
     selectedGeoSensitivity: null, geoSensitivityListRequest: 0, geoSensitivityRequest: 0, geoSensitivityFilterTimer: null,
     geoSensitivityFilters: { feature_contains: "", direction_sensitivity: "", fdr_sensitivity: "", sign_test_fdr_sensitivity: "" },
     geoExpressionConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "" }, geoExpressionConsistencyFilterTimer: null,
@@ -213,6 +213,8 @@
     list.replaceChildren();
     $("geo-expression-consistency-count").textContent = String(model.geoExpressionConsistencyTotal);
     $("geo-expression-consistency-list-summary").textContent = `Showing ${model.geoExpressionConsistencyRecords.length} of ${model.geoExpressionConsistencyTotal} saved comparisons.`;
+    const loadMore = $("geo-expression-consistency-list-load-more");
+    loadMore.hidden = !model.geoExpressionConsistencyHasMore;
     if (!model.geoExpressionConsistencyRecords.length) {
       list.append(element("p", "empty-inline", "No saved expression comparisons yet."));
       return;
@@ -468,6 +470,8 @@
     list.replaceChildren();
     $("geo-consistency-count").textContent = String(model.geoConsistencyTotal);
     $("geo-consistency-list-summary").textContent = `Showing ${model.geoConsistencyRecords.length} of ${model.geoConsistencyTotal} saved comparisons.`;
+    const loadMore = $("geo-consistency-list-load-more");
+    loadMore.hidden = !model.geoConsistencyHasMore;
     if (!model.geoConsistencyRecords.length) {
       list.append(element("p", "empty-inline", "No saved paired-count comparisons yet."));
       return;
@@ -492,6 +496,8 @@
     list.replaceChildren();
     $("geo-sensitivity-count").textContent = String(model.geoSensitivityTotal);
     $("geo-sensitivity-list-summary").textContent = `Showing ${model.geoSensitivityRecords.length} of ${model.geoSensitivityTotal} saved sensitivity comparisons.`;
+    const loadMore = $("geo-sensitivity-list-load-more");
+    loadMore.hidden = !model.geoSensitivityHasMore;
     if (!model.geoSensitivityRecords.length) {
       list.append(element("p", "empty-inline", "No saved normalization sensitivity comparisons yet."));
       return;
@@ -704,58 +710,82 @@
     }
   }
 
-  async function loadGeoConsistencyRecords() {
+  async function loadGeoConsistencyRecords(append = false) {
     const request = model.geoConsistencyListRequest = (model.geoConsistencyListRequest || 0) + 1;
+    const offset = append ? model.geoConsistencyRecords.length : 0;
+    const button = $("geo-consistency-list-load-more");
+    button.disabled = append;
     try {
-      const page = await getJson("/v1/geo-count-consistency?limit=50&offset=0");
+      const page = await getJson(`/v1/geo-count-consistency?limit=50&offset=${offset}`);
       if (request !== model.geoConsistencyListRequest) return;
-      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) throw new Error("The local API returned an invalid GEO count consistency catalog.");
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count) || page.offset !== offset || typeof page.has_more !== "boolean") throw new Error("The local API returned an invalid GEO count consistency catalog.");
       model.geoConsistencyTotal = page.total_count;
-      model.geoConsistencyRecords = page.rows;
+      model.geoConsistencyRecords = append ? model.geoConsistencyRecords.concat(page.rows) : page.rows;
+      model.geoConsistencyHasMore = page.has_more;
       renderGeoConsistencyRecords();
-      if (model.activeView === "geo-consistency" && model.selectedGeoConsistency) {
+      if (!append && model.activeView === "geo-consistency" && model.selectedGeoConsistency) {
         if (model.geoConsistencyRecords.some((item) => item.comparison_id === model.selectedGeoConsistency)) await openGeoConsistency(model.selectedGeoConsistency);
         else showEmpty("No saved paired-count comparison", "The previously selected comparison is no longer present in the local catalog.");
       }
     } catch (error) {
       if (request !== model.geoConsistencyListRequest) return;
-      $("geo-consistency-list").replaceChildren(element("p", "empty-inline", "Paired-count comparisons could not be loaded."));
-      $("geo-consistency-list-summary").textContent = "The local API could not verify the paired-count consistency catalog.";
+      if (!append) {
+        model.geoConsistencyHasMore = false;
+        button.hidden = true;
+        $("geo-consistency-list").replaceChildren(element("p", "empty-inline", "Paired-count comparisons could not be loaded."));
+        $("geo-consistency-list-summary").textContent = "The local API could not verify the paired-count consistency catalog.";
+      }
       notice(error.message, true);
+    } finally {
+      if (request === model.geoConsistencyListRequest) button.disabled = false;
     }
   }
 
-  async function loadGeoSensitivityRecords() {
+  async function loadGeoSensitivityRecords(append = false) {
     const request = model.geoSensitivityListRequest = (model.geoSensitivityListRequest || 0) + 1;
+    const offset = append ? model.geoSensitivityRecords.length : 0;
+    const button = $("geo-sensitivity-list-load-more");
+    button.disabled = append;
     try {
-      const page = await getJson("/v1/geo-count-sensitivity?limit=50&offset=0");
+      const page = await getJson(`/v1/geo-count-sensitivity?limit=50&offset=${offset}`);
       if (request !== model.geoSensitivityListRequest) return;
-      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) throw new Error("The local API returned an invalid GEO sensitivity catalog.");
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count) || page.offset !== offset || typeof page.has_more !== "boolean") throw new Error("The local API returned an invalid GEO sensitivity catalog.");
       model.geoSensitivityTotal = page.total_count;
-      model.geoSensitivityRecords = page.rows;
+      model.geoSensitivityRecords = append ? model.geoSensitivityRecords.concat(page.rows) : page.rows;
+      model.geoSensitivityHasMore = page.has_more;
       renderGeoSensitivityRecords();
-      if (model.activeView === "geo-sensitivity" && model.selectedGeoSensitivity) {
+      if (!append && model.activeView === "geo-sensitivity" && model.selectedGeoSensitivity) {
         if (model.geoSensitivityRecords.some((item) => item.comparison_id === model.selectedGeoSensitivity)) await openGeoSensitivity(model.selectedGeoSensitivity);
         else showEmpty("No saved normalization sensitivity", "The previously selected sensitivity comparison is no longer present in the local catalog.");
       }
     } catch (error) {
       if (request !== model.geoSensitivityListRequest) return;
-      $("geo-sensitivity-list").replaceChildren(element("p", "empty-inline", "Normalization sensitivity comparisons could not be loaded."));
-      $("geo-sensitivity-list-summary").textContent = "The local API could not verify the GEO sensitivity catalog.";
+      if (!append) {
+        model.geoSensitivityHasMore = false;
+        button.hidden = true;
+        $("geo-sensitivity-list").replaceChildren(element("p", "empty-inline", "Normalization sensitivity comparisons could not be loaded."));
+        $("geo-sensitivity-list-summary").textContent = "The local API could not verify the GEO sensitivity catalog.";
+      }
       notice(error.message, true);
+    } finally {
+      if (request === model.geoSensitivityListRequest) button.disabled = false;
     }
   }
 
-  async function loadGeoExpressionConsistencyRecords() {
+  async function loadGeoExpressionConsistencyRecords(append = false) {
     const request = model.geoExpressionConsistencyListRequest = (model.geoExpressionConsistencyListRequest || 0) + 1;
+    const offset = append ? model.geoExpressionConsistencyRecords.length : 0;
+    const button = $("geo-expression-consistency-list-load-more");
+    button.disabled = append;
     try {
-      const page = await getJson("/v1/geo-expression-consistency?limit=50&offset=0");
+      const page = await getJson(`/v1/geo-expression-consistency?limit=50&offset=${offset}`);
       if (request !== model.geoExpressionConsistencyListRequest) return;
-      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) throw new Error("The local API returned an invalid GEO consistency catalog.");
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count) || page.offset !== offset || typeof page.has_more !== "boolean") throw new Error("The local API returned an invalid GEO consistency catalog.");
       model.geoExpressionConsistencyTotal = page.total_count;
-      model.geoExpressionConsistencyRecords = page.rows;
+      model.geoExpressionConsistencyRecords = append ? model.geoExpressionConsistencyRecords.concat(page.rows) : page.rows;
+      model.geoExpressionConsistencyHasMore = page.has_more;
       renderGeoExpressionConsistencyRecords();
-      if (model.activeView === "geo-expression-consistency" && model.selectedGeoExpressionConsistency) {
+      if (!append && model.activeView === "geo-expression-consistency" && model.selectedGeoExpressionConsistency) {
         if (model.geoExpressionConsistencyRecords.some((item) => item.comparison_id === model.selectedGeoExpressionConsistency)) {
           await openGeoExpressionConsistency(model.selectedGeoExpressionConsistency);
         } else {
@@ -764,9 +794,15 @@
       }
     } catch (error) {
       if (request !== model.geoExpressionConsistencyListRequest) return;
-      $("geo-expression-consistency-list").replaceChildren(element("p", "empty-inline", "Expression comparisons could not be loaded."));
-      $("geo-expression-consistency-list-summary").textContent = "The local API could not verify the expression consistency catalog.";
+      if (!append) {
+        model.geoExpressionConsistencyHasMore = false;
+        button.hidden = true;
+        $("geo-expression-consistency-list").replaceChildren(element("p", "empty-inline", "Expression comparisons could not be loaded."));
+        $("geo-expression-consistency-list-summary").textContent = "The local API could not verify the expression consistency catalog.";
+      }
       notice(error.message, true);
+    } finally {
+      if (request === model.geoExpressionConsistencyListRequest) button.disabled = false;
     }
   }
 
@@ -2740,6 +2776,9 @@
     reloadGeoPreflights();
   });
   $("geo-preflight-load-more").addEventListener("click", () => loadGeoPreflights(true));
+  $("geo-expression-consistency-list-load-more").addEventListener("click", () => loadGeoExpressionConsistencyRecords(true));
+  $("geo-consistency-list-load-more").addEventListener("click", () => loadGeoConsistencyRecords(true));
+  $("geo-sensitivity-list-load-more").addEventListener("click", () => loadGeoSensitivityRecords(true));
 
   $("geo-load-more").addEventListener("click", () => {
     if (model.selectedGeo) openGeoAnalysis(model.selectedGeo, { append: true });
