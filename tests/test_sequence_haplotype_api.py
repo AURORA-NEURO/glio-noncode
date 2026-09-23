@@ -90,6 +90,8 @@ class SequenceHaplotypeApiTests(unittest.TestCase):
                 changes = json.loads(changes_response.read())
                 self.assertEqual(changes_response.status, 200)
                 self.assertEqual(changes["total_changes"], 1)
+                self.assertEqual(changes["filtered_change_summary"]["created_count"], 1)
+                self.assertEqual(changes["filtered_change_summary"]["distinct_variant_count"], 2)
 
                 connection.request("GET", f"/v1/sequence-analyses/{analysis_id}/changes.csv")
                 csv_response = connection.getresponse()

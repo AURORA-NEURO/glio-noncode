@@ -536,6 +536,24 @@ class SequenceHaplotypeStore:
                 or motif_contains in hit["name"].casefold()
             )
         ]
+        linked_variant_ids = {
+            variant_id
+            for hit in filtered
+            for variant_id in hit["variant_ids"]
+        }
+        filtered_change_summary = {
+            "change_count": len(filtered),
+            "created_count": sum(hit["change"] == "created" for hit in filtered),
+            "disrupted_count": sum(hit["change"] == "disrupted" for hit in filtered),
+            "variant_link_count": sum(len(hit["variant_ids"]) for hit in filtered),
+            "distinct_variant_count": len(linked_variant_ids),
+            "reference_interval_count": sum(
+                hit["reference_interval"] is not None for hit in filtered
+            ),
+            "haplotype_interval_count": sum(
+                hit["haplotype_interval"] is not None for hit in filtered
+            ),
+        }
         return {
             "schema": "glio-noncode.sequence-haplotype-changes.v1",
             "analysis_id": analysis_id,
@@ -545,6 +563,7 @@ class SequenceHaplotypeStore:
             "unfiltered_change_count": len(changes),
             "has_more": offset + limit < len(filtered),
             "filters": {"change": change, "motif_contains": motif_contains},
+            "filtered_change_summary": filtered_change_summary,
             "changes": filtered[offset : offset + limit],
         }
 

@@ -1912,8 +1912,9 @@
         body.append(row);
       }
     }
+    const changeSummary = changes.filtered_change_summary || {};
     $("sequence-change-count").textContent = `${formatCount(changes.total_changes)} motif changes`;
-    $("sequence-analysis-change-filter-summary").textContent = `${formatCount(changes.total_changes)} filtered motif changes · ${formatCount(changes.unfiltered_change_count)} total changes in the verified report`;
+    $("sequence-analysis-change-filter-summary").textContent = `${formatCount(changeSummary.change_count ?? changes.total_changes)} filtered motif changes · ${formatCount(changeSummary.created_count ?? 0)} created · ${formatCount(changeSummary.disrupted_count ?? 0)} disrupted · ${formatCount(changes.unfiltered_change_count)} total changes in the verified report`;
     $("sequence-analysis-change-load-more").hidden = !changes.has_more;
     const limitations = $("sequence-limitations");
     limitations.replaceChildren();

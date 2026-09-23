@@ -35,6 +35,18 @@ class SequenceHaplotypeStoreTests(unittest.TestCase):
 
             changes = store.page_changes(record["analysis_id"], motif_contains="JOINT")
             self.assertEqual(changes["total_changes"], 1)
+            self.assertEqual(
+                changes["filtered_change_summary"],
+                {
+                    "change_count": 1,
+                    "created_count": 1,
+                    "disrupted_count": 0,
+                    "variant_link_count": 2,
+                    "distinct_variant_count": 2,
+                    "reference_interval_count": 1,
+                    "haplotype_interval_count": 1,
+                },
+            )
             self.assertEqual(changes["changes"][0]["change"], "created")
             self.assertEqual(
                 store.page_changes(record["analysis_id"], change="disrupted")["total_changes"],

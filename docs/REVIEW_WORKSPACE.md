@@ -316,7 +316,10 @@ loading additional rows; its filtered summary remains computed across the full
 matching set rather than only the rows currently visible.
 Single-analysis and batch-detail motif tables use the same bounded-page contract,
 with motif/change filters, continuation controls, stale-response protection, and
-filtered CSV links.
+filtered CSV links. Single-analysis change pages also include a
+`filtered_change_summary` with created/disrupted counts, variant-link and
+distinct-variant counts, and reference/haplotype interval availability computed
+across the complete filtered set before pagination.
 the resulting catalog is listed at `GET /v1/sequence-comparisons` and its
 verified changes are available through `/changes.csv`.
 

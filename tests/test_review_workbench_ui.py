@@ -179,6 +179,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("function loadMoreSequenceBatchChanges", javascript)
         self.assertIn("sequence-analysis-change-load-more", javascript)
         self.assertIn("sequence-batch-change-load-more", javascript)
+        self.assertIn("changeSummary.created_count", javascript)
+        self.assertIn("changeSummary.disrupted_count", javascript)
         self.assertIn("function loadSequenceComparisons(append = false)", javascript)
         self.assertIn("loadSequenceComparisons(true)", javascript)
         self.assertIn("function loadMoreSequenceComparisonChanges", javascript)
