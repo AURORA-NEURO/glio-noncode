@@ -7,8 +7,9 @@ import unittest
 from http.client import HTTPConnection
 from pathlib import Path
 from threading import Thread
+from unittest.mock import patch
 
-from glio_noncode.api import create_server
+from glio_noncode.api import ApiHandler, create_server
 from glio_noncode.errors import ValidationError
 from glio_noncode.module_certification import build_module_certification
 from glio_noncode.module_certification_lineage import build_module_certification_lineage
@@ -125,6 +126,48 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         )
         quality = build_module_certification_quality(matrix, lineage)
         return build_module_workbench(inventory, matrix, lineage, quality)
+
+    def test_api_workbench_context_reuses_and_invalidates_derived_chain(self) -> None:
+        handler = object.__new__(ApiHandler)
+        handler.server = type("Server", (), {})()
+        inventory = object()
+        matrix = object()
+        lineage = object()
+        quality = object()
+        workbench = object()
+        with (
+            patch(
+                "glio_noncode.api._module_inventory_source_signature",
+                side_effect=[("stable",), ("stable",), ("changed",)],
+            ),
+            patch.object(
+                handler,
+                "_module_certification_context",
+                return_value=(inventory, matrix, None, None, None),
+            ) as certification_context,
+            patch(
+                "glio_noncode.api.build_module_certification_lineage",
+                return_value=lineage,
+            ) as lineage_builder,
+            patch(
+                "glio_noncode.api.build_module_certification_quality",
+                return_value=quality,
+            ) as quality_builder,
+            patch(
+                "glio_noncode.api.build_module_workbench",
+                return_value=workbench,
+            ) as workbench_builder,
+        ):
+            first = handler._module_workbench_context()
+            second = handler._module_workbench_context()
+            third = handler._module_workbench_context()
+
+        self.assertIs(first, second)
+        self.assertIsNot(second, third)
+        self.assertEqual(certification_context.call_count, 2)
+        self.assertEqual(lineage_builder.call_count, 2)
+        self.assertEqual(quality_builder.call_count, 2)
+        self.assertEqual(workbench_builder.call_count, 2)
 
     def test_report_conserves_depth_risk_and_task_surfaces(self) -> None:
         report = self.report()

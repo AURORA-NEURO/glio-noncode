@@ -336,7 +336,11 @@ The API mirrors the CLI under `/v1/module-workbench`:
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an
 unprocessable response while still returning the complete explanatory check
-body.
+body. The server keeps one derived lineage, quality, and workbench snapshot
+per source fingerprint, so adjacent module-workbench routes reuse the same
+typed chain instead of rebuilding it independently. Any Python source or test
+file metadata change invalidates that chain before the next request; CLI
+invocations still build a fresh chain.
 
 ## Public boundary
 

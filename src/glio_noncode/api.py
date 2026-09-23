@@ -3571,6 +3571,26 @@ class ApiHandler(BaseHTTPRequestHandler):
             setattr(self.server, "glio_module_certification_context", context)  # noqa: B010 - server-local cache
         return context
 
+    def _module_workbench_context(self) -> tuple[Any, Any, Any]:
+        """Cache the derived lineage, quality, and workbench projections."""
+
+        signature = _module_inventory_source_signature()
+        state = getattr(self.server, "glio_module_workbench_context", None)
+        if state is None:
+            state = {"lock": RLock(), "signature": None, "value": None}
+            setattr(self.server, "glio_module_workbench_context", state)
+        with state["lock"]:
+            if state["signature"] != signature or state["value"] is None:
+                inventory, matrix, _, _, _ = self._module_certification_context(
+                    include_certification=False
+                )
+                lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                quality = build_module_certification_quality(matrix, lineage)
+                workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                state["value"] = (lineage, quality, workbench)
+                state["signature"] = signature
+            return state["value"]
+
     def _deployment_guard(self) -> DeploymentGuard:
         guard = getattr(self.server, "glio_deployment_guard", None)
         if guard is None:
@@ -23041,9 +23061,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench",
                     "/v1/module-workbench/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     if path.endswith("/query"):
                         payload = query_module_workbench(workbench, resource=self._query_value(query, "resource") or "modules", module_id=self._query_value(query, "module_id"), family=self._query_value(query, "family"), depth_band=self._query_value(query, "depth_band"), risk=self._query_value(query, "risk"), kind=self._query_value(query, "kind"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
                     else:
@@ -23063,9 +23081,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/policy",
                     "/v1/module-workbench/policy/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     gate = evaluate_module_workbench_policy(workbench, default_module_workbench_policy())
                     if path.endswith("/query"):
                         payload = query_module_workbench_policy(gate, resource=self._query_value(query, "resource") or "checks", passed=self._query_bool(query, "passed"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
@@ -23085,9 +23101,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/audit",
                     "/v1/module-workbench/audit/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     audit = audit_module_workbench(workbench)
                     if path.endswith("/query"):
                         payload = query_module_workbench_audit(audit, plane=self._query_value(query, "plane"), passed=self._query_bool(query, "passed"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
@@ -23117,9 +23131,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/portfolio",
                     "/v1/module-workbench/portfolio/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     portfolio = build_module_workbench_portfolio(workbench)
                     if path.endswith("/query"):
                         payload = query_module_workbench_portfolio(portfolio, module_id=self._query_value(query, "module_id"), kind=self._query_value(query, "kind"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
@@ -23129,9 +23141,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution",
                     "/v1/module-workbench/execution/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     portfolio = build_module_workbench_portfolio(workbench)
                     ledger = build_module_workbench_execution(workbench, portfolio)
                     if path.endswith("/query"):
@@ -23172,9 +23182,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/audit",
                     "/v1/module-workbench/execution/audit/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     ledger = build_module_workbench_execution(workbench)
                     audit = audit_module_workbench_execution(ledger)
                     if path.endswith("/query"):
@@ -23202,9 +23210,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/policy",
                     "/v1/module-workbench/execution/policy/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     ledger = build_module_workbench_execution(workbench)
                     gate = evaluate_module_workbench_execution_policy(
                         ledger,
@@ -23237,9 +23243,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/review",
                     "/v1/module-workbench/execution/review/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     review = build_module_workbench_execution_review(
                         build_module_workbench_execution(workbench)
                     )
@@ -23276,9 +23280,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/runtime",
                     "/v1/module-workbench/execution/runtime/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     runtime = run_module_workbench_execution(workbench)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_runtime(
@@ -23307,9 +23309,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/query",
                     "/v1/module-workbench/execution/packet/replay",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     packet = build_module_workbench_execution_packet(workbench)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet(
@@ -23349,9 +23349,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/release",
                     "/v1/module-workbench/execution/packet/release/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     packet = build_module_workbench_execution_packet(workbench)
                     release = build_module_workbench_execution_packet_release(packet)
                     if path.endswith("/query"):
@@ -23388,9 +23386,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/runtime",
                     "/v1/module-workbench/execution/packet/runtime/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     runtime = run_module_workbench_execution_packet_runtime(workbench)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet_runtime(
@@ -23418,9 +23414,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/inspection",
                     "/v1/module-workbench/execution/packet/inspection/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     packet = build_module_workbench_execution_packet(workbench)
                     inspection = build_module_workbench_execution_packet_inspection(packet)
                     if path.endswith("/query"):
@@ -23459,9 +23453,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive",
                     "/v1/module-workbench/execution/packet/archive/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     packet = build_module_workbench_execution_packet(workbench)
                     archive = build_module_workbench_execution_packet_archive(packet)
                     if path.endswith("/query"):
@@ -23496,9 +23488,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                             else archive.to_dict()
                         )
                 elif path == "/v1/module-workbench/execution/packet/archive/chunks":
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     packet = build_module_workbench_execution_packet(workbench)
                     archive = build_module_workbench_execution_packet_archive(packet)
                     payload = query_module_workbench_execution_packet_archive_chunks(
@@ -23518,9 +23508,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/replay",
                     "/v1/module-workbench/execution/packet/archive/store/diff",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     packet = build_module_workbench_execution_packet(workbench)
                     archive = build_module_workbench_execution_packet_archive(
                         packet,
@@ -23594,9 +23582,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/checkpoint/query",
                     "/v1/module-workbench/execution/packet/archive/store/checkpoint/compare",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     packet = build_module_workbench_execution_packet(workbench)
                     archive = build_module_workbench_execution_packet_archive(packet)
                     store_id = self._query_value(query, "store_id") or "glio-noncode-live-checkpoint-store"
@@ -23660,9 +23646,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/runtime",
                     "/v1/module-workbench/execution/packet/archive/store/runtime/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     packet = build_module_workbench_execution_packet(workbench)
                     archive = build_module_workbench_execution_packet_archive(packet)
                     store_runtime = run_module_workbench_execution_packet_archive_store_runtime(
@@ -23696,9 +23680,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/runtime",
                     "/v1/module-workbench/execution/packet/archive/runtime/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     runtime = run_module_workbench_execution_packet_archive_runtime(workbench)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet_archive_runtime(
@@ -23726,9 +23708,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/diff",
                     "/v1/module-workbench/execution/packet/archive/diff/query",
                 }:
-                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                    quality = build_module_certification_quality(matrix, lineage)
-                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    lineage, quality, workbench = self._module_workbench_context()
                     packet = build_module_workbench_execution_packet(workbench)
                     left_archive = build_module_workbench_execution_packet_archive(
                         packet,
