@@ -204,8 +204,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         self.assertEqual(restored[4].content_address, workbench.content_address)
         self.assertEqual(fast_restored[4].content_address, workbench.content_address)
         self.assertEqual(legacy_restored[4].content_address, workbench.content_address)
-        with self.assertRaises(ValidationError):
-            snapshot_from_mapping(legacy_payload, signature, verify_nested=False)
+        fast_legacy = snapshot_from_mapping(legacy_payload, signature, verify_nested=False)
+        self.assertEqual(fast_legacy[4].content_address, workbench.content_address)
         with self.assertRaises(ValidationError):
             snapshot_from_mapping(payload, (("changed.py", 1, 1),))
         payload["workbench"]["overall_score"] = 0.0

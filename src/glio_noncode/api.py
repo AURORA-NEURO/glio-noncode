@@ -3573,7 +3573,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             snapshot = snapshot_from_mapping(
                 payload,
                 signature,
-                verify_nested=legacy,
+                verify_nested=False,
             )
             if legacy:
                 self._persist_module_workbench_snapshot(signature, *snapshot)

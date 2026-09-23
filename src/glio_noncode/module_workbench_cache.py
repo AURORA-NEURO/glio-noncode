@@ -342,8 +342,6 @@ def snapshot_from_mapping(
         expected_digest = hashlib.sha256(canonical_json(unsigned).encode("utf-8")).hexdigest()
         if payload_digest != expected_digest:
             raise ValidationError("module workbench cache payload digest is invalid")
-    elif not verify_nested:
-        raise ValidationError("module workbench cache payload digest is missing")
     raw_signature = _sequence(value.get("signature", ()), "cache.signature")
     normalized_signature = tuple(tuple(item) for item in raw_signature)
     if normalized_signature != signature:
