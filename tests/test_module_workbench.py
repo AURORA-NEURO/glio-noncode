@@ -173,6 +173,41 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         self.assertEqual(quality_builder.call_count, 2)
         self.assertEqual(workbench_builder.call_count, 2)
 
+    def test_http_workbench_routes_skip_generic_certification_preamble(self) -> None:
+        report = self.report()
+        with (
+            patch.object(
+                ApiHandler,
+                "_module_certification_context",
+                side_effect=AssertionError("workbench route invoked certification preamble"),
+            ),
+            patch.object(
+                ApiHandler,
+                "_module_workbench_context",
+                return_value=(None, None, report),
+            ),
+            tempfile.TemporaryDirectory() as data_root,
+        ):
+            server = create_server("127.0.0.1", 0, data_root)
+            thread = Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                connection = HTTPConnection(host, port, timeout=10)
+                connection.request(
+                    "GET",
+                    "/v1/module-workbench/query?resource=modules&limit=1",
+                )
+                response = connection.getresponse()
+                body = response.read().decode("utf-8")
+                connection.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
+        self.assertEqual(response.status, 200)
+        self.assertIn('"total":3', body)
+
     def test_durable_snapshot_round_trip_verifies_every_upstream_plane(self) -> None:
         inventory = build_module_inventory(self.package, test_root=self.tests)
         matrix = build_module_certification(

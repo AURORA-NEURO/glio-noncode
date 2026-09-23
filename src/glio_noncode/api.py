@@ -22237,7 +22237,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         raise ValueError("directory is required for certification packet replay")
                     self._write(HTTPStatus.OK, replay_module_certification_packet(directory))
                     return
-                if path in {
+                if path.startswith("/v1/module-workbench") or path in {
                     "/v1/module-workbench/execution/packet/archive/store/recovery",
                     "/v1/module-workbench/execution/packet/archive/store/recovery/query",
                     "/v1/module-workbench/execution/packet/archive/store/replication",
