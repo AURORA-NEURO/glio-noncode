@@ -23554,8 +23554,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/audit",
                     "/v1/module-workbench/execution/audit/query",
                 }:
-                    lineage, quality, workbench = self._module_workbench_context()
-                    ledger = build_module_workbench_execution(workbench)
+                    execution_state = self._module_workbench_execution_context()
+                    with execution_state["lock"]:
+                        ledger = execution_state["ledger"]
                     audit = audit_module_workbench_execution(ledger)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_audit(
@@ -23582,8 +23583,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/policy",
                     "/v1/module-workbench/execution/policy/query",
                 }:
-                    lineage, quality, workbench = self._module_workbench_context()
-                    ledger = build_module_workbench_execution(workbench)
+                    execution_state = self._module_workbench_execution_context()
+                    with execution_state["lock"]:
+                        ledger = execution_state["ledger"]
                     gate = evaluate_module_workbench_execution_policy(
                         ledger,
                         default_module_workbench_execution_policy(),
@@ -23615,9 +23617,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/review",
                     "/v1/module-workbench/execution/review/query",
                 }:
-                    lineage, quality, workbench = self._module_workbench_context()
+                    execution_state = self._module_workbench_execution_context()
+                    with execution_state["lock"]:
+                        ledger = execution_state["ledger"]
                     review = build_module_workbench_execution_review(
-                        build_module_workbench_execution(workbench)
+                        ledger
                     )
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_review(

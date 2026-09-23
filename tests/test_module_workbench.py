@@ -746,6 +746,22 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                     self.assertEqual(response.status, 201)
                     self.assertEqual(started_payload["event"]["to_state"], "in_progress")
                     self.assertEqual(started_payload["journal"]["command_count"], 1)
+                    current_ledger_address = started_payload["ledger"]["content_address"]
+                    for downstream_path in (
+                        "/v1/module-workbench/execution/audit",
+                        "/v1/module-workbench/execution/policy",
+                        "/v1/module-workbench/execution/review",
+                    ):
+                        connection.request("GET", downstream_path)
+                        downstream_response = connection.getresponse()
+                        downstream_payload = json.loads(
+                            downstream_response.read().decode("utf-8")
+                        )
+                        self.assertEqual(downstream_response.status, 200)
+                        self.assertEqual(
+                            downstream_payload["ledger_address"],
+                            current_ledger_address,
+                        )
                     connection.close()
                 finally:
                     server.shutdown()
