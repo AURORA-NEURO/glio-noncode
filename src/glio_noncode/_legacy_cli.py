@@ -2783,6 +2783,7 @@ from .module_workbench_observability import (
 from .module_workbench_cache import (
     load_module_workbench_cache,
     load_module_workbench_previous_inventory,
+    module_workbench_cache_lock,
     module_workbench_source_signature,
     module_workbench_source_signature_map,
     persist_module_workbench_cache,
@@ -9084,6 +9085,19 @@ def _graph_from_payload(payload: Mapping[str, Any]):
 
 
 def _build_module_workbench_cli_chain(
+    args: argparse.Namespace,
+) -> tuple[Any, Any, Any, Any, Any, tuple[tuple[str, int, int], ...], str, bool, int, int]:
+    """Build one CLI workbench chain with process-safe durable reuse."""
+
+    cache_root = getattr(args, "cache_root", None)
+    if cache_root is None:
+        return _build_module_workbench_cli_chain_unlocked(args)
+    cache_path = Path(cache_root) / "snapshot.json.gz"
+    with module_workbench_cache_lock(cache_path):
+        return _build_module_workbench_cli_chain_unlocked(args)
+
+
+def _build_module_workbench_cli_chain_unlocked(
     args: argparse.Namespace,
 ) -> tuple[Any, Any, Any, Any, Any, tuple[tuple[str, int, int], ...], str, bool, int, int]:
     """Build or reopen one CLI workbench chain with optional durable reuse."""

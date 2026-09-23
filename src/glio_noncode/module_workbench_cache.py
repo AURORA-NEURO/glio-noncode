@@ -5,13 +5,18 @@ from __future__ import annotations
 import gzip
 import hashlib
 import json
+import os
+import threading
+import time
 import zlib
+from contextlib import contextmanager
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any
+from errno import EACCES, EAGAIN
+from typing import Any, Iterator
 
+from ._safe_persistence import _validate_parent, atomic_write_bytes, read_bytes
 from .errors import ValidationError
-from ._safe_persistence import atomic_write_bytes, read_bytes
 from .module_certification import verify_module_certification
 from .module_certification_contracts import (
     CertificationCheckKind,
@@ -56,6 +61,97 @@ from .serialization import canonical_json
 
 MODULE_WORKBENCH_CACHE_SCHEMA = "module-workbench-cache-v1"
 MODULE_WORKBENCH_CACHE_MAX_BYTES = 512 * 1024 * 1024
+# A cold build parses the complete source, test, and documentation graph. The
+# bound is intentionally long enough for a large Actions runner while still
+# preventing an abandoned worker from blocking a cache forever.
+MODULE_WORKBENCH_CACHE_LOCK_TIMEOUT_SECONDS = 15.0 * 60.0
+
+_CACHE_LOCKS_GUARD = threading.Lock()
+_CACHE_LOCKS: dict[str, threading.RLock] = {}
+
+
+def _cache_thread_lock(path: Path) -> threading.RLock:
+    key = os.path.normcase(str(path.absolute()))
+    with _CACHE_LOCKS_GUARD:
+        return _CACHE_LOCKS.setdefault(key, threading.RLock())
+
+
+@contextmanager
+def module_workbench_cache_lock(
+    path: str | Path,
+    *,
+    timeout_seconds: float = MODULE_WORKBENCH_CACHE_LOCK_TIMEOUT_SECONDS,
+) -> Iterator[None]:
+    """Serialize one cache root across threads and processes.
+
+    The lock is kept beside the snapshot and is deliberately separate from the
+    atomically replaced snapshot file. It is crash-released by the operating
+    system, rejects symlinked parents, and bounds waiting so a broken worker
+    cannot hold an Actions job indefinitely.
+    """
+
+    if (
+        isinstance(timeout_seconds, bool)
+        or not isinstance(timeout_seconds, (int, float))
+        or timeout_seconds <= 0
+    ):
+        raise ValidationError("cache lock timeout must be positive")
+    snapshot = Path(path)
+    lock_path = snapshot.parent / ".module-workbench.lock"
+    _validate_parent(lock_path.parent, "module workbench cache lock")
+    if lock_path.is_symlink():
+        raise ValidationError("module workbench cache lock must not be a symlink")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    _validate_parent(lock_path.parent, "module workbench cache lock")
+    thread_lock = _cache_thread_lock(lock_path)
+    with thread_lock:
+        deadline = time.monotonic() + float(timeout_seconds)
+        with lock_path.open("a+b", buffering=0) as handle:
+            handle.seek(0, os.SEEK_END)
+            if handle.tell() == 0:
+                handle.write(b"\0")
+                handle.flush()
+                os.fsync(handle.fileno())
+            acquired = False
+            while not acquired:
+                try:
+                    if os.name == "nt":
+                        import msvcrt
+
+                        handle.seek(0)
+                        msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+                    else:
+                        import fcntl
+
+                        fcntl.flock(  # type: ignore[attr-defined]
+                            handle.fileno(),
+                            fcntl.LOCK_EX | fcntl.LOCK_NB,  # type: ignore[attr-defined]
+                        )
+                    acquired = True
+                except OSError as exc:
+                    if exc.errno not in {EACCES, EAGAIN} and getattr(exc, "winerror", None) not in {
+                        33,
+                        36,
+                    }:
+                        raise
+                    if time.monotonic() >= deadline:
+                        raise ValidationError("timed out acquiring module workbench cache lock") from exc
+                    time.sleep(0.01)
+            try:
+                yield
+            finally:
+                if os.name == "nt":
+                    import msvcrt
+
+                    handle.seek(0)
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    import fcntl
+
+                    fcntl.flock(  # type: ignore[attr-defined]
+                        handle.fileno(),
+                        fcntl.LOCK_UN,  # type: ignore[attr-defined]
+                    )
 
 
 def _mapping(value: Any, field: str) -> Mapping[str, Any]:
@@ -546,8 +642,10 @@ def persist_module_workbench_cache(
 __all__ = [
     "MODULE_WORKBENCH_CACHE_MAX_BYTES",
     "MODULE_WORKBENCH_CACHE_SCHEMA",
+    "MODULE_WORKBENCH_CACHE_LOCK_TIMEOUT_SECONDS",
     "load_module_workbench_cache",
     "load_module_workbench_previous_inventory",
+    "module_workbench_cache_lock",
     "module_workbench_source_signature",
     "module_workbench_source_signature_map",
     "persist_module_workbench_cache",

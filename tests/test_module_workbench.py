@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from http.client import HTTPConnection
 from pathlib import Path
-from threading import Thread
+from threading import Event, Thread
 from unittest.mock import patch
 import zipfile
 
@@ -31,7 +31,11 @@ from glio_noncode.module_workbench import (
     render_module_workbench_markdown,
     verify_module_workbench,
 )
-from glio_noncode.module_workbench_cache import snapshot_from_mapping, snapshot_payload
+from glio_noncode.module_workbench_cache import (
+    module_workbench_cache_lock,
+    snapshot_from_mapping,
+    snapshot_payload,
+)
 from glio_noncode.module_workbench_observability import (
     build_module_workbench_observability,
     module_workbench_observability_capabilities,
@@ -755,6 +759,39 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 self.assertEqual(output.read_bytes(), first, command)
             self.assertTrue((left_cache / "snapshot.json.gz").exists())
             self.assertTrue((right_cache / "snapshot.json.gz").exists())
+
+    def test_cache_lock_serializes_concurrent_workers(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            snapshot = Path(directory) / "snapshot.json.gz"
+            first_entered = Event()
+            release_first = Event()
+            second_entered = Event()
+            order: list[str] = []
+
+            def first_worker() -> None:
+                with module_workbench_cache_lock(snapshot):
+                    order.append("first")
+                    first_entered.set()
+                    self.assertTrue(release_first.wait(timeout=5))
+
+            def second_worker() -> None:
+                with module_workbench_cache_lock(snapshot):
+                    order.append("second")
+                    second_entered.set()
+
+            first = Thread(target=first_worker)
+            second = Thread(target=second_worker)
+            first.start()
+            self.assertTrue(first_entered.wait(timeout=5))
+            second.start()
+            self.assertFalse(second_entered.wait(timeout=0.1))
+            release_first.set()
+            first.join(timeout=5)
+            second.join(timeout=5)
+            self.assertFalse(first.is_alive())
+            self.assertFalse(second.is_alive())
+            self.assertEqual(order, ["first", "second"])
+            self.assertTrue((Path(directory) / ".module-workbench.lock").is_file())
 
     def test_queries_filter_modules_tasks_families_and_risks(self) -> None:
         report = self.report()

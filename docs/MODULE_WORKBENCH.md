@@ -238,6 +238,15 @@ both timestamp-free observations as the `module-workbench-cache-observations`
 artifact. The job checks that the restart snapshot conserves the inventory and
 workbench addresses and reports zero reparsed modules.
 
+Cache-backed CLI commands also take a bounded cross-process lock beside the
+snapshot. The default wait bound is 15 minutes, which accommodates a cold
+build of a large repository on a slower Actions runner without leaving a
+failed worker waiting forever. Concurrent workers therefore share one cold
+build: the first worker hydrates or rebuilds the addressed chain, while later
+workers reopen the exact snapshot after the lock is released. The lock file
+contains no report data, is crash-released by the operating system, and is
+rejected when its parent is symlinked.
+
 ## Browser workbench
 
 The local review workbench exposes the same module contract in the left rail
