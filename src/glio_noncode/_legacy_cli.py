@@ -9193,6 +9193,20 @@ def _build_module_workbench_cli_chain(
     )
 
 
+def _module_workbench_cli_side_args(
+    args: argparse.Namespace,
+    prefix: str,
+) -> argparse.Namespace:
+    """Project one independently rooted diff side onto the chain builder."""
+
+    return argparse.Namespace(
+        source_root=getattr(args, f"{prefix}_source_root"),
+        test_root=getattr(args, f"{prefix}_test_root"),
+        docs_root=getattr(args, f"{prefix}_docs_root"),
+        cache_root=getattr(args, f"{prefix}_cache_root", None),
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="glio-noncode", description="Inspectable research hypothesis runtime"
@@ -10379,6 +10393,8 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_diff.add_argument("--right-test-root", default=None)
     module_workbench_diff.add_argument("--left-docs-root", default=None)
     module_workbench_diff.add_argument("--right-docs-root", default=None)
+    module_workbench_diff.add_argument("--left-cache-root", default=None)
+    module_workbench_diff.add_argument("--right-cache-root", default=None)
     module_workbench_diff.add_argument("--kind", default=None)
     module_workbench_diff.add_argument("--module-id", default=None)
     module_workbench_diff.add_argument("--text", default=None)
@@ -10522,6 +10538,8 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_execution_diff.add_argument("--right-test-root", default=None)
     module_workbench_execution_diff.add_argument("--left-docs-root", default=None)
     module_workbench_execution_diff.add_argument("--right-docs-root", default=None)
+    module_workbench_execution_diff.add_argument("--left-cache-root", default=None)
+    module_workbench_execution_diff.add_argument("--right-cache-root", default=None)
     module_workbench_execution_diff.add_argument("--kind", default=None)
     module_workbench_execution_diff.add_argument("--task-id", default=None)
     module_workbench_execution_diff.add_argument("--text", default=None)
@@ -48735,47 +48753,15 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_diff_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-diff":
-            left_inventory = build_module_inventory(
-                args.left_source_root,
-                test_root=args.left_test_root,
+            left_inventory, left_matrix, left_lineage, left_quality, left_workbench = (
+                _build_module_workbench_cli_chain(
+                    _module_workbench_cli_side_args(args, "left")
+                )[:5]
             )
-            right_inventory = build_module_inventory(
-                args.right_source_root,
-                test_root=args.right_test_root,
-            )
-            left_matrix = build_module_certification(
-                left_inventory,
-                source_root=args.left_source_root,
-                test_root=args.left_test_root,
-                docs_root=args.left_docs_root,
-            )
-            right_matrix = build_module_certification(
-                right_inventory,
-                source_root=args.right_source_root,
-                test_root=args.right_test_root,
-                docs_root=args.right_docs_root,
-            )
-            left_lineage = build_module_certification_lineage(
-                left_inventory,
-                matrix=left_matrix,
-                source_root=args.left_source_root,
-                test_root=args.left_test_root,
-                docs_root=args.left_docs_root,
-            )
-            right_lineage = build_module_certification_lineage(
-                right_inventory,
-                matrix=right_matrix,
-                source_root=args.right_source_root,
-                test_root=args.right_test_root,
-                docs_root=args.right_docs_root,
-            )
-            left_quality = build_module_certification_quality(left_matrix, left_lineage)
-            right_quality = build_module_certification_quality(right_matrix, right_lineage)
-            left_workbench = build_module_workbench(
-                left_inventory, left_matrix, left_lineage, left_quality
-            )
-            right_workbench = build_module_workbench(
-                right_inventory, right_matrix, right_lineage, right_quality
+            right_inventory, right_matrix, right_lineage, right_quality, right_workbench = (
+                _build_module_workbench_cli_chain(
+                    _module_workbench_cli_side_args(args, "right")
+                )[:5]
             )
             diff = build_module_workbench_diff(left_workbench, right_workbench)
             if args.format == "csv":
@@ -49039,36 +49025,14 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_execution_diff_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-execution-diff":
-            def _execution_snapshot(source_root, test_root, docs_root):
-                inventory = build_module_inventory(source_root, test_root=test_root)
-                matrix = build_module_certification(
-                    inventory,
-                    source_root=source_root,
-                    test_root=test_root,
-                    docs_root=docs_root,
-                )
-                lineage = build_module_certification_lineage(
-                    inventory,
-                    matrix=matrix,
-                    source_root=source_root,
-                    test_root=test_root,
-                    docs_root=docs_root,
-                )
-                quality = build_module_certification_quality(matrix, lineage)
-                return build_module_workbench_execution(
-                    build_module_workbench(inventory, matrix, lineage, quality)
-                )
-
-            previous = _execution_snapshot(
-                args.left_source_root,
-                args.left_test_root,
-                args.left_docs_root,
-            )
-            current = _execution_snapshot(
-                args.right_source_root,
-                args.right_test_root,
-                args.right_docs_root,
-            )
+            _, _, _, _, left_workbench = _build_module_workbench_cli_chain(
+                _module_workbench_cli_side_args(args, "left")
+            )[:5]
+            _, _, _, _, right_workbench = _build_module_workbench_cli_chain(
+                _module_workbench_cli_side_args(args, "right")
+            )[:5]
+            previous = build_module_workbench_execution(left_workbench)
+            current = build_module_workbench_execution(right_workbench)
             diff = build_module_workbench_execution_diff(previous, current)
             if args.format == "csv":
                 _write_text(module_workbench_execution_diff_csv(diff), args.output)

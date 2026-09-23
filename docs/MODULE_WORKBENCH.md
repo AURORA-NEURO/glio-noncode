@@ -185,8 +185,23 @@ glio-noncode module-workbench-execution --format summary \
 ```
 
 Execution audit, policy, runtime, review, packet, and packet-runtime exports
-accept the same option. Diff commands remain separate because they intentionally
-construct two independently rooted snapshots.
+accept the same option. Diff commands preserve two independently rooted
+snapshots and accept independent cache directories for each side:
+
+```text
+glio-noncode module-workbench-diff \
+  --left-cache-root .glio/baseline-cache \
+  --right-cache-root .glio/candidate-cache \
+  --format json --output module-diff.json
+glio-noncode module-workbench-execution-diff \
+  --left-cache-root .glio/baseline-cache \
+  --right-cache-root .glio/candidate-cache \
+  --format json --output execution-diff.json
+```
+
+The two cache roots are never merged: each snapshot is validated against its
+own source, test, and documentation signature before it contributes to the
+comparison.
 
 Build a complete dossier for one module, including its workbench assessment,
 certification checks and gaps, lineage evidence, and planned tasks:

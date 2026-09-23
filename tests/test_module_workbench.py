@@ -713,6 +713,49 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 self.assertTrue(output.read_text(encoding="utf-8"), command)
             self.assertTrue((cache_root / "snapshot.json.gz").exists())
 
+    def test_diff_cli_sides_reuse_independent_workbench_caches(self) -> None:
+        from glio_noncode.cli import main
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            left_cache = root / "left-cache"
+            right_cache = root / "right-cache"
+            commands = (
+                ("module-workbench-diff", "module-diff.json"),
+                ("module-workbench-execution-diff", "execution-diff.json"),
+            )
+            for command, filename in commands:
+                output = root / filename
+                argv = [
+                    command,
+                    "--left-source-root",
+                    str(self.package),
+                    "--right-source-root",
+                    str(self.package),
+                    "--left-test-root",
+                    str(self.tests),
+                    "--right-test-root",
+                    str(self.tests),
+                    "--left-docs-root",
+                    str(self.docs),
+                    "--right-docs-root",
+                    str(self.docs),
+                    "--left-cache-root",
+                    str(left_cache),
+                    "--right-cache-root",
+                    str(right_cache),
+                    "--format",
+                    "json",
+                    "--output",
+                    str(output),
+                ]
+                self.assertEqual(main(argv), 0, command)
+                first = output.read_bytes()
+                self.assertEqual(main(argv), 0, command)
+                self.assertEqual(output.read_bytes(), first, command)
+            self.assertTrue((left_cache / "snapshot.json.gz").exists())
+            self.assertTrue((right_cache / "snapshot.json.gz").exists())
+
     def test_queries_filter_modules_tasks_families_and_risks(self) -> None:
         report = self.report()
         modules = query_module_workbench(report, resource="modules", module_id="glio_noncode.core")
