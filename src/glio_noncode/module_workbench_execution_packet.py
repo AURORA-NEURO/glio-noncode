@@ -187,6 +187,32 @@ def _packet_summary(report: ModuleWorkbenchReport) -> str:
     return _public_json(report.to_dict(include_rows=False))
 
 
+def _commands_payload(
+    initial: ModuleWorkbenchExecutionLedger,
+    current: ModuleWorkbenchExecutionLedger,
+    commands: tuple[ModuleWorkbenchExecutionCommand, ...],
+) -> str:
+    """Serialize the exact public replay recipe carried by this packet."""
+
+    event_kind_counts: dict[str, int] = {}
+    for event in current.events:
+        event_kind_counts[event.kind.value] = event_kind_counts.get(event.kind.value, 0) + 1
+    body = {
+        "version": "module-workbench-execution-command-trace-v1",
+        "report_address": current.report_address,
+        "portfolio_address": current.portfolio_address,
+        "initial_ledger_address": initial.content_address,
+        "ledger_address": current.content_address,
+        "command_count": len(commands),
+        "event_count": len(current.events),
+        "explicit_event_count": len(commands),
+        "derived_event_count": len(current.events) - len(commands),
+        "event_kind_counts": dict(sorted(event_kind_counts.items())),
+        "commands": [command.to_dict() for command in commands],
+    }
+    return _public_json(body)
+
+
 def _blockers_csv(value: ModuleWorkbenchExecutionLedger) -> str:
     fields = (
         "task_id",
@@ -228,6 +254,7 @@ def _artifact_specs(
     policy: ModuleWorkbenchExecutionPolicy,
     gate: ModuleWorkbenchExecutionPolicyGate,
     runtime: ModuleWorkbenchExecutionRuntime,
+    commands: tuple[ModuleWorkbenchExecutionCommand, ...],
 ) -> tuple[ModuleWorkbenchExecutionPacketArtifact, ...]:
     artifacts = (
         _artifact(
@@ -250,6 +277,13 @@ def _artifact_specs(
             ModuleWorkbenchExecutionPacketArtifactKind.CAPABILITIES,
             _JSON,
             _capability_payload(),
+        ),
+        _artifact(
+            "commands",
+            "commands.json",
+            ModuleWorkbenchExecutionPacketArtifactKind.COMMANDS,
+            _JSON,
+            _commands_payload(initial, current, commands),
         ),
         _artifact(
             "events",
@@ -335,6 +369,7 @@ def _link_checks(
     policy: ModuleWorkbenchExecutionPolicy,
     gate: ModuleWorkbenchExecutionPolicyGate,
     runtime: ModuleWorkbenchExecutionRuntime,
+    commands: tuple[ModuleWorkbenchExecutionCommand, ...],
 ) -> tuple[ModuleWorkbenchExecutionPacketCheck, ...]:
     checks = (
         _check(
@@ -402,6 +437,24 @@ def _link_checks(
             report.accepted and portfolio.accepted and audit.accepted,
             "runtime acceptance conserves upstream acceptance",
         ),
+        _check(
+            "command-replay",
+            ModuleWorkbenchExecutionPacketCheckPlane.REPLAY,
+            apply_module_workbench_execution_commands(initial, commands).content_address
+            == current.content_address
+            and len(current.events) >= len(commands),
+            {
+                "initial_ledger_address": initial.content_address,
+                "ledger_address": current.content_address,
+                "command_count": len(commands),
+                "event_count": len(current.events),
+            },
+            {
+                "ledger_address": current.content_address,
+                "event_count_at_least": len(commands),
+            },
+            "portable command trace replays to the packaged ledger",
+        ),
     )
     return checks
 
@@ -446,6 +499,7 @@ def build_module_workbench_execution_packet(
         selected_policy,
         gate,
         runtime,
+        selected_commands,
     )
     checks = (
         _check(
@@ -498,6 +552,7 @@ def build_module_workbench_execution_packet(
             selected_policy,
             gate,
             runtime,
+            selected_commands,
         ),
         _check(
             "public-boundary",

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
-from glio_noncode.module_workbench_execution import execution_command
+from glio_noncode.module_workbench_execution import build_module_workbench_execution, execution_command
 from glio_noncode.module_workbench_execution_packet import (
     build_module_workbench_execution_packet,
     load_module_workbench_execution_packet,
@@ -59,6 +59,7 @@ from glio_noncode.module_workbench_execution_packet_runtime import (
 from glio_noncode.module_workbench_execution_packet_runtime_contracts import (
     ModuleWorkbenchExecutionPacketRuntimeStageKind,
 )
+from glio_noncode.module_workbench_portfolio import build_module_workbench_portfolio
 from tests.test_module_workbench_execution import ModuleWorkbenchExecutionFixture
 
 
@@ -91,12 +92,50 @@ class ModuleWorkbenchExecutionPacketTests(unittest.TestCase):
             tuple(item.artifact_id for item in packet.artifacts),
             tuple(sorted(item.artifact_id for item in packet.artifacts)),
         )
-        self.assertEqual(len(packet.checks), 14)
+        self.assertEqual(len(packet.checks), 15)
         self.assertEqual(packet.failed_check_count, 0)
         self.assertTrue(all(item.payload is not None for item in packet.artifacts))
         self.assertTrue(all("/" not in item.relative_path[:1] for item in packet.artifacts))
         self.assertIn("ledger", {item.artifact_id for item in packet.artifacts})
         self.assertIn("runtime", {item.artifact_id for item in packet.artifacts})
+        self.assertIn("commands", {item.artifact_id for item in packet.artifacts})
+
+    def test_command_trace_is_a_replayable_public_recipe(self) -> None:
+        report = self.fixture.report()
+        portfolio = build_module_workbench_portfolio(
+            report,
+            capacity=100,
+            max_tasks_per_module=8,
+        )
+        ledger = build_module_workbench_execution(report, portfolio)
+        dependent = next(item for item in ledger.items if item.prerequisites)
+        ready = next(
+            item
+            for item in ledger.items
+            if item.task_id in dependent.prerequisites and not item.prerequisites
+        )
+        packet = build_module_workbench_execution_packet(
+            report,
+            portfolio=portfolio,
+            commands=(
+                execution_command(ready.task_id, "start", "begin packet replay"),
+                execution_command(
+                    ready.task_id,
+                    "complete",
+                    "close packet replay with receipts",
+                    evidence_addresses=("receipt:one", "receipt:two"),
+                ),
+            ),
+        )
+        recipe = next(item for item in packet.artifacts if item.artifact_id == "commands")
+        payload = json.loads(recipe.payload)
+        self.assertEqual(payload["command_count"], 2)
+        self.assertEqual(payload["explicit_event_count"], 2)
+        self.assertEqual(payload["event_count"], 3)
+        self.assertEqual(payload["derived_event_count"], 1)
+        self.assertEqual(payload["event_kind_counts"]["readied"], 1)
+        self.assertEqual(payload["ledger_address"], packet.ledger_address)
+        self.assertTrue(all(item["task_id"] == ready.task_id for item in payload["commands"]))
 
     def test_typed_verification_accepts_exact_payloads(self) -> None:
         packet = self.packet()
@@ -188,7 +227,7 @@ class ModuleWorkbenchExecutionPacketTests(unittest.TestCase):
         path = self.write_packet(packet)
         result = query_module_workbench_execution_packet(path, resource="summary")
         self.assertEqual(result["items"][0]["packet_id"], packet.packet_id)
-        self.assertEqual(result["items"][0]["artifact_count"], 13)
+        self.assertEqual(result["items"][0]["artifact_count"], 14)
 
     def test_replay_returns_accepted_receipts_for_typed_and_filesystem_inputs(self) -> None:
         packet = self.packet()
@@ -328,7 +367,7 @@ class ModuleWorkbenchExecutionPacketTests(unittest.TestCase):
             "Module Workbench Execution Packet",
             render_module_workbench_execution_packet_markdown(packet),
         )
-        self.assertEqual(module_workbench_execution_packet_schema()["artifact_count"], 13)
+        self.assertEqual(module_workbench_execution_packet_schema()["artifact_count"], 14)
         caps = module_workbench_execution_packet_capabilities()
         self.assertEqual(caps["operation_count"], len(caps["operations"]))
         self.assertTrue(caps["identity_free"])

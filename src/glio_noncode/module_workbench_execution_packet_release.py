@@ -13,6 +13,7 @@ from .module_workbench_execution_packet import (
     verify_module_workbench_execution_packet,
 )
 from .module_workbench_execution_packet_contracts import (
+    MODULE_WORKBENCH_EXECUTION_PACKET_ARTIFACT_COUNT,
     MODULE_WORKBENCH_EXECUTION_PACKET_ARTIFACT_PREFIX,
     ModuleWorkbenchExecutionPacket,
     address_module_workbench_execution_packet,
@@ -138,7 +139,7 @@ def build_module_workbench_execution_packet_release(
     value: ModuleWorkbenchExecutionPacket | str | Path,
     *,
     release_id: str = "glio-noncode-module-workbench-execution-release",
-    minimum_artifact_count: int = 13,
+    minimum_artifact_count: int = MODULE_WORKBENCH_EXECUTION_PACKET_ARTIFACT_COUNT,
     minimum_passed_check_count: int = 1,
 ) -> ModuleWorkbenchExecutionPacketRelease:
     """Create an explicit accepted or blocked release decision."""

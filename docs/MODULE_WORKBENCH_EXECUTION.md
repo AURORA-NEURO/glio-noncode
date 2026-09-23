@@ -257,6 +257,13 @@ address, accepted state, and explanation. The runtime retains both the initial
 and current ledger addresses so a reviewer can distinguish a plan from its
 post-replay state.
 
+Portable execution packets also carry `commands.json`, a canonical replay recipe
+with the source addresses, command count, explicit and derived event counts, and
+the exact public command objects. The packet verifies that replaying this recipe
+from the initial ledger reproduces the packaged current ledger address. This
+makes a handoff independently reproducible without relying on the live service
+or a local command journal.
+
 ## Snapshot diff
 
 `build_module_workbench_execution_diff` compares two ledgers by task identity.

@@ -18,7 +18,7 @@ MODULE_WORKBENCH_EXECUTION_PACKET_VERIFICATION_PREFIX = (
     "module-workbench-execution-packet-verification"
 )
 MODULE_WORKBENCH_EXECUTION_PACKET_MAX_ARTIFACTS = 32
-MODULE_WORKBENCH_EXECUTION_PACKET_ARTIFACT_COUNT = 13
+MODULE_WORKBENCH_EXECUTION_PACKET_ARTIFACT_COUNT = 14
 MODULE_WORKBENCH_EXECUTION_PACKET_MAX_CHECKS = 64
 
 
@@ -45,6 +45,7 @@ class ModuleWorkbenchExecutionPacketArtifactKind(StrEnum):
     RUNTIME = "runtime"
     SCHEMA = "schema"
     CAPABILITIES = "capabilities"
+    COMMANDS = "commands"
 
 
 class ModuleWorkbenchExecutionPacketCheckPlane(StrEnum):
