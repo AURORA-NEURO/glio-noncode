@@ -56,6 +56,40 @@ jobs:
       - name: Execute exact CLI contract inventory
         run: python tools/run_ci_cli_contracts.py --execute
 
+  workbench-cache:
+    name: Restart-aware module workbench cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --no-deps -e .
+      - name: Build fresh addressed workbench snapshot
+        run: >-
+          python -m glio_noncode module-workbench-observability
+          --cache-root .ci-workbench-cache
+          --output .ci-workbench-first.json
+      - name: Reopen exact snapshot after process restart
+        run: >-
+          python -m glio_noncode module-workbench-observability
+          --cache-root .ci-workbench-cache
+          --output .ci-workbench-restart.json
+      - name: Verify cache mode and address conservation
+        run: >-
+          python -c "import json; first=json.load(open('.ci-workbench-first.json', encoding='utf-8')); restart=json.load(open('.ci-workbench-restart.json', encoding='utf-8')); assert first['rebuild_mode'] in {'full', 'incremental'} and first['cache_hit'] is False; assert restart['rebuild_mode'] == 'snapshot' and restart['cache_hit'] is True; assert restart['reused_module_count'] == restart['module_count']; assert restart['reparsed_module_count'] == 0; assert first['inventory_address'] == restart['inventory_address']; assert first['workbench_address'] == restart['workbench_address']; print('workbench cache contract passed')"
+      - name: Upload workbench observations
+        uses: actions/upload-artifact@v4
+        with:
+          name: module-workbench-cache-observations
+          path: |
+            .ci-workbench-first.json
+            .ci-workbench-restart.json
+          if-no-files-found: error
+
   pytest-contracts:
     name: Pytest-specific contracts / Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest

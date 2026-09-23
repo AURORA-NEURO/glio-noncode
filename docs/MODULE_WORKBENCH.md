@@ -189,6 +189,11 @@ glio-noncode module-workbench-observability \
   --output module-workbench-observability.json
 ```
 
+The public Actions workflow runs this same sequence on Python 3.12 and uploads
+both timestamp-free observations as the `module-workbench-cache-observations`
+artifact. The job checks that the restart snapshot conserves the inventory and
+workbench addresses and reports zero reparsed modules.
+
 ## Browser workbench
 
 The local review workbench exposes the same module contract in the left rail
