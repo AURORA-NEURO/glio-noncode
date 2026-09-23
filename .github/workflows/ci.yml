@@ -81,6 +81,19 @@ jobs:
       - name: Verify cache mode and address conservation
         run: >-
           python -c "import json; first=json.load(open('.ci-workbench-first.json', encoding='utf-8')); restart=json.load(open('.ci-workbench-restart.json', encoding='utf-8')); assert first['rebuild_mode'] in {'full', 'incremental'} and first['cache_hit'] is False; assert restart['rebuild_mode'] == 'snapshot' and restart['cache_hit'] is True; assert restart['reused_module_count'] == restart['module_count']; assert restart['reparsed_module_count'] == 0; assert first['inventory_address'] == restart['inventory_address']; assert first['workbench_address'] == restart['workbench_address']; print('workbench cache contract passed')"
+      - name: Build independent baseline and candidate diffs
+        run: >-
+          python -m glio_noncode module-workbench-diff
+          --left-cache-root .ci-workbench-left-cache
+          --right-cache-root .ci-workbench-right-cache
+          --format json --output .ci-workbench-diff.json
+          && python -m glio_noncode module-workbench-execution-diff
+          --left-cache-root .ci-workbench-left-cache
+          --right-cache-root .ci-workbench-right-cache
+          --format json --output .ci-workbench-execution-diff.json
+      - name: Verify independent diff conservation
+        run: >-
+          python -c "import json; module=json.load(open('.ci-workbench-diff.json', encoding='utf-8')); execution=json.load(open('.ci-workbench-execution-diff.json', encoding='utf-8')); assert module['accepted'] and module['added_count'] == 0 and module['removed_count'] == 0 and module['changed_count'] == 0; assert execution['accepted'] and execution['added_count'] == 0 and execution['removed_count'] == 0 and execution['changed_count'] == 0; print(f\"diff cache contract passed: {module['unchanged_count']} modules, {execution['unchanged_count']} execution items\")"
       - name: Upload workbench observations
         uses: actions/upload-artifact@v4
         with:
@@ -88,6 +101,8 @@ jobs:
           path: |
             .ci-workbench-first.json
             .ci-workbench-restart.json
+            .ci-workbench-diff.json
+            .ci-workbench-execution-diff.json
           if-no-files-found: error
 
   pytest-contracts:
