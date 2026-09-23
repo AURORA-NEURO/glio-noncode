@@ -1531,6 +1531,7 @@
       body.append(row);
     }
     $("sequence-comparison-filter-summary").textContent = `${formatCount(summary.change_count ?? 0)} filtered rows · ${formatCount(summary.created_count ?? 0)} created / ${formatCount(summary.disrupted_count ?? 0)} disrupted · ${formatCount(summary.delta_count ?? 0)} reported deltas · mean absolute delta ${percent(summary.mean_absolute_delta_fraction ?? 0)}`;
+    $("sequence-comparison-load-more").hidden = !changes.has_more;
     const limitations = $("sequence-comparison-limitations");
     limitations.replaceChildren();
     for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
@@ -1578,6 +1579,29 @@
         exportHref();
       } catch (error) { if (model.activeView === "sequence-comparison") notice(error.message, true); }
     }, 180);
+  }
+
+  async function loadMoreSequenceComparisonChanges() {
+    const current = model.sequenceComparisonChanges;
+    const comparisonId = model.selectedSequenceComparison;
+    if (!current || !comparisonId || !current.has_more) return;
+    const request = model.sequenceComparisonRequest;
+    const button = $("sequence-comparison-load-more");
+    button.disabled = true;
+    try {
+      const params = sequenceComparisonFilterQuery();
+      params.set("limit", "50");
+      params.set("offset", String(current.changes.length));
+      const page = await getJson(`/v1/sequence-comparisons/${encodeURIComponent(comparisonId)}?${params.toString()}`);
+      if (request !== model.sequenceComparisonRequest || model.activeView !== "sequence-comparison" || model.selectedSequenceComparison !== comparisonId) return;
+      if (page.schema !== "glio-noncode.sequence-batch-comparison-changes.v1" || page.comparison_id !== comparisonId || page.offset !== current.changes.length || !Array.isArray(page.changes)) throw new Error("The local API returned an invalid next comparison page.");
+      model.sequenceComparisonChanges = { ...page, changes: current.changes.concat(page.changes), offset: 0, limit: current.changes.length + page.changes.length };
+      renderSequenceComparison();
+    } catch (error) {
+      if (model.activeView === "sequence-comparison") notice(error.message, true);
+    } finally {
+      button.disabled = false;
+    }
   }
 
   async function openSequenceReview() {
@@ -2607,6 +2631,7 @@
   $("sequence-comparison-motif-filter").addEventListener("input", reloadSequenceComparisonChanges);
   $("sequence-comparison-change-filter").addEventListener("change", reloadSequenceComparisonChanges);
   $("sequence-comparison-direction-filter").addEventListener("change", reloadSequenceComparisonChanges);
+  $("sequence-comparison-load-more").addEventListener("click", loadMoreSequenceComparisonChanges);
   $("geo-consistency-features").addEventListener("input", updateGeoCompareControls);
   $("geo-compare-button").addEventListener("click", compareGeoAnalyses);
   $("geo-sensitivity-button").addEventListener("click", compareGeoSensitivity);
