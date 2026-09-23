@@ -3536,17 +3536,20 @@ def _api_read_text(path: str | Path, *, field: str = "API input") -> str:
 
 
 def _module_inventory_source_signature() -> tuple[tuple[str, int, int], ...]:
-    """Fingerprint inventory inputs without exposing paths in API responses."""
+    """Fingerprint source, test, and documentation inputs without exposing paths."""
 
     source_root = Path(__file__).resolve().parent
     test_root = source_root.parent.parent / "tests"
-    inputs = (source_root, test_root)
+    docs_root = source_root.parent.parent / "docs"
+    inputs = (source_root, test_root, docs_root)
     rows: list[tuple[str, int, int]] = []
     for root_index, root in enumerate(inputs):
         if not root.exists() or not root.is_dir():
             rows.append((f"root-{root_index}:missing", 0, 0))
             continue
-        for path in root.rglob("*.py"):
+        suffixes = ("*.py",) if root_index < 2 else ("*.md", "*.markdown")
+        paths = (path for suffix in suffixes for path in root.rglob(suffix))
+        for path in paths:
             if path.is_symlink() or not path.is_file():
                 continue
             try:

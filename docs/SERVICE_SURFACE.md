@@ -17,6 +17,9 @@ The workbench also exposes a bounded, timestamp-free cache observation: it
 distinguishes an exact durable snapshot from an incremental or full rebuild,
 reports reused versus reparsed module counts, and returns only content
 addresses and aggregate counts.
+Documentation inputs are included in the workbench signature, so a changed
+contract document invalidates certification and lineage projections without
+forcing unchanged Python source rows to be reparsed.
 
 ## Endpoints
 

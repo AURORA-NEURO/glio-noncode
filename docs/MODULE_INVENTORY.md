@@ -44,6 +44,11 @@ lineage, quality, and workbench content addresses. It is timestamp-free,
 read-only, bounded, and deliberately omits local cache paths and source-root
 names.
 
+The service-wide workbench signature also tracks Markdown documentation inputs.
+Documentation changes therefore invalidate certification, lineage, quality,
+and workbench projections while the inventory can still reuse unchanged Python
+rows through its source metadata boundary.
+
 ## Module record
 
 Every module row contains the following fields:
