@@ -126,6 +126,14 @@
               <div><span class="control-label">Events</span><strong id="module-execution-event-count">—</strong></div>
             </div>
             <p id="module-execution-overview-summary" class="muted small">Verifying durable execution state…</p>
+            <div class="section-head module-execution-overview-head"><div><p class="eyebrow">What-if planning</p><h3>Preview another wave</h3></div><span id="module-execution-preview-state" class="quiet-tag">Read-only</span></div>
+            <div class="module-plan-preview-controls">
+              <label><span class="control-label">Capacity</span><input id="module-execution-preview-capacity" type="number" min="1" max="200000" value="200" inputmode="numeric"></label>
+              <label><span class="control-label">Tasks / module</span><input id="module-execution-preview-module-limit" type="number" min="1" max="200000" value="3" inputmode="numeric"></label>
+              <button id="module-execution-preview-button" class="button quiet" type="button">Preview wave</button>
+            </div>
+            <p id="module-execution-preview-text" class="muted small">Change the bounds to inspect a dependency-aware wave without changing durable execution state.</p>
+            <div id="module-execution-preview-summary" class="provenance-grid"></div>
           </section>
           <div class="module-workbench-filters" aria-label="Module workbench filters">
             <label><span class="control-label">Find module</span><input id="module-workbench-search" type="search" autocomplete="off" placeholder="module, role, or signal"></label>

@@ -796,6 +796,21 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                         dependencies_payload["plan_address"],
                         plan_payload["plan_address"],
                     )
+                    connection.request(
+                        "GET",
+                        "/v1/module-workbench/execution/plan/preview/query?resource=summary&capacity=9&max_tasks_per_module=3&limit=1",
+                    )
+                    preview_response = connection.getresponse()
+                    preview_payload = json.loads(preview_response.read().decode("utf-8"))
+                    self.assertEqual(preview_response.status, 200)
+                    self.assertEqual(preview_payload["mode"], "preview")
+                    self.assertEqual(preview_payload["selection"]["capacity"], 9)
+                    self.assertEqual(preview_payload["selection"]["max_tasks_per_module"], 3)
+                    self.assertTrue(preview_payload["preview_address"])
+                    self.assertGreater(
+                        preview_payload["items"][0]["dependency_edge_count"],
+                        0,
+                    )
                     connection.close()
                 finally:
                     server.shutdown()
@@ -911,6 +926,13 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         self.assertEqual(
             module_workbench_execution_plan_schema()["resources"],
             ["nodes", "dependencies", "critical_path", "summary"],
+        )
+        self.assertFalse(
+            module_workbench_execution_plan_schema()["preview"]["durable_ledger_mutation"]
+        )
+        self.assertIn(
+            "preview_alternate_capacity",
+            module_workbench_execution_plan_capabilities()["operations"],
         )
 
     def test_strict_policy_exposes_failed_thresholds_without_hiding_rows(self) -> None:

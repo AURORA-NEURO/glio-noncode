@@ -25,7 +25,7 @@
     moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
     moduleTriageItems: [], moduleTriageTotal: 0, moduleTriageHasMore: false, moduleTriageListRequest: 0, moduleTriageFilterTimer: null, moduleTriageByModule: new Map(), selectedModuleTriage: null,
     moduleExecution: null, moduleExecutionRequest: 0, moduleExecutionPlan: null, moduleExecutionPlanRequest: 0, modulePortfolio: null, modulePortfolioRequest: 0,
-    moduleWorkbenchSummary: null, moduleExecutionSummary: null, moduleWorkbenchSummaryRequest: 0,
+    moduleWorkbenchSummary: null, moduleExecutionSummary: null, moduleExecutionPreview: null, moduleWorkbenchSummaryRequest: 0, moduleExecutionPreviewRequest: 0,
     moduleFilters: { q: "", risk: "", depth_band: "" }, moduleTriageFilters: { risk: "", reason: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
@@ -377,6 +377,63 @@
       model.moduleExecutionSummary = null;
       renderModuleWorkbenchOverview();
       notice(error.message, true);
+    }
+  }
+
+  function renderModuleExecutionPreview() {
+    const preview = model.moduleExecutionPreview;
+    const box = $("module-execution-preview-summary");
+    box.replaceChildren();
+    if (!preview) {
+      $("module-execution-preview-state").textContent = "Read-only";
+      $("module-execution-preview-text").textContent = "Change the bounds to inspect a dependency-aware wave without changing durable execution state.";
+      return;
+    }
+    const summary = preview.items?.[0] || {};
+    const safe = summary.dependency_safe === true;
+    $("module-execution-preview-state").textContent = safe ? "Safe preview" : "Attention";
+    $("module-execution-preview-state").className = `quiet-tag${safe ? " ready" : ""}`;
+    $("module-execution-preview-text").textContent = `${formatCount(summary.node_count)} selected nodes · ${formatCount(summary.dependency_edge_count)} prerequisite edges · ${formatCount(summary.deferred_prerequisite_count)} deferred edges · durable ledger unchanged.`;
+    const rows = [
+      ["Selection", `${formatCount(preview.selection.capacity)} capacity · ${formatCount(preview.selection.max_tasks_per_module)} per module`],
+      ["Plan depth", `${formatCount(summary.max_depth)} · ${safe ? "dependency-safe" : "requires prerequisite review"}`],
+      ["Portfolio", shortened(preview.plan_summary?.portfolio_address || "", 46)],
+      ["Preview address", shortened(preview.preview_address, 46)],
+    ];
+    for (const [label, value] of rows) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", displayValue(value)));
+      box.append(block);
+    }
+  }
+
+  async function previewModuleExecutionPlan() {
+    const capacity = Number($("module-execution-preview-capacity").value);
+    const moduleLimit = Number($("module-execution-preview-module-limit").value);
+    if (!Number.isSafeInteger(capacity) || capacity < 1 || !Number.isSafeInteger(moduleLimit) || moduleLimit < 1) {
+      notice("Preview capacity and per-module limit must be positive whole numbers.", true);
+      return;
+    }
+    const request = model.moduleExecutionPreviewRequest = (model.moduleExecutionPreviewRequest || 0) + 1;
+    const button = $("module-execution-preview-button");
+    button.disabled = true;
+    try {
+      const params = new URLSearchParams({ resource: "summary", capacity: String(capacity), max_tasks_per_module: String(moduleLimit), limit: "1" });
+      const preview = await getJson(`/v1/module-workbench/execution/plan/preview/query?${params.toString()}`);
+      if (request !== model.moduleExecutionPreviewRequest) return;
+      if (preview.mode !== "preview" || typeof preview.preview_address !== "string" || typeof preview.plan_address !== "string" || !preview.selection || preview.selection.capacity !== capacity || preview.selection.max_tasks_per_module !== moduleLimit || !Array.isArray(preview.items) || preview.items.length !== 1 || preview.items[0].content_address !== preview.plan_address || !preview.plan_summary || preview.plan_summary.content_address !== preview.plan_address) {
+        throw new Error("The local API returned an invalid planning preview.");
+      }
+      model.moduleExecutionPreview = preview;
+      renderModuleExecutionPreview();
+      notice("Read-only execution planning preview updated.");
+    } catch (error) {
+      if (request !== model.moduleExecutionPreviewRequest) return;
+      model.moduleExecutionPreview = null;
+      renderModuleExecutionPreview();
+      notice(`The planning preview could not be verified. ${error.message}`, true);
+    } finally {
+      if (request === model.moduleExecutionPreviewRequest) button.disabled = false;
     }
   }
 
@@ -3602,6 +3659,7 @@
     model.moduleFilters.depth_band = event.currentTarget.value;
     reloadModuleAssessments();
   });
+  $("module-execution-preview-button").addEventListener("click", previewModuleExecutionPlan);
   $("module-triage-load-more").addEventListener("click", () => loadModuleTriage(true));
   $("module-triage-risk-filter").addEventListener("change", (event) => {
     model.moduleTriageFilters.risk = event.currentTarget.value;

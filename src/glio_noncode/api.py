@@ -4076,6 +4076,18 @@ class ApiHandler(BaseHTTPRequestHandler):
         except ValueError as exc:
             raise ValueError(f"query parameter {name} must be a number") from exc
 
+    @classmethod
+    def _module_workbench_plan_selection(cls, query: dict[str, list[str]]) -> dict[str, Any]:
+        """Parse bounded, read-only selection controls for plan previews."""
+
+        return {
+            "capacity": cls._query_int(query, "capacity", 100),
+            "max_tasks_per_module": cls._query_int(query, "max_tasks_per_module", 2),
+            "minimum_priority": cls._query_int(query, "minimum_priority", 0),
+            "maximum_priority": cls._query_int(query, "maximum_priority", 100),
+            "risks": cls._query_values(query, "risk"),
+        }
+
     @staticmethod
     def _certificate_from_document(raw: Mapping[str, Any]):
         """Resolve a certificate from a runtime, package, or certificate document."""
@@ -22121,6 +22133,10 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/execution/plan/query",
             "/v1/module-workbench/execution/plan/schema",
             "/v1/module-workbench/execution/plan/capabilities",
+            "/v1/module-workbench/execution/plan/preview",
+            "/v1/module-workbench/execution/plan/preview/query",
+            "/v1/module-workbench/execution/plan/preview/schema",
+            "/v1/module-workbench/execution/plan/preview/capabilities",
             "/v1/module-workbench/execution/packet",
             "/v1/module-workbench/execution/packet/query",
             "/v1/module-workbench/execution/packet/query/schema",
@@ -22319,6 +22335,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/runtime/schema": module_workbench_execution_runtime_schema,
                     "/v1/module-workbench/execution/review/schema": module_workbench_execution_review_schema,
                     "/v1/module-workbench/execution/plan/schema": module_workbench_execution_plan_schema,
+                    "/v1/module-workbench/execution/plan/preview/schema": module_workbench_execution_plan_schema,
                     "/v1/module-workbench/execution/packet/schema": module_workbench_execution_packet_schema,
                     "/v1/module-workbench/execution/packet/query/schema": module_workbench_execution_packet_query_schema,
                     "/v1/module-workbench/execution/packet/release/schema": module_workbench_execution_packet_release_schema,
@@ -22398,6 +22415,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/runtime/capabilities": module_workbench_execution_runtime_capabilities,
                     "/v1/module-workbench/execution/review/capabilities": module_workbench_execution_review_capabilities,
                     "/v1/module-workbench/execution/plan/capabilities": module_workbench_execution_plan_capabilities,
+                    "/v1/module-workbench/execution/plan/preview/capabilities": module_workbench_execution_plan_capabilities,
                     "/v1/module-workbench/execution/packet/capabilities": module_workbench_execution_packet_capabilities,
                     "/v1/module-workbench/execution/packet/query/capabilities": module_workbench_execution_packet_query_capabilities,
                     "/v1/module-workbench/execution/packet/release/capabilities": module_workbench_execution_packet_release_capabilities,
@@ -23669,15 +23687,25 @@ class ApiHandler(BaseHTTPRequestHandler):
                 elif path in {
                     "/v1/module-workbench/execution/plan",
                     "/v1/module-workbench/execution/plan/query",
+                    "/v1/module-workbench/execution/plan/preview",
+                    "/v1/module-workbench/execution/plan/preview/query",
                 }:
                     _lineage, _quality, workbench = self._module_workbench_context()
-                    portfolio = build_module_workbench_portfolio(workbench)
-                    execution_state = self._module_workbench_execution_context()
-                    with execution_state["lock"]:
-                        ledger = execution_state["ledger"]
+                    is_preview = "/preview" in path
+                    selection = self._module_workbench_plan_selection(query) if is_preview else None
+                    portfolio = build_module_workbench_portfolio(
+                        workbench,
+                        **selection if selection is not None else {},
+                    )
+                    if is_preview:
+                        ledger = build_module_workbench_execution(workbench, portfolio)
+                    else:
+                        execution_state = self._module_workbench_execution_context()
+                        with execution_state["lock"]:
+                            ledger = execution_state["ledger"]
                     plan = build_module_workbench_execution_plan(workbench, portfolio, ledger)
                     if path.endswith("/query"):
-                        payload = query_module_workbench_execution_plan(
+                        plan_page = query_module_workbench_execution_plan(
                             plan,
                             resource=self._query_value(query, "resource") or "nodes",
                             task_id=self._query_value(query, "task_id"),
@@ -23688,6 +23716,22 @@ class ApiHandler(BaseHTTPRequestHandler):
                             offset=self._query_int(query, "offset", 0),
                             limit=self._query_int(query, "limit", 50),
                         )
+                        if is_preview:
+                            preview_identity = {
+                                "plan_address": plan_page["plan_address"],
+                                "selection": selection,
+                                "page_address": plan_page["content_address"],
+                            }
+                            payload = plan_page | {
+                                "mode": "preview",
+                                "selection": selection,
+                                "preview_address": content_hash(
+                                    preview_identity,
+                                    prefix="module-workbench-execution-plan-preview",
+                                ),
+                            }
+                        else:
+                            payload = plan_page
                     else:
                         output_format = self._query_value(query, "format") or "json"
                         if output_format == "csv":
@@ -23704,9 +23748,27 @@ class ApiHandler(BaseHTTPRequestHandler):
                                 content_type="text/markdown; charset=utf-8",
                             )
                             return
-                        payload = plan.to_dict(
+                        plan_payload = plan.to_dict(
                             include_nodes=self._query_bool(query, "include_nodes") is not False
                         )
+                        if is_preview:
+                            preview_identity = {
+                                "plan": plan_payload,
+                                "selection": selection,
+                            }
+                            payload = {
+                                "version": plan_payload["version"],
+                                "mode": "preview",
+                                "selection": selection,
+                                "portfolio": portfolio.to_dict(include_tasks=False),
+                                "plan": plan_payload,
+                                "preview_address": content_hash(
+                                    preview_identity,
+                                    prefix="module-workbench-execution-plan-preview",
+                                ),
+                            }
+                        else:
+                            payload = plan_payload
                 elif path in {
                     "/v1/module-workbench/execution/runtime",
                     "/v1/module-workbench/execution/runtime/query",
