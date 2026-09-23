@@ -78,6 +78,22 @@ def _args(fasta: Path, vcf: Path, motifs: Path, output: Path) -> list[str]:
 
 
 class SequenceFilesCliTests(unittest.TestCase):
+    def test_ensembl_coordinate_style_fasta_header_is_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fasta, vcf, motifs = _write_downloads(root)
+            with gzip.open(fasta, "wt", encoding="ascii") as handle:
+                handle.write(
+                    ">chromosome:GRCh38:7:100:111:1 downloaded reference\n"
+                    "AACCGGTTAACC\n"
+                )
+            args = build_parser().parse_args(_args(fasta, vcf, motifs, root / "report.json"))
+            args.genome_build = "GRCh38"
+            self.assertEqual(
+                build_sequence_haplotype_input(args)["sequence"]["sequence"],
+                "AACCGGTTAACC",
+            )
+
     def test_local_downloads_build_exact_input_and_analysis_report(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

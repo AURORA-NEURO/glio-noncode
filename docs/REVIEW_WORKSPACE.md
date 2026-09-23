@@ -265,9 +265,13 @@ glio-noncode sequence-files `
 
 The adapter rejects missing sample columns, unphased genotypes, no-call
 alleles, malformed FASTA contigs, out-of-window requests, unsupported file
-sizes, and missing phase provenance before motif analysis starts. The VCF and
-FASTA are read locally; their bases, genotype strings, and sample IDs do not
-cross into the persisted public report.
+sizes, and missing phase provenance before motif analysis starts. FASTA inputs
+may be complete contigs with bare headers or bounded Ensembl downloads with
+coordinate-style headers such as
+`chromosome:GRCh37:7:140408450:140408650:1`; the latter are mapped back to
+their declared genomic coordinates before the requested window is extracted.
+The VCF and FASTA are read locally; their bases, genotype strings, and sample
+IDs do not cross into the persisted public report.
 For stronger download reproducibility, `--fasta-sha256` and `--vcf-sha256`
 accept the exact 64-character hexadecimal SHA-256 digests of the downloaded
 payloads as stored on disk. Digests are checked before gzip decompression and a

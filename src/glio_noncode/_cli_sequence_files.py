@@ -22,6 +22,21 @@ MAX_SEQUENCE_FILE_VARIANTS = 1_024
 MAX_SEQUENCE_FILE_MOTIFS = 2_048
 
 
+def _fasta_contig_header(header_name: str) -> tuple[str, int]:
+    """Normalize a contig and origin from a bare or Ensembl FASTA header."""
+
+    fields = header_name.split(":")
+    if len(fields) >= 6 and fields[0].casefold() == "chromosome":
+        header_name = fields[2]
+        try:
+            return normalize_chromosome(header_name), _positive_int(
+                fields[3], "FASTA coordinate-style header start"
+            )
+        except ValueError as exc:
+            raise ValidationError("FASTA coordinate-style header start is invalid") from exc
+    return normalize_chromosome(header_name), 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="glio-noncode sequence-files",
@@ -123,8 +138,9 @@ def _fasta_window(raw: bytes, *, chromosome: str, start: int, end: int) -> str:
     except UnicodeDecodeError as exc:
         raise ValidationError("FASTA must contain ASCII bases") from exc
     target = normalize_chromosome(chromosome)
-    records: dict[str, str] = {}
+    records: dict[str, tuple[int, str]] = {}
     current: str | None = None
+    current_start = 1
     chunks: list[str] = []
     for line_number, line in enumerate(text.splitlines(), 1):
         if not line:
@@ -133,11 +149,11 @@ def _fasta_window(raw: bytes, *, chromosome: str, start: int, end: int) -> str:
             if current is not None:
                 if current in records:
                     raise ValidationError(f"FASTA repeats contig {current}")
-                records[current] = "".join(chunks)
+                records[current] = (current_start, "".join(chunks))
             name = line[1:].split(None, 1)[0]
             if not name:
                 raise ValidationError(f"FASTA header is empty on line {line_number}")
-            current = normalize_chromosome(name)
+            current, current_start = _fasta_contig_header(name)
             chunks = []
             continue
         if current is None:
@@ -149,13 +165,15 @@ def _fasta_window(raw: bytes, *, chromosome: str, start: int, end: int) -> str:
     if current is not None:
         if current in records:
             raise ValidationError(f"FASTA repeats contig {current}")
-        records[current] = "".join(chunks)
-    sequence = records.get(target)
-    if sequence is None:
+        records[current] = (current_start, "".join(chunks))
+    record = records.get(target)
+    if record is None:
         raise ValidationError(f"FASTA does not contain contig {target}")
-    if start < 1 or end < start or end > len(sequence):
+    record_start, sequence = record
+    record_end = record_start + len(sequence) - 1
+    if start < record_start or end < start or end > record_end:
         raise ValidationError("requested FASTA interval is outside the downloaded contig")
-    return sequence[start - 1 : end]
+    return sequence[start - record_start : end - record_start + 1]
 
 
 def _vcf_variants(
