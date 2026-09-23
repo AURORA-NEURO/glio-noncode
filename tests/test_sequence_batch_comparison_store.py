@@ -38,6 +38,13 @@ class SequenceBatchComparisonStoreTests(unittest.TestCase):
             changes = store.page_changes(record["comparison_id"], direction="decreased")
             self.assertEqual(changes["schema"], COMPARISON_CHANGES_SCHEMA)
             self.assertEqual(changes["total_changes"], 1)
+            self.assertEqual(changes["filtered_change_summary"]["change_count"], 1)
+            self.assertEqual(changes["filtered_change_summary"]["decreased_count"], 1)
+            self.assertEqual(changes["filtered_change_summary"]["delta_count"], 1)
+            self.assertAlmostEqual(
+                changes["filtered_change_summary"]["mean_absolute_delta_fraction"],
+                1 / 3,
+            )
             csv_body = store.changes_csv(record["comparison_id"], motif_contains="joint")
             self.assertIn("delta_fraction", csv_body.splitlines()[0])
             self.assertIn("jointly-created motif", csv_body)

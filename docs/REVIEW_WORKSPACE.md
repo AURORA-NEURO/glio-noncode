@@ -302,6 +302,9 @@ row as `not_reported_in_one_batch`. The read-only API equivalent is
 `POST /v1/sequence-haplotype/batch/compare` with `left` and `right` report
 objects. Persist a comparison from two saved batch IDs with
 `POST /v1/sequence-comparisons` and `{ "left_batch_id": "...", "right_batch_id": "..." }`;
+comparison change pages include a `filtered_change_summary` with created and
+disrupted counts, increased/decreased/unchanged/not-reported direction counts,
+and signed delta/absolute-delta means computed before pagination.
 the resulting catalog is listed at `GET /v1/sequence-comparisons` and its
 verified changes are available through `/changes.csv`.
 

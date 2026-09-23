@@ -423,6 +423,27 @@ class SequenceBatchComparisonStore:
                 or motif_contains in item["name"].casefold()
             )
         ]
+        deltas = [
+            float(item["delta_fraction"])
+            for item in filtered
+            if item["delta_fraction"] is not None
+        ]
+        filtered_change_summary = {
+            "change_count": len(filtered),
+            "created_count": sum(item["change"] == "created" for item in filtered),
+            "disrupted_count": sum(item["change"] == "disrupted" for item in filtered),
+            "increased_count": sum(item["direction"] == "increased" for item in filtered),
+            "decreased_count": sum(item["direction"] == "decreased" for item in filtered),
+            "unchanged_count": sum(item["direction"] == "unchanged" for item in filtered),
+            "not_reported_count": sum(
+                item["direction"] == "not_reported_in_one_batch" for item in filtered
+            ),
+            "delta_count": len(deltas),
+            "mean_delta_fraction": sum(deltas) / len(deltas) if deltas else 0.0,
+            "mean_absolute_delta_fraction": (
+                sum(abs(delta) for delta in deltas) / len(deltas) if deltas else 0.0
+            ),
+        }
         return {
             "schema": COMPARISON_CHANGES_SCHEMA,
             "comparison_id": comparison_id,
@@ -432,6 +453,7 @@ class SequenceBatchComparisonStore:
             "unfiltered_change_count": len(saved["report"]["changes"]),
             "has_more": offset + limit < len(filtered),
             "filters": {"change": change, "direction": direction, "motif_contains": motif_contains},
+            "filtered_change_summary": filtered_change_summary,
             "changes": filtered[offset : offset + limit],
         }
 
