@@ -57,6 +57,19 @@ _SOURCE_FIELDS = frozenset(
         "sequence_hash",
     }
 )
+_SOURCE_OPTIONAL_FIELDS = frozenset({"downloaded_inputs"})
+_DOWNLOAD_FIELDS = frozenset(
+    {
+        "role",
+        "source_id",
+        "source_url",
+        "source_version",
+        "retrieved_at",
+        "sha256",
+        "size_bytes",
+        "compression",
+    }
+)
 _INPUT_FIELDS = frozenset(
     {"genome_build", "variant_count", "motif_count", "variants", "motifs"}
 )
@@ -206,6 +219,43 @@ def _validate_hit(value: object, *, expected_change: str) -> dict[str, Any]:
     return hit
 
 
+def _validate_downloaded_inputs(value: object) -> None:
+    if type(value) is not list or not 1 <= len(value) <= 2:
+        raise ValidationError("sequence downloaded inputs must contain one or two receipts")
+    roles: set[str] = set()
+    for index, item in enumerate(value):
+        receipt = _object(item, _DOWNLOAD_FIELDS, f"downloaded input {index + 1}")
+        role = _text(receipt["role"], f"downloaded input {index + 1} role", maximum=32)
+        if role not in {"fasta", "vcf"} or role in roles:
+            raise ValidationError("sequence downloaded input roles must be unique FASTA/VCF values")
+        roles.add(role)
+        for key, maximum in (
+            ("source_id", 128),
+            ("source_version", 256),
+            ("retrieved_at", 128),
+        ):
+            _text(receipt[key], f"downloaded input {index + 1} {key}", maximum=maximum)
+        source_url = _text(
+            receipt["source_url"], f"downloaded input {index + 1} URL", maximum=8_192
+        )
+        parsed_url = urlsplit(source_url)
+        if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
+            raise ValidationError(f"downloaded input {index + 1} URL is not absolute HTTP")
+        sha256 = _text(receipt["sha256"], f"downloaded input {index + 1} SHA-256", maximum=71)
+        if _ADDRESS_RE.fullmatch(sha256) is None:
+            raise ValidationError(f"downloaded input {index + 1} SHA-256 is invalid")
+        _count(
+            receipt["size_bytes"],
+            f"downloaded input {index + 1} size",
+            maximum=128 * 1024 * 1024,
+        )
+        compression = _text(
+            receipt["compression"], f"downloaded input {index + 1} compression", maximum=16
+        )
+        if compression not in {"none", "gzip"}:
+            raise ValidationError(f"downloaded input {index + 1} compression is unsupported")
+
+
 def _validate_analysis(value: object) -> dict[str, Any]:
     analysis = _object(value, _ANALYSIS_FIELDS, "analysis")
     _text(analysis["phase_set"], "analysis phase set", maximum=256)
@@ -262,7 +312,14 @@ def validate_sequence_haplotype_report(report: object) -> dict[str, Any]:
         "supported", "reference_mismatch", "out_of_window", "abstained"
     }:
         raise ValidationError("sequence analysis report state is unsupported")
-    source = _object(report["source"], _SOURCE_FIELDS, "source")
+    source_value = report["source"]
+    if (
+        type(source_value) is not dict
+        or not _SOURCE_FIELDS.issubset(source_value)
+        or not frozenset(source_value).issubset(_SOURCE_FIELDS | _SOURCE_OPTIONAL_FIELDS)
+    ):
+        raise ValidationError("sequence source has an invalid v1 shape")
+    source = source_value
     for key in ("source_id", "source_version", "retrieved_at"):
         _text(source[key], f"source {key}")
     source_url = _text(source["source_url"], "source URL", maximum=8_192)
@@ -272,6 +329,8 @@ def validate_sequence_haplotype_report(report: object) -> dict[str, Any]:
     _address(source["response_hash"], "source response hash")
     _address(source["sequence_hash"], "source sequence hash")
     interval = _validate_interval(source["sequence_interval"], "source interval")
+    if "downloaded_inputs" in source:
+        _validate_downloaded_inputs(source["downloaded_inputs"])
     inputs = _object(report["inputs"], _INPUT_FIELDS, "inputs")
     _text(inputs["genome_build"], "genome build", maximum=256)
     variant_count = _count(inputs["variant_count"], "variant count", minimum=1, maximum=1_024)

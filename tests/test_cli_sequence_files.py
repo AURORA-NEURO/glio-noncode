@@ -11,6 +11,7 @@ from pathlib import Path
 
 from glio_noncode._cli_sequence_files import build_parser, build_sequence_haplotype_input, main
 from glio_noncode.errors import ValidationError
+from glio_noncode.sequence_haplotype_store import validate_sequence_haplotype_report
 
 
 def _write_downloads(root: Path, *, phased: bool = True) -> tuple[Path, Path, Path]:
@@ -103,6 +104,13 @@ class SequenceFilesCliTests(unittest.TestCase):
             self.assertEqual(input_value["sequence"]["sequence"], "AACCGGTTAACC")
             self.assertEqual(len(input_value["variants"]), 2)
             self.assertEqual(input_value["variants"][0]["phase_set"], "phase-1")
+            receipts = input_value["sequence"]["downloaded_inputs"]
+            self.assertEqual([item["role"] for item in receipts], ["fasta", "vcf"])
+            self.assertEqual(receipts[0]["size_bytes"], fasta.stat().st_size)
+            self.assertEqual(receipts[1]["size_bytes"], vcf.stat().st_size)
+            self.assertTrue(receipts[0]["sha256"].startswith("sha256:"))
+            self.assertTrue(receipts[1]["sha256"].startswith("sha256:"))
+            self.assertNotIn("path", json.dumps(receipts))
 
             stdout, stderr = io.StringIO(), io.StringIO()
             with redirect_stdout(stdout), redirect_stderr(stderr):
@@ -115,6 +123,42 @@ class SequenceFilesCliTests(unittest.TestCase):
             self.assertNotIn("SAMPLE_1", serialized)
             self.assertEqual(stdout.getvalue(), "")
             self.assertEqual(stderr.getvalue(), "")
+
+            validate_sequence_haplotype_report(report)
+
+    def test_variant_download_receipt_can_use_a_distinct_source(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fasta, vcf, motifs = _write_downloads(root)
+            args = _args(fasta, vcf, motifs, root / "report.json")
+            args.extend(
+                [
+                    "--variant-source-id",
+                    "variant-source",
+                    "--variant-source-url",
+                    "https://variants.example/download",
+                    "--variant-source-version",
+                    "release-2",
+                    "--variant-retrieved-at",
+                    "2026-08-21T00:00:00+00:00",
+                ]
+            )
+            parsed = build_parser().parse_args(args)
+            input_value = build_sequence_haplotype_input(parsed)
+            vcf_receipt = input_value["sequence"]["downloaded_inputs"][1]
+            self.assertEqual(vcf_receipt["source_id"], "variant-source")
+            self.assertEqual(vcf_receipt["source_url"], "https://variants.example/download")
+            self.assertEqual(vcf_receipt["source_version"], "release-2")
+            self.assertEqual(vcf_receipt["retrieved_at"], "2026-08-21T00:00:00+00:00")
+
+    def test_partial_variant_download_source_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fasta, vcf, motifs = _write_downloads(root)
+            args = _args(fasta, vcf, motifs, root / "report.json")
+            args.extend(["--variant-source-id", "variant-source"])
+            with self.assertRaisesRegex(ValidationError, "supplied together"):
+                build_sequence_haplotype_input(build_parser().parse_args(args))
 
     def test_download_sha256_digests_are_verified_before_decompression(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

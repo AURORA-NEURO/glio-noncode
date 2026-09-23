@@ -259,7 +259,7 @@ glio-noncode sequence-files `
   --sample-id SAMPLE_1 --genome-build GRCh38 --chromosome chr7 `
   --start 140453100 --end 140453300 `
   --source-id reference-download --source-url https://example.org/reference `
-  --source-version 2026-08 --retrieved-at 2026-08-20T00:00:00Z `
+  --source-version 2026-08 --retrieved-at 2026-08-20T00:00:00+00:00 `
   --motifs motifs.json --output sequence-report.json
 ```
 
@@ -276,6 +276,15 @@ For stronger download reproducibility, `--fasta-sha256` and `--vcf-sha256`
 accept the exact 64-character hexadecimal SHA-256 digests of the downloaded
 payloads as stored on disk. Digests are checked before gzip decompression and a
 mismatch aborts the run before any sequence or variant analysis begins.
+The completed report also retains bounded, path-free receipts for each local
+download: role (`fasta` or `vcf`), source ID, source URL, version, retrieval
+time, compressed payload size, compression mode, and the verified SHA-256
+address. Use `--variant-source-id`, `--variant-source-url`,
+`--variant-source-version`, and optionally `--variant-retrieved-at` when the
+VCF comes from a different public source than the reference FASTA. These
+receipts let archive verification distinguish the reference and call-set
+inputs without persisting local paths, raw bases, genotype strings, or sample
+identifiers.
 
 When several downloaded samples share the same reference window and motif
 catalog, `sequence-batch` aggregates the individual reports without emitting

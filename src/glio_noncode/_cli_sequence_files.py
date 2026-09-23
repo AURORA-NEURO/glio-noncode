@@ -52,10 +52,36 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--chromosome", required=True, help="FASTA/VCF contig label")
     parser.add_argument("--start", required=True, type=int, help="1-based inclusive window start")
     parser.add_argument("--end", required=True, type=int, help="1-based inclusive window end")
-    parser.add_argument("--source-id", required=True, help="stable downloaded-source identifier")
-    parser.add_argument("--source-url", required=True, help="canonical HTTPS URL for the download")
-    parser.add_argument("--source-version", required=True, help="download or release version")
+    parser.add_argument(
+        "--source-id", required=True, help="stable source identifier for the reference FASTA"
+    )
+    parser.add_argument(
+        "--source-url", required=True, help="canonical HTTPS URL for the reference FASTA"
+    )
+    parser.add_argument(
+        "--source-version", required=True, help="reference FASTA download or release version"
+    )
     parser.add_argument("--retrieved-at", required=True, help="UTC retrieval timestamp")
+    parser.add_argument(
+        "--variant-source-id",
+        default=None,
+        help="optional stable source identifier for the downloaded VCF",
+    )
+    parser.add_argument(
+        "--variant-source-url",
+        default=None,
+        help="optional canonical HTTPS URL for the downloaded VCF",
+    )
+    parser.add_argument(
+        "--variant-source-version",
+        default=None,
+        help="optional downloaded VCF release or version",
+    )
+    parser.add_argument(
+        "--variant-retrieved-at",
+        default=None,
+        help="optional UTC retrieval timestamp for the downloaded VCF",
+    )
     parser.add_argument(
         "--fasta-sha256",
         default=None,
@@ -97,7 +123,7 @@ def _read_download(
     *,
     label: str,
     expected_sha256: str | None = None,
-) -> bytes:
+) -> tuple[bytes, dict[str, Any]]:
     normalized_expected = _expected_sha256(expected_sha256, label=label)
     path = Path(path_value)
     if path.is_symlink() or not path.is_file():
@@ -113,9 +139,14 @@ def _read_download(
             raw = gzip.decompress(raw)
         except (OSError, EOFError) as exc:
             raise ValidationError(f"{label} gzip payload is invalid") from exc
+    receipt = {
+        "sha256": f"sha256:{actual_sha256}",
+        "size_bytes": path.stat().st_size,
+        "compression": "gzip" if path.suffix.casefold() == ".gz" else "none",
+    }
     if len(raw) > MAX_SEQUENCE_FILE_TEXT:
         raise ValidationError(f"{label} decompressed payload exceeds its limit")
-    return raw
+    return raw, receipt
 
 
 def _read_motifs(path_value: str | None) -> list[dict[str, Any]]:
@@ -300,14 +331,37 @@ def build_sequence_haplotype_input(args: argparse.Namespace) -> dict[str, Any]:
         raise ValidationError("sequence window end must not precede its start")
     if args.haplotype_index < 1:
         raise ValidationError("haplotype index must be positive")
+    variant_source_values = (
+        args.variant_source_id,
+        args.variant_source_url,
+        args.variant_source_version,
+    )
+    if any(value is not None for value in variant_source_values) and not all(
+        value is not None for value in variant_source_values
+    ):
+        raise ValidationError(
+            "variant source ID, URL, and version must be supplied together"
+        )
+    variant_source = {
+        "source_id": args.variant_source_id or args.source_id,
+        "source_url": args.variant_source_url or args.source_url,
+        "source_version": args.variant_source_version or args.source_version,
+        "retrieved_at": args.variant_retrieved_at or args.retrieved_at,
+    }
+    fasta_raw, fasta_receipt = _read_download(
+        args.fasta, label="FASTA", expected_sha256=args.fasta_sha256
+    )
+    vcf_raw, vcf_receipt = _read_download(
+        args.vcf, label="VCF", expected_sha256=args.vcf_sha256
+    )
     sequence = _fasta_window(
-        _read_download(args.fasta, label="FASTA", expected_sha256=args.fasta_sha256),
+        fasta_raw,
         chromosome=args.chromosome,
         start=args.start,
         end=args.end,
     )
     variants = _vcf_variants(
-        _read_download(args.vcf, label="VCF", expected_sha256=args.vcf_sha256),
+        vcf_raw,
         sample_id=args.sample_id,
         chromosome=args.chromosome,
         start=args.start,
@@ -329,6 +383,17 @@ def build_sequence_haplotype_input(args: argparse.Namespace) -> dict[str, Any]:
             "source_url": args.source_url,
             "source_version": args.source_version,
             "retrieved_at": args.retrieved_at,
+            "downloaded_inputs": [
+                fasta_receipt
+                | {
+                    "role": "fasta",
+                    "source_id": args.source_id,
+                    "source_url": args.source_url,
+                    "source_version": args.source_version,
+                    "retrieved_at": args.retrieved_at,
+                },
+                vcf_receipt | {"role": "vcf"} | variant_source,
+            ],
         },
         "variants": variants,
         "motifs": _read_motifs(args.motifs),

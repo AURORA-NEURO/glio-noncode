@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import re
 import sys
 from dataclasses import replace
 from typing import Any
+from urllib.parse import urlsplit
 
 from ._cli_support import read_mapping, write_json
 from .data_sources import FetchReceipt, FetchStatus, SequenceSlice
@@ -36,10 +38,24 @@ _SEQUENCE_FIELDS = frozenset(
         "retrieved_at",
     }
 )
+_OPTIONAL_SEQUENCE_FIELDS = frozenset({"downloaded_inputs"})
 _VARIANT_FIELDS = frozenset(
     {"notation", "variant_id", "sample_id", "phase_set", "haplotype_index"}
 )
 _MOTIF_FIELDS = frozenset({"motif_id", "name", "pattern", "source_id"})
+_DOWNLOAD_FIELDS = frozenset(
+    {
+        "role",
+        "source_id",
+        "source_url",
+        "source_version",
+        "retrieved_at",
+        "sha256",
+        "size_bytes",
+        "compression",
+    }
+)
+_SHA256_ADDRESS_RE = re.compile(r"sha256:[0-9a-f]{64}\Z")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -122,7 +138,13 @@ def _receipt(sequence: dict[str, Any]) -> FetchReceipt:
 
 
 def _build_sequence(raw: dict[str, Any]) -> SequenceSlice:
-    sequence = _exact_mapping(raw, _SEQUENCE_FIELDS, "sequence")
+    if (
+        type(raw) is not dict
+        or not _SEQUENCE_FIELDS.issubset(raw)
+        or not frozenset(raw).issubset(_SEQUENCE_FIELDS | _OPTIONAL_SEQUENCE_FIELDS)
+    ):
+        raise ValidationError("sequence has an invalid exact shape")
+    sequence = raw
     assembly = _text(sequence["assembly"], "sequence assembly", maximum=256)
     chromosome = _text(sequence["chromosome"], "sequence chromosome", maximum=256)
     start = _integer(sequence["start"], "sequence start")
@@ -154,6 +176,64 @@ def _build_sequence(raw: dict[str, Any]) -> SequenceSlice:
         source_id=source_id,
         receipt=_receipt(normalized),
     )
+
+
+def _build_downloaded_inputs(raw: object) -> list[dict[str, Any]]:
+    if raw is None:
+        return []
+    if type(raw) is not list or not 1 <= len(raw) <= 2:
+        raise ValidationError("downloaded_inputs must contain one or two receipts")
+    receipts: list[dict[str, Any]] = []
+    roles: set[str] = set()
+    for index, item in enumerate(raw):
+        receipt = _exact_mapping(item, _DOWNLOAD_FIELDS, f"downloaded input {index + 1}")
+        role = _text(receipt["role"], f"downloaded input {index + 1} role", maximum=32)
+        if role not in {"fasta", "vcf"} or role in roles:
+            raise ValidationError("downloaded input roles must be unique FASTA/VCF values")
+        roles.add(role)
+        source_id = _text(
+            receipt["source_id"], f"downloaded input {index + 1} source_id", maximum=128
+        )
+        source_url = _text(
+            receipt["source_url"], f"downloaded input {index + 1} source_url", maximum=8_192
+        )
+        parsed_url = urlsplit(source_url)
+        if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
+            raise ValidationError(f"downloaded input {index + 1} source_url must be absolute HTTP")
+        source_version = _text(
+            receipt["source_version"],
+            f"downloaded input {index + 1} source_version",
+            maximum=256,
+        )
+        retrieved_at = _text(
+            receipt["retrieved_at"], f"downloaded input {index + 1} retrieved_at", maximum=128
+        )
+        sha256 = _text(receipt["sha256"], f"downloaded input {index + 1} sha256", maximum=71)
+        if _SHA256_ADDRESS_RE.fullmatch(sha256.casefold()) is None:
+            raise ValidationError(f"downloaded input {index + 1} sha256 is invalid")
+        size_bytes = _integer(
+            receipt["size_bytes"], f"downloaded input {index + 1} size_bytes", minimum=0
+        )
+        if size_bytes > 128 * 1024 * 1024:
+            raise ValidationError(f"downloaded input {index + 1} is too large")
+        compression = _text(
+            receipt["compression"], f"downloaded input {index + 1} compression", maximum=16
+        )
+        if compression not in {"none", "gzip"}:
+            raise ValidationError(f"downloaded input {index + 1} compression is unsupported")
+        receipts.append(
+            {
+                "role": role,
+                "source_id": source_id,
+                "source_url": source_url,
+                "source_version": source_version,
+                "retrieved_at": retrieved_at,
+                "sha256": sha256.casefold(),
+                "size_bytes": size_bytes,
+                "compression": compression,
+            }
+        )
+    return receipts
 
 
 def _build_variants(raw: object, *, genome_build: str) -> tuple[PhasedVariantIdentity, ...]:
@@ -209,7 +289,9 @@ def build_analysis_report(raw: dict[str, Any]) -> dict[str, Any]:
     if raw["schema"] != _SCHEMA:
         raise ValidationError("sequence-haplotype input schema is unsupported")
     genome_build = _text(raw["genome_build"], "genome_build", maximum=256)
-    sequence = _build_sequence(raw["sequence"])
+    sequence_input = raw["sequence"]
+    sequence = _build_sequence(sequence_input)
+    downloaded_inputs = _build_downloaded_inputs(sequence_input.get("downloaded_inputs"))
     phased = _build_variants(raw["variants"], genome_build=genome_build)
     motifs = _build_motifs(raw["motifs"])
     result = SequenceInference().analyze_haplotype(phased, sequence, motifs=motifs)
@@ -244,6 +326,8 @@ def build_analysis_report(raw: dict[str, Any]) -> dict[str, Any]:
         "analysis": result.to_dict(),
         "limitations": list(result.limitations),
     }
+    if downloaded_inputs:
+        body["source"]["downloaded_inputs"] = downloaded_inputs
     return body | {
         "content_address": content_hash(body, prefix="sequence-haplotype-analysis")
     }
