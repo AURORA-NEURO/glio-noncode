@@ -1716,6 +1716,13 @@ audit routes, plus a complete seven-stage runtime handoff. See
 [docs/MODULE_WORKBENCH.md](docs/MODULE_WORKBENCH.md) for the scoring model,
 task contract, verification rules, and full route matrix.
 
+In the local review workbench, the Modules rail includes a paginated Priority
+review queue. Filter it by risk or reason, then open a row to carry its rank,
+priority score, explainable reason codes, dependency pressure, and recommended
+task IDs into the module dossier alongside certification, evidence, and
+lineage. The queue is read-only and exposes only the path-free public
+projection.
+
 ## Module workbench execution
 
 The execution layer turns a selected workbench portfolio into a deterministic,

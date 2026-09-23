@@ -184,6 +184,17 @@ catalog response cannot replace a newer selection. Each selected dossier is
 also checked for `module-workbench-detail-v1` and an accepted public boundary
 before its detail panels are shown.
 
+The sidebar also exposes the explainable priority queue from
+`/v1/module-workbench/triage/query`. It provides bounded pagination and risk or
+reason filters for `blocker_risk`, `high_risk`, `shallow_depth`,
+`certification_gap`, `unresolved_lineage`, `high_fan_in`,
+`missing_test_reference`, and `low_score`. Selecting a queue row opens the same
+module dossier and preserves its rank, priority score, reason codes, dependency
+pressure, evidence and gap counts, unresolved edges, and recommended task IDs
+in the review-pressure panel. Queue responses are generation-gated and are
+accepted only when the triage address, page bounds, and read-only contract are
+valid.
+
 Contract metadata is available without scanning source:
 
 ```text
