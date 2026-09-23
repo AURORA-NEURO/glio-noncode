@@ -193,11 +193,13 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         signature = (("0:core.py", 10, 20), ("1:test_core.py", 11, 21))
         payload = snapshot_payload(signature, inventory, matrix, lineage, quality, workbench)
         restored = snapshot_from_mapping(payload, signature)
+        fast_restored = snapshot_from_mapping(payload, signature, verify_nested=False)
         self.assertEqual(restored[0].content_address, inventory.content_address)
         self.assertEqual(restored[1].content_address, matrix.content_address)
         self.assertEqual(restored[2].content_address, lineage.content_address)
         self.assertEqual(restored[3].content_address, quality.content_address)
         self.assertEqual(restored[4].content_address, workbench.content_address)
+        self.assertEqual(fast_restored[4].content_address, workbench.content_address)
         with self.assertRaises(ValidationError):
             snapshot_from_mapping(payload, (("changed.py", 1, 1),))
         payload["workbench"]["overall_score"] = 0.0

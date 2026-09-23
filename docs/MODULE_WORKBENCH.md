@@ -272,8 +272,10 @@ focused review.
 The HTTP server writes a compressed snapshot of the verified inventory,
 certification matrix, lineage graph, quality report, and workbench report under
 the configured data root at `module-cache/snapshot.json.gz`. The snapshot is
-written atomically and is accepted only when its schema, source metadata
-signature, nested content addresses, and upstream relationships all verify.
+written atomically and carries a deterministic payload digest. A normal server
+load checks that digest, the source metadata signature, typed structure, and
+upstream relationships; the explicit snapshot verifier additionally recomputes
+every nested content address.
 Missing, stale, malformed, or tampered snapshots are ignored and rebuilt from
 source; the server never executes cached source content. This keeps a cold
 server restart useful for large repositories while preserving the same

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -46,6 +47,7 @@ from .module_workbench_contracts import (
     ModuleWorkbenchTask,
     ModuleWorkbenchTaskKind,
 )
+from .serialization import canonical_json
 
 MODULE_WORKBENCH_CACHE_SCHEMA = "module-workbench-cache-v1"
 
@@ -135,7 +137,7 @@ def _matrix(value: Mapping[str, Any]) -> ModuleCertificationMatrix:
         accepted=bool(value.get("accepted", False)),
         content_address=_text(value.get("content_address"), "matrix.content_address"),
     )
-    return verify_module_certification(result)
+    return result
 
 
 def _lineage(value: Mapping[str, Any]) -> ModuleCertificationLineage:
@@ -182,7 +184,7 @@ def _lineage(value: Mapping[str, Any]) -> ModuleCertificationLineage:
         accepted=bool(value.get("accepted", False)),
         content_address=_text(value.get("content_address"), "lineage.content_address"),
     )
-    return verify_module_certification_lineage(result)
+    return result
 
 
 def _quality(value: Mapping[str, Any]) -> ModuleCertificationQualityReport:
@@ -228,7 +230,7 @@ def _quality(value: Mapping[str, Any]) -> ModuleCertificationQualityReport:
         accepted=bool(value.get("accepted", False)),
         content_address=_text(value.get("content_address"), "quality.content_address"),
     )
-    return verify_module_certification_quality(result)
+    return result
 
 
 def _workbench(value: Mapping[str, Any]) -> ModuleWorkbenchReport:
@@ -295,7 +297,7 @@ def _workbench(value: Mapping[str, Any]) -> ModuleWorkbenchReport:
         risk_counts=dict(_mapping(value.get("risk_counts", {}), "workbench.risk_counts")), accepted=bool(value.get("accepted", False)),
         content_address=_text(value.get("content_address"), "workbench.content_address"),
     )
-    return verify_module_workbench(result)
+    return result
 
 
 def snapshot_payload(
@@ -308,7 +310,7 @@ def snapshot_payload(
 ) -> dict[str, Any]:
     """Return a JSON-safe snapshot whose rows remain independently addressed."""
 
-    return {
+    body = {
         "schema": MODULE_WORKBENCH_CACHE_SCHEMA,
         "signature": [list(item) for item in signature],
         "inventory": inventory.to_dict(include_rows=True),
@@ -317,24 +319,43 @@ def snapshot_payload(
         "quality": quality.to_dict(include_measures=True),
         "workbench": workbench.to_dict(include_rows=True),
     }
+    body["payload_digest"] = hashlib.sha256(
+        canonical_json(body).encode("utf-8")
+    ).hexdigest()
+    return body
 
 
 def snapshot_from_mapping(
-    value: Mapping[str, Any], signature: tuple[tuple[str, int, int], ...]
+    value: Mapping[str, Any],
+    signature: tuple[tuple[str, int, int], ...],
+    *,
+    verify_nested: bool = True,
 ) -> tuple[ModuleInventory, ModuleCertificationMatrix, ModuleCertificationLineage, ModuleCertificationQualityReport, ModuleWorkbenchReport]:
     """Hydrate and independently verify a durable snapshot before use."""
 
     if _text(value.get("schema"), "cache.schema") != MODULE_WORKBENCH_CACHE_SCHEMA:
         raise ValidationError("module workbench cache schema is unsupported")
+    payload_digest = _text(value.get("payload_digest"), "cache.payload_digest")
+    unsigned = {key: item for key, item in value.items() if key != "payload_digest"}
+    expected_digest = hashlib.sha256(canonical_json(unsigned).encode("utf-8")).hexdigest()
+    if payload_digest != expected_digest:
+        raise ValidationError("module workbench cache payload digest is invalid")
     raw_signature = _sequence(value.get("signature", ()), "cache.signature")
     normalized_signature = tuple(tuple(item) for item in raw_signature)
     if normalized_signature != signature:
         raise ValidationError("module workbench cache source signature is stale")
-    inventory = verify_module_inventory(inventory_from_mapping(_mapping(value.get("inventory"), "cache.inventory")))
+    inventory = inventory_from_mapping(_mapping(value.get("inventory"), "cache.inventory"))
+    if verify_nested:
+        inventory = verify_module_inventory(inventory)
     matrix = _matrix(_mapping(value.get("matrix"), "cache.matrix"))
     lineage = _lineage(_mapping(value.get("lineage"), "cache.lineage"))
     quality = _quality(_mapping(value.get("quality"), "cache.quality"))
     workbench = _workbench(_mapping(value.get("workbench"), "cache.workbench"))
+    if verify_nested:
+        matrix = verify_module_certification(matrix)
+        lineage = verify_module_certification_lineage(lineage)
+        quality = verify_module_certification_quality(quality)
+        workbench = verify_module_workbench(workbench)
     if matrix.inventory_address != inventory.content_address:
         raise ValidationError("module workbench cache matrix does not belong to inventory")
     if lineage.inventory_address != inventory.content_address or lineage.matrix_address != matrix.content_address:

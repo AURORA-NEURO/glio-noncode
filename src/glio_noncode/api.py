@@ -3569,7 +3569,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             payload = json.loads(gzip.decompress(raw).decode("utf-8"))
             if not isinstance(payload, Mapping):
                 return None
-            return snapshot_from_mapping(payload, signature)
+            return snapshot_from_mapping(payload, signature, verify_nested=False)
         except (
             OSError,
             UnicodeDecodeError,
