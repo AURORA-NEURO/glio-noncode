@@ -866,6 +866,7 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             portfolio_page["portfolio_summary"]["deferred_task_count"],
             portfolio.deferred_task_count,
         )
+        self.assertTrue(portfolio.dependency_safe)
         self.assertEqual(module_workbench_portfolio_schema()["selection"][0], "capacity")
         self.assertEqual(
             module_workbench_portfolio_capabilities()["operation_count"],
@@ -874,7 +875,11 @@ class ModuleWorkbenchFixture(unittest.TestCase):
 
     def test_execution_plan_exposes_dependency_and_state_context(self) -> None:
         report = self.report()
-        portfolio = build_module_workbench_portfolio(report, capacity=4, max_tasks_per_module=2)
+        portfolio = build_module_workbench_portfolio(
+            report,
+            capacity=len(report.tasks),
+            max_tasks_per_module=len(report.tasks),
+        )
         ledger = build_module_workbench_execution(report, portfolio)
         plan = build_module_workbench_execution_plan(report, portfolio, ledger)
         verify_module_workbench_execution_plan(plan)
@@ -896,6 +901,9 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             len(dependencies["items"]),
             plan.dependency_edge_count,
         )
+        self.assertGreater(plan.dependency_edge_count, 0)
+        self.assertGreater(plan.max_depth, 0)
+        self.assertTrue(portfolio.dependency_safe)
         self.assertEqual(
             module_workbench_execution_plan_capabilities()["operation_count"],
             len(module_workbench_execution_plan_capabilities()["operations"]),

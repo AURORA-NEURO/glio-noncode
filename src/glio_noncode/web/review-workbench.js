@@ -689,6 +689,7 @@
       ["Capacity", `${formatCount(summary.task_count)} selected of ${formatCount(summary.capacity)} allowed`],
       ["Deferred", `${formatCount(summary.deferred_task_count)} planned tasks outside this wave`],
       ["Module limit", `${formatCount(summary.max_tasks_per_module)} tasks per module`],
+      ["Dependency closure", summary.dependency_safe === true ? "All selected tasks include their full prerequisite chain" : "Selected tasks contain deferred prerequisites"],
       ["Families / impact", `${familyCounts || "None selected"} · ${percent(summary.total_estimated_impact)} mean estimated impact`],
     ];
     for (const [label, value] of summaryRows) {

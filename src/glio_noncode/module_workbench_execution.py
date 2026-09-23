@@ -250,7 +250,9 @@ def build_module_workbench_execution(
     if missing:
         raise ValidationError(f"execution portfolio contains unknown tasks: {missing[:3]}")
     selected_tasks = tuple(selected.selected_tasks)
-    prerequisites = _prerequisite_map(selected_tasks)
+    # Derive dependencies from the full report so a selected later task cannot
+    # be mistaken for a root merely because its prerequisite was deferred.
+    prerequisites = _prerequisite_map(tuple(task_by_id.values()))
     families = {item.module_id: item.family for item in report.assessments}
     items = tuple(
         sorted(

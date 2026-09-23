@@ -45,6 +45,7 @@ class ModuleWorkbenchPortfolio:
     selected_module_count: int
     selected_family_counts: Mapping[str, int]
     total_estimated_impact: float
+    dependency_safe: bool
     accepted: bool
     content_address: str
 
@@ -73,6 +74,8 @@ class ModuleWorkbenchPortfolio:
             _text(key, f"selected_family_counts.{key}", 256)
             _count(value, f"selected_family_counts.{key}")
         _score(self.total_estimated_impact, "total_estimated_impact")
+        if not isinstance(self.dependency_safe, bool):
+            raise ValidationError("portfolio dependency_safe must be boolean")
         if not isinstance(self.accepted, bool):
             raise ValidationError("portfolio accepted must be boolean")
         _text(self.content_address, "content_address")
@@ -89,6 +92,7 @@ class ModuleWorkbenchPortfolio:
             "selected_module_count": self.selected_module_count,
             "selected_family_counts": dict(sorted(self.selected_family_counts.items())),
             "total_estimated_impact": self.total_estimated_impact,
+            "dependency_safe": self.dependency_safe,
             "accepted": self.accepted,
             "content_address": self.content_address,
         }

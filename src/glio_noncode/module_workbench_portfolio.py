@@ -15,6 +15,17 @@ from .module_workbench_portfolio_contracts import (
 )
 from .serialization import canonical_json, content_hash
 
+_KIND_ORDER = {
+    "repair_parse": 0,
+    "resolve_dependency": 1,
+    "add_test": 2,
+    "add_documentation": 3,
+    "expand_public_contract": 4,
+    "decompose_oversized": 5,
+    "review_integration": 6,
+    "close_certification": 7,
+}
+
 
 def _address(body: Mapping[str, Any], prefix: str) -> str:
     return content_hash(body, prefix=prefix)
@@ -51,13 +62,40 @@ def build_module_workbench_portfolio(
         and (not allowed_risks or module_risks.get(item.module_id) in allowed_risks)
     ]
     candidates.sort(key=lambda item: (item.priority, -item.estimated_impact, item.task_id))
+    task_by_id = {task.task_id: task for task in report.tasks}
+    grouped: dict[str, list[Any]] = {}
+    for task in report.tasks:
+        grouped.setdefault(task.module_id, []).append(task)
+    prerequisite_by_task: dict[str, str | None] = {}
+    for module_tasks in grouped.values():
+        ordered = sorted(
+            module_tasks,
+            key=lambda item: (_KIND_ORDER.get(item.kind.value, 99), item.task_id),
+        )
+        previous: str | None = None
+        for task in ordered:
+            prerequisite_by_task[task.task_id] = previous
+            previous = task.task_id
     selected: list[Any] = []
+    selected_ids: set[str] = set()
     counts: Counter[str] = Counter()
     for task in candidates:
-        if len(selected) >= capacity or counts[task.module_id] >= max_tasks_per_module:
+        closure: list[Any] = []
+        current: Any | None = task
+        while current is not None and current.task_id not in selected_ids:
+            closure.append(current)
+            prerequisite_id = prerequisite_by_task.get(current.task_id)
+            current = task_by_id.get(prerequisite_id) if prerequisite_id else None
+        new_count = len(closure)
+        if (
+            len(selected) + new_count > capacity
+            or counts[task.module_id] + new_count > max_tasks_per_module
+        ):
             continue
-        selected.append(task)
-        counts[task.module_id] += 1
+        for item in reversed(closure):
+            selected.append(item)
+            selected_ids.add(item.task_id)
+            counts[item.module_id] += 1
     selected_tasks = tuple(sorted(selected, key=lambda item: item.task_id))
     selected_families: Counter[str] = Counter()
     module_family = {item.module_id: item.family for item in report.assessments}
@@ -76,6 +114,11 @@ def build_module_workbench_portfolio(
         )
         if selected_tasks
         else 0.0,
+        "dependency_safe": all(
+            prerequisite_by_task.get(task.task_id) is None
+            or prerequisite_by_task[task.task_id] in selected_ids
+            for task in selected_tasks
+        ),
         "accepted": report.accepted,
     }
     provisional = ModuleWorkbenchPortfolio(**body, content_address="pending")
@@ -144,6 +187,7 @@ def module_workbench_portfolio_schema() -> dict[str, Any]:
             "minimum_priority",
             "maximum_priority",
             "risks",
+            "dependency_closure",
         ],
         "resources": ["selected_tasks"],
         "ordering": "priority, impact descending, task ID; persisted tasks sorted by task ID",
@@ -158,6 +202,7 @@ def module_workbench_portfolio_capabilities() -> dict[str, Any]:
         "filter_risk_window",
         "cap_total_tasks",
         "cap_tasks_per_module",
+        "include_prerequisite_closure",
         "rank_by_priority",
         "rank_by_estimated_impact",
         "roll_up_selected_families",
