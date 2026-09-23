@@ -109,6 +109,11 @@
           <div class="rail-divider"></div>
           <div class="section-head"><div><p class="eyebrow">Implementation workbench</p><h2 id="module-heading">Modules</h2></div><span id="module-count" class="count">—</span></div>
           <p id="module-list-summary" class="muted small">Loading module workbench…</p>
+          <div class="module-workbench-filters" aria-label="Module workbench filters">
+            <label><span class="control-label">Find module</span><input id="module-workbench-search" type="search" autocomplete="off" placeholder="module, role, or signal"></label>
+            <label><span class="control-label">Risk</span><select id="module-workbench-risk-filter"><option value="">All risks</option><option value="blocker">Blocker</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>
+            <label><span class="control-label">Depth</span><select id="module-workbench-depth-filter"><option value="">All depth bands</option><option value="blocked">Blocked</option><option value="starter">Starter</option><option value="established">Established</option><option value="deep">Deep</option><option value="comprehensive">Comprehensive</option></select></label>
+          </div>
           <nav id="module-workbench-list" class="run-list" aria-label="Implementation modules"></nav>
           <button id="module-workbench-load-more" class="button quiet load-more" type="button" hidden>Load more modules</button>
           <p class="rail-note">Module rows are static engineering signals. Open a module for certification, lineage, and task evidence.</p>

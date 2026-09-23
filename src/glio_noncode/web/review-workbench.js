@@ -22,7 +22,8 @@
     sequenceBatches: [], sequenceBatchTotal: 0, sequenceBatchHasMore: false, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null, sequenceBatchChangesRequest: 0, sequenceBatchFilterTimer: null,
     sequenceComparisons: [], sequenceComparisonTotal: 0, sequenceComparisonHasMore: false, selectedSequenceComparison: null, sequenceComparisonReport: null, sequenceComparisonChanges: null, sequenceComparisonListRequest: 0, sequenceComparisonRequest: 0, sequenceComparisonFilterTimer: null,
     sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewMotifRequest: 0, sequenceReviewFilterTimer: null,
-    moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0,
+    moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
+    moduleFilters: { q: "", risk: "", depth_band: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
   };
@@ -323,7 +324,8 @@
     const list = $("module-workbench-list");
     list.replaceChildren();
     $("module-count").textContent = formatCount(model.moduleTotal);
-    $("module-list-summary").textContent = `Showing ${model.moduleAssessments.length} of ${formatCount(model.moduleTotal)} modules · static workbench signals.`;
+    const filters = [model.moduleFilters.q && `search “${model.moduleFilters.q}”`, model.moduleFilters.risk && `risk ${model.moduleFilters.risk}`, model.moduleFilters.depth_band && `depth ${model.moduleFilters.depth_band}`].filter(Boolean);
+    $("module-list-summary").textContent = `Showing ${model.moduleAssessments.length} of ${formatCount(model.moduleTotal)} modules · ${filters.length ? filters.join(" · ") : "static workbench signals"}.`;
     $("module-workbench-load-more").hidden = !model.moduleHasMore;
     if (!model.moduleAssessments.length) {
       list.append(element("p", "empty-inline", "No module workbench records yet."));
@@ -345,13 +347,19 @@
     }
   }
 
+  function moduleAssessmentQuery(offset) {
+    const params = new URLSearchParams({ resource: "modules", limit: String(pageSize), offset: String(offset) });
+    for (const [key, value] of Object.entries(model.moduleFilters)) if (value) params.set(key === "q" ? "q" : key, value);
+    return params.toString();
+  }
+
   async function loadModuleAssessments(append = false) {
     const request = model.moduleListRequest = (model.moduleListRequest || 0) + 1;
     const offset = append ? model.moduleAssessments.length : 0;
     const button = $("module-workbench-load-more");
     button.disabled = append;
     try {
-      const page = await getJson(`/v1/module-workbench/query?resource=modules&limit=${pageSize}&offset=${offset}`);
+      const page = await getJson(`/v1/module-workbench/query?${moduleAssessmentQuery(offset)}`);
       if (request !== model.moduleListRequest) return;
       if (!Array.isArray(page.items) || !Number.isSafeInteger(page.total) || page.offset !== offset || page.limit !== pageSize || page.accepted !== true || typeof page.workbench_address !== "string") {
         throw new Error("The local API returned an invalid module workbench catalog.");
@@ -372,6 +380,11 @@
     } finally {
       if (request === model.moduleListRequest) button.disabled = false;
     }
+  }
+
+  function reloadModuleAssessments() {
+    if (model.moduleFilterTimer !== null) clearTimeout(model.moduleFilterTimer);
+    model.moduleFilterTimer = setTimeout(() => loadModuleAssessments(false), 180);
   }
 
   function renderModuleWorkbenchDetail() {
@@ -3081,6 +3094,18 @@
   $("sequence-batch-load-more").addEventListener("click", () => loadSequenceBatches(true));
   $("sequence-comparison-list-load-more").addEventListener("click", () => loadSequenceComparisons(true));
   $("module-workbench-load-more").addEventListener("click", () => loadModuleAssessments(true));
+  $("module-workbench-search").addEventListener("input", (event) => {
+    model.moduleFilters.q = event.currentTarget.value.trim();
+    reloadModuleAssessments();
+  });
+  $("module-workbench-risk-filter").addEventListener("change", (event) => {
+    model.moduleFilters.risk = event.currentTarget.value;
+    reloadModuleAssessments();
+  });
+  $("module-workbench-depth-filter").addEventListener("change", (event) => {
+    model.moduleFilters.depth_band = event.currentTarget.value;
+    reloadModuleAssessments();
+  });
   $("geo-consistency-features").addEventListener("input", updateGeoCompareControls);
   $("geo-compare-button").addEventListener("click", compareGeoAnalyses);
   $("geo-sensitivity-button").addEventListener("click", compareGeoSensitivity);
