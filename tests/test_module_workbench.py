@@ -45,6 +45,14 @@ from glio_noncode.module_workbench_diff import (
     query_module_workbench_diff,
     verify_module_workbench_diff,
 )
+from glio_noncode.module_workbench_execution import build_module_workbench_execution
+from glio_noncode.module_workbench_execution_plan import (
+    build_module_workbench_execution_plan,
+    module_workbench_execution_plan_capabilities,
+    module_workbench_execution_plan_schema,
+    query_module_workbench_execution_plan,
+    verify_module_workbench_execution_plan,
+)
 from glio_noncode.module_workbench_policy import (
     build_module_workbench_policy,
     default_module_workbench_policy,
@@ -762,6 +770,32 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                             downstream_payload["ledger_address"],
                             current_ledger_address,
                         )
+                    connection.request(
+                        "GET",
+                        "/v1/module-workbench/execution/plan/query?resource=summary&limit=1",
+                    )
+                    plan_response = connection.getresponse()
+                    plan_payload = json.loads(plan_response.read().decode("utf-8"))
+                    self.assertEqual(plan_response.status, 200)
+                    self.assertEqual(plan_payload["total"], 1)
+                    self.assertEqual(plan_payload["items"][0]["ledger_address"], current_ledger_address)
+                    self.assertEqual(
+                        plan_payload["items"][0]["content_address"],
+                        plan_payload["plan_address"],
+                    )
+                    connection.request(
+                        "GET",
+                        "/v1/module-workbench/execution/plan/query?resource=dependencies&limit=10",
+                    )
+                    dependencies_response = connection.getresponse()
+                    dependencies_payload = json.loads(
+                        dependencies_response.read().decode("utf-8")
+                    )
+                    self.assertEqual(dependencies_response.status, 200)
+                    self.assertEqual(
+                        dependencies_payload["plan_address"],
+                        plan_payload["plan_address"],
+                    )
                     connection.close()
                 finally:
                     server.shutdown()
@@ -836,6 +870,39 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         self.assertEqual(
             module_workbench_portfolio_capabilities()["operation_count"],
             len(module_workbench_portfolio_capabilities()["operations"]),
+        )
+
+    def test_execution_plan_exposes_dependency_and_state_context(self) -> None:
+        report = self.report()
+        portfolio = build_module_workbench_portfolio(report, capacity=4, max_tasks_per_module=2)
+        ledger = build_module_workbench_execution(report, portfolio)
+        plan = build_module_workbench_execution_plan(report, portfolio, ledger)
+        verify_module_workbench_execution_plan(plan)
+        summary = query_module_workbench_execution_plan(plan, resource="summary", limit=1)
+        dependencies = query_module_workbench_execution_plan(
+            plan,
+            resource="dependencies",
+            limit=100,
+        )
+        self.assertEqual(summary["total"], 1)
+        self.assertEqual(summary["items"][0]["content_address"], plan.content_address)
+        self.assertEqual(
+            plan.dependency_edge_count,
+            plan.selected_prerequisite_count
+            + plan.deferred_prerequisite_count
+            + plan.unknown_prerequisite_count,
+        )
+        self.assertEqual(
+            len(dependencies["items"]),
+            plan.dependency_edge_count,
+        )
+        self.assertEqual(
+            module_workbench_execution_plan_capabilities()["operation_count"],
+            len(module_workbench_execution_plan_capabilities()["operations"]),
+        )
+        self.assertEqual(
+            module_workbench_execution_plan_schema()["resources"],
+            ["nodes", "dependencies", "critical_path", "summary"],
         )
 
     def test_strict_policy_exposes_failed_thresholds_without_hiding_rows(self) -> None:

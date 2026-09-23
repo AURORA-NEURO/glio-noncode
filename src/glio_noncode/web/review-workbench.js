@@ -24,7 +24,7 @@
     sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewMotifRequest: 0, sequenceReviewFilterTimer: null,
     moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
     moduleTriageItems: [], moduleTriageTotal: 0, moduleTriageHasMore: false, moduleTriageListRequest: 0, moduleTriageFilterTimer: null, moduleTriageByModule: new Map(), selectedModuleTriage: null,
-    moduleExecution: null, moduleExecutionRequest: 0, modulePortfolio: null, modulePortfolioRequest: 0,
+    moduleExecution: null, moduleExecutionRequest: 0, moduleExecutionPlan: null, moduleExecutionPlanRequest: 0, modulePortfolio: null, modulePortfolioRequest: 0,
     moduleWorkbenchSummary: null, moduleExecutionSummary: null, moduleWorkbenchSummaryRequest: 0,
     moduleFilters: { q: "", risk: "", depth_band: "" }, moduleTriageFilters: { risk: "", reason: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
@@ -574,6 +574,16 @@
     return page;
   }
 
+  async function loadModuleExecutionPlan(moduleId) {
+    const request = model.moduleExecutionPlanRequest = (model.moduleExecutionPlanRequest || 0) + 1;
+    const page = await getJson(`/v1/module-workbench/execution/plan/query?resource=nodes&module_id=${encodeURIComponent(moduleId)}&limit=50&offset=0`);
+    if (page.version !== "module-workbench-execution-plan-v1" || page.accepted !== true || typeof page.plan_address !== "string" || !Array.isArray(page.items) || page.offset !== 0 || page.limit !== 50 || page.query?.resource !== "nodes" || page.query?.module_id !== moduleId || !Number.isSafeInteger(page.total) || !page.plan_summary || page.plan_summary.content_address !== page.plan_address || typeof page.plan_summary.ledger_address !== "string") {
+      throw new Error("The local API returned an invalid dependency-aware execution plan.");
+    }
+    if (request !== model.moduleExecutionPlanRequest || model.selectedModule !== moduleId) return null;
+    return page;
+  }
+
   function renderExecutionControls(item, moduleId) {
     const td = document.createElement("td");
     const actions = executionActionsByState[item.state] || [];
@@ -633,9 +643,12 @@
         const result = await postJson("/v1/module-workbench/execution/command", payload);
         if (model.selectedModule !== moduleId) return;
         const refreshed = await loadModuleExecution(moduleId);
+        const refreshedPlan = await loadModuleExecutionPlan(moduleId);
         if (refreshed) {
           model.moduleExecution = refreshed;
+          if (refreshedPlan) model.moduleExecutionPlan = refreshedPlan;
           renderModuleExecution();
+          renderModuleExecutionPlan();
           announceSelection(`Execution transition ${displayValue(result.event?.to_state)} recorded for ${item.task_id}.`);
           notice(`Transition recorded for ${item.task_id}.`);
         }
@@ -782,6 +795,56 @@
     }
   }
 
+  function renderModuleExecutionPlan() {
+    const page = model.moduleExecutionPlan;
+    const summaryBox = $("module-workbench-plan-summary");
+    const body = $("module-workbench-plan-table");
+    summaryBox.replaceChildren();
+    body.replaceChildren();
+    if (!page) {
+      $("module-workbench-plan-label").textContent = "—";
+      $("module-workbench-plan-summary-text").textContent = "Verifying dependency-aware execution planning…";
+      body.append(emptyRow(8, "Dependency plan has not been verified."));
+      return;
+    }
+    const summary = page.plan_summary || {};
+    const safe = summary.dependency_safe === true;
+    const summaryRows = [
+      ["Plan", shortened(page.plan_address, 46)],
+      ["Dependency safety", safe ? "No selected task depends on a deferred prerequisite" : `${formatCount(summary.deferred_prerequisite_count)} deferred prerequisite edges require attention`],
+      ["Edges / depth", `${formatCount(summary.dependency_edge_count)} edges · depth ${formatCount(summary.max_depth)}`],
+      ["Critical path", (summary.critical_path_task_ids || []).join(" → ") || "No selected critical path"],
+      ["Ledger", shortened(summary.ledger_address, 46)],
+    ];
+    for (const [label, value] of summaryRows) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", displayValue(value)));
+      summaryBox.append(block);
+    }
+    $("module-workbench-plan-label").textContent = `${formatCount(page.total)} nodes · ${safe ? "safe" : "attention"}`;
+    $("module-workbench-plan-summary-text").textContent = page.total
+      ? "This view compares the selected execution wave with the complete per-module task chain, including prerequisites deferred outside the wave."
+      : "This module has no selected execution nodes in the current wave; its full task plan remains visible above.";
+    if (!page.items.length) {
+      body.append(emptyRow(8, "No selected dependency-plan nodes for this module."));
+      return;
+    }
+    for (const node of page.items) {
+      const row = document.createElement("tr");
+      row.append(
+        cell(node.sequence),
+        cell(shortened(node.task_id, 48)),
+        cell(node.depth),
+        cell(displayValue(node.execution_state)),
+        cell(displayValue(node.dependency_status)),
+        cell(formatCount((node.prerequisite_task_ids || []).length)),
+        cell((node.deferred_prerequisite_task_ids || []).join(" · ") || "—"),
+        cell(node.downstream_count),
+      );
+      body.append(row);
+    }
+  }
+
   function renderModuleWorkbenchDetail() {
     const detail = model.moduleDetail;
     if (!detail) return;
@@ -890,6 +953,7 @@
       tasksBody.append(row);
     }
     renderModulePortfolio();
+    renderModuleExecutionPlan();
     renderModuleExecution();
 
     const limitations = $("module-workbench-limitations");
@@ -904,6 +968,7 @@
     if (model.selectedModuleTriage?.module_id !== moduleId) model.selectedModuleTriage = model.moduleTriageByModule.get(moduleId) || null;
     model.moduleDetail = null;
     model.moduleExecution = null;
+    model.moduleExecutionPlan = null;
     model.modulePortfolio = null;
     const request = model.moduleDetailRequest = (model.moduleDetailRequest || 0) + 1;
     renderModuleAssessments();
@@ -911,9 +976,10 @@
     exportHref();
     showEmpty("Verifying module dossier", "Loading static implementation evidence, certification checks, lineage, and planned depth work.");
     try {
-      const [detail, execution, portfolio] = await Promise.all([
+      const [detail, execution, executionPlan, portfolio] = await Promise.all([
         getJson(`/v1/module-workbench/detail?module_id=${encodeURIComponent(moduleId)}`),
         loadModuleExecution(moduleId),
+        loadModuleExecutionPlan(moduleId),
         loadModulePortfolio(moduleId),
       ]);
       if (request !== model.moduleDetailRequest || model.activeView !== "module-workbench" || model.selectedModule !== moduleId) return;
@@ -921,9 +987,11 @@
         throw new Error("The local API returned an invalid module dossier.");
       }
       if (!execution) return;
+      if (!executionPlan) return;
       if (!portfolio) return;
       model.moduleDetail = detail;
       model.moduleExecution = execution;
+      model.moduleExecutionPlan = executionPlan;
       model.modulePortfolio = portfolio;
       $("empty-state").hidden = true;
       $("run-view").hidden = true;
