@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import gzip
 import math
+import zlib
 from json import loads as _stdlib_json_loads
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from http import HTTPStatus
@@ -1390,7 +1392,11 @@ from .dossier_query import (
 )
 from .dossier_release import build_persisted_dossier_release
 from .errors import GlioError, StoreError, ValidationError
-from ._safe_persistence import read_bytes_bounded as _safe_read_bytes_bounded
+from ._safe_persistence import (
+    _validate_parent as _safe_validate_parent,
+    atomic_write_bytes as _safe_atomic_write_bytes,
+    read_bytes_bounded as _safe_read_bytes_bounded,
+)
 from .evidence_lifecycle_frontier_offline_audit import audit_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_boundary import audit_evidence_lifecycle_offline_boundary
 from .evidence_lifecycle_frontier_offline_bundle import build_evidence_lifecycle_offline_bundle
@@ -1807,6 +1813,7 @@ from .module_workbench import (
     query_module_workbench,
     render_module_workbench_markdown,
 )
+from .module_workbench_cache import snapshot_from_mapping, snapshot_payload
 from .module_workbench_audit import (
     audit_module_workbench,
     module_workbench_audit_capabilities,
@@ -3520,6 +3527,9 @@ def _module_inventory_source_signature() -> tuple[tuple[str, int, int], ...]:
     return tuple(sorted(rows))
 
 
+_MODULE_WORKBENCH_CACHE_MAX_BYTES = 512 * 1024 * 1024
+
+
 class ApiHandler(BaseHTTPRequestHandler):
     """Small API handler with explicit endpoints and bounded error bodies."""
 
@@ -3539,6 +3549,59 @@ class ApiHandler(BaseHTTPRequestHandler):
                 state["inventory"] = build_module_inventory()
                 state["signature"] = signature
             return state["inventory"]
+
+    def _module_workbench_cache_path(self) -> Path | None:
+        value = getattr(self.server, "glio_module_workbench_cache_path", None)
+        return Path(value) if value is not None else None
+
+    def _load_module_workbench_snapshot(
+        self, signature: tuple[tuple[str, int, int], ...]
+    ) -> tuple[Any, Any, Any, Any, Any] | None:
+        path = self._module_workbench_cache_path()
+        if path is None or not path.exists() or path.is_symlink() or not path.is_file():
+            return None
+        try:
+            raw = _safe_read_bytes_bounded(
+                path,
+                max_bytes=_MODULE_WORKBENCH_CACHE_MAX_BYTES,
+                field="module workbench cache",
+            )
+            payload = json.loads(gzip.decompress(raw).decode("utf-8"))
+            if not isinstance(payload, Mapping):
+                return None
+            return snapshot_from_mapping(payload, signature)
+        except (
+            OSError,
+            UnicodeDecodeError,
+            ValueError,
+            ValidationError,
+            EOFError,
+            gzip.BadGzipFile,
+            zlib.error,
+        ):
+            return None
+
+    def _persist_module_workbench_snapshot(
+        self,
+        signature: tuple[tuple[str, int, int], ...],
+        inventory: Any,
+        matrix: Any,
+        lineage: Any,
+        quality: Any,
+        workbench: Any,
+    ) -> None:
+        path = self._module_workbench_cache_path()
+        if path is None:
+            return
+        try:
+            payload = snapshot_payload(signature, inventory, matrix, lineage, quality, workbench)
+            encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+            compressed = gzip.compress(encoded, compresslevel=6, mtime=0)
+            _safe_atomic_write_bytes(path, compressed, field="module workbench cache")
+        except (OSError, TypeError, ValueError, ValidationError):
+            # The in-memory build remains authoritative when a local cache
+            # cannot be written; a later request can rebuild it safely.
+            return
 
     def _runtime(self) -> CaseRuntime:
         factory = self.runtime_factory or (lambda: CaseRuntime())
@@ -3584,12 +3647,36 @@ class ApiHandler(BaseHTTPRequestHandler):
             setattr(self.server, "glio_module_workbench_context", state)
         with state["lock"]:
             if state["signature"] != signature or state["value"] is None:
-                inventory, matrix, _, _, _ = self._module_certification_context(
-                    include_certification=False
-                )
-                lineage = build_module_certification_lineage(inventory, matrix=matrix)
-                quality = build_module_certification_quality(matrix, lineage)
-                workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                cached = self._load_module_workbench_snapshot(signature)
+                if cached is not None:
+                    inventory, matrix, lineage, quality, workbench = cached
+                    certification_state = getattr(
+                        self.server, "glio_module_certification_context", None
+                    )
+                    if certification_state is None or certification_state[0] is not inventory:
+                        setattr(
+                            self.server,
+                            "glio_module_certification_context",
+                            (inventory, matrix, None, None, None),
+                        )
+                        setattr(self.server, "glio_module_certification_signature", signature)
+                    inventory_state = getattr(
+                        self.server, "glio_module_inventory_snapshot", None
+                    )
+                    if inventory_state is not None:
+                        with inventory_state["lock"]:
+                            inventory_state["inventory"] = inventory
+                            inventory_state["signature"] = signature
+                else:
+                    inventory, matrix, _, _, _ = self._module_certification_context(
+                        include_certification=False
+                    )
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    self._persist_module_workbench_snapshot(
+                        signature, inventory, matrix, lineage, quality, workbench
+                    )
                 state["value"] = (lineage, quality, workbench)
                 state["signature"] = signature
             return state["value"]
@@ -29802,6 +29889,11 @@ def create_server(
     )
     guard = DeploymentGuard(profile, credentials, audit_store=audit_store)
     server = ThreadingHTTPServer((host, port), ApiHandler)
+    module_cache_root = Path(data_root) / "module-cache"
+    _safe_validate_parent(module_cache_root, "module workbench cache directory")
+    module_cache_root.mkdir(parents=True, exist_ok=True)
+    _safe_validate_parent(module_cache_root, "module workbench cache directory")
+    server.glio_module_workbench_cache_path = module_cache_root / "snapshot.json.gz"  # type: ignore[attr-defined]
     server.glio_module_inventory_snapshot = {  # type: ignore[attr-defined]
         "lock": RLock(),
         "signature": None,

@@ -27,6 +27,7 @@ from glio_noncode.module_workbench import (
     render_module_workbench_markdown,
     verify_module_workbench,
 )
+from glio_noncode.module_workbench_cache import snapshot_from_mapping, snapshot_payload
 from glio_noncode.module_workbench_audit import (
     audit_module_workbench,
     module_workbench_audit_csv,
@@ -171,6 +172,49 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         self.assertEqual(lineage_builder.call_count, 2)
         self.assertEqual(quality_builder.call_count, 2)
         self.assertEqual(workbench_builder.call_count, 2)
+
+    def test_durable_snapshot_round_trip_verifies_every_upstream_plane(self) -> None:
+        inventory = build_module_inventory(self.package, test_root=self.tests)
+        matrix = build_module_certification(
+            inventory,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        lineage = build_module_certification_lineage(
+            inventory,
+            matrix=matrix,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        quality = build_module_certification_quality(matrix, lineage)
+        workbench = build_module_workbench(inventory, matrix, lineage, quality)
+        signature = (("0:core.py", 10, 20), ("1:test_core.py", 11, 21))
+        payload = snapshot_payload(signature, inventory, matrix, lineage, quality, workbench)
+        restored = snapshot_from_mapping(payload, signature)
+        self.assertEqual(restored[0].content_address, inventory.content_address)
+        self.assertEqual(restored[1].content_address, matrix.content_address)
+        self.assertEqual(restored[2].content_address, lineage.content_address)
+        self.assertEqual(restored[3].content_address, quality.content_address)
+        self.assertEqual(restored[4].content_address, workbench.content_address)
+        with self.assertRaises(ValidationError):
+            snapshot_from_mapping(payload, (("changed.py", 1, 1),))
+        payload["workbench"]["overall_score"] = 0.0
+        with self.assertRaises(ValidationError):
+            snapshot_from_mapping(payload, signature)
+        cache_directory = Path(self.directory.name) / "cache"
+        cache_directory.mkdir()
+        handler = object.__new__(ApiHandler)
+        handler.server = type("Server", (), {
+            "glio_module_workbench_cache_path": cache_directory / "snapshot.json.gz",
+        })()
+        handler._persist_module_workbench_snapshot(
+            signature, inventory, matrix, lineage, quality, workbench
+        )
+        loaded = handler._load_module_workbench_snapshot(signature)
+        assert loaded is not None
+        self.assertEqual(loaded[4].content_address, workbench.content_address)
 
     def test_module_workbench_detail_joins_all_review_planes(self) -> None:
         inventory = build_module_inventory(self.package, test_root=self.tests)

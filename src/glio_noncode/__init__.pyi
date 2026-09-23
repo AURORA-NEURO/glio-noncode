@@ -18192,6 +18192,7 @@ from . import module_workbench_audit_contracts as module_workbench_audit_contrac
 from .module_workbench_audit import module_workbench_audit_csv as module_workbench_audit_csv
 from .module_workbench_audit import module_workbench_audit_json as module_workbench_audit_json
 from .module_workbench_audit import module_workbench_audit_schema as module_workbench_audit_schema
+from . import module_workbench_cache as module_workbench_cache
 from .module_workbench import module_workbench_capabilities as module_workbench_capabilities
 from . import module_workbench_contracts as module_workbench_contracts
 from .module_workbench import module_workbench_csv as module_workbench_csv
