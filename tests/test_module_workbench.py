@@ -754,6 +754,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                     started_payload = json.loads(response.read().decode("utf-8"))
                     self.assertEqual(response.status, 201)
                     self.assertEqual(started_payload["event"]["to_state"], "in_progress")
+                    self.assertEqual(started_payload["event_count"], 1)
+                    self.assertEqual(started_payload["derived_events"], [])
                     self.assertEqual(started_payload["journal"]["command_count"], 1)
                     current_ledger_address = started_payload["ledger"]["content_address"]
                     for downstream_path in (
@@ -938,6 +940,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                     self.assertEqual(response.status, 201)
                     self.assertTrue(accepted_payload["atomic"])
                     self.assertEqual(accepted_payload["batch_count"], 2)
+                    self.assertEqual(accepted_payload["event_count"], 2)
+                    self.assertEqual(accepted_payload["derived_event_count"], 0)
                     self.assertEqual(len(accepted_payload["events"]), 2)
                     self.assertEqual(
                         [event["to_state"] for event in accepted_payload["events"]],

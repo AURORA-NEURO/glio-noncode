@@ -28301,6 +28301,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                         "command": commands_to_apply[0].to_dict(),
                         "event": new_events[0].to_dict(),
                         "derived_events": [event.to_dict() for event in new_events[1:]],
+                        "event_count": len(new_events),
+                        "derived_event_count": len(new_events) - 1,
                         "ledger": updated.to_dict(include_items=False, include_events=False),
                         "journal": {
                             "version": _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION,
