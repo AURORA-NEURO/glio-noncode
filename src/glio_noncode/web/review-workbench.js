@@ -18,8 +18,8 @@
     selectedGeoSensitivity: null, geoSensitivityListRequest: 0, geoSensitivityRequest: 0, geoSensitivityFilterTimer: null,
     geoSensitivityFilters: { feature_contains: "", direction_sensitivity: "", fdr_sensitivity: "", sign_test_fdr_sensitivity: "" },
     geoExpressionConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "" }, geoExpressionConsistencyFilterTimer: null,
-    sequenceAnalyses: [], sequenceTotal: 0, sequenceHasMore: false, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
-    sequenceBatches: [], sequenceBatchTotal: 0, sequenceBatchHasMore: false, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
+    sequenceAnalyses: [], sequenceTotal: 0, sequenceHasMore: false, selectedSequence: null, sequenceReport: null, sequenceChanges: null, sequenceAnalysisChangesRequest: 0, sequenceAnalysisFilterTimer: null,
+    sequenceBatches: [], sequenceBatchTotal: 0, sequenceBatchHasMore: false, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null, sequenceBatchChangesRequest: 0, sequenceBatchFilterTimer: null,
     sequenceComparisons: [], sequenceComparisonTotal: 0, sequenceComparisonHasMore: false, selectedSequenceComparison: null, sequenceComparisonReport: null, sequenceComparisonChanges: null, sequenceComparisonListRequest: 0, sequenceComparisonRequest: 0, sequenceComparisonFilterTimer: null,
     sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewMotifRequest: 0, sequenceReviewFilterTimer: null,
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
@@ -977,7 +977,10 @@
       link.setAttribute("aria-disabled", "false");
       link.removeAttribute("target");
       link.removeAttribute("rel");
-      csvLink.href = `/v1/sequence-analyses/${encodeURIComponent(model.selectedSequence)}/changes.csv`;
+      const filterQuery = sequenceAnalysisFilterQuery();
+      filterQuery.delete("limit");
+      filterQuery.delete("offset");
+      csvLink.href = `/v1/sequence-analyses/${encodeURIComponent(model.selectedSequence)}/changes.csv${filterQuery.toString() ? `?${filterQuery.toString()}` : ""}`;
       csvLink.textContent = "Download motif CSV";
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
@@ -1008,7 +1011,10 @@
       link.setAttribute("aria-disabled", "false");
       link.removeAttribute("target");
       link.removeAttribute("rel");
-      csvLink.href = `/v1/sequence-batches/${encodeURIComponent(model.selectedSequenceBatch)}/changes.csv`;
+      const filterQuery = sequenceBatchFilterQuery();
+      filterQuery.delete("limit");
+      filterQuery.delete("offset");
+      csvLink.href = `/v1/sequence-batches/${encodeURIComponent(model.selectedSequenceBatch)}/changes.csv${filterQuery.toString() ? `?${filterQuery.toString()}` : ""}`;
       csvLink.textContent = "Download batch motif CSV";
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
@@ -1363,6 +1369,7 @@
     model.activeView = "sequence";
     model.selectedSequence = analysisId;
     const request = model.selectionRequest = (model.selectionRequest || 0) + 1;
+    const changesRequest = model.sequenceAnalysisChangesRequest = (model.sequenceAnalysisChangesRequest || 0) + 1;
     model.sequenceReport = null;
     model.sequenceChanges = null;
     renderSequenceAnalyses();
@@ -1372,10 +1379,10 @@
     try {
       const [report, changes] = await Promise.all([
         getJson(`/v1/sequence-analyses/${encodeURIComponent(analysisId)}/report.json`),
-        getJson(`/v1/sequence-analyses/${encodeURIComponent(analysisId)}?limit=50&offset=0`),
+        getJson(`/v1/sequence-analyses/${encodeURIComponent(analysisId)}?${sequenceAnalysisFilterQuery(0).toString()}`),
       ]);
-      if (request !== model.selectionRequest || model.activeView !== "sequence" || model.selectedSequence !== analysisId) return;
-      if (report.schema !== "glio-noncode.sequence-haplotype-analysis.v1" || report.status !== "completed" || !report.source || !report.inputs || !report.analysis || changes.schema !== "glio-noncode.sequence-haplotype-changes.v1" || !Array.isArray(changes.changes)) {
+      if (request !== model.selectionRequest || changesRequest !== model.sequenceAnalysisChangesRequest || model.activeView !== "sequence" || model.selectedSequence !== analysisId) return;
+      if (report.schema !== "glio-noncode.sequence-haplotype-analysis.v1" || report.status !== "completed" || !report.source || !report.inputs || !report.analysis || changes.schema !== "glio-noncode.sequence-haplotype-changes.v1" || changes.offset !== 0 || typeof changes.has_more !== "boolean" || !Array.isArray(changes.changes)) {
         throw new Error("The local API returned an invalid sequence report projection.");
       }
       model.sequenceReport = report;
@@ -1404,6 +1411,7 @@
     model.activeView = "sequence-batch";
     model.selectedSequenceBatch = batchId;
     const request = model.selectionRequest = (model.selectionRequest || 0) + 1;
+    const changesRequest = model.sequenceBatchChangesRequest = (model.sequenceBatchChangesRequest || 0) + 1;
     model.sequenceBatchReport = null;
     model.sequenceBatchChanges = null;
     renderSequenceBatches();
@@ -1413,10 +1421,10 @@
     try {
       const [report, changes] = await Promise.all([
         getJson(`/v1/sequence-batches/${encodeURIComponent(batchId)}/report.json`),
-        getJson(`/v1/sequence-batches/${encodeURIComponent(batchId)}?limit=50&offset=0`),
+        getJson(`/v1/sequence-batches/${encodeURIComponent(batchId)}?${sequenceBatchFilterQuery(0).toString()}`),
       ]);
-      if (request !== model.selectionRequest || model.activeView !== "sequence-batch" || model.selectedSequenceBatch !== batchId) return;
-      if (report.schema !== "glio-noncode.sequence-haplotype-batch-analysis.v1" || report.status !== "completed" || !report.source || !report.design || changes.schema !== "glio-noncode.sequence-haplotype-batch-changes.v1" || !Array.isArray(changes.changes)) throw new Error("The local API returned an invalid sequence batch projection.");
+      if (request !== model.selectionRequest || changesRequest !== model.sequenceBatchChangesRequest || model.activeView !== "sequence-batch" || model.selectedSequenceBatch !== batchId) return;
+      if (report.schema !== "glio-noncode.sequence-haplotype-batch-analysis.v1" || report.status !== "completed" || !report.source || !report.design || changes.schema !== "glio-noncode.sequence-haplotype-batch-changes.v1" || changes.offset !== 0 || typeof changes.has_more !== "boolean" || !Array.isArray(changes.changes)) throw new Error("The local API returned an invalid sequence batch projection.");
       model.sequenceBatchReport = report;
       model.sequenceBatchChanges = changes;
       $("empty-state").hidden = true;
@@ -1516,6 +1524,7 @@
     }
     const changeSummary = changes.filtered_change_summary || {};
     $("sequence-batch-change-filter-summary").textContent = `${formatCount(changeSummary.change_count ?? 0)} filtered change rows · ${formatCount(changeSummary.analysis_count_total ?? 0)} aggregate analyses · ${formatCount(changeSummary.created_count ?? 0)} created / ${formatCount(changeSummary.disrupted_count ?? 0)} disrupted · mean prevalence ${percent(changeSummary.mean_analysis_fraction ?? 0)} · max ${percent(changeSummary.max_analysis_fraction ?? 0)}`;
+    $("sequence-batch-change-load-more").hidden = !changes.has_more;
     const limitations = $("sequence-batch-limitations");
     limitations.replaceChildren();
     for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
@@ -1576,19 +1585,102 @@
     for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
   }
 
-  function reloadSequenceBatchChanges() {
-    if (!model.selectedSequenceBatch) return;
-    const params = new URLSearchParams({ limit: "50", offset: "0" });
+  function sequenceAnalysisFilterQuery(offset = 0) {
+    const params = new URLSearchParams({ limit: "50", offset: String(offset) });
+    const motif = $("sequence-analysis-motif-filter").value.trim();
+    const change = $("sequence-analysis-change-filter").value;
+    if (motif) params.set("motif_contains", motif);
+    if (change) params.set("change", change);
+    return params;
+  }
+
+  function sequenceBatchFilterQuery(offset = 0) {
+    const params = new URLSearchParams({ limit: "50", offset: String(offset) });
     const motif = $("sequence-batch-motif-filter").value.trim();
     const change = $("sequence-batch-change-filter").value;
     if (motif) params.set("motif_contains", motif);
     if (change) params.set("change", change);
-    getJson(`/v1/sequence-batches/${encodeURIComponent(model.selectedSequenceBatch)}?${params.toString()}`).then((changes) => {
-      if (model.activeView === "sequence-batch" && changes.schema === "glio-noncode.sequence-haplotype-batch-changes.v1") {
+    return params;
+  }
+
+  function reloadSequenceAnalysisChanges() {
+    if (!model.selectedSequence) return;
+    if (model.sequenceAnalysisFilterTimer !== null) clearTimeout(model.sequenceAnalysisFilterTimer);
+    const request = model.sequenceAnalysisChangesRequest = (model.sequenceAnalysisChangesRequest || 0) + 1;
+    model.sequenceAnalysisFilterTimer = setTimeout(async () => {
+      model.sequenceAnalysisFilterTimer = null;
+      const analysisId = model.selectedSequence;
+      try {
+        const changes = await getJson(`/v1/sequence-analyses/${encodeURIComponent(analysisId)}?${sequenceAnalysisFilterQuery(0).toString()}`);
+        if (request !== model.sequenceAnalysisChangesRequest || model.activeView !== "sequence" || model.selectedSequence !== analysisId) return;
+      if (changes.schema !== "glio-noncode.sequence-haplotype-changes.v1" || changes.analysis_id !== analysisId || changes.offset !== 0 || typeof changes.has_more !== "boolean" || !Array.isArray(changes.changes)) throw new Error("The local API returned an invalid sequence analysis change page.");
+        model.sequenceChanges = changes;
+        renderSequenceReport();
+        exportHref();
+      } catch (error) { if (model.activeView === "sequence") notice(error.message, true); }
+    }, 180);
+  }
+
+  async function loadMoreSequenceAnalysisChanges() {
+    const current = model.sequenceChanges;
+    const analysisId = model.selectedSequence;
+    if (!current || !analysisId || model.activeView !== "sequence" || !current.has_more) return;
+    const request = model.sequenceAnalysisChangesRequest;
+    const offset = current.offset + current.changes.length;
+    const button = $("sequence-analysis-change-load-more");
+    button.disabled = true;
+    try {
+      const changes = await getJson(`/v1/sequence-analyses/${encodeURIComponent(analysisId)}?${sequenceAnalysisFilterQuery(offset).toString()}`);
+      if (request !== model.sequenceAnalysisChangesRequest || model.activeView !== "sequence" || model.selectedSequence !== analysisId) return;
+      if (changes.schema !== "glio-noncode.sequence-haplotype-changes.v1" || changes.analysis_id !== analysisId || changes.offset !== offset || !Array.isArray(changes.changes)) throw new Error("The local API returned an invalid next sequence analysis change page.");
+      model.sequenceChanges = { ...changes, changes: current.changes.concat(changes.changes), offset: 0, limit: current.changes.length + changes.changes.length };
+      renderSequenceReport();
+      exportHref();
+    } catch (error) {
+      if (model.activeView === "sequence") notice(error.message, true);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function reloadSequenceBatchChanges() {
+    if (!model.selectedSequenceBatch) return;
+    if (model.sequenceBatchFilterTimer !== null) clearTimeout(model.sequenceBatchFilterTimer);
+    const request = model.sequenceBatchChangesRequest = (model.sequenceBatchChangesRequest || 0) + 1;
+    model.sequenceBatchFilterTimer = setTimeout(async () => {
+      model.sequenceBatchFilterTimer = null;
+      const batchId = model.selectedSequenceBatch;
+      try {
+        const changes = await getJson(`/v1/sequence-batches/${encodeURIComponent(batchId)}?${sequenceBatchFilterQuery(0).toString()}`);
+        if (request !== model.sequenceBatchChangesRequest || model.activeView !== "sequence-batch" || model.selectedSequenceBatch !== batchId) return;
+        if (changes.schema !== "glio-noncode.sequence-haplotype-batch-changes.v1" || changes.batch_id !== batchId || changes.offset !== 0 || typeof changes.has_more !== "boolean" || !Array.isArray(changes.changes)) throw new Error("The local API returned an invalid sequence batch change page.");
         model.sequenceBatchChanges = changes;
         renderSequenceBatch();
-      }
-    }).catch((error) => { if (model.activeView === "sequence-batch") notice(error.message, true); });
+        exportHref();
+      } catch (error) { if (model.activeView === "sequence-batch") notice(error.message, true); }
+    }, 180);
+  }
+
+  async function loadMoreSequenceBatchChanges() {
+    const current = model.sequenceBatchChanges;
+    const batchId = model.selectedSequenceBatch;
+    if (!current || !batchId || model.activeView !== "sequence-batch" || !current.has_more) return;
+    const request = model.sequenceBatchChangesRequest;
+    const offset = current.offset + current.changes.length;
+    const button = $("sequence-batch-change-load-more");
+    button.disabled = true;
+    try {
+      const changes = await getJson(`/v1/sequence-batches/${encodeURIComponent(batchId)}?${sequenceBatchFilterQuery(offset).toString()}`);
+      if (request !== model.sequenceBatchChangesRequest || model.activeView !== "sequence-batch" || model.selectedSequenceBatch !== batchId) return;
+      if (changes.schema !== "glio-noncode.sequence-haplotype-batch-changes.v1" || changes.batch_id !== batchId || changes.offset !== offset || !Array.isArray(changes.changes)) throw new Error("The local API returned an invalid next sequence batch change page.");
+      model.sequenceBatchChanges = { ...changes, changes: current.changes.concat(changes.changes), offset: 0, limit: current.changes.length + changes.changes.length };
+      renderSequenceBatch();
+      exportHref();
+    } catch (error) {
+      if (model.activeView === "sequence-batch") notice(error.message, true);
+    } finally {
+      button.disabled = false;
+    }
   }
 
   function sequenceComparisonFilterQuery() {
@@ -1821,6 +1913,8 @@
       }
     }
     $("sequence-change-count").textContent = `${formatCount(changes.total_changes)} motif changes`;
+    $("sequence-analysis-change-filter-summary").textContent = `${formatCount(changes.total_changes)} filtered motif changes · ${formatCount(changes.unfiltered_change_count)} total changes in the verified report`;
+    $("sequence-analysis-change-load-more").hidden = !changes.has_more;
     const limitations = $("sequence-limitations");
     limitations.replaceChildren();
     for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
@@ -2709,8 +2803,12 @@
   $("sequence-review-genome-filter").addEventListener("input", reloadSequenceReviewMotifs);
   $("sequence-review-change-filter").addEventListener("change", reloadSequenceReviewMotifs);
   $("sequence-review-motif-load-more").addEventListener("click", loadMoreSequenceReviewMotifs);
+  $("sequence-analysis-motif-filter").addEventListener("input", reloadSequenceAnalysisChanges);
+  $("sequence-analysis-change-filter").addEventListener("change", reloadSequenceAnalysisChanges);
+  $("sequence-analysis-change-load-more").addEventListener("click", loadMoreSequenceAnalysisChanges);
   $("sequence-batch-motif-filter").addEventListener("input", reloadSequenceBatchChanges);
   $("sequence-batch-change-filter").addEventListener("change", reloadSequenceBatchChanges);
+  $("sequence-batch-change-load-more").addEventListener("click", loadMoreSequenceBatchChanges);
   $("sequence-comparison-motif-filter").addEventListener("input", reloadSequenceComparisonChanges);
   $("sequence-comparison-change-filter").addEventListener("change", reloadSequenceComparisonChanges);
   $("sequence-comparison-direction-filter").addEventListener("change", reloadSequenceComparisonChanges);
