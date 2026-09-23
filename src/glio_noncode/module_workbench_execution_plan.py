@@ -34,6 +34,7 @@ _KIND_ORDER = {
 }
 _DEFAULT_LIMIT = 50
 _MAX_LIMIT = 512
+MODULE_WORKBENCH_EXECUTION_PLAN_COMPARISON_VERSION = "module-workbench-execution-plan-diff-v1"
 
 
 def _address(body: Mapping[str, Any], prefix: str) -> str:
@@ -206,6 +207,66 @@ def verify_module_workbench_execution_plan(
     return value
 
 
+def compare_module_workbench_execution_plans(
+    baseline: ModuleWorkbenchExecutionPlan,
+    candidate: ModuleWorkbenchExecutionPlan,
+    *,
+    sample_limit: int = 128,
+) -> dict[str, Any]:
+    """Return an addressed bounded diff between two dependency plans."""
+
+    if not isinstance(baseline, ModuleWorkbenchExecutionPlan):
+        raise ValidationError("baseline execution plan comparison requires a typed plan")
+    if not isinstance(candidate, ModuleWorkbenchExecutionPlan):
+        raise ValidationError("candidate execution plan comparison requires a typed plan")
+    if sample_limit < 1 or sample_limit > 512:
+        raise ValidationError("execution plan comparison sample limit is invalid")
+    baseline_ids = {node.task_id for node in baseline.nodes}
+    candidate_ids = {node.task_id for node in candidate.nodes}
+    added_ids = tuple(sorted(candidate_ids - baseline_ids))
+    removed_ids = tuple(sorted(baseline_ids - candidate_ids))
+    shared_ids = baseline_ids & candidate_ids
+    baseline_edges = {
+        (node.task_id, prerequisite)
+        for node in baseline.nodes
+        for prerequisite in node.prerequisite_task_ids
+    }
+    candidate_edges = {
+        (node.task_id, prerequisite)
+        for node in candidate.nodes
+        for prerequisite in node.prerequisite_task_ids
+    }
+    added_edges = tuple(sorted(candidate_edges - baseline_edges))
+    removed_edges = tuple(sorted(baseline_edges - candidate_edges))
+    body = {
+        "version": MODULE_WORKBENCH_EXECUTION_PLAN_COMPARISON_VERSION,
+        "baseline_plan_address": baseline.content_address,
+        "candidate_plan_address": candidate.content_address,
+        "baseline_node_count": len(baseline.nodes),
+        "candidate_node_count": len(candidate.nodes),
+        "shared_task_count": len(shared_ids),
+        "added_task_count": len(added_ids),
+        "removed_task_count": len(removed_ids),
+        "added_task_ids": list(added_ids[:sample_limit]),
+        "removed_task_ids": list(removed_ids[:sample_limit]),
+        "added_task_sample_truncated": len(added_ids) > sample_limit,
+        "removed_task_sample_truncated": len(removed_ids) > sample_limit,
+        "baseline_dependency_edge_count": len(baseline_edges),
+        "candidate_dependency_edge_count": len(candidate_edges),
+        "added_dependency_edge_count": len(added_edges),
+        "removed_dependency_edge_count": len(removed_edges),
+        "baseline_dependency_safe": baseline.dependency_safe,
+        "candidate_dependency_safe": candidate.dependency_safe,
+        "selection_changed": baseline_ids != candidate_ids,
+        "content_address": "pending",
+    }
+    body["content_address"] = content_hash(
+        {key: value for key, value in body.items() if key != "content_address"},
+        prefix="module-workbench-execution-plan-diff",
+    )
+    return body
+
+
 def _dependency_rows(value: ModuleWorkbenchExecutionPlan) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for node in value.nodes:
@@ -375,6 +436,7 @@ def module_workbench_execution_plan_schema() -> dict[str, Any]:
                 "risk",
             ],
             "durable_ledger_mutation": False,
+            "comparison": "preview responses include an addressed diff against the durable wave",
         },
         "path_free": True,
         "timestamp_free": True,
@@ -392,6 +454,7 @@ def module_workbench_execution_plan_capabilities() -> dict[str, Any]:
         "preview_alternate_module_limit",
         "preview_priority_window",
         "preview_risk_window",
+        "compare_preview_with_durable_wave",
         "query_nodes",
         "query_dependencies",
         "query_critical_path",
@@ -410,6 +473,7 @@ def module_workbench_execution_plan_capabilities() -> dict[str, Any]:
 
 __all__ = [
     "build_module_workbench_execution_plan",
+    "compare_module_workbench_execution_plans",
     "module_workbench_execution_plan_capabilities",
     "module_workbench_execution_plan_csv",
     "module_workbench_execution_plan_schema",

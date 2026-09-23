@@ -2627,6 +2627,7 @@ from .module_workbench_execution_review import (
 )
 from .module_workbench_execution_plan import (
     build_module_workbench_execution_plan,
+    compare_module_workbench_execution_plans,
     module_workbench_execution_plan_capabilities,
     module_workbench_execution_plan_csv,
     module_workbench_execution_plan_schema,
@@ -23697,13 +23698,28 @@ class ApiHandler(BaseHTTPRequestHandler):
                         workbench,
                         **selection if selection is not None else {},
                     )
+                    comparison = None
                     if is_preview:
+                        durable_state = self._module_workbench_execution_context()
+                        with durable_state["lock"]:
+                            durable_ledger = durable_state["ledger"]
+                        durable_portfolio = build_module_workbench_portfolio(workbench)
+                        durable_plan = build_module_workbench_execution_plan(
+                            workbench,
+                            durable_portfolio,
+                            durable_ledger,
+                        )
                         ledger = build_module_workbench_execution(workbench, portfolio)
+                        plan = build_module_workbench_execution_plan(workbench, portfolio, ledger)
+                        comparison = compare_module_workbench_execution_plans(
+                            durable_plan,
+                            plan,
+                        )
                     else:
                         execution_state = self._module_workbench_execution_context()
                         with execution_state["lock"]:
                             ledger = execution_state["ledger"]
-                    plan = build_module_workbench_execution_plan(workbench, portfolio, ledger)
+                        plan = build_module_workbench_execution_plan(workbench, portfolio, ledger)
                     if path.endswith("/query"):
                         plan_page = query_module_workbench_execution_plan(
                             plan,
@@ -23721,10 +23737,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                                 "plan_address": plan_page["plan_address"],
                                 "selection": selection,
                                 "page_address": plan_page["content_address"],
+                                "comparison_address": comparison["content_address"],
                             }
                             payload = plan_page | {
                                 "mode": "preview",
                                 "selection": selection,
+                                "comparison": comparison,
                                 "preview_address": content_hash(
                                     preview_identity,
                                     prefix="module-workbench-execution-plan-preview",
@@ -23755,6 +23773,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                             preview_identity = {
                                 "plan": plan_payload,
                                 "selection": selection,
+                                "comparison_address": comparison["content_address"],
                             }
                             payload = {
                                 "version": plan_payload["version"],
@@ -23762,6 +23781,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                                 "selection": selection,
                                 "portfolio": portfolio.to_dict(include_tasks=False),
                                 "plan": plan_payload,
+                                "comparison": comparison,
                                 "preview_address": content_hash(
                                     preview_identity,
                                     prefix="module-workbench-execution-plan-preview",

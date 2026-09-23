@@ -390,13 +390,16 @@
       return;
     }
     const summary = preview.items?.[0] || {};
+    const comparison = preview.comparison || {};
     const safe = summary.dependency_safe === true;
     $("module-execution-preview-state").textContent = safe ? "Safe preview" : "Attention";
     $("module-execution-preview-state").className = `quiet-tag${safe ? " ready" : ""}`;
-    $("module-execution-preview-text").textContent = `${formatCount(summary.node_count)} selected nodes · ${formatCount(summary.dependency_edge_count)} prerequisite edges · ${formatCount(summary.deferred_prerequisite_count)} deferred edges · durable ledger unchanged.`;
+    $("module-execution-preview-text").textContent = `${formatCount(summary.node_count)} selected nodes · ${formatCount(summary.dependency_edge_count)} prerequisite edges · ${formatCount(comparison.added_task_count)} added / ${formatCount(comparison.removed_task_count)} removed versus durable wave · durable ledger unchanged.`;
     const rows = [
       ["Selection", `${formatCount(preview.selection.capacity)} capacity · ${formatCount(preview.selection.max_tasks_per_module)} per module`],
       ["Plan depth", `${formatCount(summary.max_depth)} · ${safe ? "dependency-safe" : "requires prerequisite review"}`],
+      ["Task delta", `${formatCount(comparison.added_task_count)} added · ${formatCount(comparison.removed_task_count)} removed · ${formatCount(comparison.shared_task_count)} shared`],
+      ["Edge delta", `${formatCount(comparison.added_dependency_edge_count)} added · ${formatCount(comparison.removed_dependency_edge_count)} removed`],
       ["Portfolio", shortened(preview.plan_summary?.portfolio_address || "", 46)],
       ["Preview address", shortened(preview.preview_address, 46)],
     ];
@@ -421,7 +424,7 @@
       const params = new URLSearchParams({ resource: "summary", capacity: String(capacity), max_tasks_per_module: String(moduleLimit), limit: "1" });
       const preview = await getJson(`/v1/module-workbench/execution/plan/preview/query?${params.toString()}`);
       if (request !== model.moduleExecutionPreviewRequest) return;
-      if (preview.mode !== "preview" || typeof preview.preview_address !== "string" || typeof preview.plan_address !== "string" || !preview.selection || preview.selection.capacity !== capacity || preview.selection.max_tasks_per_module !== moduleLimit || !Array.isArray(preview.items) || preview.items.length !== 1 || preview.items[0].content_address !== preview.plan_address || !preview.plan_summary || preview.plan_summary.content_address !== preview.plan_address) {
+      if (preview.mode !== "preview" || typeof preview.preview_address !== "string" || typeof preview.plan_address !== "string" || !preview.selection || preview.selection.capacity !== capacity || preview.selection.max_tasks_per_module !== moduleLimit || !Array.isArray(preview.items) || preview.items.length !== 1 || preview.items[0].content_address !== preview.plan_address || !preview.plan_summary || preview.plan_summary.content_address !== preview.plan_address || !preview.comparison || preview.comparison.candidate_plan_address !== preview.plan_address || typeof preview.comparison.content_address !== "string") {
         throw new Error("The local API returned an invalid planning preview.");
       }
       model.moduleExecutionPreview = preview;

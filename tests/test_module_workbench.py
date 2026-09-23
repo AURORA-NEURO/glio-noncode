@@ -48,6 +48,7 @@ from glio_noncode.module_workbench_diff import (
 from glio_noncode.module_workbench_execution import build_module_workbench_execution
 from glio_noncode.module_workbench_execution_plan import (
     build_module_workbench_execution_plan,
+    compare_module_workbench_execution_plans,
     module_workbench_execution_plan_capabilities,
     module_workbench_execution_plan_schema,
     query_module_workbench_execution_plan,
@@ -807,6 +808,11 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                     self.assertEqual(preview_payload["selection"]["capacity"], 9)
                     self.assertEqual(preview_payload["selection"]["max_tasks_per_module"], 3)
                     self.assertTrue(preview_payload["preview_address"])
+                    self.assertEqual(
+                        preview_payload["comparison"]["candidate_plan_address"],
+                        preview_payload["plan_address"],
+                    )
+                    self.assertIn("added_task_count", preview_payload["comparison"])
                     self.assertGreater(
                         preview_payload["items"][0]["dependency_edge_count"],
                         0,
@@ -934,6 +940,22 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             "preview_alternate_capacity",
             module_workbench_execution_plan_capabilities()["operations"],
         )
+        baseline_portfolio = build_module_workbench_portfolio(
+            report,
+            capacity=2,
+            max_tasks_per_module=1,
+        )
+        baseline_ledger = build_module_workbench_execution(report, baseline_portfolio)
+        baseline_plan = build_module_workbench_execution_plan(
+            report,
+            baseline_portfolio,
+            baseline_ledger,
+        )
+        comparison = compare_module_workbench_execution_plans(baseline_plan, plan)
+        self.assertEqual(comparison["baseline_plan_address"], baseline_plan.content_address)
+        self.assertEqual(comparison["candidate_plan_address"], plan.content_address)
+        self.assertTrue(comparison["selection_changed"])
+        self.assertTrue(comparison["content_address"])
 
     def test_strict_policy_exposes_failed_thresholds_without_hiding_rows(self) -> None:
         report = self.report()
