@@ -168,6 +168,16 @@ glio-noncode module-workbench-detail-schema
 glio-noncode module-workbench-detail-capabilities
 ```
 
+Emit the same timestamp-free, addressed observation used by the service. A
+direct CLI invocation is a new process, so it truthfully reports `full` and
+`cache_hit: false`; it never implies that a durable server snapshot was reused:
+
+```text
+glio-noncode module-workbench-observability --output module-workbench-observability.json
+glio-noncode module-workbench-observability-schema
+glio-noncode module-workbench-observability-capabilities
+```
+
 ## Browser workbench
 
 The local review workbench exposes the same module contract in the left rail
@@ -436,7 +446,8 @@ body. The server keeps one derived lineage, quality, and workbench snapshot
 per source fingerprint, so adjacent module-workbench routes reuse the same
 typed chain instead of rebuilding it independently. Any Python source or test
 file metadata change invalidates that chain before the next request; CLI
-invocations still build a fresh chain.
+invocations still build a fresh chain and expose that fact through the
+observability command.
 
 ## Public boundary
 

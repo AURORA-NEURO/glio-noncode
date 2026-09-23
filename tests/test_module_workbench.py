@@ -796,6 +796,45 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 main(["module-workbench-policy-capabilities", "--output", str(caps_path)]),
                 0,
             )
+            observability_schema_path = Path(directory) / "observability-schema.json"
+            observability_caps_path = Path(directory) / "observability-caps.json"
+            observability_path = Path(directory) / "observability.json"
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench-observability-schema",
+                        "--output",
+                        str(observability_schema_path),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench-observability-capabilities",
+                        "--output",
+                        str(observability_caps_path),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench-observability",
+                        "--source-root",
+                        str(self.package),
+                        "--test-root",
+                        str(self.tests),
+                        "--docs-root",
+                        str(self.docs),
+                        "--output",
+                        str(observability_path),
+                    ]
+                ),
+                0,
+            )
             self.assertEqual(
                 main(
                     [
@@ -840,6 +879,18 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 "public_aggregate_module_workbench", schema_path.read_text(encoding="utf-8")
             )
             self.assertIn("operations", caps_path.read_text(encoding="utf-8"))
+            self.assertIn(
+                "module-workbench-observability-v1",
+                observability_schema_path.read_text(encoding="utf-8"),
+            )
+            self.assertIn("operations", observability_caps_path.read_text(encoding="utf-8"))
+            observation = json.loads(observability_path.read_text(encoding="utf-8"))
+            self.assertEqual(observation["rebuild_mode"], "full")
+            self.assertFalse(observation["cache_hit"])
+            self.assertEqual(observation["reused_module_count"], 0)
+            self.assertEqual(observation["reparsed_module_count"], 3)
+            self.assertEqual(observation["source_file_count"], 3)
+            self.assertEqual(observation["test_file_count"], 1)
             self.assertIn(
                 "module-workbench-detail-v1",
                 detail_schema_path.read_text(encoding="utf-8"),

@@ -14069,6 +14069,18 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print module workbench execution schema',
     ),
     (
+        'module-workbench-observability',
+        'emit fresh-process module workbench cache and rebuild provenance',
+    ),
+    (
+        'module-workbench-observability-capabilities',
+        'print module workbench observability capabilities',
+    ),
+    (
+        'module-workbench-observability-schema',
+        'print module workbench observability schema',
+    ),
+    (
         'module-workbench-policy',
         'evaluate module workbench depth thresholds',
     ),

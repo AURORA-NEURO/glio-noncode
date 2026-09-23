@@ -2775,6 +2775,11 @@ from .module_workbench import (
     query_module_workbench,
     render_module_workbench_markdown,
 )
+from .module_workbench_observability import (
+    build_module_workbench_observability,
+    module_workbench_observability_capabilities,
+    module_workbench_observability_schema,
+)
 from .module_workbench_audit import (
     audit_module_workbench,
     module_workbench_audit_capabilities,
@@ -10179,6 +10184,22 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench.add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-schema", help="print module workbench schema").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-capabilities", help="print module workbench capabilities").add_argument("--output", default=None)
+    module_workbench_observability = subparsers.add_parser(
+        "module-workbench-observability",
+        help="emit fresh-process module workbench cache and rebuild provenance",
+    )
+    module_workbench_observability.add_argument("--source-root", default=None)
+    module_workbench_observability.add_argument("--test-root", default=None)
+    module_workbench_observability.add_argument("--docs-root", default=None)
+    module_workbench_observability.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-observability-schema",
+        help="print module workbench observability schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-observability-capabilities",
+        help="print module workbench observability capabilities",
+    ).add_argument("--output", default=None)
     module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
@@ -48379,6 +48400,66 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "module-workbench-capabilities":
             _write_json(module_workbench_capabilities(), args.output)
             return 0
+        if args.command == "module-workbench-observability-schema":
+            _write_json(module_workbench_observability_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-observability-capabilities":
+            _write_json(module_workbench_observability_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-observability":
+            source_root = (
+                Path(args.source_root)
+                if args.source_root is not None
+                else Path(__file__).resolve().parent
+            )
+            test_root = (
+                Path(args.test_root)
+                if args.test_root is not None
+                else source_root.parent.parent / "tests"
+            )
+            inventory = build_module_inventory(source_root, test_root=test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=source_root,
+                test_root=test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=source_root,
+                test_root=test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            test_file_count = (
+                sum(
+                    1
+                    for path in test_root.rglob("*.py")
+                    if path.is_file() and not path.is_symlink()
+                )
+                if test_root.exists() and test_root.is_dir()
+                else 0
+            )
+            observation = build_module_workbench_observability(
+                rebuild_mode="full",
+                cache_hit=False,
+                source_file_count=inventory.module_count,
+                test_file_count=test_file_count,
+                module_count=len(workbench.assessments),
+                task_count=len(workbench.tasks),
+                reused_module_count=0,
+                reparsed_module_count=inventory.module_count,
+                inventory_address=inventory.content_address,
+                certification_address=matrix.content_address,
+                lineage_address=lineage.content_address,
+                quality_address=quality.content_address,
+                workbench_address=workbench.content_address,
+                accepted=workbench.accepted,
+            )
+            _write_json(observation.to_dict(), args.output)
+            return 0 if observation.accepted else 2
         if args.command == "module-workbench-detail-schema":
             _write_json(module_workbench_detail_schema(), args.output)
             return 0
