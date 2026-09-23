@@ -775,6 +775,20 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                     self.assertEqual(command_trace["command_count"], 1)
                     self.assertEqual(command_trace["event_count"], 1)
                     self.assertEqual(command_trace["ledger_address"], current_ledger_address)
+                    packet_address = packet_payload["content_address"]
+                    for packet_projection_path, address_field in (
+                        ("/v1/module-workbench/execution/packet/release?format=summary", "packet_address"),
+                        ("/v1/module-workbench/execution/packet/runtime?include_stages=false", "packet_address"),
+                        ("/v1/module-workbench/execution/packet/inspection?format=summary", "packet_address"),
+                        ("/v1/module-workbench/execution/packet/archive?format=summary", "packet_address"),
+                    ):
+                        connection.request("GET", packet_projection_path)
+                        projection_response = connection.getresponse()
+                        projection_payload = json.loads(
+                            projection_response.read().decode("utf-8")
+                        )
+                        self.assertEqual(projection_response.status, 200)
+                        self.assertEqual(projection_payload[address_field], packet_address)
                     for downstream_path in (
                         "/v1/module-workbench/execution/audit",
                         "/v1/module-workbench/execution/policy",

@@ -3875,6 +3875,25 @@ class ApiHandler(BaseHTTPRequestHandler):
                 state["signature"] = signature
             return state
 
+    def _module_workbench_durable_execution(self) -> tuple[Any, tuple[Any, ...]]:
+        """Return the current source-bound ledger and its replay commands."""
+
+        state = self._module_workbench_execution_context()
+        with state["lock"]:
+            return state["ledger"], tuple(state["commands"])
+
+    def _module_workbench_durable_packet(self, workbench: Any) -> Any:
+        """Build a packet that cannot diverge from the durable execution head."""
+
+        durable_ledger, durable_commands = self._module_workbench_durable_execution()
+        packet = build_module_workbench_execution_packet(
+            workbench,
+            commands=durable_commands,
+        )
+        if packet.ledger_address != durable_ledger.content_address:
+            raise ValidationError("execution packet replay does not match the durable ledger")
+        return packet
+
     def _deployment_guard(self) -> DeploymentGuard:
         guard = getattr(self.server, "glio_deployment_guard", None)
         if guard is None:
@@ -23836,18 +23855,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/replay",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    execution_state = self._module_workbench_execution_context()
-                    with execution_state["lock"]:
-                        durable_ledger = execution_state["ledger"]
-                        durable_commands = tuple(execution_state["commands"])
-                    packet = build_module_workbench_execution_packet(
-                        workbench,
-                        commands=durable_commands,
-                    )
-                    if packet.ledger_address != durable_ledger.content_address:
-                        raise ValidationError(
-                            "execution packet replay does not match the durable ledger"
-                        )
+                    packet = self._module_workbench_durable_packet(workbench)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet(
                             packet,
@@ -23887,7 +23895,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/release/query",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    packet = build_module_workbench_execution_packet(workbench)
+                    packet = self._module_workbench_durable_packet(workbench)
                     release = build_module_workbench_execution_packet_release(packet)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet_release(
@@ -23924,7 +23932,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/runtime/query",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    runtime = run_module_workbench_execution_packet_runtime(workbench)
+                    _durable_ledger, durable_commands = self._module_workbench_durable_execution()
+                    runtime = run_module_workbench_execution_packet_runtime(
+                        workbench,
+                        commands=durable_commands,
+                    )
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet_runtime(
                             runtime,
@@ -23952,7 +23964,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/inspection/query",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    packet = build_module_workbench_execution_packet(workbench)
+                    packet = self._module_workbench_durable_packet(workbench)
                     inspection = build_module_workbench_execution_packet_inspection(packet)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet_inspection(
@@ -23991,7 +24003,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/query",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    packet = build_module_workbench_execution_packet(workbench)
+                    packet = self._module_workbench_durable_packet(workbench)
                     archive = build_module_workbench_execution_packet_archive(packet)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet_archive(
@@ -24026,7 +24038,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         )
                 elif path == "/v1/module-workbench/execution/packet/archive/chunks":
                     lineage, quality, workbench = self._module_workbench_context()
-                    packet = build_module_workbench_execution_packet(workbench)
+                    packet = self._module_workbench_durable_packet(workbench)
                     archive = build_module_workbench_execution_packet_archive(packet)
                     payload = query_module_workbench_execution_packet_archive_chunks(
                         archive,
@@ -24046,7 +24058,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/diff",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    packet = build_module_workbench_execution_packet(workbench)
+                    packet = self._module_workbench_durable_packet(workbench)
                     archive = build_module_workbench_execution_packet_archive(
                         packet,
                         archive_id=self._query_value(query, "archive_id")
@@ -24120,7 +24132,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/checkpoint/compare",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    packet = build_module_workbench_execution_packet(workbench)
+                    packet = self._module_workbench_durable_packet(workbench)
                     archive = build_module_workbench_execution_packet_archive(packet)
                     store_id = self._query_value(query, "store_id") or "glio-noncode-live-checkpoint-store"
                     checkpoint_store = build_module_workbench_execution_packet_archive_store(
@@ -24184,7 +24196,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/runtime/query",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    packet = build_module_workbench_execution_packet(workbench)
+                    packet = self._module_workbench_durable_packet(workbench)
                     archive = build_module_workbench_execution_packet_archive(packet)
                     store_runtime = run_module_workbench_execution_packet_archive_store_runtime(
                         (archive, archive),
@@ -24218,7 +24230,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/runtime/query",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    runtime = run_module_workbench_execution_packet_archive_runtime(workbench)
+                    packet = self._module_workbench_durable_packet(workbench)
+                    runtime = run_module_workbench_execution_packet_archive_runtime(packet)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet_archive_runtime(
                             runtime,
@@ -24246,7 +24259,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/diff/query",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    packet = build_module_workbench_execution_packet(workbench)
+                    packet = self._module_workbench_durable_packet(workbench)
                     left_archive = build_module_workbench_execution_packet_archive(
                         packet,
                         archive_id=self._query_value(query, "left_id")
