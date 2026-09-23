@@ -338,6 +338,9 @@ separate from single-analysis counts. The HTTP equivalents are
 These endpoints omit raw bases, genotype strings, sample identifiers, and
 subject identifiers. A passed integrity check does not make sequence-only
 evidence causal or clinical.
+The workbench archive-review view runs the verification projection alongside
+the summary and motif activity calls, then renders each verified or failed
+object in an aggregate-only ledger.
 
 For a reusable local catalog, use `--save-to-workspace`:
 

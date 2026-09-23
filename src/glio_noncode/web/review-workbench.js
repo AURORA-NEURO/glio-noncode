@@ -21,7 +21,7 @@
     sequenceAnalyses: [], sequenceTotal: 0, sequenceHasMore: false, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
     sequenceBatches: [], sequenceBatchTotal: 0, sequenceBatchHasMore: false, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
     sequenceComparisons: [], sequenceComparisonTotal: 0, sequenceComparisonHasMore: false, selectedSequenceComparison: null, sequenceComparisonReport: null, sequenceComparisonChanges: null, sequenceComparisonListRequest: 0, sequenceComparisonRequest: 0, sequenceComparisonFilterTimer: null,
-    sequenceReviewSummary: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewFilterTimer: null,
+    sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewFilterTimer: null,
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
   };
@@ -1645,18 +1645,21 @@
     const request = model.sequenceReviewRequest = (model.sequenceReviewRequest || 0) + 1;
     model.activeView = "sequence-review";
     model.sequenceReviewSummary = null;
+    model.sequenceReviewVerification = null;
     model.sequenceReviewMotifs = null;
     notice("");
     exportHref();
     showEmpty("Verifying sequence archive", "Opening bounded catalog and motif-activity projections without exposing raw bases.");
     try {
-      const [summary, motifs] = await Promise.all([
+      const [summary, verification, motifs] = await Promise.all([
         getJson("/v1/sequence-review/summary"),
+        getJson("/v1/sequence-review/verify"),
         getJson("/v1/sequence-review/motifs?limit=100&offset=0"),
       ]);
       if (request !== model.sequenceReviewRequest || model.activeView !== "sequence-review") return;
-      if (summary.schema !== "glio-noncode.sequence-review-summary.v1" || motifs.schema !== "glio-noncode.sequence-review-motifs.v1" || !Array.isArray(motifs.rows)) throw new Error("The local API returned an invalid sequence review projection.");
+      if (summary.schema !== "glio-noncode.sequence-review-summary.v1" || verification.schema !== "glio-noncode.sequence-review-verification.v1" || !Array.isArray(verification.results) || !Number.isSafeInteger(verification.record_count) || !Number.isSafeInteger(verification.verified_count) || !Number.isSafeInteger(verification.failed_count) || motifs.schema !== "glio-noncode.sequence-review-motifs.v1" || !Array.isArray(motifs.rows)) throw new Error("The local API returned an invalid sequence review projection.");
       model.sequenceReviewSummary = summary;
+      model.sequenceReviewVerification = verification;
       model.sequenceReviewMotifs = motifs;
       $("empty-state").hidden = true;
       $("run-view").hidden = true;
@@ -1669,7 +1672,7 @@
       $("sequence-review-view").hidden = false;
       renderSequenceReview();
       exportHref();
-      announceSelection(`Sequence archive review opened. ${formatCount(motifs.total_count)} exact motif activity rows.`);
+      announceSelection(`Sequence archive review opened. ${formatCount(verification.verified_count)} objects verified, ${formatCount(verification.failed_count)} failed, and ${formatCount(motifs.total_count)} exact motif activity rows.`);
     } catch (error) {
       if (request !== model.sequenceReviewRequest || model.activeView !== "sequence-review") return;
       notice(`The sequence archive review could not be verified. ${error.message}`, true);
@@ -1679,11 +1682,11 @@
 
   function renderSequenceReview() {
     const summary = model.sequenceReviewSummary;
+    const verification = model.sequenceReviewVerification;
     const motifs = model.sequenceReviewMotifs;
-    if (!summary || !motifs) return;
+    if (!summary || !verification || !motifs) return;
     const analyses = summary.catalogs.sequence_analyses;
     const batches = summary.catalogs.sequence_batches;
-    const integrity = summary.integrity;
     const changes = Number(analyses.created_motif_count || 0) + Number(analyses.disrupted_motif_count || 0) + Number(batches.created_change_count || 0) + Number(batches.disrupted_change_count || 0);
     $("sequence-review-subtitle").textContent = `${formatCount(analyses.record_count || 0)} single analyses · ${formatCount(batches.record_count || 0)} aggregate batches · ${formatCount(changes)} saved change records`;
     $("sequence-review-address").textContent = summary.content_address || "Address unavailable";
@@ -1692,7 +1695,7 @@
     $("sequence-review-batches").textContent = formatCount(batches.record_count || 0);
     $("sequence-review-batch-detail").textContent = `${formatCount(batches.supported_count || 0)} supported analyses`;
     $("sequence-review-changes").textContent = formatCount(changes);
-    $("sequence-review-integrity").textContent = integrity.catalog_records === "validated" ? "Catalog OK" : "Review";
+    $("sequence-review-integrity").textContent = verification.failed_count ? `${formatCount(verification.failed_count)} failed` : `${formatCount(verification.verified_count)} verified`;
     $("sequence-review-motif-count").textContent = `${formatCount(motifs.total_count)} exact rows`;
     const body = $("sequence-review-motif-table");
     body.replaceChildren();
@@ -1710,9 +1713,19 @@
     integrityCopy.replaceChildren();
     for (const text of [
       "Catalog records are validated before they enter this projection.",
-      "Report objects are opened and independently checked by the verification endpoint.",
+      `The verification endpoint independently reopened ${formatCount(verification.verified_count)} object(s) and reported ${formatCount(verification.failed_count)} failure(s).`,
       "Raw bases, genotype strings, sample IDs, and subject IDs are not emitted here.",
     ]) integrityCopy.append(element("p", "geo-limitation", text));
+    const verificationBody = $("sequence-review-verification-table");
+    verificationBody.replaceChildren();
+    if (!verification.results.length) verificationBody.append(emptyRow(4, "No saved report objects require verification."));
+    for (const result of verification.results) {
+      const detail = result.status === "verified" ? result.content_address : `${result.error?.code || "verification_failure"}: ${result.error?.message || "Object could not be reopened."}`;
+      const row = document.createElement("tr");
+      row.append(cell(consistencyText(result.kind)), cell(shortened(result.record_id, 34)), cell(consistencyText(result.status)), cell(detail));
+      verificationBody.append(row);
+    }
+    $("sequence-review-verification-summary").textContent = `${formatCount(verification.record_count)} objects reviewed · ${formatCount(verification.verified_count)} verified · ${formatCount(verification.failed_count)} failed · aggregate-only ledger`;
     const limitations = $("sequence-review-limitations");
     limitations.replaceChildren();
     for (const text of summary.limitations || []) limitations.append(element("p", "geo-limitation", text));
