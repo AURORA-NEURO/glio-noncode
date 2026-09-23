@@ -115,6 +115,14 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="geo-consistency-list-load-more"', html)
         self.assertIn('id="geo-sensitivity-list-load-more"', html)
         self.assertIn('id="geo-expression-consistency-list-load-more"', html)
+        self.assertIn('id="module-workbench-list"', html)
+        self.assertIn('id="module-workbench-load-more"', html)
+        self.assertIn('id="module-workbench-view"', html)
+        self.assertIn('id="module-workbench-certification-table"', html)
+        self.assertIn('id="module-workbench-evidence-table"', html)
+        self.assertIn('id="module-workbench-lineage-table"', html)
+        self.assertIn('id="module-workbench-tasks-table"', html)
+        self.assertIn('id="module-workbench-limitations"', html)
         self.assertIn("/v1/geo-count-consistency", javascript)
         self.assertIn("sign_test_fdr_sensitivity", javascript)
         self.assertIn("ranked_feature_count", javascript)
@@ -157,6 +165,11 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("function loadGeoConsistencyRecords(append = false)", javascript)
         self.assertIn("function loadGeoSensitivityRecords(append = false)", javascript)
         self.assertIn("function loadGeoExpressionConsistencyRecords(append = false)", javascript)
+        self.assertIn("function loadModuleAssessments(append = false)", javascript)
+        self.assertIn("function openModuleWorkbenchDetail(moduleId)", javascript)
+        self.assertIn("/v1/module-workbench/query?resource=modules", javascript)
+        self.assertIn("/v1/module-workbench/detail?module_id=", javascript)
+        self.assertIn("module-workbench-detail-v1", javascript)
         self.assertIn("loadGeoConsistencyRecords(true)", javascript)
         self.assertIn("loadGeoSensitivityRecords(true)", javascript)
         self.assertIn("loadGeoExpressionConsistencyRecords(true)", javascript)
@@ -358,7 +371,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
                 "loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), "
                 "loadGeoExpressionConsistencyRecords(), "
                 "loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), "
-                "loadSequenceReview()])"
+                "loadSequenceReview(), loadModuleAssessments()])"
             ),
             script,
         )

@@ -22,6 +22,7 @@
     sequenceBatches: [], sequenceBatchTotal: 0, sequenceBatchHasMore: false, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null, sequenceBatchChangesRequest: 0, sequenceBatchFilterTimer: null,
     sequenceComparisons: [], sequenceComparisonTotal: 0, sequenceComparisonHasMore: false, selectedSequenceComparison: null, sequenceComparisonReport: null, sequenceComparisonChanges: null, sequenceComparisonListRequest: 0, sequenceComparisonRequest: 0, sequenceComparisonFilterTimer: null,
     sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewMotifRequest: 0, sequenceReviewFilterTimer: null,
+    moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0,
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
   };
@@ -306,6 +307,204 @@
       button.append(top, meta);
       button.addEventListener("click", () => openSequenceComparison(item.comparison_id));
       list.append(button);
+    }
+  }
+
+  function displayValue(value) {
+    if (value === undefined || value === null || value === "") return "—";
+    if (Array.isArray(value)) return value.length ? value.join(" · ") : "—";
+    if (typeof value === "object") {
+      try { return JSON.stringify(value); } catch { return "—"; }
+    }
+    return String(value);
+  }
+
+  function renderModuleAssessments() {
+    const list = $("module-workbench-list");
+    list.replaceChildren();
+    $("module-count").textContent = formatCount(model.moduleTotal);
+    $("module-list-summary").textContent = `Showing ${model.moduleAssessments.length} of ${formatCount(model.moduleTotal)} modules · static workbench signals.`;
+    $("module-workbench-load-more").hidden = !model.moduleHasMore;
+    if (!model.moduleAssessments.length) {
+      list.append(element("p", "empty-inline", "No module workbench records yet."));
+      return;
+    }
+    for (const item of model.moduleAssessments) {
+      const moduleId = item.module_id || "Unknown module";
+      const button = element("button", "run-item");
+      button.type = "button";
+      button.setAttribute("aria-current", String(moduleId === model.selectedModule));
+      button.setAttribute("aria-label", `Open module ${moduleId}, ${item.depth_band || "unrated"} depth, ${item.risk || "unknown"} risk`);
+      const top = element("span", "run-top");
+      top.append(element("span", "run-case", shortened(moduleId, 34)), element("span", "run-status", item.depth_band || "unrated"));
+      const meta = element("span", "run-meta");
+      meta.append(element("span", "run-id", `${item.risk || "risk unavailable"} · ${percent(item.score)}`), element("span", "", `${formatCount(item.nonblank_lines)} lines · ${formatCount(item.fan_in)} in / ${formatCount(item.fan_out)} out`));
+      button.append(top, meta);
+      button.addEventListener("click", () => openModuleWorkbenchDetail(moduleId));
+      list.append(button);
+    }
+  }
+
+  async function loadModuleAssessments(append = false) {
+    const request = model.moduleListRequest = (model.moduleListRequest || 0) + 1;
+    const offset = append ? model.moduleAssessments.length : 0;
+    const button = $("module-workbench-load-more");
+    button.disabled = append;
+    try {
+      const page = await getJson(`/v1/module-workbench/query?resource=modules&limit=${pageSize}&offset=${offset}`);
+      if (request !== model.moduleListRequest) return;
+      if (!Array.isArray(page.items) || !Number.isSafeInteger(page.total) || page.offset !== offset || page.limit !== pageSize || page.accepted !== true || typeof page.workbench_address !== "string") {
+        throw new Error("The local API returned an invalid module workbench catalog.");
+      }
+      model.moduleTotal = page.total;
+      model.moduleAssessments = append ? model.moduleAssessments.concat(page.items) : page.items;
+      model.moduleHasMore = model.moduleAssessments.length < page.total;
+      renderModuleAssessments();
+    } catch (error) {
+      if (request !== model.moduleListRequest) return;
+      if (!append) {
+        model.moduleHasMore = false;
+        button.hidden = true;
+        $("module-workbench-list").replaceChildren(element("p", "empty-inline", "Module workbench could not be loaded."));
+        $("module-list-summary").textContent = "The local API could not verify a module workbench catalog.";
+      }
+      notice(error.message, true);
+    } finally {
+      if (request === model.moduleListRequest) button.disabled = false;
+    }
+  }
+
+  function renderModuleWorkbenchDetail() {
+    const detail = model.moduleDetail;
+    if (!detail) return;
+    const module = detail.module || {};
+    const assessment = detail.assessment || {};
+    const certification = detail.certification || {};
+    const summary = detail.summary || {};
+    const moduleId = detail.module_id || module.module_id || model.selectedModule;
+    $("module-workbench-title").textContent = moduleId || "Module dossier";
+    $("module-workbench-subtitle").textContent = `${displayValue(module.relative_path)} · ${displayValue(module.family)} · ${displayValue(module.role)} · ${formatCount(module.physical_lines)} physical lines`;
+    $("module-workbench-state").textContent = displayValue(certification.state);
+    $("module-workbench-state").className = `state-pill${certification.state === "certified" ? " ready" : ""}`;
+    $("module-workbench-address").textContent = displayValue(detail.content_address);
+    $("module-workbench-score").textContent = percent(assessment.score);
+    $("module-workbench-band").textContent = `${displayValue(assessment.depth_band)} · ${formatCount(assessment.nonblank_lines)} nonblank lines`;
+    $("module-workbench-risk").textContent = displayValue(assessment.risk);
+    $("module-workbench-certification").textContent = displayValue(certification.state);
+    $("module-workbench-certification-detail").textContent = `${formatCount(certification.passed_count)} passed · ${formatCount(certification.failed_count)} failed`;
+    $("module-workbench-task-count").textContent = formatCount((detail.tasks || []).length);
+    $("module-workbench-evidence-count").textContent = formatCount((detail.evidence || []).length);
+    $("module-workbench-gap-count").textContent = formatCount((detail.certification_gaps || []).length);
+    $("module-workbench-summary-state").textContent = `${displayValue(assessment.state)} · ${displayValue(assessment.family)}`;
+
+    const summaryBox = $("module-workbench-summary");
+    summaryBox.replaceChildren();
+    const summaryRows = [
+      ["Module path", module.relative_path],
+      ["Package", module.package],
+      ["Source state", module.state],
+      ["Physical / nonblank", `${formatCount(module.physical_lines)} / ${formatCount(module.nonblank_lines)}`],
+      ["Functions / classes", `${formatCount(module.function_count)} / ${formatCount(module.class_count)}`],
+      ["Public symbols", module.public_symbol_count],
+      ["Imports / local dependencies", `${formatCount(module.import_count)} / ${formatCount(module.local_dependency_count)}`],
+      ["Fan-in / fan-out", `${formatCount(assessment.fan_in)} / ${formatCount(assessment.fan_out)}`],
+      ["Test references", module.test_reference_count],
+      ["Strengths", assessment.strengths],
+      ["Blockers", assessment.blockers?.length ? assessment.blockers : "None reported"],
+      ["Source digest", module.source_digest],
+    ];
+    for (const [label, value] of summaryRows) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", displayValue(value)));
+      summaryBox.append(block);
+    }
+
+    const certificationBody = $("module-workbench-certification-table");
+    certificationBody.replaceChildren();
+    const checks = certification.checks || [];
+    $("module-workbench-certification-count").textContent = `${formatCount(certification.passed_count)} passed · ${formatCount(certification.gap_count)} gaps`;
+    if (!checks.length) certificationBody.append(emptyRow(5, "No certification checks were reported."));
+    for (const check of checks) {
+      const row = document.createElement("tr");
+      row.append(cell(check.kind), cell(check.state), cell(displayValue(check.observed)), cell(displayValue(check.required)), cell(check.detail));
+      certificationBody.append(row);
+    }
+
+    const evidenceBody = $("module-workbench-evidence-table");
+    evidenceBody.replaceChildren();
+    const evidence = detail.evidence || [];
+    $("module-workbench-evidence-label").textContent = `${formatCount(evidence.length)} receipts`;
+    if (!evidence.length) evidenceBody.append(emptyRow(5, "No linked evidence receipts were reported."));
+    for (const item of evidence) {
+      const row = document.createElement("tr");
+      row.append(cell(item.kind), cell(item.relation), cell(item.relative_path), cell(formatCount(item.line_count)), cell(item.detail));
+      evidenceBody.append(row);
+    }
+
+    const lineageBody = $("module-workbench-lineage-table");
+    lineageBody.replaceChildren();
+    const lineage = detail.lineage_edges || [];
+    $("module-workbench-lineage-label").textContent = `${formatCount(lineage.length)} edges`;
+    if (!lineage.length) lineageBody.append(emptyRow(5, "No lineage edges were reported."));
+    for (const edge of lineage) {
+      const row = document.createElement("tr");
+      row.append(cell(edge.relation), cell(edge.source_module), cell(edge.target_id), cell(edge.target_kind), cell(edge.resolved === true ? "Resolved" : "Unresolved"));
+      lineageBody.append(row);
+    }
+
+    const tasksBody = $("module-workbench-tasks-table");
+    tasksBody.replaceChildren();
+    const tasks = detail.tasks || [];
+    $("module-workbench-task-label").textContent = `${formatCount(tasks.length)} planned tasks`;
+    if (!tasks.length) tasksBody.append(emptyRow(5, "No planned module tasks were reported."));
+    for (const task of tasks) {
+      const row = document.createElement("tr");
+      row.append(cell(task.priority), cell(`${displayValue(task.title)} · ${displayValue(task.kind)}`), cell(task.rationale), cell(task.acceptance), cell(percent(task.estimated_impact)));
+      tasksBody.append(row);
+    }
+
+    const limitations = $("module-workbench-limitations");
+    limitations.replaceChildren();
+    for (const limitation of detail.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
+    if (!limitations.children.length) limitations.append(element("p", "muted", "No additional limitations were reported."));
+  }
+
+  async function openModuleWorkbenchDetail(moduleId) {
+    model.activeView = "module-workbench";
+    model.selectedModule = moduleId;
+    model.moduleDetail = null;
+    const request = model.moduleDetailRequest = (model.moduleDetailRequest || 0) + 1;
+    renderModuleAssessments();
+    notice("");
+    exportHref();
+    showEmpty("Verifying module dossier", "Loading static implementation evidence, certification checks, lineage, and planned depth work.");
+    try {
+      const detail = await getJson(`/v1/module-workbench/detail?module_id=${encodeURIComponent(moduleId)}`);
+      if (request !== model.moduleDetailRequest || model.activeView !== "module-workbench" || model.selectedModule !== moduleId) return;
+      if (detail.schema !== "module-workbench-detail-v1" || detail.accepted !== true || detail.module_id !== moduleId || !detail.module || !detail.assessment || !detail.certification || !Array.isArray(detail.evidence) || !Array.isArray(detail.lineage_edges) || !Array.isArray(detail.tasks)) {
+        throw new Error("The local API returned an invalid module dossier.");
+      }
+      model.moduleDetail = detail;
+      $("empty-state").hidden = true;
+      $("run-view").hidden = true;
+      $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = true;
+      $("geo-expression-consistency-view").hidden = true;
+      $("geo-review-view").hidden = true;
+      $("geo-preflight-view").hidden = true;
+      $("geo-consistency-view").hidden = true;
+      $("geo-sensitivity-view").hidden = true;
+      $("sequence-analysis-view").hidden = true;
+      $("sequence-review-view").hidden = true;
+      $("sequence-batch-view").hidden = true;
+      $("sequence-comparison-view").hidden = true;
+      $("module-workbench-view").hidden = false;
+      renderModuleWorkbenchDetail();
+      announceSelection(`Module ${moduleId} opened. ${formatCount(detail.evidence.length)} evidence receipts and ${formatCount(detail.tasks.length)} planned tasks are displayed.`);
+    } catch (error) {
+      if (request !== model.moduleDetailRequest || model.activeView !== "module-workbench" || model.selectedModule !== moduleId) return;
+      notice(`The selected module dossier could not be verified. ${error.message}`, true);
+      showEmpty("Module dossier unavailable", "The selected module dossier could not be verified, so its evidence panels remain hidden.");
     }
   }
 
@@ -829,6 +1028,8 @@
     $("sequence-analysis-view").hidden = true;
     $("sequence-review-view").hidden = true;
     $("sequence-batch-view").hidden = true;
+    $("sequence-comparison-view").hidden = true;
+    $("module-workbench-view").hidden = true;
     $("empty-state").hidden = false;
     $("empty-title").textContent = title;
     $("empty-copy").textContent = copy;
@@ -2779,7 +2980,7 @@
     renderHypotheses(); renderQueue(); renderDeltas(); exportHref();
   }
 
-  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview()]));
+  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview(), loadModuleAssessments()]));
   $("run-search").addEventListener("input", renderRuns);
   $("path-search").addEventListener("input", renderHypotheses);
   $("evidence-search").addEventListener("input", renderEvidence);
@@ -2879,6 +3080,7 @@
   $("sequence-analysis-load-more").addEventListener("click", () => loadSequenceAnalyses(true));
   $("sequence-batch-load-more").addEventListener("click", () => loadSequenceBatches(true));
   $("sequence-comparison-list-load-more").addEventListener("click", () => loadSequenceComparisons(true));
+  $("module-workbench-load-more").addEventListener("click", () => loadModuleAssessments(true));
   $("geo-consistency-features").addEventListener("input", updateGeoCompareControls);
   $("geo-compare-button").addEventListener("click", compareGeoAnalyses);
   $("geo-sensitivity-button").addEventListener("click", compareGeoSensitivity);
@@ -2922,7 +3124,7 @@
   });
   async function initializeWorkspace() {
     const initialSelectionRequest = model.selectionRequest || 0;
-    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview()]);
+    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview(), loadModuleAssessments()]);
     if (model.selectionRequest !== initialSelectionRequest || model.activeView !== "empty") return;
     if (model.runs.length) {
       await openRun(model.runs[0].run_id);
@@ -2938,6 +3140,8 @@
       await openSequenceBatch(model.sequenceBatches[0].batch_id);
     } else if (model.sequenceComparisons.length) {
       await openSequenceComparison(model.sequenceComparisons[0].comparison_id);
+    } else if (model.moduleAssessments.length) {
+      await openModuleWorkbenchDetail(model.moduleAssessments[0].module_id);
     } else {
       showEmpty("No saved research records", "Case runs and aggregate GEO reports appear here after they are saved to the local workspace.");
     }

@@ -168,6 +168,22 @@ glio-noncode module-workbench-detail-schema
 glio-noncode module-workbench-detail-capabilities
 ```
 
+## Browser workbench
+
+The local review workbench exposes the same module contract in the left rail
+under `Modules`. It loads bounded pages from
+`/v1/module-workbench/query?resource=modules`, then opens a selected module
+through `/v1/module-workbench/detail?module_id=...`. A dossier shows the
+implementation score and depth band, certification checks, evidence receipts,
+lineage edges, planned tasks, and limitations. The browser only renders the
+path-free public projection: source text, absolute paths, raw payloads, and
+machine-specific metadata are not displayed.
+
+The module list is generation-gated like the research archives, so a delayed
+catalog response cannot replace a newer selection. Each selected dossier is
+also checked for `module-workbench-detail-v1` and an accepted public boundary
+before its detail panels are shown.
+
 Contract metadata is available without scanning source:
 
 ```text
