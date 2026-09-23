@@ -845,6 +845,136 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             self.assertEqual(replayed["items"][0]["state"], "in_progress")
             self.assertEqual(replayed["items"][0]["event_count"], 1)
 
+    def test_http_execution_command_batch_is_atomic_and_durable(self) -> None:
+        report = self.report()
+        with tempfile.TemporaryDirectory() as data_root:
+            with patch.object(ApiHandler, "_module_workbench_context", return_value=(None, None, report)):
+                server = create_server(host="127.0.0.1", port=0, data_root=data_root)
+                thread = Thread(target=server.serve_forever, daemon=True)
+                thread.start()
+                try:
+                    host, port = server.server_address
+                    connection = HTTPConnection(host, port, timeout=30)
+                    connection.request(
+                        "GET",
+                        "/v1/module-workbench/execution/query?resource=items&state=ready&limit=2",
+                    )
+                    response = connection.getresponse()
+                    ready_payload = json.loads(response.read().decode("utf-8"))
+                    self.assertEqual(response.status, 200)
+                    self.assertGreaterEqual(ready_payload["total"], 2)
+                    ready_items = ready_payload["items"][:2]
+                    ledger_address = ready_payload["ledger_address"]
+
+                    for metadata_path in (
+                        "/v1/module-workbench/execution/commands/schema",
+                        "/v1/module-workbench/execution/commands/capabilities",
+                    ):
+                        connection.request("GET", metadata_path)
+                        metadata_response = connection.getresponse()
+                        metadata_payload = json.loads(metadata_response.read().decode("utf-8"))
+                        self.assertEqual(metadata_response.status, 200)
+                        if metadata_path.endswith("/schema"):
+                            self.assertTrue(metadata_payload["batch"]["atomic"])
+                            self.assertEqual(metadata_payload["batch"]["maximum_commands"], 128)
+                        else:
+                            self.assertTrue(metadata_payload["atomic_batch"])
+                            self.assertEqual(metadata_payload["maximum_batch_commands"], 128)
+
+                    commands = [
+                        {
+                            "task_id": item["task_id"],
+                            "action": "start",
+                            "detail": f"start bounded batch task {index}",
+                        }
+                        for index, item in enumerate(ready_items)
+                    ]
+                    connection.request(
+                        "POST",
+                        "/v1/module-workbench/execution/commands",
+                        body=json.dumps(
+                            {
+                                "expected_ledger_address": ledger_address,
+                                "commands": commands + [
+                                    {
+                                        "task_id": "missing-task",
+                                        "action": "start",
+                                        "detail": "this command must roll back the batch",
+                                    }
+                                ],
+                            }
+                        ),
+                        headers={"Content-Type": "application/json"},
+                    )
+                    response = connection.getresponse()
+                    rejected_payload = json.loads(response.read().decode("utf-8"))
+                    self.assertEqual(response.status, 422)
+                    self.assertEqual(rejected_payload["error"], "validation_error")
+
+                    connection.request(
+                        "GET",
+                        f"/v1/module-workbench/execution/query?resource=items&task_id={ready_items[0]['task_id']}&limit=1",
+                    )
+                    rollback_response = connection.getresponse()
+                    rollback_payload = json.loads(rollback_response.read().decode("utf-8"))
+                    self.assertEqual(rollback_response.status, 200)
+                    self.assertEqual(rollback_payload["items"][0]["state"], "ready")
+                    self.assertEqual(rollback_payload["items"][0]["event_count"], 0)
+                    self.assertEqual(rollback_payload["ledger_address"], ledger_address)
+
+                    connection.request(
+                        "POST",
+                        "/v1/module-workbench/execution/commands",
+                        body=json.dumps(
+                            {
+                                "expected_ledger_address": ledger_address,
+                                "commands": commands,
+                            }
+                        ),
+                        headers={"Content-Type": "application/json"},
+                    )
+                    response = connection.getresponse()
+                    accepted_payload = json.loads(response.read().decode("utf-8"))
+                    self.assertEqual(response.status, 201)
+                    self.assertTrue(accepted_payload["atomic"])
+                    self.assertEqual(accepted_payload["batch_count"], 2)
+                    self.assertEqual(len(accepted_payload["events"]), 2)
+                    self.assertEqual(
+                        [event["to_state"] for event in accepted_payload["events"]],
+                        ["in_progress", "in_progress"],
+                    )
+                    self.assertEqual(accepted_payload["journal"]["command_count"], 2)
+                    current_ledger_address = accepted_payload["ledger"]["content_address"]
+                    self.assertNotEqual(current_ledger_address, ledger_address)
+                    connection.close()
+                finally:
+                    server.shutdown()
+                    server.server_close()
+                    thread.join(timeout=10)
+
+            with patch.object(ApiHandler, "_module_workbench_context", return_value=(None, None, report)):
+                server = create_server(host="127.0.0.1", port=0, data_root=data_root)
+                thread = Thread(target=server.serve_forever, daemon=True)
+                thread.start()
+                try:
+                    host, port = server.server_address
+                    connection = HTTPConnection(host, port, timeout=30)
+                    connection.request(
+                        "GET",
+                        f"/v1/module-workbench/execution/query?resource=items&task_id={ready_items[0]['task_id']}&limit=1",
+                    )
+                    replay_response = connection.getresponse()
+                    replayed = json.loads(replay_response.read().decode("utf-8"))
+                    connection.close()
+                finally:
+                    server.shutdown()
+                    server.server_close()
+                    thread.join(timeout=10)
+            self.assertEqual(replay_response.status, 200)
+            self.assertEqual(replayed["items"][0]["state"], "in_progress")
+            self.assertEqual(replayed["items"][0]["event_count"], 1)
+            self.assertEqual(replayed["ledger_address"], current_ledger_address)
+
     def test_runtime_runs_the_complete_static_chain_once(self) -> None:
         runtime = run_module_workbench(
             self.package,

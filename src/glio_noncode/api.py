@@ -1833,6 +1833,7 @@ from .module_workbench_audit import (
 from .module_workbench_diff import module_workbench_diff_capabilities, module_workbench_diff_schema
 from .module_workbench_execution import (
     apply_module_workbench_execution_command,
+    apply_module_workbench_execution_commands,
     build_module_workbench_execution,
     execution_command,
     module_workbench_execution_capabilities,
@@ -3557,6 +3558,7 @@ _MODULE_WORKBENCH_EXECUTION_JOURNAL_MAX_BYTES = 64 * 1024 * 1024
 _MODULE_WORKBENCH_EXECUTION_COMMAND_FIELDS = frozenset(
     {"task_id", "action", "detail", "evidence_addresses", "requirement"}
 )
+_MODULE_WORKBENCH_EXECUTION_BATCH_MAX_COMMANDS = 128
 
 
 class ApiHandler(BaseHTTPRequestHandler):
@@ -7128,10 +7130,13 @@ class ApiHandler(BaseHTTPRequestHandler):
         if path in {
             "/v1/module-workbench/execution/command/schema",
             "/v1/module-workbench/execution/command/capabilities",
+            "/v1/module-workbench/execution/commands/schema",
+            "/v1/module-workbench/execution/commands/capabilities",
         }:
             if parsed.query:
                 self._write_error(HTTPStatus.BAD_REQUEST, "execution command metadata does not accept query parameters")
                 return
+            is_batch = "/commands/" in path
             if path.endswith("/schema"):
                 payload = {
                     "version": MODULE_WORKBENCH_EXECUTION_VERSION,
@@ -7146,14 +7151,20 @@ class ApiHandler(BaseHTTPRequestHandler):
                         "requirement": "source|test|documentation|review|integration, optional",
                         "expected_ledger_address": "string, optional optimistic concurrency guard",
                     },
+                    "batch": {
+                        "route": "/v1/module-workbench/execution/commands",
+                        "commands": "array of command objects, one or more",
+                        "maximum_commands": _MODULE_WORKBENCH_EXECUTION_BATCH_MAX_COMMANDS,
+                        "atomic": True,
+                    } if is_batch else None,
                     "transition_rules": module_workbench_execution_schema()["transition_rules"],
-                    "response": "validated command, appended event, and current ledger summary",
+                    "response": "validated command batch, appended events, and current ledger summary" if is_batch else "validated command, appended event, and current ledger summary",
                 }
             else:
                 payload = {
                     "version": MODULE_WORKBENCH_EXECUTION_VERSION,
                     "journal_version": _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION,
-                    "operation_count": 6,
+                    "operation_count": 8 if is_batch else 6,
                     "operations": [
                         "validate_command",
                         "enforce_transition_rules",
@@ -7161,9 +7172,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                         "append_addressed_event",
                         "persist_compressed_journal",
                         "replay_source_bound_journal",
-                    ],
+                    ] + (["validate_atomic_batch", "persist_one_batch_journal"] if is_batch else []),
                     "durable": True,
                     "append_only_events": True,
+                    "atomic_batch": is_batch,
+                    "maximum_batch_commands": _MODULE_WORKBENCH_EXECUTION_BATCH_MAX_COMMANDS,
                     "optimistic_concurrency": True,
                     "evidence_gated_completion": True,
                 }
@@ -28174,30 +28187,64 @@ class ApiHandler(BaseHTTPRequestHandler):
         path = parsed.path
         if not self._authorize_request():
             return
-        if path == "/v1/module-workbench/execution/command":
+        if path in {
+            "/v1/module-workbench/execution/command",
+            "/v1/module-workbench/execution/commands",
+        }:
+            is_batch = path.endswith("/commands")
             try:
                 if parsed.query:
                     raise ValueError("execution commands do not accept query parameters")
                 payload = self._read_json(strict=True)
-                allowed = _MODULE_WORKBENCH_EXECUTION_COMMAND_FIELDS | {"expected_ledger_address"}
+                if not isinstance(payload, dict):
+                    raise ValueError("execution command payload must be an object")
+                allowed = (
+                    {"commands", "expected_ledger_address"}
+                    if is_batch
+                    else _MODULE_WORKBENCH_EXECUTION_COMMAND_FIELDS | {"expected_ledger_address"}
+                )
                 unknown = set(payload) - allowed
                 if unknown:
-                    raise ValueError(f"execution command has unknown fields: {sorted(unknown)}")
-                raw_evidence = payload.get("evidence_addresses", [])
-                if not isinstance(raw_evidence, list):
-                    raise ValueError("evidence_addresses must be an array")
+                    label = "execution command batch" if is_batch else "execution command"
+                    raise ValueError(f"{label} has unknown fields: {sorted(unknown)}")
+                parsed_commands: list[Any] = []
+                raw_commands = payload.get("commands") if is_batch else [payload]
+                if is_batch and (
+                    not isinstance(raw_commands, list)
+                    or not 1 <= len(raw_commands) <= _MODULE_WORKBENCH_EXECUTION_BATCH_MAX_COMMANDS
+                ):
+                    raise ValueError(
+                        "commands must contain between one and "
+                        f"{_MODULE_WORKBENCH_EXECUTION_BATCH_MAX_COMMANDS} items"
+                    )
+                for index, raw_command in enumerate(raw_commands):
+                    if not isinstance(raw_command, dict):
+                        raise ValueError(f"commands[{index}] must be an object")
+                    command_unknown = set(raw_command) - _MODULE_WORKBENCH_EXECUTION_COMMAND_FIELDS
+                    if not is_batch:
+                        command_unknown.discard("expected_ledger_address")
+                    if command_unknown:
+                        raise ValueError(
+                            f"commands[{index}] has unknown fields: {sorted(command_unknown)}"
+                        )
+                    raw_evidence = raw_command.get("evidence_addresses", [])
+                    if not isinstance(raw_evidence, list):
+                        raise ValueError(f"commands[{index}].evidence_addresses must be an array")
+                    parsed_commands.append(
+                        execution_command(
+                            raw_command.get("task_id"),
+                            raw_command.get("action"),
+                            raw_command.get("detail"),
+                            evidence_addresses=tuple(raw_evidence),
+                            requirement=raw_command.get("requirement"),
+                        )
+                    )
+                commands_to_apply = tuple(parsed_commands)
                 expected_address = payload.get("expected_ledger_address")
                 if expected_address is not None and (
                     not isinstance(expected_address, str) or not expected_address.strip()
                 ):
                     raise ValueError("expected_ledger_address must be a non-empty string")
-                command = execution_command(
-                    payload.get("task_id"),
-                    payload.get("action"),
-                    payload.get("detail"),
-                    evidence_addresses=tuple(raw_evidence),
-                    requirement=payload.get("requirement"),
-                )
                 state = self._module_workbench_execution_context()
                 with state["lock"]:
                     current = state["ledger"]
@@ -28212,8 +28259,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                             },
                         )
                         return
-                    updated = apply_module_workbench_execution_command(current, command)
-                    commands = tuple(state["commands"]) + (command,)
+                    updated = apply_module_workbench_execution_commands(current, commands_to_apply)
+                    commands = tuple(state["commands"]) + commands_to_apply
                     if not self._persist_module_workbench_execution_journal(
                         state["signature"], updated, commands
                     ):
@@ -28227,12 +28274,27 @@ class ApiHandler(BaseHTTPRequestHandler):
                         return
                     state["ledger"] = updated
                     state["commands"] = commands
-                self._write(
-                    HTTPStatus.CREATED,
-                    {
+                if is_batch:
+                    response_payload = {
                         "version": MODULE_WORKBENCH_EXECUTION_VERSION,
                         "accepted": updated.accepted,
-                        "command": command.to_dict(),
+                        "atomic": True,
+                        "batch_count": len(commands_to_apply),
+                        "commands": [command.to_dict() for command in commands_to_apply],
+                        "events": [event.to_dict() for event in updated.events[-len(commands_to_apply):]],
+                        "ledger": updated.to_dict(include_items=False, include_events=False),
+                        "journal": {
+                            "version": _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION,
+                            "command_count": len(commands),
+                            "batch_count": len(commands_to_apply),
+                            "durable": True,
+                        },
+                    }
+                else:
+                    response_payload = {
+                        "version": MODULE_WORKBENCH_EXECUTION_VERSION,
+                        "accepted": updated.accepted,
+                        "command": commands_to_apply[0].to_dict(),
                         "event": updated.events[-1].to_dict(),
                         "ledger": updated.to_dict(include_items=False, include_events=False),
                         "journal": {
@@ -28240,12 +28302,18 @@ class ApiHandler(BaseHTTPRequestHandler):
                             "command_count": len(commands),
                             "durable": True,
                         },
-                    },
-                )
+                    }
+                self._write(HTTPStatus.CREATED, response_payload)
             except GlioError as exc:
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except (TypeError, ValueError, json.JSONDecodeError) as exc:
-                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_execution_command", "message": str(exc)})
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {
+                        "error": "invalid_execution_command_batch" if is_batch else "invalid_execution_command",
+                        "message": str(exc),
+                    },
+                )
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
