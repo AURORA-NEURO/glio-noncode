@@ -1034,6 +1034,10 @@ ledger address differs from durable state. Release, runtime, inspection,
 archive, and archive-runtime projections reuse that same durable packet
 address. It does not write a directory. Query filters include artifact
 ID/kind, check plane/result, link name, free text, offset, and bounded limit.
+Within one server process, the immutable packet and latest archive projection
+are reused when the workbench address, durable ledger address, command-trace
+address, and archive ID are unchanged. A source-signature or command change
+invalidates the cache before the next projection is returned.
 The release endpoint evaluates artifact and verification thresholds. The
 runtime endpoint exposes the ordered build/write/verify/load/query/replay/release
 handoff.

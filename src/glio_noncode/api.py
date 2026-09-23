@@ -3887,13 +3887,67 @@ class ApiHandler(BaseHTTPRequestHandler):
         """Build a packet that cannot diverge from the durable execution head."""
 
         durable_ledger, durable_commands = self._module_workbench_durable_execution()
-        packet = build_module_workbench_execution_packet(
-            workbench,
-            commands=durable_commands,
+        trace_address = content_hash(
+            [command.to_dict() for command in durable_commands],
+            prefix="module-workbench-execution-command-trace",
         )
-        if packet.ledger_address != durable_ledger.content_address:
-            raise ValidationError("execution packet replay does not match the durable ledger")
-        return packet
+        key = (
+            workbench.content_address,
+            durable_ledger.content_address,
+            trace_address,
+        )
+        cache = getattr(self.server, "glio_module_workbench_execution_projection_cache", None)
+        if cache is None:
+            cache = {
+                "lock": RLock(),
+                "packet_key": None,
+                "packet": None,
+                "archive_key": None,
+                "archive": None,
+            }
+            setattr(self.server, "glio_module_workbench_execution_projection_cache", cache)
+        with cache["lock"]:
+            if cache["packet_key"] == key and cache["packet"] is not None:
+                return cache["packet"]
+            packet = build_module_workbench_execution_packet(
+                workbench,
+                commands=durable_commands,
+            )
+            if packet.ledger_address != durable_ledger.content_address:
+                raise ValidationError("execution packet replay does not match the durable ledger")
+            cache["packet_key"] = key
+            cache["packet"] = packet
+            cache["archive_key"] = None
+            cache["archive"] = None
+            return packet
+
+    def _module_workbench_durable_archive(
+        self,
+        workbench: Any,
+        *,
+        archive_id: str | None = None,
+    ) -> Any:
+        """Reuse one immutable archive for the current packet and archive ID."""
+
+        packet = self._module_workbench_durable_packet(workbench)
+        cache = getattr(self.server, "glio_module_workbench_execution_projection_cache", None)
+        if cache is None:
+            raise ValidationError("execution projection cache is unavailable")
+        key = (packet.content_address, archive_id)
+        with cache["lock"]:
+            if cache["archive_key"] == key and cache["archive"] is not None:
+                return cache["archive"]
+            archive = (
+                build_module_workbench_execution_packet_archive(packet)
+                if archive_id is None
+                else build_module_workbench_execution_packet_archive(
+                    packet,
+                    archive_id=archive_id,
+                )
+            )
+            cache["archive_key"] = key
+            cache["archive"] = archive
+            return archive
 
     def _deployment_guard(self) -> DeploymentGuard:
         guard = getattr(self.server, "glio_deployment_guard", None)
@@ -24006,7 +24060,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
                     packet = self._module_workbench_durable_packet(workbench)
-                    archive = build_module_workbench_execution_packet_archive(packet)
+                    archive = self._module_workbench_durable_archive(workbench)
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet_archive(
                             archive,
@@ -24045,7 +24099,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                         )
                     lineage, quality, workbench = self._module_workbench_context()
                     packet = self._module_workbench_durable_packet(workbench)
-                    archive = build_module_workbench_execution_packet_archive(packet)
+                    archive = self._module_workbench_durable_archive(workbench)
                     archive_bytes = module_workbench_execution_packet_archive_bytes(archive)
                     self._write_bytes(
                         HTTPStatus.OK,
@@ -24063,7 +24117,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                 elif path == "/v1/module-workbench/execution/packet/archive/chunks":
                     lineage, quality, workbench = self._module_workbench_context()
                     packet = self._module_workbench_durable_packet(workbench)
-                    archive = build_module_workbench_execution_packet_archive(packet)
+                    archive = self._module_workbench_durable_archive(workbench)
                     payload = query_module_workbench_execution_packet_archive_chunks(
                         archive,
                         chunk_size=self._query_int(query, "chunk_size", 65536),
@@ -24083,8 +24137,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
                     packet = self._module_workbench_durable_packet(workbench)
-                    archive = build_module_workbench_execution_packet_archive(
-                        packet,
+                    archive = self._module_workbench_durable_archive(
+                        workbench,
                         archive_id=self._query_value(query, "archive_id")
                         or "glio-noncode-live-archive",
                     )
@@ -24157,7 +24211,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
                     packet = self._module_workbench_durable_packet(workbench)
-                    archive = build_module_workbench_execution_packet_archive(packet)
+                    archive = self._module_workbench_durable_archive(workbench)
                     store_id = self._query_value(query, "store_id") or "glio-noncode-live-checkpoint-store"
                     checkpoint_store = build_module_workbench_execution_packet_archive_store(
                         (archive,), store_id=store_id
@@ -24221,7 +24275,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
                     packet = self._module_workbench_durable_packet(workbench)
-                    archive = build_module_workbench_execution_packet_archive(packet)
+                    archive = self._module_workbench_durable_archive(workbench)
                     store_runtime = run_module_workbench_execution_packet_archive_store_runtime(
                         (archive, archive),
                         store_id=self._query_value(query, "store_id")
@@ -24284,13 +24338,13 @@ class ApiHandler(BaseHTTPRequestHandler):
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
                     packet = self._module_workbench_durable_packet(workbench)
-                    left_archive = build_module_workbench_execution_packet_archive(
-                        packet,
+                    left_archive = self._module_workbench_durable_archive(
+                        workbench,
                         archive_id=self._query_value(query, "left_id")
                         or "glio-noncode-left-archive",
                     )
-                    right_archive = build_module_workbench_execution_packet_archive(
-                        packet,
+                    right_archive = self._module_workbench_durable_archive(
+                        workbench,
                         archive_id=self._query_value(query, "right_id")
                         or "glio-noncode-right-archive",
                     )

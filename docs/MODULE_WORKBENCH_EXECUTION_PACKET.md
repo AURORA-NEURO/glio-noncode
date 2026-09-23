@@ -431,6 +431,12 @@ directory. Format parameters provide JSON, CSV, and Markdown where the route
 supports them. Query parameters mirror the typed query functions and are
 bounded before work is performed.
 
+The service keeps one bounded server-local packet projection and one latest
+archive projection. Their keys include the workbench address, durable ledger
+address, exact command-trace address, and archive ID. A source-signature or
+command transition changes those addresses and forces a fresh build; unchanged
+read-only routes reuse the immutable projection.
+
 ## Failure matrix
 
 | Failure | Build | Verify | Load | Release |

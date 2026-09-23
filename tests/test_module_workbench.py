@@ -12,6 +12,7 @@ from threading import Thread
 from unittest.mock import patch
 import zipfile
 
+import glio_noncode.api as api_module
 from glio_noncode.api import ApiHandler, create_server
 from glio_noncode.errors import ValidationError
 from glio_noncode.module_certification import build_module_certification
@@ -899,6 +900,42 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             self.assertEqual(response.status, 200)
             self.assertEqual(replayed["items"][0]["state"], "in_progress")
             self.assertEqual(replayed["items"][0]["event_count"], 1)
+
+    def test_execution_packet_and_archive_projections_reuse_immutable_cache(self) -> None:
+        report = self.report()
+        with tempfile.TemporaryDirectory() as data_root:
+            server = create_server(host="127.0.0.1", port=0, data_root=data_root)
+            try:
+                handler = object.__new__(ApiHandler)
+                handler.server = server
+                with (
+                    patch.object(
+                        ApiHandler,
+                        "_module_workbench_context",
+                        return_value=(None, None, report),
+                    ),
+                    patch.object(
+                        api_module,
+                        "build_module_workbench_execution_packet",
+                        wraps=api_module.build_module_workbench_execution_packet,
+                    ) as packet_builder,
+                    patch.object(
+                        api_module,
+                        "build_module_workbench_execution_packet_archive",
+                        wraps=api_module.build_module_workbench_execution_packet_archive,
+                    ) as archive_builder,
+                ):
+                    first_packet = handler._module_workbench_durable_packet(report)
+                    second_packet = handler._module_workbench_durable_packet(report)
+                    first_archive = handler._module_workbench_durable_archive(report)
+                    second_archive = handler._module_workbench_durable_archive(report)
+                self.assertIs(first_packet, second_packet)
+                self.assertIs(first_archive, second_archive)
+                self.assertEqual(packet_builder.call_count, 1)
+                self.assertEqual(archive_builder.call_count, 1)
+                self.assertEqual(first_archive.packet_address, first_packet.content_address)
+            finally:
+                server.server_close()
 
     def test_http_execution_command_batch_is_atomic_and_durable(self) -> None:
         report = self.report()
