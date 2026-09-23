@@ -205,6 +205,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("sequence-haplotype-analysis.v1", javascript)
         self.assertIn("source.downloaded_inputs", javascript)
         self.assertIn("sequence-download-provenance", javascript)
+        self.assertIn("reports_with_complete_download_receipts_count", javascript)
+        self.assertIn("complete download receipts", javascript)
         self.assertIn("result_state", javascript)
         self.assertIn("Missing bounded rows remain", html)
         self.assertIn("Compare exact IDs", html)

@@ -286,6 +286,17 @@ receipts let archive verification distinguish the reference and call-set
 inputs without persisting local paths, raw bases, genotype strings, or sample
 identifiers.
 
+The sequence archive review summary carries the same provenance signal without
+opening every report object. For `sequence_analyses`,
+`download_receipt_count_total` counts retained file receipts,
+`reports_with_download_receipts_count` counts reports with at least one
+receipt, `reports_with_complete_download_receipts_count` counts reports with
+both FASTA and VCF receipts, `reports_missing_download_receipts_count` counts
+legacy or incomplete rows, and `download_receipt_role_counts` gives the
+aggregate FASTA/VCF role distribution. Older saved catalog rows remain valid
+and are counted as missing receipt coverage until they are replaced by a new
+downloaded-data analysis.
+
 When several downloaded samples share the same reference window and motif
 catalog, `sequence-batch` aggregates the individual reports without emitting
 sample rows:

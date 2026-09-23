@@ -10,13 +10,86 @@ from glio_noncode.errors import StoreError, ValidationError
 from glio_noncode.sequence_haplotype_store import (
     SEQUENCE_ANALYSIS_CATALOG_SCHEMA,
     SequenceHaplotypeStore,
+    summarize_sequence_haplotype_report,
     validate_sequence_haplotype_report,
 )
-from glio_noncode.serialization import canonical_json
+from glio_noncode.serialization import canonical_json, content_hash
 from tests.test_cli_sequence import _input
 
 
 class SequenceHaplotypeStoreTests(unittest.TestCase):
+    def test_download_receipt_coverage_is_kept_in_catalog_rows(self) -> None:
+        source = _input()
+        source["sequence"]["downloaded_inputs"] = [  # type: ignore[index]
+            {
+                "role": "fasta",
+                "source_id": "sequence-source",
+                "source_url": "https://example.test/reference.fa",
+                "source_version": "GRCh38",
+                "retrieved_at": "2026-09-22T00:00:00+00:00",
+                "sha256": "sha256:" + "1" * 64,
+                "size_bytes": 128,
+                "compression": "none",
+            },
+            {
+                "role": "vcf",
+                "source_id": "variant-source",
+                "source_url": "https://example.test/variants.vcf.gz",
+                "source_version": "phase-3",
+                "retrieved_at": "2026-09-22T00:00:00+00:00",
+                "sha256": "sha256:" + "2" * 64,
+                "size_bytes": 256,
+                "compression": "gzip",
+            },
+        ]
+        report = build_analysis_report(source)
+        with tempfile.TemporaryDirectory() as directory:
+            store = SequenceHaplotypeStore(directory)
+            record = store.save(report)
+            self.assertEqual(record["summary"]["download_receipt_count"], 2)
+            self.assertEqual(record["summary"]["download_receipt_roles"], ["fasta", "vcf"])
+            self.assertEqual(
+                store.list_reports(limit=5)["rows"][0]["download_receipt_roles"],
+                ["fasta", "vcf"],
+            )
+            self.assertEqual(store.get_report(record["analysis_id"])["summary"], record["summary"])
+
+    def test_legacy_catalog_summary_can_reopen_a_report_with_receipts(self) -> None:
+        source = _input()
+        source["sequence"]["downloaded_inputs"] = [  # type: ignore[index]
+            {
+                "role": "fasta",
+                "source_id": "sequence-source",
+                "source_url": "https://example.test/reference.fa",
+                "source_version": "GRCh38",
+                "retrieved_at": "2026-09-22T00:00:00+00:00",
+                "sha256": "sha256:" + "1" * 64,
+                "size_bytes": 128,
+                "compression": "none",
+            }
+        ]
+        report = build_analysis_report(source)
+        with tempfile.TemporaryDirectory() as directory:
+            store = SequenceHaplotypeStore(directory)
+            report_address = store.objects.put(report)
+            self.assertEqual(store.list_reports(limit=5)["rows"], [])
+            legacy_summary = {
+                key: value
+                for key, value in summarize_sequence_haplotype_report(report).items()
+                if key not in {"download_receipt_count", "download_receipt_roles"}
+            }
+            body = {
+                "schema": "glio-noncode.sequence-haplotype-record.v1",
+                "report_address": report_address,
+                "summary": legacy_summary,
+            }
+            analysis_id = "seq-" + content_hash(body).split(":", 1)[1]
+            record_path = Path(directory) / "sequence-analyses" / f"{analysis_id}.json"
+            record_path.write_text(
+                canonical_json(body | {"analysis_id": analysis_id}), encoding="utf-8"
+            )
+            self.assertEqual(store.get_report(analysis_id)["report_address"], report_address)
+
     def test_save_catalog_reopen_and_bounded_change_projections(self) -> None:
         report = build_analysis_report(_input())
         with tempfile.TemporaryDirectory() as directory:

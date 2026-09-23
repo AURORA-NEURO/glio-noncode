@@ -37,6 +37,41 @@ class SequenceReviewStoreTests(unittest.TestCase):
         store.comparisons.save(build_batch_comparison(comparison_left, batch_report))
         return store
 
+    def test_summary_reports_download_receipt_coverage(self) -> None:
+        source = _input()
+        source["sequence"]["downloaded_inputs"] = [  # type: ignore[index]
+            {
+                "role": "fasta",
+                "source_id": "sequence-source",
+                "source_url": "https://example.test/reference.fa",
+                "source_version": "GRCh38",
+                "retrieved_at": "2026-09-22T00:00:00+00:00",
+                "sha256": "sha256:" + "1" * 64,
+                "size_bytes": 128,
+                "compression": "none",
+            },
+            {
+                "role": "vcf",
+                "source_id": "variant-source",
+                "source_url": "https://example.test/variants.vcf.gz",
+                "source_version": "phase-3",
+                "retrieved_at": "2026-09-22T00:00:00+00:00",
+                "sha256": "sha256:" + "2" * 64,
+                "size_bytes": 256,
+                "compression": "gzip",
+            },
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            store = SequenceReviewStore(directory)
+            store.analyses.save(build_analysis_report(_input()))
+            store.analyses.save(build_analysis_report(source))
+            catalog = store.summary()["catalogs"]["sequence_analyses"]
+            self.assertEqual(catalog["download_receipt_count_total"], 2)
+            self.assertEqual(catalog["reports_with_download_receipts_count"], 1)
+            self.assertEqual(catalog["reports_with_complete_download_receipts_count"], 1)
+            self.assertEqual(catalog["reports_missing_download_receipts_count"], 1)
+            self.assertEqual(catalog["download_receipt_role_counts"], {"fasta": 1, "vcf": 1})
+
     def test_summary_is_public_and_content_addressed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             summary = self._save_fixture_archive(directory).summary()
@@ -72,7 +107,10 @@ class SequenceReviewStoreTests(unittest.TestCase):
             self.assertEqual(page["filtered_motif_summary"]["occurrence_count"], 2)
             self.assertEqual(page["filtered_motif_summary"]["single_analysis_occurrence_count"], 1)
             self.assertEqual(page["filtered_motif_summary"]["batch_occurrence_count"], 1)
-            self.assertEqual(page["filtered_motif_summary"]["motif_source_id_counts"]["motif-fixture"], 1)
+            self.assertEqual(
+                page["filtered_motif_summary"]["motif_source_id_counts"]["motif-fixture"],
+                1,
+            )
             row = page["rows"][0]
             self.assertEqual(row["motif_id"], "joint")
             self.assertEqual(row["single_analysis_count"], 1)

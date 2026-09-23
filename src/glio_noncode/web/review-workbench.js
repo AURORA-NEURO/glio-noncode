@@ -1824,7 +1824,9 @@
     $("sequence-review-subtitle").textContent = `${formatCount(analyses.record_count || 0)} single analyses · ${formatCount(batches.record_count || 0)} aggregate batches · ${formatCount(comparisons.record_count || 0)} saved comparisons · ${formatCount(changes)} saved change records`;
     $("sequence-review-address").textContent = summary.content_address || "Address unavailable";
     $("sequence-review-analyses").textContent = formatCount(analyses.record_count || 0);
-    $("sequence-review-analysis-detail").textContent = `${formatCount(analyses.supported_count || 0)} supported · ${formatCount(analyses.abstained_count || 0)} abstained`;
+    const completeReceipts = Number(analyses.reports_with_complete_download_receipts_count || 0);
+    const analysisCount = Number(analyses.record_count || 0);
+    $("sequence-review-analysis-detail").textContent = `${formatCount(analyses.supported_count || 0)} supported · ${formatCount(analyses.abstained_count || 0)} abstained · ${formatCount(completeReceipts)}/${formatCount(analysisCount)} complete download receipts`;
     $("sequence-review-batches").textContent = formatCount(batches.record_count || 0);
     $("sequence-review-batch-detail").textContent = `${formatCount(batches.supported_count || 0)} supported analyses`;
     $("sequence-review-changes").textContent = formatCount(changes);

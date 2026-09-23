@@ -126,6 +126,7 @@ _SUMMARY_FIELDS = frozenset(
         "content_address",
     }
 )
+_SUMMARY_OPTIONAL_FIELDS = frozenset({"download_receipt_count", "download_receipt_roles"})
 _PRIVATE_KEYS = frozenset(
     {
         "sample_id",
@@ -388,7 +389,7 @@ def summarize_sequence_haplotype_report(report: Mapping[str, Any]) -> dict[str, 
     inputs = validated["inputs"]
     analysis = validated["analysis"]
     chromosome, start, end = source["sequence_interval"]
-    return {
+    summary = {
         "analysis_state": validated["analysis_state"],
         "genome_build": inputs["genome_build"],
         "source_id": source["source_id"],
@@ -402,6 +403,16 @@ def summarize_sequence_haplotype_report(report: Mapping[str, Any]) -> dict[str, 
         "disrupted_motif_count": len(analysis["disrupted_hits"]),
         "content_address": validated["content_address"],
     }
+    if "downloaded_inputs" in source:
+        summary.update(
+            {
+                "download_receipt_count": len(source["downloaded_inputs"]),
+                "download_receipt_roles": sorted(
+                    item["role"] for item in source["downloaded_inputs"]
+                ),
+            }
+        )
+    return summary
 
 
 class SequenceHaplotypeStore:
@@ -469,8 +480,28 @@ class SequenceHaplotypeStore:
         if type(report_address) is not str or _ADDRESS_RE.fullmatch(report_address) is None:
             raise StoreError("sequence report object address is invalid")
         summary = raw["summary"]
-        if type(summary) is not dict or frozenset(summary) != _SUMMARY_FIELDS:
+        if type(summary) is not dict or not _SUMMARY_FIELDS.issubset(summary):
             raise StoreError("sequence analysis summary has an invalid shape")
+        summary_fields = frozenset(summary)
+        if not summary_fields.issubset(_SUMMARY_FIELDS | _SUMMARY_OPTIONAL_FIELDS):
+            raise StoreError("sequence analysis summary has an invalid shape")
+        has_receipt_count = "download_receipt_count" in summary
+        has_receipt_roles = "download_receipt_roles" in summary
+        if has_receipt_count != has_receipt_roles:
+            raise StoreError("sequence analysis summary has incomplete receipt coverage")
+        if has_receipt_count:
+            receipt_count = summary["download_receipt_count"]
+            receipt_roles = summary["download_receipt_roles"]
+            if (
+                type(receipt_count) is not int
+                or not 1 <= receipt_count <= 2
+                or type(receipt_roles) is not list
+                or receipt_roles != sorted(receipt_roles)
+                or len(receipt_roles) != receipt_count
+                or len(set(receipt_roles)) != receipt_count
+                or not all(role in {"fasta", "vcf"} for role in receipt_roles)
+            ):
+                raise StoreError("sequence analysis summary has invalid receipt coverage")
         body = {key: value for key, value in raw.items() if key != "analysis_id"}
         if self._analysis_id(body) != analysis_id:
             raise StoreError("sequence analysis catalog address does not verify")
@@ -546,7 +577,13 @@ class SequenceHaplotypeStore:
             record["report_address"], max_bytes=MAX_SEQUENCE_ANALYSIS_REPORT_BYTES
         )
         validated = validate_sequence_haplotype_report(report)
-        if summarize_sequence_haplotype_report(validated) != record["summary"]:
+        current_summary = summarize_sequence_haplotype_report(validated)
+        legacy_summary = {
+            key: value
+            for key, value in current_summary.items()
+            if key not in _SUMMARY_OPTIONAL_FIELDS
+        }
+        if record["summary"] != current_summary and record["summary"] != legacy_summary:
             raise StoreError("sequence analysis summary does not match its report")
         return {
             "schema": SEQUENCE_ANALYSIS_RECORD_SCHEMA,

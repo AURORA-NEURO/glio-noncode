@@ -16,8 +16,8 @@ from pathlib import Path
 from typing import Any
 
 from .errors import StoreError, ValidationError
-from .sequence_batch_store import SequenceBatchStore
 from .sequence_batch_comparison_store import SequenceBatchComparisonStore
+from .sequence_batch_store import SequenceBatchStore
 from .sequence_haplotype_store import SequenceHaplotypeStore
 from .serialization import content_hash
 
@@ -76,6 +76,17 @@ def sequence_review_summary_schema() -> dict[str, Any]:
                 "additionalProperties": {"type": "integer", "minimum": 0},
             },
             "interval_count": {"type": "integer", "minimum": 0},
+            "download_receipt_count_total": {"type": "integer", "minimum": 0},
+            "reports_with_download_receipts_count": {"type": "integer", "minimum": 0},
+            "reports_with_complete_download_receipts_count": {
+                "type": "integer",
+                "minimum": 0,
+            },
+            "reports_missing_download_receipts_count": {"type": "integer", "minimum": 0},
+            "download_receipt_role_counts": {
+                "type": "object",
+                "additionalProperties": {"type": "integer", "minimum": 0},
+            },
         },
         "additionalProperties": True,
     }
@@ -356,6 +367,14 @@ def _public_record_count(
     intervals = {
         (str(row["chromosome"]), int(row["start"]), int(row["end"])) for row in rows
     }
+    receipt_counts = [int(row.get("download_receipt_count", 0)) for row in rows]
+    receipt_roles = [
+        tuple(row.get("download_receipt_roles", []))
+        for row in rows
+    ]
+    role_counts = Counter(role for roles in receipt_roles for role in roles)
+    reports_with_receipts = sum(count > 0 for count in receipt_counts)
+    complete_receipts = sum(set(roles) == {"fasta", "vcf"} for roles in receipt_roles)
     return {
         "record_count": len(rows),
         "created_motif_count": created,
@@ -366,6 +385,11 @@ def _public_record_count(
         "supported_count": states.get("supported", 0),
         "abstained_count": states.get("abstained", 0),
         "state_counts": _counter_dict(states),
+        "download_receipt_count_total": sum(receipt_counts),
+        "reports_with_download_receipts_count": reports_with_receipts,
+        "reports_with_complete_download_receipts_count": complete_receipts,
+        "reports_missing_download_receipts_count": len(rows) - reports_with_receipts,
+        "download_receipt_role_counts": _counter_dict(role_counts),
     }
 
 
