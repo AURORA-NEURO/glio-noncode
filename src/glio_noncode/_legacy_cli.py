@@ -2765,8 +2765,11 @@ from .module_inventory_schema import (
 )
 from .module_workbench import (
     build_module_workbench,
+    build_module_workbench_detail,
     module_workbench_capabilities,
     module_workbench_csv,
+    module_workbench_detail_capabilities,
+    module_workbench_detail_schema,
     module_workbench_json,
     module_workbench_schema,
     query_module_workbench,
@@ -10167,6 +10170,14 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench.add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-schema", help="print module workbench schema").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-capabilities", help="print module workbench capabilities").add_argument("--output", default=None)
+    module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
+    module_workbench_detail.add_argument("--source-root", default=None)
+    module_workbench_detail.add_argument("--test-root", default=None)
+    module_workbench_detail.add_argument("--docs-root", default=None)
+    module_workbench_detail.add_argument("--module-id", required=True)
+    module_workbench_detail.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-detail-schema", help="print module workbench detail schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-detail-capabilities", help="print module workbench detail capabilities").add_argument("--output", default=None)
     module_workbench_policy = subparsers.add_parser("module-workbench-policy", help="evaluate module workbench depth thresholds")
     module_workbench_policy.add_argument("--source-root", default=None)
     module_workbench_policy.add_argument("--test-root", default=None)
@@ -48343,6 +48354,39 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "module-workbench-capabilities":
             _write_json(module_workbench_capabilities(), args.output)
             return 0
+        if args.command == "module-workbench-detail-schema":
+            _write_json(module_workbench_detail_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-detail-capabilities":
+            _write_json(module_workbench_detail_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-detail":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            detail = build_module_workbench_detail(
+                inventory,
+                matrix,
+                lineage,
+                quality,
+                workbench,
+                module_id=args.module_id,
+            )
+            _write_json(detail, args.output)
+            return 0 if detail["accepted"] else 2
         if args.command == "module-workbench":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)
             matrix = build_module_certification(

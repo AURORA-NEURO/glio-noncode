@@ -17,7 +17,10 @@ from glio_noncode.module_certification_quality import build_module_certification
 from glio_noncode.module_inventory import build_module_inventory
 from glio_noncode.module_workbench import (
     build_module_workbench,
+    build_module_workbench_detail,
     module_workbench_csv,
+    module_workbench_detail_capabilities,
+    module_workbench_detail_schema,
     module_workbench_json,
     module_workbench_schema,
     query_module_workbench,
@@ -169,6 +172,80 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         self.assertEqual(quality_builder.call_count, 2)
         self.assertEqual(workbench_builder.call_count, 2)
 
+    def test_module_workbench_detail_joins_all_review_planes(self) -> None:
+        inventory = build_module_inventory(self.package, test_root=self.tests)
+        matrix = build_module_certification(
+            inventory,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        lineage = build_module_certification_lineage(
+            inventory,
+            matrix=matrix,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        quality = build_module_certification_quality(matrix, lineage)
+        workbench = build_module_workbench(inventory, matrix, lineage, quality)
+        detail = build_module_workbench_detail(
+            inventory,
+            matrix,
+            lineage,
+            quality,
+            workbench,
+            module_id="glio_noncode.core",
+        )
+        self.assertEqual(detail["schema"], "module-workbench-detail-v1")
+        self.assertEqual(detail["summary"]["certification_state"], "certified")
+        self.assertTrue(detail["assessment"]["module_id"].endswith(".core"))
+        self.assertTrue(detail["tasks"])
+        self.assertTrue(detail["evidence"])
+        self.assertIn("upstream_addresses", detail)
+        self.assertNotIn("source_text", str(detail))
+        self.assertNotIn(str(self.package), str(detail))
+        self.assertEqual(module_workbench_detail_schema()["schema"], "module-workbench-detail-v1")
+        self.assertEqual(
+            module_workbench_detail_capabilities()["operation_count"],
+            len(module_workbench_detail_capabilities()["operations"]),
+        )
+        with self.assertRaises(ValidationError):
+            build_module_workbench_detail(
+                inventory,
+                matrix,
+                lineage,
+                quality,
+                workbench,
+                module_id="glio_noncode.missing",
+            )
+        from glio_noncode.cli import main
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "detail.json"
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench-detail",
+                        "--source-root",
+                        str(self.package),
+                        "--test-root",
+                        str(self.tests),
+                        "--docs-root",
+                        str(self.docs),
+                        "--module-id",
+                        "glio_noncode.core",
+                        "--output",
+                        str(output),
+                    ]
+                ),
+                0,
+            )
+            self.assertIn(
+                "module-workbench-detail-v1",
+                output.read_text(encoding="utf-8"),
+            )
+
     def test_report_conserves_depth_risk_and_task_surfaces(self) -> None:
         report = self.report()
         verify_module_workbench(report)
@@ -241,15 +318,42 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             schema_path = Path(directory) / "schema.json"
             caps_path = Path(directory) / "caps.json"
+            detail_schema_path = Path(directory) / "detail-schema.json"
+            detail_caps_path = Path(directory) / "detail-caps.json"
             self.assertEqual(main(["module-workbench-schema", "--output", str(schema_path)]), 0)
             self.assertEqual(
                 main(["module-workbench-policy-capabilities", "--output", str(caps_path)]),
+                0,
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench-detail-schema",
+                        "--output",
+                        str(detail_schema_path),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench-detail-capabilities",
+                        "--output",
+                        str(detail_caps_path),
+                    ]
+                ),
                 0,
             )
             self.assertIn(
                 "public_aggregate_module_workbench", schema_path.read_text(encoding="utf-8")
             )
             self.assertIn("operations", caps_path.read_text(encoding="utf-8"))
+            self.assertIn(
+                "module-workbench-detail-v1",
+                detail_schema_path.read_text(encoding="utf-8"),
+            )
+            self.assertIn("operations", detail_caps_path.read_text(encoding="utf-8"))
         server = create_server(host="127.0.0.1", port=0)
         thread = Thread(target=server.serve_forever, daemon=True)
         thread.start()
@@ -257,8 +361,10 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             connection = HTTPConnection("127.0.0.1", server.server_port, timeout=10)
             for route, key in (
                 ("/v1/module-workbench/schema", "boundary"),
+                ("/v1/module-workbench/detail/schema", "required"),
                 ("/v1/module-workbench/policy/schema", "boundary"),
                 ("/v1/module-workbench/audit/capabilities", "operations"),
+                ("/v1/module-workbench/detail/capabilities", "operations"),
                 ("/v1/module-workbench/diff/capabilities", "operations"),
                 ("/v1/module-workbench/runtime/schema", "stage_order"),
                 ("/v1/module-workbench/portfolio/schema", "selection"),
@@ -269,6 +375,55 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 self.assertEqual(response.status, 200)
                 self.assertIn(key, payload)
             connection.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=10)
+
+    def test_http_module_workbench_detail_route(self) -> None:
+        inventory = build_module_inventory(self.package, test_root=self.tests)
+        matrix = build_module_certification(
+            inventory,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        lineage = build_module_certification_lineage(
+            inventory,
+            matrix=matrix,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        quality = build_module_certification_quality(matrix, lineage)
+        workbench = build_module_workbench(inventory, matrix, lineage, quality)
+        server = create_server(host="127.0.0.1", port=0)
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with (
+                patch.object(
+                    ApiHandler,
+                    "_module_certification_context",
+                    return_value=(inventory, matrix, None, None, None),
+                ),
+                patch.object(
+                    ApiHandler,
+                    "_module_workbench_context",
+                    return_value=(lineage, quality, workbench),
+                ),
+            ):
+                connection = HTTPConnection("127.0.0.1", server.server_port, timeout=10)
+                connection.request(
+                    "GET",
+                    "/v1/module-workbench/detail?module_id=glio_noncode.core",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                payload = response.read().decode("utf-8")
+                self.assertIn('"schema":"module-workbench-detail-v1"', payload)
+                self.assertIn('"module_id":"glio_noncode.core"', payload)
+                connection.close()
         finally:
             server.shutdown()
             server.server_close()

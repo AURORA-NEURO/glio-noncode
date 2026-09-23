@@ -35,6 +35,8 @@ from .module_workbench_contracts import (
 )
 from .serialization import canonical_json, content_hash
 
+MODULE_WORKBENCH_DETAIL_SCHEMA = "module-workbench-detail-v1"
+
 
 def _address(body: Mapping[str, Any], prefix: str) -> str:
     return content_hash(body, prefix=prefix)
@@ -686,6 +688,164 @@ def query_module_workbench(
     return body | {"content_address": _address(body, "module-workbench-query")}
 
 
+def build_module_workbench_detail(
+    inventory: ModuleInventory | Mapping[str, Any],
+    matrix: ModuleCertificationMatrix,
+    lineage: ModuleCertificationLineage,
+    quality: ModuleCertificationQualityReport,
+    workbench: ModuleWorkbenchReport,
+    *,
+    module_id: str,
+) -> dict[str, Any]:
+    """Join every workbench evidence plane for one module."""
+
+    selected_inventory = (
+        inventory if isinstance(inventory, ModuleInventory) else inventory_from_mapping(inventory)
+    )
+    if not isinstance(matrix, ModuleCertificationMatrix):
+        raise ValidationError("workbench detail requires a typed certification matrix")
+    if not isinstance(lineage, ModuleCertificationLineage):
+        raise ValidationError("workbench detail requires a typed certification lineage")
+    if not isinstance(quality, ModuleCertificationQualityReport):
+        raise ValidationError("workbench detail requires a typed certification quality report")
+    if not isinstance(workbench, ModuleWorkbenchReport):
+        raise ValidationError("workbench detail requires a typed workbench report")
+    if matrix.inventory_address != selected_inventory.content_address:
+        raise ValidationError("workbench detail matrix does not belong to inventory")
+    if (
+        lineage.inventory_address != selected_inventory.content_address
+        or lineage.matrix_address != matrix.content_address
+    ):
+        raise ValidationError("workbench detail lineage does not belong to inventory and matrix")
+    if (
+        quality.matrix_address != matrix.content_address
+        or quality.lineage_address != lineage.content_address
+    ):
+        raise ValidationError("workbench detail quality does not belong to matrix and lineage")
+    if (
+        workbench.inventory_address != selected_inventory.content_address
+        or workbench.matrix_address != matrix.content_address
+        or workbench.lineage_address != lineage.content_address
+        or workbench.quality_address != quality.content_address
+    ):
+        raise ValidationError("workbench detail report does not conserve upstream addresses")
+    if type(module_id) is not str or not module_id.strip() or len(module_id) > 512:
+        raise ValidationError("workbench detail module_id is required and bounded")
+    selected_id = module_id.strip()
+    if "\\" in selected_id or selected_id.startswith("/"):
+        raise ValidationError("workbench detail module_id must be a dotted identifier")
+    selected = next(
+        (item for item in selected_inventory.modules if item.module_id == selected_id), None
+    )
+    assessment = next(
+        (item for item in workbench.assessments if item.module_id == selected_id), None
+    )
+    certification = next((item for item in matrix.rows if item.module_id == selected_id), None)
+    if selected is None or assessment is None or certification is None:
+        raise ValidationError(f"workbench detail module_id is not present: {selected_id}")
+    evidence = tuple(item for item in lineage.evidence if item.module_id == selected_id)
+    edges = tuple(
+        item
+        for item in lineage.edges
+        if item.source_module == selected_id
+        or (item.target_kind.value == "module" and item.target_id == selected_id)
+    )
+    gaps = tuple(item for item in matrix.gaps if item.module_id == selected_id)
+    tasks = tuple(item for item in workbench.tasks if item.module_id == selected_id)
+    summary = {
+        "score": assessment.score,
+        "depth_band": assessment.depth_band.value,
+        "risk": assessment.risk.value,
+        "certification_state": certification.state.value,
+        "certification_score": certification.score,
+        "passed_checks": certification.passed_count,
+        "failed_checks": certification.failed_count,
+        "gap_count": len(gaps),
+        "evidence_count": len(evidence),
+        "lineage_edge_count": len(edges),
+        "task_count": len(tasks),
+        "quality_blocker": selected_id in quality.blocker_modules,
+    }
+    body = {
+        "schema": MODULE_WORKBENCH_DETAIL_SCHEMA,
+        "module_id": selected_id,
+        "module": selected.to_dict(),
+        "assessment": assessment.to_dict(),
+        "certification": certification.to_dict(),
+        "evidence": [item.to_dict() for item in evidence],
+        "lineage_edges": [item.to_dict() for item in edges],
+        "certification_gaps": [item.to_dict() for item in gaps],
+        "tasks": [item.to_dict() for item in tasks],
+        "summary": summary,
+        "upstream_addresses": {
+            "inventory": selected_inventory.content_address,
+            "matrix": matrix.content_address,
+            "lineage": lineage.content_address,
+            "quality": quality.content_address,
+            "workbench": workbench.content_address,
+        },
+        "accepted": (
+            selected_inventory.accepted
+            and matrix.accepted
+            and lineage.accepted
+            and quality.accepted
+            and workbench.accepted
+        ),
+        "limitations": [
+            "This dossier combines static implementation evidence and does not execute the module.",
+            "Source text, absolute paths, and machine-specific metadata are excluded.",
+            "Scores, certification, and planned tasks are engineering review signals, not scientific or clinical evidence.",
+        ],
+    }
+    return body | {"content_address": _address(body, "module-workbench-detail")}
+
+
+def module_workbench_detail_schema() -> dict[str, Any]:
+    """Return the public contract for one-module workbench dossiers."""
+
+    return {
+        "schema": MODULE_WORKBENCH_DETAIL_SCHEMA,
+        "boundary": "public_aggregate_module_workbench_detail",
+        "required": [
+            "schema",
+            "module_id",
+            "module",
+            "assessment",
+            "certification",
+            "evidence",
+            "lineage_edges",
+            "certification_gaps",
+            "tasks",
+            "summary",
+            "upstream_addresses",
+            "accepted",
+            "limitations",
+            "content_address",
+        ],
+        "excluded": ["source_text", "absolute_path", "machine_metadata"],
+        "read_only": True,
+    }
+
+
+def module_workbench_detail_capabilities() -> dict[str, Any]:
+    """Return bounded operations for deep workbench module review."""
+
+    operations = (
+        "select_exact_module",
+        "join_workbench_assessment",
+        "join_certification_checks_and_gaps",
+        "join_lineage_evidence_and_edges",
+        "join_module_tasks",
+        "emit_path_free_projection",
+    )
+    return {
+        "schema": MODULE_WORKBENCH_DETAIL_SCHEMA,
+        "operation_count": len(operations),
+        "operations": list(operations),
+        "read_only": True,
+    }
+
+
 def module_workbench_csv(value: ModuleWorkbenchReport, resource: str = "modules") -> str:
     """Export a stable flat CSV projection for a selected workbench resource."""
 
@@ -830,6 +990,7 @@ def module_workbench_schema() -> dict[str, Any]:
         "version": "module-workbench-v1",
         "boundary": "public_aggregate_module_workbench",
         "resources": ["modules", "tasks", "families", "risks", "summary"],
+        "detail_schema": MODULE_WORKBENCH_DETAIL_SCHEMA,
         "depth_bands": [item.value for item in ModuleWorkbenchDepthBand],
         "risks": [item.value for item in ModuleWorkbenchRisk],
         "task_kinds": [item.value for item in ModuleWorkbenchTaskKind],
@@ -874,6 +1035,8 @@ def module_workbench_capabilities() -> dict[str, Any]:
         "export_csv",
         "render_markdown",
         "verify_content_addresses",
+        "build_module_detail_dossier",
+        "join_certification_lineage_and_tasks",
     )
     return {
         "version": "module-workbench-v1",
@@ -885,9 +1048,13 @@ def module_workbench_capabilities() -> dict[str, Any]:
 
 
 __all__ = [
+    "MODULE_WORKBENCH_DETAIL_SCHEMA",
     "build_module_workbench",
+    "build_module_workbench_detail",
     "module_workbench_capabilities",
     "module_workbench_csv",
+    "module_workbench_detail_capabilities",
+    "module_workbench_detail_schema",
     "module_workbench_json",
     "module_workbench_schema",
     "query_module_workbench",

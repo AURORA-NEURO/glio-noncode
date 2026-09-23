@@ -159,6 +159,15 @@ glio-noncode module-workbench --resource tasks --kind add_test --limit 100
 glio-noncode module-workbench --resource modules --module-id glio_noncode.module_inventory
 ```
 
+Build a complete dossier for one module, including its workbench assessment,
+certification checks and gaps, lineage evidence, and planned tasks:
+
+```text
+glio-noncode module-workbench-detail --module-id glio_noncode.module_inventory --output module-detail.json
+glio-noncode module-workbench-detail-schema
+glio-noncode module-workbench-detail-capabilities
+```
+
 Contract metadata is available without scanning source:
 
 ```text
@@ -322,6 +331,9 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/query` | bounded module, task, family, risk, or summary query |
 | `GET /v1/module-workbench/schema` | report schema |
 | `GET /v1/module-workbench/capabilities` | report operations and guarantees |
+| `GET /v1/module-workbench/detail?module_id=...` | one-module assessment, certification, lineage, and task dossier |
+| `GET /v1/module-workbench/detail/schema` | one-module dossier schema |
+| `GET /v1/module-workbench/detail/capabilities` | one-module dossier operations |
 | `GET /v1/module-workbench/policy` | default policy gate or projection |
 | `GET /v1/module-workbench/policy/query` | bounded policy check query |
 | `GET /v1/module-workbench/policy/schema` | policy schema |

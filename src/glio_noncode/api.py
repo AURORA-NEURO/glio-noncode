@@ -1798,8 +1798,11 @@ from .module_inventory_schema import (
 )
 from .module_workbench import (
     build_module_workbench,
+    build_module_workbench_detail,
     module_workbench_capabilities,
     module_workbench_csv,
+    module_workbench_detail_capabilities,
+    module_workbench_detail_schema,
     module_workbench_schema,
     query_module_workbench,
     render_module_workbench_markdown,
@@ -21745,6 +21748,9 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/query",
             "/v1/module-workbench/schema",
             "/v1/module-workbench/capabilities",
+            "/v1/module-workbench/detail",
+            "/v1/module-workbench/detail/schema",
+            "/v1/module-workbench/detail/capabilities",
             "/v1/module-workbench/policy",
             "/v1/module-workbench/policy/query",
             "/v1/module-workbench/policy/schema",
@@ -21951,10 +21957,10 @@ class ApiHandler(BaseHTTPRequestHandler):
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
                 if path == "/v1/module-certification/schema":
-                    self._write(HTTPStatus.OK, {"certification": module_certification_schema(), "policy": module_certification_policy_schema(), "tasks": module_certification_tasks_schema(), "runtime": module_certification_runtime_schema(), "audit": module_certification_audit_schema(), "observability": module_certification_observability_schema(), "packet": module_certification_packet_schema(), "packet_query": module_certification_packet_query_schema(), "lineage": module_certification_lineage_schema(), "lineage_audit": module_certification_lineage_audit_schema(), "quality": module_certification_quality_schema(), "quality_policy": module_certification_quality_policy_schema(), "release": module_certification_release_schema(), "workbench": module_workbench_schema(), "workbench_policy": module_workbench_policy_schema(), "workbench_audit": module_workbench_audit_schema(), "workbench_diff": module_workbench_diff_schema(), "workbench_runtime": module_workbench_runtime_schema(), "workbench_portfolio": module_workbench_portfolio_schema(), "workbench_execution_packet": module_workbench_execution_packet_schema(), "workbench_execution_packet_query": module_workbench_execution_packet_query_schema(), "workbench_execution_packet_release": module_workbench_execution_packet_release_schema(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_schema(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_schema(), "workbench_execution_packet_archive": module_workbench_execution_packet_archive_schema(), "workbench_execution_packet_archive_transfer": module_workbench_execution_packet_archive_transfer_schema(), "workbench_execution_packet_archive_runtime": module_workbench_execution_packet_archive_runtime_schema()})
+                    self._write(HTTPStatus.OK, {"certification": module_certification_schema(), "policy": module_certification_policy_schema(), "tasks": module_certification_tasks_schema(), "runtime": module_certification_runtime_schema(), "audit": module_certification_audit_schema(), "observability": module_certification_observability_schema(), "packet": module_certification_packet_schema(), "packet_query": module_certification_packet_query_schema(), "lineage": module_certification_lineage_schema(), "lineage_audit": module_certification_lineage_audit_schema(), "quality": module_certification_quality_schema(), "quality_policy": module_certification_quality_policy_schema(), "release": module_certification_release_schema(), "workbench": module_workbench_schema(), "workbench_detail": module_workbench_detail_schema(), "workbench_policy": module_workbench_policy_schema(), "workbench_audit": module_workbench_audit_schema(), "workbench_diff": module_workbench_diff_schema(), "workbench_runtime": module_workbench_runtime_schema(), "workbench_portfolio": module_workbench_portfolio_schema(), "workbench_execution_packet": module_workbench_execution_packet_schema(), "workbench_execution_packet_query": module_workbench_execution_packet_query_schema(), "workbench_execution_packet_release": module_workbench_execution_packet_release_schema(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_schema(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_schema(), "workbench_execution_packet_archive": module_workbench_execution_packet_archive_schema(), "workbench_execution_packet_archive_transfer": module_workbench_execution_packet_archive_transfer_schema(), "workbench_execution_packet_archive_runtime": module_workbench_execution_packet_archive_runtime_schema()})
                     return
                 if path == "/v1/module-certification/capabilities":
-                    self._write(HTTPStatus.OK, {"certification": module_certification_capabilities(), "policy": module_certification_policy_capabilities(), "tasks": module_certification_tasks_capabilities(), "runtime": module_certification_runtime_capabilities(), "audit": module_certification_audit_capabilities(), "observability": module_certification_observability_capabilities(), "packet": module_certification_packet_capabilities(), "packet_query": module_certification_packet_query_capabilities(), "lineage": module_certification_lineage_capabilities(), "lineage_audit": module_certification_lineage_audit_capabilities(), "quality": module_certification_quality_capabilities(), "quality_policy": module_certification_quality_policy_capabilities(), "release": module_certification_release_capabilities(), "workbench": module_workbench_capabilities(), "workbench_policy": module_workbench_policy_capabilities(), "workbench_audit": module_workbench_audit_capabilities(), "workbench_diff": module_workbench_diff_capabilities(), "workbench_runtime": module_workbench_runtime_capabilities(), "workbench_portfolio": module_workbench_portfolio_capabilities(), "workbench_execution_packet": module_workbench_execution_packet_capabilities(), "workbench_execution_packet_query": module_workbench_execution_packet_query_capabilities(), "workbench_execution_packet_release": module_workbench_execution_packet_release_capabilities(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_capabilities(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_capabilities(), "workbench_execution_packet_archive": module_workbench_execution_packet_archive_capabilities(), "workbench_execution_packet_archive_transfer": module_workbench_execution_packet_archive_transfer_capabilities(), "workbench_execution_packet_archive_runtime": module_workbench_execution_packet_archive_runtime_capabilities()})
+                    self._write(HTTPStatus.OK, {"certification": module_certification_capabilities(), "policy": module_certification_policy_capabilities(), "tasks": module_certification_tasks_capabilities(), "runtime": module_certification_runtime_capabilities(), "audit": module_certification_audit_capabilities(), "observability": module_certification_observability_capabilities(), "packet": module_certification_packet_capabilities(), "packet_query": module_certification_packet_query_capabilities(), "lineage": module_certification_lineage_capabilities(), "lineage_audit": module_certification_lineage_audit_capabilities(), "quality": module_certification_quality_capabilities(), "quality_policy": module_certification_quality_policy_capabilities(), "release": module_certification_release_capabilities(), "workbench": module_workbench_capabilities(), "workbench_detail": module_workbench_detail_capabilities(), "workbench_policy": module_workbench_policy_capabilities(), "workbench_audit": module_workbench_audit_capabilities(), "workbench_diff": module_workbench_diff_capabilities(), "workbench_runtime": module_workbench_runtime_capabilities(), "workbench_portfolio": module_workbench_portfolio_capabilities(), "workbench_execution_packet": module_workbench_execution_packet_capabilities(), "workbench_execution_packet_query": module_workbench_execution_packet_query_capabilities(), "workbench_execution_packet_release": module_workbench_execution_packet_release_capabilities(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_capabilities(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_capabilities(), "workbench_execution_packet_archive": module_workbench_execution_packet_archive_capabilities(), "workbench_execution_packet_archive_transfer": module_workbench_execution_packet_archive_transfer_capabilities(), "workbench_execution_packet_archive_runtime": module_workbench_execution_packet_archive_runtime_capabilities()})
                     return
                 schema_routes = {
                     "/v1/module-certification/audit/schema": module_certification_audit_schema,
@@ -21969,6 +21975,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-certification/lineage/audit/schema": module_certification_lineage_audit_schema,
                     "/v1/module-certification/release/schema": module_certification_release_schema,
                     "/v1/module-workbench/schema": module_workbench_schema,
+                    "/v1/module-workbench/detail/schema": module_workbench_detail_schema,
                     "/v1/module-workbench/policy/schema": module_workbench_policy_schema,
                     "/v1/module-workbench/audit/schema": module_workbench_audit_schema,
                     "/v1/module-workbench/diff/schema": module_workbench_diff_schema,
@@ -22045,6 +22052,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-certification/lineage/audit/capabilities": module_certification_lineage_audit_capabilities,
                     "/v1/module-certification/release/capabilities": module_certification_release_capabilities,
                     "/v1/module-workbench/capabilities": module_workbench_capabilities,
+                    "/v1/module-workbench/detail/capabilities": module_workbench_detail_capabilities,
                     "/v1/module-workbench/policy/capabilities": module_workbench_policy_capabilities,
                     "/v1/module-workbench/audit/capabilities": module_workbench_audit_capabilities,
                     "/v1/module-workbench/diff/capabilities": module_workbench_diff_capabilities,
@@ -23057,6 +23065,22 @@ class ApiHandler(BaseHTTPRequestHandler):
                             payload = module_certification_quality_policy_summary(gate)
                         else:
                             payload = gate.to_dict(include_checks=self._query_bool(query, "include_checks") is not False)
+                elif path == "/v1/module-workbench/detail":
+                    module_id = self._query_value(query, "module_id")
+                    if not module_id:
+                        raise ValueError("module_id is required for module workbench detail")
+                    inventory, matrix, _, _, _ = self._module_certification_context(
+                        include_certification=False
+                    )
+                    lineage, quality, workbench = self._module_workbench_context()
+                    payload = build_module_workbench_detail(
+                        inventory,
+                        matrix,
+                        lineage,
+                        quality,
+                        workbench,
+                        module_id=module_id,
+                    )
                 elif path in {
                     "/v1/module-workbench",
                     "/v1/module-workbench/query",
