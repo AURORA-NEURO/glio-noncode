@@ -24,6 +24,7 @@
     sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewMotifRequest: 0, sequenceReviewFilterTimer: null,
     moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
     moduleTriageItems: [], moduleTriageTotal: 0, moduleTriageHasMore: false, moduleTriageListRequest: 0, moduleTriageFilterTimer: null, moduleTriageByModule: new Map(), selectedModuleTriage: null,
+    moduleWorkbenchSummary: null, moduleWorkbenchSummaryRequest: 0,
     moduleFilters: { q: "", risk: "", depth_band: "" }, moduleTriageFilters: { risk: "", reason: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
@@ -309,6 +310,38 @@
       button.append(top, meta);
       button.addEventListener("click", () => openSequenceComparison(item.comparison_id));
       list.append(button);
+    }
+  }
+
+  function renderModuleWorkbenchOverview() {
+    const summary = model.moduleWorkbenchSummary;
+    const accepted = summary?.accepted === true;
+    $("module-workbench-overview-state").textContent = summary ? (accepted ? "Accepted" : "Review") : "—";
+    $("module-workbench-overview-state").className = `quiet-tag${accepted ? " ready" : ""}`;
+    $("module-workbench-overall-score").textContent = summary ? percent(summary.overall_score) : "—";
+    $("module-workbench-depth-percent").textContent = summary ? `${Number(summary.depth_percent).toFixed(1)}%` : "—";
+    $("module-workbench-high-risk-count").textContent = summary ? formatCount(summary.high_risk_count) : "—";
+    $("module-workbench-blocked-count").textContent = summary ? formatCount(summary.blocked_count) : "—";
+    $("module-workbench-overview-summary").textContent = summary
+      ? `${formatCount(summary.module_count)} modules · ${formatCount(summary.task_count)} planned tasks · ${formatCount(summary.family_count)} families · ${shortened(summary.content_address, 50)}`
+      : "Verifying addressed workbench summary…";
+  }
+
+  async function loadModuleWorkbenchOverview() {
+    const request = model.moduleWorkbenchSummaryRequest = (model.moduleWorkbenchSummaryRequest || 0) + 1;
+    try {
+      const summary = await getJson("/v1/module-workbench?format=summary");
+      if (request !== model.moduleWorkbenchSummaryRequest) return;
+      if (typeof summary.content_address !== "string" || typeof summary.accepted !== "boolean" || !Number.isFinite(summary.overall_score) || !Number.isFinite(summary.depth_percent) || !Number.isSafeInteger(summary.module_count) || !Number.isSafeInteger(summary.task_count) || !Number.isSafeInteger(summary.family_count) || !Number.isSafeInteger(summary.high_risk_count) || !Number.isSafeInteger(summary.blocked_count)) {
+        throw new Error("The local API returned an invalid module workbench summary.");
+      }
+      model.moduleWorkbenchSummary = summary;
+      renderModuleWorkbenchOverview();
+    } catch (error) {
+      if (request !== model.moduleWorkbenchSummaryRequest) return;
+      model.moduleWorkbenchSummary = null;
+      renderModuleWorkbenchOverview();
+      notice(error.message, true);
     }
   }
 
@@ -3091,7 +3124,7 @@
     renderHypotheses(); renderQueue(); renderDeltas(); exportHref();
   }
 
-  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview(), loadModuleAssessments(), loadModuleTriage()]));
+  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview(), loadModuleWorkbenchOverview(), loadModuleAssessments(), loadModuleTriage()]));
   $("run-search").addEventListener("input", renderRuns);
   $("path-search").addEventListener("input", renderHypotheses);
   $("evidence-search").addEventListener("input", renderEvidence);
@@ -3256,7 +3289,7 @@
   });
   async function initializeWorkspace() {
     const initialSelectionRequest = model.selectionRequest || 0;
-    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview(), loadModuleAssessments(), loadModuleTriage()]);
+    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview(), loadModuleWorkbenchOverview(), loadModuleAssessments(), loadModuleTriage()]);
     if (model.selectionRequest !== initialSelectionRequest || model.activeView !== "empty") return;
     if (model.runs.length) {
       await openRun(model.runs[0].run_id);

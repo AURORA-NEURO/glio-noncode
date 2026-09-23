@@ -171,6 +171,14 @@ tbody tr:last-child td { border-bottom: 0; }
 .sequence-review-controls .button { width: 100%; }
 .module-workbench-filters { display: grid; gap: 7px; margin: 10px 0 12px; }
 .module-workbench-filters input, .module-workbench-filters select { width: 100%; min-height: 34px; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfa; color: var(--ink); padding: 0 8px; }
+.module-workbench-overview { display: grid; gap: 9px; margin: 14px 0 15px; padding: 12px 10px 0; border-top: 1px solid var(--line); }
+.module-workbench-overview h3 { margin: 0; font-size: 14px; }
+.module-workbench-overview .small { margin: 0; overflow-wrap: anywhere; }
+.module-overview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.module-overview-grid > div { padding: 8px; border: 1px solid #e6ebe7; border-radius: 6px; background: #fbfcfa; }
+.module-overview-grid .control-label { margin-bottom: 4px; }
+.module-overview-grid strong { display: block; font-size: 16px; }
+.quiet-tag.ready { background: var(--mint); color: var(--teal-dark); }
 .module-triage-rail { display: grid; gap: 0; margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--line); }
 .module-triage-rail h3 { margin: 0; font-size: 14px; }
 .module-triage-rail .small { margin: 10px 0 9px; }

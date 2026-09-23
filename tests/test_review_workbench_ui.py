@@ -117,6 +117,11 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="geo-expression-consistency-list-load-more"', html)
         self.assertIn('id="module-workbench-list"', html)
         self.assertIn('id="module-workbench-load-more"', html)
+        self.assertIn('id="module-workbench-overview"', html)
+        self.assertIn('id="module-workbench-overall-score"', html)
+        self.assertIn('id="module-workbench-depth-percent"', html)
+        self.assertIn('id="module-workbench-high-risk-count"', html)
+        self.assertIn('id="module-workbench-blocked-count"', html)
         self.assertIn('id="module-workbench-search"', html)
         self.assertIn('id="module-workbench-risk-filter"', html)
         self.assertIn('id="module-workbench-depth-filter"', html)
@@ -178,6 +183,10 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("function loadModuleAssessments(append = false)", javascript)
         self.assertIn("function moduleAssessmentQuery(offset)", javascript)
         self.assertIn("function reloadModuleAssessments()", javascript)
+        self.assertIn("function renderModuleWorkbenchOverview()", javascript)
+        self.assertIn("function loadModuleWorkbenchOverview()", javascript)
+        self.assertIn("/v1/module-workbench?format=summary", javascript)
+        self.assertIn("moduleWorkbenchSummaryRequest", javascript)
         self.assertIn("function renderModuleTriage()", javascript)
         self.assertIn("function moduleTriageQuery(offset)", javascript)
         self.assertIn("function loadModuleTriage(append = false)", javascript)
@@ -393,7 +402,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
                 "loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), "
                 "loadGeoExpressionConsistencyRecords(), "
                 "loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), "
-                "loadSequenceReview(), loadModuleAssessments(), loadModuleTriage()])"
+                "loadSequenceReview(), loadModuleWorkbenchOverview(), loadModuleAssessments(), loadModuleTriage()])"
             ),
             script,
         )

@@ -109,6 +109,16 @@
           <div class="rail-divider"></div>
           <div class="section-head"><div><p class="eyebrow">Implementation workbench</p><h2 id="module-heading">Modules</h2></div><span id="module-count" class="count">—</span></div>
           <p id="module-list-summary" class="muted small">Loading module workbench…</p>
+          <section id="module-workbench-overview" class="module-workbench-overview" aria-labelledby="module-workbench-overview-heading">
+            <div class="section-head"><div><p class="eyebrow">Snapshot health</p><h3 id="module-workbench-overview-heading">Workbench overview</h3></div><span id="module-workbench-overview-state" class="quiet-tag">—</span></div>
+            <div class="module-overview-grid" aria-label="Module workbench aggregate metrics">
+              <div><span class="control-label">Overall score</span><strong id="module-workbench-overall-score">—</strong></div>
+              <div><span class="control-label">Deep coverage</span><strong id="module-workbench-depth-percent">—</strong></div>
+              <div><span class="control-label">High risk</span><strong id="module-workbench-high-risk-count">—</strong></div>
+              <div><span class="control-label">Blocked</span><strong id="module-workbench-blocked-count">—</strong></div>
+            </div>
+            <p id="module-workbench-overview-summary" class="muted small">Verifying addressed workbench summary…</p>
+          </section>
           <div class="module-workbench-filters" aria-label="Module workbench filters">
             <label><span class="control-label">Find module</span><input id="module-workbench-search" type="search" autocomplete="off" placeholder="module, role, or signal"></label>
             <label><span class="control-label">Risk</span><select id="module-workbench-risk-filter"><option value="">All risks</option><option value="blocker">Blocker</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>
