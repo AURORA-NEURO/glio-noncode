@@ -183,6 +183,46 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         self.assertEqual(quality_builder.call_count, 2)
         self.assertEqual(workbench_builder.call_count, 2)
 
+    def test_api_triage_context_reuses_and_invalidates_ranked_projection(self) -> None:
+        handler = object.__new__(ApiHandler)
+        handler.server = type("Server", (), {})()
+        inventory = object()
+        matrix = object()
+        lineage = object()
+        quality = object()
+        workbench = object()
+        triage = object()
+        rebuilt_triage = object()
+        with (
+            patch(
+                "glio_noncode.api._module_inventory_source_signature",
+                side_effect=[("stable",), ("stable",), ("changed",)],
+            ),
+            patch.object(
+                handler,
+                "_module_workbench_context",
+                return_value=(lineage, quality, workbench),
+            ) as workbench_context,
+            patch.object(
+                handler,
+                "_module_certification_context",
+                return_value=(inventory, matrix, None, None, None),
+            ) as certification_context,
+            patch(
+                "glio_noncode.api.build_module_workbench_triage",
+                side_effect=[triage, rebuilt_triage],
+            ) as triage_builder,
+        ):
+            first = handler._module_workbench_triage_context()
+            second = handler._module_workbench_triage_context()
+            third = handler._module_workbench_triage_context()
+
+        self.assertIs(first, second)
+        self.assertIsNot(second, third)
+        self.assertEqual(workbench_context.call_count, 2)
+        self.assertEqual(certification_context.call_count, 2)
+        self.assertEqual(triage_builder.call_count, 2)
+
     def test_http_workbench_routes_skip_generic_certification_preamble(self) -> None:
         report = self.report()
         with (
@@ -649,16 +689,12 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         thread = Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
+            triage = build_module_workbench_triage(workbench, matrix, lineage, quality)
             with (
                 patch.object(
                     ApiHandler,
-                    "_module_certification_context",
-                    return_value=(inventory, matrix, None, None, None),
-                ),
-                patch.object(
-                    ApiHandler,
-                    "_module_workbench_context",
-                    return_value=(lineage, quality, workbench),
+                    "_module_workbench_triage_context",
+                    return_value=triage,
                 ),
             ):
                 connection = HTTPConnection("127.0.0.1", server.server_port, timeout=10)

@@ -3698,6 +3698,29 @@ class ApiHandler(BaseHTTPRequestHandler):
                 state["signature"] = signature
             return state["value"]
 
+    def _module_workbench_triage_context(self) -> Any:
+        """Cache the ranked triage projection for every bounded queue query."""
+
+        signature = _module_inventory_source_signature()
+        state = getattr(self.server, "glio_module_workbench_triage_context", None)
+        if state is None:
+            state = {"lock": RLock(), "signature": None, "value": None}
+            setattr(self.server, "glio_module_workbench_triage_context", state)
+        with state["lock"]:
+            if state["signature"] != signature or state["value"] is None:
+                lineage, quality, workbench = self._module_workbench_context()
+                _, matrix, _, _, _ = self._module_certification_context(
+                    include_certification=False
+                )
+                state["value"] = build_module_workbench_triage(
+                    workbench,
+                    matrix,
+                    lineage,
+                    quality,
+                )
+                state["signature"] = signature
+            return state["value"]
+
     def _deployment_guard(self) -> DeploymentGuard:
         guard = getattr(self.server, "glio_deployment_guard", None)
         if guard is None:
@@ -23275,9 +23298,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/triage",
                     "/v1/module-workbench/triage/query",
                 }:
-                    _, matrix, _, _, _ = self._module_certification_context(include_certification=False)
-                    lineage, quality, workbench = self._module_workbench_context()
-                    triage = build_module_workbench_triage(workbench, matrix, lineage, quality)
+                    triage = self._module_workbench_triage_context()
                     if path.endswith("/query"):
                         payload = query_module_workbench_triage(
                             triage,

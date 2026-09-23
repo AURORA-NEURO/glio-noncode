@@ -195,6 +195,11 @@ in the review-pressure panel. Queue responses are generation-gated and are
 accepted only when the triage address, page bounds, and read-only contract are
 valid.
 
+The API keeps the ranked triage object in a server-local cache keyed by the
+same source signature as the module workbench. Repeated filter and pagination
+requests reuse the verified report; any Python source or test-input change
+invalidates the triage projection together with its upstream workbench chain.
+
 Contract metadata is available without scanning source:
 
 ```text
