@@ -1700,12 +1700,17 @@ certification closure.
 python -m glio_noncode module-workbench --format summary
 python -m glio_noncode module-workbench --resource tasks --format csv --output module-tasks.csv
 python -m glio_noncode module-workbench --resource modules --risk high --limit 50
+python -m glio_noncode module-workbench-triage --risk blocker --limit 25
+python -m glio_noncode module-workbench-triage --reason unresolved_lineage --format markdown
 python -m glio_noncode module-workbench-policy --format summary
 python -m glio_noncode module-workbench-audit --format csv --output module-audit.csv
 ```
 
-The workbench also provides immutable policy gates, independent conservation
-audits, and baseline-to-candidate snapshot diffs. Its public API is under
+The workbench also provides explainable module triage: every module receives a
+stable review-pressure rank combining risk, depth, certification gaps,
+dependency pressure, test references, and recommended task IDs. It provides
+immutable policy gates, independent conservation audits, and
+baseline-to-candidate snapshot diffs. Its public API is under
 `/v1/module-workbench` with bounded query, schema, capabilities, policy, and
 audit routes, plus a complete seven-stage runtime handoff. See
 [docs/MODULE_WORKBENCH.md](docs/MODULE_WORKBENCH.md) for the scoring model,

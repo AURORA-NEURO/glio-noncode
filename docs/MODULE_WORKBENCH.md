@@ -303,6 +303,26 @@ This selection is a planning projection. It does not mutate source or mark a
 task complete; after a build wave, the snapshot diff and the next portfolio
 selection show exactly what changed and what remains deferred.
 
+## Explainable module triage
+
+`build_module_workbench_triage` ranks every module by review pressure. The
+priority score combines risk, implementation depth, certification gaps,
+unresolved lineage, fan-in, missing test references, score deficit, and task
+pressure. Each row retains reason codes and up to three recommended task IDs,
+so a rank is inspectable rather than a hidden heuristic.
+
+```text
+glio-noncode module-workbench-triage --format summary
+glio-noncode module-workbench-triage --risk blocker --limit 25
+glio-noncode module-workbench-triage --reason unresolved_lineage --format markdown
+glio-noncode module-workbench-triage-schema
+glio-noncode module-workbench-triage-capabilities
+```
+
+Triage is read-only and addressable. It conserves the workbench, certification
+matrix, lineage, and quality addresses, sorts ties by stable module ID, and
+supports bounded queries by module, risk, depth band, reason code, or text.
+
 ## Scale and determinism
 
 The workbench keeps the expensive source traversal in the upstream inventory
@@ -315,7 +335,7 @@ are emitted in sorted order.
 
 Every projection is deterministic under the same upstream bytes and options:
 
-- module, task, family, policy, audit, runtime, and portfolio rows have stable
+- module, task, family, policy, audit, runtime, portfolio, and triage rows have stable
   ordering;
 - content addresses hash canonical public fields and omit their own address;
 - query pages preserve the selected resource order and include the query
@@ -374,6 +394,10 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/audit/capabilities` | audit operations |
 | `GET /v1/module-workbench/diff/schema` | diff schema |
 | `GET /v1/module-workbench/diff/capabilities` | diff operations |
+| `GET /v1/module-workbench/triage` | ranked module review queue or projection |
+| `GET /v1/module-workbench/triage/query` | bounded triage query by pressure signals |
+| `GET /v1/module-workbench/triage/schema` | triage schema and reason codes |
+| `GET /v1/module-workbench/triage/capabilities` | triage operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

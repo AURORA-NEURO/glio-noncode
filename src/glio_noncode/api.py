@@ -1814,6 +1814,15 @@ from .module_workbench import (
     render_module_workbench_markdown,
 )
 from .module_workbench_cache import snapshot_from_mapping, snapshot_payload
+from .module_workbench_triage import (
+    build_module_workbench_triage,
+    module_workbench_triage_capabilities,
+    module_workbench_triage_csv,
+    module_workbench_triage_json,
+    module_workbench_triage_schema,
+    query_module_workbench_triage,
+    render_module_workbench_triage_markdown,
+)
 from .module_workbench_audit import (
     audit_module_workbench,
     module_workbench_audit_capabilities,
@@ -21862,8 +21871,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/runtime/capabilities",
             "/v1/module-workbench/portfolio",
             "/v1/module-workbench/portfolio/query",
-            "/v1/module-workbench/portfolio/schema",
-            "/v1/module-workbench/portfolio/capabilities",
+             "/v1/module-workbench/portfolio/schema",
+             "/v1/module-workbench/portfolio/capabilities",
+             "/v1/module-workbench/triage",
+             "/v1/module-workbench/triage/query",
+             "/v1/module-workbench/triage/schema",
+             "/v1/module-workbench/triage/capabilities",
             "/v1/module-workbench/execution",
             "/v1/module-workbench/execution/query",
             "/v1/module-workbench/execution/schema",
@@ -22052,10 +22065,10 @@ class ApiHandler(BaseHTTPRequestHandler):
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
                 if path == "/v1/module-certification/schema":
-                    self._write(HTTPStatus.OK, {"certification": module_certification_schema(), "policy": module_certification_policy_schema(), "tasks": module_certification_tasks_schema(), "runtime": module_certification_runtime_schema(), "audit": module_certification_audit_schema(), "observability": module_certification_observability_schema(), "packet": module_certification_packet_schema(), "packet_query": module_certification_packet_query_schema(), "lineage": module_certification_lineage_schema(), "lineage_audit": module_certification_lineage_audit_schema(), "quality": module_certification_quality_schema(), "quality_policy": module_certification_quality_policy_schema(), "release": module_certification_release_schema(), "workbench": module_workbench_schema(), "workbench_detail": module_workbench_detail_schema(), "workbench_policy": module_workbench_policy_schema(), "workbench_audit": module_workbench_audit_schema(), "workbench_diff": module_workbench_diff_schema(), "workbench_runtime": module_workbench_runtime_schema(), "workbench_portfolio": module_workbench_portfolio_schema(), "workbench_execution_packet": module_workbench_execution_packet_schema(), "workbench_execution_packet_query": module_workbench_execution_packet_query_schema(), "workbench_execution_packet_release": module_workbench_execution_packet_release_schema(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_schema(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_schema(), "workbench_execution_packet_archive": module_workbench_execution_packet_archive_schema(), "workbench_execution_packet_archive_transfer": module_workbench_execution_packet_archive_transfer_schema(), "workbench_execution_packet_archive_runtime": module_workbench_execution_packet_archive_runtime_schema()})
+                    self._write(HTTPStatus.OK, {"certification": module_certification_schema(), "policy": module_certification_policy_schema(), "tasks": module_certification_tasks_schema(), "runtime": module_certification_runtime_schema(), "audit": module_certification_audit_schema(), "observability": module_certification_observability_schema(), "packet": module_certification_packet_schema(), "packet_query": module_certification_packet_query_schema(), "lineage": module_certification_lineage_schema(), "lineage_audit": module_certification_lineage_audit_schema(), "quality": module_certification_quality_schema(), "quality_policy": module_certification_quality_policy_schema(), "release": module_certification_release_schema(), "workbench": module_workbench_schema(), "workbench_detail": module_workbench_detail_schema(), "workbench_policy": module_workbench_policy_schema(), "workbench_audit": module_workbench_audit_schema(), "workbench_diff": module_workbench_diff_schema(), "workbench_runtime": module_workbench_runtime_schema(), "workbench_portfolio": module_workbench_portfolio_schema(), "workbench_triage": module_workbench_triage_schema(), "workbench_execution_packet": module_workbench_execution_packet_schema(), "workbench_execution_packet_query": module_workbench_execution_packet_query_schema(), "workbench_execution_packet_release": module_workbench_execution_packet_release_schema(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_schema(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_schema(), "workbench_execution_packet_archive": module_workbench_execution_packet_archive_schema(), "workbench_execution_packet_archive_transfer": module_workbench_execution_packet_archive_transfer_schema(), "workbench_execution_packet_archive_runtime": module_workbench_execution_packet_archive_runtime_schema()})
                     return
                 if path == "/v1/module-certification/capabilities":
-                    self._write(HTTPStatus.OK, {"certification": module_certification_capabilities(), "policy": module_certification_policy_capabilities(), "tasks": module_certification_tasks_capabilities(), "runtime": module_certification_runtime_capabilities(), "audit": module_certification_audit_capabilities(), "observability": module_certification_observability_capabilities(), "packet": module_certification_packet_capabilities(), "packet_query": module_certification_packet_query_capabilities(), "lineage": module_certification_lineage_capabilities(), "lineage_audit": module_certification_lineage_audit_capabilities(), "quality": module_certification_quality_capabilities(), "quality_policy": module_certification_quality_policy_capabilities(), "release": module_certification_release_capabilities(), "workbench": module_workbench_capabilities(), "workbench_detail": module_workbench_detail_capabilities(), "workbench_policy": module_workbench_policy_capabilities(), "workbench_audit": module_workbench_audit_capabilities(), "workbench_diff": module_workbench_diff_capabilities(), "workbench_runtime": module_workbench_runtime_capabilities(), "workbench_portfolio": module_workbench_portfolio_capabilities(), "workbench_execution_packet": module_workbench_execution_packet_capabilities(), "workbench_execution_packet_query": module_workbench_execution_packet_query_capabilities(), "workbench_execution_packet_release": module_workbench_execution_packet_release_capabilities(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_capabilities(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_capabilities(), "workbench_execution_packet_archive": module_workbench_execution_packet_archive_capabilities(), "workbench_execution_packet_archive_transfer": module_workbench_execution_packet_archive_transfer_capabilities(), "workbench_execution_packet_archive_runtime": module_workbench_execution_packet_archive_runtime_capabilities()})
+                    self._write(HTTPStatus.OK, {"certification": module_certification_capabilities(), "policy": module_certification_policy_capabilities(), "tasks": module_certification_tasks_capabilities(), "runtime": module_certification_runtime_capabilities(), "audit": module_certification_audit_capabilities(), "observability": module_certification_observability_capabilities(), "packet": module_certification_packet_capabilities(), "packet_query": module_certification_packet_query_capabilities(), "lineage": module_certification_lineage_capabilities(), "lineage_audit": module_certification_lineage_audit_capabilities(), "quality": module_certification_quality_capabilities(), "quality_policy": module_certification_quality_policy_capabilities(), "release": module_certification_release_capabilities(), "workbench": module_workbench_capabilities(), "workbench_detail": module_workbench_detail_capabilities(), "workbench_policy": module_workbench_policy_capabilities(), "workbench_audit": module_workbench_audit_capabilities(), "workbench_diff": module_workbench_diff_capabilities(), "workbench_runtime": module_workbench_runtime_capabilities(), "workbench_portfolio": module_workbench_portfolio_capabilities(), "workbench_triage": module_workbench_triage_capabilities(), "workbench_execution_packet": module_workbench_execution_packet_capabilities(), "workbench_execution_packet_query": module_workbench_execution_packet_query_capabilities(), "workbench_execution_packet_release": module_workbench_execution_packet_release_capabilities(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_capabilities(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_capabilities(), "workbench_execution_packet_archive": module_workbench_execution_packet_archive_capabilities(), "workbench_execution_packet_archive_transfer": module_workbench_execution_packet_archive_transfer_capabilities(), "workbench_execution_packet_archive_runtime": module_workbench_execution_packet_archive_runtime_capabilities()})
                     return
                 schema_routes = {
                     "/v1/module-certification/audit/schema": module_certification_audit_schema,
@@ -22075,7 +22088,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/audit/schema": module_workbench_audit_schema,
                     "/v1/module-workbench/diff/schema": module_workbench_diff_schema,
                     "/v1/module-workbench/runtime/schema": module_workbench_runtime_schema,
-                    "/v1/module-workbench/portfolio/schema": module_workbench_portfolio_schema,
+                     "/v1/module-workbench/portfolio/schema": module_workbench_portfolio_schema,
+                     "/v1/module-workbench/triage/schema": module_workbench_triage_schema,
                     "/v1/module-workbench/execution/schema": module_workbench_execution_schema,
                     "/v1/module-workbench/execution/audit/schema": module_workbench_execution_audit_schema,
                     "/v1/module-workbench/execution/policy/schema": module_workbench_execution_policy_schema,
@@ -22152,7 +22166,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/audit/capabilities": module_workbench_audit_capabilities,
                     "/v1/module-workbench/diff/capabilities": module_workbench_diff_capabilities,
                     "/v1/module-workbench/runtime/capabilities": module_workbench_runtime_capabilities,
-                    "/v1/module-workbench/portfolio/capabilities": module_workbench_portfolio_capabilities,
+                     "/v1/module-workbench/portfolio/capabilities": module_workbench_portfolio_capabilities,
+                     "/v1/module-workbench/triage/capabilities": module_workbench_triage_capabilities,
                     "/v1/module-workbench/execution/capabilities": module_workbench_execution_capabilities,
                     "/v1/module-workbench/execution/audit/capabilities": module_workbench_execution_audit_capabilities,
                     "/v1/module-workbench/execution/policy/capabilities": module_workbench_execution_policy_capabilities,
@@ -23256,6 +23271,36 @@ class ApiHandler(BaseHTTPRequestHandler):
                         payload = query_module_workbench_portfolio(portfolio, module_id=self._query_value(query, "module_id"), kind=self._query_value(query, "kind"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
                     else:
                         payload = portfolio.to_dict(include_tasks=self._query_bool(query, "include_tasks") is not False)
+                elif path in {
+                    "/v1/module-workbench/triage",
+                    "/v1/module-workbench/triage/query",
+                }:
+                    _, matrix, _, _, _ = self._module_certification_context(include_certification=False)
+                    lineage, quality, workbench = self._module_workbench_context()
+                    triage = build_module_workbench_triage(workbench, matrix, lineage, quality)
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_triage(
+                            triage,
+                            module_id=self._query_value(query, "module_id"),
+                            risk=self._query_value(query, "risk"),
+                            depth_band=self._query_value(query, "depth_band"),
+                            reason=self._query_value(query, "reason"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, module_workbench_triage_csv(triage).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_module_workbench_triage_markdown(triage).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        if output_format == "summary":
+                            payload = triage.to_dict(include_items=False)
+                        else:
+                            payload = triage.to_dict(include_items=self._query_bool(query, "include_items") is not False)
                 elif path in {
                     "/v1/module-workbench/execution",
                     "/v1/module-workbench/execution/query",

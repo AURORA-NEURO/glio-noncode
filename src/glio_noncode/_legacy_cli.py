@@ -3771,6 +3771,15 @@ from .module_workbench_portfolio import (
     module_workbench_portfolio_schema,
     query_module_workbench_portfolio,
 )
+from .module_workbench_triage import (
+    build_module_workbench_triage,
+    module_workbench_triage_capabilities,
+    module_workbench_triage_csv,
+    module_workbench_triage_json,
+    module_workbench_triage_schema,
+    query_module_workbench_triage,
+    render_module_workbench_triage_markdown,
+)
 from .module_workbench_runtime import (
     module_workbench_runtime_capabilities,
     module_workbench_runtime_csv,
@@ -10263,6 +10272,22 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_portfolio.add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-portfolio-schema", help="print module workbench portfolio schema").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-portfolio-capabilities", help="print module workbench portfolio capabilities").add_argument("--output", default=None)
+    module_workbench_triage = subparsers.add_parser("module-workbench-triage", help="rank modules by explainable review pressure")
+    module_workbench_triage.add_argument("--source-root", default=None)
+    module_workbench_triage.add_argument("--test-root", default=None)
+    module_workbench_triage.add_argument("--docs-root", default=None)
+    module_workbench_triage.add_argument("--module-id", default=None)
+    module_workbench_triage.add_argument("--risk", default=None)
+    module_workbench_triage.add_argument("--depth-band", default=None)
+    module_workbench_triage.add_argument("--reason", default=None)
+    module_workbench_triage.add_argument("--text", default=None)
+    module_workbench_triage.add_argument("--offset", default=0, type=int)
+    module_workbench_triage.add_argument("--limit", default=50, type=int)
+    module_workbench_triage.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    module_workbench_triage.add_argument("--include-items", action="store_true")
+    module_workbench_triage.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-triage-schema", help="print module workbench triage schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-triage-capabilities", help="print module workbench triage capabilities").add_argument("--output", default=None)
 
     module_workbench_execution = subparsers.add_parser("module-workbench-execution", help="build and query the evidence-gated module execution ledger")
     module_workbench_execution.add_argument("--source-root", default=None)
@@ -48687,6 +48712,56 @@ def main(argv: list[str] | None = None) -> int:
                     args.output,
                 )
             return 0 if portfolio.accepted else 2
+        if args.command == "module-workbench-triage-schema":
+            _write_json(module_workbench_triage_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-triage-capabilities":
+            _write_json(module_workbench_triage_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-triage":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            triage = build_module_workbench_triage(workbench, matrix, lineage, quality)
+            if args.format == "csv":
+                _write_text(module_workbench_triage_csv(triage), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_triage_markdown(triage), args.output)
+            elif args.format == "summary":
+                _write_json(triage.to_dict(include_items=args.include_items), args.output)
+            elif any(
+                value is not None
+                for value in (args.module_id, args.risk, args.depth_band, args.reason, args.text)
+            ) or args.offset or args.limit != 50:
+                _write_json(
+                    query_module_workbench_triage(
+                        triage,
+                        module_id=args.module_id,
+                        risk=args.risk,
+                        depth_band=args.depth_band,
+                        reason=args.reason,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_triage_json(triage), args.output)
+            return 0 if triage.accepted else 2
         if args.command == "module-workbench-execution-schema":
             _write_json(module_workbench_execution_schema(), args.output)
             return 0

@@ -67,6 +67,15 @@ from glio_noncode.module_workbench_runtime import (
     run_module_workbench,
     verify_module_workbench_runtime,
 )
+from glio_noncode.module_workbench_triage import (
+    build_module_workbench_triage,
+    module_workbench_triage_capabilities,
+    module_workbench_triage_csv,
+    module_workbench_triage_schema,
+    query_module_workbench_triage,
+    render_module_workbench_triage_markdown,
+    verify_module_workbench_triage,
+)
 
 
 class ModuleWorkbenchFixture(unittest.TestCase):
@@ -358,6 +367,61 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         risks = query_module_workbench(report, resource="risks", limit=10)
         self.assertEqual(sum(item["count"] for item in risks["items"]), 3)
 
+    def test_triage_ranks_and_explains_module_review_pressure(self) -> None:
+        inventory = build_module_inventory(self.package, test_root=self.tests)
+        matrix = build_module_certification(
+            inventory,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        lineage = build_module_certification_lineage(
+            inventory,
+            matrix=matrix,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        quality = build_module_certification_quality(matrix, lineage)
+        report = build_module_workbench_triage(self.report(), matrix, lineage, quality)
+        verify_module_workbench_triage(report)
+        self.assertEqual(tuple(item.rank for item in report.items), (1, 2, 3))
+        self.assertEqual(len(report.reason_counts), len(set(report.reason_counts)))
+        self.assertTrue(report.items[0].reasons)
+        self.assertLessEqual(report.items[0].priority_score, 1.0)
+        filtered = query_module_workbench_triage(report, reason=report.items[0].reasons[0])
+        self.assertGreaterEqual(filtered["total"], 1)
+        self.assertIn("priority_score", module_workbench_triage_csv(report))
+        self.assertIn("Module workbench triage", render_module_workbench_triage_markdown(report))
+        self.assertEqual(
+            module_workbench_triage_capabilities()["operation_count"],
+            len(module_workbench_triage_capabilities()["operations"]),
+        )
+        self.assertEqual(module_workbench_triage_schema()["version"], "module-workbench-triage-v1")
+        from glio_noncode.cli import main
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "triage.json"
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench-triage",
+                        "--source-root",
+                        str(self.package),
+                        "--test-root",
+                        str(self.tests),
+                        "--docs-root",
+                        str(self.docs),
+                        "--format",
+                        "summary",
+                        "--output",
+                        str(output),
+                    ]
+                ),
+                0,
+            )
+            self.assertIn("module-workbench-triage-v1", output.read_text(encoding="utf-8"))
+
     def test_exports_are_stable_and_explainable(self) -> None:
         report = self.report()
         self.assertIn('"module_count":3', module_workbench_json(report))
@@ -407,6 +471,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             caps_path = Path(directory) / "caps.json"
             detail_schema_path = Path(directory) / "detail-schema.json"
             detail_caps_path = Path(directory) / "detail-caps.json"
+            triage_schema_path = Path(directory) / "triage-schema.json"
+            triage_caps_path = Path(directory) / "triage-caps.json"
             self.assertEqual(main(["module-workbench-schema", "--output", str(schema_path)]), 0)
             self.assertEqual(
                 main(["module-workbench-policy-capabilities", "--output", str(caps_path)]),
@@ -418,6 +484,26 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                         "module-workbench-detail-schema",
                         "--output",
                         str(detail_schema_path),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench-triage-schema",
+                        "--output",
+                        str(triage_schema_path),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench-triage-capabilities",
+                        "--output",
+                        str(triage_caps_path),
                     ]
                 ),
                 0,
@@ -441,6 +527,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 detail_schema_path.read_text(encoding="utf-8"),
             )
             self.assertIn("operations", detail_caps_path.read_text(encoding="utf-8"))
+            self.assertIn("module-workbench-triage-v1", triage_schema_path.read_text(encoding="utf-8"))
+            self.assertIn("operations", triage_caps_path.read_text(encoding="utf-8"))
         server = create_server(host="127.0.0.1", port=0)
         thread = Thread(target=server.serve_forever, daemon=True)
         thread.start()
@@ -455,6 +543,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/diff/capabilities", "operations"),
                 ("/v1/module-workbench/runtime/schema", "stage_order"),
                 ("/v1/module-workbench/portfolio/schema", "selection"),
+                ("/v1/module-workbench/triage/schema", "reason_codes"),
+                ("/v1/module-workbench/triage/capabilities", "operations"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()
@@ -511,6 +601,52 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 self.assertIn('"schema":"module-workbench-detail-v1"', payload)
                 self.assertIn('"module_id":"glio_noncode.core"', payload)
                 connection.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=10)
+
+    def test_http_module_workbench_triage_route(self) -> None:
+        inventory = build_module_inventory(self.package, test_root=self.tests)
+        matrix = build_module_certification(
+            inventory,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        lineage = build_module_certification_lineage(
+            inventory,
+            matrix=matrix,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        quality = build_module_certification_quality(matrix, lineage)
+        workbench = build_module_workbench(inventory, matrix, lineage, quality)
+        server = create_server(host="127.0.0.1", port=0)
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with (
+                patch.object(
+                    ApiHandler,
+                    "_module_certification_context",
+                    return_value=(inventory, matrix, None, None, None),
+                ),
+                patch.object(
+                    ApiHandler,
+                    "_module_workbench_context",
+                    return_value=(lineage, quality, workbench),
+                ),
+            ):
+                connection = HTTPConnection("127.0.0.1", server.server_port, timeout=10)
+                connection.request("GET", "/v1/module-workbench/triage?format=summary")
+                response = connection.getresponse()
+                payload = response.read().decode("utf-8")
+                connection.close()
+            self.assertEqual(response.status, 200)
+            self.assertIn('"version":"module-workbench-triage-v1"', payload)
+            self.assertIn('"item_count":3', payload)
         finally:
             server.shutdown()
             server.server_close()

@@ -10629,6 +10629,18 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print module depth schema',
     ),
     (
+        'module-inventory-detail',
+        'inspect one module across static depth and review evidence',
+    ),
+    (
+        'module-inventory-detail-capabilities',
+        'print module detail capabilities',
+    ),
+    (
+        'module-inventory-detail-schema',
+        'print module detail schema',
+    ),
+    (
         'module-inventory-graph',
         'build module dependency graph',
     ),
@@ -10719,6 +10731,18 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
     (
         'module-workbench-capabilities',
         'print module workbench capabilities',
+    ),
+    (
+        'module-workbench-detail',
+        'build a deep dossier for one module',
+    ),
+    (
+        'module-workbench-detail-capabilities',
+        'print module workbench detail capabilities',
+    ),
+    (
+        'module-workbench-detail-schema',
+        'print module workbench detail schema',
     ),
     (
         'module-workbench-diff',
@@ -14083,6 +14107,18 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
     (
         'module-workbench-schema',
         'print module workbench schema',
+    ),
+    (
+        'module-workbench-triage',
+        'rank modules by explainable review pressure',
+    ),
+    (
+        'module-workbench-triage-capabilities',
+        'print module workbench triage capabilities',
+    ),
+    (
+        'module-workbench-triage-schema',
+        'print module workbench triage schema',
     ),
     (
         'molecular-atlas-contracts',

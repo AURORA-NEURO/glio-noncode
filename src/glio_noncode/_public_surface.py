@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'b6aca4e16a469626cd32846e9bac38c0fd53d0c154aebb49bc72d42241b55145'
-SURFACE_DIGEST = 'b252429d39ffc7c9a5ba74939df59670b3be4be961de5f3cade52b3feb47e1df'
+SURFACE_DIGEST = '0ec194f1bee200ae85cff648b9c6edffef121b4e065fba40d04f08a93ec6aed4'
 
 ALL = (
     'CaseManifest',
@@ -44922,6 +44922,8 @@ CHILD_MODULES = {
     'module_workbench_portfolio_contracts': 'glio_noncode.module_workbench_portfolio_contracts',
     'module_workbench_runtime': 'glio_noncode.module_workbench_runtime',
     'module_workbench_runtime_contracts': 'glio_noncode.module_workbench_runtime_contracts',
+    'module_workbench_triage': 'glio_noncode.module_workbench_triage',
+    'module_workbench_triage_contracts': 'glio_noncode.module_workbench_triage_contracts',
     'molecular_atlas_bundle': 'glio_noncode.molecular_atlas_bundle',
     'molecular_atlas_contracts': 'glio_noncode.molecular_atlas_contracts',
     'molecular_atlas_fixture_eval': 'glio_noncode.molecular_atlas_fixture_eval',
@@ -50215,6 +50217,8 @@ LAZY_MODULES = (
     'glio_noncode.module_workbench_portfolio_contracts',
     'glio_noncode.module_workbench_runtime',
     'glio_noncode.module_workbench_runtime_contracts',
+    'glio_noncode.module_workbench_triage',
+    'glio_noncode.module_workbench_triage_contracts',
     'glio_noncode.molecular_atlas_bundle',
     'glio_noncode.molecular_atlas_contracts',
     'glio_noncode.molecular_atlas_fixture_eval',

@@ -18706,6 +18706,8 @@ from .module_workbench_runtime import module_workbench_runtime_csv as module_wor
 from .module_workbench_runtime import module_workbench_runtime_json as module_workbench_runtime_json
 from .module_workbench_runtime import module_workbench_runtime_schema as module_workbench_runtime_schema
 from .module_workbench import module_workbench_schema as module_workbench_schema
+from . import module_workbench_triage as module_workbench_triage
+from . import module_workbench_triage_contracts as module_workbench_triage_contracts
 from . import molecular_atlas_bundle as molecular_atlas_bundle
 from . import molecular_atlas_contracts as molecular_atlas_contracts
 from . import molecular_atlas_fixture_eval as molecular_atlas_fixture_eval
