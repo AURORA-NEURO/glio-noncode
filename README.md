@@ -1746,6 +1746,13 @@ python -m glio_noncode module-workbench-execution-runtime --format json
 See [docs/MODULE_WORKBENCH_EXECUTION.md](docs/MODULE_WORKBENCH_EXECUTION.md)
 for transition rules, evidence requirements, query resources, and API routes.
 
+The local review workbench can start a bounded ready-task slice through the
+durable atomic execution API. Every command uses optimistic ledger concurrency;
+failed batches leave the ledger unchanged, while completed prerequisites emit
+addressed readiness events for their selected dependents. The write routes are
+`POST /v1/module-workbench/execution/command` for one transition and
+`POST /v1/module-workbench/execution/commands` for one to 128 transitions.
+
 The execution review view groups that ledger back by module and routes blocked,
 evidence-pending, ready, waiting, verification, complete, and superseded work
 with conserved progress/evidence rollups and bounded next-task queues:

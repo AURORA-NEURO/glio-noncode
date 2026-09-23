@@ -133,6 +133,12 @@ was produced.
 | GET | `/v1/module-workbench/execution/query` | Query execution items, events, blockers, or summary |
 | GET | `/v1/module-workbench/execution/schema` | Return module execution schema and transition rules |
 | GET | `/v1/module-workbench/execution/capabilities` | Return module execution operations and guarantees |
+| POST | `/v1/module-workbench/execution/command` | Append one validated transition to the durable execution journal |
+| POST | `/v1/module-workbench/execution/commands` | Validate and append an atomic batch of up to 128 transitions |
+| GET | `/v1/module-workbench/execution/command/schema` | Return the single-command write contract |
+| GET | `/v1/module-workbench/execution/command/capabilities` | Return single-command durability guarantees |
+| GET | `/v1/module-workbench/execution/commands/schema` | Return the atomic-batch write contract |
+| GET | `/v1/module-workbench/execution/commands/capabilities` | Return atomic-batch durability guarantees |
 | GET | `/v1/module-workbench/execution/audit` | Run independent execution-ledger invariant checks |
 | GET | `/v1/module-workbench/execution/audit/query` | Query bounded execution audit checks |
 | GET | `/v1/module-workbench/execution/audit/schema` | Return execution audit schema |

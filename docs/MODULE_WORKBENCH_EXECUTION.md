@@ -60,17 +60,21 @@ The allowed states are:
 | `superseded` | Replaced by a stronger or newer task, with an explicit reason |
 
 Commands are immutable inputs. Applying a command returns a new ledger and
-appends one addressed event; no existing event or item is rewritten. The
-transition rules are:
+appends one addressed command event; no existing event or item is rewritten.
+When a completion makes a selected dependent eligible, the same immutable
+reduction appends a derived `readied` event and promotes that dependent from
+`planned` to `ready`. This keeps a selected prerequisite chain executable
+without an untracked state mutation. The transition rules are:
 
 | Action | Allowed transition | Additional condition |
 | --- | --- | --- |
 | `start` | `ready -> in_progress` | Every prerequisite is `completed` |
 | `complete` | `in_progress -> completed` | Evidence count reaches the item requirement |
+| `readied` | `planned -> ready` | Every prerequisite became `completed`; emitted automatically |
 | `block` | `planned`, `ready`, or `in_progress -> blocked` | Detail is non-empty |
 | `unblock` | `blocked -> ready` | Every prerequisite is `completed` |
 | `skip` | Any non-terminal state -> `skipped` | Detail is non-empty |
-| `reopen` | `completed` or `skipped -> ready` | Prerequisites remain complete |
+| `reopen` | `completed` or `skipped -> ready` | Prerequisites remain complete and active dependents are absent |
 | `supersede` | Any non-terminal state -> `superseded` | Replacement reason is non-empty |
 
 Example:
@@ -95,9 +99,42 @@ updated = apply_module_workbench_execution_commands(
 )
 ```
 
-The two resulting events preserve the complete state path. A completion command
-without enough evidence fails closed with `ValidationError`; it cannot create a
-partially completed row.
+The two caller-command events preserve the explicit state path; a completion
+may add one or more deterministic `readied` events for downstream tasks. A
+completion command without enough evidence fails closed with `ValidationError`;
+it cannot create a partially completed row. Reopening a completed prerequisite
+is rejected while any downstream task is ready, in progress, or completed,
+because that would make the active graph invalid.
+
+## Atomic command batches
+
+The durable HTTP write surface supports both a single transition and an
+optimistic, all-or-nothing batch:
+
+```text
+POST /v1/module-workbench/execution/command
+POST /v1/module-workbench/execution/commands
+GET  /v1/module-workbench/execution/command/schema
+GET  /v1/module-workbench/execution/command/capabilities
+GET  /v1/module-workbench/execution/commands/schema
+GET  /v1/module-workbench/execution/commands/capabilities
+```
+
+The batch accepts one to 128 command objects plus an optional
+`expected_ledger_address`. Every command is reduced against the same immutable
+ledger, and the journal is written once only after the complete batch passes
+validation. If any command fails, the ledger and journal remain unchanged. A
+successful response reports `batch_count`, the complete appended event range,
+`event_count`, and `derived_event_count`; single-command responses preserve the
+explicit command event and expose any derived readiness events separately.
+The `expected_ledger_address` guard returns a conflict instead of allowing a
+stale client to overwrite newer progress.
+
+The review workbench exposes this as **Start the next ready slice**. It reads a
+bounded ready projection, constructs detail-bearing `start` commands, and
+submits the slice through the same durable batch contract. The control never
+claims that starting a task changed source code; it only records execution
+state awaiting evidence-gated completion.
 
 ## Evidence requirements
 
@@ -261,6 +298,8 @@ The focused regression suite covers:
 - strict and balanced policy decisions;
 - task-level execution diffs;
 - bounded queries, JSON/CSV/Markdown exports, schemas, and capabilities;
+- atomic batch validation, optimistic concurrency, durable replay, and derived
+  prerequisite-readiness events;
 - runtime stage ordering and API schema routes.
 
 The execution layer is operational planning infrastructure. It preserves review
