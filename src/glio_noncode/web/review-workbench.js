@@ -20,6 +20,7 @@
     geoExpressionConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "" }, geoExpressionConsistencyFilterTimer: null,
     sequenceAnalyses: [], sequenceTotal: 0, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
     sequenceBatches: [], sequenceBatchTotal: 0, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
+    sequenceComparisons: [], sequenceComparisonTotal: 0, selectedSequenceComparison: null, sequenceComparisonReport: null, sequenceComparisonChanges: null, sequenceComparisonListRequest: 0, sequenceComparisonRequest: 0, sequenceComparisonFilterTimer: null,
     sequenceReviewSummary: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewFilterTimer: null,
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
@@ -279,6 +280,30 @@
     }
   }
 
+  function renderSequenceComparisons() {
+    const list = $("sequence-comparison-list");
+    list.replaceChildren();
+    $("sequence-comparison-count").textContent = String(model.sequenceComparisonTotal);
+    $("sequence-comparison-list-summary").textContent = `Showing ${model.sequenceComparisons.length} of ${model.sequenceComparisonTotal} saved sequence comparisons.`;
+    if (!model.sequenceComparisons.length) {
+      list.append(element("p", "empty-inline", "No saved sequence comparisons yet."));
+      return;
+    }
+    for (const item of model.sequenceComparisons) {
+      const button = element("button", "run-item");
+      button.type = "button";
+      button.setAttribute("aria-current", String(item.comparison_id === model.selectedSequenceComparison));
+      button.setAttribute("aria-label", `Open sequence comparison with ${item.change_count} motif changes`);
+      const top = element("span", "run-top");
+      top.append(element("span", "run-case", "Batch comparison"), element("span", "run-status", `${item.left_analysis_count} vs ${item.right_analysis_count}`));
+      const meta = element("span", "run-meta");
+      meta.append(element("span", "run-id", shortened(item.comparison_id, 28)), element("span", "", `${item.change_count} prevalence deltas`));
+      button.append(top, meta);
+      button.addEventListener("click", () => openSequenceComparison(item.comparison_id));
+      list.append(button);
+    }
+  }
+
   async function loadSequenceAnalyses() {
     const request = model.sequenceListRequest = (model.sequenceListRequest || 0) + 1;
     try {
@@ -310,6 +335,23 @@
     } catch (error) {
       $("sequence-batch-list").replaceChildren(element("p", "empty-inline", "Sequence batches could not be loaded."));
       $("sequence-batch-list-summary").textContent = "The local API could not verify a sequence batch catalog.";
+      notice(error.message, true);
+    }
+  }
+
+  async function loadSequenceComparisons() {
+    const request = model.sequenceComparisonListRequest = (model.sequenceComparisonListRequest || 0) + 1;
+    try {
+      const page = await getJson("/v1/sequence-comparisons?limit=50&offset=0");
+      if (request !== model.sequenceComparisonListRequest) return;
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) throw new Error("The local API returned an invalid sequence comparison catalog.");
+      model.sequenceComparisonTotal = page.total_count;
+      model.sequenceComparisons = page.rows;
+      renderSequenceComparisons();
+    } catch (error) {
+      if (request !== model.sequenceComparisonListRequest) return;
+      $("sequence-comparison-list").replaceChildren(element("p", "empty-inline", "Sequence comparisons could not be loaded."));
+      $("sequence-comparison-list-summary").textContent = "The local API could not verify a sequence comparison catalog.";
       notice(error.message, true);
     }
   }
@@ -934,6 +976,21 @@
       csvLink.setAttribute("aria-disabled", "false");
       return;
     }
+    if (model.activeView === "sequence-comparison" && model.selectedSequenceComparison && model.sequenceComparisonReport?.content_address) {
+      link.href = `/v1/sequence-comparisons/${encodeURIComponent(model.selectedSequenceComparison)}/report.json`;
+      link.textContent = "Download comparison JSON";
+      link.classList.remove("disabled");
+      link.setAttribute("aria-disabled", "false");
+      link.removeAttribute("target");
+      link.removeAttribute("rel");
+      const filterQuery = sequenceComparisonFilterQuery().toString();
+      csvLink.href = `/v1/sequence-comparisons/${encodeURIComponent(model.selectedSequenceComparison)}/changes.csv${filterQuery ? `?${filterQuery}` : ""}`;
+      csvLink.textContent = "Download comparison CSV";
+      csvLink.hidden = false;
+      csvLink.classList.remove("disabled");
+      csvLink.setAttribute("aria-disabled", "false");
+      return;
+    }
     csvLink.href = "#";
     csvLink.hidden = true;
     csvLink.classList.add("disabled");
@@ -950,7 +1007,10 @@
     link.setAttribute("rel", "noopener noreferrer");
   }
 
+  function hideSequenceComparisonView() { $("sequence-comparison-view").hidden = true; }
+
   async function openRun(runId) {
+    hideSequenceComparisonView();
     model.activeView = "case";
     const request = model.selectionRequest = (model.selectionRequest || 0) + 1;
     model.selected = runId; model.hypothesis = null; model.report = null;
@@ -1132,6 +1192,7 @@
   }
 
   async function openGeoAnalysis(analysisId, { append = false } = {}) {
+    hideSequenceComparisonView();
     model.activeView = "geo";
     model.selectedGeo = analysisId;
     model.geoConsistency = null;
@@ -1179,6 +1240,7 @@
   }
 
   async function openGeoExpressionAnalysis(analysisId, { append = false } = {}) {
+    hideSequenceComparisonView();
     model.activeView = "geo-expression";
     model.selectedGeoExpression = analysisId;
     const request = model.selectionRequest = (model.selectionRequest || 0) + 1;
@@ -1258,6 +1320,7 @@
   }
 
   async function openSequenceAnalysis(analysisId) {
+    hideSequenceComparisonView();
     model.activeView = "sequence";
     model.selectedSequence = analysisId;
     const request = model.selectionRequest = (model.selectionRequest || 0) + 1;
@@ -1298,6 +1361,7 @@
   }
 
   async function openSequenceBatch(batchId) {
+    hideSequenceComparisonView();
     model.activeView = "sequence-batch";
     model.selectedSequenceBatch = batchId;
     const request = model.selectionRequest = (model.selectionRequest || 0) + 1;
@@ -1332,6 +1396,51 @@
       if (request !== model.selectionRequest || model.activeView !== "sequence-batch" || model.selectedSequenceBatch !== batchId) return;
       notice(`The selected sequence batch could not be verified. ${error.message}`, true);
       showEmpty("Sequence batch unavailable", "The selected aggregate batch report could not be verified, so its detail panels remain hidden.");
+    }
+  }
+
+  async function openSequenceComparison(comparisonId) {
+    hideSequenceComparisonView();
+    model.activeView = "sequence-comparison";
+    model.selectedSequenceComparison = comparisonId;
+    const request = model.sequenceComparisonRequest = (model.sequenceComparisonRequest || 0) + 1;
+    model.sequenceComparisonReport = null;
+    model.sequenceComparisonChanges = null;
+    renderSequenceComparisons();
+    notice("");
+    exportHref();
+    showEmpty("Verifying sequence comparison", "Loading the immutable batch comparison and its aggregate motif prevalence deltas.");
+    try {
+      const params = sequenceComparisonFilterQuery();
+      params.set("limit", "50");
+      params.set("offset", "0");
+      const [report, changes] = await Promise.all([
+        getJson(`/v1/sequence-comparisons/${encodeURIComponent(comparisonId)}/report.json`),
+        getJson(`/v1/sequence-comparisons/${encodeURIComponent(comparisonId)}?${params.toString()}`),
+      ]);
+      if (request !== model.sequenceComparisonRequest || model.activeView !== "sequence-comparison" || model.selectedSequenceComparison !== comparisonId) return;
+      if (report.schema !== "glio-noncode.sequence-haplotype-batch-comparison.v1" || report.status !== "completed" || !report.source || !report.left || !report.right || changes.schema !== "glio-noncode.sequence-batch-comparison-changes.v1" || !Array.isArray(changes.changes)) throw new Error("The local API returned an invalid sequence comparison projection.");
+      model.sequenceComparisonReport = report;
+      model.sequenceComparisonChanges = changes;
+      $("empty-state").hidden = true;
+      $("run-view").hidden = true;
+      $("geo-analysis-view").hidden = true;
+      $("geo-expression-analysis-view").hidden = true;
+      $("geo-expression-consistency-view").hidden = true;
+      $("geo-consistency-view").hidden = true;
+      $("geo-review-view").hidden = true;
+      $("geo-preflight-view").hidden = true;
+      $("sequence-analysis-view").hidden = true;
+      $("sequence-review-view").hidden = true;
+      $("sequence-batch-view").hidden = true;
+      $("sequence-comparison-view").hidden = false;
+      renderSequenceComparison();
+      exportHref();
+      announceSelection(`Sequence comparison opened. ${formatCount(changes.total_changes)} aggregate prevalence changes.`);
+    } catch (error) {
+      if (request !== model.sequenceComparisonRequest || model.activeView !== "sequence-comparison" || model.selectedSequenceComparison !== comparisonId) return;
+      notice(`The selected sequence comparison could not be verified. ${error.message}`, true);
+      showEmpty("Sequence comparison unavailable", "The selected aggregate comparison could not be verified, so its change details remain hidden.");
     }
   }
 
@@ -1373,6 +1482,60 @@
     for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
   }
 
+  function renderSequenceComparison() {
+    const report = model.sequenceComparisonReport;
+    const changes = model.sequenceComparisonChanges;
+    if (!report || !changes) return;
+    const source = report.source;
+    const summary = changes.filtered_change_summary || {};
+    $("sequence-comparison-title").textContent = `${source.source_id} · batch comparison`;
+    $("sequence-comparison-subtitle").textContent = `${formatCount(report.left.analysis_count)} left analyses versus ${formatCount(report.right.analysis_count)} right analyses · ${formatCount(changes.total_changes)} filtered changes`;
+    $("sequence-comparison-address").textContent = report.content_address || "Address unavailable";
+    $("sequence-comparison-left").textContent = formatCount(report.left.analysis_count);
+    $("sequence-comparison-right").textContent = formatCount(report.right.analysis_count);
+    $("sequence-comparison-changes").textContent = formatCount(summary.change_count ?? changes.total_changes);
+    $("sequence-comparison-change-detail").textContent = `${formatCount(summary.increased_count ?? 0)} increased · ${formatCount(summary.decreased_count ?? 0)} decreased · ${formatCount(summary.not_reported_count ?? 0)} not reported`;
+    $("sequence-comparison-delta").textContent = percent(summary.mean_absolute_delta_fraction ?? 0);
+    $("sequence-comparison-source-version").textContent = source.source_version || "Version unavailable";
+    const provenance = $("sequence-comparison-provenance");
+    provenance.replaceChildren();
+    const rows = [
+      ["Source", source.source_id],
+      ["Retrieved", source.retrieved_at],
+      ["Sequence interval", `${source.sequence_interval[0]}:${source.sequence_interval[1]}-${source.sequence_interval[2]}`],
+      ["Sequence hash", source.sequence_hash],
+      ["Left batch report", report.left.content_address],
+      ["Right batch report", report.right.content_address],
+    ];
+    for (const [label, value] of rows) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", value));
+      provenance.append(block);
+    }
+    $("sequence-comparison-change-count").textContent = `${formatCount(changes.total_changes)} filtered rows`;
+    const body = $("sequence-comparison-changes-table");
+    body.replaceChildren();
+    if (!changes.changes.length) body.append(emptyRow(8, "No prevalence changes match the selected filters."));
+    for (const item of changes.changes) {
+      const row = document.createElement("tr");
+      row.append(
+        cell(consistencyText(item.change)),
+        cell(item.name || item.motif_id),
+        cell(item.matched_sequence),
+        cell(percent(item.left_analysis_fraction)),
+        cell(percent(item.right_analysis_fraction)),
+        cell(percent(item.delta_fraction)),
+        cell(consistencyText(item.direction)),
+        cell(item.source_id),
+      );
+      body.append(row);
+    }
+    $("sequence-comparison-filter-summary").textContent = `${formatCount(summary.change_count ?? 0)} filtered rows · ${formatCount(summary.created_count ?? 0)} created / ${formatCount(summary.disrupted_count ?? 0)} disrupted · ${formatCount(summary.delta_count ?? 0)} reported deltas · mean absolute delta ${percent(summary.mean_absolute_delta_fraction ?? 0)}`;
+    const limitations = $("sequence-comparison-limitations");
+    limitations.replaceChildren();
+    for (const limitation of report.limitations || []) limitations.append(element("p", "geo-limitation", limitation));
+  }
+
   function reloadSequenceBatchChanges() {
     if (!model.selectedSequenceBatch) return;
     const params = new URLSearchParams({ limit: "50", offset: "0" });
@@ -1388,7 +1551,37 @@
     }).catch((error) => { if (model.activeView === "sequence-batch") notice(error.message, true); });
   }
 
+  function sequenceComparisonFilterQuery() {
+    const params = new URLSearchParams();
+    const motif = $("sequence-comparison-motif-filter").value.trim();
+    const change = $("sequence-comparison-change-filter").value;
+    const direction = $("sequence-comparison-direction-filter").value;
+    if (motif) params.set("motif_contains", motif);
+    if (change) params.set("change", change);
+    if (direction) params.set("direction", direction);
+    return params;
+  }
+
+  function reloadSequenceComparisonChanges() {
+    if (!model.selectedSequenceComparison) return;
+    if (model.sequenceComparisonFilterTimer !== null) clearTimeout(model.sequenceComparisonFilterTimer);
+    model.sequenceComparisonFilterTimer = setTimeout(async () => {
+      model.sequenceComparisonFilterTimer = null;
+      const params = sequenceComparisonFilterQuery();
+      params.set("limit", "50");
+      params.set("offset", "0");
+      try {
+        const changes = await getJson(`/v1/sequence-comparisons/${encodeURIComponent(model.selectedSequenceComparison)}?${params.toString()}`);
+        if (model.activeView !== "sequence-comparison" || changes.schema !== "glio-noncode.sequence-batch-comparison-changes.v1") return;
+        model.sequenceComparisonChanges = changes;
+        renderSequenceComparison();
+        exportHref();
+      } catch (error) { if (model.activeView === "sequence-comparison") notice(error.message, true); }
+    }, 180);
+  }
+
   async function openSequenceReview() {
+    hideSequenceComparisonView();
     const request = model.sequenceReviewRequest = (model.sequenceReviewRequest || 0) + 1;
     model.activeView = "sequence-review";
     model.sequenceReviewSummary = null;
@@ -1607,6 +1800,7 @@
   }
 
   async function openGeoPreflight(preflightId) {
+    hideSequenceComparisonView();
     model.activeView = "geo-preflight";
     model.selectedGeoPreflight = preflightId;
     model.geoPreflightReport = null;
@@ -1642,6 +1836,7 @@
   }
 
   async function openGeoReview() {
+    hideSequenceComparisonView();
     model.activeView = "geo-review";
     const request = model.geoReviewViewRequest = (model.geoReviewViewRequest || 0) + 1;
     notice("");
@@ -1670,6 +1865,7 @@
   }
 
   async function openGeoConsistency(comparisonId) {
+    hideSequenceComparisonView();
     if (model.selectedGeoConsistency !== comparisonId) resetGeoConsistencyFilters();
     model.activeView = "geo-consistency";
     model.selectedGeoConsistency = comparisonId;
@@ -1703,6 +1899,7 @@
   }
 
   async function openGeoExpressionConsistency(comparisonId) {
+    hideSequenceComparisonView();
     if (model.selectedGeoExpressionConsistency !== comparisonId) resetGeoExpressionConsistencyFilters();
     model.activeView = "geo-expression-consistency";
     model.selectedGeoExpressionConsistency = comparisonId;
@@ -1833,6 +2030,7 @@
   }
 
   async function openGeoSensitivity(comparisonId) {
+    hideSequenceComparisonView();
     if (model.selectedGeoSensitivity !== comparisonId) resetGeoSensitivityFilters();
     model.activeView = "geo-sensitivity";
     model.selectedGeoSensitivity = comparisonId;
@@ -2321,7 +2519,7 @@
     renderHypotheses(); renderQueue(); renderDeltas(); exportHref();
   }
 
-  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]));
+  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview()]));
   $("run-search").addEventListener("input", renderRuns);
   $("path-search").addEventListener("input", renderHypotheses);
   $("evidence-search").addEventListener("input", renderEvidence);
@@ -2406,6 +2604,9 @@
   $("sequence-review-change-filter").addEventListener("change", reloadSequenceReviewMotifs);
   $("sequence-batch-motif-filter").addEventListener("input", reloadSequenceBatchChanges);
   $("sequence-batch-change-filter").addEventListener("change", reloadSequenceBatchChanges);
+  $("sequence-comparison-motif-filter").addEventListener("input", reloadSequenceComparisonChanges);
+  $("sequence-comparison-change-filter").addEventListener("change", reloadSequenceComparisonChanges);
+  $("sequence-comparison-direction-filter").addEventListener("change", reloadSequenceComparisonChanges);
   $("geo-consistency-features").addEventListener("input", updateGeoCompareControls);
   $("geo-compare-button").addEventListener("click", compareGeoAnalyses);
   $("geo-sensitivity-button").addEventListener("click", compareGeoSensitivity);
@@ -2449,7 +2650,7 @@
   });
   async function initializeWorkspace() {
     const initialSelectionRequest = model.selectionRequest || 0;
-    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()]);
+    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview()]);
     if (model.selectionRequest !== initialSelectionRequest || model.activeView !== "empty") return;
     if (model.runs.length) {
       await openRun(model.runs[0].run_id);
@@ -2463,6 +2664,8 @@
       await openSequenceAnalysis(model.sequenceAnalyses[0].analysis_id);
     } else if (model.sequenceBatches.length) {
       await openSequenceBatch(model.sequenceBatches[0].batch_id);
+    } else if (model.sequenceComparisons.length) {
+      await openSequenceComparison(model.sequenceComparisons[0].comparison_id);
     } else {
       showEmpty("No saved research records", "Case runs and aggregate GEO reports appear here after they are saved to the local workspace.");
     }

@@ -96,6 +96,10 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="sequence-batch-list"', html)
         self.assertIn('id="sequence-batch-view"', html)
         self.assertIn('id="sequence-batch-change-filter-summary"', html)
+        self.assertIn('id="sequence-comparison-view"', html)
+        self.assertIn('id="sequence-comparison-list"', html)
+        self.assertIn('id="sequence-comparison-direction-filter"', html)
+        self.assertIn('id="sequence-comparison-filter-summary"', html)
         self.assertIn('id="geo-consistency-list"', html)
         self.assertIn("/v1/geo-count-consistency", javascript)
         self.assertIn("sign_test_fdr_sensitivity", javascript)
@@ -141,6 +145,9 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("/v1/sequence-review/motifs", javascript)
         self.assertIn("/v1/sequence-batches", javascript)
         self.assertIn("filtered_change_summary", javascript)
+        self.assertIn("/v1/sequence-comparisons", javascript)
+        self.assertIn("function openSequenceComparison", javascript)
+        self.assertIn("sequence-batch-comparison-changes.v1", javascript)
         self.assertIn("sequence-haplotype-batch-changes.v1", javascript)
         self.assertIn("glio-noncode.sequence-review-motifs.v1", javascript)
         self.assertIn("filtered_motif_summary", javascript)
@@ -288,6 +295,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("request !== model.geoConsistencyListRequest", script)
         self.assertIn("request !== model.geoSensitivityListRequest", script)
         self.assertIn("request !== model.sequenceListRequest", script)
+        self.assertIn("request !== model.sequenceComparisonListRequest", script)
         self.assertIn('$("refresh-button").addEventListener("click"', script)
         self.assertIn("loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords()", script)
         self.assertIn(
@@ -296,7 +304,8 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
                 "loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), "
                 "loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), "
                 "loadGeoExpressionConsistencyRecords(), "
-                "loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceReview()])"
+                "loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), "
+                "loadSequenceReview()])"
             ),
             script,
         )

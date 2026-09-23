@@ -305,6 +305,9 @@ objects. Persist a comparison from two saved batch IDs with
 comparison change pages include a `filtered_change_summary` with created and
 disrupted counts, increased/decreased/unchanged/not-reported direction counts,
 and signed delta/absolute-delta means computed before pagination.
+The local workbench now lists persisted sequence comparisons beside saved
+batches, opens their verified report and delta table, supports motif/change/
+direction filters, and exports the active comparison JSON or aggregate CSV.
 the resulting catalog is listed at `GET /v1/sequence-comparisons` and its
 verified changes are available through `/changes.csv`.
 
