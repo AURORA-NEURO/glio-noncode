@@ -991,7 +991,10 @@
       link.setAttribute("aria-disabled", "false");
       link.removeAttribute("target");
       link.removeAttribute("rel");
-      csvLink.href = "/v1/sequence-review/motifs.csv";
+      const filterQuery = sequenceReviewMotifQuery();
+      filterQuery.delete("limit");
+      filterQuery.delete("offset");
+      csvLink.href = `/v1/sequence-review/motifs.csv${filterQuery.toString() ? `?${filterQuery.toString()}` : ""}`;
       csvLink.textContent = "Download motif activity CSV";
       csvLink.hidden = false;
       csvLink.classList.remove("disabled");
@@ -1757,6 +1760,7 @@
         if (request !== model.sequenceReviewMotifRequest || model.activeView !== "sequence-review" || motifs.schema !== "glio-noncode.sequence-review-motifs.v1" || motifs.offset !== 0 || !Array.isArray(motifs.rows)) return;
         model.sequenceReviewMotifs = motifs;
         renderSequenceReview();
+        exportHref();
       } catch (error) { if (model.activeView === "sequence-review") notice(error.message, true); }
     }, 180);
   }
@@ -1774,6 +1778,7 @@
       if (motifs.schema !== "glio-noncode.sequence-review-motifs.v1" || motifs.offset !== offset || !Array.isArray(motifs.rows)) throw new Error("The local API returned an invalid next sequence motif page.");
       model.sequenceReviewMotifs = { ...motifs, rows: current.rows.concat(motifs.rows), offset: 0, limit: current.rows.length + motifs.rows.length };
       renderSequenceReview();
+      exportHref();
     } catch (error) {
       if (model.activeView === "sequence-review") notice(error.message, true);
     } finally {

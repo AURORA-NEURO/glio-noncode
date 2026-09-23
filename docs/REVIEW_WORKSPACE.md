@@ -344,6 +344,9 @@ object in an aggregate-only ledger.
 Motif activity pages retain the active source, genome-build, motif, and change
 filters while appending additional bounded rows; the complete filtered summary
 continues to describe the full matching set before pagination.
+The workbench motif CSV export uses those same active filters, so a downloaded
+file describes the visible review scope instead of silently reverting to the
+unfiltered archive.
 
 For a reusable local catalog, use `--save-to-workspace`:
 
