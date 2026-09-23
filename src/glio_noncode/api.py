@@ -1814,6 +1814,11 @@ from .module_workbench import (
     render_module_workbench_markdown,
 )
 from .module_workbench_cache import snapshot_from_mapping, snapshot_payload
+from .module_workbench_observability import (
+    build_module_workbench_observability,
+    module_workbench_observability_capabilities,
+    module_workbench_observability_schema,
+)
 from .module_workbench_triage import (
     build_module_workbench_triage,
     module_workbench_triage_capabilities,
@@ -3597,8 +3602,9 @@ class ApiHandler(BaseHTTPRequestHandler):
             if state["signature"] != signature or state["inventory"] is None:
                 previous = state["inventory"]
                 previous_signature = state["signature"]
+                build_evidence = evidence if evidence is not None else {}
                 state["inventory"] = build_module_inventory(
-                    evidence=evidence,
+                    evidence=build_evidence,
                     previous=previous,
                     previous_source_signature=_module_inventory_source_signature_map(
                         previous_signature
@@ -3608,6 +3614,16 @@ class ApiHandler(BaseHTTPRequestHandler):
                     source_signature=_module_inventory_source_signature_map(signature),
                 )
                 state["signature"] = signature
+                state["build_metadata"] = {
+                    "rebuild_mode": build_evidence.get("inventory_rebuild_mode", "full"),
+                    "reused_module_count": int(build_evidence.get("reused_module_count", 0)),
+                    "reparsed_module_count": int(
+                        build_evidence.get(
+                            "reparsed_module_count",
+                            len(getattr(state["inventory"], "modules", ())),
+                        )
+                    ),
+                }
             return state["inventory"]
 
     def _module_workbench_cache_path(self) -> Path | None:
@@ -3741,6 +3757,67 @@ class ApiHandler(BaseHTTPRequestHandler):
             # cannot be written; a later request can rebuild it safely.
             return
 
+    def _record_module_workbench_observation(
+        self,
+        signature: tuple[tuple[str, int, int], ...],
+        inventory: Any,
+        matrix: Any,
+        lineage: Any,
+        quality: Any,
+        workbench: Any,
+        *,
+        rebuild_mode: str,
+        cache_hit: bool,
+        reused_module_count: int,
+        reparsed_module_count: int,
+    ) -> None:
+        """Publish bounded build facts without retaining local filesystem paths."""
+
+        if not all(
+            hasattr(value, attribute)
+            for value, attribute in (
+                (inventory, "modules"),
+                (matrix, "content_address"),
+                (lineage, "content_address"),
+                (quality, "content_address"),
+                (workbench, "tasks"),
+                (workbench, "content_address"),
+            )
+        ):
+            return
+        state = getattr(self.server, "glio_module_workbench_observation", None)
+        if state is None:
+            state = {"lock": RLock(), "value": None}
+            setattr(self.server, "glio_module_workbench_observation", state)
+        observation = build_module_workbench_observability(
+            rebuild_mode=rebuild_mode,
+            cache_hit=cache_hit,
+            source_file_count=sum(item[0].startswith("0:") for item in signature),
+            test_file_count=sum(item[0].startswith("1:") for item in signature),
+            module_count=len(inventory.modules),
+            task_count=len(workbench.tasks),
+            reused_module_count=reused_module_count,
+            reparsed_module_count=reparsed_module_count,
+            inventory_address=inventory.content_address,
+            certification_address=matrix.content_address,
+            lineage_address=lineage.content_address,
+            quality_address=quality.content_address,
+            workbench_address=workbench.content_address,
+            accepted=bool(workbench.accepted),
+        )
+        with state["lock"]:
+            state["value"] = observation
+
+    def _module_workbench_observation(self) -> Any:
+        """Return the last bounded cache/rebuild explanation."""
+
+        self._module_workbench_context()
+        state = getattr(self.server, "glio_module_workbench_observation", None)
+        if state is None:
+            raise ValidationError("module workbench observability is unavailable")
+        with state["lock"]:
+            return state["value"]
+
     def _runtime(self) -> CaseRuntime:
         factory = self.runtime_factory or (lambda: CaseRuntime())
         runtime = getattr(self.server, "glio_runtime", None)
@@ -3812,6 +3889,23 @@ class ApiHandler(BaseHTTPRequestHandler):
                         with inventory_state["lock"]:
                             inventory_state["inventory"] = inventory
                             inventory_state["signature"] = signature
+                            inventory_state["build_metadata"] = {
+                                "rebuild_mode": "snapshot",
+                                "reused_module_count": len(inventory.modules),
+                                "reparsed_module_count": 0,
+                            }
+                    self._record_module_workbench_observation(
+                        signature,
+                        inventory,
+                        matrix,
+                        lineage,
+                        quality,
+                        workbench,
+                        rebuild_mode="snapshot",
+                        cache_hit=True,
+                        reused_module_count=len(inventory.modules),
+                        reparsed_module_count=0,
+                    )
                 else:
                     previous_inventory = self._load_module_workbench_previous_inventory()
                     if previous_inventory is not None:
@@ -3842,6 +3936,28 @@ class ApiHandler(BaseHTTPRequestHandler):
                     workbench = build_module_workbench(inventory, matrix, lineage, quality)
                     self._persist_module_workbench_snapshot(
                         signature, inventory, matrix, lineage, quality, workbench
+                    )
+                    inventory_state = getattr(self.server, "glio_module_inventory_snapshot", None)
+                    build_metadata = (
+                        inventory_state.get("build_metadata", {})
+                        if inventory_state is not None
+                        else {}
+                    )
+                    self._record_module_workbench_observation(
+                        signature,
+                        inventory,
+                        matrix,
+                        lineage,
+                        quality,
+                        workbench,
+                        rebuild_mode=str(build_metadata.get("rebuild_mode", "full")),
+                        cache_hit=False,
+                        reused_module_count=int(build_metadata.get("reused_module_count", 0)),
+                        reparsed_module_count=int(
+                            build_metadata.get(
+                                "reparsed_module_count", len(getattr(inventory, "modules", ()))
+                            )
+                        ),
                     )
                 state["value"] = (lineage, quality, workbench)
                 state["signature"] = signature
@@ -22296,6 +22412,9 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/query",
             "/v1/module-workbench/schema",
             "/v1/module-workbench/capabilities",
+            "/v1/module-workbench/observability",
+            "/v1/module-workbench/observability/schema",
+            "/v1/module-workbench/observability/capabilities",
             "/v1/module-workbench/detail",
             "/v1/module-workbench/detail/schema",
             "/v1/module-workbench/detail/capabilities",
@@ -22536,6 +22655,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-certification/lineage/audit/schema": module_certification_lineage_audit_schema,
                     "/v1/module-certification/release/schema": module_certification_release_schema,
                     "/v1/module-workbench/schema": module_workbench_schema,
+                    "/v1/module-workbench/observability/schema": module_workbench_observability_schema,
                     "/v1/module-workbench/detail/schema": module_workbench_detail_schema,
                     "/v1/module-workbench/policy/schema": module_workbench_policy_schema,
                     "/v1/module-workbench/audit/schema": module_workbench_audit_schema,
@@ -22616,6 +22736,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-certification/lineage/audit/capabilities": module_certification_lineage_audit_capabilities,
                     "/v1/module-certification/release/capabilities": module_certification_release_capabilities,
                     "/v1/module-workbench/capabilities": module_workbench_capabilities,
+                    "/v1/module-workbench/observability/capabilities": module_workbench_observability_capabilities,
                     "/v1/module-workbench/detail/capabilities": module_workbench_detail_capabilities,
                     "/v1/module-workbench/policy/capabilities": module_workbench_policy_capabilities,
                     "/v1/module-workbench/audit/capabilities": module_workbench_audit_capabilities,
@@ -23632,6 +23753,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                             payload = module_certification_quality_policy_summary(gate)
                         else:
                             payload = gate.to_dict(include_checks=self._query_bool(query, "include_checks") is not False)
+                elif path == "/v1/module-workbench/observability":
+                    payload = self._module_workbench_observation().to_dict()
                 elif path == "/v1/module-workbench/detail":
                     module_id = self._query_value(query, "module_id")
                     if not module_id:

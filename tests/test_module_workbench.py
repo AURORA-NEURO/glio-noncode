@@ -32,6 +32,11 @@ from glio_noncode.module_workbench import (
     verify_module_workbench,
 )
 from glio_noncode.module_workbench_cache import snapshot_from_mapping, snapshot_payload
+from glio_noncode.module_workbench_observability import (
+    build_module_workbench_observability,
+    module_workbench_observability_capabilities,
+    module_workbench_observability_schema,
+)
 from glio_noncode.module_workbench_audit import (
     audit_module_workbench,
     module_workbench_audit_csv,
@@ -307,6 +312,85 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 thread.join(timeout=5)
         self.assertEqual(response.status, 200)
         self.assertIn('"total":3', body)
+
+    def test_http_workbench_observability_route_is_bounded_and_path_free(self) -> None:
+        observation = build_module_workbench_observability(
+            rebuild_mode="incremental",
+            cache_hit=False,
+            source_file_count=3,
+            test_file_count=1,
+            module_count=3,
+            task_count=7,
+            reused_module_count=2,
+            reparsed_module_count=1,
+            inventory_address="module-inventory:inventory",
+            certification_address="module-certification:matrix",
+            lineage_address="module-certification-lineage:lineage",
+            quality_address="module-certification-quality:quality",
+            workbench_address="module-workbench:workbench",
+            accepted=True,
+        )
+        with (
+            patch.object(ApiHandler, "_module_workbench_observation", return_value=observation),
+            tempfile.TemporaryDirectory() as data_root,
+        ):
+            server = create_server("127.0.0.1", 0, data_root)
+            thread = Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                connection = HTTPConnection(host, port, timeout=10)
+                connection.request("GET", "/v1/module-workbench/observability")
+                response = connection.getresponse()
+                body = response.read().decode("utf-8")
+                connection.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
+        self.assertEqual(response.status, 200)
+        self.assertIn('"rebuild_mode":"incremental"', body)
+        self.assertIn('"reused_module_count":2', body)
+        self.assertNotIn("source_root", body)
+        self.assertNotIn(str(self.package), body)
+
+    def test_module_workbench_observability_contract_is_addressed(self) -> None:
+        value = build_module_workbench_observability(
+            rebuild_mode="snapshot",
+            cache_hit=True,
+            source_file_count=2,
+            test_file_count=1,
+            module_count=2,
+            task_count=4,
+            reused_module_count=2,
+            reparsed_module_count=0,
+            inventory_address="inventory",
+            certification_address="certification",
+            lineage_address="lineage",
+            quality_address="quality",
+            workbench_address="workbench",
+            accepted=True,
+        )
+        self.assertTrue(value.content_address.startswith("module-workbench-observability:"))
+        self.assertEqual(module_workbench_observability_schema()["version"], "module-workbench-observability-v1")
+        self.assertEqual(module_workbench_observability_capabilities()["operation_count"], 3)
+        with self.assertRaises(ValidationError):
+            build_module_workbench_observability(
+                rebuild_mode="full",
+                cache_hit=False,
+                source_file_count=0,
+                test_file_count=0,
+                module_count=2,
+                task_count=0,
+                reused_module_count=2,
+                reparsed_module_count=1,
+                inventory_address="inventory",
+                certification_address="certification",
+                lineage_address="lineage",
+                quality_address="quality",
+                workbench_address="workbench",
+                accepted=True,
+            )
 
     def test_durable_snapshot_round_trip_verifies_every_upstream_plane(self) -> None:
         inventory = build_module_inventory(self.package, test_root=self.tests)

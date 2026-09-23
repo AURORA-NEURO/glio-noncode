@@ -170,9 +170,11 @@ class ModuleInventoryConstructionTests(ModuleInventoryFixture):
             return original_read_text(path, **kwargs)
 
         with patch.object(inventory_module, "read_text", side_effect=observe_read):
+            evidence = {}
             current = inventory_module.build_module_inventory(
                 self.root,
                 test_root=self.tests,
+                evidence=evidence,
                 previous=previous,
                 previous_source_signature=previous_signature,
                 source_signature=previous_signature,
@@ -185,6 +187,9 @@ class ModuleInventoryConstructionTests(ModuleInventoryFixture):
             tuple(item.content_address for item in current.symbols),
             tuple(item.content_address for item in previous.symbols),
         )
+        self.assertEqual(evidence["inventory_rebuild_mode"], "incremental")
+        self.assertEqual(evidence["reused_module_count"], len(current.modules))
+        self.assertEqual(evidence["reparsed_module_count"], 0)
 
     def test_fully_qualified_symbol_reference_counts_for_its_module(self) -> None:
         (self.tests / "test_symbol.py").write_text(

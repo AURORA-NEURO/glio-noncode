@@ -13,6 +13,10 @@ stale, its canonical envelope and stored source signature are validated, then
 only unchanged inventory rows are reused by path, size, and modification
 metadata. Current test references and all certification, lineage, quality, and
 workbench aggregates are rebuilt before the replacement snapshot is persisted.
+The workbench also exposes a bounded, timestamp-free cache observation: it
+distinguishes an exact durable snapshot from an incremental or full rebuild,
+reports reused versus reparsed module counts, and returns only content
+addresses and aggregate counts.
 
 ## Endpoints
 
@@ -117,6 +121,9 @@ workbench aggregates are rebuilt before the replacement snapshot is persisted.
 | GET | `/v1/module-workbench/query` | Query modules, tasks, families, risks, or summary rows |
 | GET | `/v1/module-workbench/schema` | Return module workbench schema |
 | GET | `/v1/module-workbench/capabilities` | Return module workbench operations and guarantees |
+| GET | `/v1/module-workbench/observability` | Explain the current cache mode, reuse counts, aggregate counts, and content addresses |
+| GET | `/v1/module-workbench/observability/schema` | Return the timestamp-free workbench cache-observation schema |
+| GET | `/v1/module-workbench/observability/capabilities` | Return cache-observation operations and privacy guarantees |
 | GET | `/v1/module-workbench/policy` | Evaluate the default module workbench policy |
 | GET | `/v1/module-workbench/policy/query` | Query bounded module workbench policy checks |
 | GET | `/v1/module-workbench/policy/schema` | Return module workbench policy schema |

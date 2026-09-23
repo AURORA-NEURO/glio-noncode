@@ -32,6 +32,18 @@ Absolute machine paths are not emitted. A packet uses the fixed label
 root. Test references are counts of checked-in test files containing a module
 identifier, not a claim that every behavior is covered.
 
+## Restart-aware workbench observation
+
+`/v1/module-workbench/observability` reports how the current workbench became
+available. `snapshot` means the exact durable aggregate was accepted;
+`incremental` means unchanged inventory rows were reused while changed rows
+were parsed again; and `full` means no prior inventory was eligible for row
+reuse. The response includes source/test signature counts, reused/reparsed
+module counts, task count, acceptance, and the inventory, certification,
+lineage, quality, and workbench content addresses. It is timestamp-free,
+read-only, bounded, and deliberately omits local cache paths and source-root
+names.
+
 ## Module record
 
 Every module row contains the following fields:

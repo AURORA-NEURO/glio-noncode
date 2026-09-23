@@ -713,6 +713,20 @@ def build_module_inventory(
         previous_source_signature,
         current_source_signature,
     )
+    current_relative = {_safe_relative(path, root) for _, path in discovered}
+    previous_relative = (
+        {item.relative_path for item in previous.modules} if previous is not None else None
+    )
+    reuse_eligible = (
+        previous is not None
+        and previous_source_signature is not None
+        and previous_relative == current_relative
+    )
+    if evidence is not None:
+        evidence["inventory_rebuild_mode"] = "incremental" if reuse_eligible else "full"
+        evidence["reused_module_count"] = len(reusable_paths)
+        evidence["reparsed_module_count"] = len(discovered) - len(reusable_paths)
+        evidence["inventory_module_count"] = len(discovered)
     previous_modules = (
         {item.relative_path: item for item in previous.modules} if previous is not None else {}
     )
