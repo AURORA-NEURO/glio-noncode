@@ -34,11 +34,13 @@ def _score(value: Any, field: str) -> None:
         raise ValidationError(f"{field} must be between zero and one")
 
 
-def _ordered_unique(values: tuple[str, ...], field: str, maximum: int) -> None:
+def _ordered_unique(
+    values: tuple[str, ...], field: str, maximum: int, value_maximum: int = 256
+) -> None:
     if len(values) > maximum or len(values) != len(set(values)):
         raise ValidationError(f"{field} must be bounded and unique")
     for value in values:
-        _text(value, f"{field}[]", 256)
+        _text(value, f"{field}[]", value_maximum)
 
 
 @dataclass(frozen=True, slots=True)
@@ -85,6 +87,7 @@ class ModuleWorkbenchTriageItem:
             self.recommended_task_ids,
             "recommended_task_ids",
             MODULE_WORKBENCH_TRIAGE_MAX_TASK_IDS,
+            4096,
         )
 
     def to_dict(self) -> dict[str, Any]:

@@ -76,6 +76,7 @@ from glio_noncode.module_workbench_triage import (
     render_module_workbench_triage_markdown,
     verify_module_workbench_triage,
 )
+from glio_noncode.module_workbench_triage_contracts import ModuleWorkbenchTriageItem
 
 
 class ModuleWorkbenchFixture(unittest.TestCase):
@@ -398,6 +399,27 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             len(module_workbench_triage_capabilities()["operations"]),
         )
         self.assertEqual(module_workbench_triage_schema()["version"], "module-workbench-triage-v1")
+        long_task_id = "module." + ("nested." * 60) + "add_test"
+        long_item = ModuleWorkbenchTriageItem(
+            rank=1,
+            module_id="glio_noncode.core",
+            family="core",
+            role="implementation",
+            risk="low",
+            depth_band="deep",
+            score=0.8,
+            priority_score=0.2,
+            fan_in=0,
+            fan_out=0,
+            gap_count=0,
+            evidence_count=1,
+            unresolved_edge_count=0,
+            task_count=1,
+            reasons=("low_score",),
+            recommended_task_ids=(long_task_id,),
+            content_address="triage-item-test",
+        )
+        self.assertEqual(long_item.recommended_task_ids[0], long_task_id)
         from glio_noncode.cli import main
 
         with tempfile.TemporaryDirectory() as directory:
