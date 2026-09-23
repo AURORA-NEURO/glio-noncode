@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'b6aca4e16a469626cd32846e9bac38c0fd53d0c154aebb49bc72d42241b55145'
-SURFACE_DIGEST = '1426a98d7d2f4310ab42b07cba68a06d1a4e88dccb235aaa06cdc98c108d2cc1'
+SURFACE_DIGEST = '227c77f5c40384c3b943accb8533f09375e53e48352c16b7ec174dd58a8d783d'
 
 ALL = (
     'CaseManifest',
@@ -44805,6 +44805,7 @@ CHILD_MODULES = {
     'module_inventory_audit': 'glio_noncode.module_inventory_audit',
     'module_inventory_contracts': 'glio_noncode.module_inventory_contracts',
     'module_inventory_depth': 'glio_noncode.module_inventory_depth',
+    'module_inventory_detail': 'glio_noncode.module_inventory_detail',
     'module_inventory_exports': 'glio_noncode.module_inventory_exports',
     'module_inventory_graph': 'glio_noncode.module_inventory_graph',
     'module_inventory_observability': 'glio_noncode.module_inventory_observability',
@@ -50096,6 +50097,7 @@ LAZY_MODULES = (
     'glio_noncode.module_inventory_audit',
     'glio_noncode.module_inventory_contracts',
     'glio_noncode.module_inventory_depth',
+    'glio_noncode.module_inventory_detail',
     'glio_noncode.module_inventory_exports',
     'glio_noncode.module_inventory_graph',
     'glio_noncode.module_inventory_observability',

@@ -26,6 +26,9 @@ was produced.
 | GET | `/v1/public-surface/audit` | Audit the complete repository-wide public service and bundle projection inventory |
 | GET | `/v1/module-inventory` | Return aggregate module, symbol, dependency, index, and source-depth counts |
 | GET | `/v1/module-inventory/query` | Page static module, symbol, dependency, or index rows |
+| GET | `/v1/module-inventory/detail?module_id=...` | Join one module with symbols, dependency neighborhood, depth, and review evidence |
+| GET | `/v1/module-inventory/detail/schema` | Return the one-module dossier contract |
+| GET | `/v1/module-inventory/detail/capabilities` | Return one-module dossier operations and boundaries |
 | GET | `/v1/module-inventory/schema` | Return module inventory field and boundary schema |
 | GET | `/v1/module-inventory/capabilities` | Return inventory, audit, graph, depth, packet, and query capabilities |
 | GET | `/v1/module-inventory/audit` | Run independent row, graph, count, and public-boundary checks |

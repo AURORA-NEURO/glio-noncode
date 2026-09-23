@@ -2703,6 +2703,11 @@ from .module_inventory_depth import (
     module_inventory_depth_schema,
     query_module_inventory_depth,
 )
+from .module_inventory_detail import (
+    build_module_inventory_detail,
+    module_inventory_detail_capabilities,
+    module_inventory_detail_schema,
+)
 from .module_inventory_exports import (
     module_inventory_dependencies_csv,
     module_inventory_graph_csv,
@@ -13261,6 +13266,23 @@ def build_parser() -> argparse.ArgumentParser:
     module_inventory.add_argument("--format", choices=("json", "modules-csv", "symbols-csv", "dependencies-csv", "indexes-csv", "summary", "markdown", "depth-markdown"), default="json")
     module_inventory.add_argument("--include-rows", action="store_true")
     module_inventory.add_argument("--output", default=None)
+
+    module_inventory_detail_parser = subparsers.add_parser(
+        "module-inventory-detail",
+        help="inspect one module across static depth and review evidence",
+    )
+    module_inventory_detail_parser.add_argument("--source-root", default=None)
+    module_inventory_detail_parser.add_argument("--test-root", default=None)
+    module_inventory_detail_parser.add_argument("--module-id", required=True)
+    module_inventory_detail_parser.add_argument("--output", default=None)
+    module_inventory_detail_schema_parser = subparsers.add_parser(
+        "module-inventory-detail-schema", help="print module detail schema"
+    )
+    module_inventory_detail_schema_parser.add_argument("--output", default=None)
+    module_inventory_detail_capabilities_parser = subparsers.add_parser(
+        "module-inventory-detail-capabilities", help="print module detail capabilities"
+    )
+    module_inventory_detail_capabilities_parser.add_argument("--output", default=None)
 
     module_inventory_schema_parser = subparsers.add_parser("module-inventory-schema", help="print module inventory schema")
     module_inventory_schema_parser.add_argument("--output", default=None)
@@ -53789,11 +53811,22 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json(inventory.to_dict(include_rows=args.include_rows), args.output)
             return 0 if inventory.accepted else 2
+        if args.command == "module-inventory-detail":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            detail = build_module_inventory_detail(inventory, module_id=args.module_id)
+            _write_json(detail, args.output)
+            return 0 if detail["accepted"] else 2
+        if args.command == "module-inventory-detail-schema":
+            _write_json(module_inventory_detail_schema(), args.output)
+            return 0
+        if args.command == "module-inventory-detail-capabilities":
+            _write_json(module_inventory_detail_capabilities(), args.output)
+            return 0
         if args.command == "module-inventory-schema":
             _write_json(default_module_inventory_schema(), args.output)
             return 0
         if args.command == "module-inventory-capabilities":
-            _write_json({"inventory": module_inventory_capabilities(), "audit": module_inventory_audit_capabilities(), "depth": module_inventory_depth_capabilities(), "graph": module_inventory_graph_capabilities(), "packet": module_inventory_packet_capabilities(), "query": module_inventory_packet_query_capabilities()}, args.output)
+            _write_json({"inventory": module_inventory_capabilities(), "audit": module_inventory_audit_capabilities(), "depth": module_inventory_depth_capabilities(), "detail": module_inventory_detail_capabilities(), "graph": module_inventory_graph_capabilities(), "packet": module_inventory_packet_capabilities(), "query": module_inventory_packet_query_capabilities()}, args.output)
             return 0
         if args.command == "module-inventory-audit":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)

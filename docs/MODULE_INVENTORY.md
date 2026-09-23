@@ -210,6 +210,28 @@ The inventory is designed to be safe for a public repository:
 The inventory does not modify the source tree, install dependencies, contact a
 network service, or infer data that is not present in the scoped files.
 
+## One-module dossier
+
+`module-inventory-detail` joins the selected module row with its declared
+symbols, incoming and outgoing dependency edges, parse issues, graph degree,
+depth dimensions, and queued review actions. It is an exact module-level
+projection for deep review rather than another source scan; the response
+retains digests and counters but never emits source text or absolute paths.
+
+```powershell
+glio-noncode module-inventory-detail `
+  --module-id glio_noncode.module_inventory `
+  --output module-detail.json
+```
+
+The corresponding read-only routes are
+`GET /v1/module-inventory/detail?module_id=...`,
+`GET /v1/module-inventory/detail/schema`, and
+`GET /v1/module-inventory/detail/capabilities`. The dossier conserves the
+inventory, graph, depth, and review addresses through the nested rows and
+adds a compact summary of fan-in, fan-out, unresolved edges, test references,
+review blockers, and depth tier.
+
 ## Performance and limits
 
 The contract caps the default public surface at 8,000 modules, 120,000 symbols,

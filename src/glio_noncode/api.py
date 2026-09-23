@@ -1763,6 +1763,11 @@ from .module_inventory_depth import (
     module_inventory_depth_capabilities,
     query_module_inventory_depth,
 )
+from .module_inventory_detail import (
+    build_module_inventory_detail,
+    module_inventory_detail_capabilities,
+    module_inventory_detail_schema,
+)
 from .module_inventory_graph import (
     build_module_inventory_graph,
     module_inventory_graph_capabilities,
@@ -23784,6 +23789,9 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-inventory/audit",
             "/v1/module-inventory/depth",
             "/v1/module-inventory/depth/query",
+            "/v1/module-inventory/detail",
+            "/v1/module-inventory/detail/schema",
+            "/v1/module-inventory/detail/capabilities",
             "/v1/module-inventory/graph",
             "/v1/module-inventory/graph/query",
             "/v1/module-inventory/observability",
@@ -23797,10 +23805,14 @@ class ApiHandler(BaseHTTPRequestHandler):
         }:
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
-                if path.endswith("/schema") and not path.endswith("/observability/schema"):
+                if path.endswith("/schema") and not path.endswith(
+                    ("/observability/schema", "/detail/schema")
+                ):
                     payload = {"schema": default_module_inventory_schema(), "base_schema": module_inventory_schema()}
-                elif path.endswith("/capabilities") and not path.endswith("/observability/capabilities"):
-                    payload = {"inventory": module_inventory_capabilities(), "audit": module_inventory_audit_capabilities(), "graph": module_inventory_graph_capabilities(), "depth": module_inventory_depth_capabilities(), "packet": module_inventory_packet_capabilities(), "query": module_inventory_packet_query_capabilities()}
+                elif path.endswith("/capabilities") and not path.endswith(
+                    ("/observability/capabilities", "/detail/capabilities")
+                ):
+                    payload = {"inventory": module_inventory_capabilities(), "audit": module_inventory_audit_capabilities(), "graph": module_inventory_graph_capabilities(), "depth": module_inventory_depth_capabilities(), "detail": module_inventory_detail_capabilities(), "packet": module_inventory_packet_capabilities(), "query": module_inventory_packet_query_capabilities()}
                 elif path.endswith("/observability/schema"):
                     payload = module_inventory_observability_schema()
                 elif path.endswith("/observability/capabilities"):
@@ -23815,6 +23827,16 @@ class ApiHandler(BaseHTTPRequestHandler):
                 elif path.endswith("/depth"):
                     inventory = build_module_inventory()
                     payload = build_module_inventory_depth(inventory).to_dict(include_rows=self._query_bool(query, "include_rows") is not False)
+                elif path.endswith("/detail/schema"):
+                    payload = module_inventory_detail_schema()
+                elif path.endswith("/detail/capabilities"):
+                    payload = module_inventory_detail_capabilities()
+                elif path.endswith("/detail"):
+                    module_id = self._query_value(query, "module_id")
+                    if not module_id:
+                        raise ValueError("module_id is required for module inventory detail")
+                    inventory = build_module_inventory()
+                    payload = build_module_inventory_detail(inventory, module_id=module_id)
                 elif path.endswith("/graph/query"):
                     inventory = build_module_inventory()
                     graph = build_module_inventory_graph(inventory)

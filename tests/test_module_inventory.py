@@ -8,6 +8,7 @@ import unittest
 from http.client import HTTPConnection
 from pathlib import Path
 from threading import Thread
+from unittest.mock import patch
 
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
@@ -21,6 +22,11 @@ from glio_noncode.module_inventory_audit import audit_module_inventory
 from glio_noncode.module_inventory_depth import (
     build_module_inventory_depth,
     query_module_inventory_depth,
+)
+from glio_noncode.module_inventory_detail import (
+    build_module_inventory_detail,
+    module_inventory_detail_capabilities,
+    module_inventory_detail_schema,
 )
 from glio_noncode.module_inventory_graph import (
     build_module_inventory_graph,
@@ -203,6 +209,24 @@ class ModuleInventoryConstructionTests(ModuleInventoryFixture):
 
 
 class ModuleInventoryQueryTests(ModuleInventoryFixture):
+    def test_module_detail_joins_static_and_review_evidence(self) -> None:
+        detail = build_module_inventory_detail(self.build(), module_id="glio_noncode.alpha")
+        self.assertEqual(detail["schema"], "module-inventory-detail-v1")
+        self.assertEqual(detail["module_id"], "glio_noncode.alpha")
+        self.assertEqual(detail["summary"]["symbol_count"], 3)
+        self.assertGreaterEqual(detail["summary"]["fan_out"], 2)
+        self.assertEqual(detail["summary"]["depth_tier"], detail["depth"]["tier"])
+        self.assertTrue(detail["review_items"])
+        self.assertNotIn("source_text", json.dumps(detail))
+        self.assertNotIn(str(self.root), json.dumps(detail))
+        self.assertEqual(module_inventory_detail_schema()["schema"], "module-inventory-detail-v1")
+        self.assertIn(
+            "join_dependency_neighborhood",
+            module_inventory_detail_capabilities()["operations"],
+        )
+        with self.assertRaises(ValidationError):
+            build_module_inventory_detail(self.build(), module_id="glio_noncode.missing")
+
     def test_queries_use_bounded_pages_and_filters(self) -> None:
         inventory = self.build()
         result = query_module_inventory(inventory, resource="modules", family="core", limit=2)
@@ -401,6 +425,32 @@ class ModuleInventoryProcessBoundaryTests(unittest.TestCase):
             self.assertIn(
                 "inventory", json.loads(Path(capabilities_path).read_text(encoding="utf-8"))
             )
+            self.assertIn(
+                "detail", json.loads(Path(capabilities_path).read_text(encoding="utf-8"))
+            )
+            detail_schema_path = str(Path(directory) / "detail-schema.json")
+            self.assertEqual(
+                main(["module-inventory-detail-schema", "--output", detail_schema_path]), 0
+            )
+            self.assertEqual(
+                json.loads(Path(detail_schema_path).read_text(encoding="utf-8"))["schema"],
+                "module-inventory-detail-v1",
+            )
+            detail_capabilities_path = str(Path(directory) / "detail-capabilities.json")
+            self.assertEqual(
+                main(
+                    [
+                        "module-inventory-detail-capabilities",
+                        "--output",
+                        detail_capabilities_path,
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                json.loads(Path(detail_capabilities_path).read_text(encoding="utf-8"))["schema"],
+                "module-inventory-detail-v1",
+            )
 
     def test_cli_can_inventory_small_source(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -425,30 +475,67 @@ class ModuleInventoryProcessBoundaryTests(unittest.TestCase):
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(payload["module_count"], 1)
 
+            detail_output = Path(directory) / "detail.json"
+            detail_status = main(
+                [
+                    "module-inventory-detail",
+                    "--source-root",
+                    str(root),
+                    "--test-root",
+                    str(Path(directory) / "missing"),
+                    "--module-id",
+                    "glio_noncode.one",
+                    "--output",
+                    str(detail_output),
+                ]
+            )
+            self.assertEqual(detail_status, 0)
+            detail = json.loads(detail_output.read_text(encoding="utf-8"))
+            self.assertEqual(detail["module_id"], "glio_noncode.one")
+
     def test_http_schema_and_capabilities_routes_do_not_scan_source(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            server = create_server("127.0.0.1", 0, directory)
-            thread = Thread(target=server.serve_forever, daemon=True)
-            thread.start()
-            try:
-                host, port = server.server_address
-                connection = HTTPConnection(host, port, timeout=60)
-                connection.request("GET", "/v1/module-inventory/schema")
-                response = connection.getresponse()
-                self.assertEqual(response.status, 200)
-                payload = json.loads(response.read())
-                self.assertEqual(payload["schema"]["schema_version"], "module-inventory-schema-v1")
-                connection.close()
-                connection = HTTPConnection(host, port, timeout=60)
-                connection.request("GET", "/v1/module-inventory/capabilities")
-                response = connection.getresponse()
-                self.assertEqual(response.status, 200)
-                self.assertIn("inventory", json.loads(response.read()))
-                connection.close()
-            finally:
-                server.shutdown()
-                server.server_close()
-                thread.join(timeout=3)
+            source = Path(directory) / "api-source"
+            source.mkdir()
+            (source / "module.py").write_text(
+                "def public_module():\n    return 1\n", encoding="utf-8"
+            )
+            fixture = build_module_inventory(source, test_root=Path(directory) / "tests")
+            with patch("glio_noncode.api.build_module_inventory", return_value=fixture):
+                server = create_server("127.0.0.1", 0, directory)
+                thread = Thread(target=server.serve_forever, daemon=True)
+                thread.start()
+                try:
+                    host, port = server.server_address
+                    connection = HTTPConnection(host, port, timeout=60)
+                    connection.request("GET", "/v1/module-inventory/schema")
+                    response = connection.getresponse()
+                    self.assertEqual(response.status, 200)
+                    payload = json.loads(response.read())
+                    self.assertEqual(
+                        payload["schema"]["schema_version"], "module-inventory-schema-v1"
+                    )
+                    connection.close()
+                    connection = HTTPConnection(host, port, timeout=60)
+                    connection.request("GET", "/v1/module-inventory/capabilities")
+                    response = connection.getresponse()
+                    self.assertEqual(response.status, 200)
+                    self.assertIn("inventory", json.loads(response.read()))
+                    connection.close()
+                    connection = HTTPConnection(host, port, timeout=60)
+                    connection.request(
+                        "GET", "/v1/module-inventory/detail?module_id=glio_noncode.module"
+                    )
+                    response = connection.getresponse()
+                    self.assertEqual(response.status, 200)
+                    detail = json.loads(response.read())
+                    self.assertEqual(detail["schema"], "module-inventory-detail-v1")
+                    self.assertEqual(detail["module_id"], "glio_noncode.module")
+                    connection.close()
+                finally:
+                    server.shutdown()
+                    server.server_close()
+                    thread.join(timeout=3)
 
 
 if __name__ == "__main__":

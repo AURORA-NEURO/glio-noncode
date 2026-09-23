@@ -18149,6 +18149,7 @@ from . import module_inventory_depth as module_inventory_depth
 from .module_inventory_depth import module_inventory_depth_capabilities as module_inventory_depth_capabilities
 from .module_inventory_depth import module_inventory_depth_csv as module_inventory_depth_csv
 from .module_inventory_depth import module_inventory_depth_schema as module_inventory_depth_schema
+from . import module_inventory_detail as module_inventory_detail
 from . import module_inventory_exports as module_inventory_exports
 from . import module_inventory_graph as module_inventory_graph
 from .module_inventory_graph import module_inventory_graph_capabilities as module_inventory_graph_capabilities
