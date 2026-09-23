@@ -310,6 +310,18 @@ class ModuleWorkbenchExecutionFixture(unittest.TestCase):
             query_module_workbench_execution(ledger, resource="items")["version"],
             "module-workbench-execution-v1",
         )
+        event_ledger = apply_module_workbench_execution_command(
+            ledger,
+            execution_command(ledger.items[0].task_id, "block", "capture event context"),
+        )
+        event_page = query_module_workbench_execution(
+            event_ledger,
+            resource="events",
+            module_id=ledger.items[0].module_id,
+        )
+        self.assertEqual(event_page["total"], 1)
+        self.assertEqual(event_page["items"][0]["module_id"], ledger.items[0].module_id)
+        self.assertEqual(event_page["items"][0]["family"], ledger.items[0].family)
         self.assertEqual(query_module_workbench_execution(ledger, resource="summary")["total"], 1)
         self.assertEqual(
             query_module_workbench_execution_audit(audit, passed=True)["total"], audit.passed_count
@@ -368,6 +380,10 @@ class ModuleWorkbenchExecutionFixture(unittest.TestCase):
         self.assertEqual(
             module_workbench_execution_schema()["resources"],
             ["items", "events", "blockers", "summary"],
+        )
+        self.assertEqual(
+            module_workbench_execution_schema()["event_projection_fields"],
+            ["module_id", "family"],
         )
         self.assertEqual(module_workbench_execution_audit_schema()["check_count"], 8)
         self.assertEqual(

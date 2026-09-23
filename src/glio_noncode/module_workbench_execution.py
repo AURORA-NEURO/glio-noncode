@@ -514,7 +514,18 @@ def _query_rows(
     if resource == "items":
         return [item.to_dict() for item in value.items]
     if resource == "events":
-        return [event.to_dict() for event in value.events]
+        module_by_task = {
+            item.task_id: (item.module_id, item.family)
+            for item in value.items
+        }
+        return [
+            event.to_dict()
+            | {
+                "module_id": module_by_task.get(event.task_id, ("unknown", "unknown"))[0],
+                "family": module_by_task.get(event.task_id, ("unknown", "unknown"))[1],
+            }
+            for event in value.events
+        ]
     if resource == "blockers":
         return [
             {
@@ -737,6 +748,7 @@ def module_workbench_execution_schema() -> dict[str, Any]:
         "event_kinds": [kind.value for kind in ModuleWorkbenchExecutionEventKind],
         "requirements": [requirement.value for requirement in ModuleWorkbenchExecutionRequirement],
         "resources": ["items", "events", "blockers", "summary"],
+        "event_projection_fields": ["module_id", "family"],
         "transition_rules": {
             "start": "ready -> in_progress when prerequisites are completed",
             "complete": "in_progress -> completed with required evidence",

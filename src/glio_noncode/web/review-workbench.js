@@ -533,12 +533,16 @@
 
   async function loadModuleExecution(moduleId) {
     const request = model.moduleExecutionRequest = (model.moduleExecutionRequest || 0) + 1;
-    const page = validateModuleExecution(
-      await getJson(`/v1/module-workbench/execution/query?resource=items&module_id=${encodeURIComponent(moduleId)}&limit=50&offset=0`),
-      moduleId,
-    );
+    const [rawPage, rawEvents] = await Promise.all([
+      getJson(`/v1/module-workbench/execution/query?resource=items&module_id=${encodeURIComponent(moduleId)}&limit=50&offset=0`),
+      getJson(`/v1/module-workbench/execution/query?resource=events&module_id=${encodeURIComponent(moduleId)}&limit=512&offset=0`),
+    ]);
+    const page = validateModuleExecution(rawPage, moduleId);
+    if (rawEvents.version !== "module-workbench-execution-v1" || rawEvents.accepted !== true || typeof rawEvents.ledger_address !== "string" || rawEvents.ledger_address !== page.ledger_address || !Array.isArray(rawEvents.items) || rawEvents.offset !== 0 || rawEvents.limit !== 512 || rawEvents.query?.resource !== "events" || rawEvents.query?.module_id !== moduleId || !Number.isSafeInteger(rawEvents.total)) {
+      throw new Error("The local API returned an invalid module execution history projection.");
+    }
     if (request !== model.moduleExecutionRequest || model.selectedModule !== moduleId) return null;
-    return page;
+    return { ...page, events: rawEvents.items, event_total: rawEvents.total };
   }
 
   function renderExecutionControls(item, moduleId) {
@@ -627,19 +631,61 @@
   function renderModuleExecution() {
     const page = model.moduleExecution;
     const body = $("module-workbench-execution-table");
+    const ledgerSummary = $("module-workbench-execution-ledger-summary");
+    const eventBody = $("module-workbench-execution-events-table");
     body.replaceChildren();
+    ledgerSummary.replaceChildren();
+    eventBody.replaceChildren();
     if (!page) {
       $("module-workbench-execution-label").textContent = "—";
       $("module-workbench-execution-summary").textContent = "Verifying bounded execution state…";
+      $("module-workbench-execution-events-label").textContent = "—";
+      $("module-workbench-execution-events-summary").textContent = "Verifying transition history…";
       body.append(emptyRow(7, "Execution state has not been verified."));
+      eventBody.append(emptyRow(5, "Transition history has not been verified."));
       return;
     }
     const rows = page.items || [];
+    const events = page.events || [];
     const moduleId = model.selectedModule;
+    const counts = rows.reduce((result, item) => {
+      result[item.state] = (result[item.state] || 0) + 1;
+      return result;
+    }, {});
+    const completion = rows.length ? rows.reduce((total, item) => total + (Number.isFinite(item.completion_percent) ? item.completion_percent : 0), 0) / rows.length : 0;
+    const evidencePresent = rows.reduce((total, item) => total + (item.evidence_addresses || []).length, 0);
+    const evidenceRequired = rows.reduce((total, item) => total + (Number.isSafeInteger(item.required_evidence_count) ? item.required_evidence_count : 0), 0);
+    const summaryRows = [
+      ["Ledger", shortened(page.ledger_address, 46)],
+      ["State distribution", Object.entries(counts).map(([state, count]) => `${displayValue(state)} ${formatCount(count)}`).join(" · ") || "No selected tasks"],
+      ["Completion", `${completion.toFixed(1)}% average · ${evidencePresent}/${evidenceRequired} evidence receipts`],
+      ["History", `${formatCount(page.event_total ?? events.length)} module events${page.event_total > events.length ? " · display capped at 512" : ""}`],
+    ];
+    for (const [label, value] of summaryRows) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", displayValue(value)));
+      ledgerSummary.append(block);
+    }
     $("module-workbench-execution-label").textContent = `${formatCount(page.total)} selected`;
     $("module-workbench-execution-summary").textContent = rows.length
       ? `${formatCount(rows.length)} of ${formatCount(page.total)} selected ledger items · transitions are detail-required, evidence-gated, and concurrency-checked.`
       : "This module is not included in the current bounded execution portfolio; its planned tasks remain visible above.";
+    $("module-workbench-execution-events-label").textContent = `${formatCount(page.event_total ?? events.length)} events`;
+    $("module-workbench-execution-events-summary").textContent = events.length
+      ? "Events are ordered by contiguous ledger sequence and include the evidence supplied at transition time."
+      : "No transitions have been recorded for this module.";
+    if (!events.length) eventBody.append(emptyRow(5, "No append-only transition events are recorded for this module."));
+    for (const event of events) {
+      const row = document.createElement("tr");
+      row.append(
+        cell(event.sequence),
+        cell(shortened(event.task_id, 48)),
+        cell(`${displayValue(event.from_state)} → ${displayValue(event.to_state)}`),
+        cell(formatCount((event.evidence_addresses || []).length)),
+        cell(displayValue(event.detail)),
+      );
+      eventBody.append(row);
+    }
     if (!rows.length) {
       body.append(emptyRow(7, "No execution ledger items are selected for this module."));
       return;
