@@ -140,6 +140,19 @@
               <button id="module-execution-batch-button" class="button quiet" type="button">Start ready slice</button>
             </div>
             <p id="module-execution-batch-text" class="muted small">Starts up to the selected number of ready tasks with one optimistic, durable, all-or-nothing command batch.</p>
+            <div class="section-head module-execution-overview-head"><div><p class="eyebrow">Portable handoff</p><h3>Execution packet integrity</h3></div><span id="module-execution-packet-state" class="quiet-tag">—</span></div>
+            <div class="module-overview-grid" aria-label="Execution packet integrity metrics">
+              <div><span class="control-label">Artifacts</span><strong id="module-execution-packet-artifacts">—</strong></div>
+              <div><span class="control-label">Checks passed</span><strong id="module-execution-packet-checks">—</strong></div>
+              <div><span class="control-label">Release</span><strong id="module-execution-packet-release">—</strong></div>
+              <div><span class="control-label">ZIP bytes</span><strong id="module-execution-packet-bytes">—</strong></div>
+            </div>
+            <p id="module-execution-packet-summary" class="muted small">Verifying the exact-byte execution handoff…</p>
+            <div class="module-packet-actions">
+              <a id="module-execution-packet-download" class="button quiet" href="/v1/module-workbench/execution/packet/archive.zip">Download exact ZIP</a>
+              <button id="module-execution-packet-refresh" class="button quiet" type="button">Refresh handoff</button>
+            </div>
+            <div class="table-scroll module-packet-table"><table><thead><tr><th>Artifact</th><th>Kind</th><th>Bytes</th><th>Address</th></tr></thead><tbody id="module-execution-packet-artifact-table"></tbody></table></div>
           </section>
           <div class="module-workbench-filters" aria-label="Module workbench filters">
             <label><span class="control-label">Find module</span><input id="module-workbench-search" type="search" autocomplete="off" placeholder="module, role, or signal"></label>

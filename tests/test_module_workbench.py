@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+import io
 import tempfile
 import unittest
 from http.client import HTTPConnection
 from pathlib import Path
 from threading import Thread
 from unittest.mock import patch
+import zipfile
 
 from glio_noncode.api import ApiHandler, create_server
 from glio_noncode.errors import ValidationError
@@ -789,6 +791,26 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                         )
                         self.assertEqual(projection_response.status, 200)
                         self.assertEqual(projection_payload[address_field], packet_address)
+                    connection.request(
+                        "GET",
+                        "/v1/module-workbench/execution/packet/archive.zip",
+                    )
+                    archive_response = connection.getresponse()
+                    archive_payload = archive_response.read()
+                    self.assertEqual(archive_response.status, 200)
+                    self.assertEqual(archive_response.getheader("Content-Type"), "application/zip")
+                    self.assertIn(
+                        'attachment; filename="glio-noncode-execution-packet.zip"',
+                        archive_response.getheader("Content-Disposition", ""),
+                    )
+                    self.assertEqual(
+                        archive_response.getheader("X-GLIO-Packet-Address"),
+                        packet_address,
+                    )
+                    self.assertTrue(archive_payload.startswith(b"PK"))
+                    with zipfile.ZipFile(io.BytesIO(archive_payload)) as archive_reader:
+                        self.assertIn("manifest.json", archive_reader.namelist())
+                        self.assertIn("commands.json", archive_reader.namelist())
                     for downstream_path in (
                         "/v1/module-workbench/execution/audit",
                         "/v1/module-workbench/execution/policy",

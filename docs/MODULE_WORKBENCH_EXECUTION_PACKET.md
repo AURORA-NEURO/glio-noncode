@@ -37,7 +37,7 @@ This keeps storage integrity separate from a release policy decision.
 
 ## Artifact contract
 
-Version `module-workbench-execution-packet-v1` contains thirteen artifacts.
+Version `module-workbench-execution-packet-v1` contains fourteen artifacts.
 The manifest records each artifact's ID, relative path, media type, kind,
 UTF-8 byte count, line count, and exact byte content address.
 
@@ -46,6 +46,7 @@ UTF-8 byte count, line count, and exact byte content address.
 | `audit` | `audit.json` | JSON | Independent execution-ledger checks |
 | `blockers` | `blockers.csv` | CSV | Flat rows for explicit blockers |
 | `capabilities` | `capabilities.json` | JSON | Offline operation declaration |
+| `commands` | `commands.json` | JSON | Exact replayable command trace |
 | `events` | `events.csv` | CSV | Ordered transition history |
 | `initial-ledger` | `initial-ledger.json` | JSON | Pre-replay plan snapshot |
 | `items` | `items.csv` | CSV | Current task rows |
@@ -102,7 +103,7 @@ initial execution ledger -- command replay --> current ledger
                     module review projection
                            |
                            v
-                    thirteen packet artifacts
+                    fourteen packet artifacts
                            |
                            v
                     packet checks and address
@@ -146,7 +147,7 @@ write_module_workbench_execution_packet(
 )
 ```
 
-The directory contains `manifest.json` plus the thirteen declared files. The
+The directory contains `manifest.json` plus the fourteen declared files. The
 manifest does not embed payloads. A typed packet can include payloads in an
 explicit JSON export for local diagnostics, but the default public manifest
 and query projections retain descriptors only.
@@ -163,7 +164,7 @@ are:
 | `manifest-shape` | The artifact collection is an array |
 | `manifest-version-boundary` | The version and boundary are recognized |
 | `safe-paths` | No absolute or traversal path is accepted |
-| `artifact-count` | The fixed thirteen-artifact contract is present |
+| `artifact-count` | The fixed fourteen-artifact contract is present |
 | `unique-artifacts` | IDs and paths are unique and sorted |
 | `artifact-presence` | Every declared file is readable |
 | `artifact-byte-addresses` | Bytes, counts, and descriptor fields agree |
@@ -258,7 +259,7 @@ verified packet directory. It evaluates six explicit checks:
 5. replay acceptance; and
 6. retained verification address.
 
-The default minimum artifact count is thirteen and the default minimum passed
+The default minimum artifact count is fourteen and the default minimum passed
 check count is one. A caller can require more passed checks or intentionally
 set an impossible threshold to rehearse a blocked release:
 
@@ -493,8 +494,8 @@ The packet directory is convenient for local inspection; the archive transport
 is the portable boundary for moving the same packet as one exact byte stream.
 `build_module_workbench_execution_packet_archive` accepts a typed packet or a
 verified packet directory and emits a fixed-metadata `ZIP_STORED` container.
-The default archive contains fourteen members: `manifest.json` followed by the
-thirteen packet artifacts. Every member is UTF-8 JSON or CSV already addressed
+The default archive contains fifteen members: `manifest.json` followed by the
+fourteen packet artifacts. Every member is UTF-8 JSON or CSV already addressed
 by the packet contract. Compression is deliberately not used, because the
 transport address must be stable across machines and runtimes.
 

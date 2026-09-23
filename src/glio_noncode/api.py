@@ -1866,6 +1866,7 @@ from .module_workbench_execution_packet import (
 )
 from .module_workbench_execution_packet_archive import (
     build_module_workbench_execution_packet_archive,
+    module_workbench_execution_packet_archive_bytes,
     module_workbench_execution_packet_archive_capabilities,
     module_workbench_execution_packet_archive_csv,
     module_workbench_execution_packet_archive_schema,
@@ -22191,6 +22192,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/execution/packet/inspection/capabilities",
             "/v1/module-workbench/execution/packet/archive",
             "/v1/module-workbench/execution/packet/archive/query",
+            "/v1/module-workbench/execution/packet/archive.zip",
             "/v1/module-workbench/execution/packet/archive/chunks",
             "/v1/module-workbench/execution/packet/archive/transfer/schema",
             "/v1/module-workbench/execution/packet/archive/transfer/capabilities",
@@ -24036,6 +24038,28 @@ class ApiHandler(BaseHTTPRequestHandler):
                             if output_format == "summary"
                             else archive.to_dict()
                         )
+                elif path == "/v1/module-workbench/execution/packet/archive.zip":
+                    if query:
+                        raise ValueError(
+                            "execution packet archive download does not accept query parameters"
+                        )
+                    lineage, quality, workbench = self._module_workbench_context()
+                    packet = self._module_workbench_durable_packet(workbench)
+                    archive = build_module_workbench_execution_packet_archive(packet)
+                    archive_bytes = module_workbench_execution_packet_archive_bytes(archive)
+                    self._write_bytes(
+                        HTTPStatus.OK,
+                        archive_bytes,
+                        content_type="application/zip",
+                        headers={
+                            "Content-Disposition": (
+                                'attachment; filename="glio-noncode-execution-packet.zip"'
+                            ),
+                            "X-GLIO-Packet-Address": packet.content_address,
+                            "X-GLIO-Archive-Address": archive.archive_address,
+                        },
+                    )
+                    return
                 elif path == "/v1/module-workbench/execution/packet/archive/chunks":
                     lineage, quality, workbench = self._module_workbench_context()
                     packet = self._module_workbench_durable_packet(workbench)

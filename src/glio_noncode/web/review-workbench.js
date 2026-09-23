@@ -25,12 +25,13 @@
     moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
     moduleTriageItems: [], moduleTriageTotal: 0, moduleTriageHasMore: false, moduleTriageListRequest: 0, moduleTriageFilterTimer: null, moduleTriageByModule: new Map(), selectedModuleTriage: null,
     moduleExecution: null, moduleExecutionRequest: 0, moduleExecutionPlan: null, moduleExecutionPlanRequest: 0, modulePortfolio: null, modulePortfolioRequest: 0,
-    moduleWorkbenchSummary: null, moduleExecutionSummary: null, moduleExecutionPreview: null, moduleWorkbenchSummaryRequest: 0, moduleExecutionPreviewRequest: 0,
+    moduleWorkbenchSummary: null, moduleExecutionSummary: null, moduleExecutionPacket: null, moduleExecutionPreview: null, moduleWorkbenchSummaryRequest: 0, moduleExecutionPreviewRequest: 0, moduleExecutionPacketRequest: 0,
     moduleFilters: { q: "", risk: "", depth_band: "" }, moduleTriageFilters: { risk: "", reason: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
   };
   const pageSize = 50;
+  const packetArchiveDownloadPath = "/v1/module-workbench/execution/packet/archive.zip";
 
   function element(tag, className, text) {
     const item = document.createElement(tag);
@@ -352,14 +353,47 @@
     $("module-execution-overview-summary").textContent = execution
       ? `${formatCount(execution.completed_count)} completed · ${formatCount(execution.in_progress_count)} in progress · ${formatCount(execution.blocked_count)} blocked · ${shortened(execution.content_address, 50)}`
       : "Verifying durable execution state…";
+    renderModuleExecutionPacket();
+  }
+
+  function renderModuleExecutionPacket() {
+    const handoff = model.moduleExecutionPacket;
+    const packet = handoff?.packet;
+    const release = handoff?.release;
+    const archive = handoff?.archive;
+    const accepted = packet?.accepted === true && release?.accepted === true && archive?.accepted === true;
+    $("module-execution-packet-download").href = packetArchiveDownloadPath;
+    $("module-execution-packet-state").textContent = handoff ? (accepted ? "Accepted" : "Review") : "—";
+    $("module-execution-packet-state").className = `quiet-tag${accepted ? " ready" : ""}`;
+    $("module-execution-packet-artifacts").textContent = packet ? formatCount(packet.artifact_count) : "—";
+    $("module-execution-packet-checks").textContent = packet ? `${formatCount(packet.passed_check_count)} / ${formatCount(packet.check_count)}` : "—";
+    $("module-execution-packet-release").textContent = release ? (release.accepted ? "Accepted" : "Review") : "—";
+    $("module-execution-packet-bytes").textContent = archive ? formatCount(archive.archive_byte_count) : "—";
+    $("module-execution-packet-summary").textContent = handoff
+      ? `${shortened(packet.content_address, 48)} · archive ${shortened(archive.archive_address, 48)} · ${formatCount(archive.entry_count)} ZIP entries`
+      : "Verifying the exact-byte execution handoff…";
+    const body = $("module-execution-packet-artifact-table");
+    body.replaceChildren();
+    if (!packet) {
+      body.append(emptyRow(4, "Packet artifacts are not available."));
+      return;
+    }
+    for (const artifact of packet.artifacts || []) {
+      const row = document.createElement("tr");
+      row.append(cell(artifact.relative_path), cell(artifact.kind), cell(formatCount(artifact.byte_count)), cell(shortened(artifact.content_address, 42)));
+      body.append(row);
+    }
   }
 
   async function loadModuleWorkbenchOverview() {
     const request = model.moduleWorkbenchSummaryRequest = (model.moduleWorkbenchSummaryRequest || 0) + 1;
     try {
-      const [summary, execution] = await Promise.all([
+      const [summary, execution, packet, release, archive] = await Promise.all([
         getJson("/v1/module-workbench?format=summary"),
         getJson("/v1/module-workbench/execution?include_items=false&include_events=false"),
+        getJson("/v1/module-workbench/execution/packet"),
+        getJson("/v1/module-workbench/execution/packet/release?format=summary"),
+        getJson("/v1/module-workbench/execution/packet/archive?format=summary"),
       ]);
       if (request !== model.moduleWorkbenchSummaryRequest) return;
       if (typeof summary.content_address !== "string" || typeof summary.accepted !== "boolean" || !Number.isFinite(summary.overall_score) || !Number.isFinite(summary.depth_percent) || !Number.isSafeInteger(summary.module_count) || !Number.isSafeInteger(summary.task_count) || !Number.isSafeInteger(summary.family_count) || !Number.isSafeInteger(summary.high_risk_count) || !Number.isSafeInteger(summary.blocked_count)) {
@@ -368,13 +402,18 @@
       if (execution.version !== "module-workbench-execution-v1" || typeof execution.content_address !== "string" || typeof execution.portfolio_address !== "string" || typeof execution.accepted !== "boolean" || !Number.isSafeInteger(execution.task_count) || !Number.isSafeInteger(execution.event_count) || !Number.isSafeInteger(execution.completed_count) || !Number.isSafeInteger(execution.in_progress_count) || !Number.isSafeInteger(execution.blocked_count) || !Number.isFinite(execution.completion_percent) || !Number.isFinite(execution.evidence_coverage_percent)) {
         throw new Error("The local API returned an invalid durable execution summary.");
       }
+      if (packet.version !== "module-workbench-execution-packet-v1" || typeof packet.content_address !== "string" || typeof packet.accepted !== "boolean" || !Number.isSafeInteger(packet.artifact_count) || !Number.isSafeInteger(packet.check_count) || !Number.isSafeInteger(packet.passed_check_count) || !Array.isArray(packet.artifacts) || release.packet_address !== packet.content_address || archive.packet_address !== packet.content_address || typeof archive.archive_address !== "string" || !Number.isSafeInteger(archive.archive_byte_count)) {
+        throw new Error("The local API returned an invalid execution handoff.");
+      }
       model.moduleWorkbenchSummary = summary;
       model.moduleExecutionSummary = execution;
+      model.moduleExecutionPacket = { packet, release, archive };
       renderModuleWorkbenchOverview();
     } catch (error) {
       if (request !== model.moduleWorkbenchSummaryRequest) return;
       model.moduleWorkbenchSummary = null;
       model.moduleExecutionSummary = null;
+      model.moduleExecutionPacket = null;
       renderModuleWorkbenchOverview();
       notice(error.message, true);
     }
@@ -3724,6 +3763,7 @@
   });
   $("module-execution-preview-button").addEventListener("click", previewModuleExecutionPlan);
   $("module-execution-batch-button").addEventListener("click", executeReadyModuleWave);
+  $("module-execution-packet-refresh").addEventListener("click", () => loadModuleWorkbenchOverview());
   $("module-triage-load-more").addEventListener("click", () => loadModuleTriage(true));
   $("module-triage-risk-filter").addEventListener("change", (event) => {
     model.moduleTriageFilters.risk = event.currentTarget.value;

@@ -1045,6 +1045,7 @@ an ordered nine-stage runtime:
 ```text
 GET /v1/module-workbench/execution/packet/archive
 GET /v1/module-workbench/execution/packet/archive/query
+GET /v1/module-workbench/execution/packet/archive.zip
 GET /v1/module-workbench/execution/packet/archive/chunks
 GET /v1/module-workbench/execution/packet/archive/transfer/schema
 GET /v1/module-workbench/execution/packet/archive/transfer/capabilities
@@ -1079,6 +1080,12 @@ GET /v1/module-workbench/execution/packet/archive/store/recovery/query
 GET /v1/module-workbench/execution/packet/archive/store/recovery/schema
 GET /v1/module-workbench/execution/packet/archive/store/recovery/capabilities
 ```
+
+`archive.zip` is the only binary download route in this family. It returns the
+exact deterministic `application/zip` bytes represented by the current packet
+descriptor, with `Content-Disposition: attachment`, an `X-GLIO-Packet-Address`
+header, and an `X-GLIO-Archive-Address` header. It accepts no query parameters;
+the JSON archive route remains the descriptor/query surface.
 
 The archive endpoint builds the current public aggregate in memory. Query
 filters are bounded before archive work begins, and CSV/Markdown projections
