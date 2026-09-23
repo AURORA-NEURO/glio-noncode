@@ -25,7 +25,7 @@
     moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
     moduleTriageItems: [], moduleTriageTotal: 0, moduleTriageHasMore: false, moduleTriageListRequest: 0, moduleTriageFilterTimer: null, moduleTriageByModule: new Map(), selectedModuleTriage: null,
     moduleExecution: null, moduleExecutionRequest: 0, modulePortfolio: null, modulePortfolioRequest: 0,
-    moduleWorkbenchSummary: null, moduleWorkbenchSummaryRequest: 0,
+    moduleWorkbenchSummary: null, moduleExecutionSummary: null, moduleWorkbenchSummaryRequest: 0,
     moduleFilters: { q: "", risk: "", depth_band: "" }, moduleTriageFilters: { risk: "", reason: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
@@ -331,6 +331,7 @@
 
   function renderModuleWorkbenchOverview() {
     const summary = model.moduleWorkbenchSummary;
+    const execution = model.moduleExecutionSummary;
     const accepted = summary?.accepted === true;
     $("module-workbench-overview-state").textContent = summary ? (accepted ? "Accepted" : "Review") : "—";
     $("module-workbench-overview-state").className = `quiet-tag${accepted ? " ready" : ""}`;
@@ -341,21 +342,39 @@
     $("module-workbench-overview-summary").textContent = summary
       ? `${formatCount(summary.module_count)} modules · ${formatCount(summary.task_count)} planned tasks · ${formatCount(summary.family_count)} families · ${shortened(summary.content_address, 50)}`
       : "Verifying addressed workbench summary…";
+    const executionAccepted = execution?.accepted === true;
+    $("module-execution-overview-state").textContent = execution ? (executionAccepted ? "Accepted" : "Review") : "—";
+    $("module-execution-overview-state").className = `quiet-tag${executionAccepted ? " ready" : ""}`;
+    $("module-execution-task-count").textContent = execution ? formatCount(execution.task_count) : "—";
+    $("module-execution-completion").textContent = execution ? `${Number(execution.completion_percent).toFixed(1)}%` : "—";
+    $("module-execution-evidence").textContent = execution ? `${Number(execution.evidence_coverage_percent).toFixed(1)}%` : "—";
+    $("module-execution-event-count").textContent = execution ? formatCount(execution.event_count) : "—";
+    $("module-execution-overview-summary").textContent = execution
+      ? `${formatCount(execution.completed_count)} completed · ${formatCount(execution.in_progress_count)} in progress · ${formatCount(execution.blocked_count)} blocked · ${shortened(execution.content_address, 50)}`
+      : "Verifying durable execution state…";
   }
 
   async function loadModuleWorkbenchOverview() {
     const request = model.moduleWorkbenchSummaryRequest = (model.moduleWorkbenchSummaryRequest || 0) + 1;
     try {
-      const summary = await getJson("/v1/module-workbench?format=summary");
+      const [summary, execution] = await Promise.all([
+        getJson("/v1/module-workbench?format=summary"),
+        getJson("/v1/module-workbench/execution?include_items=false&include_events=false"),
+      ]);
       if (request !== model.moduleWorkbenchSummaryRequest) return;
       if (typeof summary.content_address !== "string" || typeof summary.accepted !== "boolean" || !Number.isFinite(summary.overall_score) || !Number.isFinite(summary.depth_percent) || !Number.isSafeInteger(summary.module_count) || !Number.isSafeInteger(summary.task_count) || !Number.isSafeInteger(summary.family_count) || !Number.isSafeInteger(summary.high_risk_count) || !Number.isSafeInteger(summary.blocked_count)) {
         throw new Error("The local API returned an invalid module workbench summary.");
       }
+      if (execution.version !== "module-workbench-execution-v1" || typeof execution.content_address !== "string" || typeof execution.portfolio_address !== "string" || typeof execution.accepted !== "boolean" || !Number.isSafeInteger(execution.task_count) || !Number.isSafeInteger(execution.event_count) || !Number.isSafeInteger(execution.completed_count) || !Number.isSafeInteger(execution.in_progress_count) || !Number.isSafeInteger(execution.blocked_count) || !Number.isFinite(execution.completion_percent) || !Number.isFinite(execution.evidence_coverage_percent)) {
+        throw new Error("The local API returned an invalid durable execution summary.");
+      }
       model.moduleWorkbenchSummary = summary;
+      model.moduleExecutionSummary = execution;
       renderModuleWorkbenchOverview();
     } catch (error) {
       if (request !== model.moduleWorkbenchSummaryRequest) return;
       model.moduleWorkbenchSummary = null;
+      model.moduleExecutionSummary = null;
       renderModuleWorkbenchOverview();
       notice(error.message, true);
     }

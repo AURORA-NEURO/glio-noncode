@@ -183,6 +183,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .module-overview-grid > div { padding: 8px; border: 1px solid #e6ebe7; border-radius: 6px; background: #fbfcfa; }
 .module-overview-grid .control-label { margin-bottom: 4px; }
 .module-overview-grid strong { display: block; font-size: 16px; }
+.module-execution-overview-head { margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--line); }
 .quiet-tag.ready { background: var(--mint); color: var(--teal-dark); }
 .module-triage-rail { display: grid; gap: 0; margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--line); }
 .module-triage-rail h3 { margin: 0; font-size: 14px; }
