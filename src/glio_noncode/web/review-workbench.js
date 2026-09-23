@@ -21,7 +21,7 @@
     sequenceAnalyses: [], sequenceTotal: 0, sequenceHasMore: false, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
     sequenceBatches: [], sequenceBatchTotal: 0, sequenceBatchHasMore: false, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
     sequenceComparisons: [], sequenceComparisonTotal: 0, sequenceComparisonHasMore: false, selectedSequenceComparison: null, sequenceComparisonReport: null, sequenceComparisonChanges: null, sequenceComparisonListRequest: 0, sequenceComparisonRequest: 0, sequenceComparisonFilterTimer: null,
-    sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewFilterTimer: null,
+    sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewMotifRequest: 0, sequenceReviewFilterTimer: null,
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
   };
@@ -1643,6 +1643,7 @@
   async function openSequenceReview() {
     hideSequenceComparisonView();
     const request = model.sequenceReviewRequest = (model.sequenceReviewRequest || 0) + 1;
+    const motifRequest = model.sequenceReviewMotifRequest = (model.sequenceReviewMotifRequest || 0) + 1;
     model.activeView = "sequence-review";
     model.sequenceReviewSummary = null;
     model.sequenceReviewVerification = null;
@@ -1656,8 +1657,8 @@
         getJson("/v1/sequence-review/verify"),
         getJson("/v1/sequence-review/motifs?limit=100&offset=0"),
       ]);
-      if (request !== model.sequenceReviewRequest || model.activeView !== "sequence-review") return;
-      if (summary.schema !== "glio-noncode.sequence-review-summary.v1" || verification.schema !== "glio-noncode.sequence-review-verification.v1" || !Array.isArray(verification.results) || !Number.isSafeInteger(verification.record_count) || !Number.isSafeInteger(verification.verified_count) || !Number.isSafeInteger(verification.failed_count) || motifs.schema !== "glio-noncode.sequence-review-motifs.v1" || !Array.isArray(motifs.rows)) throw new Error("The local API returned an invalid sequence review projection.");
+      if (request !== model.sequenceReviewRequest || motifRequest !== model.sequenceReviewMotifRequest || model.activeView !== "sequence-review") return;
+      if (summary.schema !== "glio-noncode.sequence-review-summary.v1" || verification.schema !== "glio-noncode.sequence-review-verification.v1" || !Array.isArray(verification.results) || !Number.isSafeInteger(verification.record_count) || !Number.isSafeInteger(verification.verified_count) || !Number.isSafeInteger(verification.failed_count) || motifs.schema !== "glio-noncode.sequence-review-motifs.v1" || motifs.offset !== 0 || typeof motifs.has_more !== "boolean" || !Array.isArray(motifs.rows)) throw new Error("The local API returned an invalid sequence review projection.");
       model.sequenceReviewSummary = summary;
       model.sequenceReviewVerification = verification;
       model.sequenceReviewMotifs = motifs;
@@ -1709,6 +1710,7 @@
     const sourceCounts = motifSummary.motif_source_id_counts || {};
     const sourceCountText = Object.entries(sourceCounts).map(([source, count]) => `${source}: ${formatCount(count)}`).join(" · ") || "none";
     $("sequence-review-motif-filter-summary").textContent = `${formatCount(motifSummary.row_count ?? 0)} filtered motif rows · ${formatCount(motifSummary.occurrence_count ?? 0)} occurrences · ${formatCount(motifSummary.created_row_count ?? 0)} created / ${formatCount(motifSummary.disrupted_row_count ?? 0)} disrupted · sources ${sourceCountText}`;
+    $("sequence-review-motif-load-more").hidden = !motifs.has_more;
     const integrityCopy = $("sequence-review-integrity-copy");
     integrityCopy.replaceChildren();
     for (const text of [
@@ -1731,26 +1733,52 @@
     for (const text of summary.limitations || []) limitations.append(element("p", "geo-limitation", text));
   }
 
+  function sequenceReviewMotifQuery(offset = 0) {
+    const params = new URLSearchParams({ limit: "100", offset: String(offset) });
+    const motif = $("sequence-review-motif-filter").value.trim();
+    const sourceId = $("sequence-review-source-filter").value.trim();
+    const genomeBuild = $("sequence-review-genome-filter").value.trim();
+    const change = $("sequence-review-change-filter").value;
+    if (motif) params.set("motif_contains", motif);
+    if (sourceId) params.set("source_id", sourceId);
+    if (genomeBuild) params.set("genome_build", genomeBuild);
+    if (change) params.set("change", change);
+    return params;
+  }
+
   function reloadSequenceReviewMotifs() {
     if (model.sequenceReviewFilterTimer !== null) clearTimeout(model.sequenceReviewFilterTimer);
+    const request = model.sequenceReviewMotifRequest = (model.sequenceReviewMotifRequest || 0) + 1;
     model.sequenceReviewFilterTimer = setTimeout(async () => {
       model.sequenceReviewFilterTimer = null;
-      const params = new URLSearchParams({ limit: "100", offset: "0" });
-      const motif = $("sequence-review-motif-filter").value.trim();
-      const sourceId = $("sequence-review-source-filter").value.trim();
-      const genomeBuild = $("sequence-review-genome-filter").value.trim();
-      const change = $("sequence-review-change-filter").value;
-      if (motif) params.set("motif_contains", motif);
-      if (sourceId) params.set("source_id", sourceId);
-      if (genomeBuild) params.set("genome_build", genomeBuild);
-      if (change) params.set("change", change);
+      const params = sequenceReviewMotifQuery(0);
       try {
         const motifs = await getJson(`/v1/sequence-review/motifs?${params.toString()}`);
-        if (model.activeView !== "sequence-review" || motifs.schema !== "glio-noncode.sequence-review-motifs.v1") return;
+        if (request !== model.sequenceReviewMotifRequest || model.activeView !== "sequence-review" || motifs.schema !== "glio-noncode.sequence-review-motifs.v1" || motifs.offset !== 0 || !Array.isArray(motifs.rows)) return;
         model.sequenceReviewMotifs = motifs;
         renderSequenceReview();
       } catch (error) { if (model.activeView === "sequence-review") notice(error.message, true); }
     }, 180);
+  }
+
+  async function loadMoreSequenceReviewMotifs() {
+    const current = model.sequenceReviewMotifs;
+    if (!current || model.activeView !== "sequence-review" || !current.has_more) return;
+    const request = model.sequenceReviewMotifRequest;
+    const offset = current.offset + current.rows.length;
+    const button = $("sequence-review-motif-load-more");
+    button.disabled = true;
+    try {
+      const motifs = await getJson(`/v1/sequence-review/motifs?${sequenceReviewMotifQuery(offset).toString()}`);
+      if (request !== model.sequenceReviewMotifRequest || model.activeView !== "sequence-review") return;
+      if (motifs.schema !== "glio-noncode.sequence-review-motifs.v1" || motifs.offset !== offset || !Array.isArray(motifs.rows)) throw new Error("The local API returned an invalid next sequence motif page.");
+      model.sequenceReviewMotifs = { ...motifs, rows: current.rows.concat(motifs.rows), offset: 0, limit: current.rows.length + motifs.rows.length };
+      renderSequenceReview();
+    } catch (error) {
+      if (model.activeView === "sequence-review") notice(error.message, true);
+    } finally {
+      button.disabled = false;
+    }
   }
 
   function renderSequenceReport() {
@@ -2675,6 +2703,7 @@
   $("sequence-review-source-filter").addEventListener("input", reloadSequenceReviewMotifs);
   $("sequence-review-genome-filter").addEventListener("input", reloadSequenceReviewMotifs);
   $("sequence-review-change-filter").addEventListener("change", reloadSequenceReviewMotifs);
+  $("sequence-review-motif-load-more").addEventListener("click", loadMoreSequenceReviewMotifs);
   $("sequence-batch-motif-filter").addEventListener("input", reloadSequenceBatchChanges);
   $("sequence-batch-change-filter").addEventListener("change", reloadSequenceBatchChanges);
   $("sequence-comparison-motif-filter").addEventListener("input", reloadSequenceComparisonChanges);
