@@ -18,12 +18,12 @@
     selectedGeoSensitivity: null, geoSensitivityListRequest: 0, geoSensitivityRequest: 0, geoSensitivityFilterTimer: null,
     geoSensitivityFilters: { feature_contains: "", direction_sensitivity: "", fdr_sensitivity: "", sign_test_fdr_sensitivity: "" },
     geoExpressionConsistencyFilters: { feature_contains: "", direction_consistency: "", fdr_direction_consistency: "" }, geoExpressionConsistencyFilterTimer: null,
-    sequenceAnalyses: [], sequenceTotal: 0, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
-    sequenceBatches: [], sequenceBatchTotal: 0, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
-    sequenceComparisons: [], sequenceComparisonTotal: 0, selectedSequenceComparison: null, sequenceComparisonReport: null, sequenceComparisonChanges: null, sequenceComparisonListRequest: 0, sequenceComparisonRequest: 0, sequenceComparisonFilterTimer: null,
+    sequenceAnalyses: [], sequenceTotal: 0, sequenceHasMore: false, selectedSequence: null, sequenceReport: null, sequenceChanges: null,
+    sequenceBatches: [], sequenceBatchTotal: 0, sequenceBatchHasMore: false, selectedSequenceBatch: null, sequenceBatchReport: null, sequenceBatchChanges: null,
+    sequenceComparisons: [], sequenceComparisonTotal: 0, sequenceComparisonHasMore: false, selectedSequenceComparison: null, sequenceComparisonReport: null, sequenceComparisonChanges: null, sequenceComparisonListRequest: 0, sequenceComparisonRequest: 0, sequenceComparisonFilterTimer: null,
     sequenceReviewSummary: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewFilterTimer: null,
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
-    selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
+    selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
   };
   const pageSize = 50;
 
@@ -237,6 +237,7 @@
     list.replaceChildren();
     $("sequence-count").textContent = String(model.sequenceTotal);
     $("sequence-list-summary").textContent = `Showing ${model.sequenceAnalyses.length} of ${model.sequenceTotal} saved sequence analyses.`;
+    $("sequence-analysis-load-more").hidden = !model.sequenceHasMore;
     if (!model.sequenceAnalyses.length) {
       list.append(element("p", "empty-inline", "No saved sequence analyses yet."));
       return;
@@ -261,6 +262,7 @@
     list.replaceChildren();
     $("sequence-batch-count").textContent = String(model.sequenceBatchTotal);
     $("sequence-batch-list-summary").textContent = `Showing ${model.sequenceBatches.length} of ${model.sequenceBatchTotal} saved sequence batches.`;
+    $("sequence-batch-load-more").hidden = !model.sequenceBatchHasMore;
     if (!model.sequenceBatches.length) {
       list.append(element("p", "empty-inline", "No saved sequence batches yet."));
       return;
@@ -285,6 +287,7 @@
     list.replaceChildren();
     $("sequence-comparison-count").textContent = String(model.sequenceComparisonTotal);
     $("sequence-comparison-list-summary").textContent = `Showing ${model.sequenceComparisons.length} of ${model.sequenceComparisonTotal} saved sequence comparisons.`;
+    $("sequence-comparison-list-load-more").hidden = !model.sequenceComparisonHasMore;
     if (!model.sequenceComparisons.length) {
       list.append(element("p", "empty-inline", "No saved sequence comparisons yet."));
       return;
@@ -304,55 +307,88 @@
     }
   }
 
-  async function loadSequenceAnalyses() {
+  async function loadSequenceAnalyses(append = false) {
     const request = model.sequenceListRequest = (model.sequenceListRequest || 0) + 1;
+    const offset = append ? model.sequenceAnalyses.length : 0;
+    const button = $("sequence-analysis-load-more");
+    button.disabled = append;
     try {
-      const page = await getJson("/v1/sequence-analyses?limit=50&offset=0");
+      const page = await getJson(`/v1/sequence-analyses?limit=50&offset=${offset}`);
       if (request !== model.sequenceListRequest) return;
-      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) {
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count) || page.offset !== offset || typeof page.has_more !== "boolean") {
         throw new Error("The local API returned an invalid sequence analysis catalog.");
       }
       model.sequenceTotal = page.total_count;
-      model.sequenceAnalyses = page.rows;
+      model.sequenceAnalyses = append ? model.sequenceAnalyses.concat(page.rows) : page.rows;
+      model.sequenceHasMore = page.has_more;
       model.sequenceLoaded = true;
       renderSequenceAnalyses();
     } catch (error) {
       if (request !== model.sequenceListRequest) return;
       model.sequenceLoaded = true;
-      $("sequence-analysis-list").replaceChildren(element("p", "empty-inline", "Sequence analyses could not be loaded."));
-      $("sequence-list-summary").textContent = "The local API could not verify a sequence analysis catalog.";
+      if (!append) {
+        model.sequenceHasMore = false;
+        button.hidden = true;
+        $("sequence-analysis-list").replaceChildren(element("p", "empty-inline", "Sequence analyses could not be loaded."));
+        $("sequence-list-summary").textContent = "The local API could not verify a sequence analysis catalog.";
+      }
       notice(error.message, true);
+    } finally {
+      if (request === model.sequenceListRequest) button.disabled = false;
     }
   }
 
-  async function loadSequenceBatches() {
+  async function loadSequenceBatches(append = false) {
+    const request = model.sequenceBatchListRequest = (model.sequenceBatchListRequest || 0) + 1;
+    const offset = append ? model.sequenceBatches.length : 0;
+    const button = $("sequence-batch-load-more");
+    button.disabled = append;
     try {
-      const page = await getJson("/v1/sequence-batches?limit=50&offset=0");
-      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) throw new Error("The local API returned an invalid sequence batch catalog.");
+      const page = await getJson(`/v1/sequence-batches?limit=50&offset=${offset}`);
+      if (request !== model.sequenceBatchListRequest) return;
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count) || page.offset !== offset || typeof page.has_more !== "boolean") throw new Error("The local API returned an invalid sequence batch catalog.");
       model.sequenceBatchTotal = page.total_count;
-      model.sequenceBatches = page.rows;
+      model.sequenceBatches = append ? model.sequenceBatches.concat(page.rows) : page.rows;
+      model.sequenceBatchHasMore = page.has_more;
       renderSequenceBatches();
     } catch (error) {
-      $("sequence-batch-list").replaceChildren(element("p", "empty-inline", "Sequence batches could not be loaded."));
-      $("sequence-batch-list-summary").textContent = "The local API could not verify a sequence batch catalog.";
+      if (request !== model.sequenceBatchListRequest) return;
+      if (!append) {
+        model.sequenceBatchHasMore = false;
+        button.hidden = true;
+        $("sequence-batch-list").replaceChildren(element("p", "empty-inline", "Sequence batches could not be loaded."));
+        $("sequence-batch-list-summary").textContent = "The local API could not verify a sequence batch catalog.";
+      }
       notice(error.message, true);
+    } finally {
+      if (request === model.sequenceBatchListRequest) button.disabled = false;
     }
   }
 
-  async function loadSequenceComparisons() {
+  async function loadSequenceComparisons(append = false) {
     const request = model.sequenceComparisonListRequest = (model.sequenceComparisonListRequest || 0) + 1;
+    const offset = append ? model.sequenceComparisons.length : 0;
+    const button = $("sequence-comparison-list-load-more");
+    button.disabled = append;
     try {
-      const page = await getJson("/v1/sequence-comparisons?limit=50&offset=0");
+      const page = await getJson(`/v1/sequence-comparisons?limit=50&offset=${offset}`);
       if (request !== model.sequenceComparisonListRequest) return;
-      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count)) throw new Error("The local API returned an invalid sequence comparison catalog.");
+      if (!Array.isArray(page.rows) || !Number.isSafeInteger(page.total_count) || page.offset !== offset || typeof page.has_more !== "boolean") throw new Error("The local API returned an invalid sequence comparison catalog.");
       model.sequenceComparisonTotal = page.total_count;
-      model.sequenceComparisons = page.rows;
+      model.sequenceComparisons = append ? model.sequenceComparisons.concat(page.rows) : page.rows;
+      model.sequenceComparisonHasMore = page.has_more;
       renderSequenceComparisons();
     } catch (error) {
       if (request !== model.sequenceComparisonListRequest) return;
-      $("sequence-comparison-list").replaceChildren(element("p", "empty-inline", "Sequence comparisons could not be loaded."));
-      $("sequence-comparison-list-summary").textContent = "The local API could not verify a sequence comparison catalog.";
+      if (!append) {
+        model.sequenceComparisonHasMore = false;
+        button.hidden = true;
+        $("sequence-comparison-list").replaceChildren(element("p", "empty-inline", "Sequence comparisons could not be loaded."));
+        $("sequence-comparison-list-summary").textContent = "The local API could not verify a sequence comparison catalog.";
+      }
       notice(error.message, true);
+    } finally {
+      if (request === model.sequenceComparisonListRequest) button.disabled = false;
     }
   }
 
@@ -2632,6 +2668,9 @@
   $("sequence-comparison-change-filter").addEventListener("change", reloadSequenceComparisonChanges);
   $("sequence-comparison-direction-filter").addEventListener("change", reloadSequenceComparisonChanges);
   $("sequence-comparison-load-more").addEventListener("click", loadMoreSequenceComparisonChanges);
+  $("sequence-analysis-load-more").addEventListener("click", () => loadSequenceAnalyses(true));
+  $("sequence-batch-load-more").addEventListener("click", () => loadSequenceBatches(true));
+  $("sequence-comparison-list-load-more").addEventListener("click", () => loadSequenceComparisons(true));
   $("geo-consistency-features").addEventListener("input", updateGeoCompareControls);
   $("geo-compare-button").addEventListener("click", compareGeoAnalyses);
   $("geo-sensitivity-button").addEventListener("click", compareGeoSensitivity);

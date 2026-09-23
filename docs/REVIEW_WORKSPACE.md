@@ -308,6 +308,9 @@ and signed delta/absolute-delta means computed before pagination.
 The local workbench now lists persisted sequence comparisons beside saved
 batches, opens their verified report and delta table, supports motif/change/
 direction filters, and exports the active comparison JSON or aggregate CSV.
+The sequence-analysis, sequence-batch, and sequence-comparison rails append
+verified bounded catalog pages on demand, retaining the current selection and
+showing the loaded-row count separately from the total catalog count.
 The comparison table loads bounded pages and preserves the active filters while
 loading additional rows; its filtered summary remains computed across the full
 matching set rather than only the rows currently visible.
