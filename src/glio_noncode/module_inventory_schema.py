@@ -66,15 +66,25 @@ def default_module_inventory_schema() -> dict[str, Any]:
     fields = tuple(
         ModuleInventorySchemaField(
             name=name,
-            value_type="integer" if name.endswith("count") or name.endswith("lines") else "string",
+            value_type=(
+                "boolean"
+                if name == "has_docstring"
+                else "integer"
+                if name.endswith("count") or name.endswith("lines")
+                else "string"
+            ),
             required=True,
             description=f"Canonical public inventory field: {name}.",
             content_address=content_hash(
                 {
                     "name": name,
-                    "value_type": "integer"
-                    if name.endswith("count") or name.endswith("lines")
-                    else "string",
+                    "value_type": (
+                        "boolean"
+                        if name == "has_docstring"
+                        else "integer"
+                        if name.endswith("count") or name.endswith("lines")
+                        else "string"
+                    ),
                     "required": True,
                 },
                 prefix="module-inventory-schema-field",
@@ -83,7 +93,7 @@ def default_module_inventory_schema() -> dict[str, Any]:
         for name in base["module_fields"]
     )
     return base | {
-        "schema_version": "module-inventory-schema-v1",
+        "schema_version": "module-inventory-schema-v2",
         "fields": [item.to_dict() for item in fields],
         "field_count": len(fields),
     }
@@ -120,9 +130,9 @@ def validate_module_inventory_schema(
     _check(
         checks,
         "schema-version",
-        selected.get("schema_version") == "module-inventory-schema-v1",
+        selected.get("schema_version") == "module-inventory-schema-v2",
         selected.get("schema_version"),
-        "module-inventory-schema-v1",
+        "module-inventory-schema-v2",
         "schema version is supported",
     )
     _check(
@@ -163,7 +173,7 @@ def validate_module_inventory_schema(
         "resource collections are bounded typed rows",
     )
     accepted = all(bool(item.get("passed")) for item in checks)
-    body = {"version": "module-inventory-schema-v1", "checks": tuple(checks), "accepted": accepted}
+    body = {"version": "module-inventory-schema-v2", "checks": tuple(checks), "accepted": accepted}
     return ModuleInventorySchemaReport(
         **body, content_address=content_hash(body, prefix="module-inventory-schema-report")
     )
@@ -178,7 +188,7 @@ def module_inventory_schema_capabilities() -> dict[str, Any]:
         "validate_row_shape",
     )
     return {
-        "version": "module-inventory-schema-v1",
+        "version": "module-inventory-schema-v2",
         "operation_count": len(operations),
         "operations": list(operations),
         "read_only": True,

@@ -518,6 +518,7 @@
 
 495. Add a first-class exact-byte execution-packet download and review surface. **Implemented:** a durable-ledger-aligned `application/zip` HTTP download with packet/archive content-address headers and query rejection; a workbench handoff panel showing packet artifacts, passed checks, release state, archive size, and exact ZIP download; service and packet documentation; UI contract coverage; and HTTP ZIP-member/address regression coverage over the real execution path.
 496. Reuse immutable execution packet projections across concurrent read routes. **Implemented:** a bounded server-local cache keyed by workbench, durable-ledger, exact command-trace, and archive addresses; automatic invalidation on source or command changes; packet/archive identity conservation; focused builder-count regression coverage; and service documentation for the performance boundary.
+497. Consolidate static evidence during the first module-inventory pass. **Implemented:** addressed `has_docstring` module evidence captured from the existing AST; reusable test-reference tokens emitted alongside inventory counts; certification inputs for both evidence sets; preservation of direct-build fallbacks; focused equivalence and no-rescan coverage; and inventory documentation describing the reduced cold-build read/parse boundary.
 
 Every wave should preserve the same contracts, add fixtures and failure cases, and distinguish implemented behavior from externally evaluated science.
 

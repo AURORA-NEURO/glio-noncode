@@ -366,6 +366,8 @@ def build_module_certification(
     source_root: str | Path | None = None,
     test_root: str | Path | None = None,
     docs_root: str | Path | None = None,
+    test_modules: set[str] | None = None,
+    source_docstring_modules: set[str] | None = None,
 ) -> ModuleCertificationMatrix:
     """Build a complete static certification matrix from inventory evidence."""
 
@@ -374,9 +376,17 @@ def build_module_certification(
     tests = Path(test_root) if test_root is not None else source.parent.parent / "tests"
     docs = Path(docs_root) if docs_root is not None else source.parent.parent / "docs"
     export_modules = _public_surface_export_modules(source)
-    test_modules, _ = _text_tokens(tests, export_modules=export_modules)
+    selected_test_modules = (
+        test_modules
+        if test_modules is not None
+        else _text_tokens(tests, export_modules=export_modules)[0]
+    )
     doc_modules, doc_files = _text_tokens(docs, markdown=True)
-    source_docstring_modules = _source_docstring_modules(source)
+    selected_source_docstring_modules = (
+        source_docstring_modules
+        if source_docstring_modules is not None
+        else _source_docstring_modules(source)
+    )
     exported = _exported_modules(source)
     rows: list[ModuleCertificationRow] = []
     gaps: list[ModuleCertificationGap] = []
@@ -384,11 +394,11 @@ def build_module_certification(
         evidence = _module_evidence(
             module.module_id,
             module,
-            test_modules,
+            selected_test_modules,
             doc_modules,
             doc_files,
             exported,
-            source_docstring_modules,
+            selected_source_docstring_modules,
         )
         checks = tuple(_check(kind, *evidence[kind]) for kind in _CHECK_ORDER)
         passed = sum(item.state is CertificationCheckState.PASSED for item in checks)

@@ -16,7 +16,7 @@ from typing import Any
 from .errors import ValidationError
 from .serialization import content_hash, jsonable
 
-MODULE_INVENTORY_VERSION = "module-inventory-v1"
+MODULE_INVENTORY_VERSION = "module-inventory-v2"
 MODULE_INVENTORY_BOUNDARY = "public_aggregate_module_inventory"
 MODULE_INVENTORY_MAX_MODULES = 8_000
 MODULE_INVENTORY_MAX_SYMBOLS = 120_000
@@ -114,6 +114,7 @@ class ModuleRecord:
     test_reference_count: int
     source_digest: str
     content_address: str
+    has_docstring: bool = False
 
     def __post_init__(self) -> None:
         for name in (
@@ -139,6 +140,8 @@ class ModuleRecord:
             "test_reference_count",
         ):
             _non_negative(getattr(self, name), name)
+        if type(self.has_docstring) is not bool:
+            raise ValidationError("has_docstring must be a boolean")
         if self.nonblank_lines > self.physical_lines:
             raise ValidationError("nonblank_lines cannot exceed physical_lines")
         if self.comment_lines > self.physical_lines:
@@ -501,6 +504,7 @@ def address_module_record(record: ModuleRecord) -> str:
         "local_dependency_count": record.local_dependency_count,
         "test_reference_count": record.test_reference_count,
         "source_digest": record.source_digest,
+        "has_docstring": record.has_docstring,
     }
     return _addressed(body, "module-inventory-module")
 

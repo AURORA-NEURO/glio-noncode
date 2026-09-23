@@ -3568,7 +3568,7 @@ class ApiHandler(BaseHTTPRequestHandler):
     server_version = "glio-noncode/0.1"
     runtime_factory: Callable[[], CaseRuntime] | None = None
 
-    def _module_inventory(self) -> Any:
+    def _module_inventory(self, *, evidence: dict[str, Any] | None = None) -> Any:
         """Return a server-local inventory snapshot with metadata invalidation."""
 
         signature = _module_inventory_source_signature()
@@ -3578,7 +3578,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             setattr(self.server, "glio_module_inventory_snapshot", state)
         with state["lock"]:
             if state["signature"] != signature or state["inventory"] is None:
-                state["inventory"] = build_module_inventory()
+                state["inventory"] = build_module_inventory(evidence=evidence)
                 state["signature"] = signature
             return state["inventory"]
 
@@ -3652,7 +3652,10 @@ class ApiHandler(BaseHTTPRequestHandler):
         return runtime
 
     def _module_certification_context(
-        self, *, include_certification: bool = True
+        self,
+        *,
+        include_certification: bool = True,
+        evidence: dict[str, Any] | None = None,
     ) -> tuple[Any, Any, Any, Any, Any]:
         """Cache the immutable repository aggregate for related read routes."""
 
@@ -3660,8 +3663,12 @@ class ApiHandler(BaseHTTPRequestHandler):
         context = getattr(self.server, "glio_module_certification_context", None)
         context_signature = getattr(self.server, "glio_module_certification_signature", None)
         if context is None or context_signature != signature:
-            inventory = self._module_inventory()
-            matrix = build_module_certification(inventory)
+            inventory = self._module_inventory(evidence=evidence)
+            matrix = build_module_certification(
+                inventory,
+                test_modules=(evidence or {}).get("test_modules"),
+                source_docstring_modules=(evidence or {}).get("source_docstring_modules"),
+            )
             plan = build_module_certification_task_plan(matrix) if include_certification else None
             gate = evaluate_module_certification_gate(matrix, plan) if plan is not None else None
             runtime = run_module_certification(inventory=inventory) if include_certification else None
@@ -3708,8 +3715,10 @@ class ApiHandler(BaseHTTPRequestHandler):
                             inventory_state["inventory"] = inventory
                             inventory_state["signature"] = signature
                 else:
+                    evidence: dict[str, Any] = {}
                     inventory, matrix, _, _, _ = self._module_certification_context(
-                        include_certification=False
+                        include_certification=False,
+                        evidence=evidence,
                     )
                     lineage = build_module_certification_lineage(inventory, matrix=matrix)
                     quality = build_module_certification_quality(matrix, lineage)

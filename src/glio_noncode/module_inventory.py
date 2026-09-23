@@ -6,7 +6,7 @@ import ast
 import hashlib
 import re
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, MutableMapping
 from pathlib import Path
 from typing import Any
 
@@ -426,6 +426,7 @@ def _test_reference_counts(
     test_root: Path | None,
     module_ids: Iterable[str],
     export_modules: Mapping[str, str] | None = None,
+    reference_evidence: set[str] | None = None,
 ) -> dict[str, int]:
     counts = {module_id: 0 for module_id in module_ids}
     if test_root is None or not test_root.exists() or not test_root.is_dir():
@@ -445,6 +446,8 @@ def _test_reference_counts(
     known = set(counts)
     for text in test_payloads:
         references = _python_module_references(text, export_modules)
+        if reference_evidence is not None:
+            reference_evidence.update(references)
         for reference in references:
             parts = reference.split(".")
             for end in range(2, len(parts) + 1):
@@ -634,6 +637,7 @@ def build_module_inventory(
     *,
     test_root: str | Path | None = None,
     root_label: str = "src/glio_noncode",
+    evidence: MutableMapping[str, Any] | None = None,
 ) -> ModuleInventory:
     """Discover and statically parse the package without importing it."""
 
@@ -654,7 +658,19 @@ def build_module_inventory(
     issues: list[InventoryIssue] = []
     module_ids = tuple(item[0] for item in discovered)
     export_modules = _public_surface_export_modules(root)
-    test_counts = _test_reference_counts(tests, module_ids, export_modules)
+    test_reference_evidence: set[str] | None = None
+    source_docstring_evidence: set[str] | None = None
+    if evidence is not None:
+        test_reference_evidence = set()
+        source_docstring_evidence = set()
+        evidence["test_modules"] = test_reference_evidence
+        evidence["source_docstring_modules"] = source_docstring_evidence
+    test_counts = _test_reference_counts(
+        tests,
+        module_ids,
+        export_modules,
+        test_reference_evidence,
+    )
     known = set(module_ids)
     modules: list[ModuleRecord] = []
     symbols: list[ModuleSymbol] = []
@@ -682,6 +698,10 @@ def build_module_inventory(
             text = ""
             tree = None
             state = ModuleState.PARSE_ERROR
+        has_docstring = bool(tree is not None and ast.get_docstring(tree, clean=False))
+        if has_docstring:
+            if source_docstring_evidence is not None:
+                source_docstring_evidence.add(module_id)
         physical, nonblank, comments = _line_counts(text)
         family = _family(module_id)
         role = _role(module_id, family)
@@ -718,6 +738,7 @@ def build_module_inventory(
             "local_dependency_count": sum(resolved_imports),
             "test_reference_count": test_counts.get(module_id, 0),
             "source_digest": _digest(text.encode("utf-8")),
+            "has_docstring": has_docstring,
         }
         modules.append(
             ModuleRecord(**body, content_address=_body_address(body, "module-inventory-module"))
@@ -822,6 +843,7 @@ def module_inventory_schema() -> dict[str, Any]:
             "local_dependency_count",
             "test_reference_count",
             "source_digest",
+            "has_docstring",
             "content_address",
         ],
         "guarantees": [

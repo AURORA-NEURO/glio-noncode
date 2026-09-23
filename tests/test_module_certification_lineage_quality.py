@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
+from unittest.mock import patch
 
 from glio_noncode.errors import ValidationError
 from glio_noncode.module_certification import build_module_certification
@@ -104,6 +105,31 @@ class LineageQualityFixture(unittest.TestCase):
             {"glio_noncode", "glio_noncode.alpha", "glio_noncode.beta"},
         )
         self.assertEqual(self.matrix.module_count, self.inventory.module_count)
+
+    def test_certification_can_consume_inventory_evidence_without_source_rescan(self) -> None:
+        evidence = {}
+        inventory = build_module_inventory(self.source, test_root=self.tests, evidence=evidence)
+        with (
+            patch(
+                "glio_noncode.module_certification._source_docstring_modules",
+                side_effect=AssertionError("source docstrings should be supplied by inventory"),
+            ) as source_scan,
+            patch(
+                "glio_noncode.module_certification._text_tokens",
+                return_value=({"glio_noncode.alpha"}, {"beta.py"}),
+            ) as token_scan,
+        ):
+            matrix = build_module_certification(
+                inventory,
+                source_root=self.source,
+                test_root=self.tests,
+                docs_root=self.docs,
+                test_modules=evidence["test_modules"],
+                source_docstring_modules=evidence["source_docstring_modules"],
+            )
+        self.assertEqual(matrix.content_address, self.matrix.content_address)
+        source_scan.assert_not_called()
+        token_scan.assert_called_once()
 
     def test_source_evidence_conserves_modules(self) -> None:
         source = [

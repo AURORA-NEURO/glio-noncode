@@ -21,7 +21,7 @@ The public inventory contains:
 
 | Resource | Meaning |
 | --- | --- |
-| `modules` | One row per discovered Python module with source digest, line counts, static role, family, and symbol/import counts |
+| `modules` | One row per discovered Python module with source digest, line counts, static role, family, symbol/import counts, and module-docstring evidence |
 | `symbols` | Public and private class/function declarations with source line spans |
 | `dependencies` | Local import edges with raw import spelling and explicit resolution state |
 | `issues` | Encoding or syntax failures retained as bounded rows |
@@ -46,7 +46,8 @@ Every module row contains the following fields:
 7. source and symbol counters;
 8. import and local-edge counters;
 9. `test_reference_count`;
-10. a raw source digest and row content address.
+10. `has_docstring`, a boolean captured from the already-parsed module AST;
+11. a raw source digest and row content address.
 
 The density property is derived from nonblank lines divided by physical lines.
 It is included as a view and is not used as a scientific score.
@@ -192,8 +193,11 @@ GET /v1/module-inventory/packet/verify?directory=module-inventory-packet
 
 Schema and capability routes are cheap declarations and do not scan the
 source tree. Inventory-producing routes are bounded in each returned page but
-may need to parse the full package before the first page is available. Within
-one server process, those routes reuse a server-local snapshot keyed by the
+may need to parse the full package before the first page is available. The
+first-pass inventory retains the module-docstring and test-reference evidence
+used by certification, so the workbench does not re-read or re-parse those
+same source/test files merely to build adjacent projections. Within one
+server process, those routes reuse a server-local snapshot keyed by the
 metadata of every Python source and test file; a changed file automatically
 invalidates the snapshot before the next request. Clients can still cache a
 packet or use the packet query route for repeatable offline exploration.

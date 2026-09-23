@@ -101,6 +101,7 @@ def module_inventory_modules_csv(value: ModuleInventory | Mapping[str, Any]) -> 
         "local_dependency_count",
         "test_reference_count",
         "source_digest",
+        "has_docstring",
         "content_address",
     )
     return _csv((item.to_dict() for item in selected.modules), fields)

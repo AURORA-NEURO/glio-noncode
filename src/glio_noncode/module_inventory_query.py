@@ -55,6 +55,7 @@ def _record(value: Mapping[str, Any]) -> ModuleRecord:
         test_reference_count=int(raw.get("test_reference_count", 0)),
         source_digest=str(raw.get("source_digest", "")),
         content_address=str(raw.get("content_address", "")),
+        has_docstring=bool(raw.get("has_docstring", False)),
     )
 
 

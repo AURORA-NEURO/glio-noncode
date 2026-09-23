@@ -133,6 +133,20 @@ class ModuleInventoryConstructionTests(ModuleInventoryFixture):
         broken = next(item for item in inventory.modules if item.module_id.endswith(".broken"))
         self.assertEqual(broken.state.value, "parse_error")
 
+    def test_build_evidence_captures_docstrings_and_test_tokens_once(self) -> None:
+        (self.root / "alpha.py").write_text(
+            '"""Documented alpha module."""\n\n'
+            "from glio_noncode.beta import Beta\n\n"
+            "class Alpha:\n    pass\n",
+            encoding="utf-8",
+        )
+        evidence = {}
+        inventory = build_module_inventory(self.root, test_root=self.tests, evidence=evidence)
+        alpha = next(item for item in inventory.modules if item.module_id.endswith(".alpha"))
+        self.assertTrue(alpha.has_docstring)
+        self.assertIn("glio_noncode.alpha", evidence["source_docstring_modules"])
+        self.assertIn("glio_noncode.alpha", evidence["test_modules"])
+
     def test_fully_qualified_symbol_reference_counts_for_its_module(self) -> None:
         (self.tests / "test_symbol.py").write_text(
             "# glio_noncode.gamma.gamma is exercised by this contract\n", encoding="utf-8"
@@ -416,7 +430,7 @@ class ModuleInventoryProcessBoundaryTests(unittest.TestCase):
             self.assertEqual(main(["module-inventory-schema", "--output", schema_path]), 0)
             self.assertEqual(
                 json.loads(Path(schema_path).read_text(encoding="utf-8"))["schema_version"],
-                "module-inventory-schema-v1",
+                "module-inventory-schema-v2",
             )
             capabilities_path = str(Path(directory) / "capabilities.json")
             self.assertEqual(
@@ -519,7 +533,7 @@ class ModuleInventoryProcessBoundaryTests(unittest.TestCase):
                     self.assertEqual(response.status, 200)
                     payload = json.loads(response.read())
                     self.assertEqual(
-                        payload["schema"]["schema_version"], "module-inventory-schema-v1"
+                        payload["schema"]["schema_version"], "module-inventory-schema-v2"
                     )
                     connection.close()
                     connection = HTTPConnection(host, port, timeout=60)
