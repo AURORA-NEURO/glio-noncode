@@ -25,7 +25,7 @@
     moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
     moduleTriageItems: [], moduleTriageTotal: 0, moduleTriageHasMore: false, moduleTriageListRequest: 0, moduleTriageFilterTimer: null, moduleTriageByModule: new Map(), selectedModuleTriage: null,
     moduleExecution: null, moduleExecutionRequest: 0, moduleExecutionPlan: null, moduleExecutionPlanRequest: 0, modulePortfolio: null, modulePortfolioRequest: 0,
-    moduleWorkbenchSummary: null, moduleExecutionSummary: null, moduleExecutionPacket: null, moduleExecutionPreview: null, moduleWorkbenchSummaryRequest: 0, moduleExecutionPreviewRequest: 0, moduleExecutionPacketRequest: 0,
+    moduleWorkbenchSummary: null, moduleWorkbenchObservation: null, moduleExecutionSummary: null, moduleExecutionPacket: null, moduleExecutionPreview: null, moduleWorkbenchSummaryRequest: 0, moduleExecutionPreviewRequest: 0, moduleExecutionPacketRequest: 0,
     moduleFilters: { q: "", risk: "", depth_band: "" }, moduleTriageFilters: { risk: "", reason: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
@@ -332,6 +332,7 @@
 
   function renderModuleWorkbenchOverview() {
     const summary = model.moduleWorkbenchSummary;
+    const observation = model.moduleWorkbenchObservation;
     const execution = model.moduleExecutionSummary;
     const accepted = summary?.accepted === true;
     $("module-workbench-overview-state").textContent = summary ? (accepted ? "Accepted" : "Review") : "—";
@@ -343,6 +344,17 @@
     $("module-workbench-overview-summary").textContent = summary
       ? `${formatCount(summary.module_count)} modules · ${formatCount(summary.task_count)} planned tasks · ${formatCount(summary.family_count)} families · ${shortened(summary.content_address, 50)}`
       : "Verifying addressed workbench summary…";
+    const observationReady = observation?.accepted === true;
+    const cacheMode = observation?.rebuild_mode || "—";
+    $("module-workbench-cache-state").textContent = observation ? (observationReady ? "Verified" : "Review") : "—";
+    $("module-workbench-cache-state").className = "quiet-tag" + (observationReady ? " ready" : "");
+    $("module-workbench-cache-mode").textContent = cacheMode;
+    $("module-workbench-cache-reused").textContent = observation ? formatCount(observation.reused_module_count) : "—";
+    $("module-workbench-cache-reparsed").textContent = observation ? formatCount(observation.reparsed_module_count) : "—";
+    $("module-workbench-cache-inputs").textContent = observation ? formatCount(observation.source_file_count) + " / " + formatCount(observation.test_file_count) : "—";
+    $("module-workbench-cache-summary").textContent = observation
+      ? (observation.cache_hit ? "Durable snapshot accepted" : cacheMode + " rebuild completed") + " · " + formatCount(observation.module_count) + " modules · " + shortened(observation.content_address, 50)
+      : "Verifying cache and rebuild provenance…";
     const executionAccepted = execution?.accepted === true;
     $("module-execution-overview-state").textContent = execution ? (executionAccepted ? "Accepted" : "Review") : "—";
     $("module-execution-overview-state").className = `quiet-tag${executionAccepted ? " ready" : ""}`;
@@ -388,8 +400,9 @@
   async function loadModuleWorkbenchOverview() {
     const request = model.moduleWorkbenchSummaryRequest = (model.moduleWorkbenchSummaryRequest || 0) + 1;
     try {
-      const [summary, execution, packet, release, archive] = await Promise.all([
+      const [summary, observation, execution, packet, release, archive] = await Promise.all([
         getJson("/v1/module-workbench?format=summary"),
+        getJson("/v1/module-workbench/observability"),
         getJson("/v1/module-workbench/execution?include_items=false&include_events=false"),
         getJson("/v1/module-workbench/execution/packet"),
         getJson("/v1/module-workbench/execution/packet/release?format=summary"),
@@ -399,6 +412,9 @@
       if (typeof summary.content_address !== "string" || typeof summary.accepted !== "boolean" || !Number.isFinite(summary.overall_score) || !Number.isFinite(summary.depth_percent) || !Number.isSafeInteger(summary.module_count) || !Number.isSafeInteger(summary.task_count) || !Number.isSafeInteger(summary.family_count) || !Number.isSafeInteger(summary.high_risk_count) || !Number.isSafeInteger(summary.blocked_count)) {
         throw new Error("The local API returned an invalid module workbench summary.");
       }
+      if (!(observation.rebuild_mode === "snapshot" || observation.rebuild_mode === "incremental" || observation.rebuild_mode === "full") || typeof observation.content_address !== "string" || typeof observation.cache_hit !== "boolean" || typeof observation.accepted !== "boolean" || !Number.isSafeInteger(observation.source_file_count) || !Number.isSafeInteger(observation.test_file_count) || !Number.isSafeInteger(observation.module_count) || !Number.isSafeInteger(observation.reused_module_count) || !Number.isSafeInteger(observation.reparsed_module_count) || observation.reused_module_count + observation.reparsed_module_count !== observation.module_count || observation.module_count !== summary.module_count) {
+        throw new Error("The local API returned invalid module workbench cache provenance.");
+      }
       if (execution.version !== "module-workbench-execution-v1" || typeof execution.content_address !== "string" || typeof execution.portfolio_address !== "string" || typeof execution.accepted !== "boolean" || !Number.isSafeInteger(execution.task_count) || !Number.isSafeInteger(execution.event_count) || !Number.isSafeInteger(execution.completed_count) || !Number.isSafeInteger(execution.in_progress_count) || !Number.isSafeInteger(execution.blocked_count) || !Number.isFinite(execution.completion_percent) || !Number.isFinite(execution.evidence_coverage_percent)) {
         throw new Error("The local API returned an invalid durable execution summary.");
       }
@@ -406,12 +422,14 @@
         throw new Error("The local API returned an invalid execution handoff.");
       }
       model.moduleWorkbenchSummary = summary;
+      model.moduleWorkbenchObservation = observation;
       model.moduleExecutionSummary = execution;
       model.moduleExecutionPacket = { packet, release, archive };
       renderModuleWorkbenchOverview();
     } catch (error) {
       if (request !== model.moduleWorkbenchSummaryRequest) return;
       model.moduleWorkbenchSummary = null;
+      model.moduleWorkbenchObservation = null;
       model.moduleExecutionSummary = null;
       model.moduleExecutionPacket = null;
       renderModuleWorkbenchOverview();

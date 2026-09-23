@@ -195,6 +195,13 @@ in the review-pressure panel. Queue responses are generation-gated and are
 accepted only when the triage address, page bounds, and read-only contract are
 valid.
 
+The overview also loads `/v1/module-workbench/observability`. Its cache and
+source-reuse panel distinguishes an exact durable `snapshot` from an
+`incremental` or `full` rebuild, shows reused and reparsed module counts, and
+shows source/test input counts. The panel validates that those counts conserve
+the current module summary before displaying them; it does not display local
+cache paths or source-root machine paths.
+
 Each dossier also requests the bounded
 `/v1/module-workbench/execution/query?resource=items&module_id=...` projection.
 The execution panel shows selected task state, completion percentage, required
