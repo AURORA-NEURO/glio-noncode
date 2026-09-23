@@ -3614,9 +3614,9 @@ class ApiHandler(BaseHTTPRequestHandler):
         value = getattr(self.server, "glio_module_workbench_cache_path", None)
         return Path(value) if value is not None else None
 
-    def _load_module_workbench_snapshot(
-        self, signature: tuple[tuple[str, int, int], ...]
-    ) -> tuple[Any, Any, Any, Any, Any] | None:
+    def _load_module_workbench_cache_payload(self) -> Mapping[str, Any] | None:
+        """Load and size-bound the durable workbench cache envelope."""
+
         path = self._module_workbench_cache_path()
         if path is None or not path.exists() or path.is_symlink() or not path.is_file():
             return None
@@ -3627,7 +3627,48 @@ class ApiHandler(BaseHTTPRequestHandler):
                 field="module workbench cache",
             )
             payload = json.loads(gzip.decompress(raw).decode("utf-8"))
-            if not isinstance(payload, Mapping):
+            return payload if isinstance(payload, Mapping) else None
+        except (
+            OSError,
+            UnicodeDecodeError,
+            ValueError,
+            ValidationError,
+            EOFError,
+            gzip.BadGzipFile,
+            zlib.error,
+        ):
+            return None
+
+    @staticmethod
+    def _module_workbench_cache_signature(
+        payload: Mapping[str, Any],
+    ) -> tuple[tuple[str, int, int], ...] | None:
+        """Validate and normalize a persisted source/test signature."""
+
+        raw_signature = payload.get("signature")
+        if not isinstance(raw_signature, list):
+            return None
+        rows: list[tuple[str, int, int]] = []
+        for row in raw_signature:
+            if (
+                not isinstance(row, list)
+                or len(row) != 3
+                or not isinstance(row[0], str)
+                or isinstance(row[1], bool)
+                or not isinstance(row[1], int)
+                or isinstance(row[2], bool)
+                or not isinstance(row[2], int)
+            ):
+                return None
+            rows.append((row[0], row[1], row[2]))
+        return tuple(rows)
+
+    def _load_module_workbench_snapshot(
+        self, signature: tuple[tuple[str, int, int], ...]
+    ) -> tuple[Any, Any, Any, Any, Any] | None:
+        try:
+            payload = self._load_module_workbench_cache_payload()
+            if payload is None:
                 return None
             legacy = "payload_digest" not in payload
             snapshot = snapshot_from_mapping(
@@ -3638,6 +3679,35 @@ class ApiHandler(BaseHTTPRequestHandler):
             if legacy:
                 self._persist_module_workbench_snapshot(signature, *snapshot)
             return snapshot
+        except (
+            OSError,
+            UnicodeDecodeError,
+            ValueError,
+            ValidationError,
+            EOFError,
+            gzip.BadGzipFile,
+            zlib.error,
+        ):
+            return None
+
+    def _load_module_workbench_previous_inventory(
+        self,
+    ) -> tuple[Any, tuple[tuple[str, int, int], ...]] | None:
+        """Hydrate only a stale inventory so unchanged source rows can be reused."""
+
+        payload = self._load_module_workbench_cache_payload()
+        if payload is None:
+            return None
+        try:
+            stored_signature = self._module_workbench_cache_signature(payload)
+            if stored_signature is None:
+                return None
+            snapshot = snapshot_from_mapping(
+                payload,
+                stored_signature,
+                verify_nested=False,
+            )
+            return snapshot[0], stored_signature
         except (
             OSError,
             UnicodeDecodeError,
@@ -3743,6 +3813,25 @@ class ApiHandler(BaseHTTPRequestHandler):
                             inventory_state["inventory"] = inventory
                             inventory_state["signature"] = signature
                 else:
+                    previous_inventory = self._load_module_workbench_previous_inventory()
+                    if previous_inventory is not None:
+                        inventory_state = getattr(
+                            self.server, "glio_module_inventory_snapshot", None
+                        )
+                        if inventory_state is None:
+                            inventory_state = {
+                                "lock": RLock(),
+                                "signature": None,
+                                "inventory": None,
+                            }
+                            setattr(
+                                self.server,
+                                "glio_module_inventory_snapshot",
+                                inventory_state,
+                            )
+                        with inventory_state["lock"]:
+                            inventory_state["inventory"] = previous_inventory[0]
+                            inventory_state["signature"] = previous_inventory[1]
                     evidence: dict[str, Any] = {}
                     inventory, matrix, _, _, _ = self._module_certification_context(
                         include_certification=False,

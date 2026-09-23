@@ -8,6 +8,12 @@ batch, workflow, and report routes instead use the configured server-owned
 artifact carries or returns the address of the report or runtime from which it
 was produced.
 
+The module-workbench snapshot is restart-aware: when a durable snapshot is
+stale, its canonical envelope and stored source signature are validated, then
+only unchanged inventory rows are reused by path, size, and modification
+metadata. Current test references and all certification, lineage, quality, and
+workbench aggregates are rebuilt before the replacement snapshot is persisted.
+
 ## Endpoints
 
 | Method | Path | Purpose |

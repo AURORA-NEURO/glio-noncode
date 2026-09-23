@@ -202,6 +202,13 @@ metadata of every Python source and test file; a changed file automatically
 invalidates the snapshot before the next request. Clients can still cache a
 packet or use the packet query route for repeatable offline exploration.
 
+After a restart, a stale durable workbench snapshot can still donate its
+previous inventory to the incremental builder. The persisted envelope is
+checked for its canonical digest and stored signature first; only rows whose
+current path, size, and modification metadata match are eligible for reuse.
+The full certification, lineage, quality, and workbench aggregates are then
+rebuilt against the current inventory before the snapshot is replaced.
+
 When a source or test file changes while the service remains running, the
 inventory builder compares the prior source metadata and module universe. It
 reuses unchanged module rows, symbols, dependencies, and parse issues, then

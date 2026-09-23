@@ -358,6 +358,80 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         loaded = handler._load_module_workbench_snapshot(signature)
         assert loaded is not None
         self.assertEqual(loaded[4].content_address, workbench.content_address)
+        previous = handler._load_module_workbench_previous_inventory()
+        assert previous is not None
+        self.assertEqual(previous[0].content_address, inventory.content_address)
+        self.assertEqual(previous[1], signature)
+        self.assertIsNone(handler._load_module_workbench_snapshot((('0:core.py', 10, 19),)))
+
+    def test_stale_durable_snapshot_seeds_incremental_inventory_context(self) -> None:
+        inventory = build_module_inventory(self.package, test_root=self.tests)
+        matrix = build_module_certification(
+            inventory,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        lineage = build_module_certification_lineage(
+            inventory,
+            matrix=matrix,
+            source_root=self.package,
+            test_root=self.tests,
+            docs_root=self.docs,
+        )
+        quality = build_module_certification_quality(matrix, lineage)
+        workbench = build_module_workbench(inventory, matrix, lineage, quality)
+        signature = (("0:core.py", 10, 20), ("1:test_core.py", 11, 21))
+        changed_signature = (("0:core.py", 10, 22), ("1:test_core.py", 11, 21))
+        cache_directory = Path(self.directory.name) / "stale-cache"
+        cache_directory.mkdir()
+        handler = object.__new__(ApiHandler)
+        handler.server = type(
+            "Server",
+            (),
+            {"glio_module_workbench_cache_path": cache_directory / "snapshot.json.gz"},
+        )()
+        handler._persist_module_workbench_snapshot(
+            signature, inventory, matrix, lineage, quality, workbench
+        )
+        rebuilt_lineage = object()
+        rebuilt_quality = object()
+        rebuilt_workbench = object()
+
+        def certification_context(*, include_certification: bool, evidence: dict[str, object]):
+            self.assertFalse(include_certification)
+            inventory_state = handler.server.glio_module_inventory_snapshot
+            self.assertEqual(inventory_state["inventory"].content_address, inventory.content_address)
+            return inventory, matrix, None, None, None
+
+        with (
+            patch(
+                "glio_noncode.api._module_inventory_source_signature",
+                return_value=changed_signature,
+            ),
+            patch.object(
+                handler,
+                "_module_certification_context",
+                side_effect=certification_context,
+            ),
+            patch(
+                "glio_noncode.api.build_module_certification_lineage",
+                return_value=rebuilt_lineage,
+            ),
+            patch(
+                "glio_noncode.api.build_module_certification_quality",
+                return_value=rebuilt_quality,
+            ),
+            patch(
+                "glio_noncode.api.build_module_workbench",
+                return_value=rebuilt_workbench,
+            ),
+            patch.object(handler, "_persist_module_workbench_snapshot"),
+        ):
+            result = handler._module_workbench_context()
+        self.assertIs(result[0], rebuilt_lineage)
+        self.assertIs(result[1], rebuilt_quality)
+        self.assertIs(result[2], rebuilt_workbench)
 
     def test_module_workbench_detail_joins_all_review_planes(self) -> None:
         inventory = build_module_inventory(self.package, test_root=self.tests)
