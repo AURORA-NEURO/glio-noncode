@@ -335,11 +335,15 @@ def snapshot_from_mapping(
 
     if _text(value.get("schema"), "cache.schema") != MODULE_WORKBENCH_CACHE_SCHEMA:
         raise ValidationError("module workbench cache schema is unsupported")
-    payload_digest = _text(value.get("payload_digest"), "cache.payload_digest")
-    unsigned = {key: item for key, item in value.items() if key != "payload_digest"}
-    expected_digest = hashlib.sha256(canonical_json(unsigned).encode("utf-8")).hexdigest()
-    if payload_digest != expected_digest:
-        raise ValidationError("module workbench cache payload digest is invalid")
+    payload_digest = value.get("payload_digest")
+    if payload_digest is not None:
+        payload_digest = _text(payload_digest, "cache.payload_digest")
+        unsigned = {key: item for key, item in value.items() if key != "payload_digest"}
+        expected_digest = hashlib.sha256(canonical_json(unsigned).encode("utf-8")).hexdigest()
+        if payload_digest != expected_digest:
+            raise ValidationError("module workbench cache payload digest is invalid")
+    elif not verify_nested:
+        raise ValidationError("module workbench cache payload digest is missing")
     raw_signature = _sequence(value.get("signature", ()), "cache.signature")
     normalized_signature = tuple(tuple(item) for item in raw_signature)
     if normalized_signature != signature:

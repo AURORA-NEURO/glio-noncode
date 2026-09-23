@@ -3569,7 +3569,15 @@ class ApiHandler(BaseHTTPRequestHandler):
             payload = json.loads(gzip.decompress(raw).decode("utf-8"))
             if not isinstance(payload, Mapping):
                 return None
-            return snapshot_from_mapping(payload, signature, verify_nested=False)
+            legacy = "payload_digest" not in payload
+            snapshot = snapshot_from_mapping(
+                payload,
+                signature,
+                verify_nested=legacy,
+            )
+            if legacy:
+                self._persist_module_workbench_snapshot(signature, *snapshot)
+            return snapshot
         except (
             OSError,
             UnicodeDecodeError,
