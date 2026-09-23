@@ -10331,6 +10331,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
     module_workbench_detail.add_argument("--docs-root", default=None)
+    module_workbench_detail.add_argument("--cache-root", default=None)
     module_workbench_detail.add_argument("--module-id", required=True)
     module_workbench_detail.add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-detail-schema", help="print module workbench detail schema").add_argument("--output", default=None)
@@ -10339,6 +10340,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_policy.add_argument("--source-root", default=None)
     module_workbench_policy.add_argument("--test-root", default=None)
     module_workbench_policy.add_argument("--docs-root", default=None)
+    module_workbench_policy.add_argument("--cache-root", default=None)
     module_workbench_policy.add_argument("--minimum-overall-score", default=0.70, type=float)
     module_workbench_policy.add_argument("--minimum-depth-percent", default=70.0, type=float)
     module_workbench_policy.add_argument("--maximum-blocked-count", default=0, type=int)
@@ -10359,6 +10361,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_audit.add_argument("--source-root", default=None)
     module_workbench_audit.add_argument("--test-root", default=None)
     module_workbench_audit.add_argument("--docs-root", default=None)
+    module_workbench_audit.add_argument("--cache-root", default=None)
     module_workbench_audit.add_argument("--plane", default=None)
     module_workbench_audit.add_argument("--passed", action="store_true")
     module_workbench_audit.add_argument("--text", default=None)
@@ -10390,6 +10393,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_runtime.add_argument("--source-root", default=None)
     module_workbench_runtime.add_argument("--test-root", default=None)
     module_workbench_runtime.add_argument("--docs-root", default=None)
+    module_workbench_runtime.add_argument("--cache-root", default=None)
     module_workbench_runtime.add_argument("--resource", choices=("stages", "summary"), default="stages")
     module_workbench_runtime.add_argument("--state", default=None)
     module_workbench_runtime.add_argument("--accepted", action="store_true")
@@ -10405,6 +10409,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_portfolio.add_argument("--source-root", default=None)
     module_workbench_portfolio.add_argument("--test-root", default=None)
     module_workbench_portfolio.add_argument("--docs-root", default=None)
+    module_workbench_portfolio.add_argument("--cache-root", default=None)
     module_workbench_portfolio.add_argument("--capacity", default=100, type=int)
     module_workbench_portfolio.add_argument("--max-tasks-per-module", default=2, type=int)
     module_workbench_portfolio.add_argument("--minimum-priority", default=0, type=int)
@@ -10424,6 +10429,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_triage.add_argument("--source-root", default=None)
     module_workbench_triage.add_argument("--test-root", default=None)
     module_workbench_triage.add_argument("--docs-root", default=None)
+    module_workbench_triage.add_argument("--cache-root", default=None)
     module_workbench_triage.add_argument("--module-id", default=None)
     module_workbench_triage.add_argument("--risk", default=None)
     module_workbench_triage.add_argument("--depth-band", default=None)
@@ -10441,6 +10447,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_execution.add_argument("--source-root", default=None)
     module_workbench_execution.add_argument("--test-root", default=None)
     module_workbench_execution.add_argument("--docs-root", default=None)
+    module_workbench_execution.add_argument("--cache-root", default=None)
     module_workbench_execution.add_argument("--capacity", default=100, type=int)
     module_workbench_execution.add_argument("--max-tasks-per-module", default=2, type=int)
     module_workbench_execution.add_argument("--resource", choices=("items", "events", "blockers", "summary"), default="items")
@@ -10462,6 +10469,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_execution_audit.add_argument("--source-root", default=None)
     module_workbench_execution_audit.add_argument("--test-root", default=None)
     module_workbench_execution_audit.add_argument("--docs-root", default=None)
+    module_workbench_execution_audit.add_argument("--cache-root", default=None)
     module_workbench_execution_audit.add_argument("--plane", default=None)
     module_workbench_execution_audit.add_argument("--passed", action="store_true")
     module_workbench_execution_audit.add_argument("--text", default=None)
@@ -10476,6 +10484,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_execution_policy.add_argument("--source-root", default=None)
     module_workbench_execution_policy.add_argument("--test-root", default=None)
     module_workbench_execution_policy.add_argument("--docs-root", default=None)
+    module_workbench_execution_policy.add_argument("--cache-root", default=None)
     module_workbench_execution_policy.add_argument("--minimum-completion-percent", default=0.0, type=float)
     module_workbench_execution_policy.add_argument("--minimum-evidence-coverage-percent", default=0.0, type=float)
     module_workbench_execution_policy.add_argument("--maximum-blocked-count", default=0, type=int)
@@ -10494,6 +10503,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_execution_runtime.add_argument("--source-root", default=None)
     module_workbench_execution_runtime.add_argument("--test-root", default=None)
     module_workbench_execution_runtime.add_argument("--docs-root", default=None)
+    module_workbench_execution_runtime.add_argument("--cache-root", default=None)
     module_workbench_execution_runtime.add_argument("--resource", choices=("stages", "summary"), default="stages")
     module_workbench_execution_runtime.add_argument("--state", default=None)
     module_workbench_execution_runtime.add_argument("--accepted", action="store_true")
@@ -10526,6 +10536,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_execution_review.add_argument("--source-root", default=None)
     module_workbench_execution_review.add_argument("--test-root", default=None)
     module_workbench_execution_review.add_argument("--docs-root", default=None)
+    module_workbench_execution_review.add_argument("--cache-root", default=None)
     module_workbench_execution_review.add_argument("--resource", choices=("modules", "tasks", "summary"), default="modules")
     module_workbench_execution_review.add_argument("--module-id", default=None)
     module_workbench_execution_review.add_argument("--family", default=None)
@@ -10543,6 +10554,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_execution_packet.add_argument("--source-root", default=None)
     module_workbench_execution_packet.add_argument("--test-root", default=None)
     module_workbench_execution_packet.add_argument("--docs-root", default=None)
+    module_workbench_execution_packet.add_argument("--cache-root", default=None)
     module_workbench_execution_packet.add_argument("--capacity", default=100, type=int)
     module_workbench_execution_packet.add_argument("--max-tasks-per-module", default=2, type=int)
     module_workbench_execution_packet.add_argument("--packet-id", default="glio-noncode-module-workbench-execution-packet")
@@ -10612,6 +10624,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_execution_packet_runtime.add_argument("--source-root", default=None)
     module_workbench_execution_packet_runtime.add_argument("--test-root", default=None)
     module_workbench_execution_packet_runtime.add_argument("--docs-root", default=None)
+    module_workbench_execution_packet_runtime.add_argument("--cache-root", default=None)
     module_workbench_execution_packet_runtime.add_argument("--capacity", default=100, type=int)
     module_workbench_execution_packet_runtime.add_argument("--max-tasks-per-module", default=2, type=int)
     module_workbench_execution_packet_runtime.add_argument("--destination", default=None)
@@ -48571,22 +48584,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_detail_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-detail":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             detail = build_module_workbench_detail(
                 inventory,
                 matrix,
@@ -48673,22 +48671,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_policy_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-policy":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             policy = build_module_workbench_policy(
                 minimum_overall_score=args.minimum_overall_score,
                 minimum_depth_percent=args.minimum_depth_percent,
@@ -48726,22 +48709,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_audit_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-audit":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             audit = audit_module_workbench(workbench)
             if args.format == "csv":
                 _write_text(module_workbench_audit_csv(audit), args.output)
@@ -48834,10 +48802,9 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_runtime_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-runtime":
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             runtime = run_module_workbench(
-                args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
+                chain=(inventory, matrix, lineage, quality, workbench),
             )
             if args.format == "csv":
                 _write_text(module_workbench_runtime_csv(runtime), args.output)
@@ -48864,25 +48831,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_portfolio_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-portfolio":
-            inventory = build_module_inventory(
-                args.source_root,
-                test_root=args.test_root,
-            )
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             portfolio = build_module_workbench_portfolio(
                 workbench,
                 capacity=args.capacity,
@@ -48918,22 +48867,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_triage_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-triage":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             triage = build_module_workbench_triage(workbench, matrix, lineage, quality)
             if args.format == "csv":
                 _write_text(module_workbench_triage_csv(triage), args.output)
@@ -48968,22 +48902,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_execution_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-execution":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             portfolio = build_module_workbench_portfolio(
                 workbench,
                 capacity=args.capacity,
@@ -49032,22 +48951,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_execution_audit_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-execution-audit":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             audit = audit_module_workbench_execution(build_module_workbench_execution(workbench))
             if args.format == "csv":
                 _write_text(module_workbench_execution_audit_csv(audit), args.output)
@@ -49073,22 +48977,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_execution_policy_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-execution-policy":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             ledger = build_module_workbench_execution(workbench)
             policy = build_module_workbench_execution_policy(
                 minimum_completion_percent=args.minimum_completion_percent,
@@ -49123,22 +49012,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_execution_runtime_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-execution-runtime":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             runtime = run_module_workbench_execution(workbench)
             if args.format == "csv":
                 _write_text(module_workbench_execution_runtime_csv(runtime), args.output)
@@ -49220,22 +49094,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_execution_review_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-execution-review":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             review = build_module_workbench_execution_review(
                 build_module_workbench_execution(workbench)
             )
@@ -49278,22 +49137,7 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_execution_packet_query_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-execution-packet":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             portfolio = build_module_workbench_portfolio(
                 workbench,
                 capacity=args.capacity,
@@ -54042,22 +53886,7 @@ def main(argv: list[str] | None = None) -> int:
                 _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_json(result), args.output)
             return 0 if result.get("accepted", False) else 2
         if args.command == "module-workbench-execution-packet-runtime":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            inventory, matrix, lineage, quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             portfolio = build_module_workbench_portfolio(
                 workbench,
                 capacity=args.capacity,

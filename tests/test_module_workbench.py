@@ -653,6 +653,66 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         )
         self.assertIn(report.assessments[0].risk, tuple(ModuleWorkbenchRisk))
 
+    def test_control_plane_cli_commands_reuse_the_workbench_cache(self) -> None:
+        from glio_noncode.cli import main
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cache_root = root / "workbench-cache"
+            commands = (
+                (
+                    "module-workbench-detail",
+                    ("--module-id", "glio_noncode.core"),
+                    "detail.json",
+                ),
+                ("module-workbench-policy", ("--format", "summary"), "policy.json"),
+                ("module-workbench-audit", ("--format", "json"), "audit.json"),
+                ("module-workbench-runtime", ("--format", "json"), "runtime.json"),
+                (
+                    "module-workbench-portfolio",
+                    ("--format", "summary"),
+                    "portfolio.json",
+                ),
+                ("module-workbench-triage", ("--format", "summary"), "triage.json"),
+                (
+                    "module-workbench-execution",
+                    ("--format", "summary"),
+                    "execution.json",
+                ),
+                (
+                    "module-workbench-execution-review",
+                    ("--format", "summary"),
+                    "review.json",
+                ),
+                (
+                    "module-workbench-execution-packet",
+                    ("--format", "summary"),
+                    "packet.json",
+                ),
+            )
+            for command, options, filename in commands:
+                output = root / filename
+                result = main(
+                    [
+                        command,
+                        "--source-root",
+                        str(self.package),
+                        "--test-root",
+                        str(self.tests),
+                        "--docs-root",
+                        str(self.docs),
+                        "--cache-root",
+                        str(cache_root),
+                        *options,
+                        "--output",
+                        str(output),
+                    ]
+                )
+                self.assertIn(result, (0, 2), command)
+                self.assertTrue(output.exists(), command)
+                self.assertTrue(output.read_text(encoding="utf-8"), command)
+            self.assertTrue((cache_root / "snapshot.json.gz").exists())
+
     def test_queries_filter_modules_tasks_families_and_risks(self) -> None:
         report = self.report()
         modules = query_module_workbench(report, resource="modules", module_id="glio_noncode.core")

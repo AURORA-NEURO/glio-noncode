@@ -142,25 +142,29 @@ def run_module_workbench(
     test_root: str | Path | None = None,
     docs_root: str | Path | None = None,
     policy: ModuleWorkbenchPolicy | None = None,
+    chain: tuple[ModuleInventory, Any, Any, Any, ModuleWorkbenchReport] | None = None,
 ) -> ModuleWorkbenchRuntime:
     """Run inventory through independent workbench audit in one pass."""
 
-    inventory = build_module_inventory(source_root, test_root=test_root)
-    matrix = build_module_certification(
-        inventory,
-        source_root=source_root,
-        test_root=test_root,
-        docs_root=docs_root,
-    )
-    lineage = build_module_certification_lineage(
-        inventory,
-        matrix=matrix,
-        source_root=source_root,
-        test_root=test_root,
-        docs_root=docs_root,
-    )
-    quality = build_module_certification_quality(matrix, lineage)
-    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+    if chain is None:
+        inventory = build_module_inventory(source_root, test_root=test_root)
+        matrix = build_module_certification(
+            inventory,
+            source_root=source_root,
+            test_root=test_root,
+            docs_root=docs_root,
+        )
+        lineage = build_module_certification_lineage(
+            inventory,
+            matrix=matrix,
+            source_root=source_root,
+            test_root=test_root,
+            docs_root=docs_root,
+        )
+        quality = build_module_certification_quality(matrix, lineage)
+        workbench = build_module_workbench(inventory, matrix, lineage, quality)
+    else:
+        inventory, matrix, lineage, quality, workbench = chain
     selected_policy = policy or default_module_workbench_policy()
     gate = evaluate_module_workbench_policy(workbench, selected_policy)
     audit = audit_module_workbench(workbench)

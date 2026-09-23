@@ -1703,8 +1703,8 @@ python -m glio_noncode module-workbench --resource tasks --format csv --output m
 python -m glio_noncode module-workbench --resource modules --risk high --limit 50
 python -m glio_noncode module-workbench-triage --risk blocker --limit 25
 python -m glio_noncode module-workbench-triage --reason unresolved_lineage --format markdown
-python -m glio_noncode module-workbench-policy --format summary
-python -m glio_noncode module-workbench-audit --format csv --output module-audit.csv
+python -m glio_noncode module-workbench-policy --format summary --cache-root .glio/module-cache
+python -m glio_noncode module-workbench-audit --format csv --cache-root .glio/module-cache --output module-audit.csv
 python -m glio_noncode module-workbench-observability --output workbench-observability.json
 python -m glio_noncode module-workbench-observability --cache-root .glio/module-cache
 ```
@@ -1739,11 +1739,11 @@ snapshot diffs keep implementation progress reviewable without claiming that
 selection or completion proves scientific validity.
 
 ```powershell
-python -m glio_noncode module-workbench-execution --format summary
+python -m glio_noncode module-workbench-execution --format summary --cache-root .glio/module-cache
 python -m glio_noncode module-workbench-execution --resource items --format csv --output execution-items.csv
-python -m glio_noncode module-workbench-execution-audit --format csv --output execution-audit.csv
-python -m glio_noncode module-workbench-execution-policy --format summary
-python -m glio_noncode module-workbench-execution-runtime --format json
+python -m glio_noncode module-workbench-execution-audit --format csv --cache-root .glio/module-cache --output execution-audit.csv
+python -m glio_noncode module-workbench-execution-policy --format summary --cache-root .glio/module-cache
+python -m glio_noncode module-workbench-execution-runtime --format json --cache-root .glio/module-cache
 ```
 
 See [docs/MODULE_WORKBENCH_EXECUTION.md](docs/MODULE_WORKBENCH_EXECUTION.md)

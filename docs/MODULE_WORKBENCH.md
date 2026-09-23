@@ -167,6 +167,27 @@ glio-noncode module-workbench --format summary \
   --cache-root .glio/module-cache --output module-workbench-summary.json
 ```
 
+The same cache-root contract is available on the detail, policy, audit,
+runtime, portfolio, triage, and execution control-plane commands. They reuse
+the addressed inventory, certification, lineage, quality, and workbench
+artifacts before producing their own projections, so a script can walk the
+full review surface without rebuilding the source chain for every command:
+
+```text
+glio-noncode module-workbench-detail --module-id glio_noncode.module_inventory \
+  --cache-root .glio/module-cache --output module-detail.json
+glio-noncode module-workbench-policy --format summary \
+  --cache-root .glio/module-cache --output module-policy.json
+glio-noncode module-workbench-triage --format summary \
+  --cache-root .glio/module-cache --output module-triage.json
+glio-noncode module-workbench-execution --format summary \
+  --cache-root .glio/module-cache --output module-execution.json
+```
+
+Execution audit, policy, runtime, review, packet, and packet-runtime exports
+accept the same option. Diff commands remain separate because they intentionally
+construct two independently rooted snapshots.
+
 Build a complete dossier for one module, including its workbench assessment,
 certification checks and gaps, lineage evidence, and planned tasks:
 
