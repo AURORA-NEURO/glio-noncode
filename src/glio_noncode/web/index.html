@@ -134,6 +134,12 @@
             </div>
             <p id="module-execution-preview-text" class="muted small">Change the bounds to inspect a dependency-aware wave without changing durable execution state.</p>
             <div id="module-execution-preview-summary" class="provenance-grid"></div>
+            <div class="section-head module-execution-overview-head"><div><p class="eyebrow">Durable execution</p><h3>Start the next ready slice</h3></div><span id="module-execution-batch-state" class="quiet-tag">Atomic</span></div>
+            <div class="module-plan-preview-controls">
+              <label><span class="control-label">Ready tasks</span><input id="module-execution-batch-size" type="number" min="1" max="128" value="2" inputmode="numeric"></label>
+              <button id="module-execution-batch-button" class="button quiet" type="button">Start ready slice</button>
+            </div>
+            <p id="module-execution-batch-text" class="muted small">Starts up to the selected number of ready tasks with one optimistic, durable, all-or-nothing command batch.</p>
           </section>
           <div class="module-workbench-filters" aria-label="Module workbench filters">
             <label><span class="control-label">Find module</span><input id="module-workbench-search" type="search" autocomplete="off" placeholder="module, role, or signal"></label>

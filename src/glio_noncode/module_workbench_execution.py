@@ -315,6 +315,26 @@ def _prerequisites_complete(
     )
 
 
+def _active_dependents(
+    item: ModuleWorkbenchExecutionItem,
+    items: Mapping[str, ModuleWorkbenchExecutionItem],
+) -> tuple[str, ...]:
+    """Return dependents whose active state would be invalidated by reopening."""
+
+    active_states = {
+        ModuleWorkbenchExecutionState.READY,
+        ModuleWorkbenchExecutionState.IN_PROGRESS,
+        ModuleWorkbenchExecutionState.COMPLETED,
+    }
+    return tuple(
+        sorted(
+            candidate.task_id
+            for candidate in items.values()
+            if item.task_id in candidate.prerequisites and candidate.state in active_states
+        )
+    )
+
+
 def _transition_target(
     item: ModuleWorkbenchExecutionItem,
     command: ModuleWorkbenchExecutionCommand,
@@ -370,6 +390,12 @@ def _transition_target(
             raise ValidationError("only completed or skipped tasks can be reopened")
         if not _prerequisites_complete(item, items):
             raise ValidationError("task prerequisites are not complete")
+        active_dependents = _active_dependents(item, items)
+        if active_dependents:
+            raise ValidationError(
+                "reopen requires downstream tasks to be inactive: "
+                f"{list(active_dependents[:3])}"
+            )
         return ModuleWorkbenchExecutionState.READY, 0.0, (), ()
     if action is ModuleWorkbenchExecutionAction.SUPERSEDE:
         if _state_is_terminal(state):
@@ -439,6 +465,87 @@ def _event(
     )
 
 
+def _readied_item(item: ModuleWorkbenchExecutionItem) -> ModuleWorkbenchExecutionItem:
+    """Promote a planned dependent after every prerequisite is complete."""
+
+    detail = "Prerequisites complete; ready for execution"
+    body = {
+        "task_id": item.task_id,
+        "module_id": item.module_id,
+        "family": item.family,
+        "kind": item.kind,
+        "priority": item.priority,
+        "estimated_impact": item.estimated_impact,
+        "prerequisites": item.prerequisites,
+        "requirements": item.requirements,
+        "required_evidence_count": item.required_evidence_count,
+        "initial_state": item.initial_state,
+        "state": ModuleWorkbenchExecutionState.READY,
+        "completion_percent": 0.0,
+        "event_count": item.event_count + 1,
+        "evidence_addresses": item.evidence_addresses,
+        "blockers": (),
+        "detail": detail,
+    }
+    return ModuleWorkbenchExecutionItem(
+        **body,
+        content_address=address_module_workbench_execution_item(
+            ModuleWorkbenchExecutionItem(**body, content_address="pending")
+        ),
+    )
+
+
+def _readied_event(
+    sequence: int,
+    item: ModuleWorkbenchExecutionItem,
+    updated: ModuleWorkbenchExecutionItem,
+) -> ModuleWorkbenchExecutionEvent:
+    """Create the addressed event for deterministic prerequisite promotion."""
+
+    body = {
+        "event_id": f"{item.task_id}#{sequence}#readied",
+        "sequence": sequence,
+        "task_id": item.task_id,
+        "from_state": item.state,
+        "to_state": updated.state,
+        "kind": ModuleWorkbenchExecutionEventKind.READIED,
+        "detail": updated.detail,
+        "evidence_addresses": (),
+    }
+    return ModuleWorkbenchExecutionEvent(
+        **body,
+        content_address=address_module_workbench_execution_event(
+            ModuleWorkbenchExecutionEvent(**body, content_address="pending")
+        ),
+    )
+
+
+def _advance_ready_items(
+    rows: list[ModuleWorkbenchExecutionItem],
+    events: list[ModuleWorkbenchExecutionEvent],
+) -> None:
+    """Advance all newly eligible planned tasks in deterministic task order."""
+
+    indices = {item.task_id: index for index, item in enumerate(rows)}
+    while True:
+        items_by_id = {item.task_id: item for item in rows}
+        candidate = next(
+            (
+                item
+                for item in sorted(rows, key=lambda value: value.task_id)
+                if item.state is ModuleWorkbenchExecutionState.PLANNED
+                and item.prerequisites
+                and _prerequisites_complete(item, items_by_id)
+            ),
+            None,
+        )
+        if candidate is None:
+            return
+        updated = _readied_item(candidate)
+        rows[indices[candidate.task_id]] = updated
+        events.append(_readied_event(len(events) + 1, candidate, updated))
+
+
 def apply_module_workbench_execution_command(
     ledger: ModuleWorkbenchExecutionLedger,
     command: ModuleWorkbenchExecutionCommand,
@@ -457,11 +564,13 @@ def apply_module_workbench_execution_command(
     rows = list(ledger.items)
     rows[index[command.task_id]] = updated
     event = _event(len(ledger.events) + 1, item, updated, command)
+    events = [*ledger.events, event]
+    _advance_ready_items(rows, events)
     return _ledger(
         ledger.report_address,
         ledger.portfolio_address,
         tuple(rows),
-        (*ledger.events, event),
+        tuple(events),
         ledger.accepted,
     )
 
@@ -754,6 +863,7 @@ def module_workbench_execution_schema() -> dict[str, Any]:
         "transition_rules": {
             "start": "ready -> in_progress when prerequisites are completed",
             "complete": "in_progress -> completed with required evidence",
+            "readied": "planned -> ready automatically when every prerequisite is completed",
             "block": "planned, ready, or in_progress -> blocked with detail",
             "unblock": "blocked -> ready when prerequisites are completed",
             "skip": "non-terminal -> skipped with detail",
@@ -782,6 +892,7 @@ def module_workbench_execution_capabilities() -> dict[str, Any]:
         "reopen_task",
         "supersede_task",
         "append_addressed_event",
+        "advance_completed_prerequisites",
         "replay_ordered_commands",
         "query_items",
         "query_events",

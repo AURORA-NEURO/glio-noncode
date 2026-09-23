@@ -28248,6 +28248,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                 state = self._module_workbench_execution_context()
                 with state["lock"]:
                     current = state["ledger"]
+                    previous_event_count = len(current.events)
                     if expected_address is not None and expected_address != current.content_address:
                         self._write(
                             HTTPStatus.CONFLICT,
@@ -28274,14 +28275,17 @@ class ApiHandler(BaseHTTPRequestHandler):
                         return
                     state["ledger"] = updated
                     state["commands"] = commands
+                new_events = updated.events[previous_event_count:]
                 if is_batch:
                     response_payload = {
                         "version": MODULE_WORKBENCH_EXECUTION_VERSION,
                         "accepted": updated.accepted,
                         "atomic": True,
                         "batch_count": len(commands_to_apply),
+                        "event_count": len(new_events),
+                        "derived_event_count": len(new_events) - len(commands_to_apply),
                         "commands": [command.to_dict() for command in commands_to_apply],
-                        "events": [event.to_dict() for event in updated.events[-len(commands_to_apply):]],
+                        "events": [event.to_dict() for event in new_events],
                         "ledger": updated.to_dict(include_items=False, include_events=False),
                         "journal": {
                             "version": _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION,
@@ -28295,7 +28299,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                         "version": MODULE_WORKBENCH_EXECUTION_VERSION,
                         "accepted": updated.accepted,
                         "command": commands_to_apply[0].to_dict(),
-                        "event": updated.events[-1].to_dict(),
+                        "event": new_events[0].to_dict(),
+                        "derived_events": [event.to_dict() for event in new_events[1:]],
                         "ledger": updated.to_dict(include_items=False, include_events=False),
                         "journal": {
                             "version": _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION,

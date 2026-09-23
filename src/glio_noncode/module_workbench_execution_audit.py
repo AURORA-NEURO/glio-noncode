@@ -49,6 +49,9 @@ _FORBIDDEN_KEYS = frozenset(
 )
 
 _EVENT_TRANSITIONS = {
+    ModuleWorkbenchExecutionEventKind.READIED: {
+        (ModuleWorkbenchExecutionState.PLANNED, ModuleWorkbenchExecutionState.READY),
+    },
     ModuleWorkbenchExecutionEventKind.STARTED: {
         (ModuleWorkbenchExecutionState.READY, ModuleWorkbenchExecutionState.IN_PROGRESS),
     },

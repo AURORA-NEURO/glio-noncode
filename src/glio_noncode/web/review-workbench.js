@@ -440,6 +440,66 @@
     }
   }
 
+  async function executeReadyModuleWave() {
+    const batchSize = Number($("module-execution-batch-size").value);
+    if (!Number.isSafeInteger(batchSize) || batchSize < 1 || batchSize > 128) {
+      notice("Ready task batch size must be a whole number from 1 to 128.", true);
+      return;
+    }
+    const button = $("module-execution-batch-button");
+    const state = $("module-execution-batch-state");
+    button.disabled = true;
+    state.textContent = "Checking";
+    try {
+      const ready = await getJson(`/v1/module-workbench/execution/query?resource=items&state=ready&limit=${batchSize}&offset=0`);
+      if (ready.version !== "module-workbench-execution-v1" || ready.accepted !== true || typeof ready.ledger_address !== "string" || !Array.isArray(ready.items) || ready.items.length > batchSize || ready.items.some((item) => item.state !== "ready" || typeof item.task_id !== "string")) {
+        throw new Error("The local API returned an invalid ready-task projection.");
+      }
+      if (!ready.items.length) {
+        state.textContent = "No ready tasks";
+        $("module-execution-batch-text").textContent = "The current durable wave has no ready tasks to start.";
+        notice("No ready tasks are available in the current execution wave.");
+        return;
+      }
+      const commands = ready.items.map((item) => ({
+        task_id: item.task_id,
+        action: "start",
+        detail: `Started from the bounded ready-task slice: ${item.detail}`,
+      }));
+      const result = await postJson("/v1/module-workbench/execution/commands", {
+        expected_ledger_address: ready.ledger_address,
+        commands,
+      });
+      if (result.version !== "module-workbench-execution-v1" || result.accepted !== true || result.atomic !== true || result.batch_count !== commands.length || !Array.isArray(result.events) || result.events.length !== commands.length || !result.ledger || typeof result.ledger.content_address !== "string" || result.events.some((event) => event.to_state !== "in_progress")) {
+        throw new Error("The local API returned an invalid atomic execution result.");
+      }
+      state.textContent = "Committed";
+      $("module-execution-batch-text").textContent = `${formatCount(result.batch_count)} ready tasks moved to in progress in one durable batch · ${shortened(result.ledger.content_address, 50)}`;
+      await loadModuleWorkbenchOverview();
+      model.moduleExecutionPreview = null;
+      renderModuleExecutionPreview();
+      if (model.selectedModule) {
+        const [refreshed, refreshedPlan] = await Promise.all([
+          loadModuleExecution(model.selectedModule),
+          loadModuleExecutionPlan(model.selectedModule),
+        ]);
+        if (refreshed) {
+          model.moduleExecution = refreshed;
+          if (refreshedPlan) model.moduleExecutionPlan = refreshedPlan;
+          renderModuleExecution();
+          renderModuleExecutionPlan();
+        }
+      }
+      announceSelection(`${formatCount(result.batch_count)} ready execution tasks started atomically.`);
+      notice(`${formatCount(result.batch_count)} ready tasks started in one durable batch.`);
+    } catch (error) {
+      state.textContent = "Attention";
+      notice(`The ready-task batch could not be committed. ${error.message}`, true);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
   function displayValue(value) {
     if (value === undefined || value === null || value === "") return "—";
     if (Array.isArray(value)) return value.length ? value.join(" · ") : "—";
@@ -3663,6 +3723,7 @@
     reloadModuleAssessments();
   });
   $("module-execution-preview-button").addEventListener("click", previewModuleExecutionPlan);
+  $("module-execution-batch-button").addEventListener("click", executeReadyModuleWave);
   $("module-triage-load-more").addEventListener("click", () => loadModuleTriage(true));
   $("module-triage-risk-filter").addEventListener("change", (event) => {
     model.moduleTriageFilters.risk = event.currentTarget.value;

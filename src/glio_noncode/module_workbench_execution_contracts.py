@@ -46,6 +46,7 @@ class ModuleWorkbenchExecutionAction(StrEnum):
 class ModuleWorkbenchExecutionEventKind(StrEnum):
     """Persisted event classification for transition history."""
 
+    READIED = "readied"
     STARTED = "started"
     COMPLETED = "completed"
     BLOCKED = "blocked"

@@ -199,8 +199,19 @@ class ModuleWorkbenchExecutionFixture(unittest.TestCase):
         item = next(item for item in completed.items if item.task_id == ready.task_id)
         self.assertEqual(item.state, ModuleWorkbenchExecutionState.COMPLETED)
         self.assertEqual(item.completion_percent, 100.0)
-        self.assertEqual(len(completed.events), 2)
+        self.assertGreaterEqual(len(completed.events), 2)
+        self.assertTrue(any(event.kind.value == "readied" for event in completed.events))
+        self.assertTrue(
+            any(
+                entry.initial_state is ModuleWorkbenchExecutionState.PLANNED
+                and entry.state is ModuleWorkbenchExecutionState.READY
+                for entry in completed.items
+            )
+        )
         verify_module_workbench_execution(completed)
+        audit = audit_module_workbench_execution(completed)
+        verify_module_workbench_execution_audit(audit)
+        self.assertTrue(audit.accepted)
 
     def test_prerequisite_block_unblock_and_start_rules(self) -> None:
         _report, ledger = self.ledger()
@@ -278,6 +289,40 @@ class ModuleWorkbenchExecutionFixture(unittest.TestCase):
         superseded_item = next(item for item in superseded.items if item.task_id == ready.task_id)
         self.assertEqual(superseded_item.state, ModuleWorkbenchExecutionState.SUPERSEDED)
         self.assertTrue(superseded_item.blockers)
+
+    def test_reopen_cannot_invalidate_active_dependents(self) -> None:
+        _report, ledger = self.ledger()
+        root = next(
+            item
+            for item in ledger.items
+            if item.state is ModuleWorkbenchExecutionState.READY
+            and any(item.task_id in candidate.prerequisites for candidate in ledger.items)
+        )
+        started = apply_module_workbench_execution_command(
+            ledger,
+            execution_command(root.task_id, "start", "begin prerequisite chain"),
+        )
+        completed = apply_module_workbench_execution_command(
+            started,
+            execution_command(
+                root.task_id,
+                "complete",
+                "close prerequisite chain",
+                evidence_addresses=("receipt:chain",),
+            ),
+        )
+        self.assertTrue(
+            any(
+                item.state is ModuleWorkbenchExecutionState.READY
+                and root.task_id in item.prerequisites
+                for item in completed.items
+            )
+        )
+        with self.assertRaises(ValidationError):
+            apply_module_workbench_execution_command(
+                completed,
+                execution_command(root.task_id, "reopen", "reopen root while dependent is active"),
+            )
 
     def test_audit_policy_and_tamper_detection(self) -> None:
         _report, ledger = self.ledger()
@@ -359,10 +404,10 @@ class ModuleWorkbenchExecutionFixture(unittest.TestCase):
         )
         diff = build_module_workbench_execution_diff(ledger, current)
         verify_module_workbench_execution_diff(diff)
-        self.assertEqual(diff.changed_count, 1)
-        self.assertEqual(diff.event_delta, 2)
+        self.assertEqual(diff.changed_count, 2)
+        self.assertEqual(diff.event_delta, 3)
         self.assertGreater(diff.evidence_delta, 0)
-        self.assertEqual(query_module_workbench_execution_diff(diff, kind="changed")["total"], 1)
+        self.assertEqual(query_module_workbench_execution_diff(diff, kind="changed")["total"], 2)
         self.assertIn("current_state", module_workbench_execution_diff_csv(diff))
         self.assertIn('"change_count"', module_workbench_execution_diff_json(diff))
 
