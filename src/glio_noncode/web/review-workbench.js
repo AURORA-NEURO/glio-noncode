@@ -24,7 +24,7 @@
     sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewMotifRequest: 0, sequenceReviewFilterTimer: null,
     moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
     moduleTriageItems: [], moduleTriageTotal: 0, moduleTriageHasMore: false, moduleTriageListRequest: 0, moduleTriageFilterTimer: null, moduleTriageByModule: new Map(), selectedModuleTriage: null,
-    moduleExecution: null,
+    moduleExecution: null, moduleExecutionRequest: 0,
     moduleWorkbenchSummary: null, moduleWorkbenchSummaryRequest: 0,
     moduleFilters: { q: "", risk: "", depth_band: "" }, moduleTriageFilters: { risk: "", reason: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
@@ -52,6 +52,21 @@
 
   async function getJson(path) {
     const response = await fetch(path, { headers: { Accept: "application/json" }, cache: "no-store", credentials: "same-origin" });
+    let body;
+    try { body = await response.json(); }
+    catch { throw new Error(`The local API returned HTTP ${response.status} without JSON.`); }
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${body.message || "Request rejected."}`);
+    return body;
+  }
+
+  async function postJson(path, payload) {
+    const response = await fetch(path, {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+      credentials: "same-origin",
+    });
     let body;
     try { body = await response.json(); }
     catch { throw new Error(`The local API returned HTTP ${response.status} without JSON.`); }
@@ -499,6 +514,116 @@
     model.moduleTriageFilterTimer = setTimeout(() => loadModuleTriage(false), 180);
   }
 
+  const executionActionsByState = Object.freeze({
+    planned: ["block", "skip", "supersede"],
+    ready: ["start", "block", "skip", "supersede"],
+    in_progress: ["complete", "block", "skip", "supersede"],
+    blocked: ["unblock", "skip", "supersede"],
+    completed: ["reopen"],
+    skipped: ["reopen"],
+    superseded: [],
+  });
+
+  function validateModuleExecution(page, moduleId) {
+    if (page.version !== "module-workbench-execution-v1" || page.accepted !== true || typeof page.ledger_address !== "string" || !Array.isArray(page.items) || page.offset !== 0 || page.limit !== 50 || page.query?.module_id !== moduleId || !Number.isSafeInteger(page.total)) {
+      throw new Error("The local API returned an invalid module execution projection.");
+    }
+    return page;
+  }
+
+  async function loadModuleExecution(moduleId) {
+    const request = model.moduleExecutionRequest = (model.moduleExecutionRequest || 0) + 1;
+    const page = validateModuleExecution(
+      await getJson(`/v1/module-workbench/execution/query?resource=items&module_id=${encodeURIComponent(moduleId)}&limit=50&offset=0`),
+      moduleId,
+    );
+    if (request !== model.moduleExecutionRequest || model.selectedModule !== moduleId) return null;
+    return page;
+  }
+
+  function renderExecutionControls(item, moduleId) {
+    const td = document.createElement("td");
+    const actions = executionActionsByState[item.state] || [];
+    if (!actions.length) {
+      td.append(element("span", "muted", "Terminal"));
+      return td;
+    }
+    const controls = element("div", "execution-controls");
+    const select = document.createElement("select");
+    select.className = "execution-action";
+    select.setAttribute("aria-label", `Choose a transition for ${item.task_id}`);
+    const placeholder = element("option", "", "Choose action");
+    placeholder.value = "";
+    placeholder.selected = true;
+    select.append(placeholder);
+    for (const action of actions) {
+      const option = element("option", "", displayValue(action));
+      option.value = action;
+      select.append(option);
+    }
+    const detail = document.createElement("input");
+    detail.className = "execution-detail";
+    detail.type = "text";
+    detail.maxLength = 4096;
+    detail.placeholder = "Transition detail (required)";
+    detail.setAttribute("aria-label", `Detail for ${item.task_id}`);
+    const evidence = document.createElement("input");
+    evidence.className = "execution-evidence";
+    evidence.type = "text";
+    evidence.maxLength = 4096;
+    evidence.placeholder = `${formatCount(item.required_evidence_count)} evidence address${item.required_evidence_count === 1 ? "" : "es"} for completion`;
+    evidence.setAttribute("aria-label", `Evidence addresses for ${item.task_id}`);
+    evidence.hidden = true;
+    const apply = element("button", "button quiet", "Apply");
+    apply.type = "button";
+    apply.disabled = true;
+    apply.addEventListener("click", async () => {
+      const action = select.value;
+      const detailText = detail.value.trim();
+      if (!action || !detailText) {
+        notice("Choose a transition and enter its required detail.", true);
+        return;
+      }
+      const addresses = evidence.value.split(/[\s,]+/).map((value) => value.trim()).filter(Boolean);
+      const payload = {
+        task_id: item.task_id,
+        action,
+        detail: detailText,
+        expected_ledger_address: model.moduleExecution?.ledger_address,
+      };
+      if (addresses.length) payload.evidence_addresses = [...new Set(addresses)].sort();
+      apply.disabled = true;
+      select.disabled = true;
+      detail.disabled = true;
+      evidence.disabled = true;
+      try {
+        const result = await postJson("/v1/module-workbench/execution/command", payload);
+        if (model.selectedModule !== moduleId) return;
+        const refreshed = await loadModuleExecution(moduleId);
+        if (refreshed) {
+          model.moduleExecution = refreshed;
+          renderModuleExecution();
+          announceSelection(`Execution transition ${displayValue(result.event?.to_state)} recorded for ${item.task_id}.`);
+          notice(`Transition recorded for ${item.task_id}.`);
+        }
+      } catch (error) {
+        notice(`The execution transition could not be recorded. ${error.message}`, true);
+        apply.disabled = false;
+        select.disabled = false;
+        detail.disabled = false;
+        evidence.disabled = false;
+      }
+    });
+    select.addEventListener("change", () => {
+      const selected = select.value;
+      evidence.hidden = selected !== "complete";
+      apply.disabled = !selected;
+    });
+    controls.append(select, detail, evidence, apply);
+    td.append(controls);
+    return td;
+  }
+
   function renderModuleExecution() {
     const page = model.moduleExecution;
     const body = $("module-workbench-execution-table");
@@ -506,16 +631,17 @@
     if (!page) {
       $("module-workbench-execution-label").textContent = "—";
       $("module-workbench-execution-summary").textContent = "Verifying bounded execution state…";
-      body.append(emptyRow(6, "Execution state has not been verified."));
+      body.append(emptyRow(7, "Execution state has not been verified."));
       return;
     }
     const rows = page.items || [];
+    const moduleId = model.selectedModule;
     $("module-workbench-execution-label").textContent = `${formatCount(page.total)} selected`;
     $("module-workbench-execution-summary").textContent = rows.length
-      ? `${formatCount(rows.length)} of ${formatCount(page.total)} selected ledger items · states are read-only projections of the bounded execution portfolio.`
+      ? `${formatCount(rows.length)} of ${formatCount(page.total)} selected ledger items · transitions are detail-required, evidence-gated, and concurrency-checked.`
       : "This module is not included in the current bounded execution portfolio; its planned tasks remain visible above.";
     if (!rows.length) {
-      body.append(emptyRow(6, "No execution ledger items are selected for this module."));
+      body.append(emptyRow(7, "No execution ledger items are selected for this module."));
       return;
     }
     for (const item of rows) {
@@ -528,6 +654,7 @@
         cell(evidence),
         cell(formatCount((item.prerequisites || []).length)),
         cell(displayValue(item.detail)),
+        renderExecutionControls(item, moduleId),
       );
       body.append(row);
     }
@@ -662,15 +789,13 @@
     try {
       const [detail, execution] = await Promise.all([
         getJson(`/v1/module-workbench/detail?module_id=${encodeURIComponent(moduleId)}`),
-        getJson(`/v1/module-workbench/execution/query?resource=items&module_id=${encodeURIComponent(moduleId)}&limit=50&offset=0`),
+        loadModuleExecution(moduleId),
       ]);
       if (request !== model.moduleDetailRequest || model.activeView !== "module-workbench" || model.selectedModule !== moduleId) return;
       if (detail.schema !== "module-workbench-detail-v1" || detail.accepted !== true || detail.module_id !== moduleId || !detail.module || !detail.assessment || !detail.certification || !Array.isArray(detail.evidence) || !Array.isArray(detail.lineage_edges) || !Array.isArray(detail.tasks)) {
         throw new Error("The local API returned an invalid module dossier.");
       }
-      if (execution.version !== "module-workbench-execution-v1" || execution.accepted !== true || typeof execution.ledger_address !== "string" || !Array.isArray(execution.items) || execution.offset !== 0 || execution.limit !== 50 || execution.query?.module_id !== moduleId || !Number.isSafeInteger(execution.total)) {
-        throw new Error("The local API returned an invalid module execution projection.");
-      }
+      if (!execution) return;
       model.moduleDetail = detail;
       model.moduleExecution = execution;
       $("empty-state").hidden = true;

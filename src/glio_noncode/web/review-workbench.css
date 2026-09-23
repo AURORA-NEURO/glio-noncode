@@ -121,6 +121,11 @@ h1 em { color: var(--teal); font-style: normal; }
 .queue-item { display: grid; gap: 5px; }
 .queue-reasons, .evidence-summary, .lineage-meta { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
 .quiet-tag { background: transparent; border: 1px solid var(--line); color: var(--soft); white-space: nowrap; }
+.execution-controls { min-width: 220px; display: grid; gap: 5px; }
+.execution-controls select, .execution-controls input { width: 100%; min-height: 32px; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfa; color: var(--ink); padding: 0 8px; font-size: 12px; }
+.execution-controls .button { min-height: 32px; padding: 0 9px; font-size: 12px; }
+.execution-controls .button:disabled { opacity: .58; cursor: not-allowed; }
+.execution-controls input[hidden] { display: none; }
 .evidence-state.supported { background: var(--mint); color: var(--teal-dark); }
 .evidence-state.measured_negative, .evidence-state.contradictory { background: var(--red-pale); color: #8c3c35; }
 .evidence-state.unsupported, .evidence-state.abstained, .evidence-state.out_of_domain { background: var(--amber-pale); color: #76501c; }
