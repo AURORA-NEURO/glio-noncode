@@ -803,6 +803,7 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             cached_first_path = Path(directory) / "observability-first.json"
             cached_second_path = Path(directory) / "observability-second.json"
             cached_incremental_path = Path(directory) / "observability-incremental.json"
+            cached_workbench_summary_path = Path(directory) / "workbench-cached-summary.json"
             self.assertEqual(
                 main(
                     [
@@ -950,6 +951,34 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             self.assertFalse(incremental["cache_hit"])
             self.assertEqual(incremental["reused_module_count"], 2)
             self.assertEqual(incremental["reparsed_module_count"], 1)
+            self.assertEqual(
+                main(
+                    [
+                        "module-workbench",
+                        "--source-root",
+                        str(self.package),
+                        "--test-root",
+                        str(self.tests),
+                        "--docs-root",
+                        str(self.docs),
+                        "--cache-root",
+                        str(cache_root),
+                        "--format",
+                        "summary",
+                        "--output",
+                        str(cached_workbench_summary_path),
+                    ]
+                ),
+                0,
+            )
+            cached_workbench_summary = json.loads(
+                cached_workbench_summary_path.read_text(encoding="utf-8")
+            )
+            self.assertEqual(cached_workbench_summary["module_count"], 3)
+            self.assertEqual(
+                cached_workbench_summary["content_address"],
+                incremental["workbench_address"],
+            )
             self.assertIn(
                 "module-workbench-detail-v1",
                 detail_schema_path.read_text(encoding="utf-8"),

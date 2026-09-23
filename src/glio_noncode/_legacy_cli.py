@@ -9083,6 +9083,116 @@ def _graph_from_payload(payload: Mapping[str, Any]):
     )
 
 
+def _build_module_workbench_cli_chain(
+    args: argparse.Namespace,
+) -> tuple[Any, Any, Any, Any, Any, tuple[tuple[str, int, int], ...], str, bool, int, int]:
+    """Build or reopen one CLI workbench chain with optional durable reuse."""
+
+    source_root = (
+        Path(args.source_root)
+        if args.source_root is not None
+        else Path(__file__).resolve().parent
+    )
+    test_root = (
+        Path(args.test_root)
+        if args.test_root is not None
+        else source_root.parent.parent / "tests"
+    )
+    docs_root = (
+        Path(args.docs_root)
+        if args.docs_root is not None
+        else source_root.parent.parent / "docs"
+    )
+    signature = module_workbench_source_signature(
+        source_root,
+        test_root=test_root,
+        docs_root=docs_root,
+    )
+    cache_root = getattr(args, "cache_root", None)
+    cache_path = Path(cache_root) / "snapshot.json.gz" if cache_root is not None else None
+    cached = (
+        load_module_workbench_cache(cache_path, signature)
+        if cache_path is not None
+        else None
+    )
+    if cached is not None:
+        inventory, matrix, lineage, quality, workbench = cached
+        return (
+            inventory,
+            matrix,
+            lineage,
+            quality,
+            workbench,
+            signature,
+            "snapshot",
+            True,
+            len(inventory.modules),
+            0,
+        )
+    previous = (
+        load_module_workbench_previous_inventory(cache_path)
+        if cache_path is not None
+        else None
+    )
+    evidence: dict[str, Any] = {}
+    inventory = build_module_inventory(
+        source_root,
+        test_root=test_root,
+        evidence=evidence,
+        previous=previous[0] if previous is not None else None,
+        previous_source_signature=(
+            module_workbench_source_signature_map(previous[1])
+            if previous is not None
+            else None
+        ),
+        source_signature=module_workbench_source_signature_map(signature),
+    )
+    matrix = build_module_certification(
+        inventory,
+        test_modules=evidence.get("test_modules"),
+        source_docstring_modules=evidence.get("source_docstring_modules"),
+        source_root=source_root,
+        test_root=test_root,
+        docs_root=docs_root,
+    )
+    lineage = build_module_certification_lineage(
+        inventory,
+        matrix=matrix,
+        source_root=source_root,
+        test_root=test_root,
+        docs_root=docs_root,
+    )
+    quality = build_module_certification_quality(matrix, lineage)
+    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+    rebuild_mode = str(evidence.get("inventory_rebuild_mode", "full"))
+    reused_module_count = int(evidence.get("reused_module_count", 0))
+    reparsed_module_count = int(
+        evidence.get("reparsed_module_count", len(inventory.modules))
+    )
+    if cache_path is not None:
+        persist_module_workbench_cache(
+            cache_path,
+            signature,
+            inventory,
+            matrix,
+            lineage,
+            quality,
+            workbench,
+        )
+    return (
+        inventory,
+        matrix,
+        lineage,
+        quality,
+        workbench,
+        signature,
+        rebuild_mode,
+        False,
+        reused_module_count,
+        reparsed_module_count,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="glio-noncode", description="Inspectable research hypothesis runtime"
@@ -10177,6 +10287,11 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench.add_argument("--source-root", default=None)
     module_workbench.add_argument("--test-root", default=None)
     module_workbench.add_argument("--docs-root", default=None)
+    module_workbench.add_argument(
+        "--cache-root",
+        default=None,
+        help="reuse and persist a verified snapshot under this directory",
+    )
     module_workbench.add_argument("--resource", choices=("modules", "tasks", "families", "risks", "summary"), default="modules")
     module_workbench.add_argument("--module-id", default=None)
     module_workbench.add_argument("--family", default=None)
@@ -48419,94 +48534,18 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(module_workbench_observability_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-observability":
-            source_root = (
-                Path(args.source_root)
-                if args.source_root is not None
-                else Path(__file__).resolve().parent
-            )
-            test_root = (
-                Path(args.test_root)
-                if args.test_root is not None
-                else source_root.parent.parent / "tests"
-            )
-            docs_root = (
-                Path(args.docs_root)
-                if args.docs_root is not None
-                else source_root.parent.parent / "docs"
-            )
-            signature = module_workbench_source_signature(
-                source_root,
-                test_root=test_root,
-                docs_root=docs_root,
-            )
-            cache_path = (
-                Path(args.cache_root) / "snapshot.json.gz"
-                if args.cache_root is not None
-                else None
-            )
-            cached = (
-                load_module_workbench_cache(cache_path, signature)
-                if cache_path is not None
-                else None
-            )
-            if cached is not None:
-                inventory, matrix, lineage, quality, workbench = cached
-                rebuild_mode = "snapshot"
-                cache_hit = True
-                reused_module_count = len(inventory.modules)
-                reparsed_module_count = 0
-            else:
-                previous = (
-                    load_module_workbench_previous_inventory(cache_path)
-                    if cache_path is not None
-                    else None
-                )
-                evidence: dict[str, Any] = {}
-                inventory = build_module_inventory(
-                    source_root,
-                    test_root=test_root,
-                    evidence=evidence,
-                    previous=previous[0] if previous is not None else None,
-                    previous_source_signature=(
-                        module_workbench_source_signature_map(previous[1])
-                        if previous is not None
-                        else None
-                    ),
-                    source_signature=module_workbench_source_signature_map(signature),
-                )
-                matrix = build_module_certification(
-                    inventory,
-                    test_modules=evidence.get("test_modules"),
-                    source_docstring_modules=evidence.get("source_docstring_modules"),
-                    source_root=source_root,
-                    test_root=test_root,
-                    docs_root=docs_root,
-                )
-                lineage = build_module_certification_lineage(
-                    inventory,
-                    matrix=matrix,
-                    source_root=source_root,
-                    test_root=test_root,
-                    docs_root=docs_root,
-                )
-                quality = build_module_certification_quality(matrix, lineage)
-                workbench = build_module_workbench(inventory, matrix, lineage, quality)
-                rebuild_mode = str(evidence.get("inventory_rebuild_mode", "full"))
-                cache_hit = False
-                reused_module_count = int(evidence.get("reused_module_count", 0))
-                reparsed_module_count = int(
-                    evidence.get("reparsed_module_count", len(inventory.modules))
-                )
-                if cache_path is not None:
-                    persist_module_workbench_cache(
-                        cache_path,
-                        signature,
-                        inventory,
-                        matrix,
-                        lineage,
-                        quality,
-                        workbench,
-                    )
+            (
+                inventory,
+                matrix,
+                lineage,
+                quality,
+                workbench,
+                signature,
+                rebuild_mode,
+                cache_hit,
+                reused_module_count,
+                reparsed_module_count,
+            ) = _build_module_workbench_cli_chain(args)
             observation = build_module_workbench_observability(
                 rebuild_mode=rebuild_mode,
                 cache_hit=cache_hit,
@@ -48559,22 +48598,36 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(detail, args.output)
             return 0 if detail["accepted"] else 2
         if args.command == "module-workbench":
-            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
-            matrix = build_module_certification(
-                inventory,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            lineage = build_module_certification_lineage(
-                inventory,
-                matrix=matrix,
-                source_root=args.source_root,
-                test_root=args.test_root,
-                docs_root=args.docs_root,
-            )
-            quality = build_module_certification_quality(matrix, lineage)
-            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            if args.cache_root is not None:
+                (
+                    inventory,
+                    matrix,
+                    lineage,
+                    quality,
+                    workbench,
+                    _signature,
+                    _rebuild_mode,
+                    _cache_hit,
+                    _reused_module_count,
+                    _reparsed_module_count,
+                ) = _build_module_workbench_cli_chain(args)
+            else:
+                inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+                matrix = build_module_certification(
+                    inventory,
+                    source_root=args.source_root,
+                    test_root=args.test_root,
+                    docs_root=args.docs_root,
+                )
+                lineage = build_module_certification_lineage(
+                    inventory,
+                    matrix=matrix,
+                    source_root=args.source_root,
+                    test_root=args.test_root,
+                    docs_root=args.docs_root,
+                )
+                quality = build_module_certification_quality(matrix, lineage)
+                workbench = build_module_workbench(inventory, matrix, lineage, quality)
             if args.format == "csv":
                 _write_text(module_workbench_csv(workbench, args.resource), args.output)
             elif args.format == "markdown":

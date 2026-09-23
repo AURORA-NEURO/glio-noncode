@@ -159,6 +159,14 @@ glio-noncode module-workbench --resource tasks --kind add_test --limit 100
 glio-noncode module-workbench --resource modules --module-id glio_noncode.module_inventory
 ```
 
+The complete report command can consume the same durable cache after the
+observability build, avoiding a second source parse in scripts or Actions:
+
+```text
+glio-noncode module-workbench --format summary \
+  --cache-root .glio/module-cache --output module-workbench-summary.json
+```
+
 Build a complete dossier for one module, including its workbench assessment,
 certification checks and gaps, lineage evidence, and planned tasks:
 

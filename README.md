@@ -1698,6 +1698,7 @@ certification closure.
 
 ```powershell
 python -m glio_noncode module-workbench --format summary
+python -m glio_noncode module-workbench --format summary --cache-root .glio/module-cache
 python -m glio_noncode module-workbench --resource tasks --format csv --output module-tasks.csv
 python -m glio_noncode module-workbench --resource modules --risk high --limit 50
 python -m glio_noncode module-workbench-triage --risk blocker --limit 25
