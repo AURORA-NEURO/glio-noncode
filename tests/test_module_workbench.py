@@ -758,6 +758,23 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                     self.assertEqual(started_payload["derived_events"], [])
                     self.assertEqual(started_payload["journal"]["command_count"], 1)
                     current_ledger_address = started_payload["ledger"]["content_address"]
+                    connection.request(
+                        "GET",
+                        "/v1/module-workbench/execution/packet?include_payloads=true",
+                    )
+                    packet_response = connection.getresponse()
+                    packet_payload = json.loads(packet_response.read().decode("utf-8"))
+                    self.assertEqual(packet_response.status, 200)
+                    self.assertEqual(packet_payload["ledger_address"], current_ledger_address)
+                    command_artifact = next(
+                        item
+                        for item in packet_payload["artifacts"]
+                        if item["artifact_id"] == "commands"
+                    )
+                    command_trace = json.loads(command_artifact["payload"])
+                    self.assertEqual(command_trace["command_count"], 1)
+                    self.assertEqual(command_trace["event_count"], 1)
+                    self.assertEqual(command_trace["ledger_address"], current_ledger_address)
                     for downstream_path in (
                         "/v1/module-workbench/execution/audit",
                         "/v1/module-workbench/execution/policy",

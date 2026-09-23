@@ -23836,7 +23836,18 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/replay",
                 }:
                     lineage, quality, workbench = self._module_workbench_context()
-                    packet = build_module_workbench_execution_packet(workbench)
+                    execution_state = self._module_workbench_execution_context()
+                    with execution_state["lock"]:
+                        durable_ledger = execution_state["ledger"]
+                        durable_commands = tuple(execution_state["commands"])
+                    packet = build_module_workbench_execution_packet(
+                        workbench,
+                        commands=durable_commands,
+                    )
+                    if packet.ledger_address != durable_ledger.content_address:
+                        raise ValidationError(
+                            "execution packet replay does not match the durable ledger"
+                        )
                     if path.endswith("/query"):
                         payload = query_module_workbench_execution_packet(
                             packet,

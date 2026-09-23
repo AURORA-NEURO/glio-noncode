@@ -419,11 +419,14 @@ GET /v1/module-workbench/execution/packet/runtime/schema
 GET /v1/module-workbench/execution/packet/runtime/capabilities
 ```
 
-The API builds a read-only packet in memory. Filesystem writes and persisted
-packet verification remain explicit Python and CLI operations so an HTTP GET
-cannot mutate a local directory. Format parameters provide JSON, CSV, and
-Markdown where the route supports them. Query parameters mirror the typed
-query functions and are bounded before work is performed.
+The API builds a read-only packet in memory from the durable execution ledger
+and its source-bound command journal. The packet's `ledger_address` must match
+the durable ledger, and its `commands.json` artifact records the exact replay
+recipe. Filesystem writes and persisted packet verification remain explicit
+Python and CLI operations so an HTTP GET cannot mutate a local directory.
+Format parameters provide JSON, CSV, and Markdown where the route supports
+them. Query parameters mirror the typed query functions and are bounded before
+work is performed.
 
 ## Failure matrix
 

@@ -1028,11 +1028,13 @@ GET /v1/module-workbench/execution/packet/runtime/schema
 GET /v1/module-workbench/execution/packet/runtime/capabilities
 ```
 
-The packet endpoint builds the public aggregate in memory. It does not write a
-directory. Query filters include artifact ID/kind, check plane/result, link
-name, free text, offset, and bounded limit. The release endpoint evaluates
-artifact and verification thresholds. The runtime endpoint exposes the
-ordered build/write/verify/load/query/replay/release handoff.
+The packet endpoint builds the public aggregate in memory from the durable
+execution ledger and source-bound command journal; it rejects a replay whose
+ledger address differs from durable state. It does not write a directory. Query
+filters include artifact ID/kind, check plane/result, link name, free text,
+offset, and bounded limit. The release endpoint evaluates artifact and
+verification thresholds. The runtime endpoint exposes the ordered
+build/write/verify/load/query/replay/release handoff.
 
 Archive transport extends the packet family with fixed-metadata binary
 handoff, addressed chunk transfer, resumable reassembly, safe unpacking, and
