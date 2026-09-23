@@ -32,14 +32,42 @@ class SequenceReviewApiTests(unittest.TestCase):
                 )
                 saved_batch = connection.getresponse()
                 self.assertEqual(saved_batch.status, 201)
-                saved_batch.read()
+                left_batch = json.loads(saved_batch.read())
+                single_batch_input = {
+                    "schema": "glio-noncode.sequence-haplotype-batch-input.v1",
+                    "analyses": [_input()],
+                }
+                connection.request(
+                    "POST",
+                    "/v1/sequence-batches",
+                    json.dumps(single_batch_input).encode(),
+                    headers,
+                )
+                right_batch = connection.getresponse()
+                self.assertEqual(right_batch.status, 201)
+                right_batch_body = json.loads(right_batch.read())
+                connection.request(
+                    "POST",
+                    "/v1/sequence-comparisons",
+                    json.dumps(
+                        {
+                            "left_batch_id": left_batch["record"]["batch_id"],
+                            "right_batch_id": right_batch_body["record"]["batch_id"],
+                        }
+                    ).encode(),
+                    headers,
+                )
+                comparison_response = connection.getresponse()
+                self.assertEqual(comparison_response.status, 201)
+                comparison_response.read()
 
                 connection.request("GET", "/v1/sequence-review/summary")
                 summary_response = connection.getresponse()
                 summary = json.loads(summary_response.read())
                 self.assertEqual(summary_response.status, 200)
                 self.assertEqual(summary["catalogs"]["sequence_analyses"]["record_count"], 1)
-                self.assertEqual(summary["catalogs"]["sequence_batches"]["record_count"], 1)
+                self.assertEqual(summary["catalogs"]["sequence_batches"]["record_count"], 2)
+                self.assertEqual(summary["catalogs"]["sequence_comparisons"]["record_count"], 1)
                 self.assertNotIn("AACCGGTTAACC", json.dumps(summary))
 
                 connection.request("GET", "/v1/sequence-review/motifs?motif_contains=joint")
@@ -49,14 +77,14 @@ class SequenceReviewApiTests(unittest.TestCase):
                 self.assertEqual(motifs["total_count"], 1)
                 self.assertEqual(motifs["rows"][0]["motif_id"], "joint")
                 self.assertEqual(motifs["filtered_motif_summary"]["row_count"], 1)
-                self.assertEqual(motifs["filtered_motif_summary"]["occurrence_count"], 2)
+                self.assertEqual(motifs["filtered_motif_summary"]["occurrence_count"], 3)
                 self.assertNotIn("PRIVATE_SAMPLE_1", json.dumps(motifs))
 
                 connection.request("GET", "/v1/sequence-review/verify")
                 verification_response = connection.getresponse()
                 verification = json.loads(verification_response.read())
                 self.assertEqual(verification_response.status, 200)
-                self.assertEqual(verification["verified_count"], 2)
+                self.assertEqual(verification["verified_count"], 4)
                 self.assertEqual(verification["failed_count"], 0)
 
                 connection.request("GET", "/v1/sequence-review/motifs.csv?motif_contains=joint")

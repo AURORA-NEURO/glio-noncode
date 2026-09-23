@@ -17,6 +17,7 @@ from typing import Any
 
 from .errors import StoreError, ValidationError
 from .sequence_batch_store import SequenceBatchStore
+from .sequence_batch_comparison_store import SequenceBatchComparisonStore
 from .sequence_haplotype_store import SequenceHaplotypeStore
 from .serialization import content_hash
 
@@ -118,7 +119,7 @@ def sequence_review_verification_schema() -> dict[str, Any]:
         "GLIO-NONCODE sequence review verification row",
         ("kind", "record_id", "status"),
         {
-            "kind": {"enum": ["sequence_analysis", "sequence_batch"]},
+            "kind": {"enum": ["sequence_analysis", "sequence_batch", "sequence_comparison"]},
             "record_id": {"type": "string"},
             "status": {"enum": ["verified", "failed"]},
             "content_address": {"type": "string"},
@@ -368,6 +369,17 @@ def _public_record_count(
     }
 
 
+def _public_comparison_count(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Summarize derived comparisons without treating them as new samples."""
+
+    return {
+        "record_count": len(rows),
+        "left_analysis_count_total": sum(int(row["left_analysis_count"]) for row in rows),
+        "right_analysis_count_total": sum(int(row["right_analysis_count"]) for row in rows),
+        "change_count_total": sum(int(row["change_count"]) for row in rows),
+    }
+
+
 def _record_error(error: BaseException) -> dict[str, str]:
     """Return a stable, path-free error projection for archive verification."""
 
@@ -385,12 +397,13 @@ def _record_error(error: BaseException) -> dict[str, str]:
 
 
 class SequenceReviewStore:
-    """Read-only, bounded review projections over both sequence catalogs."""
+    """Read-only, bounded review projections over sequence catalogs."""
 
     def __init__(self, root: str | Path) -> None:
         self.root = Path(root)
         self.analyses = SequenceHaplotypeStore(self.root)
         self.batches = SequenceBatchStore(self.root)
+        self.comparisons = SequenceBatchComparisonStore(self.root)
 
     def _analysis_rows(self) -> list[dict[str, Any]]:
         rows: list[dict[str, Any]] = []
@@ -418,16 +431,31 @@ class SequenceReviewStore:
             raise StoreError("sequence review batch catalog exceeds its record limit")
         return rows
 
+    def _comparison_rows(self) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
+        offset = 0
+        while True:
+            page = self.comparisons.list_reports(offset=offset, limit=50)
+            rows.extend(page["rows"])
+            if len(rows) > MAX_REVIEW_CATALOG_RECORDS or not page["has_more"]:
+                break
+            offset += len(page["rows"])
+        if len(rows) > MAX_REVIEW_CATALOG_RECORDS:
+            raise StoreError("sequence review comparison catalog exceeds its record limit")
+        return rows
+
     def summary(self) -> dict[str, Any]:
         """Summarize catalog records without opening report objects."""
 
         analysis_rows = self._analysis_rows()
         batch_rows = self._batch_rows()
+        comparison_rows = self._comparison_rows()
         body = {
             "schema": SEQUENCE_REVIEW_SUMMARY_SCHEMA,
             "catalogs": {
                 "sequence_analyses": _public_record_count(analysis_rows),
                 "sequence_batches": _public_record_count(batch_rows, batch=True),
+                "sequence_comparisons": _public_comparison_count(comparison_rows),
             },
             "integrity": {
                 "catalog_records": "validated",
@@ -454,6 +482,7 @@ class SequenceReviewStore:
 
         analysis_rows = self._analysis_rows()
         batch_rows = self._batch_rows()
+        comparison_rows = self._comparison_rows()
         results: list[dict[str, Any]] = []
         for row in analysis_rows:
             analysis_id = str(row["analysis_id"])
@@ -476,6 +505,7 @@ class SequenceReviewStore:
                         "error": _record_error(error),
                     }
                 )
+
         for row in batch_rows:
             batch_id = str(row["batch_id"])
             try:
@@ -493,6 +523,28 @@ class SequenceReviewStore:
                     {
                         "kind": "sequence_batch",
                         "record_id": batch_id,
+                        "status": "failed",
+                        "error": _record_error(error),
+                    }
+                )
+
+        for row in comparison_rows:
+            comparison_id = str(row["comparison_id"])
+            try:
+                saved = self.comparisons.get_report(comparison_id)
+                results.append(
+                    {
+                        "kind": "sequence_comparison",
+                        "record_id": comparison_id,
+                        "status": "verified",
+                        "content_address": saved["report_address"],
+                    }
+                )
+            except (KeyError, OSError, StoreError, ValidationError) as error:
+                results.append(
+                    {
+                        "kind": "sequence_comparison",
+                        "record_id": comparison_id,
                         "status": "failed",
                         "error": _record_error(error),
                     }

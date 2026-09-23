@@ -314,7 +314,10 @@ batches, opens their verified report and delta table, supports motif/change/
 direction filters, and exports the active comparison JSON or aggregate CSV.
 The sequence-analysis, sequence-batch, and sequence-comparison rails append
 verified bounded catalog pages on demand, retaining the current selection and
-showing the loaded-row count separately from the total catalog count.
+showing the loaded-row count separately from the total catalog count. Sequence
+archive summary and verification also reopen saved comparison objects, so the
+derived comparison rail is covered by the same integrity ledger without being
+counted as new sequence or sample observations.
 The comparison table loads bounded pages and preserves the active filters while
 loading additional rows; its filtered summary remains computed across the full
 matching set rather than only the rows currently visible.

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from glio_noncode._cli_sequence import build_analysis_report
 from glio_noncode._cli_sequence_batch import build_batch_report
+from glio_noncode._cli_sequence_batch_compare import build_batch_comparison
 from glio_noncode._cli_sequence_review import main as review_main
 from glio_noncode.errors import ValidationError
 from glio_noncode.sequence_review_store import (
@@ -28,7 +29,12 @@ class SequenceReviewStoreTests(unittest.TestCase):
     def _save_fixture_archive(self, directory: str) -> SequenceReviewStore:
         store = SequenceReviewStore(directory)
         store.analyses.save(build_analysis_report(_input()))
-        store.batches.save(build_batch_report(_batch_input()))
+        batch_report = build_batch_report(_batch_input())
+        store.batches.save(batch_report)
+        comparison_left = build_batch_report(
+            {"schema": "glio-noncode.sequence-haplotype-batch-input.v1", "analyses": [_input()]}
+        )
+        store.comparisons.save(build_batch_comparison(comparison_left, batch_report))
         return store
 
     def test_summary_is_public_and_content_addressed(self) -> None:
@@ -37,6 +43,7 @@ class SequenceReviewStoreTests(unittest.TestCase):
             self.assertEqual(summary["schema"], SEQUENCE_REVIEW_SUMMARY_SCHEMA)
             self.assertEqual(summary["catalogs"]["sequence_analyses"]["record_count"], 1)
             self.assertEqual(summary["catalogs"]["sequence_batches"]["record_count"], 1)
+            self.assertEqual(summary["catalogs"]["sequence_comparisons"]["record_count"], 1)
             self.assertTrue(summary["content_address"].startswith("sequence-review-summary:"))
             self.assertNotIn("AACCGGTTAACC", json.dumps(summary))
             self.assertNotIn("PRIVATE_SAMPLE_1", json.dumps(summary))
@@ -84,8 +91,8 @@ class SequenceReviewStoreTests(unittest.TestCase):
             store = self._save_fixture_archive(directory)
             clean = store.verify()
             self.assertEqual(clean["schema"], SEQUENCE_REVIEW_VERIFY_SCHEMA)
-            self.assertEqual(clean["record_count"], 2)
-            self.assertEqual(clean["verified_count"], 2)
+            self.assertEqual(clean["record_count"], 3)
+            self.assertEqual(clean["verified_count"], 3)
             self.assertEqual(clean["failed_count"], 0)
 
             records = store.analyses.list_reports(limit=5)["rows"]
@@ -96,8 +103,8 @@ class SequenceReviewStoreTests(unittest.TestCase):
             payload["analysis_state"] = "abstained"
             object_path.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
             verification = store.verify()
-            self.assertEqual(verification["record_count"], 2)
-            self.assertEqual(verification["verified_count"], 1)
+            self.assertEqual(verification["record_count"], 3)
+            self.assertEqual(verification["verified_count"], 2)
             self.assertEqual(verification["failed_count"], 1)
             failure = next(item for item in verification["results"] if item["status"] == "failed")
             self.assertEqual(failure["kind"], "sequence_analysis")

@@ -166,6 +166,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("/v1/sequence-review/summary", javascript)
         self.assertIn("/v1/sequence-review/verify", javascript)
         self.assertIn("sequenceReviewVerification", javascript)
+        self.assertIn("summary.catalogs.sequence_comparisons", javascript)
         self.assertIn("sequence-review-verification-table", javascript)
         self.assertIn("verification.failed_count", javascript)
         self.assertIn("/v1/sequence-review/motifs", javascript)

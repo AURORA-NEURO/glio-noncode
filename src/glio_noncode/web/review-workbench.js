@@ -1819,8 +1819,9 @@
     if (!summary || !verification || !motifs) return;
     const analyses = summary.catalogs.sequence_analyses;
     const batches = summary.catalogs.sequence_batches;
+    const comparisons = summary.catalogs.sequence_comparisons || {};
     const changes = Number(analyses.created_motif_count || 0) + Number(analyses.disrupted_motif_count || 0) + Number(batches.created_change_count || 0) + Number(batches.disrupted_change_count || 0);
-    $("sequence-review-subtitle").textContent = `${formatCount(analyses.record_count || 0)} single analyses · ${formatCount(batches.record_count || 0)} aggregate batches · ${formatCount(changes)} saved change records`;
+    $("sequence-review-subtitle").textContent = `${formatCount(analyses.record_count || 0)} single analyses · ${formatCount(batches.record_count || 0)} aggregate batches · ${formatCount(comparisons.record_count || 0)} saved comparisons · ${formatCount(changes)} saved change records`;
     $("sequence-review-address").textContent = summary.content_address || "Address unavailable";
     $("sequence-review-analyses").textContent = formatCount(analyses.record_count || 0);
     $("sequence-review-analysis-detail").textContent = `${formatCount(analyses.supported_count || 0)} supported · ${formatCount(analyses.abstained_count || 0)} abstained`;
