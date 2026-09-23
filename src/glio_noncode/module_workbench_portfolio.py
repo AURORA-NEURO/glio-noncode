@@ -119,6 +119,7 @@ def query_module_workbench_portfolio(
         rows = [item for item in rows if text.casefold() in canonical_json(item).casefold()]
     body = {
         "portfolio_address": value.content_address,
+        "portfolio_summary": value.to_dict(include_tasks=False),
         "query": {"module_id": module_id, "kind": kind, "text": text},
         "total": len(rows),
         "offset": offset,

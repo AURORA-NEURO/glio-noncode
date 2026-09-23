@@ -807,6 +807,15 @@ class ModuleWorkbenchFixture(unittest.TestCase):
             query_module_workbench_portfolio(portfolio, limit=10)["total"],
             len(portfolio.selected_tasks),
         )
+        portfolio_page = query_module_workbench_portfolio(portfolio, limit=10)
+        self.assertEqual(
+            portfolio_page["portfolio_summary"]["content_address"],
+            portfolio.content_address,
+        )
+        self.assertEqual(
+            portfolio_page["portfolio_summary"]["deferred_task_count"],
+            portfolio.deferred_task_count,
+        )
         self.assertEqual(module_workbench_portfolio_schema()["selection"][0], "capacity")
         self.assertEqual(
             module_workbench_portfolio_capabilities()["operation_count"],

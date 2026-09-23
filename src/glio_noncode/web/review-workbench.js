@@ -24,7 +24,7 @@
     sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewMotifRequest: 0, sequenceReviewFilterTimer: null,
     moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
     moduleTriageItems: [], moduleTriageTotal: 0, moduleTriageHasMore: false, moduleTriageListRequest: 0, moduleTriageFilterTimer: null, moduleTriageByModule: new Map(), selectedModuleTriage: null,
-    moduleExecution: null, moduleExecutionRequest: 0,
+    moduleExecution: null, moduleExecutionRequest: 0, modulePortfolio: null, modulePortfolioRequest: 0,
     moduleWorkbenchSummary: null, moduleWorkbenchSummaryRequest: 0,
     moduleFilters: { q: "", risk: "", depth_band: "" }, moduleTriageFilters: { risk: "", reason: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
@@ -545,6 +545,16 @@
     return { ...page, events: rawEvents.items, event_total: rawEvents.total };
   }
 
+  async function loadModulePortfolio(moduleId) {
+    const request = model.modulePortfolioRequest = (model.modulePortfolioRequest || 0) + 1;
+    const page = await getJson(`/v1/module-workbench/portfolio/query?module_id=${encodeURIComponent(moduleId)}&limit=50&offset=0`);
+    if (page.version !== "module-workbench-portfolio-v1" || page.accepted !== true || typeof page.portfolio_address !== "string" || !Array.isArray(page.items) || page.offset !== 0 || page.limit !== 50 || page.query?.module_id !== moduleId || !Number.isSafeInteger(page.total) || !page.portfolio_summary || page.portfolio_summary.content_address !== page.portfolio_address) {
+      throw new Error("The local API returned an invalid module portfolio projection.");
+    }
+    if (request !== model.modulePortfolioRequest || model.selectedModule !== moduleId) return null;
+    return page;
+  }
+
   function renderExecutionControls(item, moduleId) {
     const td = document.createElement("td");
     const actions = executionActionsByState[item.state] || [];
@@ -626,6 +636,53 @@
     controls.append(select, detail, evidence, apply);
     td.append(controls);
     return td;
+  }
+
+  function renderModulePortfolio() {
+    const page = model.modulePortfolio;
+    const summaryBox = $("module-workbench-portfolio-summary");
+    const body = $("module-workbench-portfolio-table");
+    summaryBox.replaceChildren();
+    body.replaceChildren();
+    if (!page) {
+      $("module-workbench-portfolio-label").textContent = "—";
+      $("module-workbench-portfolio-summary-text").textContent = "Verifying portfolio selection…";
+      body.append(emptyRow(5, "Portfolio selection has not been verified."));
+      return;
+    }
+    const summary = page.portfolio_summary || {};
+    const familyCounts = Object.entries(summary.selected_family_counts || {}).map(([family, count]) => `${displayValue(family)} ${formatCount(count)}`).join(" · ");
+    const summaryRows = [
+      ["Portfolio", shortened(page.portfolio_address, 46)],
+      ["Capacity", `${formatCount(summary.task_count)} selected of ${formatCount(summary.capacity)} allowed`],
+      ["Deferred", `${formatCount(summary.deferred_task_count)} planned tasks outside this wave`],
+      ["Module limit", `${formatCount(summary.max_tasks_per_module)} tasks per module`],
+      ["Families / impact", `${familyCounts || "None selected"} · ${percent(summary.total_estimated_impact)} mean estimated impact`],
+    ];
+    for (const [label, value] of summaryRows) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", displayValue(value)));
+      summaryBox.append(block);
+    }
+    $("module-workbench-portfolio-label").textContent = `${formatCount(page.total)} selected here`;
+    $("module-workbench-portfolio-summary-text").textContent = page.total
+      ? "These tasks are the deterministic intersection between the full plan and the current execution wave."
+      : "This module has planned depth work but no task in the current bounded execution wave.";
+    if (!page.items.length) {
+      body.append(emptyRow(5, "No planned tasks from this module are selected for the current execution wave."));
+      return;
+    }
+    for (const task of page.items) {
+      const row = document.createElement("tr");
+      row.append(
+        cell(shortened(task.task_id, 48)),
+        cell(displayValue(task.kind)),
+        cell(task.priority),
+        cell(percent(task.estimated_impact)),
+        cell(displayValue(task.acceptance)),
+      );
+      body.append(row);
+    }
   }
 
   function renderModuleExecution() {
@@ -813,6 +870,7 @@
       row.append(cell(task.priority), cell(`${displayValue(task.title)} · ${displayValue(task.kind)}`), cell(task.rationale), cell(task.acceptance), cell(percent(task.estimated_impact)));
       tasksBody.append(row);
     }
+    renderModulePortfolio();
     renderModuleExecution();
 
     const limitations = $("module-workbench-limitations");
@@ -827,23 +885,27 @@
     if (model.selectedModuleTriage?.module_id !== moduleId) model.selectedModuleTriage = model.moduleTriageByModule.get(moduleId) || null;
     model.moduleDetail = null;
     model.moduleExecution = null;
+    model.modulePortfolio = null;
     const request = model.moduleDetailRequest = (model.moduleDetailRequest || 0) + 1;
     renderModuleAssessments();
     notice("");
     exportHref();
     showEmpty("Verifying module dossier", "Loading static implementation evidence, certification checks, lineage, and planned depth work.");
     try {
-      const [detail, execution] = await Promise.all([
+      const [detail, execution, portfolio] = await Promise.all([
         getJson(`/v1/module-workbench/detail?module_id=${encodeURIComponent(moduleId)}`),
         loadModuleExecution(moduleId),
+        loadModulePortfolio(moduleId),
       ]);
       if (request !== model.moduleDetailRequest || model.activeView !== "module-workbench" || model.selectedModule !== moduleId) return;
       if (detail.schema !== "module-workbench-detail-v1" || detail.accepted !== true || detail.module_id !== moduleId || !detail.module || !detail.assessment || !detail.certification || !Array.isArray(detail.evidence) || !Array.isArray(detail.lineage_edges) || !Array.isArray(detail.tasks)) {
         throw new Error("The local API returned an invalid module dossier.");
       }
       if (!execution) return;
+      if (!portfolio) return;
       model.moduleDetail = detail;
       model.moduleExecution = execution;
+      model.modulePortfolio = portfolio;
       $("empty-state").hidden = true;
       $("run-view").hidden = true;
       $("geo-analysis-view").hidden = true;
@@ -859,7 +921,7 @@
       $("sequence-comparison-view").hidden = true;
       $("module-workbench-view").hidden = false;
       renderModuleWorkbenchDetail();
-      announceSelection(`Module ${moduleId} opened. ${formatCount(detail.evidence.length)} evidence receipts, ${formatCount(detail.tasks.length)} planned tasks, and ${formatCount(execution.total)} selected execution items are displayed.`);
+      announceSelection(`Module ${moduleId} opened. ${formatCount(detail.evidence.length)} evidence receipts, ${formatCount(detail.tasks.length)} planned tasks, ${formatCount(portfolio.total)} selected portfolio tasks, and ${formatCount(execution.total)} selected execution items are displayed.`);
     } catch (error) {
       if (request !== model.moduleDetailRequest || model.activeView !== "module-workbench" || model.selectedModule !== moduleId) return;
       notice(`The selected module dossier could not be verified. ${error.message}`, true);
