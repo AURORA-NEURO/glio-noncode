@@ -192,8 +192,11 @@ GET /v1/module-inventory/packet/verify?directory=module-inventory-packet
 
 Schema and capability routes are cheap declarations and do not scan the
 source tree. Inventory-producing routes are bounded in each returned page but
-may need to parse the full package before the first page is available. Clients
-should cache a packet or use the packet query route for repeated exploration.
+may need to parse the full package before the first page is available. Within
+one server process, those routes reuse a server-local snapshot keyed by the
+metadata of every Python source and test file; a changed file automatically
+invalidates the snapshot before the next request. Clients can still cache a
+packet or use the packet query route for repeatable offline exploration.
 
 ## Public-boundary rules
 
@@ -241,9 +244,11 @@ files are skipped. A source root that exceeds a limit is rejected before a
 partial accepted inventory can be emitted.
 
 The implementation deliberately keeps parsing and dependency resolution in
-memory because the repository is a local-first workbench. A future persisted
-adapter may cache source digests and AST-derived rows, but it must preserve
-the same row addresses, ordering, issue visibility, and public projection.
+memory because the repository is a local-first workbench. The HTTP service
+reuses its parsed aggregate safely until source metadata changes; the CLI and
+packet writer continue to build a fresh aggregate for each invocation. Any
+future persisted adapter must preserve the same row addresses, ordering, issue
+visibility, invalidation behavior, and public projection.
 
 ## Verification checklist
 

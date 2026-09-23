@@ -501,7 +501,13 @@ class ModuleInventoryProcessBoundaryTests(unittest.TestCase):
                 "def public_module():\n    return 1\n", encoding="utf-8"
             )
             fixture = build_module_inventory(source, test_root=Path(directory) / "tests")
-            with patch("glio_noncode.api.build_module_inventory", return_value=fixture):
+            with (
+                patch("glio_noncode.api.build_module_inventory", return_value=fixture) as builder,
+                patch(
+                    "glio_noncode.api._module_inventory_source_signature",
+                    side_effect=[("stable",), ("stable",), ("changed",)],
+                ),
+            ):
                 server = create_server("127.0.0.1", 0, directory)
                 thread = Thread(target=server.serve_forever, daemon=True)
                 thread.start()
@@ -532,6 +538,27 @@ class ModuleInventoryProcessBoundaryTests(unittest.TestCase):
                     self.assertEqual(detail["schema"], "module-inventory-detail-v1")
                     self.assertEqual(detail["module_id"], "glio_noncode.module")
                     connection.close()
+                    connection = HTTPConnection(host, port, timeout=60)
+                    connection.request(
+                        "GET", "/v1/module-inventory/detail?module_id=glio_noncode.module"
+                    )
+                    response = connection.getresponse()
+                    self.assertEqual(response.status, 200)
+                    self.assertEqual(
+                        json.loads(response.read())["module_id"], "glio_noncode.module"
+                    )
+                    connection.close()
+                    connection = HTTPConnection(host, port, timeout=60)
+                    connection.request(
+                        "GET", "/v1/module-inventory/detail?module_id=glio_noncode.module"
+                    )
+                    response = connection.getresponse()
+                    self.assertEqual(response.status, 200)
+                    self.assertEqual(
+                        json.loads(response.read())["module_id"], "glio_noncode.module"
+                    )
+                    connection.close()
+                    self.assertEqual(builder.call_count, 2)
                 finally:
                     server.shutdown()
                     server.server_close()
