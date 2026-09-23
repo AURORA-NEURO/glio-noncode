@@ -1938,6 +1938,26 @@
       block.append(element("span", "control-label", label), element("span", "geo-provenance-value", value));
       provenance.append(block);
     }
+    const downloadProvenance = $("sequence-download-provenance");
+    downloadProvenance.replaceChildren();
+    const downloadedInputs = Array.isArray(source.downloaded_inputs) ? source.downloaded_inputs : [];
+    if (!downloadedInputs.length) {
+      downloadProvenance.append(element("div", "geo-provenance-item", "No per-file download receipts were supplied."));
+    } else {
+      for (const receipt of downloadedInputs) {
+        const block = element("div", "geo-provenance-item");
+        const role = String(receipt.role || "input").toUpperCase();
+        const sourceText = [receipt.source_id, receipt.source_version].filter(Boolean).join(" · ") || "Source unavailable";
+        const digestText = receipt.sha256 || "Digest unavailable";
+        const sizeText = Number.isSafeInteger(receipt.size_bytes) ? `${formatCount(receipt.size_bytes)} bytes` : "size unavailable";
+        const compressionText = receipt.compression || "compression unavailable";
+        block.append(
+          element("span", "control-label", `${role} download receipt`),
+          element("span", "geo-provenance-value", `${sourceText} · ${sizeText} · ${compressionText} · ${digestText}`),
+        );
+        downloadProvenance.append(block);
+      }
+    }
     const body = $("sequence-changes-table");
     body.replaceChildren();
     if (!changes.changes.length) {
