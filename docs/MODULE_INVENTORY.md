@@ -202,6 +202,14 @@ metadata of every Python source and test file; a changed file automatically
 invalidates the snapshot before the next request. Clients can still cache a
 packet or use the packet query route for repeatable offline exploration.
 
+When a source or test file changes while the service remains running, the
+inventory builder compares the prior source metadata and module universe. It
+reuses unchanged module rows, symbols, dependencies, and parse issues, then
+refreshes test-reference counts and rebuilds all aggregate addresses. A module
+addition or deletion disables row reuse so local dependency resolution cannot
+silently inherit a different module universe. This is an optimization boundary,
+not a trust boundary: every returned inventory remains independently addressed.
+
 ## Public-boundary rules
 
 The inventory is designed to be safe for a public repository:

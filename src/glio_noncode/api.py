@@ -3553,6 +3553,23 @@ def _module_inventory_source_signature() -> tuple[tuple[str, int, int], ...]:
     return tuple(sorted(rows))
 
 
+def _module_inventory_source_signature_map(
+    signature: tuple[tuple[str, int, int], ...] | None,
+) -> dict[str, tuple[int, int]]:
+    """Project the source half of the service fingerprint for incremental reuse."""
+
+    if signature is None:
+        return {}
+    result: dict[str, tuple[int, int]] = {}
+    for row in signature:
+        if not isinstance(row, tuple) or len(row) != 3:
+            continue
+        name, size, modified = row
+        if isinstance(name, str) and name.startswith("0:"):
+            result[name[2:]] = (int(size), int(modified))
+    return result
+
+
 _MODULE_WORKBENCH_CACHE_MAX_BYTES = 512 * 1024 * 1024
 _MODULE_WORKBENCH_EXECUTION_JOURNAL_VERSION = "module-workbench-execution-journal-v1"
 _MODULE_WORKBENCH_EXECUTION_JOURNAL_MAX_BYTES = 64 * 1024 * 1024
@@ -3578,7 +3595,18 @@ class ApiHandler(BaseHTTPRequestHandler):
             setattr(self.server, "glio_module_inventory_snapshot", state)
         with state["lock"]:
             if state["signature"] != signature or state["inventory"] is None:
-                state["inventory"] = build_module_inventory(evidence=evidence)
+                previous = state["inventory"]
+                previous_signature = state["signature"]
+                state["inventory"] = build_module_inventory(
+                    evidence=evidence,
+                    previous=previous,
+                    previous_source_signature=_module_inventory_source_signature_map(
+                        previous_signature
+                    )
+                    if previous is not None
+                    else None,
+                    source_signature=_module_inventory_source_signature_map(signature),
+                )
                 state["signature"] = signature
             return state["inventory"]
 

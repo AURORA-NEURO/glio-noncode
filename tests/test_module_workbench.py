@@ -196,6 +196,43 @@ class ModuleWorkbenchFixture(unittest.TestCase):
         self.assertEqual(quality_builder.call_count, 2)
         self.assertEqual(workbench_builder.call_count, 2)
 
+    def test_api_inventory_passes_previous_rows_for_incremental_rebuilds(self) -> None:
+        handler = object.__new__(ApiHandler)
+        handler.server = type("Server", (), {})()
+        previous = object()
+        current = object()
+        first_signature = (
+            ("0:alpha.py", 10, 100),
+            ("1:test_core.py", 20, 200),
+        )
+        second_signature = (
+            ("0:alpha.py", 10, 100),
+            ("1:test_core.py", 21, 201),
+        )
+        with (
+            patch(
+                "glio_noncode.api._module_inventory_source_signature",
+                side_effect=[first_signature, second_signature],
+            ),
+            patch(
+                "glio_noncode.api.build_module_inventory",
+                side_effect=[previous, current],
+            ) as builder,
+        ):
+            handler._module_inventory(evidence={})
+            handler._module_inventory(evidence={})
+
+        self.assertIsNone(builder.call_args_list[0].kwargs["previous"])
+        self.assertIs(builder.call_args_list[1].kwargs["previous"], previous)
+        self.assertEqual(
+            builder.call_args_list[1].kwargs["previous_source_signature"],
+            {"alpha.py": (10, 100)},
+        )
+        self.assertEqual(
+            builder.call_args_list[1].kwargs["source_signature"],
+            {"alpha.py": (10, 100)},
+        )
+
     def test_api_triage_context_reuses_and_invalidates_ranked_projection(self) -> None:
         handler = object.__new__(ApiHandler)
         handler.server = type("Server", (), {})()

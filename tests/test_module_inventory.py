@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import importlib
 import tempfile
 import unittest
 from http.client import HTTPConnection
@@ -61,6 +62,8 @@ from glio_noncode.module_inventory_schema import (
     default_module_inventory_schema,
     validate_module_inventory_schema,
 )
+
+inventory_module = importlib.import_module("glio_noncode.module_inventory")
 
 
 class ModuleInventoryFixture(unittest.TestCase):
@@ -146,6 +149,42 @@ class ModuleInventoryConstructionTests(ModuleInventoryFixture):
         self.assertTrue(alpha.has_docstring)
         self.assertIn("glio_noncode.alpha", evidence["source_docstring_modules"])
         self.assertIn("glio_noncode.alpha", evidence["test_modules"])
+
+    def test_incremental_inventory_reuses_unchanged_source_rows(self) -> None:
+        previous = self.build()
+        previous_signature = {
+            path.relative_to(self.root).as_posix(): (path.stat().st_size, path.stat().st_mtime_ns)
+            for path in self.root.rglob("*.py")
+            if path.is_file() and not path.is_symlink()
+        }
+        (self.tests / "test_beta.py").write_text(
+            "from glio_noncode.beta import Beta\n", encoding="utf-8"
+        )
+        source_reads: list[str] = []
+        original_read_text = inventory_module.read_text
+
+        def observe_read(path: str | Path, **kwargs: object) -> str:
+            candidate = Path(path)
+            if candidate.is_file() and candidate.resolve().is_relative_to(self.root.resolve()):
+                source_reads.append(candidate.name)
+            return original_read_text(path, **kwargs)
+
+        with patch.object(inventory_module, "read_text", side_effect=observe_read):
+            current = inventory_module.build_module_inventory(
+                self.root,
+                test_root=self.tests,
+                previous=previous,
+                previous_source_signature=previous_signature,
+                source_signature=previous_signature,
+            )
+        beta = next(item for item in current.modules if item.module_id.endswith(".beta"))
+        self.assertEqual(beta.test_reference_count, 1)
+        self.assertEqual(source_reads, [])
+        self.assertNotEqual(current.content_address, previous.content_address)
+        self.assertEqual(
+            tuple(item.content_address for item in current.symbols),
+            tuple(item.content_address for item in previous.symbols),
+        )
 
     def test_fully_qualified_symbol_reference_counts_for_its_module(self) -> None:
         (self.tests / "test_symbol.py").write_text(

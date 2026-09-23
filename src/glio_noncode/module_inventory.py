@@ -632,14 +632,60 @@ def _audit(
     )
 
 
+def _source_file_signature(
+    files: Iterable[Path], root: Path
+) -> dict[str, tuple[int, int]]:
+    """Return the metadata fingerprint used to authorize row reuse."""
+
+    result: dict[str, tuple[int, int]] = {}
+    for path in files:
+        try:
+            stat = path.stat()
+        except OSError:
+            continue
+        result[_safe_relative(path, root)] = (int(stat.st_size), int(stat.st_mtime_ns))
+    return result
+
+
+def _reusable_module_paths(
+    discovered: tuple[tuple[str, Path], ...],
+    root: Path,
+    previous: ModuleInventory | None,
+    previous_source_signature: Mapping[str, tuple[int, int]] | None,
+    source_signature: Mapping[str, tuple[int, int]],
+) -> set[str]:
+    """Select rows whose source evidence is unchanged and structurally complete."""
+
+    if previous is None or previous_source_signature is None:
+        return set()
+    current_relative = {_safe_relative(path, root) for _, path in discovered}
+    previous_relative = {item.relative_path for item in previous.modules}
+    if current_relative != previous_relative:
+        return set()
+    return {
+        relative
+        for relative in current_relative
+        if previous_source_signature.get(relative) == source_signature.get(relative)
+    }
+
+
 def build_module_inventory(
     source_root: str | Path | None = None,
     *,
     test_root: str | Path | None = None,
     root_label: str = "src/glio_noncode",
     evidence: MutableMapping[str, Any] | None = None,
+    previous: ModuleInventory | None = None,
+    previous_source_signature: Mapping[str, tuple[int, int]] | None = None,
+    source_signature: Mapping[str, tuple[int, int]] | None = None,
 ) -> ModuleInventory:
-    """Discover and statically parse the package without importing it."""
+    """Discover and statically parse the package without importing it.
+
+    When a previous accepted inventory and matching source metadata are
+    supplied, unchanged module rows are reused while test references are
+    refreshed. Reuse is disabled when the module universe changes because
+    dependency resolution is part of each row's addressed contract.
+    """
 
     root = Path(source_root) if source_root is not None else Path(__file__).resolve().parent
     tests = Path(test_root) if test_root is not None else root.parent.parent / "tests"
@@ -655,6 +701,31 @@ def build_module_inventory(
             for path in files
         )
     )
+    current_source_signature = dict(
+        source_signature
+        if source_signature is not None
+        else _source_file_signature((path for _, path in discovered), root)
+    )
+    reusable_paths = _reusable_module_paths(
+        discovered,
+        root,
+        previous,
+        previous_source_signature,
+        current_source_signature,
+    )
+    previous_modules = (
+        {item.relative_path: item for item in previous.modules} if previous is not None else {}
+    )
+    previous_symbols: defaultdict[str, list[ModuleSymbol]] = defaultdict(list)
+    previous_dependencies: defaultdict[str, list[ModuleDependency]] = defaultdict(list)
+    previous_issues: defaultdict[str, list[InventoryIssue]] = defaultdict(list)
+    if previous is not None:
+        for item in previous.symbols:
+            previous_symbols[item.module_id].append(item)
+        for item in previous.dependencies:
+            previous_dependencies[item.source_module].append(item)
+        for item in previous.issues:
+            previous_issues[item.relative_path].append(item)
     issues: list[InventoryIssue] = []
     module_ids = tuple(item[0] for item in discovered)
     export_modules = _public_surface_export_modules(root)
@@ -675,8 +746,40 @@ def build_module_inventory(
     modules: list[ModuleRecord] = []
     symbols: list[ModuleSymbol] = []
     dependency_specs: list[tuple[str, str, str, bool, bool]] = []
+    reused_dependencies: list[ModuleDependency] = []
     for module_id, path in discovered:
         relative = _safe_relative(path, root)
+        if relative in reusable_paths:
+            previous_module = previous_modules[relative]
+            test_reference_count = test_counts.get(module_id, 0)
+            body = {
+                "module_id": previous_module.module_id,
+                "relative_path": previous_module.relative_path,
+                "package": previous_module.package,
+                "family": previous_module.family,
+                "role": previous_module.role,
+                "state": previous_module.state,
+                "physical_lines": previous_module.physical_lines,
+                "nonblank_lines": previous_module.nonblank_lines,
+                "comment_lines": previous_module.comment_lines,
+                "public_symbol_count": previous_module.public_symbol_count,
+                "class_count": previous_module.class_count,
+                "function_count": previous_module.function_count,
+                "import_count": previous_module.import_count,
+                "local_dependency_count": previous_module.local_dependency_count,
+                "test_reference_count": test_reference_count,
+                "source_digest": previous_module.source_digest,
+                "has_docstring": previous_module.has_docstring,
+            }
+            modules.append(
+                ModuleRecord(**body, content_address=_body_address(body, "module-inventory-module"))
+            )
+            symbols.extend(previous_symbols.get(module_id, ()))
+            reused_dependencies.extend(previous_dependencies.get(module_id, ()))
+            issues.extend(previous_issues.get(relative, ()))
+            if source_docstring_evidence is not None and previous_module.has_docstring:
+                source_docstring_evidence.add(module_id)
+            continue
         try:
             text = read_text(path, field="module inventory source")
             tree = ast.parse(text, filename=relative)
@@ -743,7 +846,7 @@ def build_module_inventory(
         modules.append(
             ModuleRecord(**body, content_address=_body_address(body, "module-inventory-module"))
         )
-    dependencies: list[ModuleDependency] = []
+    dependencies: list[ModuleDependency] = list(reused_dependencies)
     for source, target, raw, relative_import, resolved in sorted(set(dependency_specs)):
         body = {
             "source_module": source,
