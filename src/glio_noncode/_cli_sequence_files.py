@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import hashlib
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -40,6 +42,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-version", required=True, help="download or release version")
     parser.add_argument("--retrieved-at", required=True, help="UTC retrieval timestamp")
     parser.add_argument(
+        "--fasta-sha256",
+        default=None,
+        help="expected SHA-256 digest of the downloaded FASTA payload before decompression",
+    )
+    parser.add_argument(
+        "--vcf-sha256",
+        default=None,
+        help="expected SHA-256 digest of the downloaded VCF payload before decompression",
+    )
+    parser.add_argument(
         "--phase-set",
         default=None,
         help="fallback phase-set label when a VCF record has no PS FORMAT value",
@@ -56,13 +68,31 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _read_download(path_value: str, *, label: str) -> bytes:
+def _expected_sha256(value: str | None, *, label: str) -> str | None:
+    if value is None:
+        return None
+    normalized = value.strip().casefold()
+    if re.fullmatch(r"[0-9a-f]{64}", normalized) is None:
+        raise ValidationError(f"{label} SHA-256 digest must be exactly 64 hexadecimal characters")
+    return normalized
+
+
+def _read_download(
+    path_value: str,
+    *,
+    label: str,
+    expected_sha256: str | None = None,
+) -> bytes:
+    normalized_expected = _expected_sha256(expected_sha256, label=label)
     path = Path(path_value)
     if path.is_symlink() or not path.is_file():
         raise ValidationError(f"{label} must be a regular local file")
     if path.stat().st_size > MAX_SEQUENCE_FILE_BYTES:
         raise ValidationError(f"{label} exceeds the downloaded-file byte limit")
     raw = path.read_bytes()
+    actual_sha256 = hashlib.sha256(raw).hexdigest()
+    if normalized_expected is not None and actual_sha256 != normalized_expected:
+        raise ValidationError(f"{label} SHA-256 digest does not match the expected download")
     if path.suffix.casefold() == ".gz":
         try:
             raw = gzip.decompress(raw)
@@ -253,13 +283,13 @@ def build_sequence_haplotype_input(args: argparse.Namespace) -> dict[str, Any]:
     if args.haplotype_index < 1:
         raise ValidationError("haplotype index must be positive")
     sequence = _fasta_window(
-        _read_download(args.fasta, label="FASTA"),
+        _read_download(args.fasta, label="FASTA", expected_sha256=args.fasta_sha256),
         chromosome=args.chromosome,
         start=args.start,
         end=args.end,
     )
     variants = _vcf_variants(
-        _read_download(args.vcf, label="VCF"),
+        _read_download(args.vcf, label="VCF", expected_sha256=args.vcf_sha256),
         sample_id=args.sample_id,
         chromosome=args.chromosome,
         start=args.start,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gzip
+import hashlib
 import io
 import json
 import tempfile
@@ -98,6 +99,37 @@ class SequenceFilesCliTests(unittest.TestCase):
             self.assertNotIn("SAMPLE_1", serialized)
             self.assertEqual(stdout.getvalue(), "")
             self.assertEqual(stderr.getvalue(), "")
+
+    def test_download_sha256_digests_are_verified_before_decompression(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fasta, vcf, motifs = _write_downloads(root)
+            args = _args(fasta, vcf, motifs, root / "report.json")
+            args.extend(
+                [
+                    "--fasta-sha256",
+                    hashlib.sha256(fasta.read_bytes()).hexdigest(),
+                    "--vcf-sha256",
+                    hashlib.sha256(vcf.read_bytes()).hexdigest(),
+                ]
+            )
+            parsed = build_parser().parse_args(args)
+            self.assertEqual(
+                build_sequence_haplotype_input(parsed)["sequence"]["sequence"],
+                "AACCGGTTAACC",
+            )
+            args[args.index("--vcf-sha256") + 1] = "0" * 64
+            with self.assertRaisesRegex(ValidationError, "SHA-256 digest does not match"):
+                build_sequence_haplotype_input(build_parser().parse_args(args))
+
+    def test_malformed_download_sha256_is_rejected_before_file_read(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fasta, vcf, motifs = _write_downloads(root)
+            args = _args(fasta, vcf, motifs, root / "report.json")
+            args.extend(["--fasta-sha256", "not-a-digest"])
+            with self.assertRaisesRegex(ValidationError, "exactly 64 hexadecimal"):
+                build_sequence_haplotype_input(build_parser().parse_args(args))
 
     def test_unphased_download_is_rejected_before_analysis(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

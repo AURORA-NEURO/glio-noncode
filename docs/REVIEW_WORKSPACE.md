@@ -268,6 +268,10 @@ alleles, malformed FASTA contigs, out-of-window requests, unsupported file
 sizes, and missing phase provenance before motif analysis starts. The VCF and
 FASTA are read locally; their bases, genotype strings, and sample IDs do not
 cross into the persisted public report.
+For stronger download reproducibility, `--fasta-sha256` and `--vcf-sha256`
+accept the exact 64-character hexadecimal SHA-256 digests of the downloaded
+payloads as stored on disk. Digests are checked before gzip decompression and a
+mismatch aborts the run before any sequence or variant analysis begins.
 
 When several downloaded samples share the same reference window and motif
 catalog, `sequence-batch` aggregates the individual reports without emitting
