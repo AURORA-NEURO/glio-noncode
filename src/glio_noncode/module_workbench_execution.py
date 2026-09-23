@@ -17,6 +17,7 @@ from .module_workbench_contracts import (
 from .module_workbench_execution_contracts import (
     MODULE_WORKBENCH_EXECUTION_DEFAULT_LIMIT,
     MODULE_WORKBENCH_EXECUTION_MAX_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_VERSION,
     ModuleWorkbenchExecutionAction,
     ModuleWorkbenchExecutionCommand,
     ModuleWorkbenchExecutionEvent,
@@ -567,6 +568,7 @@ def query_module_workbench_execution(
         folded = text.casefold()
         rows = [item for item in rows if folded in canonical_json(item).casefold()]
     body = {
+        "version": MODULE_WORKBENCH_EXECUTION_VERSION,
         "ledger_address": value.content_address,
         "query": {
             "resource": resource,

@@ -24,6 +24,7 @@
     sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewMotifRequest: 0, sequenceReviewFilterTimer: null,
     moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
     moduleTriageItems: [], moduleTriageTotal: 0, moduleTriageHasMore: false, moduleTriageListRequest: 0, moduleTriageFilterTimer: null, moduleTriageByModule: new Map(), selectedModuleTriage: null,
+    moduleExecution: null,
     moduleWorkbenchSummary: null, moduleWorkbenchSummaryRequest: 0,
     moduleFilters: { q: "", risk: "", depth_band: "" }, moduleTriageFilters: { risk: "", reason: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
@@ -498,6 +499,40 @@
     model.moduleTriageFilterTimer = setTimeout(() => loadModuleTriage(false), 180);
   }
 
+  function renderModuleExecution() {
+    const page = model.moduleExecution;
+    const body = $("module-workbench-execution-table");
+    body.replaceChildren();
+    if (!page) {
+      $("module-workbench-execution-label").textContent = "—";
+      $("module-workbench-execution-summary").textContent = "Verifying bounded execution state…";
+      body.append(emptyRow(6, "Execution state has not been verified."));
+      return;
+    }
+    const rows = page.items || [];
+    $("module-workbench-execution-label").textContent = `${formatCount(page.total)} selected`;
+    $("module-workbench-execution-summary").textContent = rows.length
+      ? `${formatCount(rows.length)} of ${formatCount(page.total)} selected ledger items · states are read-only projections of the bounded execution portfolio.`
+      : "This module is not included in the current bounded execution portfolio; its planned tasks remain visible above.";
+    if (!rows.length) {
+      body.append(emptyRow(6, "No execution ledger items are selected for this module."));
+      return;
+    }
+    for (const item of rows) {
+      const row = document.createElement("tr");
+      const evidence = `${formatCount((item.evidence_addresses || []).length)}/${formatCount(item.required_evidence_count)}`;
+      row.append(
+        cell(`${shortened(item.task_id, 48)} · ${displayValue(item.kind)}`),
+        cell(displayValue(item.state)),
+        cell(`${Number.isFinite(item.completion_percent) ? Number(item.completion_percent).toFixed(1) : "—"}%`),
+        cell(evidence),
+        cell(formatCount((item.prerequisites || []).length)),
+        cell(displayValue(item.detail)),
+      );
+      body.append(row);
+    }
+  }
+
   function renderModuleWorkbenchDetail() {
     const detail = model.moduleDetail;
     if (!detail) return;
@@ -605,6 +640,7 @@
       row.append(cell(task.priority), cell(`${displayValue(task.title)} · ${displayValue(task.kind)}`), cell(task.rationale), cell(task.acceptance), cell(percent(task.estimated_impact)));
       tasksBody.append(row);
     }
+    renderModuleExecution();
 
     const limitations = $("module-workbench-limitations");
     limitations.replaceChildren();
@@ -617,18 +653,26 @@
     model.selectedModule = moduleId;
     if (model.selectedModuleTriage?.module_id !== moduleId) model.selectedModuleTriage = model.moduleTriageByModule.get(moduleId) || null;
     model.moduleDetail = null;
+    model.moduleExecution = null;
     const request = model.moduleDetailRequest = (model.moduleDetailRequest || 0) + 1;
     renderModuleAssessments();
     notice("");
     exportHref();
     showEmpty("Verifying module dossier", "Loading static implementation evidence, certification checks, lineage, and planned depth work.");
     try {
-      const detail = await getJson(`/v1/module-workbench/detail?module_id=${encodeURIComponent(moduleId)}`);
+      const [detail, execution] = await Promise.all([
+        getJson(`/v1/module-workbench/detail?module_id=${encodeURIComponent(moduleId)}`),
+        getJson(`/v1/module-workbench/execution/query?resource=items&module_id=${encodeURIComponent(moduleId)}&limit=50&offset=0`),
+      ]);
       if (request !== model.moduleDetailRequest || model.activeView !== "module-workbench" || model.selectedModule !== moduleId) return;
       if (detail.schema !== "module-workbench-detail-v1" || detail.accepted !== true || detail.module_id !== moduleId || !detail.module || !detail.assessment || !detail.certification || !Array.isArray(detail.evidence) || !Array.isArray(detail.lineage_edges) || !Array.isArray(detail.tasks)) {
         throw new Error("The local API returned an invalid module dossier.");
       }
+      if (execution.version !== "module-workbench-execution-v1" || execution.accepted !== true || typeof execution.ledger_address !== "string" || !Array.isArray(execution.items) || execution.offset !== 0 || execution.limit !== 50 || execution.query?.module_id !== moduleId || !Number.isSafeInteger(execution.total)) {
+        throw new Error("The local API returned an invalid module execution projection.");
+      }
       model.moduleDetail = detail;
+      model.moduleExecution = execution;
       $("empty-state").hidden = true;
       $("run-view").hidden = true;
       $("geo-analysis-view").hidden = true;
@@ -644,7 +688,7 @@
       $("sequence-comparison-view").hidden = true;
       $("module-workbench-view").hidden = false;
       renderModuleWorkbenchDetail();
-      announceSelection(`Module ${moduleId} opened. ${formatCount(detail.evidence.length)} evidence receipts and ${formatCount(detail.tasks.length)} planned tasks are displayed.`);
+      announceSelection(`Module ${moduleId} opened. ${formatCount(detail.evidence.length)} evidence receipts, ${formatCount(detail.tasks.length)} planned tasks, and ${formatCount(execution.total)} selected execution items are displayed.`);
     } catch (error) {
       if (request !== model.moduleDetailRequest || model.activeView !== "module-workbench" || model.selectedModule !== moduleId) return;
       notice(`The selected module dossier could not be verified. ${error.message}`, true);

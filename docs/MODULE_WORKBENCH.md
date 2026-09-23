@@ -195,6 +195,13 @@ in the review-pressure panel. Queue responses are generation-gated and are
 accepted only when the triage address, page bounds, and read-only contract are
 valid.
 
+Each dossier also requests the bounded
+`/v1/module-workbench/execution/query?resource=items&module_id=...` projection.
+The execution panel shows selected task state, completion percentage, required
+evidence coverage, prerequisite count, and ledger detail. A module with no
+selected rows is explicitly reported as outside the current portfolio rather
+than being treated as completed.
+
 The API keeps the ranked triage object in a server-local cache keyed by the
 same source signature as the module workbench. Repeated filter and pagination
 requests reuse the verified report; any Python source or test-input change

@@ -306,6 +306,10 @@ class ModuleWorkbenchExecutionFixture(unittest.TestCase):
             query_module_workbench_execution(ledger, resource="items")["total"],
             ledger.total_task_count,
         )
+        self.assertEqual(
+            query_module_workbench_execution(ledger, resource="items")["version"],
+            "module-workbench-execution-v1",
+        )
         self.assertEqual(query_module_workbench_execution(ledger, resource="summary")["total"], 1)
         self.assertEqual(
             query_module_workbench_execution_audit(audit, passed=True)["total"], audit.passed_count
