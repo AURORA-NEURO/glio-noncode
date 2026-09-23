@@ -171,6 +171,10 @@ tbody tr:last-child td { border-bottom: 0; }
 .sequence-review-controls .button { width: 100%; }
 .module-workbench-filters { display: grid; gap: 7px; margin: 10px 0 12px; }
 .module-workbench-filters input, .module-workbench-filters select { width: 100%; min-height: 34px; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfa; color: var(--ink); padding: 0 8px; }
+.module-triage-rail { display: grid; gap: 0; margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--line); }
+.module-triage-rail h3 { margin: 0; font-size: 14px; }
+.module-triage-rail .small { margin: 10px 0 9px; }
+.module-triage-rail .run-list { max-height: 38vh; }
 .sequence-review-filters { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(170px, .55fr); align-items: end; gap: 9px; margin: 12px 0 14px; }
 .sequence-review-filters input, .sequence-review-filters select { width: 100%; min-height: 38px; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfa; color: var(--ink); padding: 0 9px; }
 .geo-analysis-choice { display: block; }

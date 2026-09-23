@@ -23,7 +23,8 @@
     sequenceComparisons: [], sequenceComparisonTotal: 0, sequenceComparisonHasMore: false, selectedSequenceComparison: null, sequenceComparisonReport: null, sequenceComparisonChanges: null, sequenceComparisonListRequest: 0, sequenceComparisonRequest: 0, sequenceComparisonFilterTimer: null,
     sequenceReviewSummary: null, sequenceReviewVerification: null, sequenceReviewMotifs: null, sequenceReviewRequest: 0, sequenceReviewMotifRequest: 0, sequenceReviewFilterTimer: null,
     moduleAssessments: [], moduleTotal: 0, moduleHasMore: false, selectedModule: null, moduleDetail: null, moduleListRequest: 0, moduleDetailRequest: 0, moduleFilterTimer: null,
-    moduleFilters: { q: "", risk: "", depth_band: "" },
+    moduleTriageItems: [], moduleTriageTotal: 0, moduleTriageHasMore: false, moduleTriageListRequest: 0, moduleTriageFilterTimer: null, moduleTriageByModule: new Map(), selectedModuleTriage: null,
+    moduleFilters: { q: "", risk: "", depth_band: "" }, moduleTriageFilters: { risk: "", reason: "" },
     activeView: "empty", runsLoaded: false, geoLoaded: false, sequenceLoaded: false,
     selectionRequest: 0, runListRequest: 0, geoListRequest: 0, geoExpressionListRequest: 0, sequenceListRequest: 0, sequenceBatchListRequest: 0, geoFilterTimer: null, geoExpressionFilterTimer: null, geoConsistencyRequest: 0,
   };
@@ -387,6 +388,83 @@
     model.moduleFilterTimer = setTimeout(() => loadModuleAssessments(false), 180);
   }
 
+  function triageReasonLabel(value) {
+    return String(value || "").replaceAll("_", " ");
+  }
+
+  function renderModuleTriage() {
+    const list = $("module-triage-list");
+    list.replaceChildren();
+    $("module-triage-count").textContent = formatCount(model.moduleTriageTotal);
+    const filters = [model.moduleTriageFilters.risk && `risk ${model.moduleTriageFilters.risk}`, model.moduleTriageFilters.reason && triageReasonLabel(model.moduleTriageFilters.reason)].filter(Boolean);
+    $("module-triage-list-summary").textContent = `Showing ${model.moduleTriageItems.length} of ${formatCount(model.moduleTriageTotal)} priority modules${filters.length ? ` · ${filters.join(" · ")}` : ""}.`;
+    $("module-triage-load-more").hidden = !model.moduleTriageHasMore;
+    if (!model.moduleTriageItems.length) {
+      list.append(element("p", "empty-inline", "No priority modules match these filters."));
+      return;
+    }
+    for (const item of model.moduleTriageItems) {
+      const button = element("button", "run-item");
+      button.type = "button";
+      button.setAttribute("aria-current", String(item.module_id === model.selectedModule));
+      button.setAttribute("aria-label", `Open priority module ${item.module_id}, rank ${item.rank}, ${item.risk} risk`);
+      const top = element("span", "run-top");
+      top.append(element("span", "run-case", shortened(item.module_id, 34)), element("span", "run-status", `#${item.rank}`));
+      const meta = element("span", "run-meta");
+      const reasons = (item.reasons || []).map(triageReasonLabel).join(" · ") || "no reason code";
+      meta.append(element("span", "run-id", `${percent(item.priority_score)} priority`), element("span", "", `${item.risk} · ${shortened(reasons, 40)}`));
+      button.append(top, meta);
+      button.addEventListener("click", () => {
+        model.selectedModuleTriage = item;
+        openModuleWorkbenchDetail(item.module_id);
+      });
+      list.append(button);
+    }
+  }
+
+  function moduleTriageQuery(offset) {
+    const params = new URLSearchParams({ limit: String(pageSize), offset: String(offset) });
+    for (const [key, value] of Object.entries(model.moduleTriageFilters)) if (value) params.set(key, value);
+    return params.toString();
+  }
+
+  async function loadModuleTriage(append = false) {
+    const request = model.moduleTriageListRequest = (model.moduleTriageListRequest || 0) + 1;
+    const offset = append ? model.moduleTriageItems.length : 0;
+    const button = $("module-triage-load-more");
+    button.disabled = append;
+    try {
+      const page = await getJson(`/v1/module-workbench/triage/query?${moduleTriageQuery(offset)}`);
+      if (request !== model.moduleTriageListRequest) return;
+      if (!Array.isArray(page.items) || !Number.isSafeInteger(page.total) || page.offset !== offset || page.limit !== pageSize || page.accepted !== true || typeof page.triage_address !== "string") {
+        throw new Error("The local API returned an invalid module priority queue.");
+      }
+      model.moduleTriageTotal = page.total;
+      model.moduleTriageItems = append ? model.moduleTriageItems.concat(page.items) : page.items;
+      model.moduleTriageHasMore = model.moduleTriageItems.length < page.total;
+      if (!append) model.moduleTriageByModule = new Map();
+      for (const item of page.items) model.moduleTriageByModule.set(item.module_id, item);
+      renderModuleTriage();
+      if (model.selectedModule) renderModuleWorkbenchDetail();
+    } catch (error) {
+      if (request !== model.moduleTriageListRequest) return;
+      if (!append) {
+        model.moduleTriageHasMore = false;
+        button.hidden = true;
+        $("module-triage-list").replaceChildren(element("p", "empty-inline", "The priority queue could not be verified."));
+        $("module-triage-list-summary").textContent = "The local API could not verify a module priority queue.";
+      }
+      notice(error.message, true);
+    } finally {
+      if (request === model.moduleTriageListRequest) button.disabled = false;
+    }
+  }
+
+  function reloadModuleTriage() {
+    if (model.moduleTriageFilterTimer !== null) clearTimeout(model.moduleTriageFilterTimer);
+    model.moduleTriageFilterTimer = setTimeout(() => loadModuleTriage(false), 180);
+  }
+
   function renderModuleWorkbenchDetail() {
     const detail = model.moduleDetail;
     if (!detail) return;
@@ -409,6 +487,25 @@
     $("module-workbench-evidence-count").textContent = formatCount((detail.evidence || []).length);
     $("module-workbench-gap-count").textContent = formatCount((detail.certification_gaps || []).length);
     $("module-workbench-summary-state").textContent = `${displayValue(assessment.state)} · ${displayValue(assessment.family)}`;
+    const triage = model.moduleTriageByModule.get(moduleId) || (model.selectedModuleTriage?.module_id === moduleId ? model.selectedModuleTriage : null);
+    $("module-workbench-triage-score").textContent = triage ? percent(triage.priority_score) : "—";
+    $("module-workbench-triage-detail").textContent = triage ? `Rank #${formatCount(triage.rank)} · ${triage.risk} risk` : "Not in loaded priority page";
+    $("module-workbench-triage-label").textContent = triage ? `Rank #${formatCount(triage.rank)}` : "Not loaded";
+    const triageBox = $("module-workbench-triage-summary");
+    triageBox.replaceChildren();
+    const triageRows = triage ? [
+      ["Priority score", percent(triage.priority_score)],
+      ["Reason codes", (triage.reasons || []).map(triageReasonLabel).join(" · ") || "None emitted"],
+      ["Rank / risk", `#${formatCount(triage.rank)} · ${displayValue(triage.risk)}`],
+      ["Fan-in / fan-out", `${formatCount(triage.fan_in)} / ${formatCount(triage.fan_out)}`],
+      ["Gaps / evidence / unresolved", `${formatCount(triage.gap_count)} / ${formatCount(triage.evidence_count)} / ${formatCount(triage.unresolved_edge_count)}`],
+      ["Recommended task IDs", (triage.recommended_task_ids || []).join(" · ") || "No task IDs emitted"],
+    ] : [["Queue status", "This module is outside the currently loaded priority page. Use the priority filters or load more to inspect its ranked reasons."]];
+    for (const [label, value] of triageRows) {
+      const block = element("div", "geo-provenance-item");
+      block.append(element("span", "control-label", label), element("span", "geo-provenance-value", displayValue(value)));
+      triageBox.append(block);
+    }
 
     const summaryBox = $("module-workbench-summary");
     summaryBox.replaceChildren();
@@ -485,6 +582,7 @@
   async function openModuleWorkbenchDetail(moduleId) {
     model.activeView = "module-workbench";
     model.selectedModule = moduleId;
+    if (model.selectedModuleTriage?.module_id !== moduleId) model.selectedModuleTriage = model.moduleTriageByModule.get(moduleId) || null;
     model.moduleDetail = null;
     const request = model.moduleDetailRequest = (model.moduleDetailRequest || 0) + 1;
     renderModuleAssessments();
@@ -2993,7 +3091,7 @@
     renderHypotheses(); renderQueue(); renderDeltas(); exportHref();
   }
 
-  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview(), loadModuleAssessments()]));
+  $("refresh-button").addEventListener("click", () => Promise.all([loadRuns(), loadGeoAnalyses(), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview(), loadModuleAssessments(), loadModuleTriage()]));
   $("run-search").addEventListener("input", renderRuns);
   $("path-search").addEventListener("input", renderHypotheses);
   $("evidence-search").addEventListener("input", renderEvidence);
@@ -3106,6 +3204,15 @@
     model.moduleFilters.depth_band = event.currentTarget.value;
     reloadModuleAssessments();
   });
+  $("module-triage-load-more").addEventListener("click", () => loadModuleTriage(true));
+  $("module-triage-risk-filter").addEventListener("change", (event) => {
+    model.moduleTriageFilters.risk = event.currentTarget.value;
+    reloadModuleTriage();
+  });
+  $("module-triage-reason-filter").addEventListener("change", (event) => {
+    model.moduleTriageFilters.reason = event.currentTarget.value;
+    reloadModuleTriage();
+  });
   $("geo-consistency-features").addEventListener("input", updateGeoCompareControls);
   $("geo-compare-button").addEventListener("click", compareGeoAnalyses);
   $("geo-sensitivity-button").addEventListener("click", compareGeoSensitivity);
@@ -3149,7 +3256,7 @@
   });
   async function initializeWorkspace() {
     const initialSelectionRequest = model.selectionRequest || 0;
-    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview(), loadModuleAssessments()]);
+    await Promise.all([loadRuns(false, true), loadGeoAnalyses(false, true), loadGeoReviewSummary(), loadGeoPreflights(), loadGeoExpressionAnalyses(), loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords(), loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), loadSequenceReview(), loadModuleAssessments(), loadModuleTriage()]);
     if (model.selectionRequest !== initialSelectionRequest || model.activeView !== "empty") return;
     if (model.runs.length) {
       await openRun(model.runs[0].run_id);

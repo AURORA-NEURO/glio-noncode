@@ -116,7 +116,17 @@
           </div>
           <nav id="module-workbench-list" class="run-list" aria-label="Implementation modules"></nav>
           <button id="module-workbench-load-more" class="button quiet load-more" type="button" hidden>Load more modules</button>
-          <p class="rail-note">Module rows are static engineering signals. Open a module for certification, lineage, and task evidence.</p>
+          <section class="module-triage-rail" aria-labelledby="module-triage-heading">
+            <div class="section-head"><div><p class="eyebrow">Explainable queue</p><h3 id="module-triage-heading">Priority review</h3></div><span id="module-triage-count" class="count">—</span></div>
+            <p id="module-triage-list-summary" class="muted small">Loading ranked module pressure…</p>
+            <div class="module-workbench-filters" aria-label="Module priority filters">
+              <label><span class="control-label">Risk</span><select id="module-triage-risk-filter"><option value="">All risks</option><option value="blocker">Blocker</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>
+              <label><span class="control-label">Reason</span><select id="module-triage-reason-filter"><option value="">All reasons</option><option value="blocker_risk">Blocker risk</option><option value="high_risk">High risk</option><option value="shallow_depth">Shallow depth</option><option value="certification_gap">Certification gap</option><option value="unresolved_lineage">Unresolved lineage</option><option value="high_fan_in">High fan-in</option><option value="missing_test_reference">Missing test reference</option><option value="low_score">Low score</option></select></label>
+            </div>
+            <nav id="module-triage-list" class="run-list" aria-label="Priority module review queue"></nav>
+            <button id="module-triage-load-more" class="button quiet load-more" type="button" hidden>Load more priority modules</button>
+          </section>
+          <p class="rail-note">Module rows are static engineering signals. The priority queue explains review pressure; open a module for certification, lineage, and task evidence.</p>
         </aside>
         <section class="workspace" aria-label="Selected run review">
           <div id="empty-state" class="empty-state panel"><span class="empty-mark" aria-hidden="true">G</span><p class="eyebrow">Ready when you are</p><h2 id="empty-title">Select a case run</h2><p id="empty-copy">Choose a saved run to inspect candidate paths, edge-level evidence, alternatives, and provenance.</p></div>
@@ -274,8 +284,10 @@
               <article class="metric panel"><span>Tasks</span><strong id="module-workbench-task-count">—</strong><small>Planned depth work</small></article>
               <article class="metric panel"><span>Evidence</span><strong id="module-workbench-evidence-count">—</strong><small>Linked artifacts</small></article>
               <article class="metric panel"><span>Gaps</span><strong id="module-workbench-gap-count">—</strong><small>Certification gaps</small></article>
+              <article class="metric panel"><span>Review priority</span><strong id="module-workbench-triage-score">—</strong><small id="module-workbench-triage-detail">Explainable queue score</small></article>
             </section>
             <section class="panel block"><div class="section-head"><div><p class="eyebrow">Module contract</p><h2>Implementation summary</h2></div><span id="module-workbench-summary-state" class="quiet-tag">—</span></div><div id="module-workbench-summary" class="provenance-grid"></div></section>
+            <section class="panel block"><div class="section-head"><div><p class="eyebrow">Review pressure</p><h2>Why this module is queued</h2></div><span id="module-workbench-triage-label" class="quiet-tag">—</span></div><div id="module-workbench-triage-summary" class="provenance-grid"></div><p id="module-workbench-triage-note" class="section-note">Priority signals are static engineering review aids, not correctness or clinical evidence.</p></section>
             <section class="panel block"><div class="section-head"><div><p class="eyebrow">Certification checks</p><h2>Static acceptance evidence</h2></div><span id="module-workbench-certification-count" class="quiet-tag">—</span></div><div class="table-scroll"><table><thead><tr><th>Check</th><th>State</th><th>Observed</th><th>Required</th><th>Detail</th></tr></thead><tbody id="module-workbench-certification-table"></tbody></table></div></section>
             <section class="panel block"><div class="section-head"><div><p class="eyebrow">Evidence receipts</p><h2>Linked artifacts</h2></div><span id="module-workbench-evidence-label" class="quiet-tag">—</span></div><div class="table-scroll"><table><thead><tr><th>Kind</th><th>Relation</th><th>Path</th><th>Lines</th><th>Detail</th></tr></thead><tbody id="module-workbench-evidence-table"></tbody></table></div></section>
             <section class="panel block"><div class="section-head"><div><p class="eyebrow">Dependency context</p><h2>Lineage edges</h2></div><span id="module-workbench-lineage-label" class="quiet-tag">—</span></div><div class="table-scroll"><table><thead><tr><th>Relation</th><th>Source module</th><th>Target</th><th>Kind</th><th>Resolved</th></tr></thead><tbody id="module-workbench-lineage-table"></tbody></table></div></section>

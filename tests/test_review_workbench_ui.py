@@ -120,12 +120,19 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn('id="module-workbench-search"', html)
         self.assertIn('id="module-workbench-risk-filter"', html)
         self.assertIn('id="module-workbench-depth-filter"', html)
+        self.assertIn('id="module-triage-list"', html)
+        self.assertIn('id="module-triage-load-more"', html)
+        self.assertIn('id="module-triage-risk-filter"', html)
+        self.assertIn('id="module-triage-reason-filter"', html)
         self.assertIn('id="module-workbench-view"', html)
         self.assertIn('id="module-workbench-certification-table"', html)
         self.assertIn('id="module-workbench-evidence-table"', html)
         self.assertIn('id="module-workbench-lineage-table"', html)
         self.assertIn('id="module-workbench-tasks-table"', html)
         self.assertIn('id="module-workbench-limitations"', html)
+        self.assertIn('id="module-workbench-triage-score"', html)
+        self.assertIn('id="module-workbench-triage-summary"', html)
+        self.assertIn('id="module-workbench-triage-note"', html)
         self.assertIn("/v1/geo-count-consistency", javascript)
         self.assertIn("sign_test_fdr_sensitivity", javascript)
         self.assertIn("ranked_feature_count", javascript)
@@ -171,6 +178,14 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("function loadModuleAssessments(append = false)", javascript)
         self.assertIn("function moduleAssessmentQuery(offset)", javascript)
         self.assertIn("function reloadModuleAssessments()", javascript)
+        self.assertIn("function renderModuleTriage()", javascript)
+        self.assertIn("function moduleTriageQuery(offset)", javascript)
+        self.assertIn("function loadModuleTriage(append = false)", javascript)
+        self.assertIn("function reloadModuleTriage()", javascript)
+        self.assertIn("/v1/module-workbench/triage/query?${moduleTriageQuery(offset)}", javascript)
+        self.assertIn("moduleTriageFilters.reason", javascript)
+        self.assertIn("module-workbench-triage-score", javascript)
+        self.assertIn("Recommended task IDs", javascript)
         self.assertIn("moduleFilters.depth_band", javascript)
         self.assertIn("function openModuleWorkbenchDetail(moduleId)", javascript)
         self.assertIn("/v1/module-workbench/query?${moduleAssessmentQuery(offset)}", javascript)
@@ -368,6 +383,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
         self.assertIn("request !== model.geoSensitivityListRequest", script)
         self.assertIn("request !== model.sequenceListRequest", script)
         self.assertIn("request !== model.sequenceComparisonListRequest", script)
+        self.assertIn("request !== model.moduleTriageListRequest", script)
         self.assertIn('$("refresh-button").addEventListener("click"', script)
         self.assertIn("loadGeoSensitivityRecords(), loadGeoExpressionConsistencyRecords()", script)
         self.assertIn(
@@ -377,7 +393,7 @@ class ReviewWorkbenchUiTests(unittest.TestCase):
                 "loadGeoConsistencyRecords(), loadGeoSensitivityRecords(), "
                 "loadGeoExpressionConsistencyRecords(), "
                 "loadSequenceAnalyses(), loadSequenceBatches(), loadSequenceComparisons(), "
-                "loadSequenceReview(), loadModuleAssessments()])"
+                "loadSequenceReview(), loadModuleAssessments(), loadModuleTriage()])"
             ),
             script,
         )
