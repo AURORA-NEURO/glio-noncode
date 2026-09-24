@@ -962,6 +962,8 @@ from . import (
 )
 from . import downloaded_data_review_packet as downloaded_data_review_packet_model
 from . import downloaded_data_review_packet_audit as downloaded_data_review_packet_audit_model
+from . import downloaded_data_review_packet_diff as downloaded_data_review_packet_diff_model
+from . import downloaded_data_review_packet_diff_audit as downloaded_data_review_packet_diff_audit_model
 from . import downloaded_data_profile_query as downloaded_data_profile_query_model
 from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit_model
 from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime_model
@@ -29139,6 +29141,53 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_review_packet_audit_query.add_argument("--output", default=None)
     subparsers.add_parser("downloaded-data-review-packet-audit-schema", help="print downloaded-data review packet audit schema").add_argument("--output", default=None)
     subparsers.add_parser("downloaded-data-review-packet-audit-capabilities", help="print downloaded-data review packet audit capabilities").add_argument("--output", default=None)
+    downloaded_data_review_packet_diff = subparsers.add_parser("downloaded-data-review-packet-diff", help="compare two downloaded-data review packets without source access")
+    downloaded_data_review_packet_diff.add_argument("left", type=str)
+    downloaded_data_review_packet_diff.add_argument("right", type=str)
+    downloaded_data_review_packet_diff.add_argument("--diff-id", default=downloaded_data_review_packet_diff_model.DEFAULT_DIFF_ID)
+    downloaded_data_review_packet_diff.add_argument("--destination", default=None)
+    downloaded_data_review_packet_diff.add_argument("--allow-existing", action="store_true")
+    downloaded_data_review_packet_diff.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    downloaded_data_review_packet_diff.add_argument("--resource", choices=downloaded_data_review_packet_diff_model.RESOURCES, default="")
+    downloaded_data_review_packet_diff.add_argument("--change", choices=downloaded_data_review_packet_diff_model.CHANGES, default="")
+    downloaded_data_review_packet_diff.add_argument("--text", default="")
+    downloaded_data_review_packet_diff.add_argument("--offset", type=int, default=0)
+    downloaded_data_review_packet_diff.add_argument("--limit", type=int, default=50)
+    downloaded_data_review_packet_diff.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_verify = subparsers.add_parser("downloaded-data-review-packet-diff-verify", help="verify a downloaded-data review packet diff")
+    downloaded_data_review_packet_diff_verify.add_argument("diff", type=str)
+    downloaded_data_review_packet_diff_verify.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_query = subparsers.add_parser("downloaded-data-review-packet-diff-query", help="query downloaded-data review packet diff items")
+    downloaded_data_review_packet_diff_query.add_argument("diff", type=str)
+    downloaded_data_review_packet_diff_query.add_argument("--resource", choices=downloaded_data_review_packet_diff_model.RESOURCES, default="")
+    downloaded_data_review_packet_diff_query.add_argument("--change", choices=downloaded_data_review_packet_diff_model.CHANGES, default="")
+    downloaded_data_review_packet_diff_query.add_argument("--text", default="")
+    downloaded_data_review_packet_diff_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_review_packet_diff_query.add_argument("--limit", type=int, default=50)
+    downloaded_data_review_packet_diff_query.add_argument("--format", choices=("json", "csv"), default="json")
+    downloaded_data_review_packet_diff_query.add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-schema", help="print downloaded-data review packet diff schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-capabilities", help="print downloaded-data review packet diff capabilities").add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_audit = subparsers.add_parser("downloaded-data-review-packet-diff-audit", help="independently audit a downloaded-data review packet diff")
+    downloaded_data_review_packet_diff_audit.add_argument("diff", type=str)
+    downloaded_data_review_packet_diff_audit.add_argument("--destination", default=None)
+    downloaded_data_review_packet_diff_audit.add_argument("--allow-existing", action="store_true")
+    downloaded_data_review_packet_diff_audit.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    downloaded_data_review_packet_diff_audit.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_audit_verify = subparsers.add_parser("downloaded-data-review-packet-diff-audit-verify", help="verify a downloaded-data review packet diff audit")
+    downloaded_data_review_packet_diff_audit_verify.add_argument("audit", type=str)
+    downloaded_data_review_packet_diff_audit_verify.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_audit_query = subparsers.add_parser("downloaded-data-review-packet-diff-audit-query", help="query downloaded-data review packet diff audit checks")
+    downloaded_data_review_packet_diff_audit_query.add_argument("audit", type=str)
+    downloaded_data_review_packet_diff_audit_query.add_argument("--passed", action="store_true")
+    downloaded_data_review_packet_diff_audit_query.add_argument("--failed", action="store_true")
+    downloaded_data_review_packet_diff_audit_query.add_argument("--text", default="")
+    downloaded_data_review_packet_diff_audit_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_review_packet_diff_audit_query.add_argument("--limit", type=int, default=50)
+    downloaded_data_review_packet_diff_audit_query.add_argument("--format", choices=("json", "csv"), default="json")
+    downloaded_data_review_packet_diff_audit_query.add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-audit-schema", help="print downloaded-data review packet diff audit schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-audit-capabilities", help="print downloaded-data review packet diff audit capabilities").add_argument("--output", default=None)
     for command, help_text in (
         ("downloaded-data-catalog-member-schema", "print downloaded data member schema"),
         ("downloaded-data-catalog-schema", "print downloaded data catalog schema"),
@@ -36128,6 +36177,67 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "downloaded-data-review-packet-audit-capabilities":
             _write_json(downloaded_data_review_packet_audit_model.capabilities_audit(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff":
+            value = downloaded_data_review_packet_diff_model.build_diff(args.left, args.right, diff_id=args.diff_id)
+            if args.destination:
+                downloaded_data_review_packet_diff_model.write_diff(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(downloaded_data_review_packet_diff_model.render_diff_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_model.diff_csv(value, resource=args.resource, change=args.change, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            elif args.format == "json":
+                _write_text(downloaded_data_review_packet_diff_model.diff_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-verify":
+            _write_json(downloaded_data_review_packet_diff_model.verify_diff(args.diff).to_dict(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-query":
+            result = downloaded_data_review_packet_diff_model.query_diff(args.diff, resource=args.resource, change=args.change, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_model.diff_csv(args.diff, resource=args.resource, change=args.change, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-schema":
+            _write_json(downloaded_data_review_packet_diff_model.diff_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-capabilities":
+            _write_json(downloaded_data_review_packet_diff_model.capabilities(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-audit":
+            value = downloaded_data_review_packet_diff_audit_model.audit_diff(args.diff)
+            if args.destination:
+                downloaded_data_review_packet_diff_audit_model.write_audit(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(downloaded_data_review_packet_diff_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_audit_model.audit_csv(value), args.output)
+            elif args.format == "json":
+                _write_text(downloaded_data_review_packet_diff_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-review-packet-diff-audit-verify":
+            value = downloaded_data_review_packet_diff_audit_model.load_audit(args.audit)
+            downloaded_data_review_packet_diff_audit_model.verify_audit(value)
+            _write_json(value.to_dict(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-review-packet-diff-audit-query":
+            passed = True if args.passed else False if args.failed else None
+            result = downloaded_data_review_packet_diff_audit_model.query_audit(args.audit, passed=passed, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_audit_model.audit_csv(args.audit, passed=passed, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-audit-schema":
+            _write_json(downloaded_data_review_packet_diff_audit_model.audit_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-audit-capabilities":
+            _write_json(downloaded_data_review_packet_diff_audit_model.capabilities(), args.output)
             return 0
         if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry":
             if args.archive_id is not None and len(args.archive_id) != len(args.input):

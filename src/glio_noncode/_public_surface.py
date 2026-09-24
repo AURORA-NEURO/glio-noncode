@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'b6aca4e16a469626cd32846e9bac38c0fd53d0c154aebb49bc72d42241b55145'
-SURFACE_DIGEST = '04033412c0fafe09c68bf7fef4976d198d3c242059c7381806fe583e0e62e470'
+SURFACE_DIGEST = 'f74b3251653b302fe56f37fb0ed9b2acd8d3603a457315aef75105f740ee06b8'
 
 ALL = (
     'CaseManifest',
@@ -43816,6 +43816,8 @@ CHILD_MODULES = {
     'downloaded_data_review_packet': 'glio_noncode.downloaded_data_review_packet',
     'downloaded_data_review_packet_audit': 'glio_noncode.downloaded_data_review_packet_audit',
     'downloaded_data_review_packet_contracts': 'glio_noncode.downloaded_data_review_packet_contracts',
+    'downloaded_data_review_packet_diff': 'glio_noncode.downloaded_data_review_packet_diff',
+    'downloaded_data_review_packet_diff_audit': 'glio_noncode.downloaded_data_review_packet_diff_audit',
     'editing_design_frontier_access': 'glio_noncode.editing_design_frontier_access',
     'editing_design_frontier_adapters': 'glio_noncode.editing_design_frontier_adapters',
     'editing_design_frontier_artifact_manifest': 'glio_noncode.editing_design_frontier_artifact_manifest',
@@ -49159,6 +49161,8 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_review_packet',
     'glio_noncode.downloaded_data_review_packet_audit',
     'glio_noncode.downloaded_data_review_packet_contracts',
+    'glio_noncode.downloaded_data_review_packet_diff',
+    'glio_noncode.downloaded_data_review_packet_diff_audit',
     'glio_noncode.editing_design_frontier_access',
     'glio_noncode.editing_design_frontier_adapters',
     'glio_noncode.editing_design_frontier_artifact_manifest',

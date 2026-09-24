@@ -71,6 +71,21 @@ jobs:
       - name: Exercise source-free packet, HTTP, and audit contracts
         run: python -m unittest tests.test_downloaded_data_review_packet -v
 
+  downloaded-data-review-packet-diff:
+    name: Downloaded-data review packet diff / Python 3.12
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --no-deps -e .
+      - name: Exercise source-free diff, HTTP, CLI, and audit contracts
+        run: python -m unittest tests.test_downloaded_data_review_packet_diff -v
+
   workbench-cache:
     name: Restart-aware module workbench cache
     runs-on: ubuntu-latest

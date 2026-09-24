@@ -6216,6 +6216,23 @@ real downloaded ZIP regression currently produces a 447,075-byte packet with
 five members and a 14/14 independent audit, without embedding the source
 archive.
 
+Review packets can also be compared longitudinally without reopening either
+source archive. The diff requires matching logical packet IDs and retains
+addressed snapshots for structural members, inferred fields, value types, and
+runtime aggregates. Each row is classified as `added`, `removed`, `changed`,
+or `unchanged`; changed rows list the exact public attributes that moved.
+Bounded resource, change, and text queries support JSON, CSV, and Markdown
+projections, and the independent diff audit checks item addresses, lineage,
+counter conservation, transition replay, canonical reload, and the public
+boundary.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff LEFT_PACKET.zip RIGHT_PACKET.zip --destination diff.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-query diff.json --change changed --limit 50
+python -m glio_noncode downloaded-data-review-packet-diff-audit diff.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-audit-query diff-audit.json --failed
+```
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history

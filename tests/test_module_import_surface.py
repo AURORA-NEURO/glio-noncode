@@ -2629,6 +2629,8 @@ MODULE_IDS = (
     "glio_noncode.downloaded_data_review_packet",
     "glio_noncode.downloaded_data_review_packet_audit",
     "glio_noncode.downloaded_data_review_packet_contracts",
+    "glio_noncode.downloaded_data_review_packet_diff",
+    "glio_noncode.downloaded_data_review_packet_diff_audit",
     "glio_noncode.editing_design_frontier_access",
     "glio_noncode.editing_design_frontier_adapters",
     "glio_noncode.editing_design_frontier_artifact_manifest",
