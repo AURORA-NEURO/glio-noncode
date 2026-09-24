@@ -6499,6 +6499,31 @@ manifest-schema, check-schema, and capability operations. Real downloaded
 data currently produces a 22.8 KB five-member ready packet with 15/15
 independent packet-audit checks.
 
+Portable catalog-diff policy packets can now be aggregated one level higher
+without reopening their source archives. The catalog accepts up to 256
+verified five-member packets, sorts entries deterministically, rejects
+duplicate entry IDs, package IDs, and package addresses, and preserves packet,
+catalog-diff, policy, independent-audit, state, acceptance, member-count, and
+byte-count lineage. Rollups expose accepted, ready, and blocked populations;
+bounded entry, lineage, state, and text queries remain source-free. A separate
+fifteen-check audit independently replays address, ordering, count, nested
+namespace, canonical JSON, query-conservation, typed-reload, and public-boundary
+invariants.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog ready-policy-packet.zip blocked-policy-packet.zip --entry-id ready --entry-id blocked --destination packet-catalog.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-query packet-catalog.json --resource lineage
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-audit packet-catalog.json --destination packet-catalog-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-audit-query packet-catalog-audit.json --failed
+```
+
+The HTTP catalog-of-packets surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog`
+and provides build, verify, query, audit, audit-query, schema, entry-schema,
+check-schema, and capability operations. The real downloaded-data demo
+aggregates one 22,830-byte accepted ready packet and replays all 15 catalog
+audit checks without retaining source values.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
