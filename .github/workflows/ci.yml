@@ -180,6 +180,21 @@ jobs:
           .ci-workbench-release-bundle-catalog-diff.json --kind removed --limit 2
           --output .ci-workbench-release-bundle-catalog-diff-query.json
           && python -c "import json; diff=json.load(open('.ci-workbench-release-bundle-catalog-diff.json', encoding='utf-8')); verification=json.load(open('.ci-workbench-release-bundle-catalog-diff-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-release-bundle-catalog-diff-query.json', encoding='utf-8')); assert diff['removed_count'] == 1 and diff['unchanged_count'] == 1 and verification['accepted'] and not [check for check in verification['checks'] if not check['passed']]; assert query['total'] == 1; print('workbench release bundle catalog diff contract passed')"
+      - name: Evaluate release policy over the catalog diff
+        run: >-
+          python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy
+          --diff .ci-workbench-release-bundle-catalog-diff.json
+          --maximum-removed-count 1
+          --allowed-direction changed
+          --allowed-state-transition changed
+          --format json --output .ci-workbench-release-bundle-catalog-diff-policy.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-verify
+          .ci-workbench-release-bundle-catalog-diff-policy.json
+          --output .ci-workbench-release-bundle-catalog-diff-policy-verification.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-query
+          .ci-workbench-release-bundle-catalog-diff-policy.json --failed --limit 2
+          --output .ci-workbench-release-bundle-catalog-diff-policy-query.json
+          && python -c "import json; gate=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-query.json', encoding='utf-8')); assert gate['accepted'] and gate['failed_count'] == 0 and not [check for check in gate['checks'] if not check['passed']]; assert query['total'] == 0; print('workbench release bundle catalog diff policy contract passed')"
       - name: Upload workbench observations
         uses: actions/upload-artifact@v4
         with:
@@ -210,6 +225,9 @@ jobs:
             .ci-workbench-release-bundle-catalog-diff.json
             .ci-workbench-release-bundle-catalog-diff-verification.json
             .ci-workbench-release-bundle-catalog-diff-query.json
+            .ci-workbench-release-bundle-catalog-diff-policy.json
+            .ci-workbench-release-bundle-catalog-diff-policy-verification.json
+            .ci-workbench-release-bundle-catalog-diff-policy-query.json
             .ci-workbench.zip
           if-no-files-found: error
 

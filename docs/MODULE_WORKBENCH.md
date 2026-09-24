@@ -633,6 +633,30 @@ The diff preserves both catalog addresses and every compared entry address,
 replays change addresses, rejects malformed or tampered canonical JSON, and
 contains no source, ZIP payload, path, timestamp, or attribution metadata.
 
+## Catalog-diff release policy
+
+Strict and release policies can evaluate a catalog diff without reopening its
+nested bundles. Policies independently budget additions, changes, and removals;
+control admitted direction and catalog-state transitions; require accepted
+inputs when appropriate; and retain every decision as a bounded check:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy \
+  --diff catalog-diff.json \
+  --maximum-removed-count 1 \
+  --allowed-direction changed \
+  --allow-unaccepted \
+  --format json --output catalog-diff-policy.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-verify \
+  catalog-diff-policy.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-query \
+  catalog-diff-policy.json --failed --limit 50
+```
+
+A blocked gate is valid explanatory evidence and exits the build command with
+status `2`; malformed or tampered policy documents fail closed. The policy
+surface is source-free, path-free, timestamp-free, and deterministic.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -675,6 +699,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/capabilities` | catalog operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/schema` | catalog comparison contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/capabilities` | comparison operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy/schema` | catalog-diff policy contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy/capabilities` | policy operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

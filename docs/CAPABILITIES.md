@@ -4738,6 +4738,21 @@ glio-noncode module-workbench-release-bundle-catalog-diff-query \
   catalog-diff.json --direction regressed
 ```
 
+Catalog diffs also have a source-free admission policy. Strict and release
+profiles budget added/changed/removed bundle references, admit only configured
+directions and state transitions, and retain check-level explanations when a
+gate blocks. A blocked gate is reviewable evidence rather than a malformed
+artifact:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog-diff-policy \
+  --diff catalog-diff.json --maximum-removed-count 1 \
+  --allowed-direction changed --allow-unaccepted \
+  --output catalog-diff-policy.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-query \
+  catalog-diff-policy.json --failed
+```
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

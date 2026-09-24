@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'b6aca4e16a469626cd32846e9bac38c0fd53d0c154aebb49bc72d42241b55145'
-SURFACE_DIGEST = 'a9116121027fa9da4b48b8f2f36689c16ce9dc969fb51beccc961130db69d311'
+SURFACE_DIGEST = 'a0d1f621fe66ba55b75f3ce5bde62169d1608f6bb7fe49c388dc45a21e1eb04f'
 
 ALL = (
     'CaseManifest',
@@ -44934,6 +44934,8 @@ CHILD_MODULES = {
     'module_workbench_release_bundle_catalog_contracts': 'glio_noncode.module_workbench_release_bundle_catalog_contracts',
     'module_workbench_release_bundle_catalog_diff': 'glio_noncode.module_workbench_release_bundle_catalog_diff',
     'module_workbench_release_bundle_catalog_diff_contracts': 'glio_noncode.module_workbench_release_bundle_catalog_diff_contracts',
+    'module_workbench_release_bundle_catalog_diff_policy': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy',
+    'module_workbench_release_bundle_catalog_diff_policy_contracts': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_contracts',
     'module_workbench_release_bundle_contracts': 'glio_noncode.module_workbench_release_bundle_contracts',
     'module_workbench_runtime': 'glio_noncode.module_workbench_runtime',
     'module_workbench_runtime_contracts': 'glio_noncode.module_workbench_runtime_contracts',
@@ -50244,6 +50246,8 @@ LAZY_MODULES = (
     'glio_noncode.module_workbench_release_bundle_catalog_contracts',
     'glio_noncode.module_workbench_release_bundle_catalog_diff',
     'glio_noncode.module_workbench_release_bundle_catalog_diff_contracts',
+    'glio_noncode.module_workbench_release_bundle_catalog_diff_policy',
+    'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_contracts',
     'glio_noncode.module_workbench_release_bundle_contracts',
     'glio_noncode.module_workbench_runtime',
     'glio_noncode.module_workbench_runtime_contracts',
