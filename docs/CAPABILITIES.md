@@ -7065,3 +7065,27 @@ expose build, verify, query, audit, audit verification, schema, entry-schema,
 and capability operations. Real downloaded-data validation aggregates two
 accepted ready transports totaling 51,098 transport bytes and 44,852 member
 bytes, with all 16/16 audit checks passing.
+
+## Downloaded-data review-packet fixed transport catalog comparisons
+
+Fixed policy transport catalogs can be compared longitudinally without
+reopening ZIP payloads. Stable entry IDs are paired across catalogs and each
+entry is classified as added, removed, changed, or unchanged. Changed-field
+snapshots retain left/right transport, manifest, catalog-diff, policy, audit,
+state, acceptance, member-count, byte-count, and content-address lineage.
+Catalog posture transitions and improved, regressed, changed, or unchanged
+direction are derived deterministically.
+
+The source-free diff supports bounded change, direction, transition, and text
+queries with JSON, CSV, and Markdown projections, canonical diff/item
+addresses, atomic persistence, typed reload, and fail-closed tamper handling.
+Its independent audit runs thirteen checks for address replay, identity,
+catalog availability and lineage, item addresses, counts, transitions,
+supplied-catalog recomputation, and the public boundary. The CLI and public
+HTTP API expose diff, verify, query, audit, audit verification, schema,
+item-schema, and capability operations. The module-565 contract suite covers
+all four change classes, persistence, CLI, HTTP, schema, tamper rejection, and
+identity-free public output. A downloaded-data run compared three-entry
+left/right catalogs and reported one added, one removed, one changed, and one
+unchanged entry with a same-ready posture, changed direction, and 13/13 audit
+checks passed.
