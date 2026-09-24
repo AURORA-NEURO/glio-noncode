@@ -954,6 +954,21 @@ jobs:
       - name: Run catalog diff contract
         run: python -m unittest tests.test_downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff -v
 
+  review-packet-catalog-diff-policy-gate:
+    name: Review-packet catalog diff policy gate / Python 3.12
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --no-deps -e .
+      - name: Run policy gate contract
+        run: python -m unittest tests.test_review_packet_catalog_diff_policy_gate -v
+
   pytest-contracts:
     name: Pytest-specific contracts / Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest

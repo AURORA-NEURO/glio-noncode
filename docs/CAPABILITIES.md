@@ -7012,3 +7012,21 @@ query, audit, schema, item-schema, and capability operations. On real
 downloaded data, comparing the two-entry catalog with its primary-entry
 candidate reports one unchanged entry and one removed entry, with a 13/13
 accepted audit.
+
+## Downloaded-data review-packet catalog diff policy gates
+
+Longitudinal catalog diffs can be evaluated through strict and release policy
+profiles. Policies enforce budgets for added, removed, changed, and total
+entries, ordered allowlists for changes, directions, posture transitions, and
+left/right postures, readiness, required change kinds, and unchanged-entry
+controls. Every decision is deterministic, source-free, content-addressed,
+and retains failed control evidence for blocked outcomes.
+
+The policy surface supports atomic persistence, bounded policy queries, JSON,
+CSV, and Markdown projections, plus fifteen policy checks and sixteen
+independent policy-audit checks. CLI and HTTP surfaces expose policy,
+verification, query, audit, schema, check-schema, and capability operations.
+Real downloaded-data validation accepts the release decision with 15/15
+policy checks and 16/16 independent-audit checks, while the strict decision
+blocks with four failed controls (removed budget, total-change budget,
+change allowlist, and direction allowlist) and still passes its 16/16 audit.
