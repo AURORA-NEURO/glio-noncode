@@ -14189,6 +14189,30 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print release-bundle catalog capabilities',
     ),
     (
+        'module-workbench-release-bundle-catalog-diff',
+        'compare two release-bundle catalogs without payload access',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-capabilities',
+        'print release-bundle catalog diff capabilities',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-load',
+        'load a release-bundle catalog diff without source access',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-query',
+        'query release-bundle catalog diff changes',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-schema',
+        'print release-bundle catalog diff schema',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-verify',
+        'verify a release-bundle catalog diff',
+    ),
+    (
         'module-workbench-release-bundle-catalog-load',
         'load a release-bundle catalog without source access',
     ),

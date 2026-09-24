@@ -2839,6 +2839,17 @@ from .module_workbench_release_bundle_catalog import (
     verify_module_workbench_release_bundle_catalog,
     write_module_workbench_release_bundle_catalog,
 )
+from .module_workbench_release_bundle_catalog_diff import (
+    build_module_workbench_release_bundle_catalog_diff,
+    load_module_workbench_release_bundle_catalog_diff,
+    module_workbench_release_bundle_catalog_diff_capabilities,
+    module_workbench_release_bundle_catalog_diff_csv,
+    module_workbench_release_bundle_catalog_diff_json,
+    module_workbench_release_bundle_catalog_diff_schema,
+    query_module_workbench_release_bundle_catalog_diff,
+    render_module_workbench_release_bundle_catalog_diff_markdown,
+    verify_module_workbench_release_bundle_catalog_diff,
+)
 from .module_workbench_cache import (
     load_module_workbench_cache,
     load_module_workbench_previous_inventory,
@@ -10672,6 +10683,57 @@ def build_parser() -> argparse.ArgumentParser:
         "--format", choices=("json", "csv"), default="json"
     )
     module_workbench_release_bundle_catalog_query.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff",
+        help="compare two release-bundle catalogs without payload access",
+    )
+    module_workbench_release_bundle_catalog_diff.add_argument("--left-catalog", required=True)
+    module_workbench_release_bundle_catalog_diff.add_argument("--right-catalog", required=True)
+    module_workbench_release_bundle_catalog_diff.add_argument(
+        "--diff-id", default="glio-noncode-module-workbench-release-bundle-catalog-diff"
+    )
+    module_workbench_release_bundle_catalog_diff.add_argument(
+        "--format", choices=("json", "csv", "markdown"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-schema",
+        help="print release-bundle catalog diff schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-capabilities",
+        help="print release-bundle catalog diff capabilities",
+    ).add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_verify = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-verify",
+        help="verify a release-bundle catalog diff",
+    )
+    module_workbench_release_bundle_catalog_diff_verify.add_argument("diff", type=str)
+    module_workbench_release_bundle_catalog_diff_verify.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_load = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-load",
+        help="load a release-bundle catalog diff without source access",
+    )
+    module_workbench_release_bundle_catalog_diff_load.add_argument("diff", type=str)
+    module_workbench_release_bundle_catalog_diff_load.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_query = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-query",
+        help="query release-bundle catalog diff changes",
+    )
+    module_workbench_release_bundle_catalog_diff_query.add_argument("diff", type=str)
+    module_workbench_release_bundle_catalog_diff_query.add_argument(
+        "--kind", choices=("added", "changed", "removed", "unchanged"), default=None
+    )
+    module_workbench_release_bundle_catalog_diff_query.add_argument(
+        "--direction", choices=("improved", "regressed", "changed", "unchanged"), default=None
+    )
+    module_workbench_release_bundle_catalog_diff_query.add_argument("--text", default=None)
+    module_workbench_release_bundle_catalog_diff_query.add_argument("--offset", default=0, type=int)
+    module_workbench_release_bundle_catalog_diff_query.add_argument("--limit", default=50, type=int)
+    module_workbench_release_bundle_catalog_diff_query.add_argument(
+        "--format", choices=("json", "csv"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_query.add_argument("--output", default=None)
     module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
@@ -49165,6 +49227,61 @@ def main(argv: list[str] | None = None) -> int:
                     module_workbench_release_bundle_catalog_csv(
                         catalog,
                         state=args.state,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-schema":
+            _write_json(module_workbench_release_bundle_catalog_diff_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-capabilities":
+            _write_json(module_workbench_release_bundle_catalog_diff_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff":
+            diff = build_module_workbench_release_bundle_catalog_diff(
+                args.left_catalog,
+                args.right_catalog,
+                diff_id=args.diff_id,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_release_bundle_catalog_diff_csv(diff), args.output)
+            elif args.format == "markdown":
+                _write_text(
+                    render_module_workbench_release_bundle_catalog_diff_markdown(diff),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_release_bundle_catalog_diff_json(diff), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-verify":
+            verification = verify_module_workbench_release_bundle_catalog_diff(args.diff)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-diff-load":
+            diff = load_module_workbench_release_bundle_catalog_diff(args.diff)
+            _write_text(module_workbench_release_bundle_catalog_diff_json(diff), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-query":
+            result = query_module_workbench_release_bundle_catalog_diff(
+                args.diff,
+                kind=args.kind,
+                direction=args.direction,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                diff = load_module_workbench_release_bundle_catalog_diff(args.diff)
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_csv(
+                        diff,
+                        kind=args.kind,
+                        direction=args.direction,
                         text=args.text,
                         offset=args.offset,
                         limit=args.limit,

@@ -1152,6 +1152,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/release-bundle/capabilities", "bundle_policy_gate"),
                 ("/v1/module-workbench/release-bundle/catalog/schema", "max_entries"),
                 ("/v1/module-workbench/release-bundle/catalog/capabilities", "filter_state"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/schema", "state_transitions"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/capabilities", "field_level_deltas"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

@@ -610,6 +610,29 @@ timestamp-free, path-free, payload-free, and deterministic. JSON, CSV, and
 Markdown projections are available, and the API exposes the schema and
 capabilities under `/v1/module-workbench/release-bundle/catalog`.
 
+## Portable release-bundle catalog diff
+
+Two catalogs can be compared without opening their nested bundles. Matching
+bundle IDs receive field-level deltas; additions, removals, changes, and
+unchanged references are counted; accepted-to-blocked and blocked-to-accepted
+transitions are explicit; and direction is folded into `improved`, `regressed`,
+`changed`, or `unchanged`:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff \
+  --left-catalog baseline-catalog.json \
+  --right-catalog candidate-catalog.json \
+  --format json --output catalog-diff.json
+glio-noncode module-workbench-release-bundle-catalog-diff-verify \
+  catalog-diff.json
+glio-noncode module-workbench-release-bundle-catalog-diff-query \
+  catalog-diff.json --direction regressed --limit 50
+```
+
+The diff preserves both catalog addresses and every compared entry address,
+replays change addresses, rejects malformed or tampered canonical JSON, and
+contains no source, ZIP payload, path, timestamp, or attribution metadata.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -650,6 +673,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/capabilities` | bundle operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/schema` | release-bundle catalog contract |
 | `GET /v1/module-workbench/release-bundle/catalog/capabilities` | catalog operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/schema` | catalog comparison contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/capabilities` | comparison operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

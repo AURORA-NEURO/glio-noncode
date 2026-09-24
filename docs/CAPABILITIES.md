@@ -4724,6 +4724,20 @@ glio-noncode module-workbench-release-bundle-catalog-query \
   release-bundle-catalog.json --state blocked
 ```
 
+Catalogs are comparable without reopening their nested ZIP payloads. The
+comparison matches stable bundle IDs, retains field-level deltas and both
+entry addresses, classifies additions/removals/changes/unchanged references,
+and makes accepted-to-blocked or blocked-to-accepted transitions explicit:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog-diff \
+  --left-catalog baseline-catalog.json \
+  --right-catalog candidate-catalog.json \
+  --output catalog-diff.json
+glio-noncode module-workbench-release-bundle-catalog-diff-query \
+  catalog-diff.json --direction regressed
+```
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition
