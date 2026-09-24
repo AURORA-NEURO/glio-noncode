@@ -8457,6 +8457,50 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'query downloaded-data review packet diff policy checks',
     ),
     (
+        'downloaded-data-review-packet-diff-policy-release-certificate',
+        'build a source-free downloaded-data release certificate',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-audit',
+        'independently audit a downloaded-data release certificate',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-audit-capabilities',
+        'print downloaded-data release certificate audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-audit-check-schema',
+        'print downloaded-data release certificate audit check schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-audit-query',
+        'query downloaded-data release certificate audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-audit-schema',
+        'print downloaded-data release certificate audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-audit-verify',
+        'verify a downloaded-data release certificate audit',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-capabilities',
+        'print downloaded-data release certificate capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-query',
+        'query a downloaded-data release certificate',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-schema',
+        'print downloaded-data release certificate schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-verify',
+        'verify a downloaded-data release certificate and its lineage',
+    ),
+    (
         'downloaded-data-review-packet-diff-policy-run',
         'run downloaded-data packet, diff, policy, and portable package construction end to end',
     ),

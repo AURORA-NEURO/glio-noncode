@@ -970,6 +970,8 @@ from . import downloaded_data_review_packet_diff_policy_package as downloaded_da
 from . import downloaded_data_review_packet_diff_policy_package_audit as downloaded_data_review_packet_diff_policy_package_audit_model
 from . import downloaded_data_review_packet_diff_policy_run as downloaded_data_review_packet_diff_policy_run_model
 from . import downloaded_data_review_packet_diff_policy_run_audit as downloaded_data_review_packet_diff_policy_run_audit_model
+from . import downloaded_data_review_packet_diff_policy_release_certificate as downloaded_data_review_packet_diff_policy_release_certificate_model
+from . import downloaded_data_review_packet_diff_policy_release_certificate_audit as downloaded_data_review_packet_diff_policy_release_certificate_audit_model
 from . import downloaded_data_profile_query as downloaded_data_profile_query_model
 from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit_model
 from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime_model
@@ -29348,6 +29350,52 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("downloaded-data-review-packet-diff-policy-run-audit-check-schema", help="print downloaded-data review run audit check schema").add_argument("--output", default=None)
     subparsers.add_parser("downloaded-data-review-packet-diff-policy-run-audit-schema", help="print downloaded-data review run audit schema").add_argument("--output", default=None)
     subparsers.add_parser("downloaded-data-review-packet-diff-policy-run-audit-capabilities", help="print downloaded-data review run audit capabilities").add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_release_certificate = subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate", help="build a source-free downloaded-data release certificate")
+    downloaded_data_review_packet_diff_policy_release_certificate.add_argument("run", type=str)
+    downloaded_data_review_packet_diff_policy_release_certificate.add_argument("package", type=str)
+    downloaded_data_review_packet_diff_policy_release_certificate.add_argument("--run-audit", default=None)
+    downloaded_data_review_packet_diff_policy_release_certificate.add_argument("--certificate-id", default=None)
+    downloaded_data_review_packet_diff_policy_release_certificate.add_argument("--destination", default=None)
+    downloaded_data_review_packet_diff_policy_release_certificate.add_argument("--allow-existing", action="store_true")
+    downloaded_data_review_packet_diff_policy_release_certificate.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    downloaded_data_review_packet_diff_policy_release_certificate.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_release_certificate_verify = subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-verify", help="verify a downloaded-data release certificate and its lineage")
+    downloaded_data_review_packet_diff_policy_release_certificate_verify.add_argument("certificate", type=str)
+    downloaded_data_review_packet_diff_policy_release_certificate_verify.add_argument("--run", required=True)
+    downloaded_data_review_packet_diff_policy_release_certificate_verify.add_argument("--package", required=True)
+    downloaded_data_review_packet_diff_policy_release_certificate_verify.add_argument("--run-audit", required=True)
+    downloaded_data_review_packet_diff_policy_release_certificate_verify.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_release_certificate_query = subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-query", help="query a downloaded-data release certificate")
+    downloaded_data_review_packet_diff_policy_release_certificate_query.add_argument("certificate", type=str)
+    downloaded_data_review_packet_diff_policy_release_certificate_query.add_argument("--resource", choices=("summary", "lineage", "decision", "evidence"), default="summary")
+    downloaded_data_review_packet_diff_policy_release_certificate_query.add_argument("--format", choices=("json", "csv"), default="json")
+    downloaded_data_review_packet_diff_policy_release_certificate_query.add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-schema", help="print downloaded-data release certificate schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-capabilities", help="print downloaded-data release certificate capabilities").add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit = subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-audit", help="independently audit a downloaded-data release certificate")
+    downloaded_data_review_packet_diff_policy_release_certificate_audit.add_argument("certificate", type=str)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit.add_argument("--run", required=True)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit.add_argument("--package", required=True)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit.add_argument("--run-audit", required=True)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit.add_argument("--destination", default=None)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit.add_argument("--allow-existing", action="store_true")
+    downloaded_data_review_packet_diff_policy_release_certificate_audit.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    downloaded_data_review_packet_diff_policy_release_certificate_audit.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_verify = subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-audit-verify", help="verify a downloaded-data release certificate audit")
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_verify.add_argument("audit", type=str)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_verify.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_query = subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-audit-query", help="query downloaded-data release certificate audit checks")
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_query.add_argument("audit", type=str)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_query.add_argument("--passed", action="store_true")
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_query.add_argument("--failed", action="store_true")
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_query.add_argument("--text", default="")
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_query.add_argument("--limit", type=int, default=50)
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_query.add_argument("--format", choices=("json", "csv"), default="json")
+    downloaded_data_review_packet_diff_policy_release_certificate_audit_query.add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-audit-check-schema", help="print downloaded-data release certificate audit check schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-audit-schema", help="print downloaded-data release certificate audit schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-audit-capabilities", help="print downloaded-data release certificate audit capabilities").add_argument("--output", default=None)
     for command, help_text in (
         ("downloaded-data-catalog-member-schema", "print downloaded data member schema"),
         ("downloaded-data-catalog-schema", "print downloaded data catalog schema"),
@@ -36632,6 +36680,75 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "downloaded-data-review-packet-diff-policy-run-audit-capabilities":
             _write_json(downloaded_data_review_packet_diff_policy_run_audit_model.capabilities(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate":
+            value = downloaded_data_review_packet_diff_policy_release_certificate_model.build_certificate(
+                args.run,
+                args.package,
+                args.run_audit,
+                certificate_id=args.certificate_id,
+            )
+            if args.destination:
+                downloaded_data_review_packet_diff_policy_release_certificate_model.write_certificate(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(downloaded_data_review_packet_diff_policy_release_certificate_model.render_certificate_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_policy_release_certificate_model.certificate_csv(value), args.output)
+            elif args.format == "json":
+                _write_text(downloaded_data_review_packet_diff_policy_release_certificate_model.certificate_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.release_eligible else 2
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-verify":
+            value = downloaded_data_review_packet_diff_policy_release_certificate_model.verify_certificate(args.certificate, run=args.run, package=args.package, run_audit=args.run_audit)
+            _write_json(value.to_dict(), args.output)
+            return 0 if value.release_eligible else 2
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-query":
+            result = downloaded_data_review_packet_diff_policy_release_certificate_model.query_certificate(args.certificate, resource=args.resource)
+            if args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_policy_release_certificate_model.certificate_csv(args.certificate), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-schema":
+            _write_json(downloaded_data_review_packet_diff_policy_release_certificate_model.certificate_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-capabilities":
+            _write_json(downloaded_data_review_packet_diff_policy_release_certificate_model.capabilities(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-audit":
+            value = downloaded_data_review_packet_diff_policy_release_certificate_audit_model.audit_certificate(args.certificate, run=args.run, package=args.package, run_audit=args.run_audit)
+            if args.destination:
+                downloaded_data_review_packet_diff_policy_release_certificate_audit_model.write_audit(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(downloaded_data_review_packet_diff_policy_release_certificate_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_policy_release_certificate_audit_model.audit_csv(value), args.output)
+            elif args.format == "json":
+                _write_text(downloaded_data_review_packet_diff_policy_release_certificate_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-audit-verify":
+            value = downloaded_data_review_packet_diff_policy_release_certificate_audit_model.verify_audit(args.audit)
+            _write_json(value.to_dict(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-audit-query":
+            passed = True if args.passed else False if args.failed else None
+            result = downloaded_data_review_packet_diff_policy_release_certificate_audit_model.query_audit(args.audit, passed=passed, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_policy_release_certificate_audit_model.audit_csv(args.audit, passed=passed, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-audit-check-schema":
+            _write_json(downloaded_data_review_packet_diff_policy_release_certificate_audit_model.check_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-audit-schema":
+            _write_json(downloaded_data_review_packet_diff_policy_release_certificate_audit_model.audit_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-audit-capabilities":
+            _write_json(downloaded_data_review_packet_diff_policy_release_certificate_audit_model.capabilities(), args.output)
             return 0
         if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry":
             if args.archive_id is not None and len(args.archive_id) != len(args.input):

@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'b6aca4e16a469626cd32846e9bac38c0fd53d0c154aebb49bc72d42241b55145'
-SURFACE_DIGEST = 'c1fea469a1540a620ba8be5a66d541c9835d61df2aacd2c68d1e77737b6ea744'
+SURFACE_DIGEST = 'a42e1f21aa8494d7738f6685aaaf970cabc3cb62bc873cbd725e2c15a39351ec'
 
 ALL = (
     'CaseManifest',
@@ -43823,6 +43823,9 @@ CHILD_MODULES = {
     'downloaded_data_review_packet_diff_policy_package': 'glio_noncode.downloaded_data_review_packet_diff_policy_package',
     'downloaded_data_review_packet_diff_policy_package_audit': 'glio_noncode.downloaded_data_review_packet_diff_policy_package_audit',
     'downloaded_data_review_packet_diff_policy_package_contracts': 'glio_noncode.downloaded_data_review_packet_diff_policy_package_contracts',
+    'downloaded_data_review_packet_diff_policy_release_certificate': 'glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate',
+    'downloaded_data_review_packet_diff_policy_release_certificate_audit': 'glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_audit',
+    'downloaded_data_review_packet_diff_policy_release_certificate_contracts': 'glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_contracts',
     'downloaded_data_review_packet_diff_policy_run': 'glio_noncode.downloaded_data_review_packet_diff_policy_run',
     'downloaded_data_review_packet_diff_policy_run_audit': 'glio_noncode.downloaded_data_review_packet_diff_policy_run_audit',
     'downloaded_data_review_packet_diff_policy_run_contracts': 'glio_noncode.downloaded_data_review_packet_diff_policy_run_contracts',
@@ -49176,6 +49179,9 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_review_packet_diff_policy_package',
     'glio_noncode.downloaded_data_review_packet_diff_policy_package_audit',
     'glio_noncode.downloaded_data_review_packet_diff_policy_package_contracts',
+    'glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate',
+    'glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_audit',
+    'glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_contracts',
     'glio_noncode.downloaded_data_review_packet_diff_policy_run',
     'glio_noncode.downloaded_data_review_packet_diff_policy_run_audit',
     'glio_noncode.downloaded_data_review_packet_diff_policy_run_contracts',

@@ -6293,6 +6293,29 @@ query, audit, schema, and capability operations. A blocked strict decision is
 still packaged and auditable; the run command returns the release-gate status
 while preserving the complete evidence for review.
 
+An addressed release certificate can now be issued above a completed run. It
+replays the run receipt, portable package bytes, and independent run audit, then
+folds policy, policy-audit, and package-audit acceptance into one explicit
+`ready`/`blocked` eligibility decision. Certificates are source-free JSON
+receipts; they never contain source archive bytes or record values. The
+independent certificate audit recomputes the run audit and checks fifteen
+lineage, canonical, decision, byte-count, and public-boundary conditions.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate review-run.json review-package.zip --run-audit review-run-audit.json --destination release-certificate.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-verify release-certificate.json --run review-run.json --package review-package.zip --run-audit review-run-audit.json
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-query release-certificate.json --resource decision
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-audit release-certificate.json --run review-run.json --package review-package.zip --run-audit review-run-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-audit-query release-certificate-audit.json --failed
+```
+
+The HTTP certificate surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate` and mirrors
+build, verify, query, audit, schema, and capability operations. Blocked policy
+evidence remains representable as a blocked certificate, while a ready
+certificate requires every upstream acceptance gate and the independent run
+audit.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
