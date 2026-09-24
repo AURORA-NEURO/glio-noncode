@@ -8317,6 +8317,50 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'audit a release gate query',
     ),
     (
+        'downloaded-data-review-packet',
+        'build a source-free downloaded-data review packet',
+    ),
+    (
+        'downloaded-data-review-packet-audit',
+        'independently audit a downloaded-data review packet',
+    ),
+    (
+        'downloaded-data-review-packet-audit-capabilities',
+        'print downloaded-data review packet audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-audit-query',
+        'query downloaded-data review packet audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-audit-schema',
+        'print downloaded-data review packet audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-audit-verify',
+        'verify a downloaded-data review packet audit',
+    ),
+    (
+        'downloaded-data-review-packet-capabilities',
+        'print downloaded-data review packet capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-load',
+        'load a downloaded-data review packet without source access',
+    ),
+    (
+        'downloaded-data-review-packet-query',
+        'query downloaded-data review packet members or evidence',
+    ),
+    (
+        'downloaded-data-review-packet-schema',
+        'print downloaded-data review packet schema',
+    ),
+    (
+        'downloaded-data-review-packet-verify',
+        'verify a downloaded-data review packet',
+    ),
+    (
         'editing-design-frontier-access',
         'emit D13 C05-C08 editing public access manifest',
     ),

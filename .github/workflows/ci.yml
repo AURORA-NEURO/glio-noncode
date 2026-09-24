@@ -56,6 +56,21 @@ jobs:
       - name: Execute exact CLI contract inventory
         run: python tools/run_ci_cli_contracts.py --execute
 
+  downloaded-data-review-packet:
+    name: Downloaded-data review packet / Python 3.12
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --no-deps -e .
+      - name: Exercise source-free packet, HTTP, and audit contracts
+        run: python -m unittest tests.test_downloaded_data_review_packet -v
+
   workbench-cache:
     name: Restart-aware module workbench cache
     runs-on: ubuntu-latest

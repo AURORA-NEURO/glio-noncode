@@ -6183,6 +6183,39 @@ continues to demonstrate strict incompatibility. The current loader rejects it
 as the wrong package shape rather than silently converting old fields. That
 behavior is part of the public compatibility contract.
 
+## Downloaded-data review packets
+
+The downloaded-data boundary can now produce a portable, source-free review
+packet directly from a ZIP archive. The handoff has exactly five deterministic
+members: `manifest.json`, `catalog.json`, `contract-runtime.json`,
+`runtime-audit.json`, and `review.md`. The catalog retains structural facts
+about eligible data members, the contract runtime infers bounded member and
+field evidence, and the independent runtime audit preserves its check receipt.
+Source paths and record values are not transported into the packet.
+
+Packets use fixed ZIP metadata, canonical UTF-8 payloads, typed member byte and
+content addresses, conserved catalog/runtime/audit lineage, bounded size
+limits, and atomic writes. They can be loaded and queried without reopening
+the source archive. Member, summary, catalog, runtime, audit, and review
+projections are available as JSON; member and audit checks also support CSV;
+the packet and audit render deterministic Markdown.
+
+The CLI surface is:
+
+```text
+python -m glio_noncode downloaded-data-review-packet SOURCE.zip --destination review-packet.zip --format summary
+python -m glio_noncode downloaded-data-review-packet-verify review-packet.zip
+python -m glio_noncode downloaded-data-review-packet-query review-packet.zip --resource members --limit 20
+python -m glio_noncode downloaded-data-review-packet-audit review-packet.zip --format summary
+python -m glio_noncode downloaded-data-review-packet-audit-query review-audit.json --failed
+```
+
+The HTTP surface is rooted at `/v1/downloaded-data/review-packet` and mirrors
+build, verify, load, query, audit, schema, and capability operations. The
+real downloaded ZIP regression currently produces a 447,075-byte packet with
+five members and a 14/14 independent audit, without embedding the source
+archive.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history

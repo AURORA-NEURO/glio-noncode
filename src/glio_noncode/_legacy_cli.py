@@ -960,6 +960,8 @@ from . import (
 from . import (
     downloaded_data_profile_contract_runtime_audit as downloaded_data_profile_contract_runtime_audit_model,
 )
+from . import downloaded_data_review_packet as downloaded_data_review_packet_model
+from . import downloaded_data_review_packet_audit as downloaded_data_review_packet_audit_model
 from . import downloaded_data_profile_query as downloaded_data_profile_query_model
 from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit_model
 from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime_model
@@ -29095,6 +29097,48 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_profile_contract_runtime_audit.add_argument("input", type=str)
     downloaded_data_profile_contract_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_profile_contract_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_review_packet = subparsers.add_parser("downloaded-data-review-packet", help="build a source-free downloaded-data review packet")
+    downloaded_data_review_packet.add_argument("input", type=str)
+    downloaded_data_review_packet.add_argument("--packet-id", default=downloaded_data_review_packet_model.PACKET_PREFIX)
+    downloaded_data_review_packet.add_argument("--destination", default=None)
+    downloaded_data_review_packet.add_argument("--allow-existing", action="store_true")
+    downloaded_data_review_packet.add_argument("--format", choices=("json", "summary", "markdown"), default="summary")
+    downloaded_data_review_packet.add_argument("--output", default=None)
+    downloaded_data_review_packet_verify = subparsers.add_parser("downloaded-data-review-packet-verify", help="verify a downloaded-data review packet")
+    downloaded_data_review_packet_verify.add_argument("packet", type=str)
+    downloaded_data_review_packet_verify.add_argument("--output", default=None)
+    downloaded_data_review_packet_load = subparsers.add_parser("downloaded-data-review-packet-load", help="load a downloaded-data review packet without source access")
+    downloaded_data_review_packet_load.add_argument("packet", type=str)
+    downloaded_data_review_packet_load.add_argument("--output", default=None)
+    downloaded_data_review_packet_query = subparsers.add_parser("downloaded-data-review-packet-query", help="query downloaded-data review packet members or evidence")
+    downloaded_data_review_packet_query.add_argument("packet", type=str)
+    downloaded_data_review_packet_query.add_argument("--resource", choices=("members", "summary", "catalog", "runtime", "audit", "review"), default="summary")
+    downloaded_data_review_packet_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_review_packet_query.add_argument("--limit", type=int, default=50)
+    downloaded_data_review_packet_query.add_argument("--format", choices=("json", "csv"), default="json")
+    downloaded_data_review_packet_query.add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-schema", help="print downloaded-data review packet schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-capabilities", help="print downloaded-data review packet capabilities").add_argument("--output", default=None)
+    downloaded_data_review_packet_audit = subparsers.add_parser("downloaded-data-review-packet-audit", help="independently audit a downloaded-data review packet")
+    downloaded_data_review_packet_audit.add_argument("packet", type=str)
+    downloaded_data_review_packet_audit.add_argument("--destination", default=None)
+    downloaded_data_review_packet_audit.add_argument("--allow-existing", action="store_true")
+    downloaded_data_review_packet_audit.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    downloaded_data_review_packet_audit.add_argument("--output", default=None)
+    downloaded_data_review_packet_audit_verify = subparsers.add_parser("downloaded-data-review-packet-audit-verify", help="verify a downloaded-data review packet audit")
+    downloaded_data_review_packet_audit_verify.add_argument("audit", type=str)
+    downloaded_data_review_packet_audit_verify.add_argument("--output", default=None)
+    downloaded_data_review_packet_audit_query = subparsers.add_parser("downloaded-data-review-packet-audit-query", help="query downloaded-data review packet audit checks")
+    downloaded_data_review_packet_audit_query.add_argument("audit", type=str)
+    downloaded_data_review_packet_audit_query.add_argument("--passed", action="store_true")
+    downloaded_data_review_packet_audit_query.add_argument("--failed", action="store_true")
+    downloaded_data_review_packet_audit_query.add_argument("--text", default=None)
+    downloaded_data_review_packet_audit_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_review_packet_audit_query.add_argument("--limit", type=int, default=50)
+    downloaded_data_review_packet_audit_query.add_argument("--format", choices=("json", "csv"), default="json")
+    downloaded_data_review_packet_audit_query.add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-audit-schema", help="print downloaded-data review packet audit schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-audit-capabilities", help="print downloaded-data review packet audit capabilities").add_argument("--output", default=None)
     for command, help_text in (
         ("downloaded-data-catalog-member-schema", "print downloaded data member schema"),
         ("downloaded-data-catalog-schema", "print downloaded data catalog schema"),
@@ -36022,6 +36066,69 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_profile_contract_runtime_audit_model.audit_runtime(_downloaded_contract_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_profile_contract_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-review-packet":
+            value = downloaded_data_review_packet_model.build_from_download(args.input, packet_id=args.packet_id)
+            if args.destination:
+                downloaded_data_review_packet_model.write_packet(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(downloaded_data_review_packet_model.render_packet_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(downloaded_data_review_packet_model.packet_json(value), args.output)
+            else:
+                _write_json(value.to_dict(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-verify":
+            _write_json(downloaded_data_review_packet_model.verify_packet(args.packet).to_dict(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-load":
+            catalog, runtime, audit, review = downloaded_data_review_packet_model.load_packet(args.packet)
+            _write_json({"catalog": catalog.to_dict(), "runtime": runtime.to_dict(), "runtime_audit": audit.to_dict(), "review": review}, args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-query":
+            result = downloaded_data_review_packet_model.query_packet(args.packet, resource=args.resource, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(downloaded_data_review_packet_model.packet_csv(args.packet, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-schema":
+            _write_json(downloaded_data_review_packet_model.packet_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-capabilities":
+            _write_json(downloaded_data_review_packet_model.capabilities(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-audit":
+            value = downloaded_data_review_packet_audit_model.audit_packet(args.packet)
+            if args.destination:
+                downloaded_data_review_packet_audit_model.write_audit(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(downloaded_data_review_packet_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(downloaded_data_review_packet_audit_model.audit_csv(value), args.output)
+            elif args.format == "json":
+                _write_text(downloaded_data_review_packet_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-review-packet-audit-verify":
+            value = downloaded_data_review_packet_audit_model.load_audit(args.audit)
+            downloaded_data_review_packet_audit_model.verify_audit(value)
+            _write_json(value.to_dict(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-review-packet-audit-query":
+            passed = True if args.passed else False if args.failed else None
+            result = downloaded_data_review_packet_audit_model.query_audit(args.audit, passed=passed, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(downloaded_data_review_packet_audit_model.audit_csv(args.audit, passed=passed, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-audit-schema":
+            _write_json(downloaded_data_review_packet_audit_model.audit_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-audit-capabilities":
+            _write_json(downloaded_data_review_packet_audit_model.capabilities_audit(), args.output)
+            return 0
         if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry":
             if args.archive_id is not None and len(args.archive_id) != len(args.input):
                 raise ValueError("--archive-id count must match --input count")

@@ -242,6 +242,8 @@ from . import downloaded_data_profile as downloaded_data_profile_model
 from . import downloaded_data_profile_audit as downloaded_data_profile_audit_model
 from . import downloaded_data_profile_contract as downloaded_data_profile_contract_model
 from . import downloaded_data_profile_contract_audit as downloaded_data_profile_contract_audit_model
+from . import downloaded_data_review_packet as downloaded_data_review_packet_model
+from . import downloaded_data_review_packet_audit as downloaded_data_review_packet_audit_model
 from . import (
     downloaded_data_profile_contract_compatibility as downloaded_data_profile_contract_compatibility_model,
 )
@@ -7801,6 +7803,69 @@ class ApiHandler(BaseHTTPRequestHandler):
                     value = downloaded_data_catalog_audit_model.audit_catalog(downloaded_data_catalog_model.catalog_from_mapping(raw.get("catalog", raw)))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_catalog_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
+                review_packet_prefix = downloaded_data_prefix + "/review-packet"
+                if path == review_packet_prefix:
+                    value = downloaded_data_review_packet_model.build_from_download(
+                        self._query_value(query, "input") or "",
+                        packet_id=self._query_value(query, "packet_id") or downloaded_data_review_packet_model.PACKET_PREFIX,
+                    )
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_review_packet_model.write_packet(
+                            value,
+                            destination,
+                            allow_existing=self._query_bool(query, "overwrite") if "overwrite" in query else False,
+                        )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_model, json_name="packet_json", csv_name="packet_csv", markdown_name="render_packet_markdown")
+                    return
+                if path == review_packet_prefix + "/verify":
+                    value = downloaded_data_review_packet_model.verify_packet(self._query_value(query, "input") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_model, json_name="packet_json", csv_name="packet_csv", markdown_name="render_packet_markdown")
+                    return
+                if path == review_packet_prefix + "/load":
+                    catalog, runtime, audit, review = downloaded_data_review_packet_model.load_packet(self._query_value(query, "input") or "")
+                    self._write(HTTPStatus.OK, {"catalog": catalog.to_dict(), "runtime": runtime.to_dict(), "runtime_audit": audit.to_dict(), "review": review})
+                    return
+                if path == review_packet_prefix + "/query":
+                    value = downloaded_data_review_packet_model.query_packet(
+                        self._query_value(query, "input") or "",
+                        resource=self._query_value(query, "resource") or "summary",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, downloaded_data_review_packet_model.packet_csv(self._query_value(query, "input") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value)
+                    return
+                if path == review_packet_prefix + "/audit":
+                    value = downloaded_data_review_packet_audit_model.audit_packet(self._query_value(query, "input") or "")
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_review_packet_audit_model.write_audit(
+                            value,
+                            destination,
+                            allow_existing=self._query_bool(query, "overwrite") if "overwrite" in query else False,
+                        )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == review_packet_prefix + "/audit/verify":
+                    value = downloaded_data_review_packet_audit_model.verify_audit(self._query_value(query, "input") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == review_packet_prefix + "/audit/query":
+                    value = downloaded_data_review_packet_audit_model.query_audit(
+                        self._query_value(query, "input") or "",
+                        passed=self._query_bool(query, "passed") if "passed" in query else None,
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, downloaded_data_review_packet_audit_model.audit_csv(self._query_value(query, "input") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value)
+                    return
                 ingest_prefix = downloaded_data_prefix + "/ingest"
                 if path == ingest_prefix:
                     value = downloaded_data_ingestion_runtime_model.run_runtime(
@@ -13871,6 +13936,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/catalog/audit/check-schema": downloaded_data_catalog_audit_model.check_schema,
                     "/catalog/audit/schema": downloaded_data_catalog_audit_model.audit_schema,
                     "/catalog/audit/capabilities": downloaded_data_catalog_audit_model.capabilities,
+                    "/review-packet/manifest-schema": downloaded_data_review_packet_model.manifest_schema,
+                    "/review-packet/schema": downloaded_data_review_packet_model.packet_schema,
+                    "/review-packet/capabilities": downloaded_data_review_packet_model.capabilities,
+                    "/review-packet/audit/check-schema": downloaded_data_review_packet_audit_model.check_schema,
+                    "/review-packet/audit/schema": downloaded_data_review_packet_audit_model.audit_schema,
+                    "/review-packet/audit/capabilities": downloaded_data_review_packet_audit_model.capabilities_audit,
                     "/ingest/lineage-schema": downloaded_data_ingestion_model.lineage_schema,
                     "/ingest/record-schema": downloaded_data_ingestion_model.record_schema,
                     "/ingest/selection-schema": downloaded_data_ingestion_model.selection_schema,
