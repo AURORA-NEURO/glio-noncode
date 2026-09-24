@@ -7089,3 +7089,22 @@ identity-free public output. A downloaded-data run compared three-entry
 left/right catalogs and reported one added, one removed, one changed, and one
 unchanged entry with a same-ready posture, changed direction, and 13/13 audit
 checks passed.
+
+## Downloaded-data review-packet fixed transport catalog policies
+
+Fixed transport catalog diffs can now be evaluated through strict and release
+profiles without reopening ZIP payloads. Policies enforce independent budgets
+for added, removed, changed, and total entries, ordered allowlists for change
+kinds, direction, posture transitions, and left/right postures, required
+change kinds, readiness, and unchanged-entry controls. Decisions are
+deterministic, source-free, content-addressed, and retain failed evidence for
+blocked outcomes.
+
+The policy surface provides atomic persistence, typed reload, bounded
+passed/failed/text queries, JSON, CSV, and Markdown projections, fifteen
+policy checks, and sixteen independent audit checks. CLI and HTTP surfaces
+expose build, verify, query, audit, audit verification, schema, check-schema,
+and capability operations. Real downloaded-data validation accepts the
+release profile with 15/15 policy checks and 16/16 audit checks, while the
+strict zero-change profile blocks with six failed controls. Public outputs
+contain no agent, model, or language attributes.
