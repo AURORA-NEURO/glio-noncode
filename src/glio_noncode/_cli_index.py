@@ -14245,6 +14245,30 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print release-bundle catalog diff policy-set capabilities',
     ),
     (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet',
+        'package a policy-set gate and independent audit',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-capabilities',
+        'print policy-set packet capabilities',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-load',
+        'load a verified policy-set packet without source access',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-query',
+        'query a policy-set packet resource',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-schema',
+        'print policy-set packet schema',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-verify',
+        'verify a policy-set packet',
+    ),
+    (
         'module-workbench-release-bundle-catalog-diff-policy-set-query',
         'query release-bundle catalog diff policy-set gates',
     ),

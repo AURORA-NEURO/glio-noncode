@@ -4781,6 +4781,19 @@ glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-audit-query
 The audit replays policy count and order, shared diff lineage, `any`/`all`
 selection, nested content addresses, and the public-boundary invariant.
 
+The gate and audit can be handed off as one deterministic ZIP:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet \
+  --gate catalog-policy-set.json --audit catalog-policy-set-audit.json \
+  --destination catalog-policy-set-packet.zip
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-query \
+  catalog-policy-set-packet.zip --resource review
+```
+
+The four-member packet verifies exact member bytes, canonical lineage, review
+replay, and public-boundary cleanliness without source access.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

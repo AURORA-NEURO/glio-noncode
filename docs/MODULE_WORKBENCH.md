@@ -699,6 +699,27 @@ An accepted policy-set gate can therefore carry a separately verified audit;
 the audit itself is canonical, addressable, bounded, and retains every failed
 check if future input is blocked.
 
+## Portable policy-set review packet
+
+For handoff, the gate and independent audit can be packaged into one exact
+four-member ZIP: a manifest, policy-set JSON, audit JSON, and regenerated
+review Markdown. The packet contains no source tree, nested release payload,
+path, timestamp, or attribution metadata:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet \
+  --gate catalog-policy-set.json --audit catalog-policy-set-audit.json \
+  --destination catalog-policy-set-packet.zip
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-verify \
+  catalog-policy-set-packet.zip
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-query \
+  catalog-policy-set-packet.zip --resource audit
+```
+
+Verification replays the exact allowlist, canonical manifest, member byte
+addresses, embedded gate and audit lineage, regenerated review, and public
+boundary. Source-free loading fails closed for any blocked or tampered packet.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -747,6 +768,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/capabilities` | policy-set operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/audit/schema` | independent policy-set audit contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/audit/capabilities` | audit operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/schema` | portable policy-set packet contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/capabilities` | packet operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

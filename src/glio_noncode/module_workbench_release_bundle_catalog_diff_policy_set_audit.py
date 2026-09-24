@@ -377,8 +377,9 @@ def render_module_workbench_release_bundle_catalog_diff_policy_set_audit_markdow
         "| --- | --- | --- | --- | --- |",
     ]
     lines.extend(
-        f"| `{item.check_id}` | {str(item.passed).lower()} | `{item.observed}` "
-        f"| `{item.required}` | {item.detail} |"
+        f"| `{item.check_id}` | {str(item.passed).lower()} | "
+        f"`{canonical_json(item.observed)}` | `{canonical_json(item.required)}` "
+        f"| {item.detail} |"
         for item in value.checks
     )
     return "\n".join(lines) + "\n"
