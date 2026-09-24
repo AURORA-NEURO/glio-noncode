@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'b6aca4e16a469626cd32846e9bac38c0fd53d0c154aebb49bc72d42241b55145'
-SURFACE_DIGEST = 'f19408e06b31d7792c677c114ce1489f14e2529e4c8ea606cce007fced795f94'
+SURFACE_DIGEST = '17b187f8feff3380fa4d407be91112c43bb712a2ff215983f29f82ebef88e545'
 
 ALL = (
     'CaseManifest',
@@ -44821,6 +44821,8 @@ CHILD_MODULES = {
     'module_workbench_archive_contracts': 'glio_noncode.module_workbench_archive_contracts',
     'module_workbench_archive_diff': 'glio_noncode.module_workbench_archive_diff',
     'module_workbench_archive_diff_contracts': 'glio_noncode.module_workbench_archive_diff_contracts',
+    'module_workbench_archive_diff_policy': 'glio_noncode.module_workbench_archive_diff_policy',
+    'module_workbench_archive_diff_policy_contracts': 'glio_noncode.module_workbench_archive_diff_policy_contracts',
     'module_workbench_audit': 'glio_noncode.module_workbench_audit',
     'module_workbench_audit_contracts': 'glio_noncode.module_workbench_audit_contracts',
     'module_workbench_cache': 'glio_noncode.module_workbench_cache',
@@ -50123,6 +50125,8 @@ LAZY_MODULES = (
     'glio_noncode.module_workbench_archive_contracts',
     'glio_noncode.module_workbench_archive_diff',
     'glio_noncode.module_workbench_archive_diff_contracts',
+    'glio_noncode.module_workbench_archive_diff_policy',
+    'glio_noncode.module_workbench_archive_diff_policy_contracts',
     'glio_noncode.module_workbench_audit',
     'glio_noncode.module_workbench_audit_contracts',
     'glio_noncode.module_workbench_cache',

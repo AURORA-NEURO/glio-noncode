@@ -534,6 +534,31 @@ and outer comparison address. A reviewer can therefore receive two report
 archives and one compact comparison document without receiving source,
 tests, documentation, downloaded data, or machine-local paths.
 
+## Portable archive-diff release policy
+
+An archive comparison can be admitted by a strict, source-free release policy.
+The policy independently budgets additions, changes, removals, detected score/
+depth/risk regressions, task-count drift, and aggregate score movement:
+
+```text
+glio-noncode module-workbench-archive-diff-policy \
+  --diff workbench-archive-diff.json \
+  --maximum-added-count 0 --maximum-changed-count 0 \
+  --maximum-removed-count 0 --maximum-regression-count 0 \
+  --maximum-task-delta 0 --minimum-score-delta 0 \
+  --format json --output workbench-archive-diff-policy.json
+glio-noncode module-workbench-archive-diff-policy-verify \
+  workbench-archive-diff-policy.json
+glio-noncode module-workbench-archive-diff-policy-query \
+  workbench-archive-diff-policy.json --failed --limit 50
+```
+
+The default policy is strict and accepts an unchanged, accepted comparison.
+Every decision retains the policy address, comparison address, nine bounded
+checks, failed-check explanations, and a replayable content address. A policy
+failure is a valid explanatory artifact and exits the CLI with status `2`;
+malformed or tampered policy documents fail closed.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -568,6 +593,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/archive/capabilities` | archive operations and guarantees |
 | `GET /v1/module-workbench/archive-diff/schema` | portable archive comparison contract |
 | `GET /v1/module-workbench/archive-diff/capabilities` | portable comparison operations and guarantees |
+| `GET /v1/module-workbench/archive-diff/policy/schema` | source-free release policy contract |
+| `GET /v1/module-workbench/archive-diff/policy/capabilities` | policy operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

@@ -121,6 +121,15 @@ jobs:
           .ci-workbench-archive-diff.json --kind unchanged --limit 1
           --output .ci-workbench-archive-diff-query.json
           && python -c "import json; verification=json.load(open('.ci-workbench-archive-diff-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-archive-diff-query.json', encoding='utf-8')); assert verification['accepted'] and verification['change_count'] >= 1 and not [check for check in verification['checks'] if not check['passed']]; assert query['total'] >= 1 and query['previous_archive_address'] == query['current_archive_address']; print('workbench archive diff contract passed')"
+      - name: Evaluate source-free archive diff release policy
+        run: >-
+          python -m glio_noncode module-workbench-archive-diff-policy
+          --diff .ci-workbench-archive-diff.json
+          --format json --output .ci-workbench-archive-diff-policy.json
+          && python -m glio_noncode module-workbench-archive-diff-policy-verify
+          .ci-workbench-archive-diff-policy.json
+          --output .ci-workbench-archive-diff-policy-verification.json
+          && python -c "import json; gate=json.load(open('.ci-workbench-archive-diff-policy-verification.json', encoding='utf-8')); assert gate['accepted'] and gate['failed_count'] == 0 and not [check for check in gate['checks'] if not check['passed']]; print('workbench archive diff policy contract passed')"
       - name: Upload workbench observations
         uses: actions/upload-artifact@v4
         with:
@@ -136,6 +145,8 @@ jobs:
             .ci-workbench-archive-diff.json
             .ci-workbench-archive-diff-verification.json
             .ci-workbench-archive-diff-query.json
+            .ci-workbench-archive-diff-policy.json
+            .ci-workbench-archive-diff-policy-verification.json
             .ci-workbench.zip
           if-no-files-found: error
 

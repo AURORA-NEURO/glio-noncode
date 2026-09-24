@@ -10737,6 +10737,26 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'load a portable module workbench archive comparison',
     ),
     (
+        'module-workbench-archive-diff-policy',
+        'evaluate a source-free release policy over an archive comparison',
+    ),
+    (
+        'module-workbench-archive-diff-policy-capabilities',
+        'print archive-diff policy capabilities',
+    ),
+    (
+        'module-workbench-archive-diff-policy-query',
+        'query archive-diff policy checks',
+    ),
+    (
+        'module-workbench-archive-diff-policy-schema',
+        'print archive-diff policy schema',
+    ),
+    (
+        'module-workbench-archive-diff-policy-verify',
+        'verify an archive-diff policy gate',
+    ),
+    (
         'module-workbench-archive-diff-query',
         'query a portable module workbench archive comparison',
     ),

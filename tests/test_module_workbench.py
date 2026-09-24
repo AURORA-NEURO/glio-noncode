@@ -1146,6 +1146,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/archive/capabilities", "source_free_reload"),
                 ("/v1/module-workbench/archive-diff/schema", "change_kinds"),
                 ("/v1/module-workbench/archive-diff/capabilities", "compare_verified_archives"),
+                ("/v1/module-workbench/archive-diff/policy/schema", "thresholds"),
+                ("/v1/module-workbench/archive-diff/policy/capabilities", "evaluate_regression_budget"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

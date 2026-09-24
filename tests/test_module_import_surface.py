@@ -3634,6 +3634,8 @@ MODULE_IDS = (
     "glio_noncode.module_workbench_archive_contracts",
     "glio_noncode.module_workbench_archive_diff",
     "glio_noncode.module_workbench_archive_diff_contracts",
+    "glio_noncode.module_workbench_archive_diff_policy",
+    "glio_noncode.module_workbench_archive_diff_policy_contracts",
     "glio_noncode.module_workbench_audit",
     "glio_noncode.module_workbench_audit_contracts",
     "glio_noncode.module_workbench_cache",
