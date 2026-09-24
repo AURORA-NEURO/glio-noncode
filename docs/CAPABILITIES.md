@@ -6926,3 +6926,23 @@ capability operations.
 The real downloaded-data demonstration cataloged two accepted, ready review
 packets totaling 60,336 package bytes and 53,320 member bytes, with 16/16
 independent catalog-audit checks passing.
+
+The comparison demonstration uses three real downloaded review-packet ZIPs
+on each side. It reports one added, one removed, one changed, and one
+unchanged entry, keeps both catalogs ready with a same-ready transition,
+and passes all 13 independent diff-audit checks. The resulting diff and
+audit artifacts contain no prohibited public keys.
+
+## Downloaded-data review-packet catalog comparisons
+
+Portable review-packet catalog comparisons pair stable entry IDs across two
+source-free catalogs and classify each entry as added, removed, changed, or
+unchanged. The diff retains left/right entry and catalog addresses, derives
+ready, blocked, empty, and mixed postures, reports posture transitions and
+improved/regressed/changed/unchanged direction, and exposes bounded queries
+by change, direction, transition, or text. Diff artifacts support deterministic
+reload, atomic persistence, JSON, CSV, and Markdown projections. Independent
+thirteen-check audits verify counts, ordering, addresses, lineage, rollups,
+recomputation, query replay, summary replay, tamper evidence, and public
+boundaries. The CLI and HTTP API expose diff, verify, query, audit, schema,
+item-schema, and capability operations.

@@ -461,6 +461,21 @@ jobs:
       - name: Exercise deterministic aggregation, blocked evidence, CLI, HTTP, persistence, and 16-check catalog audit contracts
         run: python -m unittest tests.test_downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog -v
 
+  downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff:
+    name: Packet-package review-packet catalog comparison / Python 3.12
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --no-deps -e .
+      - name: Exercise added, removed, changed, unchanged, lineage, CLI, HTTP, persistence, and 13-check diff audit contracts
+        run: python -m unittest tests.test_downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff -v
+
   workbench-cache:
     name: Restart-aware module workbench cache
     runs-on: ubuntu-latest
