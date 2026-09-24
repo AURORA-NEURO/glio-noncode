@@ -6881,3 +6881,30 @@ and require nested archive reassembly before reporting complete status:
 python -m glio_noncode <observatory-command>-archive-transfer-audit --input review-output/transfer --format markdown
 python -m glio_noncode <observatory-command>-archive-transfer-audit --input review-output/partial-transfer --partial --format json
 ```
+
+## Downloaded-data packet-package review packets
+
+The downloaded-data packet-package review-packet boundary packages a verified
+catalog diff, its deterministic policy decision, the independent policy audit,
+and a regenerated review document into one portable ZIP. The package is
+source-free after creation: each member has canonical bytes, byte and content
+addresses, and retained diff, policy, audit, acceptance, and blocked-evidence
+lineage. Loading replays the exact five-member allowlist, fixed ZIP metadata,
+canonical payloads, nested addresses, policy state, review digest, and the
+independent fifteen-check packet audit before exposing any projection.
+
+The Python API and long-form CLI provide build, verify, load, bounded member,
+diff, policy, audit, and review queries, JSON/CSV/Markdown projections,
+manifest/schema/capability descriptions, atomic persistence, and an
+independent packet-audit surface. The HTTP API mirrors build, verify, query,
+audit, schema, manifest-schema, and capability operations under the nested
+downloaded-data review-packet route. Invalid ZIP members, traversal names,
+duplicate members, non-canonical payloads, mismatched lineage, byte-address
+drift, rejected audits, tampered review text, and public-boundary violations
+are rejected.
+
+The real downloaded-data demonstration produced a 30,173-byte ready packet
+with four payload members plus its manifest, accepted policy evidence, and
+15/15 independent packet-audit checks. The focused suite covers deterministic
+rebuilds, blocked evidence, source-free reload, persistence, tamper rejection,
+CLI behavior, HTTP behavior, and schema/capability replay.
