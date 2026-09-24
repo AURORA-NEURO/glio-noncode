@@ -7048,3 +7048,20 @@ fifteen checks; the CLI and HTTP API expose build, verify, load, query, audit,
 audit verification, and schema/capability operations. Real downloaded-data
 validation produces an accepted ready transport and passes all 15/15 audit
 checks.
+
+## Downloaded-data review-packet fixed transport catalogs
+
+Fixed policy transports can now be aggregated into a deterministic, source-free
+catalog bounded to 256 entries. Each entry retains the transport and manifest
+addresses, catalog diff, policy, independent audit, policy state, acceptance,
+member count, byte count, and lineage. Duplicate IDs, transport IDs,
+transport addresses, manifest addresses, malformed transports, tampered
+transports, oversized totals, and public-boundary violations are rejected.
+
+Catalogs provide canonical ordering and addresses, accepted/ready/blocked,
+entries, and lineage queries, atomic persistence, JSON, CSV, and Markdown
+projections, plus sixteen independent audit checks. The CLI and HTTP API
+expose build, verify, query, audit, audit verification, schema, entry-schema,
+and capability operations. Real downloaded-data validation aggregates two
+accepted ready transports totaling 51,098 transport bytes and 44,852 member
+bytes, with all 16/16 audit checks passing.
