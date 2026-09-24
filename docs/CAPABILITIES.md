@@ -7030,3 +7030,21 @@ Real downloaded-data validation accepts the release decision with 15/15
 policy checks and 16/16 independent-audit checks, while the strict decision
 blocks with four failed controls (removed budget, total-change budget,
 change allowlist, and direction allowlist) and still passes its 16/16 audit.
+
+## Downloaded-data review-packet catalog diff policy fixed transports
+
+Accepted or blocked catalog-diff policy decisions can be sealed into a
+deterministic five-member ZIP: a canonical manifest, catalog diff, policy,
+independent policy audit, and regenerated Markdown review. The transport
+preserves nested lineage, policy state, blocked evidence, byte/content
+addresses, source-free reload, fixed ZIP metadata, exact member order, and
+public-boundary controls. It rejects tampered, duplicated, extra, traversed,
+non-canonical, or lineage-inconsistent members before loading.
+
+The transport exposes bounded transport, member, manifest, diff, policy,
+audit, and review queries, atomic persistence, JSON, CSV, Markdown, schema,
+manifest-schema, and capability projections. Its independent audit has
+fifteen checks; the CLI and HTTP API expose build, verify, load, query, audit,
+audit verification, and schema/capability operations. Real downloaded-data
+validation produces an accepted ready transport and passes all 15/15 audit
+checks.
