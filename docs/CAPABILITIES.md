@@ -7129,3 +7129,22 @@ replay fifteen checks. Real downloaded-data validation produced a deterministic
 28,145-byte accepted five-member package with four payload members and 16/16
 policy-audit checks. Public outputs contain no agent, model, or language
 attributes.
+
+## Downloaded-data fixed transport catalog-diff policy package catalogs
+
+Module-567 handoff packages can now be rolled into a deterministic, source-free
+catalog. Catalog construction verifies every ZIP package before retaining its
+package, manifest, diff, policy, audit, state, acceptance, member, byte, and
+lineage addresses. Entries are canonically ordered and bounded to 256 packages;
+duplicate package identities, malformed or tampered packages, size overflow,
+non-canonical mappings, and forbidden public keys fail closed.
+
+The catalog surface provides accepted, ready, blocked, entries, and lineage
+queries with bounded pagination plus JSON, CSV, and Markdown projections. Its
+independent audit replays sixteen checks covering addresses, canonical form,
+identity uniqueness, entry ordering, lineage, counts, state folds, byte totals,
+query results, summary results, and the public boundary. CLI and HTTP surfaces
+expose build, verify, load, query, audit, audit verification, schema,
+entry-schema, and capability operations. Real downloaded-data validation rolls
+up two accepted ready packages with 16/16 catalog-audit checks and no agent,
+model, or language attributes in public output.
