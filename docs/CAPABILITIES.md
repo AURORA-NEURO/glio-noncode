@@ -6430,6 +6430,27 @@ and capability operations. The real downloaded-data catalog currently
 contains one accepted ready packet totaling 30,261 bytes and an independent
 15/15 audit.
 
+Catalogs can now be compared longitudinally without source access. The diff
+matches stable entry IDs, retains left/right public snapshots and entry
+addresses, classifies added, removed, changed, and unchanged evidence, and
+derives improved, regressed, changed, or unchanged direction plus empty,
+ready, blocked, and mixed state transitions. An independent thirteen-check
+audit can recompute the diff from the supplied catalogs and verify lineage,
+counts, item addresses, canonical JSON, and the public boundary.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff baseline-catalog.json candidate-catalog.json --destination catalog-diff.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-query catalog-diff.json --direction improved
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-audit catalog-diff.json --left baseline-catalog.json --right candidate-catalog.json --destination catalog-diff-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-audit-query catalog-diff-audit.json --failed
+```
+
+The HTTP diff surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff`
+and provides diff, verify, query, audit, audit-query, schema, item-schema,
+and capability operations. A real downloaded-data self-comparison currently
+replays as one unchanged item with `same-ready` state and a 13/13 audit.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
