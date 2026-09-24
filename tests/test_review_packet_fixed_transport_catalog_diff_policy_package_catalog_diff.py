@@ -30,7 +30,7 @@ def _local_module(pattern: str):
 
 class FixedTransportCatalogDiffPolicyPackageCatalogDiffTest(unittest.TestCase):
     def setUp(self) -> None:
-        legacy_diff = next(path for path in Path("src/glio_noncode").glob("*_tr_cat_diff.py") if not path.name.endswith("_tcp_tr_cat_diff.py"))
+        legacy_diff = next(path for path in Path("src/glio_noncode").glob("*_tr_cat_diff.py") if "_tcp_" not in path.name)
         self.diff_model = importlib.import_module(f"glio_noncode.{legacy_diff.stem}")
         self.policy_model = _local_module("*_tcp.py")
         self.transport_model = _local_module("*_tcp_tr.py")

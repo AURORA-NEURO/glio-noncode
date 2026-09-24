@@ -7239,3 +7239,27 @@ persistence, tamper, duplicate, CLI, HTTP, schema, capabilities, and
 public-boundary validation. Real downloaded-data validation rolls up two
 accepted ready transports totaling 57,470 transport bytes and 50,760 member
 bytes with 16/16 independent catalog-audit checks.
+
+## Downloaded-data fixed package-catalog policy transport catalog comparisons
+
+Two fixed package-catalog policy transport catalogs can now be compared
+longitudinally without retaining source archives or record values. The diff
+requires the same catalog identity, pairs entries by stable ID, and records
+added, removed, changed, and unchanged entries with left/right catalog and entry
+addresses plus a changed-field snapshot. It derives empty, ready, blocked, and
+mixed postures, same or transition states, and improved, regressed, changed, or
+unchanged direction.
+
+Diff and item addresses are deterministic and content-addressed. Reload verifies
+canonical fields, counts, ordering, lineage, state transitions, and the public
+boundary. Bounded change, direction, transition, text, JSON, CSV, and Markdown
+projections are exposed through CLI and HTTP diff, verify, query, audit, audit
+verification, item-schema, schema, and capability routes. The independent audit
+recomputes the comparison when both catalogs are supplied and fails closed when
+lineage or source inputs are unavailable.
+
+The self-contained module-573 contract suite covers all four classifications,
+direction and posture transitions, persistence, tamper rejection, CLI, HTTP,
+schema, capabilities, and public-boundary validation. Real downloaded-data
+validation reports one added, one removed, one changed, and one unchanged entry
+with same-ready posture, changed direction, and 13/13 independent audit checks.
