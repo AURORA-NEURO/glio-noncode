@@ -6475,6 +6475,30 @@ admission and accepts the same blocked-to-ready catalog transition under a
 bounded release policy; the release decision and its independent audit both
 retain source-free lineage.
 
+Catalog-diff policy decisions can now be sealed into a deterministic portable
+review packet. The packet contains exactly `manifest.json`,
+`catalog-diff.json`, `policy.json`, `policy-audit.json`, and `review.md` with
+fixed ZIP metadata, canonical bytes, member byte addresses, nested lineage,
+and policy-state preservation. A blocked policy is retained as explicit review
+evidence, while packet admission still requires an accepted independent policy
+audit. Packet verification rejects traversal, duplicate or extra members,
+non-canonical JSON, byte-address changes, lineage mismatch, review drift,
+tampering, and prohibited public keys.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package catalog-diff.json release-policy.json release-policy-audit.json --destination catalog-diff-policy-package.zip --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-verify catalog-diff-policy-package.zip
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-query catalog-diff-policy-package.zip --resource audit
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-audit catalog-diff-policy-package.zip --destination catalog-diff-policy-package-audit.json --format summary
+```
+
+The HTTP packet surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package`
+and provides build, verify, query, audit, audit-query, schema,
+manifest-schema, check-schema, and capability operations. Real downloaded
+data currently produces a 22.8 KB five-member ready packet with 15/15
+independent packet-audit checks.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
