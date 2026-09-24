@@ -6756,6 +6756,36 @@ and capability operations. The real downloaded-data replay compares the
 persisted handoff catalog with itself: one unchanged ready entry, a
 `same-ready` state, and a 13/13 accepted audit.
 
+## Policy gates for longitudinal packet-package handoff catalog diffs
+
+Longitudinal handoff-catalog diffs can now be evaluated under strict or
+release controls without changing the source-free diff. The policy records
+bounded added, removed, changed, and total-change budgets; ordered change,
+direction, transition, and left/right posture allowlists; required change
+kinds; right-catalog readiness; required-change behavior; and explicit
+unchanged evidence handling. Every control is retained in the addressed
+policy, with fifteen deterministic checks producing a ready or blocked state.
+
+Policy JSON, CSV, Markdown, schema, query, and atomic persistence operations
+are available from Python, the CLI, and HTTP. A separate sixteen-check audit
+replays policy and diff addressing, canonical controls, counters, decision
+state, query conservation, optional supplied-diff recomputation, bounded
+budgets, and the public boundary. Tampered policy evidence, invalid control
+ordering, stale diff lineage, and forbidden fields fail closed.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy diff.json --profile strict --destination strict-policy.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy diff.json --profile release --maximum-total-changes 256 --required-change changed --destination release-policy.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-audit release-policy.json --diff diff.json --destination policy-audit.json --format summary
+```
+
+The HTTP policy surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy`
+and supports build, verify, query, audit, audit-query, check-schema, schema,
+and capability operations. On the real downloaded handoff comparison, the
+strict and release policies both accept the unchanged evidence and the
+independent audit passes 16/16.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
