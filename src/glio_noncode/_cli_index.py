@@ -8553,6 +8553,54 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print downloaded-data release bundle diff item schema',
     ),
     (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy',
+        'gate a downloaded-data release bundle diff with a strict or release policy',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-audit',
+        'independently audit a release bundle diff policy',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-audit-capabilities',
+        'print release bundle diff policy audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-audit-check-schema',
+        'print release bundle diff policy audit check schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-audit-query',
+        'query release bundle diff policy audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-audit-schema',
+        'print release bundle diff policy audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-audit-verify',
+        'verify a release bundle diff policy audit',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-capabilities',
+        'print release bundle diff policy capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-check-schema',
+        'print release bundle diff policy check schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-query',
+        'query release bundle diff policy checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-schema',
+        'print release bundle diff policy schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-verify',
+        'verify a downloaded-data release bundle diff policy',
+    ),
+    (
         'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-query',
         'query downloaded-data release bundle diff items',
     ),

@@ -6360,6 +6360,27 @@ and mirrors diff build, verify, query, audit, audit-query, schema, and
 capability operations. Bundle diffs retain no source archive bytes, record
 values, private identifiers, agent metadata, or language metadata.
 
+Bundle diffs can be gated with explicit strict or release profiles. The gate
+retains thirteen deterministic checks for added, removed, changed, and member
+budgets; resource, change, direction, and transition allowlists; release
+readiness; required-change posture; and unchanged evidence. Strict mode permits
+only unchanged same-state comparisons, while release mode admits bounded
+longitudinal change. The independent policy audit recomputes fourteen policy
+invariants, including a supplied diff recomputation when available.
+
+Commands:
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy bundle-diff.json --profile strict --destination strict-policy.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy bundle-diff.json --profile release --destination release-policy.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-audit release-policy.json --diff bundle-diff.json --destination release-policy-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-audit-query release-policy-audit.json --failed
+
+The HTTP policy surface is rooted at
+/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy
+and mirrors policy build, verify, query, audit, audit-query, schema, and
+capability operations. Blocked strict evidence remains exportable for review;
+release acceptance requires the configured budgets and right-hand release
+readiness.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
