@@ -6994,3 +6994,21 @@ The CLI and public HTTP API expose build, verify, query, audit, schema,
 entry-schema, and capability operations. The real downloaded-data
 demonstration aggregates two accepted ready packets and passes all 16/16
 catalog-audit checks.
+
+## Downloaded-data review-packet catalog comparisons
+
+Catalogs can be compared longitudinally without reopening source data. The
+comparison pairs stable entry IDs and classifies each entry as added, removed,
+changed, or unchanged while retaining left/right packet, manifest, policy,
+audit, posture, state, byte-count, and content-address lineage. It also
+derives posture transitions and improved, regressed, changed, or unchanged
+direction, then exposes bounded change, direction, transition, and text
+queries with JSON, CSV, and Markdown projections.
+
+The comparison has thirteen independent audit checks covering identity,
+lineage, recomputation, counts, transitions, tamper resistance, and the
+public boundary. CLI and HTTP surfaces expose comparison, verification,
+query, audit, schema, item-schema, and capability operations. On real
+downloaded data, comparing the two-entry catalog with its primary-entry
+candidate reports one unchanged entry and one removed entry, with a 13/13
+accepted audit.

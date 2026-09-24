@@ -29,6 +29,11 @@ from . import downloaded_data_review_packet_diff_policy_release_certificate_bund
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog as downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_audit as downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_audit_model
 
+from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff as review_packet_catalog_diff_561_model
+from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_audit as review_packet_catalog_diff_561_audit_model
+
+_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND = 'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff'
+
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND = "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-snapshot-diff-query-snapshot-diff-query-snapshot-registry-history-observatory-archive"
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND = COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_COMMAND + "-transfer"
 COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_RECOVERY_COMMAND = COMPARISON_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND + "-recovery"
@@ -31037,6 +31042,55 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-audit-check-schema", help="print review-packet catalog diff policy package catalog audit check schema").add_argument("--output", default=None)
     subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-audit-schema", help="print review-packet catalog diff policy package catalog audit schema").add_argument("--output", default=None)
     subparsers.add_parser("downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-audit-capabilities", help="print review-packet catalog diff policy package catalog audit capabilities").add_argument("--output", default=None)
+    # Module 561: compare two source-free review-packet catalogs longitudinally.
+    p = subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND, help="compare review-packet catalog diff policy package catalogs")
+    p.add_argument("left", type=str)
+    p.add_argument("right", type=str)
+    p.add_argument("--diff-id", default=None)
+    p.add_argument("--destination", default=None)
+    p.add_argument("--allow-existing", action="store_true")
+    p.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    p.add_argument("--output", default=None)
+    p = subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-verify", help="verify a review-packet catalog longitudinal diff")
+    p.add_argument("diff", type=str)
+    p.add_argument("--output", default=None)
+    p = subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-query", help="query review-packet catalog longitudinal diff items")
+    p.add_argument("diff", type=str)
+    p.add_argument("--change", choices=("added", "removed", "changed", "unchanged"), default="")
+    p.add_argument("--direction", choices=("improved", "regressed", "changed", "unchanged"), default="")
+    p.add_argument("--state-transition", default="")
+    p.add_argument("--text", default="")
+    p.add_argument("--offset", type=int, default=0)
+    p.add_argument("--limit", type=int, default=50)
+    p.add_argument("--format", choices=("json", "csv"), default="json")
+    p.add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-item-schema", help="print review-packet catalog longitudinal diff item schema").add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-schema", help="print review-packet catalog longitudinal diff schema").add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-capabilities", help="print review-packet catalog longitudinal diff capabilities").add_argument("--output", default=None)
+    p = subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit", help="independently audit a review-packet catalog longitudinal diff")
+    p.add_argument("diff", type=str)
+    p.add_argument("--left", default=None)
+    p.add_argument("--right", default=None)
+    p.add_argument("--destination", default=None)
+    p.add_argument("--allow-existing", action="store_true")
+    p.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    p.add_argument("--output", default=None)
+    p = subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit-verify", help="verify a review-packet catalog longitudinal diff audit")
+    p.add_argument("audit", type=str)
+    p.add_argument("--output", default=None)
+    p = subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit-query", help="query review-packet catalog longitudinal diff audit checks")
+    p.add_argument("audit", type=str)
+    p.add_argument("--passed", action="store_true")
+    p.add_argument("--failed", action="store_true")
+    p.add_argument("--check-id", default="")
+    p.add_argument("--text", default="")
+    p.add_argument("--offset", type=int, default=0)
+    p.add_argument("--limit", type=int, default=50)
+    p.add_argument("--format", choices=("json", "csv"), default="json")
+    p.add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit-check-schema", help="print review-packet catalog longitudinal diff audit check schema").add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit-schema", help="print review-packet catalog longitudinal diff audit schema").add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit-capabilities", help="print review-packet catalog longitudinal diff audit capabilities").add_argument("--output", default=None)
     return parser
 
 def main(argv: list[str] | None = None) -> int:
@@ -61535,6 +61589,74 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-audit-capabilities":
             _write_json(downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_audit_model.capabilities(), args.output)
+            return 0
+        # Module 561 CLI handler: longitudinal source-free catalog comparison.
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND:
+            value = review_packet_catalog_diff_561_model.build_diff(args.left, args.right, diff_id=args.diff_id or review_packet_catalog_diff_561_model.DEFAULT_DIFF_ID)
+            if args.destination:
+                value = review_packet_catalog_diff_561_model.write_diff(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(review_packet_catalog_diff_561_model.render_diff_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(review_packet_catalog_diff_561_model.diff_csv(value), args.output)
+            elif args.format == "json":
+                _write_text(review_packet_catalog_diff_561_model.diff_json(value), args.output)
+            else:
+                _write_json({"diff_id": value.diff_id, "catalog_id": value.catalog_id, "left_posture": value.left_posture, "right_posture": value.right_posture, "state_transition": value.state_transition, "direction": value.direction, "added_count": value.added_count, "removed_count": value.removed_count, "changed_count": value.changed_count, "unchanged_count": value.unchanged_count, "content_address": value.content_address}, args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-verify":
+            value = review_packet_catalog_diff_561_model.verify_diff(args.diff)
+            _write_json(value.to_dict(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-query":
+            result = review_packet_catalog_diff_561_model.query_diff(args.diff, change=args.change, direction=args.direction, state_transition=args.state_transition, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(review_packet_catalog_diff_561_model.diff_csv(args.diff, change=args.change, direction=args.direction, state_transition=args.state_transition, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-item-schema":
+            _write_json(review_packet_catalog_diff_561_model.item_schema(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-schema":
+            _write_json(review_packet_catalog_diff_561_model.diff_schema(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-capabilities":
+            _write_json(review_packet_catalog_diff_561_model.capabilities(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit":
+            value = review_packet_catalog_diff_561_audit_model.audit_diff(args.diff, left=args.left, right=args.right)
+            if args.destination:
+                value = review_packet_catalog_diff_561_audit_model.write_audit(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(review_packet_catalog_diff_561_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(review_packet_catalog_diff_561_audit_model.audit_csv(value), args.output)
+            elif args.format == "json":
+                _write_text(review_packet_catalog_diff_561_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit-verify":
+            value = review_packet_catalog_diff_561_audit_model.verify_audit(args.audit)
+            _write_json(value.to_dict(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit-query":
+            passed = True if args.passed else False if args.failed else None
+            result = review_packet_catalog_diff_561_audit_model.query_audit(args.audit, passed=passed, check_id=args.check_id, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(review_packet_catalog_diff_561_audit_model.audit_csv(args.audit, passed=passed, check_id=args.check_id, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit-check-schema":
+            _write_json(review_packet_catalog_diff_561_audit_model.check_schema(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit-schema":
+            _write_json(review_packet_catalog_diff_561_audit_model.audit_schema(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND + "-audit-capabilities":
+            _write_json(review_packet_catalog_diff_561_audit_model.capabilities(), args.output)
             return 0
     except (GlioError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)

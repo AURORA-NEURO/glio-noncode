@@ -304,6 +304,8 @@ from . import downloaded_data_review_packet_diff_policy_release_certificate_bund
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_audit as downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_audit_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_audit as downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_audit_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog as downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_model
+from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff as review_packet_catalog_diff_561_api_model
+from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_audit as review_packet_catalog_diff_561_api_audit_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_audit as downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_audit_model
 from . import (
     downloaded_data_profile_contract_compatibility as downloaded_data_profile_contract_compatibility_model,
@@ -9338,6 +9340,48 @@ class ApiHandler(BaseHTTPRequestHandler):
                     else:
                         self._write(HTTPStatus.OK, value)
                     return
+                # Module 561 API handler: longitudinal source-free catalog comparison.
+                review_packet_catalog_diff_561_prefix = review_packet_catalog_diff_policy_package_catalog_prefix + "/diff"
+                if path == review_packet_catalog_diff_561_prefix:
+                    value = review_packet_catalog_diff_561_api_model.build_diff(self._query_value(query, "left") or "", self._query_value(query, "right") or "", diff_id=self._query_value(query, "diff_id") or review_packet_catalog_diff_561_api_model.DEFAULT_DIFF_ID)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        review_packet_catalog_diff_561_api_model.write_diff(value, destination, allow_existing=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", review_packet_catalog_diff_561_api_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
+                    return
+                if path == review_packet_catalog_diff_561_prefix + "/verify":
+                    value = review_packet_catalog_diff_561_api_model.verify_diff(self._query_value(query, "input") or self._query_value(query, "diff") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", review_packet_catalog_diff_561_api_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
+                    return
+                if path == review_packet_catalog_diff_561_prefix + "/query":
+                    source = self._query_value(query, "input") or self._query_value(query, "diff") or ""
+                    value = review_packet_catalog_diff_561_api_model.query_diff(source, change=self._query_value(query, "change") or "", direction=self._query_value(query, "direction") or "", state_transition=self._query_value(query, "state_transition") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, review_packet_catalog_diff_561_api_model.diff_csv(source, change=self._query_value(query, "change") or "", direction=self._query_value(query, "direction") or "", state_transition=self._query_value(query, "state_transition") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value)
+                    return
+                if path == review_packet_catalog_diff_561_prefix + "/audit":
+                    value = review_packet_catalog_diff_561_api_audit_model.audit_diff(self._query_value(query, "input") or self._query_value(query, "diff") or "", left=self._query_value(query, "left") or None, right=self._query_value(query, "right") or None)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        review_packet_catalog_diff_561_api_audit_model.write_audit(value, destination, allow_existing=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", review_packet_catalog_diff_561_api_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == review_packet_catalog_diff_561_prefix + "/audit/verify":
+                    value = review_packet_catalog_diff_561_api_audit_model.verify_audit(self._query_value(query, "input") or self._query_value(query, "audit") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", review_packet_catalog_diff_561_api_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == review_packet_catalog_diff_561_prefix + "/audit/query":
+                    source = self._query_value(query, "input") or self._query_value(query, "audit") or ""
+                    passed = self._query_bool(query, "passed") if "passed" in query else None
+                    check_id = self._query_value(query, "check_id") or ""
+                    value = review_packet_catalog_diff_561_api_audit_model.query_audit(source, passed=passed, check_id=check_id, text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, review_packet_catalog_diff_561_api_audit_model.audit_csv(source, passed=passed, check_id=check_id, text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value)
+                    return
                 ingest_prefix = downloaded_data_prefix + "/ingest"
                 if path == ingest_prefix:
                     value = downloaded_data_ingestion_runtime_model.run_runtime(
@@ -15597,6 +15641,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/audit/check-schema": downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_audit_model.check_schema,
                     "/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/audit/schema": downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_audit_model.audit_schema,
                     "/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/audit/capabilities": downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_audit_model.capabilities,
+                    "/review-packet/diff/policy/release/certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/item-schema": review_packet_catalog_diff_561_api_model.item_schema,
+                    "/review-packet/diff/policy/release/certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/schema": review_packet_catalog_diff_561_api_model.diff_schema,
+                    "/review-packet/diff/policy/release/certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/capabilities": review_packet_catalog_diff_561_api_model.capabilities,
+                    "/review-packet/diff/policy/release/certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/audit/check-schema": review_packet_catalog_diff_561_api_audit_model.check_schema,
+                    "/review-packet/diff/policy/release/certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/audit/schema": review_packet_catalog_diff_561_api_audit_model.audit_schema,
+                    "/review-packet/diff/policy/release/certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/audit/capabilities": review_packet_catalog_diff_561_api_audit_model.capabilities,
                     "/ingest/lineage-schema": downloaded_data_ingestion_model.lineage_schema,
                     "/ingest/record-schema": downloaded_data_ingestion_model.record_schema,
                     "/ingest/selection-schema": downloaded_data_ingestion_model.selection_schema,

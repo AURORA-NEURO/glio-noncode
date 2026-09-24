@@ -9333,6 +9333,54 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print review-packet catalog diff policy package catalog capabilities',
     ),
     (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff',
+        'compare review-packet catalog diff policy package catalogs',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit',
+        'independently audit a review-packet catalog longitudinal diff',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit-capabilities',
+        'print review-packet catalog longitudinal diff audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit-check-schema',
+        'print review-packet catalog longitudinal diff audit check schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit-query',
+        'query review-packet catalog longitudinal diff audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit-schema',
+        'print review-packet catalog longitudinal diff audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit-verify',
+        'verify a review-packet catalog longitudinal diff audit',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-capabilities',
+        'print review-packet catalog longitudinal diff capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-item-schema',
+        'print review-packet catalog longitudinal diff item schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-query',
+        'query review-packet catalog longitudinal diff items',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-schema',
+        'print review-packet catalog longitudinal diff schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-verify',
+        'verify a review-packet catalog longitudinal diff',
+    ),
+    (
         'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-entry-schema',
         'print review-packet catalog diff policy package catalog entry schema',
     ),
