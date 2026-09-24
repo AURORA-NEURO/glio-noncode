@@ -25,6 +25,8 @@ class PacketCatalogDiffPolicyApiTest(unittest.TestCase):
                     "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/capabilities",
                     "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/schema",
                     "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/capabilities",
+                    "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/audit/schema",
+                    "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/audit/capabilities",
                 )
                 for path in paths:
                     connection.request("GET", path)

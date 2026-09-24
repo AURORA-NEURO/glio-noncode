@@ -14341,6 +14341,26 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'evaluate a packet review catalog diff policy',
     ),
     (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-audit',
+        'independently audit a packet review catalog diff policy gate',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-audit-capabilities',
+        'print packet review catalog diff policy audit capabilities',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-audit-query',
+        'query packet review catalog diff policy audit checks',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-audit-schema',
+        'print packet review catalog diff policy audit schema',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-audit-verify',
+        'verify a packet review catalog diff policy audit',
+    ),
+    (
         'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-capabilities',
         'print packet review catalog diff policy capabilities',
     ),

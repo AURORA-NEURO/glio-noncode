@@ -4898,6 +4898,12 @@ controls, and conserved check-level gate evidence. These layers are deterministi
 source-free, path-free, timestamp-free, and available through JSON, CSV,
 Markdown, CLI, and read-only API schema/capability surfaces.
 
+The catalog-diff gate also has an independent audit boundary. Ten checks
+replay nested check addresses, ordering, decision conservation, diff lineage,
+policy controls, policy and gate addresses, typed-gate loading, and the public
+boundary. A blocked strict gate can remain explanatory evidence while its audit
+is independently accepted when the gate is structurally conserved.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

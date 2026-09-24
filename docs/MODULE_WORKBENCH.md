@@ -865,7 +865,10 @@ per-check failure evidence, canonical addresses, source-free reload, bounded
 queries, JSON/CSV/Markdown projections, atomic persistence, and fail-closed
 tamper verification. The corresponding read-only API contracts are available
 at `/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/schema`,
-`/diff/capabilities`, `/diff/policy/schema`, and `/diff/policy/capabilities`.
+`/diff/capabilities`, `/diff/policy/schema`, `/diff/policy/capabilities`,
+and the independent `/diff/policy/audit/schema` and `/diff/policy/audit/capabilities`
+routes. The audit retains blocked gate evidence but accepts only when all ten
+independent replay checks pass.
 
 ## HTTP service
 
@@ -933,6 +936,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/capabilities` | packet comparison operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/schema` | packet catalog release-policy contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/capabilities` | packet catalog gate operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/audit/schema` | independent packet catalog gate audit contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/audit/capabilities` | independent audit operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

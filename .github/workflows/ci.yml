@@ -351,7 +351,14 @@ jobs:
           && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy
           .ci-packet-review-catalog-diff.json --profile release --destination .ci-packet-review-catalog-diff-release-policy.json
           --format summary --output .ci-packet-review-catalog-diff-release-summary.json
-          && python -c "import json; diff=json.load(open('.ci-packet-review-catalog-diff-summary.json', encoding='utf-8')); verification=json.load(open('.ci-packet-review-catalog-diff-verification.json', encoding='utf-8')); query=json.load(open('.ci-packet-review-catalog-diff-query.json', encoding='utf-8')); strict=json.load(open('.ci-packet-review-catalog-diff-strict-summary.json', encoding='utf-8')); release=json.load(open('.ci-packet-review-catalog-diff-release-summary.json', encoding='utf-8')); assert diff['added_count'] == 1 and diff['unchanged_count'] == 1 and verification['accepted'] and query['total'] == 1 and not strict['accepted'] and strict['failed_count'] > 0 and release['accepted'] and release['failed_count'] == 0; print('packet catalog diff policy contract passed')"
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-audit
+          .ci-packet-review-catalog-diff-release-policy.json --destination .ci-packet-review-catalog-diff-release-audit.json
+          --format summary --output .ci-packet-review-catalog-diff-release-audit-summary.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-audit-verify
+          .ci-packet-review-catalog-diff-release-audit.json --output .ci-packet-review-catalog-diff-release-audit-verification.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-audit-query
+          .ci-packet-review-catalog-diff-release-audit.json --failed --output .ci-packet-review-catalog-diff-release-audit-query.json
+          && python -c "import json; diff=json.load(open('.ci-packet-review-catalog-diff-summary.json', encoding='utf-8')); verification=json.load(open('.ci-packet-review-catalog-diff-verification.json', encoding='utf-8')); query=json.load(open('.ci-packet-review-catalog-diff-query.json', encoding='utf-8')); strict=json.load(open('.ci-packet-review-catalog-diff-strict-summary.json', encoding='utf-8')); release=json.load(open('.ci-packet-review-catalog-diff-release-summary.json', encoding='utf-8')); audit=json.load(open('.ci-packet-review-catalog-diff-release-audit-summary.json', encoding='utf-8')); audit_verification=json.load(open('.ci-packet-review-catalog-diff-release-audit-verification.json', encoding='utf-8')); audit_failed=json.load(open('.ci-packet-review-catalog-diff-release-audit-query.json', encoding='utf-8')); assert diff['added_count'] == 1 and diff['unchanged_count'] == 1 and verification['accepted'] and query['total'] == 1 and not strict['accepted'] and strict['failed_count'] > 0 and release['accepted'] and release['failed_count'] == 0 and audit['accepted'] and audit['passed_count'] == 10 and audit_verification['accepted'] and audit_failed['total'] == 0; print('packet catalog diff policy audit contract passed')"
       - name: Upload workbench observations
         uses: actions/upload-artifact@v4
         with:
@@ -435,6 +442,10 @@ jobs:
             .ci-packet-review-catalog-diff-strict-summary.json
             .ci-packet-review-catalog-diff-release-policy.json
             .ci-packet-review-catalog-diff-release-summary.json
+            .ci-packet-review-catalog-diff-release-audit.json
+            .ci-packet-review-catalog-diff-release-audit-summary.json
+            .ci-packet-review-catalog-diff-release-audit-verification.json
+            .ci-packet-review-catalog-diff-release-audit-query.json
             .ci-workbench.zip
           if-no-files-found: error
 
