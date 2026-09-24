@@ -7108,3 +7108,24 @@ and capability operations. Real downloaded-data validation accepts the
 release profile with 15/15 policy checks and 16/16 audit checks, while the
 strict zero-change profile blocks with six failed controls. Public outputs
 contain no agent, model, or language attributes.
+
+## Downloaded-data review-packet fixed transport catalog-diff policy packages
+
+Accepted or blocked fixed transport catalog-diff policy decisions can now be
+sealed into a deterministic, source-free ZIP handoff. The package carries a
+canonical manifest, catalog diff, policy, independent policy audit, and
+regenerated Markdown review in a fixed member order with fixed ZIP metadata.
+Manifest fields retain policy state, policy and audit acceptance, failed
+controls, nested lineage, member addresses, byte counts, and the package
+address. Reload verifies canonical JSON, exact members, traversal safety,
+duplicate rejection, content and byte addresses, policy replay, audit replay,
+review replay, and public-boundary rules before exposing payloads.
+
+The CLI and HTTP API expose package build, verify, load, query, audit, audit
+verification, schema, manifest-schema, and capability operations. Package
+queries cover summary, members, manifest, diff, policy, audit, and review
+resources with JSON, CSV, and Markdown projections; package audits independently
+replay fifteen checks. Real downloaded-data validation produced a deterministic
+28,145-byte accepted five-member package with four payload members and 16/16
+policy-audit checks. Public outputs contain no agent, model, or language
+attributes.
