@@ -14365,6 +14365,30 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print packet review catalog diff policy capabilities',
     ),
     (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet',
+        'build a portable packet review catalog diff policy packet',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-capabilities',
+        'print portable packet review catalog diff policy packet capabilities',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-load',
+        'load a portable packet review catalog diff policy packet',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-query',
+        'query a portable packet review catalog diff policy packet',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-schema',
+        'print portable packet review catalog diff policy packet schema',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-verify',
+        'verify a portable packet review catalog diff policy packet',
+    ),
+    (
         'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-query',
         'query packet review catalog diff policy checks',
     ),

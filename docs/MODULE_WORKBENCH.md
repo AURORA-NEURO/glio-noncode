@@ -870,6 +870,33 @@ and the independent `/diff/policy/audit/schema` and `/diff/policy/audit/capabili
 routes. The audit retains blocked gate evidence but accepts only when all ten
 independent replay checks pass.
 
+## Portable catalog-diff policy review packets
+
+The catalog comparison, policy gate, and independent audit can be sealed into
+a second source-free ZIP boundary for handoff to a reviewer without reopening
+the catalog sources:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet \
+  --diff packet-review-catalog-diff.json \
+  --gate packet-review-catalog-release-gate.json \
+  --audit packet-review-catalog-release-audit.json \
+  --destination packet-review-catalog-review-packet.zip --format summary
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-verify \
+  packet-review-catalog-review-packet.zip
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-query \
+  packet-review-catalog-review-packet.zip --resource members
+```
+
+This transport has exactly five deterministic members: a canonical manifest,
+the catalog diff, the policy gate, the independent audit, and regenerated
+review Markdown. Verification replays safe paths, fixed ZIP metadata, nested
+addresses, member descriptors, review output, public-boundary rules, and the
+packet byte address. The packet can preserve a blocked policy decision, but
+admission still requires the independent audit to pass. Its schema and
+capability routes are `/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/schema`
+and the matching `/capabilities` route.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -938,6 +965,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/capabilities` | packet catalog gate operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/audit/schema` | independent packet catalog gate audit contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/audit/capabilities` | independent audit operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/schema` | portable catalog-diff policy review packet contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/capabilities` | packet verification, lineage, and query guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

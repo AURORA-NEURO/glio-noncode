@@ -4904,6 +4904,16 @@ policy controls, policy and gate addresses, typed-gate loading, and the public
 boundary. A blocked strict gate can remain explanatory evidence while its audit
 is independently accepted when the gate is structurally conserved.
 
+The catalog diff, policy gate, and independent audit also have a portable
+five-member ZIP review packet. It retains only the canonical manifest, public
+aggregate JSON, and regenerated review Markdown; verification replays member
+allowlists, fixed metadata, nested addresses, review determinism, and the
+public boundary. Build, verify, load, query, schema, and capability commands
+are available under the packet-catalog-diff-policy-packet CLI boundary, with
+read-only schema and capability routes at
+`/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/schema`
+and `/capabilities`.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition
