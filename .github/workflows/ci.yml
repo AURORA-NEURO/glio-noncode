@@ -371,6 +371,21 @@ jobs:
       - name: Exercise strict/release, required-change, tamper, CLI, HTTP, persistence, and independent policy-audit contracts
         run: python -m unittest tests.test_downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy -v
 
+  downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package:
+    name: Packet-package catalog diff policy handoff package / Python 3.12
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --no-deps -e .
+      - name: Exercise deterministic ZIP handoff, source-free load/query, CLI, HTTP, persistence, and 16-check audit contracts
+        run: python -m unittest tests.test_downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package -v
+
   workbench-cache:
     name: Restart-aware module workbench cache
     runs-on: ubuntu-latest

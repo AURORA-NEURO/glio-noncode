@@ -6673,6 +6673,32 @@ check-schema, and capability operations. Real source-free changed-entry data
 is accepted by the release profile with a one-entry total budget, rejected by
 strict mode with four failed checks, and independently audited at 16/16.
 
+Packet-package catalog diff policy decisions can now be sealed into a portable
+source-free handoff package. The deterministic ZIP contains exactly five
+members: `manifest.json`, `catalog-diff.json`, `policy.json`,
+`policy-audit.json`, and `review.md`. ZIP timestamps, storage mode, attributes,
+member order, canonical UTF-8 payloads, byte receipts, content addresses,
+nested diff/policy/audit lineage, decision state, and review Markdown all
+replay on reload. Package verification rejects tampered bytes, unsafe or
+unexpected members, non-canonical payloads, lineage drift, source-bearing
+fields, and public-boundary violations. A separate audit recomputes sixteen
+transport, replay, policy, query, and byte-integrity checks.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package diff.json policy.json policy-audit.json --package-id packet-policy-handoff --destination handoff.zip --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-verify handoff.zip
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-query handoff.zip --resource members
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-audit handoff.zip --destination handoff-audit.json --format summary
+```
+
+The HTTP handoff surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package`
+and supports build, verify, load, query, audit, audit-query, manifest-schema,
+package-schema, audit-schema, and capability operations. The real downloaded
+data replay produces a 29,389-byte accepted package with four payload members,
+ready policy evidence, and an independent 16/16 audit at
+`.glio-real-demo/real-packet-policy-package-handoff-v2.zip`.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
