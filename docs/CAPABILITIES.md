@@ -7148,3 +7148,24 @@ expose build, verify, load, query, audit, audit verification, schema,
 entry-schema, and capability operations. Real downloaded-data validation rolls
 up two accepted ready packages with 16/16 catalog-audit checks and no agent,
 model, or language attributes in public output.
+
+## Downloaded-data fixed transport catalog-diff policy package catalog diffs
+
+Catalogs of module-568 fixed transport policy packages can now be compared
+longitudinally without reopening their ZIP payloads. Stable entry IDs are
+paired deterministically into added, removed, changed, and unchanged items;
+each item retains left/right package, manifest, diff, policy, audit, state,
+acceptance, member, byte, and content-address lineage. The diff derives
+catalog postures, state transitions, and improved, regressed, changed, or
+unchanged direction while retaining changed-field snapshots.
+
+The source-free diff supports bounded change, direction, transition, and text
+queries with JSON, CSV, and Markdown projections, canonical diff/item
+addresses, atomic persistence, typed reload, and fail-closed tamper handling.
+Its independent audit replays thirteen checks for address, identity, catalog
+availability and lineage, item addresses, counts, transitions, supplied-catalog
+recomputation, and the public boundary. CLI and HTTP surfaces expose diff,
+verify, query, audit, audit verification, schema, item-schema, and capability
+operations. Real downloaded-data validation reported one added, one removed,
+one changed, and one unchanged package entry with same-ready posture, changed
+direction, and 13/13 audit checks passed.

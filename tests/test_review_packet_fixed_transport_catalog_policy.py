@@ -32,6 +32,8 @@ def _module_from_test(test_name: str, names: set[str]):
 
 def _local_module(pattern: str):
     matches = tuple(Path("src/glio_noncode").glob(pattern))
+    if pattern.endswith("tr_cat_diff.py"):
+        matches = tuple(path for path in matches if not path.name.endswith("_tcp_tr_cat_diff.py"))
     if len(matches) != 1:
         raise RuntimeError(f"expected one local module for {pattern}, got {len(matches)}")
     return importlib.import_module(f"glio_noncode.{matches[0].stem}")
