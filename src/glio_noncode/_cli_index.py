@@ -8457,6 +8457,50 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'query downloaded-data review packet diff policy checks',
     ),
     (
+        'downloaded-data-review-packet-diff-policy-run',
+        'run downloaded-data packet, diff, policy, and portable package construction end to end',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-run-audit',
+        'independently audit a downloaded-data review run',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-run-audit-capabilities',
+        'print downloaded-data review run audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-run-audit-check-schema',
+        'print downloaded-data review run audit check schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-run-audit-query',
+        'query downloaded-data review run audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-run-audit-schema',
+        'print downloaded-data review run audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-run-audit-verify',
+        'verify a downloaded-data review run audit',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-run-capabilities',
+        'print downloaded-data review run capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-run-query',
+        'query a downloaded-data review run receipt',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-run-schema',
+        'print downloaded-data review run schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-run-verify',
+        'verify a downloaded-data review run receipt and optional package',
+    ),
+    (
         'downloaded-data-review-packet-diff-policy-schema',
         'print downloaded-data review packet diff policy schema',
     ),

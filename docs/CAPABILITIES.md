@@ -6272,6 +6272,27 @@ The real downloaded-data demonstration packages the ready policy decision in a
 571,100-byte ZIP with a 14/14 independent package audit; a strict policy can be
 packaged as `blocked` evidence without losing its failed checks.
 
+The full comparison flow is also available as one command. It accepts two
+downloaded archives, builds both source-free packets, compares them, applies a
+strict or release profile, packages the evidence, and emits a source-free run
+receipt. The run receipt retains packet, diff, policy, package, and audit
+addresses plus bounded counts and decision state. The independent run audit
+requires the portable package bytes and checks thirteen lineage, replay,
+decision, count, and public-boundary conditions.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-run LEFT.zip RIGHT.zip --profile release --maximum-field-changed 256 --package-destination review-package.zip --run-destination review-run.json --audit-destination review-run-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-run-verify review-run.json --package review-package.zip
+python -m glio_noncode downloaded-data-review-packet-diff-policy-run-query review-run.json --resource lineage
+python -m glio_noncode downloaded-data-review-packet-diff-policy-run-audit review-run.json --package review-package.zip --format summary
+```
+
+The HTTP run surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/run` and mirrors build, verify,
+query, audit, schema, and capability operations. A blocked strict decision is
+still packaged and auditable; the run command returns the release-gate status
+while preserving the complete evidence for review.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
