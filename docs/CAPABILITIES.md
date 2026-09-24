@@ -6946,3 +6946,19 @@ thirteen-check audits verify counts, ordering, addresses, lineage, rollups,
 recomputation, query replay, summary replay, tamper evidence, and public
 boundaries. The CLI and HTTP API expose diff, verify, query, audit, schema,
 item-schema, and capability operations.
+
+## Downloaded-data review-packet catalog diff policy gates
+
+Review-packet catalog diffs can be evaluated under strict or release profiles.
+Gates bound added, removed, changed, and total changes; allow or require
+specific change kinds; constrain directions and ready/blocked posture
+transitions; require release readiness; and explicitly control unchanged
+evidence. Policy artifacts retain every observed check and failed reason,
+support source-free reload, atomic persistence, JSON, CSV, and Markdown
+projections, and expose bounded policy queries. Independent sixteen-check
+policy audits can recompute the decision from the diff and verify public
+boundaries. CLI and HTTP surfaces expose policy, verification, query, audit,
+schema, check-schema, and capability operations.
+
+On the real downloaded-data comparison, the release profile was accepted and
+the strict zero-change profile was blocked as designed.
