@@ -356,6 +356,21 @@ jobs:
       - name: Exercise added, removed, changed, query, HTTP, CLI, persistence, and independent audit contracts
         run: python -m unittest tests.test_downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff -v
 
+  downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy:
+    name: Packet-package catalog diff strict/release policy gate / Python 3.12
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --no-deps -e .
+      - name: Exercise strict/release, required-change, tamper, CLI, HTTP, persistence, and independent policy-audit contracts
+        run: python -m unittest tests.test_downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy -v
+
   workbench-cache:
     name: Restart-aware module workbench cache
     runs-on: ubuntu-latest

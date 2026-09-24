@@ -6648,6 +6648,31 @@ and capability operations. A real catalog comparison with one changed entry
 replays its source-free left/right lineage and passes 13/13 independent audit
 checks.
 
+Longitudinal packet-package catalog diffs can now be gated before handoff.
+Strict and release profiles apply independent added, removed, changed, and
+total-change budgets; entry-change, direction, transition, left-posture, and
+right-posture allowlists; release readiness; required-change kinds; and an
+explicit unchanged-evidence control. Every decision retains fifteen
+deterministic checks, a ready/blocked state, canonical check and policy
+addresses, source-free reload, bounded check queries, JSON, CSV, Markdown,
+atomic persistence, and fail-closed public-boundary validation. The separate
+policy audit recomputes the decision against an optional supplied diff and
+returns sixteen independent checks.
+
+```text
+python -m glio_noncode <catalog-diff-command>-policy diff.json --profile strict --destination strict-policy.json --format summary
+python -m glio_noncode <catalog-diff-command>-policy diff.json --profile release --maximum-total-changes 256 --required-change changed --destination release-policy.json --format summary
+python -m glio_noncode <catalog-diff-command>-policy-query release-policy.json --failed
+python -m glio_noncode <catalog-diff-command>-policy-audit release-policy.json --diff diff.json --destination policy-audit.json --format summary
+```
+
+The HTTP policy surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy`
+and provides policy build, verify, query, audit, audit-query, schema,
+check-schema, and capability operations. Real source-free changed-entry data
+is accepted by the release profile with a one-entry total budget, rejected by
+strict mode with four failed checks, and independently audited at 16/16.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
