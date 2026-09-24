@@ -810,6 +810,35 @@ non-canonical payloads, tampering, and an unaccepted independent audit. The
 packet is source-free loadable and exposes member CSV, JSON, and Markdown
 review projections.
 
+## Source-free packet review catalog
+
+Multiple verified packet ZIPs can be reduced to one deterministic, payload-free
+catalog. The catalog keeps packet, diff, gate, audit, verification, byte-count,
+and state lineage but does not copy packet ZIP bytes. It preserves a blocked
+policy gate as evidence while still admitting the packet when the independent
+audit is accepted:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog \
+  --packet packet-diff-policy-packet.zip \
+  --packet packet-diff-policy-packet-secondary.zip \
+  --catalog-id packet-review-catalog \
+  --destination packet-review-catalog.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-verify \
+  packet-review-catalog.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-query \
+  packet-review-catalog.json --resource lineage --policy-gate-blocked
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit \
+  packet-review-catalog.json --destination packet-review-catalog-audit.json
+```
+
+Catalog verification is source-free and fail-closed for non-canonical JSON,
+duplicate packet identities, address drift, count or byte-conservation errors,
+member-contract drift, and forbidden public-boundary fields. The independent
+catalog audit replays the same lineage and conservation rules. Entries support
+accepted/blocked, policy-gate, policy-audit, and text filters with JSON, CSV,
+and Markdown projections.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -868,6 +897,10 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/audit/capabilities` | packet-diff policy audit operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/schema` | portable packet-diff policy review packet contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/capabilities` | packet transport, verification, and query guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/schema` | source-free packet review catalog contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/capabilities` | catalog aggregation, lineage, and filter guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/audit/schema` | independent packet review catalog audit contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/audit/capabilities` | catalog audit and query guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

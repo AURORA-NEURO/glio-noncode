@@ -4866,6 +4866,29 @@ capability routes are available at
 `/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/schema`
 and the matching `/capabilities` route.
 
+Catalog verified packet ZIPs without retaining their payloads:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog `
+  --packet packet-diff-policy-packet.zip `
+  --packet packet-diff-policy-packet-secondary.zip `
+  --destination packet-review-catalog.json --format summary
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-query `
+  packet-review-catalog.json --resource lineage --state accepted
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit `
+  packet-review-catalog.json --destination packet-review-catalog-audit.json --format summary
+```
+
+The catalog is deterministic, source-free, path-free, timestamp-free, and
+payload-free. It rejects duplicate packet IDs or addresses, preserves packet,
+diff, gate, audit, and verification lineage, and exposes state, policy-gate,
+policy-audit, and text filters. The catalog audit independently replays entry
+addresses, identity uniqueness, byte and state conservation, the five-member
+packet contract, and the public boundary. Schema and capability routes are
+available at `/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/schema`,
+`/capabilities`, and the corresponding `/audit/schema` and `/audit/capabilities`
+routes.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

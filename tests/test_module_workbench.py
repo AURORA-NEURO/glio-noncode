@@ -1170,6 +1170,10 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/audit/capabilities", "audit_gate_address"),
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/schema", "blocked_gate_preserved"),
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/capabilities", "verify_exact_allowlist"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/schema", "retains_packet_payloads"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/capabilities", "verify_unique_packet_ids"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/audit/schema", "independent"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/audit/capabilities", "audit_catalog_lineage"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

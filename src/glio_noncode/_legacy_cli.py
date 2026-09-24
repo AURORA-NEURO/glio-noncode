@@ -2950,6 +2950,30 @@ from .module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy
     verify_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet,
     write_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet,
 )
+from .module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog import (
+    build_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog,
+    load_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_capabilities,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_csv,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_json,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_schema,
+    query_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog,
+    render_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_markdown,
+    verify_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog,
+    write_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog,
+)
+from .module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit import (
+    audit_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog,
+    load_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_capabilities,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_csv,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_json,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_schema,
+    query_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit,
+    render_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_markdown,
+    verify_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit,
+    write_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit,
+)
 from .module_workbench_cache import (
     load_module_workbench_cache,
     load_module_workbench_previous_inventory,
@@ -11320,6 +11344,165 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_query.add_argument(
         "--output", default=None
     )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog",
+        help="catalog portable packet-diff policy review packets",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog.add_argument(
+        "--packet", action="append", required=True
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog.add_argument(
+        "--catalog-id", default=(
+            "glio-noncode-module-workbench-release-bundle-catalog-diff-policy-set-"
+            "packet-diff-policy-packet-catalog"
+        )
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog.add_argument(
+        "--destination", default=None
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog.add_argument(
+        "--allow-existing", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog.add_argument(
+        "--format", choices=("json", "markdown", "summary"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog.add_argument(
+        "--output", default=None
+    )
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-schema",
+        help="print packet review catalog schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-capabilities",
+        help="print packet review catalog capabilities",
+    ).add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_verify = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-verify",
+        help="verify a packet review catalog",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_verify.add_argument(
+        "catalog", type=str
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_verify.add_argument(
+        "--output", default=None
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_load = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-load",
+        help="load a packet review catalog without source access",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_load.add_argument(
+        "catalog", type=str
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_load.add_argument(
+        "--output", default=None
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-query",
+        help="query a packet review catalog",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "catalog", type=str
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--resource", choices=("entries", "summary", "lineage"), default="summary"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--state", choices=("accepted", "blocked"), default=None
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--policy-gate-accepted", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--policy-gate-blocked", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--policy-audit-accepted", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--policy-audit-rejected", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--text", default=None
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--offset", default=0, type=int
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--limit", default=50, type=int
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--format", choices=("json", "csv"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_query.add_argument(
+        "--output", default=None
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit",
+        help="independently audit a packet review catalog",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit.add_argument(
+        "catalog", type=str
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit.add_argument(
+        "--format", choices=("json", "csv", "markdown", "summary"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit.add_argument(
+        "--destination", default=None
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit.add_argument(
+        "--allow-existing", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit.add_argument(
+        "--output", default=None
+    )
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit-schema",
+        help="print packet review catalog audit schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit-capabilities",
+        help="print packet review catalog audit capabilities",
+    ).add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_verify = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit-verify",
+        help="verify a packet review catalog audit",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_verify.add_argument(
+        "audit", type=str
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_verify.add_argument(
+        "--output", default=None
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_query = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit-query",
+        help="query packet review catalog audit checks",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_query.add_argument(
+        "audit", type=str
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_query.add_argument(
+        "--passed", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_query.add_argument(
+        "--failed", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_query.add_argument(
+        "--text", default=None
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_query.add_argument(
+        "--offset", default=0, type=int
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_query.add_argument(
+        "--limit", default=50, type=int
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_query.add_argument(
+        "--format", choices=("json", "csv"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_query.add_argument(
+        "--output", default=None
+    )
+
     module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
@@ -50495,6 +50678,175 @@ def main(argv: list[str] | None = None) -> int:
                 _write_text(
                     module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_csv(
                         args.packet,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-schema":
+            _write_json(
+                module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_schema(),
+                args.output,
+            )
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-capabilities":
+            _write_json(
+                module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_capabilities(),
+                args.output,
+            )
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog":
+            catalog = build_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog(
+                args.packet,
+                catalog_id=args.catalog_id,
+            )
+            if args.destination:
+                catalog = write_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog(
+                    catalog,
+                    args.destination,
+                    allow_existing=args.allow_existing,
+                )
+            if args.format == "markdown":
+                _write_text(
+                    render_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_markdown(
+                        catalog
+                    ),
+                    args.output,
+                )
+            elif args.format == "summary":
+                _write_json(catalog.to_dict(include_entries=False), args.output)
+            else:
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_json(
+                        catalog
+                    ),
+                    args.output,
+                )
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-verify":
+            verification = verify_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog(
+                args.catalog
+            )
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-load":
+            catalog = load_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog(
+                args.catalog
+            )
+            _write_json(catalog.to_dict(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-query":
+            gate_filter = (
+                True if args.policy_gate_accepted else False if args.policy_gate_blocked else None
+            )
+            audit_filter = (
+                True if args.policy_audit_accepted else False if args.policy_audit_rejected else None
+            )
+            result = query_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog(
+                args.catalog,
+                resource=args.resource,
+                state=args.state,
+                policy_gate_accepted=gate_filter,
+                policy_audit_accepted=audit_filter,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_csv(
+                        args.catalog,
+                        state=args.state,
+                        policy_gate_accepted=gate_filter,
+                        policy_audit_accepted=audit_filter,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit-schema":
+            _write_json(
+                module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_schema(),
+                args.output,
+            )
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit-capabilities":
+            _write_json(
+                module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_capabilities(),
+                args.output,
+            )
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit":
+            catalog = load_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog(
+                args.catalog
+            )
+            audit = audit_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog(
+                catalog
+            )
+            if args.destination:
+                audit = write_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit(
+                    audit,
+                    args.destination,
+                    allow_existing=args.allow_existing,
+                )
+            if args.format == "csv":
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_csv(
+                        audit
+                    ),
+                    args.output,
+                )
+            elif args.format == "markdown":
+                _write_text(
+                    render_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_markdown(
+                        audit
+                    ),
+                    args.output,
+                )
+            elif args.format == "summary":
+                _write_json(audit.to_dict(include_checks=False), args.output)
+            else:
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_json(
+                        audit
+                    ),
+                    args.output,
+                )
+            return 0 if audit.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit-verify":
+            audit = load_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit(
+                args.audit
+            )
+            verify_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit(
+                audit
+            )
+            _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-audit-query":
+            passed = True if args.passed else False if args.failed else None
+            result = query_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit(
+                args.audit,
+                passed=passed,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                audit = load_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit(
+                    args.audit
+                )
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_csv(
+                        audit,
+                        passed=passed,
+                        text=args.text,
                         offset=args.offset,
                         limit=args.limit,
                     ),
