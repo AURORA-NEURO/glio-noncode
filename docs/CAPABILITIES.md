@@ -7217,3 +7217,25 @@ The self-contained module-571 contract suite covers deterministic round trips,
 persistence, tamper, duplicate, traversal, CLI, HTTP, schema, capabilities,
 and public-boundary validation. Real downloaded-data validation produces a
 28,876-byte accepted transport with 15/15 independent package-audit checks.
+
+## Downloaded-data fixed package-catalog policy transport catalogs
+
+Verified module-571 transports can now be aggregated into a deterministic,
+source-free catalog. Each entry preserves the transport manifest, catalog diff,
+policy, policy audit, readiness, acceptance, member count, member bytes, package
+bytes, and content-address lineage. Catalog construction sorts entries
+canonically, rejects duplicate identities and addresses, recomputes aggregate
+counts and byte totals, and enforces bounded catalog size.
+
+Reload and independent auditing verify catalog and entry addresses, ordering,
+lineage, accepted and state folds, package-size limits, source-free content,
+public-boundary cleanliness, query replay, summary replay, and byte totals.
+Bounded summary, entries, accepted, ready, blocked, lineage, text, JSON, CSV,
+and Markdown projections are available through CLI and HTTP build, verify, load,
+query, audit, audit verification, schema, entry-schema, and capability routes.
+
+The self-contained module-572 contract suite covers deterministic rollups,
+persistence, tamper, duplicate, CLI, HTTP, schema, capabilities, and
+public-boundary validation. Real downloaded-data validation rolls up two
+accepted ready transports totaling 57,470 transport bytes and 50,760 member
+bytes with 16/16 independent catalog-audit checks.
