@@ -6908,3 +6908,21 @@ with four payload members plus its manifest, accepted policy evidence, and
 15/15 independent packet-audit checks. The focused suite covers deterministic
 rebuilds, blocked evidence, source-free reload, persistence, tamper rejection,
 CLI behavior, HTTP behavior, and schema/capability replay.
+
+## Downloaded-data packet-package review-packet catalogs
+
+Portable review-packet catalogs aggregate verified five-member handoff ZIPs
+without retaining source archives or record values. Each catalog preserves
+packet, catalog-diff, policy, audit, readiness, acceptance, member-count, and
+byte-count lineage, rejects duplicate identities and public-boundary fields,
+and exposes deterministic ready, blocked, and accepted rollups. Catalogs can
+be reloaded, verified, queried by entry/lineage/state/text, persisted
+atomically, and rendered as JSON, CSV, or Markdown. Independent sixteen-check
+audits verify ordering, addresses, rollups, lineage, source-free behavior,
+public boundaries, query replay, summary replay, and byte totals. The CLI and
+HTTP API expose build, verify, query, audit, schema, entry-schema, and
+capability operations.
+
+The real downloaded-data demonstration cataloged two accepted, ready review
+packets totaling 60,336 package bytes and 53,320 member bytes, with 16/16
+independent catalog-audit checks passing.
