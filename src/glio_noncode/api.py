@@ -254,6 +254,8 @@ from . import downloaded_data_review_packet_diff_policy_run as downloaded_data_r
 from . import downloaded_data_review_packet_diff_policy_run_audit as downloaded_data_review_packet_diff_policy_run_audit_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate as downloaded_data_review_packet_diff_policy_release_certificate_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate_audit as downloaded_data_review_packet_diff_policy_release_certificate_audit_model
+from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle as downloaded_data_review_packet_diff_policy_release_certificate_bundle_model
+from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit as downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model
 from . import (
     downloaded_data_profile_contract_compatibility as downloaded_data_profile_contract_compatibility_model,
 )
@@ -8150,6 +8152,50 @@ class ApiHandler(BaseHTTPRequestHandler):
                     else:
                         self._write(HTTPStatus.OK, value)
                     return
+                release_certificate_bundle_prefix = review_packet_diff_policy_prefix + "/release-certificate/bundle"
+                if path == release_certificate_bundle_prefix:
+                    value = downloaded_data_review_packet_diff_policy_release_certificate_bundle_model.build_bundle(
+                        self._query_value(query, "certificate") or self._query_value(query, "input") or "",
+                        self._query_value(query, "package") or "",
+                        self._query_value(query, "run") or "",
+                        self._query_value(query, "run_audit") or "",
+                        self._query_value(query, "certificate_audit") or None,
+                        bundle_id=self._query_value(query, "bundle_id") or None,
+                    )
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_review_packet_diff_policy_release_certificate_bundle_model.write_bundle(value, destination, allow_existing=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_diff_policy_release_certificate_bundle_model, json_name="bundle_json", csv_name="bundle_csv", markdown_name="render_bundle_markdown")
+                    return
+                if path == release_certificate_bundle_prefix + "/verify":
+                    value = downloaded_data_review_packet_diff_policy_release_certificate_bundle_model.verify_bundle(self._query_value(query, "input") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_diff_policy_release_certificate_bundle_model, json_name="bundle_json", csv_name="bundle_csv", markdown_name="render_bundle_markdown")
+                    return
+                if path == release_certificate_bundle_prefix + "/query":
+                    value = downloaded_data_review_packet_diff_policy_release_certificate_bundle_model.query_bundle(self._query_value(query, "input") or "", resource=self._query_value(query, "resource") or "summary", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, downloaded_data_review_packet_diff_policy_release_certificate_bundle_model.bundle_csv(self._query_value(query, "input") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value)
+                    return
+                if path == release_certificate_bundle_prefix + "/audit":
+                    value = downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model.audit_bundle(self._query_value(query, "input") or "")
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model.write_audit(value, destination, allow_existing=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == release_certificate_bundle_prefix + "/audit/verify":
+                    value = downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model.verify_audit(self._query_value(query, "input") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == release_certificate_bundle_prefix + "/audit/query":
+                    value = downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model.query_audit(self._query_value(query, "input") or "", passed=self._query_bool(query, "passed") if "passed" in query else None, text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model.audit_csv(self._query_value(query, "input") or "", passed=self._query_bool(query, "passed") if "passed" in query else None, text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value)
+                    return
                 ingest_prefix = downloaded_data_prefix + "/ingest"
                 if path == ingest_prefix:
                     value = downloaded_data_ingestion_runtime_model.run_runtime(
@@ -14253,6 +14299,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/review-packet/diff/policy/release-certificate/audit/check-schema": downloaded_data_review_packet_diff_policy_release_certificate_audit_model.check_schema,
                     "/review-packet/diff/policy/release-certificate/audit/schema": downloaded_data_review_packet_diff_policy_release_certificate_audit_model.audit_schema,
                     "/review-packet/diff/policy/release-certificate/audit/capabilities": downloaded_data_review_packet_diff_policy_release_certificate_audit_model.capabilities,
+                    "/review-packet/diff/policy/release-certificate/bundle/manifest-schema": downloaded_data_review_packet_diff_policy_release_certificate_bundle_model.manifest_schema,
+                    "/review-packet/diff/policy/release-certificate/bundle/schema": downloaded_data_review_packet_diff_policy_release_certificate_bundle_model.bundle_schema,
+                    "/review-packet/diff/policy/release-certificate/bundle/capabilities": downloaded_data_review_packet_diff_policy_release_certificate_bundle_model.capabilities,
+                    "/review-packet/diff/policy/release-certificate/bundle/audit/check-schema": downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model.check_schema,
+                    "/review-packet/diff/policy/release-certificate/bundle/audit/schema": downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model.audit_schema,
+                    "/review-packet/diff/policy/release-certificate/bundle/audit/capabilities": downloaded_data_review_packet_diff_policy_release_certificate_bundle_audit_model.capabilities,
                     "/ingest/lineage-schema": downloaded_data_ingestion_model.lineage_schema,
                     "/ingest/record-schema": downloaded_data_ingestion_model.record_schema,
                     "/ingest/selection-schema": downloaded_data_ingestion_model.selection_schema,

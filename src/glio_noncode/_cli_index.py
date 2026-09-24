@@ -8485,6 +8485,54 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'verify a downloaded-data release certificate audit',
     ),
     (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle',
+        'build a deterministic source-free downloaded-data release bundle',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-audit',
+        'independently audit a downloaded-data release bundle',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-audit-capabilities',
+        'print downloaded-data release bundle audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-audit-check-schema',
+        'print downloaded-data release bundle audit check schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-audit-query',
+        'query downloaded-data release bundle audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-audit-schema',
+        'print downloaded-data release bundle audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-audit-verify',
+        'verify a downloaded-data release bundle audit',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-capabilities',
+        'print downloaded-data release bundle capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-manifest-schema',
+        'print downloaded-data release bundle manifest schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-query',
+        'query a downloaded-data release bundle',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-schema',
+        'print downloaded-data release bundle schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-verify',
+        'verify a downloaded-data release bundle',
+    ),
+    (
         'downloaded-data-review-packet-diff-policy-release-certificate-capabilities',
         'print downloaded-data release certificate capabilities',
     ),

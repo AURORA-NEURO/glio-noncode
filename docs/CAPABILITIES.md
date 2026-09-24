@@ -6316,6 +6316,28 @@ evidence remains representable as a blocked certificate, while a ready
 certificate requires every upstream acceptance gate and the independent run
 audit.
 
+The complete release chain can also be transported as one deterministic ZIP
+bundle. It contains `manifest.json`, the release certificate and certificate
+audit, the run receipt and run audit, the nested portable review package, and a
+replayed Markdown review. Bundle verification replays every nested address,
+canonical JSON payload, ZIP metadata field, package byte count, decision state,
+and independent certificate audit. The bundle audit provides sixteen
+independently addressed checks and preserves blocked decisions for review.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle release-certificate.json review-package.zip review-run.json review-run-audit.json --certificate-audit release-certificate-audit.json --destination release-bundle.zip --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-verify release-bundle.zip
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-query release-bundle.zip --resource certificate
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-audit release-bundle.zip --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-audit-query release-bundle-audit.json --failed
+```
+
+The HTTP bundle surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle` and
+mirrors build, verify, query, audit, schema, manifest-schema, and capability
+operations. The nested package remains byte-addressed and no source archive
+bytes or record values are introduced by the handoff bundle.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
