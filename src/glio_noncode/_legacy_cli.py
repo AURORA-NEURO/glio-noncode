@@ -2899,6 +2899,18 @@ from .module_workbench_release_bundle_catalog_diff_policy_set_packet import (
     verify_module_workbench_release_bundle_catalog_diff_policy_set_packet,
     write_module_workbench_release_bundle_catalog_diff_policy_set_packet,
 )
+from .module_workbench_release_bundle_catalog_diff_policy_set_packet_diff import (
+    build_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff,
+    load_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_capabilities,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_csv,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_json,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_schema,
+    query_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff,
+    render_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_markdown,
+    verify_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff,
+    write_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff,
+)
 from .module_workbench_cache import (
     load_module_workbench_cache,
     load_module_workbench_previous_inventory,
@@ -10975,6 +10987,57 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_release_bundle_catalog_diff_policy_set_packet_query.add_argument("--offset", default=0, type=int)
     module_workbench_release_bundle_catalog_diff_policy_set_packet_query.add_argument("--limit", default=50, type=int)
     module_workbench_release_bundle_catalog_diff_policy_set_packet_query.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff",
+        help="compare two verified policy-set packets",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff.add_argument(
+        "--left-packet", required=True
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff.add_argument(
+        "--right-packet", required=True
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff.add_argument(
+        "--diff-id",
+        default="glio-noncode-module-workbench-release-bundle-catalog-diff-policy-set-packet-diff",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff.add_argument(
+        "--destination", default=None
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff.add_argument(
+        "--allow-existing", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff.add_argument(
+        "--format", choices=("json", "csv", "markdown", "summary"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-schema",
+        help="print policy-set packet diff schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-capabilities",
+        help="print policy-set packet diff capabilities",
+    ).add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_verify = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-verify",
+        help="verify a policy-set packet diff",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_verify.add_argument("diff", type=str)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_verify.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_query = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-query",
+        help="query policy-set packet diff changes",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_query.add_argument("diff", type=str)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_query.add_argument("--field", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_query.add_argument("--text", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_query.add_argument("--offset", default=0, type=int)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_query.add_argument("--limit", default=50, type=int)
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_query.add_argument(
+        "--format", choices=("json", "csv"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_query.add_argument("--output", default=None)
     module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
@@ -49779,6 +49842,91 @@ def main(argv: list[str] | None = None) -> int:
                 ),
                 args.output,
             )
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-schema":
+            _write_json(
+                module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_schema(),
+                args.output,
+            )
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-capabilities":
+            _write_json(
+                module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_capabilities(),
+                args.output,
+            )
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff":
+            packet_diff = build_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff(
+                args.left_packet,
+                args.right_packet,
+                diff_id=args.diff_id,
+            )
+            if args.destination:
+                packet_diff = write_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff(
+                    packet_diff,
+                    args.destination,
+                    allow_existing=args.allow_existing,
+                )
+            if args.format == "csv":
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_csv(packet_diff),
+                    args.output,
+                )
+            elif args.format == "markdown":
+                _write_text(
+                    render_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_markdown(
+                        packet_diff
+                    ),
+                    args.output,
+                )
+            elif args.format == "summary":
+                _write_json(
+                    {
+                        "content_address": packet_diff.content_address,
+                        "packet_id": packet_diff.packet_id,
+                        "previous_packet_address": packet_diff.previous_packet_address,
+                        "current_packet_address": packet_diff.current_packet_address,
+                        "direction": packet_diff.direction.value,
+                        "state_transition": packet_diff.state_transition.value,
+                        "changed_count": packet_diff.changed_count,
+                    },
+                    args.output,
+                )
+            else:
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_json(packet_diff),
+                    args.output,
+                )
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-verify":
+            packet_diff = load_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff(args.diff)
+            verification = verify_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff(packet_diff)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-query":
+            packet_diff = load_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff(args.diff)
+            if args.format == "csv":
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_csv(
+                        packet_diff,
+                        field_name=args.field,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_json(
+                    query_module_workbench_release_bundle_catalog_diff_policy_set_packet_diff(
+                        packet_diff,
+                        field_name=args.field,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
             return 0
         if args.command == "module-workbench-observability":
             (

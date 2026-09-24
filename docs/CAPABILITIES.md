@@ -4794,6 +4794,22 @@ glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-quer
 The four-member packet verifies exact member bytes, canonical lineage, review
 replay, and public-boundary cleanliness without source access.
 
+Compare two same-identity packets without source access:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff \
+  --left-packet baseline.zip --right-packet candidate.zip \
+  --destination packet-diff.json --format summary
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-verify \
+  packet-diff.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-query \
+  packet-diff.json --field gate_accepted
+```
+
+This longitudinal surface preserves both packet lineages, reports aggregate
+field deltas, classifies improvement or regression, and rejects tampered or
+non-public diff documents.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

@@ -14253,6 +14253,26 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print policy-set packet capabilities',
     ),
     (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff',
+        'compare two verified policy-set packets',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-capabilities',
+        'print policy-set packet diff capabilities',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-query',
+        'query policy-set packet diff changes',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-schema',
+        'print policy-set packet diff schema',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-verify',
+        'verify a policy-set packet diff',
+    ),
+    (
         'module-workbench-release-bundle-catalog-diff-policy-set-packet-load',
         'load a verified policy-set packet without source access',
     ),

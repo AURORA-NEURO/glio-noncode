@@ -1162,6 +1162,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/audit/capabilities", "audit_selection_replay"),
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/schema", "members"),
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/capabilities", "verify_member_bytes"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/schema", "directions"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/capabilities", "compare_verified_packets"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

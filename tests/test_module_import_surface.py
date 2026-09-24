@@ -3755,6 +3755,8 @@ MODULE_IDS = (
     "glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_contracts",
     "glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet",
     "glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_contracts",
+    "glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff",
+    "glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_contracts",
     "glio_noncode.module_workbench_release_bundle_contracts",
     "glio_noncode.module_workbench_runtime",
     "glio_noncode.module_workbench_runtime_contracts",

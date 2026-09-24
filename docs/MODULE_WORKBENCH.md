@@ -720,6 +720,27 @@ Verification replays the exact allowlist, canonical manifest, member byte
 addresses, embedded gate and audit lineage, regenerated review, and public
 boundary. Source-free loading fails closed for any blocked or tampered packet.
 
+## Portable policy-set packet diff
+
+Two verified packets with the same packet identity can be compared without
+reopening the original source tree. The comparison preserves both packet,
+gate, and audit addresses; emits field-level aggregate changes; and classifies
+the result as improved, regressed, changed, or unchanged:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff \
+  --left-packet baseline.zip --right-packet candidate.zip \
+  --destination packet-diff.json --format summary
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-verify \
+  packet-diff.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-query \
+  packet-diff.json --field gate_accepted
+```
+
+The diff is deterministic, source-free, timestamp-free, and fail-closed on
+address or public-boundary tampering. It is suitable for longitudinal review
+of blocked-to-accepted recovery as well as accepted-to-blocked regression.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -770,6 +791,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/audit/capabilities` | audit operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/schema` | portable policy-set packet contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/capabilities` | packet operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/schema` | longitudinal packet comparison contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/capabilities` | packet comparison operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an
