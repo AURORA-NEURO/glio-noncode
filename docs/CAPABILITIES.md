@@ -6621,6 +6621,33 @@ and capability operations. A real downloaded-data packet-package catalog
 replays one ready entry, preserves a 25,192-byte package total, and passes all
 15/15 independent catalog-audit checks.
 
+Portable packet-package catalogs can now be compared longitudinally without
+reopening source archives. The diff pairs stable entry IDs, retains the left
+and right entry addresses and source-free snapshots, classifies added,
+removed, changed, and unchanged entries, derives empty/ready/blocked/mixed
+postures and state transitions, and folds accepted/ready/blocked counts into
+improved, regressed, changed, or unchanged direction. Canonical item and diff
+addresses, bounded change/direction/transition/text queries, JSON, CSV,
+Markdown, atomic persistence, and fail-closed typed reload are available. The
+independent audit replays thirteen checks for identity, catalog lineage,
+addressing, counts, transitions, deterministic recomputation, and the public
+boundary.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff left-catalog.json right-catalog.json --destination catalog-diff.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-verify catalog-diff.json
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-query catalog-diff.json --change changed
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit catalog-diff.json --left left-catalog.json --right right-catalog.json --destination catalog-diff-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit-query catalog-diff-audit.json --failed
+```
+
+The HTTP diff surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff`
+and provides build, verify, query, audit, audit-query, item-schema, schema,
+and capability operations. A real catalog comparison with one changed entry
+replays its source-free left/right lineage and passes 13/13 independent audit
+checks.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
