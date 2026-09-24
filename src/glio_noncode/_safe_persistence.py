@@ -142,12 +142,17 @@ def read_bytes_bounded(
         if not stat.S_ISREG(metadata.st_mode):
             raise ValidationError(f"{field} must be a regular file")
         # Reject oversized files from metadata before allocating any payload.
-        # The extra-byte read below still covers a concurrent growth.
+        # Read only one byte beyond the observed file size instead of asking
+        # the allocator for the entire ceiling. The post-read stat preserves
+        # the oversized-file guard when a writer grows the file concurrently.
         if metadata.st_size > max_bytes:
             raise ValidationError(f"{field} exceeds the byte ceiling")
         with os.fdopen(descriptor, "rb") as handle:
             descriptor = -1
-            payload = handle.read(max_bytes + 1)
+            payload = handle.read(min(max_bytes + 1, metadata.st_size + 1))
+            final_metadata = os.fstat(handle.fileno())
+            if final_metadata.st_size > max_bytes or len(payload) > max_bytes:
+                raise ValidationError(f"{field} exceeds the byte ceiling")
         if target.is_symlink():
             raise ValidationError(f"{field} must not be a symlink")
         return payload

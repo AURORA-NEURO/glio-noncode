@@ -116,6 +116,13 @@ class SafePersistenceTests(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 read_bytes(target, max_bytes=31)
 
+    def test_large_ceiling_reads_small_file_without_large_allocation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "small-with-large-ceiling.bin"
+            payload = b"bounded"
+            target.write_bytes(payload)
+            self.assertEqual(read_bytes_bounded(target, max_bytes=512 * 1024 * 1024), payload)
+
 
 if __name__ == "__main__":
     unittest.main()

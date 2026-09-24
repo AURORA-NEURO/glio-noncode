@@ -130,6 +130,20 @@ jobs:
           .ci-workbench-archive-diff-policy.json
           --output .ci-workbench-archive-diff-policy-verification.json
           && python -c "import json; gate=json.load(open('.ci-workbench-archive-diff-policy-verification.json', encoding='utf-8')); assert gate['accepted'] and gate['failed_count'] == 0 and not [check for check in gate['checks'] if not check['passed']]; print('workbench archive diff policy contract passed')"
+      - name: Build and verify one release-evidence bundle
+        run: >-
+          python -m glio_noncode module-workbench-release-bundle
+          --left-archive .ci-workbench.zip --right-archive .ci-workbench.zip
+          --policy-gate .ci-workbench-archive-diff-policy.json
+          --destination .ci-workbench-release-bundle.zip
+          --format json --output .ci-workbench-release-bundle.json
+          && python -m glio_noncode module-workbench-release-bundle-verify
+          .ci-workbench-release-bundle.zip
+          --output .ci-workbench-release-bundle-verification.json
+          && python -m glio_noncode module-workbench-release-bundle-query
+          .ci-workbench-release-bundle.zip --resource entries --limit 6
+          --output .ci-workbench-release-bundle-query.json
+          && python -c "import json; verification=json.load(open('.ci-workbench-release-bundle-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-release-bundle-query.json', encoding='utf-8')); assert verification['accepted'] and verification['entry_count'] == 6 and not [check for check in verification['checks'] if not check['passed']]; assert query['total'] == 6; print('workbench release bundle contract passed')"
       - name: Upload workbench observations
         uses: actions/upload-artifact@v4
         with:
@@ -147,6 +161,10 @@ jobs:
             .ci-workbench-archive-diff-query.json
             .ci-workbench-archive-diff-policy.json
             .ci-workbench-archive-diff-policy-verification.json
+            .ci-workbench-release-bundle.json
+            .ci-workbench-release-bundle-verification.json
+            .ci-workbench-release-bundle-query.json
+            .ci-workbench-release-bundle.zip
             .ci-workbench.zip
           if-no-files-found: error
 

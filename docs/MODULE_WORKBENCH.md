@@ -559,6 +559,30 @@ checks, failed-check explanations, and a replayable content address. A policy
 failure is a valid explanatory artifact and exits the CLI with status `2`;
 malformed or tampered policy documents fail closed.
 
+## Portable release-evidence bundle
+
+For handoff, the two report archives, comparison, policy gate, manifest, and
+review projection can be packaged into one deterministic six-member ZIP:
+
+```text
+glio-noncode module-workbench-release-bundle \
+  --left-archive baseline-workbench.zip \
+  --right-archive candidate-workbench.zip \
+  --policy-gate workbench-archive-diff-policy.json \
+  --destination workbench-release-evidence.zip \
+  --format markdown --output workbench-release-evidence.md
+glio-noncode module-workbench-release-bundle-verify \
+  workbench-release-evidence.zip
+glio-noncode module-workbench-release-bundle-query \
+  workbench-release-evidence.zip --resource entries --limit 6
+```
+
+The bundle contains no source, tests, documentation tree, downloaded payload,
+absolute path, timestamp, or agent metadata. Verification replays both nested
+workbench archives, the archive diff, the policy gate, the manifest, and the
+review Markdown. A blocked policy remains valid review evidence and is
+preserved with `state=blocked`; malformed or tampered members fail closed.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -595,6 +619,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/archive-diff/capabilities` | portable comparison operations and guarantees |
 | `GET /v1/module-workbench/archive-diff/policy/schema` | source-free release policy contract |
 | `GET /v1/module-workbench/archive-diff/policy/capabilities` | policy operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/schema` | release-evidence bundle contract |
+| `GET /v1/module-workbench/release-bundle/capabilities` | bundle operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

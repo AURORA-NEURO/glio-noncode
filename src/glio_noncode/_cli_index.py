@@ -14173,6 +14173,30 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print module workbench portfolio schema',
     ),
     (
+        'module-workbench-release-bundle',
+        'bundle two workbench archives, their diff, policy gate, and review',
+    ),
+    (
+        'module-workbench-release-bundle-capabilities',
+        'print release bundle capabilities',
+    ),
+    (
+        'module-workbench-release-bundle-load',
+        'load a release-evidence bundle without source access',
+    ),
+    (
+        'module-workbench-release-bundle-query',
+        'query release-evidence bundle members',
+    ),
+    (
+        'module-workbench-release-bundle-schema',
+        'print release bundle schema',
+    ),
+    (
+        'module-workbench-release-bundle-verify',
+        'verify a release-evidence bundle',
+    ),
+    (
         'module-workbench-runtime',
         'run the complete static module workbench chain',
     ),

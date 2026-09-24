@@ -2815,6 +2815,18 @@ from .module_workbench_archive_diff_policy import (
     render_module_workbench_archive_diff_policy_markdown,
     verify_module_workbench_archive_diff_policy_gate,
 )
+from .module_workbench_release_bundle import (
+    build_module_workbench_release_bundle,
+    load_module_workbench_release_bundle,
+    module_workbench_release_bundle_capabilities,
+    module_workbench_release_bundle_csv,
+    module_workbench_release_bundle_json,
+    module_workbench_release_bundle_schema,
+    query_module_workbench_release_bundle,
+    render_module_workbench_release_bundle_markdown,
+    verify_module_workbench_release_bundle,
+    write_module_workbench_release_bundle,
+)
 from .module_workbench_cache import (
     load_module_workbench_cache,
     load_module_workbench_previous_inventory,
@@ -10541,6 +10553,59 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_archive_diff_policy_query.add_argument("--limit", default=50, type=int)
     module_workbench_archive_diff_policy_query.add_argument("--format", choices=("json", "csv"), default="json")
     module_workbench_archive_diff_policy_query.add_argument("--output", default=None)
+    module_workbench_release_bundle = subparsers.add_parser(
+        "module-workbench-release-bundle",
+        help="bundle two workbench archives, their diff, policy gate, and review",
+    )
+    module_workbench_release_bundle.add_argument("--left-archive", required=True)
+    module_workbench_release_bundle.add_argument("--right-archive", required=True)
+    module_workbench_release_bundle.add_argument(
+        "--policy-gate",
+        default=None,
+        help="optional precomputed archive-diff policy gate JSON",
+    )
+    module_workbench_release_bundle.add_argument(
+        "--bundle-id", default="glio-noncode-module-workbench-release-bundle"
+    )
+    module_workbench_release_bundle.add_argument("--destination", default=None)
+    module_workbench_release_bundle.add_argument("--allow-existing", action="store_true")
+    module_workbench_release_bundle.add_argument(
+        "--format", choices=("json", "csv", "markdown"), default="json"
+    )
+    module_workbench_release_bundle.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-schema",
+        help="print release bundle schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-capabilities",
+        help="print release bundle capabilities",
+    ).add_argument("--output", default=None)
+    module_workbench_release_bundle_verify = subparsers.add_parser(
+        "module-workbench-release-bundle-verify",
+        help="verify a release-evidence bundle",
+    )
+    module_workbench_release_bundle_verify.add_argument("bundle", type=str)
+    module_workbench_release_bundle_verify.add_argument("--output", default=None)
+    module_workbench_release_bundle_load = subparsers.add_parser(
+        "module-workbench-release-bundle-load",
+        help="load a release-evidence bundle without source access",
+    )
+    module_workbench_release_bundle_load.add_argument("bundle", type=str)
+    module_workbench_release_bundle_load.add_argument("--output", default=None)
+    module_workbench_release_bundle_query = subparsers.add_parser(
+        "module-workbench-release-bundle-query",
+        help="query release-evidence bundle members",
+    )
+    module_workbench_release_bundle_query.add_argument("bundle", type=str)
+    module_workbench_release_bundle_query.add_argument(
+        "--resource", choices=("entries", "summary"), default="entries"
+    )
+    module_workbench_release_bundle_query.add_argument("--text", default=None)
+    module_workbench_release_bundle_query.add_argument("--offset", default=0, type=int)
+    module_workbench_release_bundle_query.add_argument("--limit", default=50, type=int)
+    module_workbench_release_bundle_query.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_release_bundle_query.add_argument("--output", default=None)
     module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
@@ -48933,6 +48998,54 @@ def main(argv: list[str] | None = None) -> int:
                     ),
                     args.output,
                 )
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-schema":
+            _write_json(module_workbench_release_bundle_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-capabilities":
+            _write_json(module_workbench_release_bundle_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle":
+            bundle = build_module_workbench_release_bundle(
+                args.left_archive,
+                args.right_archive,
+                policy_gate=args.policy_gate,
+                bundle_id=args.bundle_id,
+            )
+            if args.destination:
+                bundle = write_module_workbench_release_bundle(
+                    bundle,
+                    args.destination,
+                    allow_existing=args.allow_existing,
+                )
+            if args.format == "csv":
+                _write_text(module_workbench_release_bundle_csv(bundle), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_release_bundle_markdown(bundle), args.output)
+            else:
+                _write_text(module_workbench_release_bundle_json(bundle), args.output)
+            return 0 if bundle.accepted else 2
+        if args.command == "module-workbench-release-bundle-verify":
+            verification = verify_module_workbench_release_bundle(args.bundle)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-workbench-release-bundle-load":
+            bundle = load_module_workbench_release_bundle(args.bundle)
+            _write_text(module_workbench_release_bundle_json(bundle), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-query":
+            result = query_module_workbench_release_bundle(
+                args.bundle,
+                resource=args.resource,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                bundle = load_module_workbench_release_bundle(args.bundle)
+                _write_text(module_workbench_release_bundle_csv(bundle), args.output)
             else:
                 _write_json(result, args.output)
             return 0

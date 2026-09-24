@@ -1148,6 +1148,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/archive-diff/capabilities", "compare_verified_archives"),
                 ("/v1/module-workbench/archive-diff/policy/schema", "thresholds"),
                 ("/v1/module-workbench/archive-diff/policy/capabilities", "evaluate_regression_budget"),
+                ("/v1/module-workbench/release-bundle/schema", "members"),
+                ("/v1/module-workbench/release-bundle/capabilities", "bundle_policy_gate"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()
