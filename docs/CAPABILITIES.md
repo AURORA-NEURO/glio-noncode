@@ -6548,6 +6548,28 @@ check-schema, and capability operations. A real downloaded-data self-diff
 replays as one unchanged ready entry with `same-ready` posture and 13/13
 audit checks.
 
+Packet-catalog longitudinal diffs can now be gated as a separate release
+policy boundary. Strict policy admits only unchanged, ready-to-ready catalog
+comparisons with zero added, removed, or changed entries. Release policy
+exposes independent budgets, entry-change, direction, transition, left/right
+posture, readiness, required-change, and unchanged controls. The decision
+retains thirteen deterministic policy checks, canonical policy/check
+addresses, blocked evidence, and a fourteen-check independent audit that can
+recompute the supplied packet-catalog diff without reopening source archives.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy catalog-diff.json --profile strict --destination strict-policy.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy catalog-diff.json --profile release --destination release-policy.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-audit release-policy.json --diff catalog-diff.json --destination release-policy-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-audit-query release-policy-audit.json --failed
+```
+
+The HTTP policy surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy`
+and provides policy, verify, query, audit, audit-query, schema, check-schema,
+and capability operations. The real downloaded-data self-diff is accepted by
+both strict and release profiles; its policy audit replays 14/14 checks.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
