@@ -781,6 +781,35 @@ glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff
 The audit is independent, deterministic, source-free, and preserves failed
 policy evidence for review.
 
+## Portable packet-diff policy review packet
+
+The packet-diff gate and its independent audit can be transported as one exact
+five-member ZIP without reopening the original packets or source tree. The
+manifest, packet diff, policy gate, policy audit, and regenerated review are
+canonical and addressable; a blocked gate remains visible as evidence, while
+packet admission requires the independent audit to pass:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet \
+  --diff packet-diff.json \
+  --policy-gate packet-diff-policy.json \
+  --policy-audit packet-diff-policy-audit.json \
+  --destination packet-diff-policy-packet.zip
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-verify \
+  packet-diff-policy-packet.zip
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-load \
+  packet-diff-policy-packet.zip
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-query \
+  packet-diff-policy-packet.zip --resource policy-audit
+```
+
+Verification replays the exact allowlist, fixed ZIP metadata, canonical
+manifest and nested JSON bytes, packet/gate/audit lineage, regenerated review,
+and public boundary. It rejects traversal, duplicate or extra members,
+non-canonical payloads, tampering, and an unaccepted independent audit. The
+packet is source-free loadable and exposes member CSV, JSON, and Markdown
+review projections.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -837,6 +866,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/capabilities` | packet-diff policy operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/audit/schema` | packet-diff policy audit contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/audit/capabilities` | packet-diff policy audit operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/schema` | portable packet-diff policy review packet contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/capabilities` | packet transport, verification, and query guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

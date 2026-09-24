@@ -4840,6 +4840,32 @@ glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff
 The independent audit replays ten structural invariants and retains failed
 checks without requiring the original packet source tree.
 
+Package the packet diff, policy gate, and independent audit for source-free
+handoff:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet `
+  --diff packet-diff.json `
+  --policy-gate packet-diff-policy.json `
+  --policy-audit packet-diff-policy-audit.json `
+  --destination packet-diff-policy-packet.zip
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-verify `
+  packet-diff-policy-packet.zip
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-load `
+  packet-diff-policy-packet.zip
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-query `
+  packet-diff-policy-packet.zip --resource policy-audit
+```
+
+This is a deterministic five-member ZIP with exact manifest, packet-diff,
+policy-gate, policy-audit, and review members. Verification is fail-closed for
+member/path, canonical-byte, lineage, regenerated-review, and public-boundary
+tampering. A blocked policy gate can be transported as explanatory evidence,
+but an unaccepted independent audit prevents packet admission. Schema and
+capability routes are available at
+`/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/schema`
+and the matching `/capabilities` route.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition
