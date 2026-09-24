@@ -8621,6 +8621,54 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print release bundle diff policy packet capabilities',
     ),
     (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog',
+        'catalog portable release bundle diff policy packets',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-audit',
+        'independently audit a release packet catalog',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-audit-capabilities',
+        'print release packet catalog audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-audit-check-schema',
+        'print release packet catalog audit check schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-audit-query',
+        'query release packet catalog audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-audit-schema',
+        'print release packet catalog audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-audit-verify',
+        'verify a release packet catalog audit',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-capabilities',
+        'print release packet catalog capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-entry-schema',
+        'print release packet catalog entry schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-query',
+        'query a release bundle diff policy packet catalog',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-schema',
+        'print release packet catalog schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-verify',
+        'verify a release bundle diff policy packet catalog',
+    ),
+    (
         'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-manifest-schema',
         'print release bundle diff policy packet manifest schema',
     ),

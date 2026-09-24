@@ -6407,6 +6407,29 @@ manifest-schema, and capability operations. Real downloaded-data validation
 produces a 30,261-byte ready packet with four payload members, 13/13 release
 policy checks, 14/14 policy-audit checks, and 15/15 packet-audit checks.
 
+Multiple portable release-bundle policy packets can now be aggregated into a
+bounded source-free catalog. Catalog entries retain only packet, diff, policy,
+audit, state, acceptance, member-count, and byte-count lineage. Duplicate
+entry IDs, package IDs, and package addresses are rejected; ready, blocked,
+accepted, lineage, and text-filtered projections are available without
+reopening source archives. The independent catalog audit has fifteen checks
+covering rollup conservation, nested namespaces, entry addresses, canonical
+JSON, query conservation, and the public boundary.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog review-ready.zip review-blocked.zip --entry-id ready --entry-id blocked --destination packet-catalog.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-query packet-catalog.json --resource blocked
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-audit packet-catalog.json --destination packet-catalog-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-audit-query packet-catalog-audit.json --failed
+```
+
+The HTTP catalog surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog`
+and provides build, verify, query, audit, audit-query, schema, entry-schema,
+and capability operations. The real downloaded-data catalog currently
+contains one accepted ready packet totaling 30,261 bytes and an independent
+15/15 audit.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
