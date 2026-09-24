@@ -6724,6 +6724,38 @@ operations. The real downloaded-data replay catalogs the accepted
 `.glio-real-demo/real-packet-policy-package-handoff-v2.zip`: one entry,
 29,389 package bytes, 24,735 member bytes, and a 16/16 accepted catalog audit.
 
+## Longitudinal packet-package handoff catalog comparison
+
+Two source-free handoff-package catalogs can now be compared without retaining
+their ZIP bytes or reopening the original archive. The comparison enforces the
+same catalog identity, pairs entries by stable entry ID, and retains both
+catalog and entry addresses. Each item is classified as added, removed,
+changed, or unchanged; posture is derived as empty, ready, blocked, or mixed;
+state transitions are same, improved, regressed, or transition; and direction
+is reported as improved, regressed, changed, or unchanged. All snapshots carry
+package, manifest, catalog-diff, policy, audit, readiness, acceptance,
+member-count, and byte-count evidence.
+
+The diff is source-free, deterministically addressed, atomically persisted,
+reloadable, and available as bounded JSON, CSV, and Markdown projections. Its
+independent audit recomputes thirteen checks for identity, lineage, counts,
+transitions, item addresses, deterministic recomputation, and the public
+boundary. Tampered bytes, mismatched catalogs, count drift, and forbidden
+source-bearing fields fail closed.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff left-catalog.json right-catalog.json --diff-id handoff-catalog-diff --destination handoff-catalog-diff.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-query handoff-catalog-diff.json --resource changed
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit handoff-catalog-diff.json --left left-catalog.json --right right-catalog.json --destination handoff-catalog-diff-audit.json --format summary
+```
+
+The HTTP comparison surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff`
+and supports build, verify, query, audit, audit-query, item-schema, schema,
+and capability operations. The real downloaded-data replay compares the
+persisted handoff catalog with itself: one unchanged ready entry, a
+`same-ready` state, and a 13/13 accepted audit.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
