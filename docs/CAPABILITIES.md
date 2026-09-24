@@ -6233,6 +6233,21 @@ python -m glio_noncode downloaded-data-review-packet-diff-audit diff.json --form
 python -m glio_noncode downloaded-data-review-packet-diff-audit-query diff-audit.json --failed
 ```
 
+Diffs can be evaluated with strict or release policy profiles. Policies retain
+budgets for added, removed, total changed, member changed, field changed, and
+type changed rows, plus explicit resource/change allowlists and runtime-change
+controls. A policy is `ready` only when every check passes; blocked policies
+retain all failed checks for review. The policy surface is source-free and
+addressed, with atomic JSON persistence, bounded check queries, CSV/Markdown
+projections, and an independent thirteen-check audit.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy diff.json --profile strict --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy diff.json --profile release --maximum-field-changed 256 --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-audit policy.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-audit-query policy-audit.json --failed
+```
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history

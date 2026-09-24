@@ -8373,6 +8373,46 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print downloaded-data review packet diff capabilities',
     ),
     (
+        'downloaded-data-review-packet-diff-policy',
+        'evaluate a strict or release policy over a downloaded-data review packet diff',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-audit',
+        'independently audit a downloaded-data review packet diff policy',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-audit-capabilities',
+        'print downloaded-data review packet diff policy audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-audit-query',
+        'query downloaded-data review packet diff policy audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-audit-schema',
+        'print downloaded-data review packet diff policy audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-audit-verify',
+        'verify a downloaded-data review packet diff policy audit',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-capabilities',
+        'print downloaded-data review packet diff policy capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-query',
+        'query downloaded-data review packet diff policy checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-schema',
+        'print downloaded-data review packet diff policy schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-verify',
+        'verify a downloaded-data review packet diff policy',
+    ),
+    (
         'downloaded-data-review-packet-diff-query',
         'query downloaded-data review packet diff items',
     ),

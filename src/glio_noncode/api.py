@@ -246,6 +246,8 @@ from . import downloaded_data_review_packet as downloaded_data_review_packet_mod
 from . import downloaded_data_review_packet_audit as downloaded_data_review_packet_audit_model
 from . import downloaded_data_review_packet_diff as downloaded_data_review_packet_diff_model
 from . import downloaded_data_review_packet_diff_audit as downloaded_data_review_packet_diff_audit_model
+from . import downloaded_data_review_packet_diff_policy as downloaded_data_review_packet_diff_policy_model
+from . import downloaded_data_review_packet_diff_policy_audit as downloaded_data_review_packet_diff_policy_audit_model
 from . import (
     downloaded_data_profile_contract_compatibility as downloaded_data_profile_contract_compatibility_model,
 )
@@ -7930,6 +7932,71 @@ class ApiHandler(BaseHTTPRequestHandler):
                     else:
                         self._write(HTTPStatus.OK, value)
                     return
+                review_packet_diff_policy_prefix = review_packet_diff_prefix + "/policy"
+                if path == review_packet_diff_policy_prefix:
+                    release = (self._query_value(query, "profile") or "strict") == "release"
+                    defaults = (0, 0, 256, 64, 128, 64, True, False, downloaded_data_review_packet_diff_model.CHANGES) if release else (0, 0, 0, 0, 0, 0, False, False, downloaded_data_review_packet_diff_model.CHANGES)
+                    value = downloaded_data_review_packet_diff_policy_model.build_policy(
+                        self._query_value(query, "input") or "",
+                        policy_id=self._query_value(query, "policy_id") or (("release-" if release else "strict-") + downloaded_data_review_packet_diff_policy_model.DEFAULT_POLICY_ID),
+                        maximum_added=self._query_int(query, "maximum_added", defaults[0]),
+                        maximum_removed=self._query_int(query, "maximum_removed", defaults[1]),
+                        maximum_changed=self._query_int(query, "maximum_changed", defaults[2]),
+                        maximum_member_changed=self._query_int(query, "maximum_member_changed", defaults[3]),
+                        maximum_field_changed=self._query_int(query, "maximum_field_changed", defaults[4]),
+                        maximum_type_changed=self._query_int(query, "maximum_type_changed", defaults[5]),
+                        allowed_resources=self._query_values(query, "allowed_resource") or downloaded_data_review_packet_diff_model.RESOURCES,
+                        allowed_changes=self._query_values(query, "allowed_change") or defaults[8],
+                        allow_runtime_change=self._query_bool(query, "allow_runtime_change") if "allow_runtime_change" in query else defaults[6],
+                        require_change=self._query_bool(query, "require_change") if "require_change" in query else defaults[7],
+                    )
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_review_packet_diff_policy_model.write_policy(value, destination, allow_existing=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_diff_policy_model, json_name="policy_json", csv_name="policy_csv", markdown_name="render_policy_markdown")
+                    return
+                if path == review_packet_diff_policy_prefix + "/verify":
+                    value = downloaded_data_review_packet_diff_policy_model.verify_policy(self._query_value(query, "input") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_diff_policy_model, json_name="policy_json", csv_name="policy_csv", markdown_name="render_policy_markdown")
+                    return
+                if path == review_packet_diff_policy_prefix + "/query":
+                    value = downloaded_data_review_packet_diff_policy_model.query_policy(
+                        self._query_value(query, "input") or "",
+                        passed=self._query_bool(query, "passed") if "passed" in query else None,
+                        check_id=self._query_value(query, "check_id") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, downloaded_data_review_packet_diff_policy_model.policy_csv(self._query_value(query, "input") or "", passed=self._query_bool(query, "passed") if "passed" in query else None, check_id=self._query_value(query, "check_id") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value)
+                    return
+                if path == review_packet_diff_policy_prefix + "/audit":
+                    value = downloaded_data_review_packet_diff_policy_audit_model.audit_policy(self._query_value(query, "input") or "")
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        downloaded_data_review_packet_diff_policy_audit_model.write_audit(value, destination, allow_existing=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_diff_policy_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == review_packet_diff_policy_prefix + "/audit/verify":
+                    value = downloaded_data_review_packet_diff_policy_audit_model.verify_audit(self._query_value(query, "input") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_review_packet_diff_policy_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == review_packet_diff_policy_prefix + "/audit/query":
+                    value = downloaded_data_review_packet_diff_policy_audit_model.query_audit(
+                        self._query_value(query, "input") or "",
+                        passed=self._query_bool(query, "passed") if "passed" in query else None,
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, downloaded_data_review_packet_diff_policy_audit_model.audit_csv(self._query_value(query, "input") or "", passed=self._query_bool(query, "passed") if "passed" in query else None, text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value)
+                    return
                 ingest_prefix = downloaded_data_prefix + "/ingest"
                 if path == ingest_prefix:
                     value = downloaded_data_ingestion_runtime_model.run_runtime(
@@ -14011,6 +14078,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/review-packet/diff/audit/check-schema": downloaded_data_review_packet_diff_audit_model.check_schema,
                     "/review-packet/diff/audit/schema": downloaded_data_review_packet_diff_audit_model.audit_schema,
                     "/review-packet/diff/audit/capabilities": downloaded_data_review_packet_diff_audit_model.capabilities,
+                    "/review-packet/diff/policy/schema": downloaded_data_review_packet_diff_policy_model.policy_schema,
+                    "/review-packet/diff/policy/check-schema": downloaded_data_review_packet_diff_policy_model.check_schema,
+                    "/review-packet/diff/policy/capabilities": downloaded_data_review_packet_diff_policy_model.capabilities,
+                    "/review-packet/diff/policy/audit/check-schema": downloaded_data_review_packet_diff_policy_audit_model.check_schema,
+                    "/review-packet/diff/policy/audit/schema": downloaded_data_review_packet_diff_policy_audit_model.audit_schema,
+                    "/review-packet/diff/policy/audit/capabilities": downloaded_data_review_packet_diff_policy_audit_model.capabilities,
                     "/ingest/lineage-schema": downloaded_data_ingestion_model.lineage_schema,
                     "/ingest/record-schema": downloaded_data_ingestion_model.record_schema,
                     "/ingest/selection-schema": downloaded_data_ingestion_model.selection_schema,
