@@ -4769,6 +4769,18 @@ This keeps strict failures visible while allowing a separately configured
 release profile to admit the same transition. The policy-set artifact is
 canonical, source-free, addressable, and tamper-rejecting.
 
+Policy-set structure has an independent audit surface:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-audit \
+  catalog-policy-set.json --destination catalog-policy-set-audit.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-audit-query \
+  catalog-policy-set-audit.json --failed
+```
+
+The audit replays policy count and order, shared diff lineage, `any`/`all`
+selection, nested content addresses, and the public-boundary invariant.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

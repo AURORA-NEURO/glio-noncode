@@ -679,6 +679,26 @@ The policy-set gate retains each nested policy gate, its checks, and its
 addresses. It is source-free, payload-free, canonical, tamper-rejecting, and
 queryable without recomputing the catalog comparison.
 
+## Policy-set independent audit
+
+The policy decision and its structural audit are separate artifacts. The audit
+replays policy count, policy ordering, diff lineage, selection semantics,
+nested addresses, and the public boundary without reopening any source or ZIP
+payload:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-audit \
+  catalog-policy-set.json --destination catalog-policy-set-audit.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-audit-verify \
+  catalog-policy-set-audit.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-audit-query \
+  catalog-policy-set-audit.json --failed --limit 50
+```
+
+An accepted policy-set gate can therefore carry a separately verified audit;
+the audit itself is canonical, addressable, bounded, and retains every failed
+check if future input is blocked.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -725,6 +745,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy/capabilities` | policy operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/schema` | multi-policy admission contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/capabilities` | policy-set operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/audit/schema` | independent policy-set audit contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/audit/capabilities` | audit operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

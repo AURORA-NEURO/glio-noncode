@@ -2877,6 +2877,18 @@ from .module_workbench_release_bundle_catalog_diff_policy_set import (
     verify_module_workbench_release_bundle_catalog_diff_policy_set_gate,
     write_module_workbench_release_bundle_catalog_diff_policy_set,
 )
+from .module_workbench_release_bundle_catalog_diff_policy_set_audit import (
+    audit_module_workbench_release_bundle_catalog_diff_policy_set,
+    load_module_workbench_release_bundle_catalog_diff_policy_set_audit,
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_capabilities,
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_csv,
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_json,
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_schema,
+    query_module_workbench_release_bundle_catalog_diff_policy_set_audit,
+    render_module_workbench_release_bundle_catalog_diff_policy_set_audit_markdown,
+    verify_module_workbench_release_bundle_catalog_diff_policy_set_audit,
+    write_module_workbench_release_bundle_catalog_diff_policy_set_audit,
+)
 from .module_workbench_cache import (
     load_module_workbench_cache,
     load_module_workbench_previous_inventory,
@@ -10867,6 +10879,45 @@ def build_parser() -> argparse.ArgumentParser:
         "--format", choices=("json", "csv"), default="json"
     )
     module_workbench_release_bundle_catalog_diff_policy_set_query.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_audit = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-audit",
+        help="audit a release-bundle catalog diff policy-set gate",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_audit.add_argument("gate", type=str)
+    module_workbench_release_bundle_catalog_diff_policy_set_audit.add_argument(
+        "--format", choices=("json", "csv", "markdown", "summary"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_audit.add_argument("--destination", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_audit.add_argument("--allow-existing", action="store_true")
+    module_workbench_release_bundle_catalog_diff_policy_set_audit.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-audit-schema",
+        help="print release-bundle catalog diff policy-set audit schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-audit-capabilities",
+        help="print release-bundle catalog diff policy-set audit capabilities",
+    ).add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_verify = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-audit-verify",
+        help="verify a release-bundle catalog diff policy-set audit",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_verify.add_argument("audit", type=str)
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_verify.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_query = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-audit-query",
+        help="query release-bundle catalog diff policy-set audit checks",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_query.add_argument("audit", type=str)
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_query.add_argument("--passed", action="store_true")
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_query.add_argument("--failed", action="store_true")
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_query.add_argument("--text", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_query.add_argument("--offset", default=0, type=int)
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_query.add_argument("--limit", default=50, type=int)
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_query.add_argument(
+        "--format", choices=("json", "csv"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_audit_query.add_argument("--output", default=None)
     module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
@@ -49570,6 +49621,62 @@ def main(argv: list[str] | None = None) -> int:
                     module_workbench_release_bundle_catalog_diff_policy_set_csv(
                         gate,
                         accepted=accepted,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-audit-schema":
+            _write_json(module_workbench_release_bundle_catalog_diff_policy_set_audit_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-audit-capabilities":
+            _write_json(module_workbench_release_bundle_catalog_diff_policy_set_audit_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-audit":
+            gate = load_module_workbench_release_bundle_catalog_diff_policy_set_gate(args.gate)
+            audit = audit_module_workbench_release_bundle_catalog_diff_policy_set(gate)
+            if args.destination:
+                audit = write_module_workbench_release_bundle_catalog_diff_policy_set_audit(
+                    audit,
+                    args.destination,
+                    allow_existing=args.allow_existing,
+                )
+            if args.format == "csv":
+                _write_text(module_workbench_release_bundle_catalog_diff_policy_set_audit_csv(audit), args.output)
+            elif args.format == "markdown":
+                _write_text(
+                    render_module_workbench_release_bundle_catalog_diff_policy_set_audit_markdown(audit),
+                    args.output,
+                )
+            elif args.format == "summary":
+                _write_json(audit.to_dict(include_checks=False), args.output)
+            else:
+                _write_text(module_workbench_release_bundle_catalog_diff_policy_set_audit_json(audit), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-audit-verify":
+            audit = load_module_workbench_release_bundle_catalog_diff_policy_set_audit(args.audit)
+            verify_module_workbench_release_bundle_catalog_diff_policy_set_audit(audit)
+            _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-audit-query":
+            passed = True if args.passed else False if args.failed else None
+            result = query_module_workbench_release_bundle_catalog_diff_policy_set_audit(
+                args.audit,
+                passed=passed,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                audit = load_module_workbench_release_bundle_catalog_diff_policy_set_audit(args.audit)
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_audit_csv(
+                        audit,
+                        passed=passed,
                         text=args.text,
                         offset=args.offset,
                         limit=args.limit,

@@ -1158,6 +1158,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy/capabilities", "evaluate_direction"),
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/schema", "selection_modes"),
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/capabilities", "select_any_policy"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/audit/schema", "independent"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/audit/capabilities", "audit_selection_replay"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

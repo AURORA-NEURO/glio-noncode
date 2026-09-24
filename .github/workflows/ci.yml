@@ -209,6 +209,19 @@ jobs:
           .ci-workbench-release-bundle-catalog-diff-policy-set.json --accepted --limit 2
           --output .ci-workbench-release-bundle-catalog-diff-policy-set-query.json
           && python -c "import json; gate=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-set-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-set-query.json', encoding='utf-8')); assert gate['accepted'] and gate['policy_count'] == 2 and gate['passed_policy_count'] >= 1; assert query['total'] >= 1 and query['aggregate_accepted']; print('workbench release bundle catalog policy-set contract passed')"
+      - name: Audit the catalog diff policy set independently
+        run: >-
+          python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-audit
+          .ci-workbench-release-bundle-catalog-diff-policy-set.json
+          --destination .ci-workbench-release-bundle-catalog-diff-policy-set-audit.json
+          --format summary --output .ci-workbench-release-bundle-catalog-diff-policy-set-audit-summary.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-audit-verify
+          .ci-workbench-release-bundle-catalog-diff-policy-set-audit.json
+          --output .ci-workbench-release-bundle-catalog-diff-policy-set-audit-verification.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-audit-query
+          .ci-workbench-release-bundle-catalog-diff-policy-set-audit.json --failed --limit 2
+          --output .ci-workbench-release-bundle-catalog-diff-policy-set-audit-query.json
+          && python -c "import json; audit=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-set-audit-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-set-audit-query.json', encoding='utf-8')); assert audit['accepted'] and audit['failed_count'] == 0 and not [check for check in audit['checks'] if not check['passed']]; assert query['total'] == 0; print('workbench release bundle catalog policy-set audit contract passed')"
       - name: Upload workbench observations
         uses: actions/upload-artifact@v4
         with:
@@ -246,6 +259,10 @@ jobs:
             .ci-workbench-release-bundle-catalog-diff-policy-set-summary.json
             .ci-workbench-release-bundle-catalog-diff-policy-set-verification.json
             .ci-workbench-release-bundle-catalog-diff-policy-set-query.json
+            .ci-workbench-release-bundle-catalog-diff-policy-set-audit.json
+            .ci-workbench-release-bundle-catalog-diff-policy-set-audit-summary.json
+            .ci-workbench-release-bundle-catalog-diff-policy-set-audit-verification.json
+            .ci-workbench-release-bundle-catalog-diff-policy-set-audit-query.json
             .ci-workbench.zip
           if-no-files-found: error
 
