@@ -1156,6 +1156,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/release-bundle/catalog/diff/capabilities", "field_level_deltas"),
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy/schema", "allowed_directions"),
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy/capabilities", "evaluate_direction"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/schema", "selection_modes"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/capabilities", "select_any_policy"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

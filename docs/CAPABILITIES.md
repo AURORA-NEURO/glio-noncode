@@ -4753,6 +4753,22 @@ glio-noncode module-workbench-release-bundle-catalog-diff-policy-query \
   catalog-diff-policy.json --failed
 ```
 
+Multiple profiles can be evaluated together without opening any nested
+payload. Policy sets preserve every individual gate and make the aggregate
+choice explicit with `any` or `all` semantics:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set \
+  --diff catalog-diff.json --policy strict --policy release \
+  --selection-mode any --destination catalog-policy-set.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-query \
+  catalog-policy-set.json --accepted
+```
+
+This keeps strict failures visible while allowing a separately configured
+release profile to admit the same transition. The policy-set artifact is
+canonical, source-free, addressable, and tamper-rejecting.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

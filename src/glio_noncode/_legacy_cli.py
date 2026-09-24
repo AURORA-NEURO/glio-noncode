@@ -2861,8 +2861,21 @@ from .module_workbench_release_bundle_catalog_diff_policy import (
     module_workbench_release_bundle_catalog_diff_policy_schema,
     query_module_workbench_release_bundle_catalog_diff_policy,
     render_module_workbench_release_bundle_catalog_diff_policy_markdown,
+    release_module_workbench_release_bundle_catalog_diff_policy,
     verify_module_workbench_release_bundle_catalog_diff_policy_gate,
     write_module_workbench_release_bundle_catalog_diff_policy,
+)
+from .module_workbench_release_bundle_catalog_diff_policy_set import (
+    evaluate_module_workbench_release_bundle_catalog_diff_policy_set,
+    load_module_workbench_release_bundle_catalog_diff_policy_set_gate,
+    module_workbench_release_bundle_catalog_diff_policy_set_capabilities,
+    module_workbench_release_bundle_catalog_diff_policy_set_csv,
+    module_workbench_release_bundle_catalog_diff_policy_set_json,
+    module_workbench_release_bundle_catalog_diff_policy_set_schema,
+    query_module_workbench_release_bundle_catalog_diff_policy_set,
+    render_module_workbench_release_bundle_catalog_diff_policy_set_markdown,
+    verify_module_workbench_release_bundle_catalog_diff_policy_set_gate,
+    write_module_workbench_release_bundle_catalog_diff_policy_set,
 )
 from .module_workbench_cache import (
     load_module_workbench_cache,
@@ -10801,6 +10814,59 @@ def build_parser() -> argparse.ArgumentParser:
         "--format", choices=("json", "csv"), default="json"
     )
     module_workbench_release_bundle_catalog_diff_policy_query.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set",
+        help="evaluate a release-bundle catalog diff against a policy set",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set.add_argument("--diff", required=True)
+    module_workbench_release_bundle_catalog_diff_policy_set.add_argument(
+        "--policy",
+        action="append",
+        choices=("strict", "release"),
+        default=None,
+        help="built-in policy profile; repeat to evaluate multiple profiles",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set.add_argument(
+        "--selection-mode", choices=("all", "any"), default="all"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set.add_argument(
+        "--format", choices=("json", "markdown", "summary"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set.add_argument("--destination", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set.add_argument("--allow-existing", action="store_true")
+    module_workbench_release_bundle_catalog_diff_policy_set.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-schema",
+        help="print release-bundle catalog diff policy-set schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-capabilities",
+        help="print release-bundle catalog diff policy-set capabilities",
+    ).add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_verify = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-verify",
+        help="verify a release-bundle catalog diff policy-set gate",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_verify.add_argument("gate", type=str)
+    module_workbench_release_bundle_catalog_diff_policy_set_verify.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_query = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-diff-policy-set-query",
+        help="query release-bundle catalog diff policy-set gates",
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_query.add_argument("gate", type=str)
+    module_workbench_release_bundle_catalog_diff_policy_set_query.add_argument(
+        "--accepted", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_query.add_argument(
+        "--failed", action="store_true"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_query.add_argument("--text", default=None)
+    module_workbench_release_bundle_catalog_diff_policy_set_query.add_argument("--offset", default=0, type=int)
+    module_workbench_release_bundle_catalog_diff_policy_set_query.add_argument("--limit", default=50, type=int)
+    module_workbench_release_bundle_catalog_diff_policy_set_query.add_argument(
+        "--format", choices=("json", "csv"), default="json"
+    )
+    module_workbench_release_bundle_catalog_diff_policy_set_query.add_argument("--output", default=None)
     module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
@@ -49427,6 +49493,83 @@ def main(argv: list[str] | None = None) -> int:
                     module_workbench_release_bundle_catalog_diff_policy_csv(
                         gate,
                         passed=passed,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-schema":
+            _write_json(module_workbench_release_bundle_catalog_diff_policy_set_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-capabilities":
+            _write_json(module_workbench_release_bundle_catalog_diff_policy_set_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set":
+            selected = args.policy or ["strict"]
+            profiles = []
+            for profile in selected:
+                if profile == "release":
+                    profiles.append(release_module_workbench_release_bundle_catalog_diff_policy())
+                else:
+                    profiles.append(default_module_workbench_release_bundle_catalog_diff_policy())
+            from .module_workbench_release_bundle_catalog_diff_policy_set import (
+                build_module_workbench_release_bundle_catalog_diff_policy_set,
+            )
+
+            policy_set = build_module_workbench_release_bundle_catalog_diff_policy_set(
+                tuple(profiles),
+                selection_mode=args.selection_mode,
+                policy_set_id=(
+                    "module-workbench-release-bundle-catalog-diff-"
+                    + "-or-".join(selected)
+                    + "-set"
+                ),
+            )
+            diff = load_module_workbench_release_bundle_catalog_diff(args.diff)
+            gate = evaluate_module_workbench_release_bundle_catalog_diff_policy_set(diff, policy_set)
+            if args.destination:
+                gate = write_module_workbench_release_bundle_catalog_diff_policy_set(
+                    gate,
+                    args.destination,
+                    allow_existing=args.allow_existing,
+                )
+            if args.format == "markdown":
+                _write_text(
+                    render_module_workbench_release_bundle_catalog_diff_policy_set_markdown(gate),
+                    args.output,
+                )
+            elif args.format == "summary":
+                _write_json(gate.to_dict(include_checks=False), args.output)
+            else:
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_json(gate),
+                    args.output,
+                )
+            return 0 if gate.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-verify":
+            gate = load_module_workbench_release_bundle_catalog_diff_policy_set_gate(args.gate)
+            verify_module_workbench_release_bundle_catalog_diff_policy_set_gate(gate)
+            _write_json(gate.to_dict(), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-diff-policy-set-query":
+            accepted = True if args.accepted else False if args.failed else None
+            result = query_module_workbench_release_bundle_catalog_diff_policy_set(
+                args.gate,
+                accepted=accepted,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                gate = load_module_workbench_release_bundle_catalog_diff_policy_set_gate(args.gate)
+                _write_text(
+                    module_workbench_release_bundle_catalog_diff_policy_set_csv(
+                        gate,
+                        accepted=accepted,
                         text=args.text,
                         offset=args.offset,
                         limit=args.limit,

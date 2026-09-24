@@ -86,7 +86,7 @@ def default_module_workbench_release_bundle_catalog_diff_policy() -> (
 def release_module_workbench_release_bundle_catalog_diff_policy() -> (
     ModuleWorkbenchReleaseBundleCatalogDiffPolicy
 ):
-    """Return a release policy allowing one removal and recovery to accepted."""
+    """Return a release policy allowing one removal and ordinary catalog evolution."""
 
     return build_module_workbench_release_bundle_catalog_diff_policy(
         policy_id="module-workbench-release-bundle-catalog-diff-release",
@@ -94,7 +94,7 @@ def release_module_workbench_release_bundle_catalog_diff_policy() -> (
         maximum_changed_count=0,
         maximum_removed_count=1,
         allowed_directions=("changed", "improved", "unchanged"),
-        allowed_state_transitions=("blocked_to_accepted", "unchanged"),
+        allowed_state_transitions=("blocked_to_accepted", "changed", "unchanged"),
         require_accepted_catalogs=False,
         allow_unchanged=True,
     )

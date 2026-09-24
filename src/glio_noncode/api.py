@@ -1856,6 +1856,10 @@ from .module_workbench_release_bundle_catalog_diff_policy import (
     module_workbench_release_bundle_catalog_diff_policy_capabilities,
     module_workbench_release_bundle_catalog_diff_policy_schema,
 )
+from .module_workbench_release_bundle_catalog_diff_policy_set import (
+    module_workbench_release_bundle_catalog_diff_policy_set_capabilities,
+    module_workbench_release_bundle_catalog_diff_policy_set_schema,
+)
 from .module_workbench_triage import (
     build_module_workbench_triage,
     module_workbench_triage_capabilities,
@@ -22497,6 +22501,8 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/release-bundle/catalog/diff/capabilities",
             "/v1/module-workbench/release-bundle/catalog/diff/policy/schema",
             "/v1/module-workbench/release-bundle/catalog/diff/policy/capabilities",
+            "/v1/module-workbench/release-bundle/catalog/diff/policy-set/schema",
+            "/v1/module-workbench/release-bundle/catalog/diff/policy-set/capabilities",
             "/v1/module-workbench/execution",
             "/v1/module-workbench/execution/query",
             "/v1/module-workbench/execution/schema",
@@ -22723,6 +22729,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/release-bundle/catalog/schema": module_workbench_release_bundle_catalog_schema,
                     "/v1/module-workbench/release-bundle/catalog/diff/schema": module_workbench_release_bundle_catalog_diff_schema,
                     "/v1/module-workbench/release-bundle/catalog/diff/policy/schema": module_workbench_release_bundle_catalog_diff_policy_schema,
+                    "/v1/module-workbench/release-bundle/catalog/diff/policy-set/schema": module_workbench_release_bundle_catalog_diff_policy_set_schema,
                     "/v1/module-workbench/runtime/schema": module_workbench_runtime_schema,
                      "/v1/module-workbench/portfolio/schema": module_workbench_portfolio_schema,
                      "/v1/module-workbench/triage/schema": module_workbench_triage_schema,
@@ -22810,6 +22817,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/release-bundle/catalog/capabilities": module_workbench_release_bundle_catalog_capabilities,
                     "/v1/module-workbench/release-bundle/catalog/diff/capabilities": module_workbench_release_bundle_catalog_diff_capabilities,
                     "/v1/module-workbench/release-bundle/catalog/diff/policy/capabilities": module_workbench_release_bundle_catalog_diff_policy_capabilities,
+                    "/v1/module-workbench/release-bundle/catalog/diff/policy-set/capabilities": module_workbench_release_bundle_catalog_diff_policy_set_capabilities,
                     "/v1/module-workbench/runtime/capabilities": module_workbench_runtime_capabilities,
                      "/v1/module-workbench/portfolio/capabilities": module_workbench_portfolio_capabilities,
                      "/v1/module-workbench/triage/capabilities": module_workbench_triage_capabilities,

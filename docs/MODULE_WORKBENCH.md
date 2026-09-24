@@ -657,6 +657,28 @@ A blocked gate is valid explanatory evidence and exits the build command with
 status `2`; malformed or tampered policy documents fail closed. The policy
 surface is source-free, path-free, timestamp-free, and deterministic.
 
+## Catalog-diff policy sets
+
+When a review needs to compare more than one admission profile, a policy set
+evaluates every profile against the same diff and folds the results with
+explicit `all` or `any` semantics. The strict-versus-release profile is useful
+for preserving a failed strict decision while recording that a separate
+release policy admits the same transition:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set \
+  --diff catalog-diff.json --policy strict --policy release \
+  --selection-mode any --destination catalog-policy-set.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-verify \
+  catalog-policy-set.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-query \
+  catalog-policy-set.json --accepted --limit 50
+```
+
+The policy-set gate retains each nested policy gate, its checks, and its
+addresses. It is source-free, payload-free, canonical, tamper-rejecting, and
+queryable without recomputing the catalog comparison.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -701,6 +723,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/capabilities` | comparison operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy/schema` | catalog-diff policy contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy/capabilities` | policy operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/schema` | multi-policy admission contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/capabilities` | policy-set operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an
