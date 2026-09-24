@@ -14181,6 +14181,30 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print release bundle capabilities',
     ),
     (
+        'module-workbench-release-bundle-catalog',
+        'catalog verified release-evidence bundles without copying their payloads',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-capabilities',
+        'print release-bundle catalog capabilities',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-load',
+        'load a release-bundle catalog without source access',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-query',
+        'query release-bundle catalog references',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-schema',
+        'print release-bundle catalog schema',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-verify',
+        'verify a release-bundle catalog',
+    ),
+    (
         'module-workbench-release-bundle-load',
         'load a release-evidence bundle without source access',
     ),

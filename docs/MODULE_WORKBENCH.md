@@ -583,6 +583,33 @@ workbench archives, the archive diff, the policy gate, the manifest, and the
 review Markdown. A blocked policy remains valid review evidence and is
 preserved with `state=blocked`; malformed or tampered members fail closed.
 
+## Portable release-bundle catalog
+
+Several bundles can be aggregated into one small, source-free catalog without
+copying any nested ZIP payloads. This is useful when a reviewer needs to see
+accepted and blocked policy outcomes together. Bundle IDs and binary addresses
+must be unique; the catalog is structurally accepted when every reference and
+address replays, even when its business state is `blocked` because one or more
+bundles are blocked:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog \
+  --bundle accepted-release-evidence.zip \
+  --bundle blocked-release-evidence.zip \
+  --catalog-id workbench-release-review \
+  --destination workbench-release-catalog.json
+glio-noncode module-workbench-release-bundle-catalog-verify \
+  workbench-release-catalog.json
+glio-noncode module-workbench-release-bundle-catalog-query \
+  workbench-release-catalog.json --state blocked --limit 50
+```
+
+The catalog retains each bundle address, structural verification receipt,
+archive/diff/policy lineage, byte size, state, and acceptance decision. It is
+timestamp-free, path-free, payload-free, and deterministic. JSON, CSV, and
+Markdown projections are available, and the API exposes the schema and
+capabilities under `/v1/module-workbench/release-bundle/catalog`.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -621,6 +648,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/archive-diff/policy/capabilities` | policy operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/schema` | release-evidence bundle contract |
 | `GET /v1/module-workbench/release-bundle/capabilities` | bundle operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/schema` | release-bundle catalog contract |
+| `GET /v1/module-workbench/release-bundle/catalog/capabilities` | catalog operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

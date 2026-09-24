@@ -1844,6 +1844,10 @@ from .module_workbench_release_bundle import (
     module_workbench_release_bundle_capabilities,
     module_workbench_release_bundle_schema,
 )
+from .module_workbench_release_bundle_catalog import (
+    module_workbench_release_bundle_catalog_capabilities,
+    module_workbench_release_bundle_catalog_schema,
+)
 from .module_workbench_triage import (
     build_module_workbench_triage,
     module_workbench_triage_capabilities,
@@ -22479,6 +22483,8 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/archive-diff/policy/capabilities",
             "/v1/module-workbench/release-bundle/schema",
             "/v1/module-workbench/release-bundle/capabilities",
+            "/v1/module-workbench/release-bundle/catalog/schema",
+            "/v1/module-workbench/release-bundle/catalog/capabilities",
             "/v1/module-workbench/execution",
             "/v1/module-workbench/execution/query",
             "/v1/module-workbench/execution/schema",
@@ -22702,6 +22708,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/archive-diff/schema": module_workbench_archive_diff_schema,
                     "/v1/module-workbench/archive-diff/policy/schema": module_workbench_archive_diff_policy_schema,
                     "/v1/module-workbench/release-bundle/schema": module_workbench_release_bundle_schema,
+                    "/v1/module-workbench/release-bundle/catalog/schema": module_workbench_release_bundle_catalog_schema,
                     "/v1/module-workbench/runtime/schema": module_workbench_runtime_schema,
                      "/v1/module-workbench/portfolio/schema": module_workbench_portfolio_schema,
                      "/v1/module-workbench/triage/schema": module_workbench_triage_schema,
@@ -22786,6 +22793,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/archive-diff/capabilities": module_workbench_archive_diff_capabilities,
                     "/v1/module-workbench/archive-diff/policy/capabilities": module_workbench_archive_diff_policy_capabilities,
                     "/v1/module-workbench/release-bundle/capabilities": module_workbench_release_bundle_capabilities,
+                    "/v1/module-workbench/release-bundle/catalog/capabilities": module_workbench_release_bundle_catalog_capabilities,
                     "/v1/module-workbench/runtime/capabilities": module_workbench_runtime_capabilities,
                      "/v1/module-workbench/portfolio/capabilities": module_workbench_portfolio_capabilities,
                      "/v1/module-workbench/triage/capabilities": module_workbench_triage_capabilities,

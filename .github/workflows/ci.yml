@@ -144,6 +144,25 @@ jobs:
           .ci-workbench-release-bundle.zip --resource entries --limit 6
           --output .ci-workbench-release-bundle-query.json
           && python -c "import json; verification=json.load(open('.ci-workbench-release-bundle-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-release-bundle-query.json', encoding='utf-8')); assert verification['accepted'] and verification['entry_count'] == 6 and not [check for check in verification['checks'] if not check['passed']]; assert query['total'] == 6; print('workbench release bundle contract passed')"
+      - name: Catalog multiple release-evidence bundles without payload duplication
+        run: >-
+          python -m glio_noncode module-workbench-release-bundle
+          --left-archive .ci-workbench.zip --right-archive .ci-workbench.zip
+          --policy-gate .ci-workbench-archive-diff-policy.json
+          --bundle-id ci-secondary-release-bundle
+          --destination .ci-workbench-release-bundle-secondary.zip
+          --format json --output .ci-workbench-release-bundle-secondary.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog
+          --bundle .ci-workbench-release-bundle.zip
+          --bundle .ci-workbench-release-bundle-secondary.zip
+          --destination .ci-workbench-release-bundle-catalog.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-verify
+          .ci-workbench-release-bundle-catalog.json
+          --output .ci-workbench-release-bundle-catalog-verification.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-query
+          .ci-workbench-release-bundle-catalog.json --state accepted --limit 2
+          --output .ci-workbench-release-bundle-catalog-query.json
+          && python -c "import json; verification=json.load(open('.ci-workbench-release-bundle-catalog-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-release-bundle-catalog-query.json', encoding='utf-8')); assert verification['accepted'] and verification['entry_count'] == 2 and not [check for check in verification['checks'] if not check['passed']]; assert query['total'] == 2; print('workbench release bundle catalog contract passed')"
       - name: Upload workbench observations
         uses: actions/upload-artifact@v4
         with:
@@ -165,6 +184,11 @@ jobs:
             .ci-workbench-release-bundle-verification.json
             .ci-workbench-release-bundle-query.json
             .ci-workbench-release-bundle.zip
+            .ci-workbench-release-bundle-secondary.json
+            .ci-workbench-release-bundle-secondary.zip
+            .ci-workbench-release-bundle-catalog.json
+            .ci-workbench-release-bundle-catalog-verification.json
+            .ci-workbench-release-bundle-catalog-query.json
             .ci-workbench.zip
           if-no-files-found: error
 

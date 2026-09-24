@@ -2827,6 +2827,18 @@ from .module_workbench_release_bundle import (
     verify_module_workbench_release_bundle,
     write_module_workbench_release_bundle,
 )
+from .module_workbench_release_bundle_catalog import (
+    build_module_workbench_release_bundle_catalog,
+    load_module_workbench_release_bundle_catalog,
+    module_workbench_release_bundle_catalog_capabilities,
+    module_workbench_release_bundle_catalog_csv,
+    module_workbench_release_bundle_catalog_json,
+    module_workbench_release_bundle_catalog_schema,
+    query_module_workbench_release_bundle_catalog,
+    render_module_workbench_release_bundle_catalog_markdown,
+    verify_module_workbench_release_bundle_catalog,
+    write_module_workbench_release_bundle_catalog,
+)
 from .module_workbench_cache import (
     load_module_workbench_cache,
     load_module_workbench_previous_inventory,
@@ -10606,6 +10618,60 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_release_bundle_query.add_argument("--limit", default=50, type=int)
     module_workbench_release_bundle_query.add_argument("--format", choices=("json", "csv"), default="json")
     module_workbench_release_bundle_query.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog",
+        help="catalog verified release-evidence bundles without copying their payloads",
+    )
+    module_workbench_release_bundle_catalog.add_argument(
+        "--bundle", action="append", required=True, help="release-evidence bundle path; repeatable"
+    )
+    module_workbench_release_bundle_catalog.add_argument(
+        "--catalog-id", default="glio-noncode-module-workbench-release-bundle-catalog"
+    )
+    module_workbench_release_bundle_catalog.add_argument("--destination", default=None)
+    module_workbench_release_bundle_catalog.add_argument("--allow-existing", action="store_true")
+    module_workbench_release_bundle_catalog.add_argument(
+        "--format", choices=("json", "csv", "markdown"), default="json"
+    )
+    module_workbench_release_bundle_catalog.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-schema",
+        help="print release-bundle catalog schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-capabilities",
+        help="print release-bundle catalog capabilities",
+    ).add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_verify = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-verify",
+        help="verify a release-bundle catalog",
+    )
+    module_workbench_release_bundle_catalog_verify.add_argument("catalog", type=str)
+    module_workbench_release_bundle_catalog_verify.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_load = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-load",
+        help="load a release-bundle catalog without source access",
+    )
+    module_workbench_release_bundle_catalog_load.add_argument("catalog", type=str)
+    module_workbench_release_bundle_catalog_load.add_argument("--output", default=None)
+    module_workbench_release_bundle_catalog_query = subparsers.add_parser(
+        "module-workbench-release-bundle-catalog-query",
+        help="query release-bundle catalog references",
+    )
+    module_workbench_release_bundle_catalog_query.add_argument("catalog", type=str)
+    module_workbench_release_bundle_catalog_query.add_argument(
+        "--resource", choices=("entries", "summary"), default="entries"
+    )
+    module_workbench_release_bundle_catalog_query.add_argument(
+        "--state", choices=("accepted", "blocked"), default=None
+    )
+    module_workbench_release_bundle_catalog_query.add_argument("--text", default=None)
+    module_workbench_release_bundle_catalog_query.add_argument("--offset", default=0, type=int)
+    module_workbench_release_bundle_catalog_query.add_argument("--limit", default=50, type=int)
+    module_workbench_release_bundle_catalog_query.add_argument(
+        "--format", choices=("json", "csv"), default="json"
+    )
+    module_workbench_release_bundle_catalog_query.add_argument("--output", default=None)
     module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
@@ -49046,6 +49112,65 @@ def main(argv: list[str] | None = None) -> int:
             if args.format == "csv":
                 bundle = load_module_workbench_release_bundle(args.bundle)
                 _write_text(module_workbench_release_bundle_csv(bundle), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-schema":
+            _write_json(module_workbench_release_bundle_catalog_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-capabilities":
+            _write_json(module_workbench_release_bundle_catalog_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog":
+            catalog = build_module_workbench_release_bundle_catalog(
+                args.bundle,
+                catalog_id=args.catalog_id,
+            )
+            if args.destination:
+                catalog = write_module_workbench_release_bundle_catalog(
+                    catalog,
+                    args.destination,
+                    allow_existing=args.allow_existing,
+                )
+            if args.format == "csv":
+                _write_text(module_workbench_release_bundle_catalog_csv(catalog), args.output)
+            elif args.format == "markdown":
+                _write_text(
+                    render_module_workbench_release_bundle_catalog_markdown(catalog),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_release_bundle_catalog_json(catalog), args.output)
+            return 0 if catalog.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-verify":
+            verification = verify_module_workbench_release_bundle_catalog(args.catalog)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-workbench-release-bundle-catalog-load":
+            catalog = load_module_workbench_release_bundle_catalog(args.catalog)
+            _write_text(module_workbench_release_bundle_catalog_json(catalog), args.output)
+            return 0
+        if args.command == "module-workbench-release-bundle-catalog-query":
+            result = query_module_workbench_release_bundle_catalog(
+                args.catalog,
+                resource=args.resource,
+                state=args.state,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                catalog = load_module_workbench_release_bundle_catalog(args.catalog)
+                _write_text(
+                    module_workbench_release_bundle_catalog_csv(
+                        catalog,
+                        state=args.state,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
             else:
                 _write_json(result, args.output)
             return 0

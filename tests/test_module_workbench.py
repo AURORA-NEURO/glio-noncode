@@ -1150,6 +1150,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/archive-diff/policy/capabilities", "evaluate_regression_budget"),
                 ("/v1/module-workbench/release-bundle/schema", "members"),
                 ("/v1/module-workbench/release-bundle/capabilities", "bundle_policy_gate"),
+                ("/v1/module-workbench/release-bundle/catalog/schema", "max_entries"),
+                ("/v1/module-workbench/release-bundle/catalog/capabilities", "filter_state"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

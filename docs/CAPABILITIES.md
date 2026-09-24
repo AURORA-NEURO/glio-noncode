@@ -4705,6 +4705,25 @@ completion and evidence coverage. It is exposed through the
 `module_workbench_execution_review_*` functions and the
 `/v1/module-workbench/execution/review` API family.
 
+Portable workbench release evidence can be carried one level further through
+the release-bundle catalog. The catalog references multiple verified bundle
+descriptors without duplicating their ZIP payloads, rejects duplicate bundle
+identity or binary addresses, conserves archive/diff/policy lineage, and folds
+accepted and blocked outcomes into one deterministic review state. It supports
+bounded state/text queries and JSON, CSV, and Markdown projections while
+remaining source-free, path-free, timestamp-free, and payload-free:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog \
+  --bundle accepted-release-evidence.zip \
+  --bundle blocked-release-evidence.zip \
+  --destination release-bundle-catalog.json
+glio-noncode module-workbench-release-bundle-catalog-verify \
+  release-bundle-catalog.json
+glio-noncode module-workbench-release-bundle-catalog-query \
+  release-bundle-catalog.json --state blocked
+```
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition
