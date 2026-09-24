@@ -6962,3 +6962,18 @@ schema, check-schema, and capability operations.
 
 On the real downloaded-data comparison, the release profile was accepted and
 the strict zero-change profile was blocked as designed.
+
+## Downloaded-data review-packet catalog diff policy review packets
+
+Policy-gated review-packet catalog diffs can be transported as deterministic
+fixed ZIP packets containing a manifest, catalog diff, policy decision,
+independent policy audit, and regenerated Markdown review. The packet preserves
+member byte/content addresses, nested lineage, policy state, blocked evidence,
+source-free reload, canonical bytes, fixed ZIP metadata, and public-boundary
+controls. Fifteen independent packet checks cover ordering, addresses, lineage,
+policy replay, audit replay, review replay, query replay, byte determinism,
+source-free behavior, and public keys. CLI and HTTP surfaces expose build,
+verify, load, query, audit, schema, manifest-schema, and capability operations.
+
+The real downloaded-data demonstration produced an accepted ready packet and
+passed all 15/15 independent packet-audit checks.

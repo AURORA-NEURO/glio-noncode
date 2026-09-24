@@ -1,4 +1,4 @@
-"""Coverage for policy-gated packet-package handoff catalog review packets."""
+"""Coverage for policy-gated review-packet catalog diff policy review packets."""
 
 # ruff: noqa: E501
 
@@ -14,16 +14,16 @@ from urllib.request import urlopen
 
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
-from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff import (
+from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff import (
     build_diff,
     catalog_model,
     write_diff,
 )
-from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy import (
+from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy import (
     release_policy,
     write_policy,
 )
-from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package import (
+from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package import (
     build_package,
     load_package,
     package_json,
@@ -31,11 +31,11 @@ from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_
     verify_package,
     write_package,
 )
-from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_audit import (
+from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_audit import (
     audit_package,
     query_audit,
 )
-from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_policy_audit import (
+from glio_noncode.downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_policy_audit import (
     audit_policy,
     write_audit,
 )
@@ -76,7 +76,7 @@ class DownloadedDataReviewPacketPolicyHandoffCatalogReviewPacketTest(unittest.Te
             verify_package(tampered)
 
     def test_cli_http_schema_and_query_surfaces(self) -> None:
-        command = "downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package"
+        command = "downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package"
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             diff_path, policy_path, policy_audit_path = root / "diff.json", root / "policy.json", root / "policy-audit.json"
