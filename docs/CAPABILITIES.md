@@ -7195,3 +7195,25 @@ capabilities, and public-boundary validation. Real downloaded-data validation
 accepts the release profile with 15/15 policy checks and 16/16 policy-audit
 checks while strict zero-change controls block the mixed diff with six failed
 checks.
+
+## Downloaded-data fixed transport package-catalog policy transports
+
+Accepted or blocked package-catalog policy decisions can now be sealed into a
+deterministic, source-free five-member ZIP transport. The transport contains a
+canonical manifest, catalog diff, policy, independent policy audit, and
+regenerated Markdown review in fixed member order with fixed metadata. Manifest
+fields retain package, diff, policy, audit, state, acceptance, member, byte,
+and content-address lineage.
+
+Reload verifies canonical JSON, exact members, safe paths, duplicate and extra
+member rejection, member and package byte addresses, nested diff/policy/audit
+replay, review regeneration, policy state, source-free loading, and the public
+boundary. Queries cover summary, members, manifest, diff, policy, audit, and
+review resources with bounded JSON, CSV, and Markdown projections. CLI and
+HTTP surfaces expose build, verify, load, query, audit, audit verification,
+schema, manifest-schema, and capability operations.
+
+The self-contained module-571 contract suite covers deterministic round trips,
+persistence, tamper, duplicate, traversal, CLI, HTTP, schema, capabilities,
+and public-boundary validation. Real downloaded-data validation produces a
+28,876-byte accepted transport with 15/15 independent package-audit checks.
