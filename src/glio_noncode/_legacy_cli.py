@@ -49,6 +49,8 @@ from . import downloaded_data_review_packet_diff_policy_release_certificate_bund
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_tcp_tr_cat_aud as review_packet_transport_catalog_policy_transport_catalog_568_audit_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_tcp_tr_cat_diff as review_packet_transport_catalog_policy_transport_catalog_diff_569_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_tcp_tr_cat_diff_aud as review_packet_transport_catalog_policy_transport_catalog_diff_569_audit_model
+from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_tcp_tr_cat_diff_pol as review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_model
+from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_tcp_tr_cat_diff_pol_aud as review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model
 
 _REVIEW_PACKET_CATALOG_POLICY_562_COMMAND = 'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy'
 _REVIEW_PACKET_CATALOG_TRANSPORT_563_COMMAND = 'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-transport'
@@ -58,6 +60,7 @@ _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_566_COMMAND = _REVIEW_PACKET_TRANSPORT_C
 _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_567_COMMAND = _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_566_COMMAND + '-transport'
 _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_568_COMMAND = _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_567_COMMAND + '-catalog'
 _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_569_COMMAND = _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_568_COMMAND + '-diff'
+_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND = _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_569_COMMAND + '-policy'
 
 _REVIEW_PACKET_CATALOG_DIFF_561_COMMAND = 'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff'
 
@@ -31519,6 +31522,67 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_569_COMMAND + "-audit-check-schema", help="print fixed transport catalog diff audit check schema").add_argument("--output", default=None)
     subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_569_COMMAND + "-audit-schema", help="print fixed transport catalog diff audit schema").add_argument("--output", default=None)
     subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_569_COMMAND + "-audit-capabilities", help="print fixed transport catalog diff audit capabilities").add_argument("--output", default=None)
+    # Module 570 CLI parser: strict and release policy gates over fixed transport catalog-diff package catalog diffs.
+    p = subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND, help="gate a fixed transport catalog-diff package catalog diff")
+    p.add_argument("diff", type=str)
+    p.add_argument("--profile", choices=("strict", "release"), default="release")
+    p.add_argument("--policy-id", default=None)
+    p.add_argument("--maximum-added", type=int, default=None)
+    p.add_argument("--maximum-removed", type=int, default=None)
+    p.add_argument("--maximum-changed", type=int, default=None)
+    p.add_argument("--maximum-total-changes", type=int, default=None)
+    p.add_argument("--required-change", action="append", choices=("added", "removed", "changed", "unchanged"), default=None)
+    p.add_argument("--allowed-change", action="append", choices=("added", "removed", "changed", "unchanged"), default=None)
+    p.add_argument("--allowed-direction", action="append", choices=("improved", "regressed", "changed", "unchanged"), default=None)
+    p.add_argument("--allowed-transition", action="append", default=None)
+    p.add_argument("--allowed-left-posture", action="append", choices=("empty", "ready", "blocked", "mixed"), default=None)
+    p.add_argument("--allowed-right-posture", action="append", choices=("empty", "ready", "blocked", "mixed"), default=None)
+    p.add_argument("--allow-not-ready", action="store_true")
+    p.add_argument("--require-change", action="store_true")
+    p.add_argument("--disallow-unchanged", action="store_true")
+    p.add_argument("--destination", default=None)
+    p.add_argument("--allow-existing", action="store_true")
+    p.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    p.add_argument("--output", default=None)
+    p = subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-verify", help="verify a fixed transport catalog-diff package catalog diff policy")
+    p.add_argument("policy", type=str)
+    p.add_argument("--output", default=None)
+    p = subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-query", help="query fixed transport catalog-diff package catalog diff policy checks")
+    p.add_argument("policy", type=str)
+    p.add_argument("--passed", action="store_true")
+    p.add_argument("--failed", action="store_true")
+    p.add_argument("--check-id", default="")
+    p.add_argument("--text", default="")
+    p.add_argument("--offset", type=int, default=0)
+    p.add_argument("--limit", type=int, default=50)
+    p.add_argument("--format", choices=("json", "csv"), default="json")
+    p.add_argument("--output", default=None)
+    p = subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit", help="independently audit a fixed transport catalog-diff package catalog diff policy")
+    p.add_argument("policy", type=str)
+    p.add_argument("--diff", default=None)
+    p.add_argument("--destination", default=None)
+    p.add_argument("--allow-existing", action="store_true")
+    p.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    p.add_argument("--output", default=None)
+    p = subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit-verify", help="verify a fixed transport catalog-diff package catalog diff policy audit")
+    p.add_argument("audit", type=str)
+    p.add_argument("--output", default=None)
+    p = subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit-query", help="query fixed transport catalog-diff package catalog diff policy audit checks")
+    p.add_argument("audit", type=str)
+    p.add_argument("--passed", action="store_true")
+    p.add_argument("--failed", action="store_true")
+    p.add_argument("--text", default="")
+    p.add_argument("--offset", type=int, default=0)
+    p.add_argument("--limit", type=int, default=50)
+    p.add_argument("--format", choices=("json", "csv"), default="json")
+    p.add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-schema", help="print fixed transport catalog-diff package catalog diff policy schema").add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-check-schema", help="print fixed transport catalog-diff package catalog diff policy check schema").add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-capabilities", help="print fixed transport catalog-diff package catalog diff policy capabilities").add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit-check-schema", help="print fixed transport catalog-diff package catalog diff policy audit check schema").add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit-schema", help="print fixed transport catalog-diff package catalog diff policy audit schema").add_argument("--output", default=None)
+    subparsers.add_parser(_REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit-capabilities", help="print fixed transport catalog-diff package catalog diff policy audit capabilities").add_argument("--output", default=None)
+
     return parser
 
 def main(argv: list[str] | None = None) -> int:
@@ -62517,6 +62581,80 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_569_COMMAND + "-audit-capabilities":
             _write_json(review_packet_transport_catalog_policy_transport_catalog_diff_569_audit_model.capabilities(), args.output)
+            return 0
+        # Module 570 CLI handler: strict and release policy gates over fixed transport catalog-diff package catalog diffs.
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND:
+            model = review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_model
+            policy_id = args.policy_id or (("strict-" if args.profile == "strict" else "release-") + model.DEFAULT_POLICY_ID)
+            if args.profile == "strict":
+                value = model.strict_fixed_transport_catalog_diff_policy_package_catalog_policy(args.diff, policy_id=policy_id)
+            else:
+                value = model.release_fixed_transport_catalog_diff_policy_package_catalog_policy(args.diff, policy_id=policy_id, maximum_added=32 if args.maximum_added is None else args.maximum_added, maximum_removed=32 if args.maximum_removed is None else args.maximum_removed, maximum_changed=256 if args.maximum_changed is None else args.maximum_changed, maximum_total_changes=256 if args.maximum_total_changes is None else args.maximum_total_changes, allowed_changes=args.allowed_change or model.diff_model.CHANGES, allowed_directions=args.allowed_direction or model.diff_model.DIRECTIONS, allowed_transitions=args.allowed_transition or model.diff_model.STATE_TRANSITIONS, allowed_left_postures=args.allowed_left_posture or model.diff_model.POSTURES, allowed_right_postures=args.allowed_right_posture or model.diff_model.POSTURES, required_changes=args.required_change or (), require_ready=not args.allow_not_ready, require_change=args.require_change, allow_unchanged=not args.disallow_unchanged)
+            if args.destination:
+                model.write_fixed_transport_catalog_diff_policy_package_catalog_policy(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(model.render_fixed_transport_catalog_diff_policy_package_catalog_policy_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(model.fixed_transport_catalog_diff_policy_package_catalog_policy_csv(value), args.output)
+            elif args.format == "json":
+                _write_text(model.fixed_transport_catalog_diff_policy_package_catalog_policy_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-verify":
+            value = review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_model.verify_fixed_transport_catalog_diff_policy_package_catalog_policy(args.policy)
+            _write_json(value.to_dict(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-query":
+            passed = True if args.passed else False if args.failed else None
+            result = review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_model.query_fixed_transport_catalog_diff_policy_package_catalog_policy(args.policy, passed=passed, check_id=args.check_id, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_model.fixed_transport_catalog_diff_policy_package_catalog_policy_csv(args.policy, passed=passed, check_id=args.check_id, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit":
+            value = review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.audit_fixed_transport_catalog_diff_policy_package_catalog_policy(args.policy, diff=args.diff)
+            if args.destination:
+                review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.write_audit(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.audit_csv(value), args.output)
+            elif args.format == "json":
+                _write_text(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit-verify":
+            value = review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.verify_audit(args.audit)
+            _write_json(value.to_dict(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit-query":
+            passed = True if args.passed else False if args.failed else None
+            result = review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.query_audit(args.audit, passed=passed, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.audit_csv(args.audit, passed=passed, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-schema":
+            _write_json(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_model.fixed_transport_catalog_diff_policy_package_catalog_policy_schema(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-check-schema":
+            _write_json(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_model.fixed_transport_catalog_diff_policy_package_catalog_policy_check_schema(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-capabilities":
+            _write_json(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_model.capabilities(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit-check-schema":
+            _write_json(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.check_schema(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit-schema":
+            _write_json(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.audit_schema(), args.output)
+            return 0
+        if args.command == _REVIEW_PACKET_TRANSPORT_CATALOG_POLICY_TRANSPORT_CATALOG_DIFF_POLICY_570_COMMAND + "-audit-capabilities":
+            _write_json(review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_audit_model.capabilities(), args.output)
             return 0
         # Module 563 CLI handler: deterministic fixed transport for catalog diff policy decisions.
         if args.command == _REVIEW_PACKET_CATALOG_TRANSPORT_563_COMMAND:

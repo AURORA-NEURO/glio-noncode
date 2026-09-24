@@ -7169,3 +7169,29 @@ verify, query, audit, audit verification, schema, item-schema, and capability
 operations. Real downloaded-data validation reported one added, one removed,
 one changed, and one unchanged package entry with same-ready posture, changed
 direction, and 13/13 audit checks passed.
+
+## Downloaded-data fixed transport catalog-diff package catalog diff policies
+
+Fixed transport package-catalog diffs can now be gated without reopening ZIP
+payloads. Strict and release profiles enforce independent added, removed,
+changed, and total-change budgets; ordered change, direction, transition,
+left/right posture, required-change, readiness, and unchanged controls; and
+retain every failed check for blocked decisions. Policy objects are bounded,
+source-free, content-addressed, canonically serializable, and reloadable.
+
+The policy surface provides passed, failed, check-ID, and text queries with
+JSON, CSV, and Markdown projections, atomic persistence, typed verification,
+policy schemas, check schemas, and capabilities. The independent policy audit
+replays sixteen checks covering policy address, canonical form, check
+addresses and ordering, controls, counts, diff lineage, decision, policy
+replay, public boundary, query replay, state, typed replay, recomputation,
+total budgets, and required changes. CLI and HTTP surfaces expose build,
+verify, query, audit, audit verification, schema, check-schema, and capability
+operations.
+
+The self-contained module-570 contract suite covers all four diff classes,
+strict/release behavior, persistence, tamper rejection, CLI, HTTP, schema,
+capabilities, and public-boundary validation. Real downloaded-data validation
+accepts the release profile with 15/15 policy checks and 16/16 policy-audit
+checks while strict zero-change controls block the mixed diff with six failed
+checks.
