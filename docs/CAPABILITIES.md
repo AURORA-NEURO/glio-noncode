@@ -6524,6 +6524,30 @@ check-schema, and capability operations. The real downloaded-data demo
 aggregates one 22,830-byte accepted ready packet and replays all 15 catalog
 audit checks without retaining source values.
 
+Those packet catalogs can also be compared longitudinally without reopening
+their portable packets. Stable entry IDs pair left and right descriptors;
+added, removed, changed, and unchanged classifications retain public snapshots
+and entry addresses. The diff derives empty, ready, blocked, and mixed
+postures, same/transition states, and improved, regressed, changed, or
+unchanged direction from accepted, ready, and blocked rollups. Its independent
+audit has thirteen checks for canonical addressing, catalog availability and
+lineage, item addresses, count conservation, deterministic recomputation, and
+the public boundary.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff baseline-catalog.json candidate-catalog.json --destination catalog-diff.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-query catalog-diff.json --direction improved
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit catalog-diff.json --left baseline-catalog.json --right candidate-catalog.json --destination catalog-diff-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-audit-query catalog-diff-audit.json --failed
+```
+
+The HTTP diff surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff`
+and provides diff, verify, query, audit, audit-query, schema, item-schema,
+check-schema, and capability operations. A real downloaded-data self-diff
+replays as one unchanged ready entry with `same-ready` posture and 13/13
+audit checks.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
