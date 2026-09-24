@@ -1164,6 +1164,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/capabilities", "verify_member_bytes"),
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/schema", "directions"),
                 ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/capabilities", "compare_verified_packets"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/schema", "thresholds"),
+                ("/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/capabilities", "evaluate_current_state"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

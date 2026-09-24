@@ -741,6 +741,27 @@ The diff is deterministic, source-free, timestamp-free, and fail-closed on
 address or public-boundary tampering. It is suitable for longitudinal review
 of blocked-to-accepted recovery as well as accepted-to-blocked regression.
 
+## Policy-gated packet diff release review
+
+A packet diff can be evaluated against a strict recovery policy or a broad
+release policy. The gate retains every check, including failures, so a
+regression remains reviewable instead of disappearing at the command boundary:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy \
+  --diff packet-diff.json --policy strict \
+  --destination packet-diff-policy.json --format summary
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-verify \
+  packet-diff-policy.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-query \
+  packet-diff-policy.json --failed
+```
+
+Strict policy admits accepted candidates, bounded field movement, and
+blocked-to-accepted recovery; release policy can retain regressed evidence for
+broader review. Both policies replay change addresses, packet lineage, state,
+direction, acceptance, unchanged controls, and the public boundary.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -793,6 +814,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/capabilities` | packet operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/schema` | longitudinal packet comparison contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/capabilities` | packet comparison operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/schema` | packet-diff release policy contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/capabilities` | packet-diff policy operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

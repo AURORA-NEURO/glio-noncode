@@ -4810,6 +4810,22 @@ This longitudinal surface preserves both packet lineages, reports aggregate
 field deltas, classifies improvement or regression, and rejects tampered or
 non-public diff documents.
 
+Gate the comparison for release review:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy \
+  --diff packet-diff.json --policy strict \
+  --destination packet-diff-policy.json --format summary
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-verify \
+  packet-diff-policy.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-query \
+  packet-diff-policy.json --failed
+```
+
+The strict and release profiles enforce changed-field budgets, allowed
+directions and state transitions, previous/current acceptance requirements,
+unchanged controls, address replay, and public-boundary cleanliness.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

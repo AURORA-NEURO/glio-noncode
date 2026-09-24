@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'b6aca4e16a469626cd32846e9bac38c0fd53d0c154aebb49bc72d42241b55145'
-SURFACE_DIGEST = '7adc01ded6f432fcb68bbedd72bff7996088947216cb4f8bc14b395a10341d0e'
+SURFACE_DIGEST = '22ccd13fcae344bfd4808ac57bb89f92d311cf69860752c5f92aac5d2aff9a0c'
 
 ALL = (
     'CaseManifest',
@@ -44944,6 +44944,8 @@ CHILD_MODULES = {
     'module_workbench_release_bundle_catalog_diff_policy_set_packet_contracts': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_contracts',
     'module_workbench_release_bundle_catalog_diff_policy_set_packet_diff': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff',
     'module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_contracts': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_contracts',
+    'module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy',
+    'module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_contracts': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_contracts',
     'module_workbench_release_bundle_contracts': 'glio_noncode.module_workbench_release_bundle_contracts',
     'module_workbench_runtime': 'glio_noncode.module_workbench_runtime',
     'module_workbench_runtime_contracts': 'glio_noncode.module_workbench_runtime_contracts',
@@ -50264,6 +50266,8 @@ LAZY_MODULES = (
     'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_contracts',
     'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff',
     'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_contracts',
+    'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy',
+    'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_contracts',
     'glio_noncode.module_workbench_release_bundle_contracts',
     'glio_noncode.module_workbench_runtime',
     'glio_noncode.module_workbench_runtime_contracts',
