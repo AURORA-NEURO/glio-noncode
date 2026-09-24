@@ -6977,3 +6977,20 @@ verify, load, query, audit, schema, manifest-schema, and capability operations.
 
 The real downloaded-data demonstration produced an accepted ready packet and
 passed all 15/15 independent packet-audit checks.
+
+## Downloaded-data review-packet catalog diff policy package catalogs
+
+The latest fixed review-packet ZIPs can be aggregated into a deterministic,
+source-free catalog bounded to 256 verified packets. Catalog entries retain
+packet, catalog-diff, policy, independent-audit, state, acceptance,
+member-count, byte-count, and content-address lineage. Duplicate entry IDs,
+package IDs, package addresses, tampered packets, malformed entries, and
+public-boundary violations are rejected before a catalog is accepted.
+
+Catalogs expose accepted, ready, blocked, lineage, state, text, JSON, CSV,
+and Markdown projections, canonical catalog and entry addresses, atomic
+persistence, typed replay, and sixteen independent catalog-audit checks.
+The CLI and public HTTP API expose build, verify, query, audit, schema,
+entry-schema, and capability operations. The real downloaded-data
+demonstration aggregates two accepted ready packets and passes all 16/16
+catalog-audit checks.
