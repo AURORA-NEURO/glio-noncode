@@ -897,6 +897,24 @@ admission still requires the independent audit to pass. Its schema and
 capability routes are `/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/schema`
 and the matching `/capabilities` route.
 
+The portable packet has a separate source-free audit boundary. It independently
+recomputes fourteen checks for ZIP member order, fixed metadata, manifest
+descriptors, nested canonical bytes, address lineage, review replay, query
+conservation, deterministic packet bytes, and the public aggregate boundary.
+The audit can be persisted, reloaded, queried for passed or failed checks, and
+exported as JSON, CSV, or Markdown:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-audit \
+  packet-review.zip --destination packet-review-audit.json --format summary \
+  --output packet-review-audit-summary.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-audit-verify \
+  packet-review-audit.json --output packet-review-audit-verification.json
+```
+
+Its read-only schema and capability routes are `/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/audit/schema` and the matching `/capabilities` route. The Actions
+workflow asserts fourteen passed checks and zero failed-check query results.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -967,6 +985,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/audit/capabilities` | independent audit operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/schema` | portable catalog-diff policy review packet contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/capabilities` | packet verification, lineage, and query guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/audit/schema` | independent portable packet audit contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/audit/capabilities` | packet audit, persistence, and query guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

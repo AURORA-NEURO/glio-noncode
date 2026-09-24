@@ -4914,6 +4914,16 @@ read-only schema and capability routes at
 `/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/schema`
 and `/capabilities`.
 
+Portable packet review evidence has an independent audit layer as well. It
+replays fourteen deterministic checks across the ZIP boundary, fixed member
+metadata, manifest descriptors, nested canonical bytes, lineage, review
+regeneration, member queries, packet addressing, and the public aggregate
+boundary. The audit is source-free after packet creation and supports canonical
+JSON persistence, bounded passed/failed queries, CSV, Markdown, CLI verify, and
+Actions assertions. Its routes are
+`/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/packet/audit/schema`
+and `/capabilities`.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

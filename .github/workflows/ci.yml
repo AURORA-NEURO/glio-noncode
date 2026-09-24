@@ -368,6 +368,14 @@ jobs:
           && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-query
           .ci-packet-review-catalog-review-packet.zip --resource members --output .ci-packet-review-catalog-review-packet-query.json
           && python -c "import json; summary=json.load(open('.ci-packet-review-catalog-review-packet-summary.json', encoding='utf-8')); verification=json.load(open('.ci-packet-review-catalog-review-packet-verification.json', encoding='utf-8')); query=json.load(open('.ci-packet-review-catalog-review-packet-query.json', encoding='utf-8')); assert summary['entry_count'] == 5 and verification['accepted'] and verification['passed_count'] == 10 and query['total'] == 5; print('portable packet-catalog review packet contract passed')"
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-audit
+          .ci-packet-review-catalog-review-packet.zip --destination .ci-packet-review-catalog-review-packet-audit.json
+          --format summary --output .ci-packet-review-catalog-review-packet-audit-summary.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-audit-verify
+          .ci-packet-review-catalog-review-packet-audit.json --output .ci-packet-review-catalog-review-packet-audit-verification.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-packet-audit-query
+          .ci-packet-review-catalog-review-packet-audit.json --failed --output .ci-packet-review-catalog-review-packet-audit-query.json
+          && python -c "import json; audit=json.load(open('.ci-packet-review-catalog-review-packet-audit-summary.json', encoding='utf-8')); verification=json.load(open('.ci-packet-review-catalog-review-packet-audit-verification.json', encoding='utf-8')); failed=json.load(open('.ci-packet-review-catalog-review-packet-audit-query.json', encoding='utf-8')); assert audit['accepted'] and audit['passed_count'] == 14 and audit['failed_count'] == 0 and verification['accepted'] and failed['total'] == 0; print('portable packet-catalog review packet audit contract passed')"
       - name: Upload workbench observations
         uses: actions/upload-artifact@v4
         with:
@@ -459,6 +467,10 @@ jobs:
              .ci-packet-review-catalog-review-packet-summary.json
              .ci-packet-review-catalog-review-packet-verification.json
              .ci-packet-review-catalog-review-packet-query.json
+             .ci-packet-review-catalog-review-packet-audit.json
+             .ci-packet-review-catalog-review-packet-audit-summary.json
+             .ci-packet-review-catalog-review-packet-audit-verification.json
+             .ci-packet-review-catalog-review-packet-audit-query.json
             .ci-workbench.zip
           if-no-files-found: error
 
