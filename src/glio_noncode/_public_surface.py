@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'b6aca4e16a469626cd32846e9bac38c0fd53d0c154aebb49bc72d42241b55145'
-SURFACE_DIGEST = '3bb31d381ee2eb10659bc9aab094e483256e84d20e16c9685ed36c126b5bc669'
+SURFACE_DIGEST = '9f1a0dd99a2b4341780feca3417e44628686f3eb1aff6d2509ca0c7b233f680a'
 
 ALL = (
     'CaseManifest',
@@ -43820,6 +43820,9 @@ CHILD_MODULES = {
     'downloaded_data_review_packet_diff_audit': 'glio_noncode.downloaded_data_review_packet_diff_audit',
     'downloaded_data_review_packet_diff_policy': 'glio_noncode.downloaded_data_review_packet_diff_policy',
     'downloaded_data_review_packet_diff_policy_audit': 'glio_noncode.downloaded_data_review_packet_diff_policy_audit',
+    'downloaded_data_review_packet_diff_policy_package': 'glio_noncode.downloaded_data_review_packet_diff_policy_package',
+    'downloaded_data_review_packet_diff_policy_package_audit': 'glio_noncode.downloaded_data_review_packet_diff_policy_package_audit',
+    'downloaded_data_review_packet_diff_policy_package_contracts': 'glio_noncode.downloaded_data_review_packet_diff_policy_package_contracts',
     'editing_design_frontier_access': 'glio_noncode.editing_design_frontier_access',
     'editing_design_frontier_adapters': 'glio_noncode.editing_design_frontier_adapters',
     'editing_design_frontier_artifact_manifest': 'glio_noncode.editing_design_frontier_artifact_manifest',
@@ -49167,6 +49170,9 @@ LAZY_MODULES = (
     'glio_noncode.downloaded_data_review_packet_diff_audit',
     'glio_noncode.downloaded_data_review_packet_diff_policy',
     'glio_noncode.downloaded_data_review_packet_diff_policy_audit',
+    'glio_noncode.downloaded_data_review_packet_diff_policy_package',
+    'glio_noncode.downloaded_data_review_packet_diff_policy_package_audit',
+    'glio_noncode.downloaded_data_review_packet_diff_policy_package_contracts',
     'glio_noncode.editing_design_frontier_access',
     'glio_noncode.editing_design_frontier_adapters',
     'glio_noncode.editing_design_frontier_artifact_manifest',

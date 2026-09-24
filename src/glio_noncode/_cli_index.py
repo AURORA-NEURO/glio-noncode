@@ -8401,6 +8401,58 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print downloaded-data review packet diff policy capabilities',
     ),
     (
+        'downloaded-data-review-packet-diff-policy-package',
+        'package a downloaded-data review packet diff, policy, and audit without source access',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-audit',
+        'independently audit a downloaded-data review packet diff policy package',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-audit-capabilities',
+        'print downloaded-data review packet diff policy package audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-audit-check-schema',
+        'print downloaded-data review packet diff policy package audit check schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-audit-query',
+        'query downloaded-data review packet diff policy package audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-audit-schema',
+        'print downloaded-data review packet diff policy package audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-audit-verify',
+        'verify a downloaded-data review packet diff policy package audit',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-capabilities',
+        'print downloaded-data review packet diff policy package capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-load',
+        'load a downloaded-data review packet diff policy package without source access',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-manifest-schema',
+        'print downloaded-data review packet diff policy package manifest schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-query',
+        'query a downloaded-data review packet diff policy package',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-schema',
+        'print downloaded-data review packet diff policy package schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-package-verify',
+        'verify a downloaded-data review packet diff policy package',
+    ),
+    (
         'downloaded-data-review-packet-diff-policy-query',
         'query downloaded-data review packet diff policy checks',
     ),

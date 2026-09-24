@@ -6248,6 +6248,30 @@ python -m glio_noncode downloaded-data-review-packet-diff-policy-audit policy.js
 python -m glio_noncode downloaded-data-review-packet-diff-policy-audit-query policy-audit.json --failed
 ```
 
+Diff-policy evidence can be handed off as one deterministic source-free ZIP.
+The package preserves the diff, the ready/blocked policy decision, the
+independent policy audit, and a replayable Markdown review. It retains blocked
+decisions for review, requires an accepted independent audit, verifies exact
+ZIP bytes, and supports manifest, member, lineage, decision, review, query,
+schema, and capability projections. The package audit independently checks
+fourteen transport, lineage, replay, decision, and public-boundary conditions.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-package diff.json policy.json --audit policy-audit.json --destination policy-package.zip --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-package-verify policy-package.zip
+python -m glio_noncode downloaded-data-review-packet-diff-policy-package-load policy-package.zip
+python -m glio_noncode downloaded-data-review-packet-diff-policy-package-query policy-package.zip --resource policy
+python -m glio_noncode downloaded-data-review-packet-diff-policy-package-audit policy-package.zip --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-package-audit-query package-audit.json --failed
+```
+
+The HTTP package surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/package` and mirrors build,
+verify, load, query, audit, schema, manifest-schema, and capability operations.
+The real downloaded-data demonstration packages the ready policy decision in a
+571,100-byte ZIP with a 14/14 independent package audit; a strict policy can be
+packaged as `blocked` evidence without losing its failed checks.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history

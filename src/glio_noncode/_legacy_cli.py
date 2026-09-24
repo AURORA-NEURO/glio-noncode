@@ -966,6 +966,8 @@ from . import downloaded_data_review_packet_diff as downloaded_data_review_packe
 from . import downloaded_data_review_packet_diff_audit as downloaded_data_review_packet_diff_audit_model
 from . import downloaded_data_review_packet_diff_policy as downloaded_data_review_packet_diff_policy_model
 from . import downloaded_data_review_packet_diff_policy_audit as downloaded_data_review_packet_diff_policy_audit_model
+from . import downloaded_data_review_packet_diff_policy_package as downloaded_data_review_packet_diff_policy_package_model
+from . import downloaded_data_review_packet_diff_policy_package_audit as downloaded_data_review_packet_diff_policy_package_audit_model
 from . import downloaded_data_profile_query as downloaded_data_profile_query_model
 from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit_model
 from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime_model
@@ -29243,6 +29245,52 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_review_packet_diff_policy_audit_query.add_argument("--output", default=None)
     subparsers.add_parser("downloaded-data-review-packet-diff-policy-audit-schema", help="print downloaded-data review packet diff policy audit schema").add_argument("--output", default=None)
     subparsers.add_parser("downloaded-data-review-packet-diff-policy-audit-capabilities", help="print downloaded-data review packet diff policy audit capabilities").add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_package = subparsers.add_parser("downloaded-data-review-packet-diff-policy-package", help="package a downloaded-data review packet diff, policy, and audit without source access")
+    downloaded_data_review_packet_diff_policy_package.add_argument("diff", type=str)
+    downloaded_data_review_packet_diff_policy_package.add_argument("policy", type=str)
+    downloaded_data_review_packet_diff_policy_package.add_argument("--audit", default=None)
+    downloaded_data_review_packet_diff_policy_package.add_argument("--package-id", default=downloaded_data_review_packet_diff_policy_package_model.PACKAGE_PREFIX)
+    downloaded_data_review_packet_diff_policy_package.add_argument("--destination", default=None)
+    downloaded_data_review_packet_diff_policy_package.add_argument("--allow-existing", action="store_true")
+    downloaded_data_review_packet_diff_policy_package.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    downloaded_data_review_packet_diff_policy_package.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_package_verify = subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-verify", help="verify a downloaded-data review packet diff policy package")
+    downloaded_data_review_packet_diff_policy_package_verify.add_argument("package", type=str)
+    downloaded_data_review_packet_diff_policy_package_verify.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_package_load = subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-load", help="load a downloaded-data review packet diff policy package without source access")
+    downloaded_data_review_packet_diff_policy_package_load.add_argument("package", type=str)
+    downloaded_data_review_packet_diff_policy_package_load.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_package_query = subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-query", help="query a downloaded-data review packet diff policy package")
+    downloaded_data_review_packet_diff_policy_package_query.add_argument("package", type=str)
+    downloaded_data_review_packet_diff_policy_package_query.add_argument("--resource", choices=("summary", "members", "manifest", "diff", "policy", "audit", "review"), default="summary")
+    downloaded_data_review_packet_diff_policy_package_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_review_packet_diff_policy_package_query.add_argument("--limit", type=int, default=50)
+    downloaded_data_review_packet_diff_policy_package_query.add_argument("--format", choices=("json", "csv"), default="json")
+    downloaded_data_review_packet_diff_policy_package_query.add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-schema", help="print downloaded-data review packet diff policy package schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-manifest-schema", help="print downloaded-data review packet diff policy package manifest schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-capabilities", help="print downloaded-data review packet diff policy package capabilities").add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_package_audit = subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-audit", help="independently audit a downloaded-data review packet diff policy package")
+    downloaded_data_review_packet_diff_policy_package_audit.add_argument("package", type=str)
+    downloaded_data_review_packet_diff_policy_package_audit.add_argument("--destination", default=None)
+    downloaded_data_review_packet_diff_policy_package_audit.add_argument("--allow-existing", action="store_true")
+    downloaded_data_review_packet_diff_policy_package_audit.add_argument("--format", choices=("json", "summary", "csv", "markdown"), default="summary")
+    downloaded_data_review_packet_diff_policy_package_audit.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_package_audit_verify = subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-audit-verify", help="verify a downloaded-data review packet diff policy package audit")
+    downloaded_data_review_packet_diff_policy_package_audit_verify.add_argument("audit", type=str)
+    downloaded_data_review_packet_diff_policy_package_audit_verify.add_argument("--output", default=None)
+    downloaded_data_review_packet_diff_policy_package_audit_query = subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-audit-query", help="query downloaded-data review packet diff policy package audit checks")
+    downloaded_data_review_packet_diff_policy_package_audit_query.add_argument("audit", type=str)
+    downloaded_data_review_packet_diff_policy_package_audit_query.add_argument("--passed", action="store_true")
+    downloaded_data_review_packet_diff_policy_package_audit_query.add_argument("--failed", action="store_true")
+    downloaded_data_review_packet_diff_policy_package_audit_query.add_argument("--text", default="")
+    downloaded_data_review_packet_diff_policy_package_audit_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_review_packet_diff_policy_package_audit_query.add_argument("--limit", type=int, default=50)
+    downloaded_data_review_packet_diff_policy_package_audit_query.add_argument("--format", choices=("json", "csv"), default="json")
+    downloaded_data_review_packet_diff_policy_package_audit_query.add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-audit-check-schema", help="print downloaded-data review packet diff policy package audit check schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-audit-schema", help="print downloaded-data review packet diff policy package audit schema").add_argument("--output", default=None)
+    subparsers.add_parser("downloaded-data-review-packet-diff-policy-package-audit-capabilities", help="print downloaded-data review packet diff policy package audit capabilities").add_argument("--output", default=None)
     for command, help_text in (
         ("downloaded-data-catalog-member-schema", "print downloaded data member schema"),
         ("downloaded-data-catalog-schema", "print downloaded data catalog schema"),
@@ -36371,6 +36419,77 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "downloaded-data-review-packet-diff-policy-audit-capabilities":
             _write_json(downloaded_data_review_packet_diff_policy_audit_model.capabilities(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package":
+            value = downloaded_data_review_packet_diff_policy_package_model.build_package(args.diff, args.policy, args.audit, package_id=args.package_id)
+            if args.destination:
+                downloaded_data_review_packet_diff_policy_package_model.write_package(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(downloaded_data_review_packet_diff_policy_package_model.render_package_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_policy_package_model.package_csv(value), args.output)
+            elif args.format == "json":
+                _write_text(downloaded_data_review_packet_diff_policy_package_model.package_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package-verify":
+            _write_json(downloaded_data_review_packet_diff_policy_package_model.verify_package(args.package).to_dict(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package-load":
+            diff, policy, audit, review = downloaded_data_review_packet_diff_policy_package_model.load_package(args.package)
+            _write_json({"diff": diff.to_dict(), "policy": policy.to_dict(), "audit": audit.to_dict(), "review": review}, args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package-query":
+            result = downloaded_data_review_packet_diff_policy_package_model.query_package(args.package, resource=args.resource, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_policy_package_model.package_csv(args.package, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package-schema":
+            _write_json(downloaded_data_review_packet_diff_policy_package_model.package_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package-manifest-schema":
+            _write_json(downloaded_data_review_packet_diff_policy_package_model.manifest_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package-capabilities":
+            _write_json(downloaded_data_review_packet_diff_policy_package_model.capabilities(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package-audit":
+            value = downloaded_data_review_packet_diff_policy_package_audit_model.audit_package(args.package)
+            if args.destination:
+                downloaded_data_review_packet_diff_policy_package_audit_model.write_audit(value, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(downloaded_data_review_packet_diff_policy_package_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_policy_package_audit_model.audit_csv(value), args.output)
+            elif args.format == "json":
+                _write_text(downloaded_data_review_packet_diff_policy_package_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-review-packet-diff-policy-package-audit-verify":
+            value = downloaded_data_review_packet_diff_policy_package_audit_model.load_audit(args.audit)
+            downloaded_data_review_packet_diff_policy_package_audit_model.verify_audit(value)
+            _write_json(value.to_dict(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-review-packet-diff-policy-package-audit-query":
+            passed = True if args.passed else False if args.failed else None
+            result = downloaded_data_review_packet_diff_policy_package_audit_model.query_audit(args.audit, passed=passed, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(downloaded_data_review_packet_diff_policy_package_audit_model.audit_csv(args.audit, passed=passed, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package-audit-check-schema":
+            _write_json(downloaded_data_review_packet_diff_policy_package_audit_model.check_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package-audit-schema":
+            _write_json(downloaded_data_review_packet_diff_policy_package_audit_model.audit_schema(), args.output)
+            return 0
+        if args.command == "downloaded-data-review-packet-diff-policy-package-audit-capabilities":
+            _write_json(downloaded_data_review_packet_diff_policy_package_audit_model.capabilities(), args.output)
             return 0
         if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry":
             if args.archive_id is not None and len(args.archive_id) != len(args.input):
