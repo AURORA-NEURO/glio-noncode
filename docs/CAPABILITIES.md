@@ -6699,6 +6699,31 @@ data replay produces a 29,389-byte accepted package with four payload members,
 ready policy evidence, and an independent 16/16 audit at
 `.glio-real-demo/real-packet-policy-package-handoff-v2.zip`.
 
+Those portable handoff packages can now be cataloged without retaining their
+ZIP bytes. The catalog verifies each package before construction, sorts entries
+by explicit entry identity, rejects duplicate entry/package/manifest/address
+identities, and retains package, manifest, catalog-diff, policy, audit, state,
+acceptance, member-count, and byte-count lineage. It folds accepted, ready,
+blocked, package-byte, and member-byte totals and exposes bounded summary,
+entry, accepted, ready, blocked, lineage, text, CSV, JSON, and Markdown
+projections. Catalog and entry addresses are content-addressed; persistence is
+atomic; and the independent catalog audit returns sixteen replay checks,
+including source-free and public-boundary checks.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog handoff.zip --entry-id handoff --catalog-id handoff-catalog --destination handoff-catalog.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-query handoff-catalog.json --resource lineage
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-audit handoff-catalog.json --destination handoff-catalog-audit.json --format summary
+```
+
+The HTTP catalog surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog`
+and supports repeated `package` and `entry_id` parameters for build, plus
+verify, query, audit, audit-query, entry-schema, schema, and capability
+operations. The real downloaded-data replay catalogs the accepted
+`.glio-real-demo/real-packet-policy-package-handoff-v2.zip`: one entry,
+29,389 package bytes, 24,735 member bytes, and a 16/16 accepted catalog audit.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
