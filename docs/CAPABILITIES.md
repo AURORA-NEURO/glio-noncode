@@ -6570,6 +6570,31 @@ and provides policy, verify, query, audit, audit-query, schema, check-schema,
 and capability operations. The real downloaded-data self-diff is accepted by
 both strict and release profiles; its policy audit replays 14/14 checks.
 
+Packet-catalog diff policy decisions can now be sealed for portable handoff.
+The deterministic five-member ZIP contains `manifest.json`,
+`catalog-diff.json`, `policy.json`, `policy-audit.json`, and `review.md`.
+Verification replays fixed ZIP metadata, canonical JSON, member byte and
+content addresses, nested diff/policy/audit lineage, policy-state preservation,
+and the source-free public boundary. Blocked policy decisions remain explicit
+evidence when their independent policy audit is accepted. The package audit
+replays fifteen checks covering transport bytes, member order, lineage,
+typed payloads, review text, query lineage, and public-boundary controls.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package catalog-diff.json release-policy.json release-policy-audit.json --destination catalog-diff-policy-package.zip --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-verify catalog-diff-policy-package.zip
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-query catalog-diff-policy-package.zip --resource members
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-audit catalog-diff-policy-package.zip --destination catalog-diff-policy-package-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-audit-query catalog-diff-policy-package-audit.json --failed
+```
+
+The HTTP package surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package`
+and provides build, verify, query, audit, audit-query, schema,
+manifest-schema, and capability operations. A real downloaded-data-derived
+packet catalog policy package is 25,192 bytes and its independent package
+audit passes 15/15 checks.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
