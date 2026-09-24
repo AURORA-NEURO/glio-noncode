@@ -6595,6 +6595,32 @@ manifest-schema, and capability operations. A real downloaded-data-derived
 packet catalog policy package is 25,192 bytes and its independent package
 audit passes 15/15 checks.
 
+Portable packet-catalog diff policy packages can now be aggregated into a
+source-free catalog for handoff, inventory, and bounded downstream queries.
+The catalog accepts up to 256 verified package ZIPs, preserves each package's
+entry ID, package ID, package/diff/policy/audit addresses, policy state,
+acceptance, member count, and byte count, rejects duplicate identities and
+addresses, and derives deterministic ready, blocked, and accepted rollups.
+Catalog entries retain public lineage only; source values and archive payloads
+are not copied into the catalog. The independent catalog audit replays fifteen
+checks for ordering, uniqueness, counts, bytes, nested lineage, typed reload,
+canonical JSON, public boundary, query conservation, and source-free policy.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog packet-catalog-policy-package.zip --entry-id entry-a --destination packet-catalog.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-verify packet-catalog.json
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-query packet-catalog.json --resource lineage
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-audit packet-catalog.json --destination packet-catalog-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-catalog-diff-policy-package-catalog-diff-policy-package-catalog-audit-query packet-catalog-audit.json --failed
+```
+
+The HTTP catalog surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package/catalog/diff/policy/package/catalog/diff/policy/package/catalog`
+and provides build, verify, query, audit, audit-query, schema, entry-schema,
+and capability operations. A real downloaded-data packet-package catalog
+replays one ready entry, preserves a 25,192-byte package total, and passes all
+15/15 independent catalog-audit checks.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history
