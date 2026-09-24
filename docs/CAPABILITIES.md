@@ -4826,6 +4826,20 @@ The strict and release profiles enforce changed-field budgets, allowed
 directions and state transitions, previous/current acceptance requirements,
 unchanged controls, address replay, and public-boundary cleanliness.
 
+Audit a packet-diff policy gate independently:
+
+```powershell
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit `
+  packet-diff-policy.json --destination packet-diff-policy-audit.json --format summary
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-verify `
+  packet-diff-policy-audit.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-query `
+  packet-diff-policy-audit.json --failed
+```
+
+The independent audit replays ten structural invariants and retains failed
+checks without requiring the original packet source tree.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

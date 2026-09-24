@@ -264,6 +264,19 @@ jobs:
           .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy.json --failed
           --output .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-query.json
           && python -c "import json; summary=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-summary.json', encoding='utf-8')); verification=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-query.json', encoding='utf-8')); assert summary['accepted'] and summary['passed_count'] == 9 and verification['accepted'] and query['total'] == 0; print('workbench release bundle catalog policy-set packet diff policy contract passed')"
+      - name: Audit the packet-diff policy gate
+        run: >-
+          python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit
+          .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy.json
+          --destination .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit.json
+          --format summary --output .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-summary.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-verify
+          .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit.json
+          --output .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-verification.json
+          && python -m glio_noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-query
+          .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit.json --failed
+          --output .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-query.json
+          && python -c "import json; summary=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-summary.json', encoding='utf-8')); verification=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-verification.json', encoding='utf-8')); query=json.load(open('.ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-query.json', encoding='utf-8')); assert summary['accepted'] and summary['passed_count'] == 10 and verification['accepted'] and query['total'] == 0; print('workbench release bundle catalog policy-set packet diff policy audit contract passed')"
       - name: Upload workbench observations
         uses: actions/upload-artifact@v4
         with:
@@ -317,6 +330,10 @@ jobs:
             .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-summary.json
             .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-verification.json
             .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-query.json
+            .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit.json
+            .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-summary.json
+            .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-verification.json
+            .ci-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-query.json
             .ci-workbench.zip
           if-no-files-found: error
 

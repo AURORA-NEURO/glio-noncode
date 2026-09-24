@@ -762,6 +762,25 @@ blocked-to-accepted recovery; release policy can retain regressed evidence for
 broader review. Both policies replay change addresses, packet lineage, state,
 direction, acceptance, unchanged controls, and the public boundary.
 
+## Independent packet-diff policy audit
+
+The policy gate has a separate audit artifact. It replays ten structural
+invariants—check ordering and addresses, gate and policy addresses, diff
+lineage, policy controls, decision conservation, and the public boundary:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit \
+  packet-diff-policy.json --destination packet-diff-policy-audit.json \
+  --format summary
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-verify \
+  packet-diff-policy-audit.json
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-audit-query \
+  packet-diff-policy-audit.json --failed
+```
+
+The audit is independent, deterministic, source-free, and preserves failed
+policy evidence for review.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -816,6 +835,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/capabilities` | packet comparison operations and guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/schema` | packet-diff release policy contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/capabilities` | packet-diff policy operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/audit/schema` | packet-diff policy audit contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/audit/capabilities` | packet-diff policy audit operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

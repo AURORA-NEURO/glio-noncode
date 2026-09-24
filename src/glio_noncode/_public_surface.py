@@ -4,7 +4,7 @@
 MANIFEST_VERSION = 2
 SOURCE_DIGEST = '8a20fb8d562bce76b17bdf17736380dd849b1a265b13769ef68d9bdba9ac7296'
 ALL_DIGEST = 'b6aca4e16a469626cd32846e9bac38c0fd53d0c154aebb49bc72d42241b55145'
-SURFACE_DIGEST = '22ccd13fcae344bfd4808ac57bb89f92d311cf69860752c5f92aac5d2aff9a0c'
+SURFACE_DIGEST = 'ad9feaadae1320487c7d26e0cf53dcf529334a83c7c1fc8437e9c9ec08c6410c'
 
 ALL = (
     'CaseManifest',
@@ -44945,6 +44945,8 @@ CHILD_MODULES = {
     'module_workbench_release_bundle_catalog_diff_policy_set_packet_diff': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff',
     'module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_contracts': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_contracts',
     'module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy',
+    'module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_audit': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_audit',
+    'module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_audit_contracts': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_audit_contracts',
     'module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_contracts': 'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_contracts',
     'module_workbench_release_bundle_contracts': 'glio_noncode.module_workbench_release_bundle_contracts',
     'module_workbench_runtime': 'glio_noncode.module_workbench_runtime',
@@ -50267,6 +50269,8 @@ LAZY_MODULES = (
     'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff',
     'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_contracts',
     'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy',
+    'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_audit',
+    'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_audit_contracts',
     'glio_noncode.module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_contracts',
     'glio_noncode.module_workbench_release_bundle_contracts',
     'glio_noncode.module_workbench_runtime',
