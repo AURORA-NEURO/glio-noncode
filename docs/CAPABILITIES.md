@@ -6338,6 +6338,28 @@ mirrors build, verify, query, audit, schema, manifest-schema, and capability
 operations. The nested package remains byte-addressed and no source archive
 bytes or record values are introduced by the handoff bundle.
 
+Release bundles can now be compared longitudinally without reopening source
+archives. The comparison pairs certificate, run, package, audit, and bundle
+member evidence, retaining left/right snapshots and addresses while classifying
+each row as added, removed, changed, or unchanged. It derives `improved`,
+`regressed`, `changed`, or `unchanged` direction plus ready/blocked state
+transitions. An independent thirteen-check audit replays both bundles, packet
+lineage, item addresses, counts, transition logic, recomputation, and the
+source-free public boundary.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff baseline-bundle.zip candidate-bundle.zip --destination bundle-diff.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-query bundle-diff.json --resource members --change changed
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-audit bundle-diff.json --left baseline-bundle.zip --right candidate-bundle.zip --destination bundle-diff-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-audit-query bundle-diff-audit.json --failed
+```
+
+The HTTP comparison surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff`
+and mirrors diff build, verify, query, audit, audit-query, schema, and
+capability operations. Bundle diffs retain no source archive bytes, record
+values, private identifiers, agent metadata, or language metadata.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history

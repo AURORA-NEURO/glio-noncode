@@ -8517,6 +8517,54 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print downloaded-data release bundle capabilities',
     ),
     (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff',
+        'compare two source-free downloaded-data release bundles',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-audit',
+        'independently audit a downloaded-data release bundle diff',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-audit-capabilities',
+        'print downloaded-data release bundle diff audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-audit-check-schema',
+        'print downloaded-data release bundle diff audit check schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-audit-query',
+        'query downloaded-data release bundle diff audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-audit-schema',
+        'print downloaded-data release bundle diff audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-audit-verify',
+        'verify a downloaded-data release bundle diff audit',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-capabilities',
+        'print downloaded-data release bundle diff capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-item-schema',
+        'print downloaded-data release bundle diff item schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-query',
+        'query downloaded-data release bundle diff items',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-schema',
+        'print downloaded-data release bundle diff schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-verify',
+        'verify a downloaded-data release bundle diff',
+    ),
+    (
         'downloaded-data-review-packet-diff-policy-release-certificate-bundle-manifest-schema',
         'print downloaded-data release bundle manifest schema',
     ),
