@@ -2792,6 +2792,17 @@ from .module_workbench_archive import (
     verify_module_workbench_archive,
     write_module_workbench_archive,
 )
+from .module_workbench_archive_diff import (
+    build_module_workbench_archive_diff,
+    load_module_workbench_archive_diff,
+    module_workbench_archive_diff_capabilities,
+    module_workbench_archive_diff_csv,
+    module_workbench_archive_diff_json,
+    module_workbench_archive_diff_schema,
+    query_module_workbench_archive_diff,
+    render_module_workbench_archive_diff_markdown,
+    verify_module_workbench_archive_diff,
+)
 from .module_workbench_cache import (
     load_module_workbench_cache,
     load_module_workbench_previous_inventory,
@@ -10425,6 +10436,54 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_archive_query.add_argument("--limit", default=50, type=int)
     module_workbench_archive_query.add_argument("--format", choices=("json", "csv"), default="json")
     module_workbench_archive_query.add_argument("--output", default=None)
+    module_workbench_archive_diff = subparsers.add_parser(
+        "module-workbench-archive-diff",
+        help="compare two portable module workbench archives without source access",
+    )
+    module_workbench_archive_diff.add_argument("--left-archive", required=True)
+    module_workbench_archive_diff.add_argument("--right-archive", required=True)
+    module_workbench_archive_diff.add_argument(
+        "--diff-id",
+        default="glio-noncode-module-workbench-archive-diff",
+    )
+    module_workbench_archive_diff.add_argument(
+        "--format", choices=("json", "csv", "markdown"), default="json"
+    )
+    module_workbench_archive_diff.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-archive-diff-schema",
+        help="print module workbench archive diff schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "module-workbench-archive-diff-capabilities",
+        help="print module workbench archive diff capabilities",
+    ).add_argument("--output", default=None)
+    module_workbench_archive_diff_verify = subparsers.add_parser(
+        "module-workbench-archive-diff-verify",
+        help="verify a portable module workbench archive comparison",
+    )
+    module_workbench_archive_diff_verify.add_argument("diff", type=str)
+    module_workbench_archive_diff_verify.add_argument("--output", default=None)
+    module_workbench_archive_diff_load = subparsers.add_parser(
+        "module-workbench-archive-diff-load",
+        help="load a portable module workbench archive comparison",
+    )
+    module_workbench_archive_diff_load.add_argument("diff", type=str)
+    module_workbench_archive_diff_load.add_argument("--output", default=None)
+    module_workbench_archive_diff_query = subparsers.add_parser(
+        "module-workbench-archive-diff-query",
+        help="query a portable module workbench archive comparison",
+    )
+    module_workbench_archive_diff_query.add_argument("diff", type=str)
+    module_workbench_archive_diff_query.add_argument("--kind", default=None)
+    module_workbench_archive_diff_query.add_argument("--module-id", default=None)
+    module_workbench_archive_diff_query.add_argument("--text", default=None)
+    module_workbench_archive_diff_query.add_argument("--offset", default=0, type=int)
+    module_workbench_archive_diff_query.add_argument("--limit", default=50, type=int)
+    module_workbench_archive_diff_query.add_argument(
+        "--format", choices=("json", "csv"), default="json"
+    )
+    module_workbench_archive_diff_query.add_argument("--output", default=None)
     module_workbench_detail = subparsers.add_parser("module-workbench-detail", help="build a deep dossier for one module")
     module_workbench_detail.add_argument("--source-root", default=None)
     module_workbench_detail.add_argument("--test-root", default=None)
@@ -48654,6 +48713,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "module-workbench-archive-capabilities":
             _write_json(module_workbench_archive_capabilities(), args.output)
             return 0
+        if args.command == "module-workbench-archive-diff-schema":
+            _write_json(module_workbench_archive_diff_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-archive-diff-capabilities":
+            _write_json(module_workbench_archive_diff_capabilities(), args.output)
+            return 0
         if args.command == "module-workbench-archive":
             _inventory, _matrix, _lineage, _quality, workbench = _build_module_workbench_cli_chain(args)[:5]
             archive = build_module_workbench_archive(workbench, archive_id=args.archive_id)
@@ -48702,6 +48767,52 @@ def main(argv: list[str] | None = None) -> int:
                         depth_band=args.depth_band,
                         risk=args.risk,
                         kind=args.kind,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command == "module-workbench-archive-diff":
+            diff = build_module_workbench_archive_diff(
+                args.left_archive,
+                args.right_archive,
+                diff_id=args.diff_id,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_archive_diff_csv(diff), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_archive_diff_markdown(diff), args.output)
+            else:
+                _write_text(module_workbench_archive_diff_json(diff), args.output)
+            return 0 if diff.accepted else 2
+        if args.command == "module-workbench-archive-diff-verify":
+            verification = verify_module_workbench_archive_diff(args.diff)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-workbench-archive-diff-load":
+            diff = load_module_workbench_archive_diff(args.diff)
+            _write_text(module_workbench_archive_diff_json(diff), args.output)
+            return 0
+        if args.command == "module-workbench-archive-diff-query":
+            result = query_module_workbench_archive_diff(
+                args.diff,
+                kind=args.kind,
+                module_id=args.module_id,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                diff = load_module_workbench_archive_diff(args.diff)
+                _write_text(
+                    module_workbench_archive_diff_csv(
+                        diff,
+                        kind=args.kind,
+                        module_id=args.module_id,
                         text=args.text,
                         offset=args.offset,
                         limit=args.limit,

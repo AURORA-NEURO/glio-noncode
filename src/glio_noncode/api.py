@@ -1832,6 +1832,10 @@ from .module_workbench_archive import (
     verify_module_workbench_archive,
     write_module_workbench_archive,
 )
+from .module_workbench_archive_diff import (
+    module_workbench_archive_diff_capabilities,
+    module_workbench_archive_diff_schema,
+)
 from .module_workbench_triage import (
     build_module_workbench_triage,
     module_workbench_triage_capabilities,
@@ -22461,6 +22465,8 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/archive/schema",
             "/v1/module-workbench/archive/capabilities",
             "/v1/module-workbench/archive.zip",
+            "/v1/module-workbench/archive-diff/schema",
+            "/v1/module-workbench/archive-diff/capabilities",
             "/v1/module-workbench/execution",
             "/v1/module-workbench/execution/query",
             "/v1/module-workbench/execution/schema",
@@ -22681,6 +22687,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/policy/schema": module_workbench_policy_schema,
                     "/v1/module-workbench/audit/schema": module_workbench_audit_schema,
                     "/v1/module-workbench/diff/schema": module_workbench_diff_schema,
+                    "/v1/module-workbench/archive-diff/schema": module_workbench_archive_diff_schema,
                     "/v1/module-workbench/runtime/schema": module_workbench_runtime_schema,
                      "/v1/module-workbench/portfolio/schema": module_workbench_portfolio_schema,
                      "/v1/module-workbench/triage/schema": module_workbench_triage_schema,
@@ -22762,6 +22769,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/policy/capabilities": module_workbench_policy_capabilities,
                     "/v1/module-workbench/audit/capabilities": module_workbench_audit_capabilities,
                     "/v1/module-workbench/diff/capabilities": module_workbench_diff_capabilities,
+                    "/v1/module-workbench/archive-diff/capabilities": module_workbench_archive_diff_capabilities,
                     "/v1/module-workbench/runtime/capabilities": module_workbench_runtime_capabilities,
                      "/v1/module-workbench/portfolio/capabilities": module_workbench_portfolio_capabilities,
                      "/v1/module-workbench/triage/capabilities": module_workbench_triage_capabilities,

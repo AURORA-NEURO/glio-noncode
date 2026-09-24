@@ -18188,6 +18188,8 @@ from .module_inventory_exports import module_inventory_symbols_csv as module_inv
 from . import module_workbench as module_workbench
 from . import module_workbench_archive as module_workbench_archive
 from . import module_workbench_archive_contracts as module_workbench_archive_contracts
+from . import module_workbench_archive_diff as module_workbench_archive_diff
+from . import module_workbench_archive_diff_contracts as module_workbench_archive_diff_contracts
 from . import module_workbench_audit as module_workbench_audit
 from .module_workbench_audit import module_workbench_audit_capabilities as module_workbench_audit_capabilities
 from . import module_workbench_audit_contracts as module_workbench_audit_contracts

@@ -508,6 +508,32 @@ The query surface supports `--kind`, `--module-id`, `--text`, `--offset`, and
 `--limit`. Signed aggregate score and task deltas make improvement and
 regression direction explicit.
 
+## Portable archive comparison
+
+Two already-exported workbench ZIPs can be compared without access to either
+source tree. The comparison retains both exact archive addresses, both nested
+workbench addresses, and the addressed module-level diff. The resulting JSON
+is path-free, timestamp-free, source-free, and independently reloadable:
+
+```text
+glio-noncode module-workbench-archive-diff \
+  --left-archive baseline-workbench.zip \
+  --right-archive candidate-workbench.zip \
+  --format json --output workbench-archive-diff.json
+glio-noncode module-workbench-archive-diff-verify workbench-archive-diff.json
+glio-noncode module-workbench-archive-diff-query workbench-archive-diff.json \
+  --kind changed --limit 50
+glio-noncode module-workbench-archive-diff --left-archive baseline-workbench.zip \
+  --right-archive candidate-workbench.zip --format markdown \
+  --output workbench-archive-diff.md
+```
+
+Verification replays the nested diff address, change-kind count conservation,
+archive/workbench address relationships, acceptance state, public boundary,
+and outer comparison address. A reviewer can therefore receive two report
+archives and one compact comparison document without receiving source,
+tests, documentation, downloaded data, or machine-local paths.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -540,6 +566,8 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/archive.zip` | exact-byte deterministic workbench download |
 | `GET /v1/module-workbench/archive/schema` | archive member and boundary contract |
 | `GET /v1/module-workbench/archive/capabilities` | archive operations and guarantees |
+| `GET /v1/module-workbench/archive-diff/schema` | portable archive comparison contract |
+| `GET /v1/module-workbench/archive-diff/capabilities` | portable comparison operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

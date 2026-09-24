@@ -10725,6 +10725,30 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print module workbench archive capabilities',
     ),
     (
+        'module-workbench-archive-diff',
+        'compare two portable module workbench archives without source access',
+    ),
+    (
+        'module-workbench-archive-diff-capabilities',
+        'print module workbench archive diff capabilities',
+    ),
+    (
+        'module-workbench-archive-diff-load',
+        'load a portable module workbench archive comparison',
+    ),
+    (
+        'module-workbench-archive-diff-query',
+        'query a portable module workbench archive comparison',
+    ),
+    (
+        'module-workbench-archive-diff-schema',
+        'print module workbench archive diff schema',
+    ),
+    (
+        'module-workbench-archive-diff-verify',
+        'verify a portable module workbench archive comparison',
+    ),
+    (
         'module-workbench-archive-load',
         'load a verified module workbench report from an archive',
     ),

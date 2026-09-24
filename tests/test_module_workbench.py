@@ -1144,6 +1144,8 @@ class ModuleWorkbenchFixture(unittest.TestCase):
                 ("/v1/module-workbench/triage/capabilities", "operations"),
                 ("/v1/module-workbench/archive/schema", "members"),
                 ("/v1/module-workbench/archive/capabilities", "source_free_reload"),
+                ("/v1/module-workbench/archive-diff/schema", "change_kinds"),
+                ("/v1/module-workbench/archive-diff/capabilities", "compare_verified_archives"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()
