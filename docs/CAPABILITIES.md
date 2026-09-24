@@ -6381,6 +6381,32 @@ capability operations. Blocked strict evidence remains exportable for review;
 release acceptance requires the configured budgets and right-hand release
 readiness.
 
+The release-bundle diff policy decision can now be sealed into a portable,
+source-free review packet. The deterministic ZIP contains exactly
+`manifest.json`, `diff.json`, `policy.json`, `policy-audit.json`, and
+`review.md`. It preserves the longitudinal diff, the accepted release gate,
+the independently recomputed policy audit, member byte addresses, policy
+state, and review text without carrying source archives or record values.
+Packet verification reconstructs canonical JSON and fixed ZIP metadata,
+replays nested lineage and review text, checks the public boundary, and
+rejects tampering. A separate fifteen-check packet audit covers the same
+evidence independently.
+
+```text
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package bundle-diff.json release-policy.json release-policy-audit.json --destination review-packet.zip --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-verify review-packet.zip
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-query review-packet.zip --resource members
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-audit review-packet.zip --destination review-packet-audit.json --format summary
+python -m glio_noncode downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-audit-query review-packet-audit.json --failed
+```
+
+The HTTP packet surface is rooted at
+`/v1/downloaded-data/review-packet/diff/policy/release-certificate/bundle/diff/policy/package`
+and provides build, verify, load, query, audit, audit-query, schema,
+manifest-schema, and capability operations. Real downloaded-data validation
+produces a 30,261-byte ready packet with four payload members, 13/13 release
+policy checks, 14/14 policy-audit checks, and 15/15 packet-audit checks.
+
 ## Cross-run assurance-history observatory
 
 The release-registry federation gate review decision-ledger assurance-history

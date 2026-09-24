@@ -8589,6 +8589,54 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print release bundle diff policy check schema',
     ),
     (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package',
+        'build a portable release bundle diff policy packet',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-audit',
+        'independently audit a portable release bundle diff policy packet',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-audit-capabilities',
+        'print release bundle diff policy packet audit capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-audit-check-schema',
+        'print release bundle diff policy packet audit check schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-audit-query',
+        'query portable release bundle diff policy packet audit checks',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-audit-schema',
+        'print release bundle diff policy packet audit schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-audit-verify',
+        'verify a portable release bundle diff policy packet audit',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-capabilities',
+        'print release bundle diff policy packet capabilities',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-manifest-schema',
+        'print release bundle diff policy packet manifest schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-query',
+        'query a portable release bundle diff policy packet',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-schema',
+        'print release bundle diff policy packet schema',
+    ),
+    (
+        'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-package-verify',
+        'verify a portable release bundle diff policy packet',
+    ),
+    (
         'downloaded-data-review-packet-diff-policy-release-certificate-bundle-diff-policy-query',
         'query release bundle diff policy checks',
     ),
