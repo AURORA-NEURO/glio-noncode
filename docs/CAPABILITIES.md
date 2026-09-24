@@ -4889,6 +4889,15 @@ available at `/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet
 `/capabilities`, and the corresponding `/audit/schema` and `/audit/capabilities`
 routes.
 
+Packet catalogs also have a longitudinal, payload-free comparison layer. It
+classifies packet identities as added, changed, removed, or unchanged and
+retains sorted public field deltas, direction, state transition, and replayable
+content addresses. Strict and release profiles evaluate catalog growth with
+independent count budgets, direction/transition allowlists, accepted-catalog
+controls, and conserved check-level gate evidence. These layers are deterministic,
+source-free, path-free, timestamp-free, and available through JSON, CSV,
+Markdown, CLI, and read-only API schema/capability surfaces.
+
 ### Portable archive transport, reconciliation, and indexing
 
 The execution packet has a deterministic binary transport boundary in addition

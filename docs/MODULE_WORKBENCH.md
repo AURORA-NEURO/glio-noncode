@@ -839,6 +839,34 @@ catalog audit replays the same lineage and conservation rules. Entries support
 accepted/blocked, policy-gate, policy-audit, and text filters with JSON, CSV,
 and Markdown projections.
 
+## Source-free packet catalog diffs and release gates
+
+Catalogs can be compared without reopening either packet ZIP. The comparison
+classifies every packet identity as added, changed, removed, or unchanged and
+retains the public descriptor fields that changed:
+
+```text
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff \
+  --previous-catalog packet-review-catalog-baseline.json \
+  --current-catalog packet-review-catalog-candidate.json \
+  --destination packet-review-catalog-diff.json --format summary
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-query \
+  packet-review-catalog-diff.json --kind added
+glio-noncode module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy \
+  packet-review-catalog-diff.json --profile release \
+  --destination packet-review-catalog-release-gate.json --format summary
+```
+
+The strict profile admits only accepted-to-accepted comparisons with no
+additions, changes, or removals. The release profile permits bounded catalog
+growth and descriptor changes while still requiring accepted catalogs. Both
+profiles expose deterministic budgets, direction and transition allowlists,
+per-check failure evidence, canonical addresses, source-free reload, bounded
+queries, JSON/CSV/Markdown projections, atomic persistence, and fail-closed
+tamper verification. The corresponding read-only API contracts are available
+at `/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/schema`,
+`/diff/capabilities`, `/diff/policy/schema`, and `/diff/policy/capabilities`.
+
 ## HTTP service
 
 The API mirrors the CLI under `/v1/module-workbench`:
@@ -901,6 +929,10 @@ The API mirrors the CLI under `/v1/module-workbench`:
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/capabilities` | catalog aggregation, lineage, and filter guarantees |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/audit/schema` | independent packet review catalog audit contract |
 | `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/audit/capabilities` | catalog audit and query guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/schema` | packet catalog comparison contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/capabilities` | packet comparison operations and guarantees |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/schema` | packet catalog release-policy contract |
+| `GET /v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/capabilities` | packet catalog gate operations and guarantees |
 
 All list and query routes enforce bounded pagination. JSON projections are
 timestamp-free and addressable. A failed aggregate gate returns an

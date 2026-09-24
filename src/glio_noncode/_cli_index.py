@@ -14325,6 +14325,50 @@ LEGACY_COMMANDS: tuple[tuple[str, str], ...] = (
         'print packet review catalog capabilities',
     ),
     (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff',
+        'compare two source-free packet review catalogs',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-capabilities',
+        'print packet review catalog diff capabilities',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-load',
+        'load a packet review catalog diff',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy',
+        'evaluate a packet review catalog diff policy',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-capabilities',
+        'print packet review catalog diff policy capabilities',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-query',
+        'query packet review catalog diff policy checks',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-schema',
+        'print packet review catalog diff policy schema',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-policy-verify',
+        'verify a packet review catalog diff policy gate',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-query',
+        'query packet review catalog diff changes',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-schema',
+        'print packet review catalog diff schema',
+    ),
+    (
+        'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-diff-verify',
+        'verify a packet review catalog diff',
+    ),
+    (
         'module-workbench-release-bundle-catalog-diff-policy-set-packet-diff-policy-packet-catalog-load',
         'load a packet review catalog without source access',
     ),

@@ -1892,6 +1892,14 @@ from .module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy
     module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_capabilities,
     module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_schema,
 )
+from .module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_diff import (
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_diff_capabilities,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_diff_schema,
+)
+from .module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_diff_policy import (
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_diff_policy_capabilities,
+    module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_diff_policy_schema,
+)
 from .module_workbench_triage import (
     build_module_workbench_triage,
     module_workbench_triage_capabilities,
@@ -22551,6 +22559,10 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/capabilities",
             "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/audit/schema",
             "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/audit/capabilities",
+            "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/schema",
+            "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/capabilities",
+            "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/schema",
+            "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/capabilities",
             "/v1/module-workbench/execution",
             "/v1/module-workbench/execution/query",
             "/v1/module-workbench/execution/schema",
@@ -22786,6 +22798,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/schema": module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_schema,
                     "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/schema": module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_schema,
                     "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/audit/schema": module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_schema,
+                    "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/schema": module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_diff_schema,
+                    "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/schema": module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_diff_policy_schema,
                     "/v1/module-workbench/runtime/schema": module_workbench_runtime_schema,
                      "/v1/module-workbench/portfolio/schema": module_workbench_portfolio_schema,
                      "/v1/module-workbench/triage/schema": module_workbench_triage_schema,
@@ -22882,6 +22896,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/capabilities": module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_capabilities,
                     "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/capabilities": module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_capabilities,
                     "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/audit/capabilities": module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_audit_capabilities,
+                    "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/capabilities": module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_diff_capabilities,
+                    "/v1/module-workbench/release-bundle/catalog/diff/policy-set/packet/diff/policy/packet/catalog/diff/policy/capabilities": module_workbench_release_bundle_catalog_diff_policy_set_packet_diff_policy_packet_catalog_diff_policy_capabilities,
                     "/v1/module-workbench/runtime/capabilities": module_workbench_runtime_capabilities,
                      "/v1/module-workbench/portfolio/capabilities": module_workbench_portfolio_capabilities,
                      "/v1/module-workbench/triage/capabilities": module_workbench_triage_capabilities,
