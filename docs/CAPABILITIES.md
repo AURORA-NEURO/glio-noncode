@@ -7873,6 +7873,19 @@ boundary audit checks. Focused coverage includes four-way classification, postur
 priority, persistence, tamper rejection, CLI, HTTP, and schemas. Public diff
 outputs contain no agent, model, or language metadata.
 
+## Downloaded-data longitudinal catalog-diff policy gates
+
+Module662 applies deterministic release and strict controls to module661 catalog
+diffs. Bounded added, removed, changed, and total-change budgets; ordered change,
+direction, transition, left/right posture, readiness, required-change, and
+unchanged controls; retained failed checks; canonical policy/check addresses;
+diff lineage; source-free reload; atomic persistence; bounded passed/failed/check/
+text queries; JSON/CSV/Markdown projections; policy/check schemas and capabilities;
+CLI and HTTP build/verify/query/audit/schema/check-schema/capability surfaces; and
+sixteen independent policy-audit checks are covered. Release accepts the real
+mixed-to-ready diff while strict preserves its blocked evidence. Public policy
+outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
