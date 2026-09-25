@@ -8114,3 +8114,21 @@ optional source recomputation. Real downloaded-data validation exercises
 removed, changed, and added entries across mixed-to-ready catalogs with a
 16/16 accepted diff audit. Public diff outputs contain no agent, model, or
 language metadata.
+
+## Downloaded-data transport catalog diff policies
+
+Module614 applies deterministic strict and release gates to module613
+longitudinal catalog diffs. It bounds added, removed, changed, and total
+changes; controls change classes, direction, posture transition, left and
+right posture, readiness, required changes, and unchanged evidence; and
+retains every failed check for blocked review. Policies support canonical
+reload, atomic persistence, bounded passed/failed/check/text queries, JSON,
+CSV, Markdown, policy/check schemas, capabilities, CLI build/verify/query/
+audit/schema/check-schema/capability commands, and equivalent HTTP routes.
+Sixteen independent policy-audit checks cover policy address, canonical form,
+diff lineage, check order and addresses, aggregates, state, budgets,
+allowlists, readiness, change, required-change, unchanged evidence,
+recomputation, and public boundary. Real downloaded-data validation accepts
+release while strict blocks with eight retained failures; both independent
+policy audits pass 16/16. Public policy outputs contain no agent, model, or
+language metadata.
