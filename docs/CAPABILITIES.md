@@ -7620,3 +7620,24 @@ schemas, capabilities, and independent audits. Real downloaded-data validation
 produces accepted release and blocked strict transports, each with a 16/16
 accepted transport audit. Public transport outputs contain no agent, model, or
 language metadata.
+
+## Downloaded-data fixed transport catalog longitudinal diffs
+
+Module589 compares two source-free module588 decision catalogs that share a
+catalog identity. It pairs stable entry IDs and emits deterministic added,
+removed, changed, and unchanged items while retaining both catalog addresses,
+both entry addresses, bounded before/after snapshots, policy state, acceptance,
+package sizes, and nested lineage. It derives empty, ready, blocked, and mixed
+posture transitions plus improved, regressed, changed, and unchanged direction.
+
+The diff supports canonical reload, atomic persistence, bounded change,
+direction, transition, and text queries, JSON, CSV, and Markdown projections,
+diff and item schemas, capabilities, CLI build/verify/query/audit/schema and
+capability commands, and equivalent HTTP routes. Its independent audit has
+sixteen checks for address, canonical form, identity, item order and addresses,
+semantic classification, counts, catalog lineage, posture transition,
+direction, summary replay, source-free behavior, public boundary, query replay,
+snapshot bounds, and optional source recomputation. Real downloaded-data
+validation reports one unchanged, one changed, one removed, and one added
+entry with a 16/16 accepted diff audit. Public diff outputs contain no agent,
+model, or language metadata.
