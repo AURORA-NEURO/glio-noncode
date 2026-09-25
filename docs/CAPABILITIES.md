@@ -7979,3 +7979,21 @@ change, required-change, unchanged evidence, recomputation, and public
 boundary. Real downloaded-data validation covers the changed/removed module605
 diff, with release/strict policy audits accepting 16/16. Public policy
 outputs contain no agent, model, or language metadata.
+
+## Downloaded-data policy-decision transports
+
+Module607 packages module606 policy decisions into deterministic, source-free
+five-member stored ZIP transports containing the module605 catalog diff,
+module606 policy, independent policy audit, canonical manifest, and regenerated
+Markdown review. Fixed member order and ZIP metadata, byte/content addresses,
+nested lineage, policy state, acceptance, and retained failed controls survive
+reload. Transports support atomic persistence, bounded summary/manifest/member/
+diff/policy/audit/review queries, JSON/CSV/Markdown projections, package,
+manifest, member, and audit schemas, capabilities, CLI build/verify/load/query/
+audit/schema/capability commands, and equivalent HTTP routes. Sixteen
+independent audit checks cover package/member addresses, canonical form,
+lineage, nested replay, policy state/evidence, review regeneration, fixed ZIP
+metadata, source-free behavior, public boundary, query replay, and package
+bytes. Real downloaded-data validation produces release and strict transports
+with 16/16 accepted transport audits. Public transport outputs contain no
+agent, model, or language metadata.
