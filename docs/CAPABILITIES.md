@@ -8076,3 +8076,21 @@ boundary, query replay, and package bytes. Real downloaded-data validation
 produces accepted release and blocked strict transports, each with a 16/16
 accepted transport audit. Public transport outputs contain no agent, model, or
 language metadata.
+
+## Downloaded-data policy-decision transport catalogs
+
+Module612 aggregates verified module611 policy-decision transports into a
+deterministic, source-free catalog. It assigns stable entry identifiers,
+rejects duplicate package addresses, preserves package/member/diff/policy/audit
+lineage, folds entry policy state into empty/ready/blocked/mixed catalog state,
+and exposes canonical catalog and entry content addresses. Catalogs support
+source-free reload, atomic persistence, bounded summary/entry/lineage/state/text
+queries, JSON/CSV/Markdown projections, catalog/entry schemas, capabilities,
+CLI build/verify/query/audit/schema/capability commands, and equivalent HTTP
+routes. Sixteen independent catalog-audit checks cover address, canonical form,
+identity, ordering, entry addresses, aggregate folds, uniqueness, policy flags,
+nested lineage, source-free behavior, public boundary, query replay, summary
+replay, size bounds, and optional source recomputation. Real downloaded-data
+validation produces a mixed catalog from accepted release and blocked strict
+transports with a 16/16 accepted catalog audit. Public catalog outputs contain
+no agent, model, or language metadata.
