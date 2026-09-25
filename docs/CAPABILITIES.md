@@ -7781,6 +7781,29 @@ blocked strict transports produces a mixed two-entry catalog with 2/2
 accepted entries and 16/16 accepted catalog-audit checks. Public catalog
 outputs contain no agent, model, or language metadata.
 
+## Downloaded-data transport catalog diffs
+
+Module657 compares two module656 policy-decision transport catalogs that share
+the same catalog identity. It pairs stable entry IDs and deterministically
+classifies added, removed, changed, and unchanged entries while retaining
+before/after catalog and entry addresses, package/member/diff/policy/audit
+lineage, policy state, acceptance, sizes, and nested address deltas. It folds
+empty/ready/blocked/mixed posture transitions into same-state or transition
+labels and derives improved, regressed, changed, or unchanged direction.
+
+The diff supports canonical reload, atomic persistence, bounded change,
+direction, transition, and text queries, JSON/CSV/Markdown projections, diff
+and item schemas, capabilities, CLI build/verify/query/audit/schema/
+item-schema/capability commands, and equivalent HTTP routes. Sixteen
+independent diff-audit checks cover address, canonical form, identity, item
+order and addresses, semantic fields, aggregates, catalog lineage, posture
+transition, direction, summary replay, source-free behavior, public boundary,
+query replay, snapshot bounds, and optional source recomputation. Real
+downloaded-data validation compares the mixed catalog with the release-only
+catalog, producing one removed and one unchanged entry in a mixed-to-ready
+improvement with a 16/16 accepted diff audit. Public diff outputs contain no
+agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
