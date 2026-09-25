@@ -7776,3 +7776,25 @@ boundary, query replay, summary replay, size bounds, and optional source
 recomputation. Real downloaded-data validation produces a mixed catalog from
 accepted release and blocked strict transports with a 16/16 accepted catalog
 audit. Public catalog outputs contain no agent, model, or language metadata.
+
+## Downloaded-data transport catalog diffs
+
+Module597 compares module596 transport catalogs longitudinally. It enforces
+same-catalog identity, pairs stable entry IDs deterministically, and classifies
+added, removed, changed, and unchanged entries while retaining before/after
+catalog and entry addresses. Changed entries preserve package, manifest, diff,
+policy, audit, posture, acceptance, size, and address deltas. The diff folds
+empty, ready, blocked, and mixed posture transitions into improved, regressed,
+changed, or unchanged directions and provides canonical diff and item
+addresses.
+
+Artifacts support source-free reload, atomic persistence, bounded
+change/direction/transition/text queries, JSON/CSV/Markdown projections, diff
+and item schemas, capabilities, CLI build/verify/query/audit/schema/capability
+commands, and equivalent HTTP routes. The independent audit has sixteen checks
+for address replay, canonical form, identity, item order and addresses,
+semantic fields, aggregates, catalog lineage, posture transitions, direction,
+summary replay, source-free behavior, public boundary, query replay, snapshot
+bounds, and optional source recomputation. Real downloaded-data validation
+compares stable, changed, added, and removed entries with a 16/16 accepted diff
+audit. Public diff outputs contain no agent, model, or language metadata.
