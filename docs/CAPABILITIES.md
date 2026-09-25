@@ -7737,6 +7737,28 @@ accepts the release mixed-to-ready transition with zero failed controls while
 strict remains blocked with six retained failures; both policy audits pass
 16/16. Public policy outputs contain no agent, model, or language metadata.
 
+## Downloaded-data policy-decision transports
+
+Module655 packages module654 policy decisions as deterministic, source-free
+five-member stored ZIP transports. Each transport contains the canonical
+module653 catalog diff, module654 policy, independent module654 policy audit,
+fixed manifest, and regenerated Markdown review. It preserves fixed member
+order and ZIP metadata, canonical UTF-8 bytes, member byte/content addresses,
+nested diff/policy/audit lineage, ready or blocked state, acceptance flags, and
+every retained failed control.
+
+The package supports canonical verify and source-free reload, atomic
+persistence, bounded summary, manifest, member, diff, policy, audit, and review
+queries, JSON/CSV/Markdown projections, package/manifest/member/audit schemas,
+capabilities, CLI commands, and HTTP routes. Sixteen independent transport-
+audit checks cover member identity, canonical bytes, addresses, lineage, policy
+state, acceptance, failed-control retention, ordering, ZIP metadata, review
+regeneration, source-free reload, query replay, tamper resistance, and the
+public boundary. Real downloaded-data validation produces an accepted ready
+release transport and a blocked strict transport, each with four payload
+members plus a manifest and 16/16 accepted transport audits. Public transport
+outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
