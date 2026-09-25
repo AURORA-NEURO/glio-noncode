@@ -7661,3 +7661,21 @@ required-change, unchanged evidence, recomputation, and public boundary. Real
 downloaded-data validation accepts an explicit release budget and blocks the
 strict profile while both independent policy audits pass 16/16. Public policy
 outputs contain no agent, model, or language metadata.
+
+## Downloaded-data fixed transport package handoff
+
+Module591 packages module590 decisions as fixed, source-free transports. Each
+package contains a canonical manifest, module589 catalog diff, module590
+policy, independent module590 policy audit, and regenerated Markdown review.
+Fixed member order, stored ZIP metadata, byte/content addresses, nested
+lineage, ready/blocked decision flags, failed-control evidence, deterministic
+reload, atomic persistence, bounded summary/manifest/member/diff/policy/audit/
+review queries, JSON, CSV, Markdown, package/manifest/member schemas,
+capabilities, CLI commands, and HTTP routes are covered. The independent
+transport audit has sixteen checks for package and member addresses, canonical
+form, lineage, nested replay, state/evidence preservation, review regeneration,
+fixed ZIP metadata, source-free behavior, public boundary, query replay, and
+package bytes. Real downloaded-data validation produces both an accepted
+release package and a blocked strict package, each with a 16/16 accepted
+transport audit. Public transport outputs contain no agent, model, or language
+metadata.
