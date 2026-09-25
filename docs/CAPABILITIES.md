@@ -7545,3 +7545,28 @@ and optional source recomputation. Real downloaded-data validation exercises
 mixed-to-ready transport catalogs with one added, one removed, one changed,
 and one unchanged entry and 14/14 accepted audit checks. Public diff outputs
 contain no agent, model, or language metadata.
+
+## Downloaded-data fixed transport catalog diff policy gates
+
+Module586 applies deterministic strict and release profiles to module585
+longitudinal diffs. Release budgets permit bounded added, removed, changed, and
+total-change counts; strict mode requires no active change and a ready-preserving
+posture. Both profiles retain ordered allowlists for change classes, direction,
+transition, left posture, right posture, required changes, readiness, and
+unchanged evidence. A blocked policy remains a complete artifact with every
+failed control visible for review.
+
+Policy and check contracts are canonical, source-free, content-addressed, and
+atomically persisted. The module supports JSON, CSV, Markdown, bounded
+passed/failed/check/text queries, CLI and HTTP build/verify/query/audit/schema,
+check-schema, and capability surfaces. Its independent audit replays sixteen
+address, canonical, diff-lineage, check-order, check-address, aggregate, state,
+budget, allowlist, readiness, change, required-change, unchanged, recomputation,
+and public-boundary invariants.
+
+The module586 suite covers accepted release and blocked strict profiles,
+failed-control retention, persistence, tamper rejection, CLI, HTTP, schemas,
+capabilities, and independent audits. Real downloaded-data validation accepts
+release with 16/16 policy and audit checks; strict blocks with eight retained
+policy failures while its audit still passes 16/16. Public policy outputs add
+no agent, model, or language metadata.
