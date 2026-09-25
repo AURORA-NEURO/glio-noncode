@@ -7755,6 +7755,27 @@ validation produces accepted release and blocked strict transports with
 accepted independent audits. Public transport outputs contain no agent, model,
 or language metadata.
 
+## Downloaded-data fixed policy-decision transport catalogs
+
+Module628 aggregates verified module627 five-member policy-decision transports
+into a bounded, deterministic, source-free catalog. Stable entry IDs retain
+package, manifest, catalog-diff, policy, policy-audit, policy state, acceptance
+flags, member counts, byte counts, and nested content-address lineage.
+Duplicate entry IDs, package IDs, and package addresses are rejected. Empty,
+ready, blocked, and mixed posture folds plus accepted-entry rollups are
+explicit and replayable.
+
+The catalog supports canonical reload, atomic persistence, summary, entry,
+lineage, state, and text queries, JSON/CSV/Markdown projections, catalog and
+entry schemas, capabilities, CLI build/verify/query/audit/schema/entry-schema/
+capability commands, and equivalent HTTP routes. Its independent audit has
+sixteen checks for addressing, canonical form, identity, order, entry
+addresses, aggregate folds, uniqueness, policy flags, nested lineage,
+source-free behavior, public boundary, query and summary replay, size bounds,
+and optional transport recomputation. Real downloaded-data validation
+produces a mixed release/strict catalog with accepted catalog-audit checks.
+Public catalog outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
