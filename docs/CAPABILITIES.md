@@ -7900,6 +7900,20 @@ CLI and HTTP surfaces, tamper/persistence/blocked-evidence coverage, and the
 dedicated Actions regression are included. Public transport outputs contain no
 agent, model, or language metadata.
 
+## Downloaded-data policy-decision transport catalogs
+
+Module664 catalogs verified module663 policy-decision transports as a bounded,
+deterministic, source-free index. Stable entry IDs, duplicate entry/package/address
+rejection, preserved package/manifest/catalog-diff/policy/policy-audit lineage,
+policy state/acceptance/member-count/package-byte values, empty/ready/blocked/mixed
+folds, canonical reload, atomic persistence, bounded summary/entries/lineage/state/
+text queries, JSON/CSV/Markdown projections, catalog/entry schemas and capabilities,
+CLI and HTTP build/verify/query/audit/schema/capability surfaces, and sixteen
+independent catalog-audit checks are included. Real downloaded-data validation
+produces a mixed two-entry catalog from release and strict module663 transports
+with a 16/16 accepted catalog audit. Public catalog outputs contain no agent,
+model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
