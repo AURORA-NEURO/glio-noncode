@@ -7577,7 +7577,8 @@ model, or language metadata.
 ## Downloaded-data fixed transport catalog diff policy transports
 
 Module619 packages module618 policy decisions into deterministic, source-free
-four-member ZIP transports. Each package preserves the module617 catalog diff,
+ZIP transports with a canonical manifest and four ordered payload members. Each
+package preserves the module617 catalog diff,
 module618 policy, independent module618 policy audit, canonical manifest, and
 regenerated Markdown review with fixed member order, fixed ZIP metadata, byte
 and content addresses, and nested diff/policy/audit lineage. Ready and blocked
