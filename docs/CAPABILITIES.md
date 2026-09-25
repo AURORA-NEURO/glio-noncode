@@ -7824,6 +7824,28 @@ accepts the release profile with 16/16 policy checks and 16/16 independent
 policy-audit checks while strict blocks with six retained failures. Public
 policy outputs contain no agent, model, or language metadata.
 
+## Downloaded-data policy-decision transports
+
+Module659 packages module658 policy decisions into deterministic, source-free
+five-member stored ZIP transports containing the module657 catalog diff,
+module658 policy, independent module658 policy audit, a fixed manifest, and a
+regenerated Markdown review. Fixed member order and ZIP metadata, canonical
+UTF-8 bytes, member byte/content addresses, nested diff/policy/audit lineage,
+policy state, acceptance, and retained failed controls survive reload.
+
+The package supports canonical verify and source-free load, atomic persistence,
+bounded summary/manifest/member/diff/policy/audit/review queries, JSON/CSV/
+Markdown projections, package/manifest/member/audit schemas, capabilities,
+CLI build/verify/load/query/audit/schema/capability commands, and equivalent
+HTTP routes. Sixteen independent transport-audit checks cover package/member
+addresses, canonical form, lineage, nested replay, policy state/evidence,
+review regeneration, fixed ZIP metadata, source-free behavior, public
+boundary, query replay, tamper resistance, and package bytes. Real
+downloaded-data validation produces accepted release and blocked strict
+transports with 83,363-byte and 82,897-byte packages; both have 16/16
+accepted transport audits. Public transport outputs contain no agent, model,
+or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
