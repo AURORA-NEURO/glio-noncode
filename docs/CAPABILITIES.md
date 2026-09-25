@@ -7997,3 +7997,22 @@ metadata, source-free behavior, public boundary, query replay, and package
 bytes. Real downloaded-data validation produces release and strict transports
 with 16/16 accepted transport audits. Public transport outputs contain no
 agent, model, or language metadata.
+
+## Downloaded-data transport catalogs
+
+Module608 aggregates verified module607 policy-decision transports into a
+bounded, source-free catalog. It assigns stable entry IDs, rejects duplicate
+package addresses, retains package/manifest/diff/policy/policy-audit lineage,
+policy state and acceptance flags, member counts, byte counts, and entry
+content addresses, and deterministically folds empty, ready, blocked, and
+mixed states. Catalogs support canonical reload, atomic persistence, bounded
+summary/entry/state/text queries, JSON/CSV/Markdown projections, catalog and
+entry schemas, capabilities, CLI build/verify/query/audit/schema/capability
+commands, and equivalent HTTP routes. Sixteen independent audit checks cover
+address, canonical form, identity, ordering, entry addresses, aggregate
+folds, uniqueness, policy flags, nested lineage, source-free behavior, public
+boundary, query replay, summary replay, size bounds, and optional source
+recomputation. Real downloaded-data validation over release and strict
+module607 transports produces a mixed catalog with 16/16 accepted catalog
+audit checks. Public catalog outputs contain no agent, model, or language
+metadata.
