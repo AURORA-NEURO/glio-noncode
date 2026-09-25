@@ -7641,3 +7641,23 @@ snapshot bounds, and optional source recomputation. Real downloaded-data
 validation reports one unchanged, one changed, one removed, and one added
 entry with a 16/16 accepted diff audit. Public diff outputs contain no agent,
 model, or language metadata.
+
+## Downloaded-data fixed transport catalog diff policy gates
+
+Module590 applies deterministic strict and release policies to module589
+longitudinal catalog diffs. Policies bound added, removed, changed, and total
+active changes; allow or reject change classes, direction, posture transition,
+left and right postures, readiness, required change classes, and unchanged
+evidence. Every decision retains all sixteen policy checks, including failed
+controls, so blocked evidence remains reviewable.
+
+Policy artifacts support canonical reload, atomic persistence, bounded
+passed/failed/check/text queries, JSON, CSV, and Markdown projections, policy
+and check schemas, capabilities, CLI build/verify/query/audit/schema and
+capability commands, and equivalent HTTP routes. The independent audit has
+sixteen checks for policy address, canonical form, diff lineage, check order
+and addresses, aggregates, state, budgets, allowlists, readiness, change,
+required-change, unchanged evidence, recomputation, and public boundary. Real
+downloaded-data validation accepts an explicit release budget and blocks the
+strict profile while both independent policy audits pass 16/16. Public policy
+outputs contain no agent, model, or language metadata.
