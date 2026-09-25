@@ -7263,3 +7263,27 @@ direction and posture transitions, persistence, tamper rejection, CLI, HTTP,
 schema, capabilities, and public-boundary validation. Real downloaded-data
 validation reports one added, one removed, one changed, and one unchanged entry
 with same-ready posture, changed direction, and 13/13 independent audit checks.
+
+## Downloaded-data fixed package-catalog policy transport catalog diff policies
+
+Longitudinal fixed package-catalog policy transport catalog diffs can now be
+evaluated with deterministic strict and release gates. The policy layer bounds
+added, removed, changed, and total changes; constrains the ordered change,
+direction, posture-transition, left-posture, and right-posture sets; requires
+selected change kinds; and controls readiness, required change, and unchanged
+evidence. Every decision retains fifteen addressed checks, its aggregate state,
+and every failed control so blocked transitions remain reviewable.
+
+Policy and check addresses replay from canonical public fields. Source-free
+reload, atomic persistence, bounded passed/failed/check/text queries, JSON, CSV,
+and Markdown projections are exposed through CLI and HTTP build, verify, query,
+audit, audit verification, schema, check-schema, and capability routes. The
+independent audit recomputes sixteen address, canonical, lineage, decision,
+control, query, state, budget, required-change, and public-boundary checks.
+
+The self-contained module-574 contract suite covers strict/release decisions,
+persistence, tamper rejection, CLI, HTTP, schema, capabilities, and
+public-boundary validation. Real downloaded-data validation accepts the release
+profile with 15/15 policy checks and 16/16 audit checks, while the strict
+zero-change profile is blocked with six failed policy controls over the
+module-573 diff.
