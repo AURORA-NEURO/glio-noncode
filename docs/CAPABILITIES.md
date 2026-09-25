@@ -7452,3 +7452,29 @@ schema, item-schema, capabilities, and independent audits. Live real-data
 validation compares the real mixed module-580 catalog against a strict-only
 successor, producing one removed and one unchanged entry, a mixed-to-blocked
 regressed transition, and 14/14 accepted audit checks.
+
+## Downloaded-data fixed catalog-diff policy gates
+
+Module582 gates a module-581 catalog diff without reopening downloaded
+archives or retaining source records. Release profiles permit bounded added,
+removed, changed, and total-change counts across all catalog postures. Strict
+profiles require an unchanged, ready-preserving comparison. Both profiles
+record ordered allowlists for change classes, direction, posture transition,
+left posture, right posture, required change classes, readiness, and unchanged
+evidence; failed controls remain available for review.
+
+Policies and checks are canonical, source-free, content-addressed, and
+atomically persisted. The layer supports JSON, CSV, Markdown, bounded
+passed/failed/check/text queries, CLI and HTTP build/verify/query/audit/schema,
+check-schema, and capability surfaces. Its independent audit verifies sixteen
+policy-address, canonical, diff-lineage, check-order, check-address,
+aggregate, state, budget, allowlist, readiness, change, required-change,
+unchanged, recomputation, and public-boundary invariants.
+
+The self-contained module-582 suite covers accepted release and blocked strict
+profiles, failed-control retention, persistence, tamper rejection, CLI, HTTP,
+schemas, capabilities, and independent audits. Live real-data validation
+accepts the ready-successor release profile with 16/16 policy and audit checks;
+the strict profile blocks with six retained policy failures while its audit
+still passes 16/16. Public policy outputs add no agent, model, or language
+metadata.
