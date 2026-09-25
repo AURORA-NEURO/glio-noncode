@@ -7501,3 +7501,25 @@ behavior, public boundary, query replay, and package bytes. Real downloaded
 data produces deterministic release and strict transports; both transport
 audits pass 16/16 while the strict policy retains six failed controls.
 Public transport outputs contain no agent, model, or language metadata.
+
+## Downloaded-data fixed policy transport catalogs
+
+Module584 indexes verified module583 handoff ZIPs into a deterministic,
+source-free catalog. Each entry retains the package, manifest, catalog-diff,
+policy, policy-audit, policy state, acceptance flags, member count, package
+byte count, and all nested content addresses without retaining ZIP bytes or
+source records. Up to 256 entries are accepted, sorted by stable entry ID, and
+duplicate entry IDs or package addresses are rejected. Ready, blocked, mixed,
+and empty posture folds are explicit and replayable.
+
+The catalog supports canonical reload, atomic persistence, summary, entries,
+lineage, state, and text queries, JSON, CSV, and Markdown projections, catalog
+and entry schemas, capabilities, CLI build, verify, query, audit, schema, and
+capability commands, and equivalent HTTP routes. Its independent audit has
+sixteen checks for catalog addressing, canonical form, identity, order, entry
+addresses, aggregate counts, posture and acceptance folds, uniqueness,
+nested lineage, source-free behavior, public boundary, query and summary
+replay, size bounds, and optional package recomputation. Real downloaded-data
+validation produces a mixed release/strict catalog with 2/2 accepted entries
+and 16/16 accepted catalog-audit checks. Public catalog outputs contain no
+agent, model, or language metadata.
