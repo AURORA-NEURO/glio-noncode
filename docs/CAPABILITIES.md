@@ -7380,3 +7380,26 @@ failed-control retention, persistence, tamper and public-boundary rejection,
 CLI, HTTP, schema, capabilities, and independent audits. Live real-data
 validation accepts release with 16/16 policy checks and 16/16 audit checks;
 strict blocks with 12/16 policy checks and four retained failures.
+
+## Downloaded-data fixed policy decision transports
+
+Module579 packages a module-577 catalog diff, module-578 policy, independent
+policy audit, and regenerated review into a deterministic five-member ZIP.
+The manifest preserves nested diff/policy/audit addresses, ready or blocked
+policy state, acceptance flags, member byte/content addresses, and failed
+policy evidence without retaining source archives or record values.
+
+The transport enforces fixed member order, UTF-8 canonical JSON, stored ZIP
+metadata, bounded member/package sizes, and replayable package bytes. It
+supports source-free reload, atomic persistence, bounded summary/member/diff/
+policy/audit/review queries, JSON, CSV, Markdown, schema, manifest-schema, and
+capability projections, plus CLI and HTTP build, verify, load, query, audit,
+audit verification, schema, and capability routes. Its independent audit
+recomputes sixteen address, canonical, member, lineage, nested replay, policy
+state/evidence, review, fixed-ZIP, source-free, public-boundary, query, and
+byte checks.
+
+The self-contained module-579 contract suite covers deterministic release and
+blocked transports, tamper rejection, persistence, CLI, HTTP, schemas, and
+independent audits. Live real-data validation produced a deterministic
+43,503-byte five-member transport with a 16/16 accepted transport audit.

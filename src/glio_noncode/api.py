@@ -329,6 +329,8 @@ from . import downloaded_data_review_packet_fixed_transport_catalog_diff_577 as 
 from . import downloaded_data_review_packet_fixed_transport_catalog_diff_577_aud as review_packet_transport_catalog_policy_transport_catalog_diff_577_api_audit_model
 from . import downloaded_data_review_packet_fixed_transport_catalog_diff_policy_578 as review_packet_transport_catalog_policy_transport_catalog_diff_policy_578_api_model
 from . import downloaded_data_review_packet_fixed_transport_catalog_diff_policy_578_aud as review_packet_transport_catalog_policy_transport_catalog_diff_policy_578_api_audit_model
+from . import downloaded_data_review_packet_fixed_transport_catalog_diff_policy_579 as review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model
+from . import downloaded_data_review_packet_fixed_transport_catalog_diff_policy_579_aud as review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_tcp_tr_cat_diff_pol_tr_cat_diff_pol as review_packet_transport_catalog_policy_transport_catalog_diff_policy_574_api_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_tcp_tr_cat_diff_pol_tr_cat_diff_pol_aud as review_packet_transport_catalog_policy_transport_catalog_diff_policy_574_api_audit_model
 from . import downloaded_data_review_packet_diff_policy_release_certificate_bundle_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_diff_policy_package_catalog_tcp_tr_cat_diff_pol as review_packet_transport_catalog_policy_transport_catalog_diff_policy_570_api_model
@@ -10373,6 +10375,70 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_578_prefix + "/audit/capabilities":
                     self._write(HTTPStatus.OK, review_packet_transport_catalog_policy_transport_catalog_diff_policy_578_api_audit_model.capabilities())
+                    return
+                # Module 579 API handler: fixed ZIP handoffs for module-578 policy decisions.
+                review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix = review_packet_transport_catalog_policy_transport_catalog_diff_policy_578_prefix + "/transport"
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix:
+                    value = review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model.build_package(self._query_value(query, "diff") or self._query_value(query, "input") or "", self._query_value(query, "policy") or "", self._query_value(query, "audit") or None, package_id=self._query_value(query, "package_id") or review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model.DEFAULT_PACKAGE_ID)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model.write_package(value, destination, allow_existing=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model, json_name="package_json", csv_name="package_csv", markdown_name="render_package_markdown")
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/verify":
+                    value = review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model.verify_package(self._query_value(query, "input") or self._query_value(query, "transport") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model, json_name="package_json", csv_name="package_csv", markdown_name="render_package_markdown")
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/load":
+                    diff_value, policy_value, audit_value, review = review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model.load_package(self._query_value(query, "input") or self._query_value(query, "transport") or "")
+                    self._write(HTTPStatus.OK, {"diff": diff_value.summary(), "policy": policy_value.summary(), "audit": audit_value.summary(), "review": review})
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/query":
+                    source = self._query_value(query, "input") or self._query_value(query, "transport") or ""
+                    resource = self._query_value(query, "resource") or "summary"
+                    value = review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model.query_package(source, resource=resource, text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model.package_csv(source, resource=resource, offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value)
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/audit":
+                    value = review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model.audit_package(self._query_value(query, "input") or self._query_value(query, "transport") or "")
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model.write_audit(value, destination, allow_existing=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/audit/verify":
+                    value = review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model.verify_audit(self._query_value(query, "input") or self._query_value(query, "audit") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/audit/query":
+                    source = self._query_value(query, "input") or self._query_value(query, "audit") or ""
+                    passed = self._query_bool(query, "passed") if "passed" in query else None
+                    value = review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model.query_audit(source, passed=passed, text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model.audit_csv(source, passed=passed, text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value)
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/schema":
+                    self._write(HTTPStatus.OK, review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model.package_schema())
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/manifest-schema":
+                    self._write(HTTPStatus.OK, review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model.manifest_schema())
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_model.capabilities())
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/audit/check-schema":
+                    self._write(HTTPStatus.OK, review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model.check_schema())
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/audit/schema":
+                    self._write(HTTPStatus.OK, review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model.audit_schema())
+                    return
+                if path == review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_prefix + "/audit/capabilities":
+                    self._write(HTTPStatus.OK, review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_579_api_audit_model.capabilities())
                     return
                 # Module 576 API handler: deterministic source-free catalogs of fixed transport package-catalog policy packages.
                 review_packet_transport_catalog_policy_transport_catalog_576_prefix = review_packet_transport_catalog_policy_transport_catalog_diff_policy_transport_575_prefix + "/catalog"
