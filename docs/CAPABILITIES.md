@@ -7696,3 +7696,22 @@ package bytes. Real downloaded-data validation produces both an accepted
 release package and a blocked strict package, each with a 16/16 accepted
 transport audit. Public transport outputs contain no agent, model, or language
 metadata.
+
+## Downloaded-data transport catalog diffs
+
+Module593 compares module592 transport catalogs longitudinally. It enforces
+same-catalog identity, pairs stable entry IDs deterministically, and classifies
+added, removed, changed, and unchanged entries while retaining before/after
+catalog and entry addresses. Changed items retain package, manifest, diff,
+policy, audit, posture, acceptance, size, and address deltas. The diff folds
+empty, ready, blocked, and mixed posture transitions into improved, regressed,
+changed, or unchanged directions. Artifacts support canonical reload, atomic
+persistence, bounded change/direction/transition/text queries, JSON, CSV,
+Markdown, diff and item schemas, capabilities, CLI commands, and HTTP routes.
+The independent audit has sixteen checks for identity, canonical form,
+ordering, item addresses, semantic fields, aggregates, lineage, posture and
+direction, source-free behavior, public boundary, queries, bounds, and
+optional source recomputation. Real downloaded-data validation compares
+release and strict snapshots with stable, changed, removed, and added entries
+and a 16/16 accepted diff audit. Public diff outputs contain no agent, model,
+or language metadata.
