@@ -8078,6 +8078,27 @@ catalog, producing a mixed-to-ready improved diff with one removed, one
 unchanged, and 16/16 accepted audit checks. Public diff outputs contain no
 agent, model, or language metadata.
 
+## Downloaded-data transport catalog diff policies
+
+Module642 applies deterministic release and strict gates to module641 transport
+catalog diffs. It bounds added, removed, changed, and total changes; controls
+change classes, direction, posture transition, left and right postures,
+readiness, required changes, and unchanged evidence; and retains every failed
+control for blocked review. Policy decisions preserve the diff address and
+canonical check addresses through reload without reopening source catalogs.
+
+Policies support canonical reload, atomic persistence, bounded passed/failed/
+check/text queries, JSON, CSV, and Markdown projections, policy/check schemas,
+capabilities, CLI build/verify/query/audit/schema/check-schema and capability
+commands, and equivalent HTTP routes. Sixteen independent policy-audit checks
+cover policy and diff lineage, canonical form, check order and addresses,
+aggregates, state, budgets, allowlists, readiness, change requirements,
+required changes, unchanged evidence, recomputation, and public boundary.
+Real downloaded-data validation accepts the release gate over the mixed-to-ready
+diff and blocks the strict gate while retaining its failed controls; both
+independent policy audits pass 16/16. Public policy outputs contain no agent,
+model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
