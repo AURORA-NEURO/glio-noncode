@@ -7735,6 +7735,29 @@ outputs contain no agent, model, or language metadata.
 
 ## Downloaded-data policy decision transports
 
+Module599 packages module598 policy decisions into deterministic, source-free
+five-member stored ZIP transports. Each transport contains the module597
+catalog diff, module598 policy, its independent policy audit, a canonical
+manifest, and regenerated Markdown review with fixed member order and ZIP
+metadata. Package, member, byte, content, diff, policy, and audit addresses
+are retained so reload can replay the complete nested lineage without source
+files. Ready and blocked policy state is preserved, including every failed
+control and its evidence.
+
+Transports support canonical reload, atomic persistence, bounded summary,
+manifest, member, diff, policy, audit, and review queries, JSON/CSV/Markdown
+projections, package/manifest/member schemas, capabilities, CLI build,
+verify, load, query, audit, schema, and capability commands, and equivalent
+HTTP routes. The independent transport audit has sixteen checks covering
+package/member addresses, canonical form, lineage, nested replay, policy
+state/evidence, review regeneration, fixed ZIP metadata, source-free
+behavior, public boundary, query replay, and package bytes. Real
+downloaded-data validation produces accepted release and blocked strict
+transports, with 16/16 accepted transport audits for both. Public transport
+outputs contain no agent, model, or language metadata.
+
+## Downloaded-data policy decision transports
+
 Module595 packages module594 policy decisions into a source-free, deterministic
 five-member stored ZIP. Each transport contains a canonical manifest, the
 module593 catalog diff, the module594 policy decision, its independent policy
