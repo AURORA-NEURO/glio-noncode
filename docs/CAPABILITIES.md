@@ -7902,3 +7902,22 @@ change, required-change, unchanged evidence, recomputation, and public
 boundary. Real downloaded-data validation covers changed and retired catalog
 diffs, with release/strict policy audits accepting 16/16. Public policy
 outputs contain no agent, model, or language metadata.
+
+## Downloaded-data transport catalog diff policy transports
+
+Module603 packages module602 policy decisions into deterministic, source-free
+five-member stored ZIP transports containing the module601 catalog diff,
+module602 policy, independent module602 policy audit, canonical manifest, and
+regenerated Markdown review. Fixed member order and ZIP metadata, member byte
+and content addresses, nested lineage, policy state, acceptance flags, and
+retained failed controls are verified on every load. Transports support
+canonical reload, atomic persistence, bounded summary/manifest/member/diff/
+policy/audit/review queries, JSON/CSV/Markdown projections, package/manifest/
+member schemas, capabilities, CLI build/verify/load/query/audit/schema/
+capability commands, and equivalent HTTP routes. Sixteen independent audit
+checks cover package and member addresses, canonical form, lineage, nested
+replay, policy state/evidence, review regeneration, fixed ZIP metadata,
+source-free behavior, public boundary, query replay, and package bytes. Real
+downloaded-data validation produces accepted release and blocked strict
+transports, with 16/16 accepted transport audits. Public transport outputs
+contain no agent, model, or language metadata.
