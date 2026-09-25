@@ -7885,3 +7885,20 @@ downloaded-data validation covers a changed and unchanged entry in a
 same-mixed transition plus a removed and unchanged entry in a mixed-to-ready
 transition, with 16/16 accepted audits for both. Public diff outputs contain
 no agent, model, or language metadata.
+
+## Downloaded-data transport catalog diff policies
+
+Module602 applies deterministic strict and release gates to module601
+longitudinal transport-catalog diffs. It bounds added, removed, changed, and
+total changes; controls change classes, direction, posture transition, left
+and right posture, readiness, required changes, and unchanged evidence; and
+retains every failed check for blocked review. Policies provide canonical
+reload, atomic persistence, bounded passed/failed/check/text queries, JSON,
+CSV, Markdown, policy/check schemas, capabilities, CLI build/verify/query/
+audit/schema/capability commands, and equivalent HTTP routes. Sixteen
+independent audit checks cover policy address, canonical form, diff lineage,
+check order and addresses, aggregates, state, budgets, allowlists, readiness,
+change, required-change, unchanged evidence, recomputation, and public
+boundary. Real downloaded-data validation covers changed and retired catalog
+diffs, with release/strict policy audits accepting 16/16. Public policy
+outputs contain no agent, model, or language metadata.
