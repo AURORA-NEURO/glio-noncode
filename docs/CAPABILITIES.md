@@ -7846,6 +7846,20 @@ transports with 83,363-byte and 82,897-byte packages; both have 16/16
 accepted transport audits. Public transport outputs contain no agent, model,
 or language metadata.
 
+## Downloaded-data policy-decision transport catalogs
+
+Module660 catalogs verified module659 policy-decision transports as a bounded,
+deterministic, source-free index. Stable entry IDs, duplicate entry/package/address
+rejection, preserved package/manifest/diff/policy/policy-audit lineage, policy
+state/acceptance/member-count/package-byte values, empty/ready/blocked/mixed folds,
+canonical reload, atomic persistence, bounded summary/entries/lineage/state/text
+queries, JSON/CSV/Markdown projections, catalog/entry schemas and capabilities,
+CLI and HTTP build/verify/query/audit/schema/capability surfaces, and sixteen
+independent catalog-audit checks are covered. Real downloaded-data validation
+produces a mixed two-entry catalog from one accepted release transport and one
+blocked strict transport with a 16/16 accepted audit. Public catalog outputs
+contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
