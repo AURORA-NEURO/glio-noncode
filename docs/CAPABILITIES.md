@@ -7478,3 +7478,26 @@ accepts the ready-successor release profile with 16/16 policy and audit checks;
 the strict profile blocks with six retained policy failures while its audit
 still passes 16/16. Public policy outputs add no agent, model, or language
 metadata.
+
+## Downloaded-data fixed catalog-diff policy transports
+
+Module583 packages a verified module-581 catalog diff and module-582 policy
+decision into a deterministic, source-free handoff ZIP. The fixed five-member
+package contains `manifest.json`, `catalog-diff.json`, `policy.json`,
+`policy-audit.json`, and `review.md` in canonical order with stored UTF-8
+metadata, byte addresses, member addresses, nested lineage, and a regenerated
+review. A blocked policy is still transportable when its independent policy
+audit is accepted, so failed controls remain explicit evidence rather than
+being discarded.
+
+The transport supports canonical reload, atomic persistence, summary,
+manifest, member, diff, policy, audit, and review queries, JSON, CSV, and
+Markdown projections, package and manifest schemas, capabilities, CLI build,
+verify, load, query, audit, schema, and capability commands, and equivalent
+HTTP routes. Its independent audit has sixteen checks for package addressing,
+canonical bytes, fixed member order and addresses, nested replay, policy
+state and evidence, review regeneration, fixed ZIP metadata, source-free
+behavior, public boundary, query replay, and package bytes. Real downloaded
+data produces deterministic release and strict transports; both transport
+audits pass 16/16 while the strict policy retains six failed controls.
+Public transport outputs contain no agent, model, or language metadata.
