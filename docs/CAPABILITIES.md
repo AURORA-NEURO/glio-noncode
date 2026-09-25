@@ -8120,6 +8120,26 @@ replay, and package bytes. Real downloaded-data validation produces accepted
 release and blocked strict transports, each with a 16/16 accepted transport
 audit. Public transport outputs contain no agent, model, or language metadata.
 
+## Downloaded-data policy-decision transport catalogs
+
+Module644 aggregates verified module643 policy-decision transports into a
+deterministic, source-free catalog. It assigns stable entry identifiers,
+rejects duplicate package addresses, preserves package/member/diff/policy/
+policy-audit lineage, folds policy state into empty/ready/blocked/mixed catalog
+state, and exposes canonical catalog and entry content addresses. Catalogs
+support source-free reload, atomic persistence, bounded summary/entry/lineage/
+state/text queries, JSON/CSV/Markdown projections, catalog/entry schemas,
+capabilities, CLI build/verify/query/audit/schema/capability commands, and
+equivalent HTTP routes. Sixteen independent catalog-audit checks cover address,
+canonical form, identity, ordering, entry addresses, aggregate folds,
+uniqueness, policy flags, nested lineage, source-free behavior, public
+boundary, query replay, summary replay, size bounds, and optional source
+recomputation. Real downloaded-data validation aggregates accepted release and
+blocked strict module643 transports into a mixed catalog with two entries,
+one ready entry, one blocked entry, a replayable 11,029-byte canonical JSON
+artifact, and a 16/16 accepted catalog audit. Public catalog outputs contain
+no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
