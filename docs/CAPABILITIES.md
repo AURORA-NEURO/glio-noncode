@@ -7732,3 +7732,26 @@ change, required-change, unchanged evidence, recomputation, and public
 boundary. Real downloaded-data validation accepts the release profile and
 blocks strict while both independent policy audits pass 16/16. Public policy
 outputs contain no agent, model, or language metadata.
+
+## Downloaded-data policy decision transports
+
+Module595 packages module594 policy decisions into a source-free, deterministic
+five-member stored ZIP. Each transport contains a canonical manifest, the
+module593 catalog diff, the module594 policy decision, its independent policy
+audit, and regenerated Markdown review in fixed member order with fixed ZIP
+metadata. Package, member, byte, content, diff, policy, and audit addresses are
+retained, so a reload can replay the complete nested lineage without the
+original source files. Ready and blocked policy state is preserved, including
+every failed control and its evidence.
+
+The transport supports atomic persistence, bounded summary, manifest, member,
+diff, policy, audit, and review queries, JSON/CSV/Markdown projections,
+package/manifest/member schemas, capabilities, CLI build/verify/load/query/
+audit/schema/capability commands, and equivalent HTTP routes. Its independent
+transport audit has sixteen checks for package and member addresses, canonical
+form, lineage, nested replay, policy state and failed evidence, review
+regeneration, fixed ZIP metadata, source-free behavior, public boundary,
+queries, and package bytes. Real downloaded-data validation produces an
+accepted release transport and a blocked strict transport, both with 16/16
+accepted transport audits. Public transport outputs contain no agent, model, or
+language metadata.
