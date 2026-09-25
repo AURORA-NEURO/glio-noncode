@@ -7403,3 +7403,27 @@ The self-contained module-579 contract suite covers deterministic release and
 blocked transports, tamper rejection, persistence, CLI, HTTP, schemas, and
 independent audits. Live real-data validation produced a deterministic
 43,503-byte five-member transport with a 16/16 accepted transport audit.
+
+## Downloaded-data fixed policy transport catalogs
+
+Module580 aggregates verified module579 transports into a deterministic,
+source-free catalog. Each entry retains package, manifest, catalog-diff,
+policy, policy-audit, policy-state, acceptance, member-count, package-byte,
+and content-address lineage. The catalog derives empty, ready, blocked, or
+mixed posture from the underlying policy decisions while requiring every
+transport audit to be accepted.
+
+Catalogs reject duplicate entry IDs and package addresses, enforce canonical
+ordering and addresses, and support atomic persistence, bounded summary,
+entries, lineage, state, and text queries, JSON, CSV, Markdown, schema,
+entry-schema, and capability projections. CLI and HTTP build, verify, query,
+audit, audit verification, schema, and capability routes are available. The
+independent audit recomputes sixteen address, canonical, identity, ordering,
+entry, count, state-fold, accepted-fold, uniqueness, lineage, source-free,
+public-boundary, query, summary, size, and optional source-recomputation
+checks.
+
+The self-contained module-580 suite covers mixed-state rollups, duplicate and
+tamper rejection, persistence, CLI, HTTP, schemas, and determinism. Live
+real-data validation catalogs one ready release and one blocked strict
+transport with a mixed state and 16/16 accepted catalog-audit checks.
