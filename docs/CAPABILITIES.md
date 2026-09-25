@@ -7755,3 +7755,24 @@ queries, and package bytes. Real downloaded-data validation produces an
 accepted release transport and a blocked strict transport, both with 16/16
 accepted transport audits. Public transport outputs contain no agent, model, or
 language metadata.
+
+## Downloaded-data policy decision transport catalogs
+
+Module596 aggregates verified module595 fixed ZIP transports into a bounded,
+source-free catalog. Each entry retains its stable ID, package ID, package and
+manifest addresses, nested diff/policy/audit addresses, policy state, policy
+acceptance, audit acceptance, package bytes, member count, and entry content
+address. Catalogs deterministically fold empty, ready, blocked, and mixed
+postures, reject duplicate package addresses, sort entries canonically, and
+derive aggregate counts and content addresses from the full lineage.
+
+Catalogs support canonical reload, atomic persistence, bounded summary,
+entry/state/text queries, JSON/CSV/Markdown projections, catalog and entry
+schemas, capabilities, CLI build/verify/query/audit/schema/capability commands,
+and equivalent HTTP routes. The independent audit has sixteen checks for
+address replay, canonical form, identity, ordering, entry addresses, aggregate
+folds, uniqueness, policy flags, nested lineage, source-free behavior, public
+boundary, query replay, summary replay, size bounds, and optional source
+recomputation. Real downloaded-data validation produces a mixed catalog from
+accepted release and blocked strict transports with a 16/16 accepted catalog
+audit. Public catalog outputs contain no agent, model, or language metadata.
