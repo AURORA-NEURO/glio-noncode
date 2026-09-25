@@ -7358,3 +7358,25 @@ The self-contained module-577 contract suite covers all four classifications,
 direction and posture transitions, persistence, tamper and public-boundary
 rejection, CLI, HTTP, schema, and capabilities. Live real-data validation
 reports two changed entries with same-ready posture and 13/13 audit checks.
+
+## Downloaded-data fixed package-catalog policy transport catalog diff gates
+
+Module578 applies deterministic policy gates to a module-577 longitudinal diff
+without reopening source archives or retaining record values. Release profiles
+allow bounded added, removed, changed, and total-change counts; strict profiles
+require zero changes. Both profiles evaluate ordered change, direction,
+transition, left/right posture, required-change, readiness, and unchanged
+controls, preserving every failed control for review.
+
+Policy and check addresses are canonical and source-free. The layer supports
+atomic persistence, bounded passed/failed/text queries, JSON, CSV, and Markdown
+projections, plus CLI and HTTP build, verify, query, audit, audit verification,
+schema, check-schema, and capability routes. Its independent audit recomputes
+sixteen address, canonical, diff-lineage, ordering, count, budget, allowlist,
+readiness, required-change, unchanged-control, and public-boundary checks.
+
+The self-contained module-578 contract suite covers release/strict decisions,
+failed-control retention, persistence, tamper and public-boundary rejection,
+CLI, HTTP, schema, capabilities, and independent audits. Live real-data
+validation accepts release with 16/16 policy checks and 16/16 audit checks;
+strict blocks with 12/16 policy checks and four retained failures.
