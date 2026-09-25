@@ -2138,6 +2138,20 @@ jobs:
       - name: Run fixed transport catalog diff policy transport catalog module 640 contract
         run: python -m unittest tests.test_review_packet_fixed_transport_catalog_diff_policy_640 -v
 
+  review-packet-fixed-transport-catalog-diff-policy-transport-catalog-diff-641:
+    name: Review-packet fixed transport catalog diff policy transport catalog diff module 641 / Python 3.12
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --no-deps -e .
+      - name: Run fixed transport catalog diff policy transport catalog diff module 641 contract
+        run: python -m unittest tests.test_review_packet_fixed_transport_catalog_diff_policy_641 -v
+
   pytest-contracts:
     name: Pytest-specific contracts / Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest

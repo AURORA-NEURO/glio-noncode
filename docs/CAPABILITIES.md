@@ -8054,6 +8054,30 @@ produces a mixed catalog from accepted release and blocked strict transports
 with 2/2 accepted entries and 16/16 accepted catalog-audit checks. Public
 catalog outputs contain no agent, model, or language metadata.
 
+## Downloaded-data transport catalog diffs
+
+Module641 compares two verified module640 transport catalogs that share a
+catalog identity. It pairs stable entry IDs and deterministically classifies
+added, removed, changed, and unchanged entries while preserving both catalog
+addresses, both entry addresses, transport/policy/audit lineage, policy state,
+acceptance flags, member counts, and package-byte counts. It derives explicit
+empty/ready/blocked/mixed posture transitions and an improved, regressed,
+changed, or unchanged direction score with posture improvement prioritized over
+catalog-size changes.
+
+The diff supports canonical reload, atomic persistence, change, direction,
+transition, and text queries; JSON, CSV, and Markdown projections; diff and
+item schemas; capabilities; CLI build/verify/query/audit/schema and capability
+commands; and equivalent HTTP routes. Its independent audit has sixteen checks
+for diff addressing, canonical form, identity, item order and addresses,
+semantic classification, counts, catalog lineage, posture transition,
+direction, summary replay, source-free behavior, public boundary, query replay,
+snapshot bounds, and optional source recomputation. Real downloaded-data
+validation compares the mixed two-entry catalog with a ready release-only
+catalog, producing a mixed-to-ready improved diff with one removed, one
+unchanged, and 16/16 accepted audit checks. Public diff outputs contain no
+agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
