@@ -7427,3 +7427,28 @@ The self-contained module-580 suite covers mixed-state rollups, duplicate and
 tamper rejection, persistence, CLI, HTTP, schemas, and determinism. Live
 real-data validation catalogs one ready release and one blocked strict
 transport with a mixed state and 16/16 accepted catalog-audit checks.
+
+## Downloaded-data fixed policy transport catalog longitudinal diffs
+
+Module581 compares two source-free module-580 catalogs that share a catalog
+identity. Stable entry IDs are paired into added, removed, changed, and
+unchanged items. Every item retains bounded left/right snapshots, changed
+fields, entry addresses, and catalog lineage. The diff derives posture
+transitions across empty, ready, blocked, and mixed catalogs and classifies
+direction as improved, regressed, changed, or unchanged using deterministic
+acceptance and readiness folds.
+
+Diffs and items are content-addressed, canonical, source-free, bounded, and
+atomically persisted. Clients can verify, query by change, direction,
+transition, or text, and render JSON, CSV, Markdown, schemas, and capability
+descriptors through CLI and HTTP surfaces. The independent audit replays
+fourteen address, canonical, identity, ordering, item-address, semantic,
+count, lineage, posture-transition, direction, summary, source-free,
+public-boundary, and optional source-recomputation checks.
+
+The self-contained module-581 suite covers all four change classifications,
+posture transitions, direction, persistence, tamper rejection, CLI, HTTP,
+schema, item-schema, capabilities, and independent audits. Live real-data
+validation compares the real mixed module-580 catalog against a strict-only
+successor, producing one removed and one unchanged entry, a mixed-to-blocked
+regressed transition, and 14/14 accepted audit checks.
