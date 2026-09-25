@@ -7860,6 +7860,19 @@ produces a mixed two-entry catalog from one accepted release transport and one
 blocked strict transport with a 16/16 accepted audit. Public catalog outputs
 contain no agent, model, or language metadata.
 
+## Downloaded-data longitudinal policy-transport catalog diffs
+
+Module661 compares two source-free module660 catalogs with the same catalog ID,
+pairing stable entry IDs into deterministic added, removed, changed, and unchanged
+items. It retains left/right catalog and entry lineage, bounded field snapshots,
+posture transitions, improved/regressed/changed/unchanged direction, canonical
+diff/item addresses, source-free reload, atomic persistence, bounded change/
+direction/transition/text queries, JSON/CSV/Markdown projections, diff/item schemas,
+capabilities, CLI and HTTP surfaces, and sixteen independent recomputation and
+boundary audit checks. Focused coverage includes four-way classification, posture
+priority, persistence, tamper rejection, CLI, HTTP, and schemas. Public diff
+outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
