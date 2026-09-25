@@ -7570,3 +7570,30 @@ capabilities, and independent audits. Real downloaded-data validation accepts
 release with 16/16 policy and audit checks; strict blocks with eight retained
 policy failures while its audit still passes 16/16. Public policy outputs add
 no agent, model, or language metadata.
+
+## Downloaded-data fixed transport catalog diff policy decision transports
+
+Module587 packages a verified module585 longitudinal catalog diff, module586
+policy, independent policy audit, and regenerated Markdown review into a
+deterministic five-member stored ZIP. The fixed members are `manifest.json`,
+`catalog-diff.json`, `policy.json`, `policy-audit.json`, and `review.md`, with
+canonical UTF-8 bytes, fixed timestamps and metadata, member byte addresses,
+member content addresses, nested lineage, policy state, acceptance flags, and
+retained failed-control evidence. Both accepted release and blocked strict
+decisions are transportable when their independent policy audit is accepted.
+
+The transport supports canonical reload, atomic persistence, summary, manifest,
+member, diff, policy, audit, and review queries, JSON, CSV, and Markdown
+projections, package, manifest, and member schemas, capabilities, CLI build,
+verify, load, query, audit, schema, and capability commands, and equivalent
+HTTP routes. Its independent audit has sixteen checks for package addressing,
+canonical form, fixed member order and addresses, nested diff/policy/audit
+replay, policy state and evidence, review regeneration, fixed ZIP metadata,
+source-free behavior, public boundary, query replay, and package bytes.
+
+The self-contained module587 suite covers deterministic release and blocked
+strict transports, nested lineage, persistence, tamper rejection, CLI, HTTP,
+schemas, capabilities, and independent audits. Real downloaded-data validation
+produces accepted release and blocked strict transports, each with a 16/16
+accepted transport audit. Public transport outputs contain no agent, model, or
+language metadata.
