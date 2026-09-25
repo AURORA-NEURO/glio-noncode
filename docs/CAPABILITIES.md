@@ -8217,6 +8217,26 @@ downloaded-data validation produces a mixed two-entry catalog with one ready
 release transport and one blocked strict transport; the catalog audit passes
 16/16. Public catalog outputs contain no agent, model, or language metadata.
 
+## Downloaded-data policy-decision catalog diffs
+
+Module649 compares same-identity module648 catalogs as deterministic,
+source-free diffs. It matches stable entry IDs and classifies added, removed,
+changed, and unchanged entries while retaining before/after catalog and entry
+addresses, package and manifest lineage, policy and audit addresses, posture,
+acceptance, member-count, and package-byte snapshots. Empty, ready, blocked,
+and mixed transitions receive explicit transition and posture-aware direction
+scores. The diff supports canonical reload, atomic persistence, bounded change,
+direction, transition, and text queries, JSON/CSV/Markdown projections, diff
+and item schemas, capabilities, CLI commands, and HTTP routes. Sixteen
+independent diff-audit checks cover identity, canonical form, item order and
+addresses, aggregates, posture transition, direction, nested lineage,
+source-free behavior, query and summary replay, size bounds, optional source
+recomputation, and the public boundary. Real downloaded-data validation
+compares the mixed and release-only module648 catalogs, yielding a
+mixed-to-ready improvement with one removed and one unchanged entry; its diff
+audit passes 16/16. Public diff outputs contain no agent, model, or language
+metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
