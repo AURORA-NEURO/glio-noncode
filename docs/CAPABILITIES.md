@@ -7979,6 +7979,32 @@ entry as a mixed-to-ready improvement; the diff and independent audit both
 verify successfully with 16/16 checks passing. Public diff outputs contain no
 agent, model, or language metadata.
 
+## Downloaded-data transport catalog diff policy gates
+
+Module638 evaluates module637 longitudinal transport-catalog diffs with
+deterministic release and strict controls. It preserves the complete diff
+lineage, stable-entry classifications, posture transition, direction, change
+counts, and every failed control in the resulting policy decision.
+
+Release and strict profiles expose bounded added, removed, changed, and total
+change budgets; ordered change, direction, transition, left/right posture,
+readiness, required-change, and unchanged controls; canonical policy and
+check addresses; source-free reload; atomic persistence; bounded passed,
+failed, check, and text queries; JSON, CSV, Markdown, policy/check schemas,
+and capabilities. The independent audit recomputes sixteen controls covering
+policy and diff lineage, canonical form, check order and addresses,
+aggregates, state, budgets, allowlists, readiness, change requirements,
+unchanged evidence, recomputation, and the public boundary.
+
+CLI and HTTP build, verify, query, audit, schema, check-schema, and capability
+surfaces are covered by focused persistence, tamper, custom-budget, blocked,
+release, and public-boundary tests plus a dedicated Actions regression job.
+Real downloaded-data validation accepts the release profile with 16/16 policy
+checks and 16/16 audit checks, while the strict zero-change profile remains
+blocked with six retained policy failures and an independently accepted
+16/16 audit. Public policy outputs contain no agent, model, or language
+metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
