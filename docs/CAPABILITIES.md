@@ -7632,6 +7632,26 @@ recomputation. Real downloaded-data validation proves unchanged, changed,
 added, and removed module620 entries with a 16/16 accepted diff audit. Public
 diff outputs contain no agent, model, or language metadata.
 
+## Downloaded-data fixed transport catalog diff policies
+
+Module622 gates source-free module621 catalog diffs with deterministic release
+and strict policy profiles. Policies bound added, removed, changed, and total
+changes; allow or reject change kinds, directions, transitions, left and right
+postures, readiness, required changes, and unchanged snapshots; retain every
+failed control for review; and derive ready or blocked state without reopening
+the original ZIP data. Policy decisions support canonical reload, atomic
+persistence, bounded passed/failed/check/text queries, JSON/CSV/Markdown
+projections, policy and check schemas, capabilities, CLI build/verify/query/
+audit/schema/check-schema/capability commands, and equivalent HTTP routes.
+Sixteen independent audit checks recompute policy addressing, canonical bytes,
+diff lineage, check order and addresses, aggregates, state, budgets,
+allowlists, readiness, required-change and unchanged controls, recomputation,
+and the public boundary. Real downloaded-data validation accepts a release
+profile, blocks the strict zero-change profile with eight retained failures,
+and independently accepts both audits at 16/16. On the mixed real catalog
+diff, the strict zero-change profile retains ten failed controls. Public policy
+outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
