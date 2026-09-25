@@ -8099,6 +8099,27 @@ diff and blocks the strict gate while retaining its failed controls; both
 independent policy audits pass 16/16. Public policy outputs contain no agent,
 model, or language metadata.
 
+## Downloaded-data policy-decision transports
+
+Module643 packages module642 policy decisions into deterministic, source-free
+five-member stored ZIP transports containing the module641 catalog diff,
+module642 policy, independent policy audit, canonical manifest, and regenerated
+Markdown review. Fixed member order and ZIP metadata, canonical UTF-8 bytes,
+member byte/content addresses, nested diff/policy/audit lineage, policy state,
+acceptance flags, and retained failed controls survive reload without reopening
+source catalogs.
+
+Transports support atomic persistence, bounded summary/manifest/member/diff/
+policy/audit/review queries, JSON, CSV, and Markdown projections, package,
+manifest, member, and audit schemas, capabilities, CLI build/verify/load/query/
+audit/schema/capability commands, and equivalent HTTP routes. Sixteen
+independent transport-audit checks cover package/member addresses, canonical
+form, ordering, nested lineage and replay, policy state/evidence, review
+regeneration, fixed ZIP metadata, source-free behavior, public boundary, query
+replay, and package bytes. Real downloaded-data validation produces accepted
+release and blocked strict transports, each with a 16/16 accepted transport
+audit. Public transport outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
