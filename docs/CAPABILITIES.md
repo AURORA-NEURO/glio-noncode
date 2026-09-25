@@ -7714,6 +7714,26 @@ downloaded-data validation reports the release/strict catalog transition with
 stable-entry comparison and 16/16 accepted diff-audit checks. Public diff
 outputs contain no agent, model, or language metadata.
 
+## Downloaded-data longitudinal catalog-diff policy gates
+
+Module626 applies deterministic release and strict policies to module625
+longitudinal catalog diffs. It bounds added, removed, changed, and total
+changes; allowlists change kinds, direction, posture transitions, left/right
+postures, required changes, and readiness; retains every failed control for
+blocked decisions; and emits canonical policy and check addresses.
+
+Policy decisions support source-free reload, atomic persistence, bounded
+passed/failed/check/text queries, JSON/CSV/Markdown projections, policy and
+check schemas, capabilities, CLI build/verify/query/audit/schema/check-schema/
+capability commands, and equivalent HTTP routes. Its independent audit has
+sixteen checks for policy and diff addressing, replay, check order and
+addresses, aggregates, state, budgets, allowlists, direction and transition,
+posture, readiness, change requirements, unchanged control, and public
+boundary. Real downloaded-data validation accepts the release profile and
+retains strict failures over the mixed-to-ready catalog diff; both decisions
+pass 16/16 independent policy-audit checks. Public policy outputs contain no
+agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
