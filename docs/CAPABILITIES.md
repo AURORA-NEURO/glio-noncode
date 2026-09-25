@@ -7336,3 +7336,25 @@ persistence, duplicate and tamper rejection, CLI, HTTP, schema, capabilities,
 and public-boundary validation. Live real-data validation rolls up two accepted
 ready transports totaling 62,822 transport bytes and 55,270 member bytes with
 16/16 catalog-audit checks.
+
+## Downloaded-data fixed package-catalog policy transport catalog comparisons
+
+Two module-576 transport catalogs can now be compared without reopening source
+archives or retaining record values. Module577 pairs entries by stable ID and
+classifies them as added, removed, changed, or unchanged, retaining left/right
+catalog and entry addresses plus a bounded changed-field snapshot. It derives
+empty, ready, blocked, and mixed postures; same or transition states; and
+improved, regressed, changed, or unchanged direction.
+
+Diff and item addresses are deterministic and content-addressed. Source-free
+reload, atomic persistence, bounded change/direction/transition/text queries,
+JSON, CSV, and Markdown projections are exposed through CLI and HTTP diff,
+verify, query, audit, audit verification, schema, item-schema, and capability
+routes. The independent audit recomputes thirteen address, canonical,
+identity, lineage, ordering, count, transition, direction, summary,
+source-free, and public-boundary checks.
+
+The self-contained module-577 contract suite covers all four classifications,
+direction and posture transitions, persistence, tamper and public-boundary
+rejection, CLI, HTTP, schema, and capabilities. Live real-data validation
+reports two changed entries with same-ready posture and 13/13 audit checks.
