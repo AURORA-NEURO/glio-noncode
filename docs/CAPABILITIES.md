@@ -7519,6 +7519,24 @@ data produces deterministic release and strict transports; both transport
 audits pass 16/16 while the strict policy retains six failed controls.
 Public transport outputs contain no agent, model, or language metadata.
 
+## Downloaded-data policy-decision transport catalogs
+
+Module616 aggregates verified module615 policy-decision ZIP transports into a
+bounded, source-free catalog with stable entry IDs, duplicate package-address
+rejection, retained package/manifest/diff/policy/policy-audit lineage, policy
+state and acceptance flags, member and byte counts, and canonical catalog and
+entry addresses. Empty, ready, blocked, and mixed folds survive canonical
+reload and atomic persistence. Catalogs support bounded summary/entry/state/
+text queries, JSON/CSV/Markdown projections, catalog and entry schemas,
+capabilities, CLI build/verify/query/audit/schema/entry-schema/capability
+commands, and equivalent HTTP routes. Sixteen independent catalog-audit checks
+cover address, canonical form, identity, ordering, entry addresses, aggregate
+folds, uniqueness, policy flags, nested lineage, source-free behavior, public
+boundary, query replay, summary replay, size bounds, and optional source
+recomputation. Real downloaded-data validation produces a mixed catalog from
+accepted and blocked module615 transports with a 16/16 accepted catalog audit.
+Public catalog outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
