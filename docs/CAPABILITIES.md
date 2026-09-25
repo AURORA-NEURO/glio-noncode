@@ -7804,6 +7804,26 @@ catalog, producing one removed and one unchanged entry in a mixed-to-ready
 improvement with a 16/16 accepted diff audit. Public diff outputs contain no
 agent, model, or language metadata.
 
+## Downloaded-data transport catalog diff policies
+
+Module658 applies deterministic release and strict gates to module657
+longitudinal transport-catalog diffs. It bounds added, removed, changed, and
+total changes; controls change classes, direction, posture transition, left
+and right posture, readiness, required changes, and unchanged evidence; and
+retains every failed control for blocked review. Policy decisions preserve
+canonical diff lineage, source-free reload, atomic persistence, bounded
+passed/failed/check/text queries, and content-addressed policy/check records.
+
+The module provides JSON/CSV/Markdown projections, policy and check schemas,
+capabilities, CLI build/verify/query/audit/schema/check-schema/capability
+commands, and equivalent HTTP routes. Sixteen independent policy-audit checks
+cover policy address, canonical form, diff lineage, check order, aggregates,
+state, budgets, allowlists, readiness, required-change, unchanged evidence,
+recomputation, and the public boundary. Real downloaded-data validation
+accepts the release profile with 16/16 policy checks and 16/16 independent
+policy-audit checks while strict blocks with six retained failures. Public
+policy outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
