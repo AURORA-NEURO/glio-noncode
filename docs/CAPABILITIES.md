@@ -8178,6 +8178,25 @@ release with zero failed policy controls while strict remains blocked with six
 retained failures; both independent policy audits pass 16/16. Public policy
 outputs contain no agent, model, or language metadata.
 
+## Downloaded-data policy-decision transports
+
+Module647 packages module646 policy decisions as deterministic, source-free
+five-member stored ZIP transports. Each transport contains the canonical
+module645 catalog diff, module646 policy, independent module646 policy audit,
+fixed manifest, and regenerated Markdown review; it retains member order,
+canonical UTF-8 bytes, byte/content addresses, nested diff/policy/audit
+lineage, policy state, acceptance, and every failed control. The package can
+be verified and reloaded without source records, then queried by summary,
+manifest, members, diff, policy, audit, or review through JSON, CSV, Markdown,
+package, manifest, member, and audit schemas, capabilities, CLI commands, and
+HTTP routes. Sixteen independent transport-audit checks cover member identity,
+canonical bytes, addresses, lineage, policy state, acceptance, failed-control
+retention, ordering, ZIP metadata, review regeneration, source-free reload,
+query replay, tamper resistance, and the public boundary. Real downloaded-data
+validation produces an accepted ready release transport and a blocked strict
+transport, each with a 16/16 accepted transport audit. Public transport
+outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
