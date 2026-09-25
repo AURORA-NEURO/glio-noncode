@@ -7479,6 +7479,23 @@ the strict profile blocks with six retained policy failures while its audit
 still passes 16/16. Public policy outputs add no agent, model, or language
 metadata.
 
+## Downloaded-data fixed transport catalogs
+
+Module592 aggregates verified module591 decision transports into a deterministic,
+source-free catalog. Entries preserve package, manifest, catalog-diff, policy,
+policy-audit, policy state, acceptance, member-count, byte-count, and content
+address lineage. Catalogs reject duplicate package addresses and fold into
+empty, ready, blocked, or mixed states. They support canonical reload, atomic
+persistence, bounded summary/entry/state/text queries, JSON, CSV, Markdown,
+catalog and entry schemas, capabilities, CLI commands, and HTTP routes. The
+independent catalog audit has sixteen checks for catalog and entry addresses,
+canonical form, identity, ordering, aggregate counts, state folds, uniqueness,
+policy flags, nested lineage, source-free behavior, public boundary, query and
+summary replay, size bounds, and optional source recomputation. Real downloaded
+data produces a mixed release/strict catalog with both transports accepted by
+their independent audits. Public catalog outputs contain no agent, model, or
+language metadata.
+
 ## Downloaded-data fixed catalog-diff policy transports
 
 Module583 packages a verified module-581 catalog diff and module-582 policy
