@@ -7734,6 +7734,27 @@ retains strict failures over the mixed-to-ready catalog diff; both decisions
 pass 16/16 independent policy-audit checks. Public policy outputs contain no
 agent, model, or language metadata.
 
+## Downloaded-data fixed policy-decision transports
+
+Module627 packages a module626 diff, policy decision, independent policy audit,
+canonical manifest, and regenerated Markdown review into a deterministic
+five-member stored ZIP. Fixed member order, UTF-8 metadata, byte counts,
+content addresses, and nested diff/policy/audit lineage are retained. Ready
+release decisions and blocked strict decisions preserve their complete policy
+evidence.
+
+The transport supports source-free reload, atomic persistence, bounded
+summary, manifest, member, diff, policy, audit, and review queries,
+JSON/CSV/Markdown projections, package/manifest/member schemas, capabilities,
+CLI build/verify/load/query/audit/schema/manifest-schema/check-schema/capability
+commands, and equivalent HTTP routes. Its independent audit covers package and
+member addressing, canonical form, member order, nested replay, policy state
+and evidence, review regeneration, fixed ZIP metadata, source-free behavior,
+public boundary, query replay, and package bytes. Real downloaded-data
+validation produces accepted release and blocked strict transports with
+accepted independent audits. Public transport outputs contain no agent, model,
+or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
