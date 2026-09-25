@@ -7886,6 +7886,20 @@ sixteen independent policy-audit checks are covered. Release accepts the real
 mixed-to-ready diff while strict preserves its blocked evidence. Public policy
 outputs contain no agent, model, or language metadata.
 
+## Downloaded-data policy-decision fixed transports
+
+Module663 packages module662 policy decisions into deterministic, source-free
+five-member stored ZIP transports containing canonical manifest, catalog diff,
+policy, independent policy audit, and regenerated Markdown review. Fixed member
+order and ZIP metadata, canonical UTF-8 bytes, member byte/content addresses,
+nested diff/policy/audit lineage, ready/blocked state, acceptance flags, retained
+failed controls, source-free load, atomic persistence, bounded summary/manifest/
+member/diff/policy/audit/review queries, JSON/CSV/Markdown projections, package/
+manifest/member/audit schemas and capabilities, sixteen transport-audit checks,
+CLI and HTTP surfaces, tamper/persistence/blocked-evidence coverage, and the
+dedicated Actions regression are included. Public transport outputs contain no
+agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
