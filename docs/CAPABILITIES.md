@@ -7715,3 +7715,20 @@ optional source recomputation. Real downloaded-data validation compares
 release and strict snapshots with stable, changed, removed, and added entries
 and a 16/16 accepted diff audit. Public diff outputs contain no agent, model,
 or language metadata.
+
+## Downloaded-data transport catalog diff policies
+
+Module594 applies deterministic strict and release gates to module593
+longitudinal transport-catalog diffs. It bounds added, removed, changed, and
+total changes; controls change classes, direction, posture transition, left
+and right posture, readiness, required changes, and unchanged evidence; and
+retains every failed check for blocked review. Policies provide canonical
+reload, atomic persistence, bounded passed/failed/check/text queries, JSON,
+CSV, Markdown, policy/check schemas, capabilities, CLI build/verify/query/
+audit/schema/capability commands, and equivalent HTTP routes. Sixteen
+independent audit checks cover policy address, canonical form, diff lineage,
+check order and addresses, aggregates, state, budgets, allowlists, readiness,
+change, required-change, unchanged evidence, recomputation, and public
+boundary. Real downloaded-data validation accepts the release profile and
+blocks strict while both independent policy audits pass 16/16. Public policy
+outputs contain no agent, model, or language metadata.
