@@ -8160,6 +8160,24 @@ the mixed and release-only module644 catalogs, producing a mixed-to-ready
 improvement with one unchanged and one removed entry plus a 16/16 accepted
 diff audit. Public diff outputs contain no agent, model, or language metadata.
 
+## Downloaded-data transport catalog diff policies
+
+Module646 applies deterministic strict and release gates to module645
+longitudinal catalog diffs. It bounds added, removed, changed, and total
+changes; controls change classes, direction, posture transition, left and
+right posture, readiness, required changes, and unchanged evidence; and
+retains every failed control for blocked review. Policies support canonical
+reload, atomic persistence, bounded passed/failed/check/text queries, JSON,
+CSV, Markdown, policy/check schemas, capabilities, CLI build/verify/query/
+audit/schema/check-schema/capability commands, and equivalent HTTP routes.
+Sixteen independent policy-audit checks cover policy address, canonical form,
+diff lineage, check order and addresses, aggregates, state, budgets,
+allowlists, readiness, change, required-change, unchanged evidence,
+recomputation, and public boundary. Real downloaded-data validation accepts
+release with zero failed policy controls while strict remains blocked with six
+retained failures; both independent policy audits pass 16/16. Public policy
+outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
