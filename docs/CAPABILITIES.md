@@ -7287,3 +7287,28 @@ public-boundary validation. Real downloaded-data validation accepts the release
 profile with 15/15 policy checks and 16/16 audit checks, while the strict
 zero-change profile is blocked with six failed policy controls over the
 module-573 diff.
+
+## Downloaded-data fixed catalog-diff policy handoff transports
+
+Longitudinal package-catalog policy transport catalog diff decisions can now be
+sealed into a deterministic source-free five-member ZIP. The transport retains
+the canonical catalog diff, module-574 policy, independent policy audit, and a
+regenerated Markdown review behind a manifest that records policy state,
+acceptance, and all nested content addresses. ZIP member order, timestamps,
+permissions, compression mode, media types, and UTF-8 payloads are fixed, with
+a target-specific version and address namespace for this layer.
+
+The transport supports deterministic rebuilds, source-free loading, atomic
+persistence, bounded summary/member/resource queries, JSON, CSV, Markdown,
+schema, manifest-schema, and capability projections through CLI and HTTP. Its
+independent audit recomputes fifteen address, canonical, member-order,
+lineage, nested diff/policy/audit, state, review, ZIP, source-free, public
+boundary, query, and package-byte checks. Duplicate, traversal, tampered,
+non-canonical, and malformed archives fail closed.
+
+The self-contained module-575 contract suite covers deterministic round trips,
+persistence, duplicate and traversal rejection, tamper rejection, CLI, HTTP,
+schema, capabilities, and public-boundary validation. Real downloaded-data
+validation produces a 31,321-byte accepted ready handoff transport from the
+module-573 diff and module-574 release decision, with 15/15 independent
+package-audit checks.
