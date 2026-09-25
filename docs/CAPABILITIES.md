@@ -7312,3 +7312,27 @@ schema, capabilities, and public-boundary validation. Real downloaded-data
 validation produces a 31,321-byte accepted ready handoff transport from the
 module-573 diff and module-574 release decision, with 15/15 independent
 package-audit checks.
+
+## Downloaded-data fixed package-catalog policy transport catalogs
+
+Fixed package-catalog policy transport handoffs can now be aggregated into a
+deterministic source-free catalog. The module-576 catalog verifies every
+module-575 transport, sorts entries by stable ID, preserves package, manifest,
+catalog-diff, policy, policy-audit, state, acceptance, member, byte, and
+content-address lineage, and folds accepted, ready, blocked, package-byte, and
+member-byte totals without reopening source archives or retaining record
+values.
+
+Catalogs support bounded entries, accepted/ready/blocked/lineage and text
+queries, atomic persistence, JSON, CSV, and Markdown projections, plus CLI and
+HTTP build, verify, load, query, audit, schema, entry-schema, and capability
+routes. The independent audit recomputes sixteen address, canonical, identity,
+ordering, lineage, aggregate-count, state, size, uniqueness, query, summary,
+source-free, public-boundary, and byte-total checks. Duplicate, malformed,
+tampered, over-sized, and public-boundary-invalid inputs fail closed.
+
+The self-contained module-576 contract suite covers deterministic rollups,
+persistence, duplicate and tamper rejection, CLI, HTTP, schema, capabilities,
+and public-boundary validation. Live real-data validation rolls up two accepted
+ready transports totaling 62,822 transport bytes and 55,270 member bytes with
+16/16 catalog-audit checks.
