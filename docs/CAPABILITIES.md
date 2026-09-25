@@ -7672,6 +7672,28 @@ downloaded-data validation produces accepted release and blocked strict
 transports with 16/16 accepted transport audits. Public transport outputs
 contain no agent, model, or language metadata.
 
+## Downloaded-data policy-decision transport catalogs
+
+Module652 catalogs verified module651 policy-decision transports as a
+deterministic, source-free index. Each stable entry retains package, manifest,
+catalog-diff, policy, policy-audit, policy state, acceptance flags, member
+count, package-byte count, and nested content-address lineage without retaining
+ZIP bytes or source records. The catalog is bounded to 256 entries, rejects
+duplicate entry IDs and package addresses, sorts entries canonically, and
+folds ready, blocked, mixed, and empty postures with accepted-entry rollups.
+
+The module provides canonical reload, atomic persistence, summary, entries,
+lineage, state, and text queries, JSON/CSV/Markdown projections, catalog and
+entry schemas, capabilities, CLI build/verify/query/audit/schema surfaces, and
+HTTP routes. Sixteen independent catalog-audit checks cover address replay,
+canonical form, entry order and addresses, aggregates, state, uniqueness,
+policy flags, lineage, source-free boundaries, query and summary replay, size
+bounds, and deterministic source recomputation. Real downloaded-data
+validation catalogs the release and strict transports into a mixed two-entry
+catalog with one ready release, one blocked strict entry, 2/2 accepted
+transport audits, and a 16/16 accepted catalog audit. Public catalog outputs
+contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
