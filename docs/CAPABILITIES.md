@@ -7674,6 +7674,26 @@ contain no agent, model, or language metadata.
 
 ## Downloaded-data fixed transport catalog catalogs
 
+Module624 aggregates verified module623 five-member policy-decision transports
+into a bounded, deterministic, source-free catalog. Each stable entry retains
+package, manifest, catalog-diff, policy, policy-audit, policy state, acceptance
+flags, member count, package-byte count, and nested content-address lineage.
+Duplicate entry IDs, package IDs, and package addresses are rejected. Empty,
+ready, blocked, and mixed folds plus accepted-entry rollups are explicit and
+replayable. The catalog supports canonical reload, atomic persistence, summary,
+entry, lineage, state, and text queries, JSON/CSV/Markdown projections,
+catalog and entry schemas, capabilities, CLI build/verify/query/audit/schema/
+entry-schema/capability commands, and equivalent HTTP routes. Sixteen
+independent catalog-audit checks cover catalog addressing, canonical form,
+identity, order, entry addresses, aggregate counts, posture and acceptance
+folds, uniqueness, nested lineage, source-free behavior, public boundary,
+query and summary replay, size bounds, and optional transport recomputation.
+Real downloaded-data validation produces a mixed release/strict catalog with
+16/16 accepted catalog-audit checks. Public catalog outputs contain no agent,
+model, or language metadata.
+
+## Downloaded-data fixed transport catalog catalogs
+
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
 deterministic, source-free catalog without retaining ZIP bytes or source
 records. Each stable entry preserves package, manifest, catalog-diff, policy,
