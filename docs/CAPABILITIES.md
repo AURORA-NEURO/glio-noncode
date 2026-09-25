@@ -7694,6 +7694,29 @@ catalog with one ready release, one blocked strict entry, 2/2 accepted
 transport audits, and a 16/16 accepted catalog audit. Public catalog outputs
 contain no agent, model, or language metadata.
 
+## Downloaded-data policy-decision catalog diffs
+
+Module653 compares two module652 transport catalogs with the same catalog
+identity and produces a deterministic, source-free longitudinal diff. It
+retains stable entry snapshots, added/removed/changed/unchanged classifications,
+direction, posture transition, changed fields, and nested catalog and entry
+addresses without reopening transport ZIP bytes or source records. Canonical
+ordering, bounded 512-item output, exact field validation, content-addressed
+diff and item identities, and explicit mixed-to-ready or other posture
+transitions make the result replayable.
+
+The module supports canonical reload, atomic persistence, bounded change,
+direction, transition, and text queries, JSON/CSV/Markdown projections, diff
+and item schemas, capabilities, CLI build/verify/query/audit/schema surfaces,
+and equivalent HTTP routes. Sixteen independent diff-audit checks cover
+address replay, canonical form, identity, item order and addresses, counts,
+state transition, uniqueness, snapshot lineage, changed-field replay,
+source-free behavior, query and summary replay, size bounds, and optional
+catalog recomputation. Real downloaded-data validation compares the mixed
+release/strict catalog to a release-only catalog, finding one removed and one
+unchanged entry in a mixed-to-ready transition; the diff audit passes 16/16.
+Public diff outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
