@@ -8140,6 +8140,26 @@ one ready entry, one blocked entry, a replayable 11,029-byte canonical JSON
 artifact, and a 16/16 accepted catalog audit. Public catalog outputs contain
 no agent, model, or language metadata.
 
+## Downloaded-data transport catalog diffs
+
+Module645 compares two module644 transport catalogs with the same catalog
+identity. It pairs stable entry identifiers and deterministically classifies
+added, removed, changed, and unchanged entries while retaining before/after
+catalog and entry addresses, package/member/diff/policy/audit lineage, policy
+state, acceptance, sizes, and nested address deltas. It derives empty/ready/
+blocked/mixed posture transitions and improved, regressed, changed, and
+unchanged directions. Diffs support source-free reload, atomic persistence,
+bounded change/direction/transition/text queries, JSON/CSV/Markdown projections,
+diff/item schemas, capabilities, CLI build/verify/query/audit/schema/capability
+commands, and equivalent HTTP routes. Sixteen independent diff-audit checks
+cover address, canonical form, identity, item order and addresses, semantic
+fields, aggregates, catalog lineage, posture transition, direction, summary
+replay, source-free behavior, public boundary, query replay, snapshot bounds,
+and optional source recomputation. Real downloaded-data validation compares
+the mixed and release-only module644 catalogs, producing a mixed-to-ready
+improvement with one unchanged and one removed entry plus a 16/16 accepted
+diff audit. Public diff outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
