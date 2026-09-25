@@ -7822,6 +7822,27 @@ release, blocks strict while retaining failures, and accepts both independent
 16/16 policy audits. Public policy outputs contain no agent, model, or
 language metadata.
 
+## Downloaded-data fixed policy-decision transports
+
+Module631 packages module630 policy decisions into deterministic, source-free
+five-member stored ZIP transports containing a canonical manifest, module629
+catalog diff, module630 policy, independent module630 policy audit, and
+regenerated Markdown review. Fixed member order and ZIP metadata, byte and
+content addresses, nested lineage, ready/blocked policy state, acceptance, and
+retained failed controls survive reload. Transports provide atomic
+persistence, bounded summary/manifest/member/diff/policy/audit/review queries,
+JSON/CSV/Markdown projections, package/manifest/member/audit schemas,
+capabilities, CLI build/verify/load/query/audit/schema/capability commands,
+and equivalent HTTP routes.
+
+Sixteen independent transport-audit checks cover package/member addresses,
+canonical form, lineage, nested diff/policy/audit replay, policy state and
+evidence, review regeneration, fixed ZIP metadata, source-free behavior,
+public boundary, query replay, and package bytes. Real downloaded-data
+validation packages both accepted release and blocked strict module630
+decisions while preserving the blocked evidence. Public transport outputs
+contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
