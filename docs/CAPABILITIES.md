@@ -7865,6 +7865,30 @@ aggregates accepted release and blocked strict module631 transports into a
 mixed catalog with accepted catalog-audit checks. Public catalog outputs
 contain no agent, model, or language metadata.
 
+## Downloaded-data fixed transport catalog diffs
+
+Module633 compares two module632 transport catalogs with the same catalog
+identity. It pairs stable entry IDs and classifies added, removed, changed,
+and unchanged entries while preserving before/after catalog and entry
+addresses, package, manifest, catalog-diff, policy, audit, posture,
+acceptance, size, and nested address fields. Empty, ready, blocked, and mixed
+posture transitions are explicit, as are improved, regressed, changed, and
+unchanged directions; posture rank takes priority over catalog size so a
+smaller ready catalog is recognized as an improvement.
+
+Diffs support canonical source-free reload, atomic persistence, bounded change,
+direction, transition, and text queries, JSON/CSV/Markdown projections, diff
+and item schemas, capabilities, CLI build/verify/query/audit/schema/item-schema/
+capability commands, and equivalent HTTP routes. Sixteen independent audit
+checks cover address replay, canonical form, identity, item order and
+addresses, semantic snapshots, counts, catalog lineage, posture transition,
+direction, summary replay, source-free behavior, public boundary, query
+replay, snapshot bounds, and optional source recomputation. Real downloaded-
+data validation compares the mixed module632 catalog with a ready-only
+catalog, records a mixed-to-ready improvement with one removed and one
+unchanged entry, and accepts the independent 16/16 audit. Public diff outputs
+contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
