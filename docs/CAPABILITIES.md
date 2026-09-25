@@ -7523,3 +7523,25 @@ replay, size bounds, and optional package recomputation. Real downloaded-data
 validation produces a mixed release/strict catalog with 2/2 accepted entries
 and 16/16 accepted catalog-audit checks. Public catalog outputs contain no
 agent, model, or language metadata.
+
+## Downloaded-data fixed transport catalog diffs
+
+Module585 compares two source-free module584 transport catalogs that share a
+catalog ID. It pairs stable entry IDs and emits deterministic added, removed,
+changed, and unchanged items, preserving both catalog addresses, both entry
+addresses, and bounded before/after snapshots for package, manifest,
+catalog-diff, policy, audit, posture, acceptance, member-count, and byte-count
+fields. It also derives ready/blocked/mixed/empty posture transitions and an
+improved, regressed, changed, or unchanged direction score.
+
+The diff supports canonical reload, atomic persistence, change, direction,
+transition, and text queries, JSON, CSV, and Markdown projections, diff and
+item schemas, capabilities, CLI build, verify, query, audit, schema, and
+capability commands, and equivalent HTTP routes. Its independent audit has
+fourteen checks for address, canonical form, identity, item order and
+addresses, semantic classification, counts, catalog lineage, posture
+transition, direction, summary replay, source-free behavior, public boundary,
+and optional source recomputation. Real downloaded-data validation exercises
+mixed-to-ready transport catalogs with one added, one removed, one changed,
+and one unchanged entry and 14/14 accepted audit checks. Public diff outputs
+contain no agent, model, or language metadata.
