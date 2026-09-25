@@ -7800,6 +7800,28 @@ catalog, records a mixed-to-ready improvement with one removed and one
 unchanged entry, and accepts the independent 16/16 audit. Public diff outputs
 contain no agent, model, or language metadata.
 
+## Downloaded-data fixed transport catalog diff policy gates
+
+Module630 applies deterministic release and strict policies to module629
+longitudinal transport-catalog diffs. It bounds added, removed, changed, and
+total active changes; controls change classes, direction, posture transition,
+left and right posture, readiness, required changes, and unchanged evidence;
+and retains every failed control for blocked review. Policy decisions derive
+ready or blocked state from sixteen ordered checks with canonical policy and
+check addresses.
+
+Policy artifacts support source-free reload, atomic persistence, bounded
+passed/failed/check/text queries, JSON/CSV/Markdown projections, policy and
+check schemas, capabilities, CLI build/verify/query/audit/schema/check-schema/
+capability commands, and equivalent HTTP routes. The independent audit has
+sixteen checks for policy address, canonical form, diff lineage, check order
+and addresses, aggregates, state, budgets, allowlists, readiness, change,
+required-change, unchanged evidence, recomputation, and public boundary. Real
+downloaded-data validation gates the module629 mixed-to-ready diff, accepts
+release, blocks strict while retaining failures, and accepts both independent
+16/16 policy audits. Public policy outputs contain no agent, model, or
+language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module588 indexes verified module587 policy-decision handoff ZIPs into a
