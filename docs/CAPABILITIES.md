@@ -7646,11 +7646,31 @@ audit/schema/check-schema/capability commands, and equivalent HTTP routes.
 Sixteen independent audit checks recompute policy addressing, canonical bytes,
 diff lineage, check order and addresses, aggregates, state, budgets,
 allowlists, readiness, required-change and unchanged controls, recomputation,
-and the public boundary. Real downloaded-data validation accepts a release
-profile, blocks the strict zero-change profile with eight retained failures,
-and independently accepts both audits at 16/16. On the mixed real catalog
-diff, the strict zero-change profile retains ten failed controls. Public policy
+and the public boundary. Contract fixtures cover a strict zero-change profile
+with eight retained failures. Real downloaded-data validation accepts a
+release profile, blocks the strict zero-change profile with ten retained
+failures, and independently accepts both audits at 16/16. Public policy
 outputs contain no agent, model, or language metadata.
+
+## Downloaded-data fixed transport catalog diff policy transports
+
+Module623 packages module621 catalog diffs, module622 release/strict policy
+decisions, independent policy audits, and regenerated review text into a
+deterministic five-member stored ZIP. The fixed manifest records member order,
+media types, byte counts, content addresses, and nested diff/policy/audit
+lineage. Accepted release decisions and blocked strict decisions retain their
+full failed-control evidence. The transport supports canonical source-free
+reload, atomic persistence, byte-safe verification, bounded summary, manifest,
+member, diff, policy, audit, and review queries, JSON/CSV/Markdown projections,
+package/manifest/member schemas, capabilities, CLI build/verify/load/query/
+audit/schema/manifest-schema/check-schema/capability commands, and equivalent
+HTTP routes. Sixteen independent transport-audit checks cover package and
+member addressing, canonical form, member order, nested replay, policy state
+and evidence, review regeneration, fixed ZIP metadata, source-free behavior,
+public-boundary enforcement, query replay, and package bytes. Real
+downloaded-data validation produces accepted release and blocked strict
+transports with 16/16 accepted transport audits. Public transport outputs
+contain no agent, model, or language metadata.
 
 ## Downloaded-data fixed transport catalog catalogs
 
