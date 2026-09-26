@@ -8502,6 +8502,32 @@ strict policy blocks with six retained failures; both independent audits pass
 reload paths are verified. Fifteen real module682 JSON artifacts contain no
 agent, model, or language metadata.
 
+## Downloaded-data fixed policy-decision transports
+
+Module683 packages module682 policy decisions into deterministic, source-free
+five-member stored ZIP transports containing the canonical module681 catalog
+diff, module682 policy, independent module682 policy audit, fixed manifest,
+and regenerated Markdown review. Fixed member order and ZIP metadata,
+canonical UTF-8 bytes, member byte/content addresses, nested diff/policy/audit
+lineage, ready or blocked state, acceptance flags, failed policy evidence,
+and review regeneration all survive reload.
+
+Transports support atomic persistence, deterministic byte verification,
+bounded summary, manifest, member, diff, policy, audit, and review queries,
+JSON/CSV/Markdown projections, package/manifest/member/audit schemas,
+capabilities, and CLI/HTTP package, verify, load, query, audit, audit-verify,
+schema, manifest-schema, check-schema, capability, audit-check-schema,
+audit-schema, and audit-capabilities surfaces. Sixteen independent transport
+audit checks cover package/member addresses, canonical form, lineage, nested
+replay, policy state and evidence, review regeneration, fixed ZIP metadata,
+source-free behavior, public boundary, query replay, and package bytes.
+
+Real downloaded-data validation produces an accepted 99,161-byte release
+transport and a blocked 98,695-byte strict transport. Both contain four
+payload members and pass independent 16/16 transport audits; CLI and HTTP
+paths are verified. Nineteen module683 JSON artifacts contain no agent, model,
+or language metadata.
+
 ## Downloaded-data policy-decision transport catalogs
 
 Module636 aggregates verified module635 policy-decision transports into a
