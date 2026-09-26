@@ -8528,6 +8528,31 @@ payload members and pass independent 16/16 transport audits; CLI and HTTP
 paths are verified. Nineteen module683 JSON artifacts contain no agent, model,
 or language metadata.
 
+## Downloaded-data fixed transport catalogs
+
+Module684 catalogs module683 fixed policy-decision transports into a bounded,
+deterministic, source-free index. It assigns stable entry IDs, rejects
+duplicate entry IDs and package addresses, preserves package, manifest,
+catalog-diff, policy, policy-audit, state, acceptance, member-count,
+package-byte-count, and nested lineage fields, and folds empty, ready,
+blocked, and mixed states without losing decision evidence.
+
+Catalogs support canonical reload, atomic persistence, deterministic content
+addresses, summary/entry/lineage/state/text queries, JSON/CSV/Markdown
+projections, catalog and entry schemas, capabilities, and CLI/HTTP build,
+verify, query, audit, audit-verify, schema, entry-schema, capability,
+audit-check-schema, audit-schema, and audit-capabilities surfaces. Sixteen
+independent catalog-audit checks cover entry addresses, package and nested
+lineage replay, duplicate rejection, aggregate/state folds, deterministic
+ordering, source-free behavior, public boundaries, query replay, and
+persistence projections.
+
+Real downloaded-data validation builds a mixed two-entry catalog from the
+accepted module683 release transport and blocked strict transport: one entry
+is ready, one is blocked, both audits are accepted, and the independent
+catalog audit passes 16/16. Public catalog outputs contain no agent, model,
+or language metadata.
+
 ## Downloaded-data policy-decision transport catalogs
 
 Module636 aggregates verified module635 policy-decision transports into a
