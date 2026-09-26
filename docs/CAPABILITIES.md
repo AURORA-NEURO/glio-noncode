@@ -8454,6 +8454,32 @@ one blocked, two accepted transport audits, and a 16/16 accepted catalog
 audit. CLI and HTTP paths are verified. The summary is available in
 `.glio-real-demo/demo-real-680-real-transport-catalog-summary.json`.
 
+## Downloaded-data fixed transport catalog diffs
+
+Module681 compares two module680 catalogs with the same catalog identity. It
+deterministically pairs stable entry IDs and classifies added, removed,
+changed, and unchanged entries while retaining left/right catalog and entry
+addresses, package/member/diff/policy/audit lineage, policy state, acceptance,
+sizes, and nested address deltas. It derives empty, ready, blocked, or mixed
+posture transitions plus improved, regressed, changed, and unchanged
+directions.
+
+Diffs support source-free reload, atomic persistence, bounded change,
+direction, transition, and text queries, JSON/CSV/Markdown projections, diff
+and item schemas, capabilities, and CLI/HTTP diff, verify, query, audit,
+audit-verify, schema, item-schema, audit-check-schema, audit-schema,
+capability, and audit-capabilities surfaces. Sixteen independent diff-audit
+checks cover address replay, canonical form, identity, item order and
+addresses, semantic fields, aggregates, catalog lineage, posture transition,
+direction, summary replay, source-free behavior, public boundary, query
+replay, snapshot bounds, and optional source recomputation.
+
+Real downloaded-data validation compares a mixed two-entry catalog with a
+ready one-entry catalog, finding one removed and one unchanged entry in a
+mixed-to-ready improvement. The diff is 25,702 bytes and its independent audit
+passes 16/16. CLI and HTTP paths are verified. The summary is available in
+`.glio-real-demo/demo-real-681-real-catalog-diff-summary.json`.
+
 ## Downloaded-data policy-decision transport catalogs
 
 Module636 aggregates verified module635 policy-decision transports into a
