@@ -8077,6 +8077,25 @@ accepts release with 16/16 controls while strict retains six failed controls;
 both policies independently audit at 16/16. Public policy outputs contain no
 agent, model, or language metadata.
 
+## Downloaded-data policy-decision fixed transports
+
+Module675 packages module674 policy decisions into deterministic, source-free
+fixed ZIP transports. Each package contains a canonical manifest, module673
+catalog diff, module674 policy, independent module674 policy audit, and
+regenerated Markdown review with fixed member order and ZIP metadata, canonical
+UTF-8 bytes, member byte/content addresses, nested diff/policy/audit lineage,
+ready/blocked state, acceptance flags, and retained failed controls. Packages
+support source-free load, deterministic byte verification, atomic persistence,
+bounded summary, manifest, member, diff, policy, audit, and review queries,
+JSON/CSV/Markdown projections, package/manifest/member/check schemas and
+capabilities, CLI/HTTP package, verify, load, query, audit, audit-verify,
+schema, manifest-schema, check-schema, capability, audit-check-schema,
+audit-schema, and audit-capabilities surfaces, and sixteen independent
+transport-audit checks. Real downloaded-data validation produces accepted
+release and blocked strict transports of 93,920 and 93,454 bytes, with 16/16
+accepted transport audits for both. Public transport outputs contain no agent,
+model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
