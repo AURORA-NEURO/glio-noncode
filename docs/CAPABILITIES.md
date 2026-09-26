@@ -8112,6 +8112,23 @@ Real downloaded-data validation produces a mixed two-entry catalog containing
 accepted release and blocked strict transports with a 16/16 accepted catalog
 audit. Public catalog outputs contain no agent, model, or language metadata.
 
+## Downloaded-data longitudinal fixed transport catalog diffs
+
+Module677 compares two source-free module676 transport catalogs that share a
+catalog ID and produces a bounded, deterministic longitudinal diff. Stable
+entry IDs are paired into added, removed, changed, and unchanged items; each
+item retains left/right catalog lineage, entry addresses, bounded snapshots,
+changed fields, and a canonical item address. The diff derives empty, ready,
+blocked, and mixed posture transitions plus improved, regressed, changed, and
+unchanged direction, supports source-free reload and atomic persistence, and
+exposes change, direction, transition, and text queries plus JSON/CSV/Markdown,
+diff/item schemas, capabilities, CLI/HTTP build/verify/query/audit/schema/
+item-schema/capability surfaces, and sixteen independent audit checks. Real
+downloaded-data validation compares the mixed release/strict catalog with a
+fresh release-only catalog, finding one removed and one unchanged entry in a
+mixed-to-ready improvement with a 16/16 accepted diff audit. Public diff
+outputs contain no agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
