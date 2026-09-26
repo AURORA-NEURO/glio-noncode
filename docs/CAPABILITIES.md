@@ -8430,6 +8430,30 @@ transport summaries are available in
 `.glio-real-demo/demo-real-679-real-release-transport-summary.json` and
 `.glio-real-demo/demo-real-679-real-strict-transport-summary.json`.
 
+## Downloaded-data fixed transport catalogs
+
+Module680 aggregates verified module679 fixed transports into a deterministic,
+source-free catalog with stable entry IDs. It rejects duplicate entry IDs and
+package addresses, preserves package, manifest, catalog-diff, policy,
+policy-audit, state, acceptance, member-count, byte-count, and nested lineage,
+and folds entries into empty, ready, blocked, or mixed catalog state.
+
+Catalogs support source-free reload, atomic persistence, bounded summary,
+entries, lineage, state, and text queries, JSON/CSV/Markdown projections,
+catalog and entry schemas, capabilities, and CLI/HTTP build, verify, query,
+audit, audit-verify, schema, entry-schema, audit-check-schema, audit-schema,
+capability, and audit-capabilities surfaces. Sixteen independent catalog audit
+checks cover address replay, canonical form, identity, ordering, entry
+addresses, aggregate folds, uniqueness, policy flags, lineage, source-free
+behavior, public boundary, query replay, summary replay, size bounds, and
+optional source recomputation.
+
+Real downloaded-data validation produces a mixed two-entry catalog from the
+accepted module679 release transport and blocked strict transport: one ready,
+one blocked, two accepted transport audits, and a 16/16 accepted catalog
+audit. CLI and HTTP paths are verified. The summary is available in
+`.glio-real-demo/demo-real-680-real-transport-catalog-summary.json`.
+
 ## Downloaded-data policy-decision transport catalogs
 
 Module636 aggregates verified module635 policy-decision transports into a
