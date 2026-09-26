@@ -8129,6 +8129,22 @@ fresh release-only catalog, finding one removed and one unchanged entry in a
 mixed-to-ready improvement with a 16/16 accepted diff audit. Public diff
 outputs contain no agent, model, or language metadata.
 
+## Downloaded-data catalog diff policy gates
+
+Module678 applies deterministic release and strict profiles to module677
+catalog diffs. It bounds added, removed, changed, and total active changes;
+retains ordered allowlists for change classes, direction, transition, left and
+right postures, readiness, required changes, and unchanged evidence; preserves
+every failed control; and addresses policy/check records with complete diff
+lineage. Policies support source-free reload, atomic persistence, bounded
+passed/failed/check/text queries, JSON/CSV/Markdown projections, policy/check
+schemas and capabilities, CLI/HTTP build, verify, query, audit, schema,
+check-schema, audit-check-schema, audit-schema, and audit-capabilities surfaces,
+and sixteen independent policy-audit checks. Real downloaded-data validation
+accepts release with 16/16 controls while strict retains six failed controls;
+both policies independently audit at 16/16. Public policy outputs contain no
+agent, model, or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
