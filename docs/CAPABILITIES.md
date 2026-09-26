@@ -7930,6 +7930,21 @@ ready catalogs, producing a mixed-to-ready improvement with one removed and one
 unchanged entry plus a 16/16 accepted diff audit. Public diff outputs contain no
 agent, model, or language metadata.
 
+## Downloaded-data transport catalog diff policies
+
+Module666 gates module665 catalog diffs with deterministic release and strict
+profiles. Bounded added, removed, changed, and total-change budgets, ordered
+change/direction/transition/left-posture/right-posture allowlists, required-change,
+readiness, and unchanged controls produce ready or blocked policies while retaining
+every failed check. Canonical policy/check addresses, diff lineage, source-free
+reload, atomic persistence, bounded passed/failed/check/text queries, JSON/CSV/
+Markdown projections, policy/check schemas and capabilities, CLI/HTTP build/verify/
+query/audit/schema/check-schema/capability surfaces, and sixteen independent
+policy-audit checks are included. Real downloaded-data validation accepts release
+with 16/16 policy checks, blocks strict with 6 retained failures, and independently
+audits both policies at 16/16. Public policy outputs contain no agent, model, or
+language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
