@@ -8404,6 +8404,32 @@ downloaded-data validation produces accepted release and blocked strict
 transports, each with a 16/16 accepted transport audit. Public transport
 outputs contain no agent, model, or language metadata.
 
+## Downloaded-data policy-decision fixed transports
+
+Module679 packages module678 policy decisions into deterministic, source-free
+five-member stored ZIP transports. Each transport contains a canonical
+manifest, the module677 catalog diff, the module678 policy, the independent
+module678 policy audit, and regenerated Markdown review. Fixed member order and
+ZIP metadata, canonical UTF-8 bytes, member byte/content addresses, nested
+diff/policy/audit lineage, ready or blocked state, acceptance flags, and failed
+policy evidence are retained.
+
+Transports support source-free load, deterministic byte verification, atomic
+persistence, bounded summary, manifest, member, diff, policy, audit, and review
+queries, JSON/CSV/Markdown projections, package/manifest/member/check schemas,
+capabilities, and CLI/HTTP package, verify, load, query, audit, audit-verify,
+schema, manifest-schema, check-schema, capability, audit-check-schema,
+audit-schema, and audit-capabilities surfaces. Sixteen independent transport
+audit checks cover nested replay, policy evidence, review regeneration, fixed
+ZIP metadata, source-free behavior, byte addresses, and the public boundary.
+
+Real downloaded-data validation produces an accepted release transport of
+96,485 bytes and a blocked strict transport of 96,019 bytes. Both transports
+pass independent 16/16 audits, and both CLI and HTTP paths are verified. The
+transport summaries are available in
+`.glio-real-demo/demo-real-679-real-release-transport-summary.json` and
+`.glio-real-demo/demo-real-679-real-strict-transport-summary.json`.
+
 ## Downloaded-data policy-decision transport catalogs
 
 Module636 aggregates verified module635 policy-decision transports into a
