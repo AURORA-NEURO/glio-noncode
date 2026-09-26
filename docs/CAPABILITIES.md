@@ -8480,6 +8480,28 @@ mixed-to-ready improvement. The diff is 25,702 bytes and its independent audit
 passes 16/16. CLI and HTTP paths are verified. The summary is available in
 `.glio-real-demo/demo-real-681-real-catalog-diff-summary.json`.
 
+## Downloaded-data fixed transport catalog diff policies
+
+Module682 applies deterministic release and strict gates to module681
+longitudinal catalog diffs. It bounds added, removed, changed, and total
+changes; controls change classes, direction, posture transition, left and
+right posture, readiness, required changes, and unchanged evidence; and
+retains every failed control for blocked review. Policies support canonical
+reload, atomic persistence, bounded passed, failed, check, and text queries,
+JSON/CSV/Markdown projections, policy and check schemas, capabilities, and
+CLI/HTTP build, verify, query, audit, audit-verify, schema, check-schema,
+audit-check-schema, audit-schema, and audit-capabilities surfaces.
+
+Sixteen independent policy-audit checks cover policy address, canonical form,
+diff lineage and replay, check order and addresses, aggregates, state,
+budgets, allowlists, readiness, change requirements, required changes,
+unchanged evidence, recomputation, and the public boundary. Real downloaded-
+data validation accepts the release policy with 16/16 policy checks while the
+strict policy blocks with six retained failures; both independent audits pass
+16/16. CLI, HTTP, persistence, tamper, schema, capability, and source-free
+reload paths are verified. Fifteen real module682 JSON artifacts contain no
+agent, model, or language metadata.
+
 ## Downloaded-data policy-decision transport catalogs
 
 Module636 aggregates verified module635 policy-decision transports into a
