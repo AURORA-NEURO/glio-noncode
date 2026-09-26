@@ -7976,6 +7976,23 @@ downloaded-data validation should produce a mixed two-entry catalog containing
 accepted release and blocked strict transports with a 16/16 accepted catalog
 audit. Public catalog outputs contain no agent, model, or language metadata.
 
+## Downloaded-data transport catalog diffs
+
+Module669 compares two module668 transport catalogs with the same catalog
+identity and deterministically classifies added, removed, changed, and unchanged
+entries. It retains left/right catalog and entry addresses, package/manifest/
+catalog-diff/policy/policy-audit lineage, policy state, acceptance, byte, and
+member counts, plus changed-field snapshots. Empty/ready/blocked/mixed posture
+transitions and improved/regressed/changed/unchanged direction are replayable.
+Canonical reload, atomic persistence, bounded change/direction/transition/text
+queries, JSON/CSV/Markdown projections, diff/item schemas and capabilities,
+CLI/HTTP diff, verify, query, audit, schema, item-schema, and capability
+surfaces, and sixteen independent diff-audit checks are included. Real
+downloaded-data validation compares a mixed catalog with a ready-only catalog,
+producing a mixed-to-ready improvement with one removed and one unchanged entry
+plus a 16/16 accepted diff audit. Public diff outputs contain no agent, model,
+or language metadata.
+
 ## Downloaded-data fixed transport catalog catalogs
 
 Module624 aggregates verified module623 five-member policy-decision transports
